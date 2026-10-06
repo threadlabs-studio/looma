@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Badges align and space ordinary icon-and-text content without clipping glyphs, and offer a leading `icon` slot that stays visible when labels truncate. Buttons now space ordinary icons and text consistently.
+
 - Collapsed tree branches keep their own disclosure direction beneath expanded ancestors, matching the files they actually show.
 
 - Multiline Input Group offers an upper-end action position with text space reserved for changing labels and pending indicators, keeping the native textarea resize grip clear. Existing below-text placement remains the default.

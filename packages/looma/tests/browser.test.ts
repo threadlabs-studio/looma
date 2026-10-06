@@ -2203,6 +2203,81 @@ describe("Badge box", () => {
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
 
+  it("spaces and centers ordinary SVG plus text children in badges and buttons", async () => {
+    const icon = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-ordinary-icon-text`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button } from "@threadlabs/looma/vue";
+        const icon = () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]);
+        createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"]), h(Badge, { id: "ordinary-square", shape: "square" }, () => icon()), h(Badge, { id: "slot-square", shape: "square" }, { icon })] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        for (const id of ['ordinary-badge', 'ordinary-button']) {
+          const geometry = await page.locator(`#${id}`).evaluate(element => {
+            const label = element.querySelector('.label') ?? element;
+            const text = [...label.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+            const range = document.createRange(); range.selectNodeContents(text);
+            const word = range.getBoundingClientRect(), icon = element.querySelector('svg')!.getBoundingClientRect(), clip = label.getBoundingClientRect();
+            return { alignment: Math.abs((word.top + word.bottom) / 2 - (icon.top + icon.bottom) / 2), gap: word.left - icon.right, top: icon.top - clip.top, bottom: clip.bottom - icon.bottom };
+          });
+          assert.ok(geometry.alignment <= 2, `${adapter}/${width}/${id}: ordinary icon aligns with text: ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.gap >= 3, `${adapter}/${width}/${id}: ordinary icon has spacing: ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.top >= -1 && geometry.bottom >= -1, `${adapter}/${width}/${id}: ordinary icon is fully visible: ${JSON.stringify(geometry)}`);
+        }
+        for (const id of ['ordinary-square', 'slot-square']) {
+          const centering = await page.locator(`#${id}`).evaluate(element => {
+            const icon = element.querySelector('svg')!.getBoundingClientRect(), badge = element.getBoundingClientRect();
+            return { x: Math.abs((icon.left + icon.right - badge.left - badge.right) / 2), y: Math.abs((icon.top + icon.bottom - badge.top - badge.bottom) / 2) };
+          });
+          assert.ok(centering.x < 1 && centering.y < 1, `${adapter}/${width}/${id}: an icon without text is centered: ${JSON.stringify(centering)}`);
+        }
+      }
+      await page.close();
+    }
+  });
+
+  it("keeps an icon centered and unclipped beside chip text in HTML and Vue", async () => {
+    const svg = '<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-badge-icon-label`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Badge, { id: "chip", tone: "success" }, { icon: () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]), default: () => "Yes" }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="chip" tone="success">${svg} Yes</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#chip[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.locator('#chip').evaluate(element => {
+          const label = element.querySelector('.label')!;
+          const word = label.getBoundingClientRect(), icon = element.querySelector('svg')!.getBoundingClientRect(), clip = element.getBoundingClientRect();
+          return { alignment: Math.abs((word.top + word.bottom) / 2 - (icon.top + icon.bottom) / 2), iconTop: icon.top, iconBottom: icon.bottom, clipTop: clip.top, clipBottom: clip.bottom, gap: word.left - icon.right };
+        });
+        assert.ok(geometry.alignment <= 2, `${adapter}: icon and text share a center: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.iconTop >= geometry.clipTop - 1 && geometry.iconBottom <= geometry.clipBottom + 1, `${adapter}: icon is not clipped: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.gap >= 3, `${adapter}: icon has visible separation from text: ${JSON.stringify(geometry)}`);
+        const constrained = await page.locator('#chip').evaluate(element => {
+          const label = element.querySelector('.label')!;
+          label.textContent = 'A long label with descenders gjpqy';
+          (element as HTMLElement).style.maxWidth = '110px';
+          const icon = element.querySelector('svg')!.getBoundingClientRect(), chip = element.getBoundingClientRect();
+          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom };
+          label.textContent = 'Yes'; (element as HTMLElement).style.maxWidth = '';
+          return result;
+        });
+        assert.equal(constrained.clipped, true);
+        assert.equal(constrained.overflow, 'ellipsis');
+        assert.equal(constrained.visible, true, 'only the label truncates; the leading icon stays whole');
+      }
+      await page.close();
+    }
+  });
+
+
   it("sizes to its label and shades subtle edges in every tone, in HTML", async () => {
     const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
     const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
