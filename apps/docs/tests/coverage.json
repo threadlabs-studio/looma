@@ -185,6 +185,11 @@
           "behavior": false
         },
         {
+          "id": "07-icon",
+          "title": "Leading icon",
+          "behavior": false
+        },
+        {
           "id": "08-square",
           "title": "Icon marks",
           "behavior": false
