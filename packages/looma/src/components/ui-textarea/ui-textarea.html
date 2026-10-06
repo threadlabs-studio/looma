@@ -70,6 +70,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-textarea-padding-inline-end {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       box-sizing: border-box;
@@ -80,6 +84,7 @@
       margin: 0;
       --_padding-block: var(--ui-space-2);
       padding: var(--ui-space-2) var(--ui-space-3);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-3)));
       appearance: none;
       resize: vertical;
       border: var(--ui-textarea-border-width, var(--_ui-default-textarea-border-width, var(--ui-border-width))) solid
@@ -148,12 +153,14 @@
     :host([size="sm"]) {
       --_padding-block: var(--ui-space-1);
       padding: var(--ui-space-1) var(--ui-space-2);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-2)));
       font-size: var(--ui-font-size-sm);
     }
 
     :host([size="lg"]) {
       --_padding-block: var(--ui-space-3);
       padding: var(--ui-space-3) var(--ui-space-4);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-4)));
       font-size: var(--ui-font-size-md);
     }
 
