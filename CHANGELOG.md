@@ -1,11 +1,15 @@
 # Changelog
 
-## v0.25.6
+## v0.25.7
 
 - Correct Dialog's action bottom gutter, optically balance the header inset, and compact intrinsic sizing. Its body uses Scroll Area's additive `trim` option to remove outer projected margins while preserving spacing between items. Open dialogs now animate content growth and shrinkage over the dialog motion duration to preserve visual continuity instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
 - Dialog and non-modal Search Shell now render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return. Dialog body spacing remains intact around its nested Scroll Area.
 - Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
 - Table context menus keep their minimum width inside narrow presentation viewports.
+
+## v0.25.6
+
+- List rows show a quiet hover surface across their full hit area and retain their current state while hovered. List Item offers leadingInteractive to keep a leading control separate from the row link. Checkboxes accept an accessible label without visible text, and Cluster can align the first text baselines of wrapped columns.
 
 ## v0.25.5
 
