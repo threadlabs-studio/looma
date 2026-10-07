@@ -1,5 +1,10 @@
 <template component="ui-cluster">
   <defs>
+    <prop name="padding" type="keyword" values="none, s, m, l" default="none"
+    >Optional internal space for an action group, using the shared spacing scale.</prop>
+    <prop name="paddingEnd" type="keyword" values="none, s, m, l, xl" default="none"
+    >Optional extra space at the inline end, such as clearance beside another control. xl is 4rem.</prop>
+    <prop name="fixed" type="boolean" default="false">Keeps this group at its content size inside a flex layout.</prop>
     <prop name="gap" type="keyword" values="xs, s, m, l, xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem (also the default), m 1rem, l 1.5rem, and xl 2rem. The --ui-cluster-gap custom property,
       set on the cluster itself, overrides it; set on an ancestor, it does nothing.</prop>
@@ -33,40 +38,65 @@
       margin: 0;
     }
 
-    :host-state([gap="xs"]) {
+    :host([fixed]) {
+      flex: none;
+    }
+    :host([padding="s"]) {
+      padding: var(--ui-space-2);
+    }
+    :host([padding="m"]) {
+      padding: var(--ui-space-3);
+    }
+    :host([padding="l"]) {
+      padding: var(--ui-space-4);
+    }
+    :host([paddingEnd="s"]) {
+      padding-inline-end: var(--ui-space-2);
+    }
+    :host([paddingEnd="m"]) {
+      padding-inline-end: var(--ui-space-3);
+    }
+    :host([paddingEnd="l"]) {
+      padding-inline-end: var(--ui-space-4);
+    }
+    :host([paddingEnd="xl"]) {
+      padding-inline-end: calc(var(--ui-space-4) * 4);
+    }
+
+    :host([gap="xs"]) {
       --_layout-gap: var(--ui-space-2);
     }
-    :host-state([gap="s"]) {
+    :host([gap="s"]) {
       --_layout-gap: var(--ui-space-3);
     }
-    :host-state([gap="m"]) {
+    :host([gap="m"]) {
       --_layout-gap: var(--ui-space-4);
     }
-    :host-state([gap="l"]) {
+    :host([gap="l"]) {
       --_layout-gap: var(--ui-space-5);
     }
-    :host-state([gap="xl"]) {
+    :host([gap="xl"]) {
       --_layout-gap: var(--ui-space-6);
     }
-    :host-state([align="start"]) {
+    :host([align="start"]) {
       align-items: flex-start;
     }
-    :host-state([align="end"]) {
+    :host([align="end"]) {
       align-items: flex-end;
     }
-    :host-state([align="stretch"]) {
+    :host([align="stretch"]) {
       align-items: stretch;
     }
-    :host-state([justify="center"]) {
+    :host([justify="center"]) {
       justify-content: center;
     }
-    :host-state([justify="end"]) {
+    :host([justify="end"]) {
       justify-content: flex-end;
     }
-    :host-state([justify="between"]) {
+    :host([justify="between"]) {
       justify-content: space-between;
     }
-    :host-state([wrap="nowrap"]) {
+    :host([wrap="nowrap"]) {
       flex-wrap: nowrap;
     }
 

@@ -1,5 +1,6 @@
 <template component="ui-scroll-area" controller="./ui-scroll-area.js">
   <defs>
+    <prop name="fill" type="boolean" default="false">Grows into remaining space within a flex layout while keeping content independently scrollable.</prop>
     <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
     >Optional height preset. content keeps intrinsic sizing; sm fits three compact 3.125rem result rows before the overflow fade, md is 20rem, and lg is
       30rem.</prop>
@@ -15,6 +16,10 @@
     /* The controller sets each fade length from overflow and scroll position. The mask blends
        into whatever is behind the area without needing to know its colour. Before upgrade, its
        zero-length defaults leave the authored scroll area fully visible. */
+    :host([fill]) {
+      flex: 1;
+    }
+
     :host {
       display: block;
       box-sizing: border-box;
@@ -40,15 +45,15 @@
     }
 
     /* Only the projected edges are trimmed; content inside an item keeps its own spacing. */
-    :host-state([trim]) .content > :slotted(:first-child) {
+    :host([trim]) .content > :slotted(:first-child) {
       margin-block-start: 0;
     }
 
-    :host-state([trim]) .content > :slotted(:last-child) {
+    :host([trim]) .content > :slotted(:last-child) {
       margin-block-end: 0;
     }
 
-    :host-state([orientation="horizontal"]) {
+    :host([orientation="horizontal"]) {
       overflow-x: auto;
       overflow-y: hidden;
       --_ui-scroll-fade-direction: var(--_ui-scroll-fade-inline);
@@ -58,13 +63,13 @@
       --_ui-scroll-fade-inline: to left;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       max-block-size: calc(9.375rem + var(--ui-scroll-fade-size, 24px));
     }
-    :host-state([size="md"]) {
+    :host([size="md"]) {
       max-block-size: 20rem;
     }
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       max-block-size: 30rem;
     }
 

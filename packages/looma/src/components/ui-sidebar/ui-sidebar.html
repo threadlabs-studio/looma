@@ -79,7 +79,7 @@
       transition: inline-size var(--ui-motion-layout) var(--ui-motion-layout-ease), visibility var(--ui-motion-layout);
     }
 
-    :host-state([side="end"]) {
+    :host([side="end"]) {
       border-inline-end: 0;
       border-inline-start: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
     }
@@ -126,7 +126,7 @@
     :host-state([internalCollapsed]):not([popover]) .content {
       transform: translateX(-100%);
     }
-    :host-state([side="end"][internalCollapsed]):not([popover]) .content {
+    :host([side="end"]):host-state([internalCollapsed]):not([popover]) .content {
       transform: translateX(100%);
     }
 
@@ -148,7 +148,7 @@
       display: none;
     }
 
-    :host-state([side="end"]) .resizer {
+    :host([side="end"]) .resizer {
       inset-inline-end: auto;
       inset-inline-start: 0;
       transform: translateX(-50%);
@@ -217,12 +217,12 @@
       transform: translateX(-100%);
     }
 
-    :host-state([side="end"])[popover] {
+    :host([side="end"])[popover] {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
 
-    :host-state([side="end"])[popover]:not(:popover-open) {
+    :host([side="end"])[popover]:not(:popover-open) {
       transform: translateX(100%);
     }
 
@@ -230,7 +230,7 @@
       :host[popover]:popover-open {
         transform: translateX(-100%);
       }
-      :host-state([side="end"])[popover]:popover-open {
+      :host([side="end"])[popover]:popover-open {
         transform: translateX(100%);
       }
     }

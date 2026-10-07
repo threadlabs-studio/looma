@@ -5,7 +5,7 @@ function inputFor(event) {
 }
 
 /** Authored toasts request dismissal; their consumer owns removal from the rendered list. */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const { action } = host.refs;
   if (!element.id) element.id = `ui-toast-authored-${++toastSequence}`;
@@ -65,4 +65,9 @@ export default function controller(host) {
     element.removeEventListener("focusin", pause);
     element.removeEventListener("focusout", onFocusOut);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

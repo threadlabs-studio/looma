@@ -1,5 +1,5 @@
 /** Stack the group when the authored child count exceeds the optional row limit. */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const update = () => {
     const limit = Number(host.props.limit.value);
@@ -12,4 +12,9 @@ export default function controller(host) {
     stop();
     observer.disconnect();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -61,7 +61,7 @@
       outline: var(--ui-border-width) solid transparent;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       inline-size: var(--ui-meter-inline-size, 5rem);
       block-size: var(--ui-space-1);
     }
@@ -74,23 +74,23 @@
       box-shadow: inset 0 1px rgb(255 255 255 / 0.26), inset 0 -1px rgb(0 0 0 / 0.1);
     }
 
-    :host-state([tone="accent"]) {
+    :host([tone="accent"]) {
       --_meter-fill: var(--ui-accent-solid);
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_meter-fill: var(--ui-info-solid);
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_meter-fill: var(--ui-success-solid);
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_meter-fill: var(--ui-warning-solid);
     }
 
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_meter-fill: var(--ui-danger-solid);
     }
 
@@ -154,7 +154,7 @@
       mask-image: repeating-linear-gradient(to right, #000 0 var(--_meter-segment), transparent 0 var(--_meter-period));
     }
 
-    :host-state([size="sm"])[data-ui-meter-segments] {
+    :host([size="sm"])[data-ui-meter-segments] {
       --_meter-gap: var(--ui-space-0-5);
     }
 

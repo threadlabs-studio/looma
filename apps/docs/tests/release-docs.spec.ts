@@ -489,6 +489,10 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(anticipatoryControl.locator(".content")).toHaveCSS("opacity", "1");
 
   const search = page.getByRole("searchbox", { name: "Search components" });
+  await page.getByRole("heading", { level: 1, name: "Components" }).click();
+  await page.keyboard.press("/");
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
   await search.fill("toast");
   await expect(page.getByText("Showing 1 component", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Toast Region" })).toBeVisible();
@@ -1963,8 +1967,11 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.waitForLoadState("networkidle");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
-    // Text treatments retain their order; the three square icon marks extend the gallery.
-    await expect(badges).toHaveCount(26);
+    // Text treatments retain their order; leading icons and square marks extend the gallery.
+    await expect(badges).toHaveCount(29);
+    const leading = page.locator('[data-preview-example="07-icon"] [data-component~="ui-badge"]');
+    await expect(leading).toHaveCount(3);
+    for (const badge of await leading.all()) await expect(badge.locator("svg")).toBeVisible();
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");

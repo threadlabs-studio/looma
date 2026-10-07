@@ -33,11 +33,6 @@ interface ComponentApiProperty {
   fields?: ComponentApiField[];
 }
 
-interface ComponentApiMethod {
-  name: string;
-  returns: string;
-}
-
 interface ComponentApiSlot {
   name: string;
   description: string;
@@ -72,7 +67,6 @@ interface ComponentApiRecord {
   designTokens: ComponentDesignTokens;
   attributes: ComponentApiAttribute[];
   properties: ComponentApiProperty[];
-  methods: ComponentApiMethod[];
   events: ComponentApiEvent[];
   slots: ComponentApiSlot[];
 }
@@ -232,28 +226,6 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
           </tbody>
         </table>
         </>
-      )}
-
-      <SectionHeader title="Methods" />
-      {api.methods.length === 0 ? (
-        <p>No public methods.</p>
-      ) : (
-        <table className="looma-api-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Returns</th>
-            </tr>
-          </thead>
-          <tbody>
-            {api.methods.map((method) => (
-              <tr key={method.name}>
-                <td><code>{method.name}</code></td>
-                <td><code>{method.returns}</code></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       )}
 
       <SectionHeader title="Events" />

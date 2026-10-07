@@ -2,11 +2,26 @@
 
 ## Unreleased
 
-- Correct Dialog's action bottom gutter, optically balance the header inset, and compact intrinsic sizing. Its body uses Scroll Area's additive `trim` option to remove outer projected margins while preserving spacing between items. Open dialogs now animate content growth and shrinkage over the dialog motion duration to preserve visual continuity instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
+- Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
 
-- Dialog and non-modal Search Shell now render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return. Dialog body spacing remains intact around its nested Scroll Area.
-- Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
-- Table context menus keep their minimum width inside narrow presentation viewports.
+- Badges align and space ordinary icon-and-text content without clipping glyphs, and offer a leading `icon` slot that stays visible when labels truncate. Buttons now space ordinary icons and text consistently.
+
+- Collapsed tree branches keep their own disclosure direction beneath expanded ancestors, matching the files they actually show.
+
+- Multiline Input Group offers an upper-end action position with text space reserved for changing labels and pending indicators, keeping the native textarea resize grip clear. Existing below-text placement remains the default.
+
+- Input Group supports multiline Textarea fields with an action below the text, sharing one border and accessible focus/invalid/disabled treatment in HTML and Vue.
+
+- Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
+
+- **Breaking: controller commands replace generated element methods.** Combobox's `validate()` and `focusInput()` and Toast Region's `show()` depended on `<method>`, an unsupported HTML Next construct outside the public proposal’s controller/event model. This removes that named-export bridge; aliases would require maintaining a separate imperative library adapter. Request combobox validation with a native `validate` event or `CommandEvent("command", { command: "--validate" })` and read `validation-change`; focus its native input directly. Add programmatic toasts with `CustomEvent("show-toast", { detail: { message, id?, tone?, duration? } })`; supply `id` when correlating `dismiss`. The existing `--show-toast` button command remains available. Controller connection subscriptions preserve setup and cleanup through reconnects. Component CSS now distinguishes resolved props with `:host([prop])` from mutable/computed state with `:host-state([state])`.
+
+- Floating formatting supports Select All. Link and table pickers keep their toolbar anchor while editing; anchored surfaces retain their last valid position when a trigger becomes unavailable and wait for usable bounds before first opening.
+
+- Holding a table column resize handle keeps floating text formatting closed.
+
+- **Desktop floating toolbar behavior changes (0.24):** formatting opens on text selection or a held primary press and dismisses with Escape or caret movement. Previously, contextual tools appeared on every caret focus and obscured the writing surface. This shared default keeps floating tools tied to intent; an app-specific option would leave the obstructive default in other consumers. Apps needing persistent controls can use `toolbarMode="sticky"` or their explicit formatting popover. Small viewports retain the editing dock; toolbar placement defaults and document commands are unchanged.
+- Card buttons center their grid row within spare height, so single-line labels sit vertically centered while wrapped labels retain top-aligned icons and content.
 
 - Editable images no longer become viewer tab stops. Clicking selects the image and shows one contextual bar for block/center placement, left/right text wrapping, description, and deletion. Drag any corner to resize at the intrinsic aspect ratio; release commits one undo step, and Escape cancels. A shared Image primitive owns selection and resize handles; controls retain the UI font and standard hover/focus tooltips. Choosing wrapping uses one-third of the column on desktop and full-width stacking on small screens; corner dragging overrides the default size. Reading mode retains viewer activation and placement. Images fit narrow grid tracks without scrolling; full-width phone wrapping hides inactive resize handles. Image dimensions, placement, and responsiveness round-trip through the shared preset.
 - Document dividers use the shared Separator’s optional selectable/selected states for a larger pointer target and selection feedback. Text/code Tab inserts a literal tab instead of skipping down the document; list indentation and table cell navigation keep precedence, and Shift-Tab outside them allows keyboard exit.

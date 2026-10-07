@@ -2,7 +2,7 @@ import { closeOverlay, createAnchoredSurface, createIdResolver, onOverlayOpen, o
 
 const warmTooltips = new WeakMap();
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const warm = warmTooltips.get(document) ?? { active: 0, until: 0 };
@@ -189,4 +189,9 @@ export default function controller(host) {
     element.removeEventListener("pointerleave", onLeave);
     closeOverlay(document, overlayId);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

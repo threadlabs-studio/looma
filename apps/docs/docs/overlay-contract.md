@@ -34,6 +34,9 @@ The overlay contract is shared by `ui-dialog` and `ui-popover` through a central
 - Looma's shared lightweight fallback flips and shifts against the visual
   viewport when Anchor Positioning is unavailable. It runs only while the
   surface is open; consumers do not need a separate positioning dependency.
+- If a trigger temporarily becomes hidden or disconnected, the surface keeps its
+  last valid position. First opening waits for usable trigger bounds; zero-size
+  bounds never place a surface at the viewport corner.
 - Tooltip pointer interactions use configurable `show-delay` and `hide-delay`
   intent timing (500ms/100ms by default); keyboard focus opens immediately.
 

@@ -115,7 +115,7 @@
     </state>
     <state type="string" name="raw" value=""></state>
     <state type="string" name="display" value=""></state>
-    <state name="selected" type="string"></state>
+    <state name="selected" type="string" nullable></state>
     <state type="boolean" name="expanded" value="false"></state>
     <state
       name="rows"
@@ -367,8 +367,6 @@
       </prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
-    <method name="validate" export="validate" returns="promise(unknown)"></method>
-    <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
   <div>
     <label from:for="concat(uid, '-input')" class:sr-only="labelVisibility = 'sr-only'">{$label}<template $if="required">
@@ -706,15 +704,15 @@
       margin: 0;
       outline: none;
     }
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_row: var(--ui-control-size-sm);
     }
-    :host-state([size="sm"]) input {
+    :host([size="sm"]) input {
       min-block-size: calc(var(--_row) - 2px);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
-    :host-state([size="lg"]) input {
+    :host([size="lg"]) input {
       min-block-size: calc(var(--ui-control-size-lg) - 2px);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
@@ -756,7 +754,7 @@
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
     }
     :host-state([validationStatus="error"]) .field,
-    :host-state([invalid]) .field {
+    :host([invalid]) .field {
       border-color: var(--_ui-combobox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid, var(--ui-accent-active))));
     }
     .popup {
@@ -827,10 +825,10 @@
       }
       /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
          body-size text: below 16px, iOS zooms the page into the focused field. */
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         --_row: var(--ui-control-min-block-size);
       }
-      :host-state([size="sm"]) input {
+      :host([size="sm"]) input {
         font-size: inherit;
       }
     }
@@ -845,40 +843,40 @@
 
     /* Multiple mode keeps one control height. Chips and the input scroll within the entry,
        while the clear and disclosure controls remain fixed at the end of the field. */
-    :host-state([multiple]) .field {
+    :host([multiple]) .field {
       align-items: center;
       min-block-size: var(--_ui-combobox-item-min-block-size, 2.5rem);
       padding: var(--ui-space-1);
     }
-    :host-state([multiple]) .entry {
+    :host([multiple]) .entry {
       align-items: center;
       gap: var(--ui-space-1);
       overflow-x: auto;
       scrollbar-width: none;
     }
-    :host-state([multiple]) .entry::-webkit-scrollbar {
+    :host([multiple]) .entry::-webkit-scrollbar {
       display: none;
     }
-    :host-state([multiple]) input {
+    :host([multiple]) input {
       flex: 1 0 var(--_ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
     }
     /* Size variants keep their control height as selections are added. */
-    :host-state([multiple]):host-state([size="sm"]) .field {
+    :host([multiple]):host([size="sm"]) .field {
       min-block-size: 0;
       padding: var(--ui-space-0-5);
     }
-    :host-state([multiple]):host-state([size="sm"]) input {
+    :host([multiple]):host([size="sm"]) input {
       min-block-size: calc(var(--_row) - 2 * var(--ui-border-width) - 2 * var(--ui-space-0-5));
       padding: 0 var(--ui-space-1);
     }
     /* A large multiple field starts at the large control height, as sm starts at the small one. */
-    :host-state([multiple]):host-state([size="lg"]) .field {
+    :host([multiple]):host([size="lg"]) .field {
       min-block-size: 0;
     }
-    :host-state([multiple]):host-state([size="lg"]) input {
+    :host([multiple]):host([size="lg"]) input {
       min-block-size: calc(var(--ui-control-size-lg) - 2 * var(--ui-border-width) - 2 * var(--ui-space-1));
     }
     .item {

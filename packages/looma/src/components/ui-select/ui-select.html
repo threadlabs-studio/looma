@@ -127,7 +127,7 @@
       cursor: not-allowed;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
       padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1));
@@ -136,7 +136,7 @@
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       padding-inline-end: calc(var(--ui-space-4) + 1.5rem);
@@ -147,7 +147,7 @@
     /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         min-block-size: var(--ui-control-min-block-size);
         font-size: inherit;
       }

@@ -338,7 +338,15 @@ export function createAnchoredSurface(surface, options = {}) {
   const position = () => {
     const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 } : anchorRect();
     if (!rect) return;
-    lastAnchorRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+    // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
+    if (!point && typeof anchor !== "function" && (anchor.isConnected === false || rect.width === 0 && rect.height === 0
+      || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible")) {
+      if (lastAnchorRect) positionAnchoredSurface(surface, lastAnchorRect, { placement, gap: gap(), viewportGap });
+      else hide(surface);
+      return;
+    }
+    lastAnchorRect = { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
+    show(surface);
     positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap });
   };
   surface.style.position = "fixed";

@@ -30,7 +30,7 @@ Release 1 and are not public Candidate packages.
 
 Looma has one framework-neutral component model:
 
-- Each contract declares props and defaults, input channels, methods, slots,
+- Each contract declares props and defaults, input channels, slots,
   events, internal state, dependencies, and a native root.
 - Direct HTML uses `ui-*` invocation tags as declarative source. Browser imports
   lower each invocation to its native light-DOM root and attach its controller.
@@ -41,6 +41,15 @@ Looma has one framework-neutral component model:
 - Importing public JavaScript entry points in an SSR process must not require
   `window`, `document`, `HTMLElement`, or a custom-element registry at module
   evaluation time.
+
+Controllers initialize once per instance and register DOM work with
+`host.on("connect", callback)`. That callback runs on each connection and returns
+the connection's cleanup; the subscription remains active after disconnect so
+reconnecting reinstalls listeners and observers. Controllers communicate through
+native events and commands rather than generated methods on component elements.
+
+Component styles read resolved props with `:host([prop])` and mutable or computed
+state with `:host-state([state])`.
 
 ## Module Formats
 
@@ -62,7 +71,7 @@ Release documentation follows built artifacts, not a blanket format claim:
 ## Contract Ownership
 
 The declarative contracts define canonical native roots, attributes, properties,
-methods, events, slots, SSR/no-JS behavior, and accessibility expectations. The supported Vue adapter
+events, slots, SSR/no-JS behavior, and accessibility expectations. The supported Vue adapter
 translates framework conventions without introducing behavior divergence. The
 [support matrix](./release-support-matrix.md) defines which surfaces receive
 Candidate proof in Release 1.

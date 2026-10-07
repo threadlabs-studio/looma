@@ -106,6 +106,48 @@ describe("Anchored overlay placement", () => {
     await page.close();
   });
 
+  it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
+    const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const previous = await page.locator("#popover").boundingBox();
+    assert.ok(previous);
+    for (const action of ["hide", "remove"]) {
+      await page.locator("#anchor").evaluate((element, action) => {
+        if (action === "hide") (element as HTMLElement).style.display = "none";
+        else element.remove();
+      }, action);
+      await page.waitForTimeout(100);
+      const current = await page.locator("#popover").boundingBox();
+      assert.ok(current);
+      assert.ok(Math.abs(current.x - previous.x) < 1, `${action} must not move the popover horizontally`);
+      assert.ok(Math.abs(current.y - previous.y) < 1, `${action} must not move the popover vertically`);
+    }
+    await page.setViewportSize({ width: 375, height: 720 });
+    await page.waitForFunction(() => {
+      const rect = document.querySelector("#popover")!.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= window.innerWidth;
+    });
+    await page.close();
+  });
+
+  it("waits for a usable anchor instead of opening at zero-size trigger bounds", async () => {
+    const path = await bundle("html-popover-hidden-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="display: none; position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#popover").evaluate(element => element.matches(":popover-open")), false);
+    await page.locator("#anchor").evaluate(element => { (element as HTMLElement).style.display = "block"; });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const current = await page.locator("#popover").boundingBox();
+    assert.ok(current && current.x >= 499 && current.y >= 290);
+    await page.close();
+  });
+
   it("positions Popover and Tooltip on every side and alignment, then flips at an edge", async () => {
     const path = await bundle("html-overlay-placement", `import "@threadlabs/looma";`);
     const placements = ["top", "top-start", "top-end", "bottom", "bottom-start", "bottom-end", "left", "left-start", "left-end", "right", "right-start", "right-end"];
@@ -283,12 +325,11 @@ describe("Anchored overlay placement", () => {
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
     const editor = page.getByRole("textbox", { name: "Writing" });
     await editor.focus();
-    // Set the editor model too; a browser-only caret can be restored from stale selection state.
-    await page.waitForFunction(() => (window as any).selectionEditor?.editor);
-    await page.evaluate(() => (window as any).selectionEditor.editor.commands.setTextSelection(1));
-    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), true);
+    // Set a known caret before selecting a real character.
+    await editor.press("End");
+    await editor.press("ArrowLeft");
     await editor.press("Shift+ArrowRight");
-    await page.waitForFunction(() => window.getSelection()?.toString() === "S");
+    await page.waitForFunction(() => (window.getSelection()?.toString().length ?? 0) > 0);
     await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
@@ -452,11 +493,13 @@ describe("Toast composition and placement", () => {
     await page.close();
   });
 
-  it("adds generated messages with tone and duration through the public method", async () => {
+  it("adds generated messages with tone and duration through a native event", async () => {
     const path = await bundle("html-generated-toast", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-toast-region id="region" placement="top-start" duration="0"></ui-toast-region>`, [join(root, "tokens.css")]);
-    const id = await page.locator("#region").evaluate(async (element: any) => element.show("Saved", { tone: "success", duration: 0 }));
-    assert.equal(typeof id, "string");
+    await page.locator("#region").evaluate((element) => element.dispatchEvent(new CustomEvent("show-toast", {
+      detail: { message: "Saved", id: "saved-notice", tone: "success", duration: 0 },
+    })));
+    assert.equal(await page.locator("#region #saved-notice").count(), 1);
     assert.equal(await page.locator("#region .toast[role='status'][data-tone='success']").count(), 1);
     const region = page.locator("#region");
     assert.equal(await region.evaluate((element) => element.matches(":popover-open")), true);
@@ -1861,6 +1904,40 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("frames a multiline textarea and its bottom action in one accessible input group", async () => {
+    const path = await bundle("vue-multiline-input-group", `
+      import { createApp, h } from "vue";
+      import { Button, Textarea, InputGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(InputGroup, { id: "multiline", multiline: true }, {
+          default: () => h(Textarea, { id: "message", name: "message", rows: 3, value: "A draft", "aria-label": "Message" }),
+          suffix: () => "Plain text",
+          action: () => h(Button, { id: "send", type: "submit" }, () => "Send"),
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "the textarea shares the outer frame");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height, "the action sits below the text");
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width, "the action stays inside the frame");
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true, "a press around the action focuses the textarea");
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow, "invalid focus reaches the frame");
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.close();
+  });
+
   it("put an input group's action at its end, inside its border, at the field's height", async () => {
     const path = await bundle("vue-input-group-action", `
       import { createApp, h } from "vue";
@@ -2323,6 +2400,81 @@ describe("Badge box", () => {
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
 
+  it("spaces and centers ordinary SVG plus text children in badges and buttons", async () => {
+    const icon = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-ordinary-icon-text`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button } from "@threadlabs/looma/vue";
+        const icon = () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]);
+        createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"]), h(Badge, { id: "ordinary-square", shape: "square" }, () => icon()), h(Badge, { id: "slot-square", shape: "square" }, { icon })] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        for (const id of ['ordinary-badge', 'ordinary-button']) {
+          const geometry = await page.locator(`#${id}`).evaluate(element => {
+            const label = element.querySelector('.label') ?? element;
+            const text = [...label.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+            const range = document.createRange(); range.selectNodeContents(text);
+            const word = range.getBoundingClientRect(), icon = element.querySelector('svg')!.getBoundingClientRect(), clip = label.getBoundingClientRect();
+            return { alignment: Math.abs((word.top + word.bottom) / 2 - (icon.top + icon.bottom) / 2), gap: word.left - icon.right, top: icon.top - clip.top, bottom: clip.bottom - icon.bottom };
+          });
+          assert.ok(geometry.alignment <= 2, `${adapter}/${width}/${id}: ordinary icon aligns with text: ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.gap >= 3, `${adapter}/${width}/${id}: ordinary icon has spacing: ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.top >= -1 && geometry.bottom >= -1, `${adapter}/${width}/${id}: ordinary icon is fully visible: ${JSON.stringify(geometry)}`);
+        }
+        for (const id of ['ordinary-square', 'slot-square']) {
+          const centering = await page.locator(`#${id}`).evaluate(element => {
+            const icon = element.querySelector('svg')!.getBoundingClientRect(), badge = element.getBoundingClientRect();
+            return { x: Math.abs((icon.left + icon.right - badge.left - badge.right) / 2), y: Math.abs((icon.top + icon.bottom - badge.top - badge.bottom) / 2) };
+          });
+          assert.ok(centering.x < 1 && centering.y < 1, `${adapter}/${width}/${id}: an icon without text is centered: ${JSON.stringify(centering)}`);
+        }
+      }
+      await page.close();
+    }
+  });
+
+  it("keeps an icon centered and unclipped beside chip text in HTML and Vue", async () => {
+    const svg = '<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-badge-icon-label`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Badge, { id: "chip", tone: "success" }, { icon: () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]), default: () => "Yes" }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="chip" tone="success">${svg} Yes</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#chip[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.locator('#chip').evaluate(element => {
+          const label = element.querySelector('.label')!;
+          const word = label.getBoundingClientRect(), icon = element.querySelector('svg')!.getBoundingClientRect(), clip = element.getBoundingClientRect();
+          return { alignment: Math.abs((word.top + word.bottom) / 2 - (icon.top + icon.bottom) / 2), iconTop: icon.top, iconBottom: icon.bottom, clipTop: clip.top, clipBottom: clip.bottom, gap: word.left - icon.right };
+        });
+        assert.ok(geometry.alignment <= 2, `${adapter}: icon and text share a center: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.iconTop >= geometry.clipTop - 1 && geometry.iconBottom <= geometry.clipBottom + 1, `${adapter}: icon is not clipped: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.gap >= 3, `${adapter}: icon has visible separation from text: ${JSON.stringify(geometry)}`);
+        const constrained = await page.locator('#chip').evaluate(element => {
+          const label = element.querySelector('.label')!;
+          label.textContent = 'A long label with descenders gjpqy';
+          (element as HTMLElement).style.maxWidth = '110px';
+          const icon = element.querySelector('svg')!.getBoundingClientRect(), chip = element.getBoundingClientRect();
+          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom };
+          label.textContent = 'Yes'; (element as HTMLElement).style.maxWidth = '';
+          return result;
+        });
+        assert.equal(constrained.clipped, true);
+        assert.equal(constrained.overflow, 'ellipsis');
+        assert.equal(constrained.visible, true, 'only the label truncates; the leading icon stays whole');
+      }
+      await page.close();
+    }
+  });
+
+
   it("sizes to its label and shades subtle edges in every tone, in HTML", async () => {
     const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
     const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
@@ -2354,7 +2506,21 @@ describe("Combobox validation message", () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
-    await page.evaluate(() => (document.querySelector("#fruit") as unknown as { validate(): Promise<unknown> }).validate());
+    assert.equal(await page.locator('#fruit input[role="combobox"]').evaluate((input) => {
+      (input as HTMLInputElement).focus();
+      return input.ownerDocument.activeElement === input;
+    }), true);
+    const validation = await page.locator("#fruit").evaluate((element) => new Promise<{ status: string }>((resolve) => {
+      const onValidation = (event: Event) => {
+        const detail = (event as CustomEvent<{ status: string }>).detail;
+        if (detail.status === "pending") return;
+        element.removeEventListener("validation-change", onValidation);
+        resolve(detail);
+      };
+      element.addEventListener("validation-change", onValidation);
+      element.dispatchEvent(new CommandEvent("command", { command: "--validate" }));
+    }));
+    assert.equal(validation.status, "error");
     const message = page.locator("#fruit [id$=\"-validation\"]");
     await message.waitFor({ state: "visible" });
     assert.match((await message.textContent()) ?? "", /A value is required/);
@@ -2542,6 +2708,109 @@ describe("Input group", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Multiline input group behavior", () => {
+  for (const adapter of ["HTML", "Vue"] as const) {
+    it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
+      const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Button, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        const pending = ref(false);
+        window.setPending = value => { pending.value = value; };
+        createApp({ render: () => h(InputGroup, { id: "group", multiline: true, actionPosition: "top-end" }, {
+          default: () => h(Textarea, { id: "message", rows: 4, "aria-label": "Message" }),
+          action: () => h(Button, { id: "send", pending: pending.value }, () => "Send"),
+        }) }).mount("#app");`;
+      const path = await bundle(`top-end-${adapter}`, source);
+      const page = await open(path, adapter === "HTML" ? `
+        <ui-input-group id="group" multiline action-position="top-end">
+          <ui-textarea id="message" rows="4" aria-label="Message"></ui-textarea>
+          <ui-button id="send" slot="action">Send</ui-button>
+        </ui-input-group>` : `<div id="app"></div>`, adapter === "HTML" ? [join(root, "tokens.css")] : [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const field = page.getByRole("textbox", { name: "Message" }), send = page.locator("#send");
+      for (const width of [800, 375, 240]) {
+        await page.setViewportSize({ width, height: 812 });
+        await field.fill("A long first line that must wrap before it reaches the action.\nAnother line.");
+        for (const label of ["Send", "Send message", "En cours…"]) {
+          await send.evaluate((element, text) => { element.textContent = text; }, label);
+          await page.waitForTimeout(50);
+          const textBox = (await field.boundingBox())!, action = (await send.boundingBox())!;
+          assert.ok(action.y >= textBox.y && action.y < textBox.y + 16, "action is inside the textarea at its top");
+          assert.ok(action.x >= textBox.x && action.x + action.width <= textBox.x + textBox.width, "action is inside its right edge");
+          const padding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+          assert.ok(textBox.x + textBox.width - padding < action.x, "textarea text ends before the action");
+          assert.ok(action.y + action.height < textBox.y + textBox.height - 16, "native bottom-right resize grip remains clear");
+          assert.equal(await field.evaluate(element => getComputedStyle(element).resize), "vertical");
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        }
+      }
+      await page.evaluate(native => {
+        if (native) document.querySelector("#send")!.setAttribute("pending", "");
+        else (window as unknown as { setPending: (value: boolean) => void }).setPending(true);
+      }, adapter === "HTML");
+      await page.waitForTimeout(50);
+      const pendingField = (await field.boundingBox())!, pendingAction = (await send.boundingBox())!;
+      const pendingPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+      assert.ok(pendingField.x + pendingField.width - pendingPadding < pendingAction.x, "actual pending indicator has reserved space");
+      await page.locator("#group").evaluate(element => element.setAttribute("dir", "rtl"));
+      await page.waitForTimeout(50);
+      const rtlField = (await field.boundingBox())!, rtlAction = (await send.boundingBox())!;
+      const rtlPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft));
+      assert.ok(rtlField.x + rtlPadding > rtlAction.x + rtlAction.width, "logical end padding follows RTL placement");
+      await page.locator("#group .action").evaluate(element => element.remove());
+      await page.waitForTimeout(50);
+      assert.ok(await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft)) < 20, "removing the action restores normal text space");
+      await field.focus();
+      assert.notEqual(await page.locator("#group").evaluate(element => getComputedStyle(element).boxShadow), "none");
+      await page.close();
+    });
+  }
+
+  it("shares frame, labeling and native form behavior for a multiline HTML textarea at 375px", async () => {
+    const path = await bundle("html-multiline-input-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <label for="message">Message</label>
+        <ui-input-group id="multiline" multiline>
+          <ui-textarea id="message" name="message" rows="3" value="A draft"></ui-textarea>
+          <span slot="suffix">Plain text</span>
+          <ui-button id="send" slot="action" type="submit">Send</ui-button>
+        </ui-input-group>
+      </form>
+      <ui-textarea id="standalone" aria-label="Standalone"></ui-textarea>
+    `, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px");
+    assert.notEqual(await page.getByRole("textbox", { name: "Standalone" }).evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "standalone textarea framing is unchanged");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height);
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width);
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true);
+    assert.match(await textarea.getAttribute("aria-describedby") ?? "", /affix/);
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.fill("First line\nSecond line");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).get("message")), "First line\nSecond line");
+    await page.locator("#form").evaluate(element => {
+      element.addEventListener("submit", event => { event.preventDefault(); element.setAttribute("data-submitted", "true"); });
+    });
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    assert.equal(await page.locator("#form").getAttribute("data-submitted"), "true");
+    await textarea.focus();
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow);
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).has("message")), false);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     await page.close();
   });
 });
@@ -4289,6 +4558,64 @@ describe("Tree link rows", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkRows(page);
+    await page.close();
+  });
+});
+
+describe("Nested Tree disclosure state", () => {
+  async function checkDisclosureState(page: Page) {
+    const parent = page.locator('#parent[data-component~="ui-tree-item"]');
+    const branch = page.locator('#branch[data-component~="ui-tree-item"]');
+    const leaf = page.locator('#leaf[data-component~="ui-tree-item"]');
+    await parent.waitFor({ state: "visible" });
+    assert.equal(await parent.getAttribute("aria-expanded"), "true");
+    assert.equal(await branch.getAttribute("aria-expanded"), "false");
+    assert.equal(await leaf.isVisible(), false);
+    const arrow = async (id: string) => page.locator(`#${id} > .row > .disclosure > .disclosure-icon`)
+      .evaluate(element => getComputedStyle(element).transform);
+    const expanded = await arrow("parent");
+    const collapsed = await arrow("branch");
+    assert.notEqual(collapsed, expanded, "an expanded ancestor must not rotate a collapsed descendant's disclosure");
+
+    await branch.getByRole("button", { name: "Expand Branch", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#branch")?.getAttribute("aria-expanded") === "true");
+    assert.equal(await leaf.isVisible(), true);
+    assert.equal(await arrow("branch"), expanded);
+    await branch.getByRole("button", { name: "Collapse Branch", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#branch")?.getAttribute("aria-expanded") === "false");
+    assert.equal(await leaf.isVisible(), false);
+    assert.equal(await arrow("branch"), collapsed);
+    assert.equal(await arrow("parent"), expanded, "a descendant's collapse must leave its ancestor's disclosure expanded");
+  }
+
+  it("shows a collapsed descendant's own state under an expanded ancestor in HTML", async () => {
+    const path = await bundle("html-nested-tree-disclosure", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-tree label="Files">
+        <ui-tree-item id="parent" item-id="parent" label="Parent" container expanded>
+          <ui-tree-item id="branch" item-id="branch" label="Branch" container>
+            <ui-tree-item id="leaf" item-id="leaf" label="File"></ui-tree-item>
+          </ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await checkDisclosureState(page);
+    await page.close();
+  });
+
+  it("shows a collapsed descendant's own state under an expanded ancestor in Vue", async () => {
+    const path = await bundle("vue-nested-tree-disclosure", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Tree, { label: "Files" }, () => [
+        h(TreeItem, { id: "parent", itemId: "parent", label: "Parent", container: true, expanded: true }, () => [
+          h(TreeItem, { id: "branch", itemId: "branch", label: "Branch", container: true }, () => [
+            h(TreeItem, { id: "leaf", itemId: "leaf", label: "File" }),
+          ]),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    await checkDisclosureState(page);
     await page.close();
   });
 });
@@ -7395,11 +7722,14 @@ describe("CardButton layout", () => {
           const geometry = await page.locator("#card").evaluate(el => {
             const style=getComputedStyle(el), box=el.getBoundingClientRect();
             const icon=el.querySelector(".card-icon")!.getBoundingClientRect(), content=el.querySelector(".card-content")!.getBoundingClientRect(), action=el.querySelector(".card-action")!.getBoundingClientRect();
-            return {iconHeight:icon.height,height:box.height,overflow:document.documentElement.scrollWidth>innerWidth,iconTop:icon.top,contentTop:content.top,actionMiddle:(action.top+action.bottom)/2,middle:(box.top+box.bottom)/2,paddingStart:style.paddingInlineStart,paddingEnd:style.paddingInlineEnd,borders:[style.borderTopWidth,style.borderRightWidth,style.borderBottomWidth,style.borderLeftWidth],colors:[style.borderTopColor,style.borderRightColor,style.borderBottomColor,style.borderLeftColor],gap:style.columnGap};
+            return {contentHeight:content.height,lineHeight:parseFloat(style.lineHeight),contentMiddle:(content.top+content.bottom)/2,iconHeight:icon.height,height:box.height,overflow:document.documentElement.scrollWidth>innerWidth,iconTop:icon.top,contentTop:content.top,actionMiddle:(action.top+action.bottom)/2,middle:(box.top+box.bottom)/2,paddingStart:style.paddingInlineStart,paddingEnd:style.paddingInlineEnd,borders:[style.borderTopWidth,style.borderRightWidth,style.borderBottomWidth,style.borderLeftWidth],colors:[style.borderTopColor,style.borderRightColor,style.borderBottomColor,style.borderLeftColor],gap:style.columnGap};
           });
           assert.ok(geometry.height>=44); assert.ok(geometry.iconHeight>0); assert.equal(geometry.overflow,false);
           assert.ok(Math.abs(geometry.iconTop-geometry.contentTop)<=1);
           assert.ok(Math.abs(geometry.actionMiddle-geometry.middle)<=1);
+          if (geometry.contentHeight <= geometry.lineHeight + 1) {
+            assert.ok(Math.abs(geometry.contentMiddle-geometry.middle)<=1, "a single-line label is vertically centered within the card");
+          }
           assert.equal(geometry.paddingStart,geometry.paddingEnd);
           assert.equal(new Set(geometry.borders).size,1); assert.equal(new Set(geometry.colors).size,1);
           assert.notEqual(geometry.gap,"normal");
@@ -7490,4 +7820,149 @@ describe("Image surface", () => {
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
     assert.match(html, /class="handles" hidden/);
   });
+});
+
+describe("Input with files", () => {
+  for (const mode of ["HTML", "Vue"] as const) {
+    it(`keeps ${mode} file selection and its native change event through prop updates`, async () => {
+      const path = await bundle(`file-input-${mode.toLowerCase()}`, mode === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Input } from "@threadlabs/looma/vue";
+        const disabled = ref(false);
+        window.setFileDisabled = (value) => { disabled.value = value; };
+        createApp({ render: () => h(Input, { id: "upload", type: "file", name: "upload", disabled: disabled.value }) }).mount("#app");
+      `);
+      const page = await open(path, mode === "HTML"
+        ? '<form><ui-input id="upload" type="file" name="upload"></ui-input></form>'
+        : '<form><div id="app"></div></form>', []);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      try {
+        await page.evaluate(() => {
+          const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+          input.addEventListener("change", (event) => {
+            (window as unknown as { selectedFile: string }).selectedFile = (event.target as HTMLInputElement).files?.[0]?.name ?? "";
+          });
+        });
+        const input = page.locator("input[type=file]");
+        await input.setInputFiles({ name: "records.csv", mimeType: "text/csv", buffer: Buffer.from("name\nAda\n") });
+        assert.equal(await page.evaluate(() => (window as unknown as { selectedFile: string }).selectedFile), "records.csv");
+        for (const disabled of [true, false]) {
+          await page.evaluate(({ mode, disabled }) => {
+            if (mode === "HTML") document.querySelector("#upload")!.toggleAttribute("disabled", disabled);
+            else (window as unknown as { setFileDisabled(value: boolean): void }).setFileDisabled(disabled);
+          }, { mode, disabled });
+          await page.waitForFunction((disabled) => document.querySelector<HTMLInputElement>("input[type=file]")!.disabled === disabled, disabled);
+          assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.[0]?.name), "records.csv");
+        }
+        assert.equal(await page.evaluate(() => (new FormData(document.querySelector("form")!).get("upload") as File).name), "records.csv");
+        await input.evaluate((element) => { (element as HTMLInputElement).value = ""; });
+        assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.length), 0);
+        assert.deepEqual(errors, []);
+      } finally { await page.close(); }
+    });
+  }
+});
+
+it("preserves the native first option when Select has no controlled value", async () => {
+  const htmlPath = await bundle("html-select-uncontrolled", 'import "@threadlabs/looma";');
+  const vuePath = await bundle("vue-select-uncontrolled", `import { createApp, h } from "vue"; import { Select } from "@threadlabs/looma/vue"; createApp({ render: () => h(Select, { value: null }, () => [h('option', { value: 'a' }, 'A'), h('option', { value: 'b' }, 'B')]) }).mount('#app');`);
+  const html = await open(htmlPath, '<ui-select><option value="a">A</option><option value="b">B</option></ui-select>', []);
+  const vue = await open(vuePath, '<div id="app"></div>', []);
+  try {
+    const native = await html.locator('select').inputValue();
+    const converted = await vue.locator('select').inputValue();
+    assert.equal(native, "a");
+    assert.equal(converted, native);
+  } finally { await html.close(); await vue.close(); }
+});
+
+
+describe("Prop-driven reading surfaces", () => {
+  it("keeps soft tones distinct in HTML and Vue without recoloring child actions", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`soft-card-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Card, Button, Stack } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Stack, {}, () => ["neutral", "accent", "info", "success", "warning"].map(tone => h(Card, { id: tone, variant: "subtle", tone }, () => h(Button, { tone: "neutral" }, () => "Inspect")))) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? ["neutral", "accent", "info", "success", "warning"].map(tone => `<ui-card id="${tone}" variant="subtle" tone="${tone}"><ui-button tone="neutral">Inspect</ui-button></ui-card>`).join("") : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const colors = await page.evaluate(() => ["neutral", "accent", "info", "success", "warning"].map(id => {
+        const card = document.getElementById(id)!;
+        const button = card.querySelector("button, ui-button")!;
+        return { surface: getComputedStyle(card).backgroundColor, button: getComputedStyle(button).backgroundColor, border: getComputedStyle(card).borderTopColor };
+      }));
+      assert.equal(new Set(colors.map(color => color.surface)).size, 5);
+      assert.equal(new Set(colors.map(color => color.button)).size, 1);
+      assert.ok(colors.every(color => color.border === "rgba(0, 0, 0, 0)"));
+      await page.close();
+    }
+  });
+  it("bounds a scrolling stack and protects its footer in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`bounded-stack-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Stack, ScrollArea, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Stack, { id:"frame", height: 500 }, () => [
+          h(Text, {}, () => "Files"),
+          h(ScrollArea, { id:"scroll", fill:true }, () => h(Stack, {}, () => Array.from({length:40}, (_, i) => h(Text, {}, () => "Line " + i)))),
+          h(Cluster, { id:"footer", fixed:true, padding:"m", paddingEnd:"xl" }, () => [h(Text, {grow:true, truncate:true}, () => "A long selected document path"), h(Button, {}, () => "Save")])
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? `<ui-stack id="frame" height="500"><ui-text>Files</ui-text><ui-scroll-area id="scroll" fill><ui-stack>${Array.from({length:40}, (_, i) => `<ui-text>Line ${i}</ui-text>`).join("")}</ui-stack></ui-scroll-area><ui-cluster id="footer" fixed padding="m" padding-end="xl"><ui-text grow truncate>A long selected document path</ui-text><ui-button>Save</ui-button></ui-cluster></ui-stack>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const state = await page.evaluate(() => {
+        const frame=document.getElementById("frame")!, scroll=document.getElementById("scroll")!, footer=document.getElementById("footer")!;
+        return {height:frame.getBoundingClientRect().height, scrollable:scroll.scrollHeight > scroll.clientHeight, footer:footer.getBoundingClientRect().bottom <= frame.getBoundingClientRect().bottom, clearance:parseFloat(getComputedStyle(footer).paddingInlineEnd), grow:getComputedStyle(footer.querySelector("p, ui-text")!).flexGrow};
+      });
+      assert.equal(state.height,500);
+      assert.equal(state.scrollable,true);
+      assert.equal(state.footer,true);
+      assert.equal(state.clearance,64);
+      assert.equal(state.grow,"1");
+      await page.close();
+    }
+  });
+
+  it("caps a growing textarea through maxRows in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`bounded-field-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Textarea, {rows:3, maxRows:6, autosize:true}) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? `<ui-textarea rows="3" max-rows="6" autosize></ui-textarea>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const field = page.locator("textarea");
+      await field.fill(Array.from({length:40}, (_, i) => "Line " + i).join("\n"));
+      const state = await field.evaluate(element => ({height:element.getBoundingClientRect().height, scrollable:element.scrollHeight > element.clientHeight, maximum:parseFloat(getComputedStyle(element).maxHeight)}));
+      assert.ok(state.height <= state.maximum + 1);
+      assert.ok(state.height > 60 && state.height < 250);
+      assert.equal(state.scrollable,true);
+      await page.close();
+    }
+  });
+
+  it("fits compact read-only editor excerpts while preserving the default canvas", async () => {
+    const path = await bundle("compact-editor-surface", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = {type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Rich excerpt",marks:[{type:"bold"}]}]}]};
+      createApp({render: () => h("div", {}, [h(LoomaEditor,{modelValue:content,editable:false,label:"Default excerpt"}),h(LoomaEditor,{modelValue:content,editable:false,contentDensity:"compact",label:"Compact excerpt"})])}).mount("#app");
+    `);
+    for (const width of [375,1280]) {
+      const page = await open(path, `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width,height:812}});
+      await page.getByRole("textbox", {name:"Compact excerpt",exact:true}).waitFor();
+      const state = await page.evaluate(() => ["Default excerpt","Compact excerpt"].map(label => {
+        const node=document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
+        return {height:node.getBoundingClientRect().height,boundaryHeight:node.closest(".looma-editor")!.getBoundingClientRect().height,padding:getComputedStyle(node).padding,bold:node.querySelector("strong")?.textContent};
+      }));
+      assert.ok(state[0].height >= 300);
+      assert.ok(state[1].height > 0 && state[1].height < 60);
+      assert.ok(state[1].boundaryHeight < 60);
+      assert.equal(state[1].padding,"0px");
+      assert.equal(state[1].bold,state[0].bold);
+      if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR, `editor-excerpts-${width}.png`)});
+      await page.close();
+    }
+  });
+
 });

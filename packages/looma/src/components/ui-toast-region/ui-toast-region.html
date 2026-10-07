@@ -3,7 +3,7 @@
 <template component="ui-toast-region" controller="./ui-toast-region.js">
   <defs>
     <prop name="duration" type="number" default="0"
-    >Default milliseconds for toasts added with show() or the show command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
+    >Default milliseconds for toasts added with the show-toast event or command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
     <prop name="placement" type="keyword" values="top, top-start, top-end, bottom, bottom-start, bottom-end" default="top"
     >Screen edge where the stack appears. Start and end follow the writing direction.</prop>
     <state
@@ -24,7 +24,12 @@
       <prop name="reason" required type="keyword" values="action, timeout"></prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
-    <method name="show" export="show" returns="promise(string)"></method>
+    <event name="show-toast" type="object">
+      <prop name="message" required type="string"></prop>
+      <prop name="id" type="string"></prop>
+      <prop name="tone" type="keyword" values="neutral, info, success, warning, danger"></prop>
+      <prop name="duration" type="number"></prop>
+    </event>
   </defs>
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
     <slot></slot>
@@ -107,25 +112,25 @@
       display: none;
     }
 
-    :host-state([placement="top-start"]),
-    :host-state([placement="bottom-start"]) {
+    :host([placement="top-start"]),
+    :host([placement="bottom-start"]) {
       left: auto;
       right: auto;
       inset-inline-start: calc(var(--ui-space-4) + env(safe-area-inset-left));
       transform: none;
     }
 
-    :host-state([placement="top-end"]),
-    :host-state([placement="bottom-end"]) {
+    :host([placement="top-end"]),
+    :host([placement="bottom-end"]) {
       left: auto;
       right: auto;
       inset-inline-end: calc(var(--ui-space-4) + env(safe-area-inset-right));
       transform: none;
     }
 
-    :host-state([placement="bottom"]),
-    :host-state([placement="bottom-start"]),
-    :host-state([placement="bottom-end"]) {
+    :host([placement="bottom"]),
+    :host([placement="bottom-start"]),
+    :host([placement="bottom-end"]) {
       top: auto;
       bottom: calc(var(--ui-space-4) + env(safe-area-inset-bottom));
     }
@@ -168,11 +173,11 @@
       pointer-events: none;
     }
 
-    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast {
+    :is(:host([placement="bottom"]), :host([placement="bottom-start"]), :host([placement="bottom-end"])) .toast {
       animation-name: ui-toast-enter-bottom;
     }
 
-    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast.closing {
+    :is(:host([placement="bottom"]), :host([placement="bottom-start"]), :host([placement="bottom-end"])) .toast.closing {
       animation-name: ui-toast-exit-bottom;
     }
 

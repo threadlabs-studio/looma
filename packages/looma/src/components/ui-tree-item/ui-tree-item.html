@@ -179,15 +179,15 @@
     }
 
     /* Selection is the same surface recipe as destination and choice rows. */
-    :host-state([selected]) > .row {
+    :host([selected]) > .row {
       color: var(--ui-selection-text);
       background: var(--ui-selection-surface);
     }
-    :host-state([selected]):not([aria-disabled="true"]) > .row > .leading {
+    :host([selected]):not([aria-disabled="true"]) > .row > .leading {
       color: var(--ui-selection-text);
     }
 
-    :host-state([disabled]) .row {
+    :host([disabled]) .row {
       color: var(--ui-disabled-text);
       background: var(--ui-disabled-surface);
     }
@@ -293,7 +293,7 @@
       transform: translateY(-20%) rotate(45deg);
     }
 
-    :host[aria-expanded="true"] .disclosure-icon {
+    :host[aria-expanded="true"] > .row > .disclosure > .disclosure-icon {
       transform: rotate(0deg);
     }
 
@@ -687,7 +687,7 @@
         outline: var(--ui-focus-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-focus-width));
       }
-      :host-state([selected]):not(:focus-visible):not([aria-disabled="true"]) > .row {
+      :host([selected]):not(:focus-visible):not([aria-disabled="true"]) > .row {
         outline: var(--ui-border-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-border-width));
       }

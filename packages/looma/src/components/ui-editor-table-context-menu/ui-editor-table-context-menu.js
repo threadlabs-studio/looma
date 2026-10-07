@@ -27,7 +27,7 @@ const sections = [
 ];
 
 // Lists the actions the selection permits, and nudges the open menu back inside the viewport.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const nudge = () => {
     element.style.translate = "";
@@ -71,4 +71,9 @@ export default function controller(host) {
     surface.destroy();
     element.removeEventListener("click", onClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }
