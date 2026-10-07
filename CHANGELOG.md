@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Dialog body text is padded and aligned with the title again. Listbox caps its visible choices at `rows` and hides them until it upgrades, and the Toast dismiss button sits at the intended distance from the edge. Each of these components styled a nested component's root, which HTML Next's scoped styles never match, so the rules had no effect. Scroll Area adds a `padding` option (`none` by default, then `xs`, `sm`, `md`, `lg` on Card's scale) that scrolls with the content, keeping the scrollbar and fades at the edges.
+
+- **Authored toasts hide themselves when dismissed (0.26):** previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.
+
+- A colored accent edge now has straight corners on its side: toned Toasts (authored or from Toast Region), Callout, and danger Card and Section cards no longer round the corners their stripe runs into.
+
 - Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
 
 - Badges align and space ordinary icon-and-text content without clipping glyphs, and offer a leading `icon` slot that stays visible when labels truncate. Buttons now space ordinary icons and text consistently.

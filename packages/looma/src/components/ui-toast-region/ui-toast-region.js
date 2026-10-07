@@ -5,13 +5,13 @@ let toastIds = 0;
 
 /**
  * Shows the region while it has authored or generated messages. Generated messages dismiss by
- * action or timeout; authored ui-toast children own their removal through the dismiss event.
+ * action or timeout; authored ui-toast children hide themselves, and a hidden one does not count.
  */
 function connect(host) {
   const element = host.element;
   const [trigger, stopTracking] = trackTrigger(host);
   const toasts = () => host.state.toasts ?? [];
-  const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast"));
+  const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast") && !child.hidden);
   let announcedVisible = false;
   const sync = () => {
     const visible = authored() || toasts().length > 0;
@@ -87,7 +87,7 @@ function connect(host) {
   };
   const stop = host.effect(sync);
   const observer = new MutationObserver(sync);
-  observer.observe(element, { childList: true });
+  observer.observe(element, { childList: true, subtree: true, attributeFilter: ["hidden"] });
   element.addEventListener("click", onClick);
   element.addEventListener("command", onCommand);
   element.addEventListener("show-toast", onShowToast);
