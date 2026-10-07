@@ -1,8 +1,10 @@
 # Changelog
 
-## v0.25.5
+## v0.25.6
 
 - List rows show a quiet hover surface across their full hit area and retain their current state while hovered. List Item offers leadingInteractive to keep a leading control separate from the row link. Checkboxes accept an accessible label without visible text, and Cluster can align the first text baselines of wrapped columns.
+
+## v0.25.5
 
 - Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
 
