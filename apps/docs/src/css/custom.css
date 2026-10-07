@@ -546,7 +546,7 @@ body {
   border-radius: 8px;
 }
 
-.looma-catalog__search svg { width: 1.1rem; flex: 0 0 auto; color: var(--looma-ink-soft); }
+.looma-catalog__search > svg { width: 1.1rem; flex: 0 0 auto; color: var(--looma-ink-soft); }
 
 .looma-catalog__search input {
   min-width: 0;
@@ -566,6 +566,13 @@ body {
   border-radius: 5px;
   box-shadow: none;
   font: 500 var(--looma-text-xs) var(--ifm-font-family-monospace);
+}
+
+.looma-catalog__search kbd svg {
+  display: inline-block;
+  width: 1ch;
+  height: 1em;
+  vertical-align: -0.1em;
 }
 
 .looma-catalog__filters { display: flex; gap: 0.42rem; overflow-x: auto; padding-bottom: 0.1rem; }

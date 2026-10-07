@@ -72,7 +72,7 @@
       margin: 0 var(--ui-editor-toolbar-divider-margin, 4px);
     }
 
-    :host-state([floating]) {
+    :host([floating]) {
       position: relative;
       top: auto;
       width: max-content;
@@ -99,7 +99,7 @@
         box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
       }
 
-      :host-state([floating]) {
+      :host([floating]) {
         position: relative;
         inset: auto;
         min-height: auto;
@@ -119,7 +119,7 @@
     }
 
     /* Inside LoomaEditor's mobile shell, the toolbar is a scroll-snapping strip. */
-    .looma-editor__mobile-toolbar-shell :host-state([floating]) {
+    .looma-editor__mobile-toolbar-shell :host([floating]) {
       width: 100%;
       max-width: none;
       min-height: 100%;
@@ -131,7 +131,7 @@
       backdrop-filter: none;
     }
 
-    .looma-editor__mobile-toolbar-shell :host-state([floating]) .strip {
+    .looma-editor__mobile-toolbar-shell :host([floating]) .strip {
       scroll-snap-type: x mandatory;
     }
 

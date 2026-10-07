@@ -59,3 +59,28 @@ Leaving the field commits an option whose label matches the text, or the only on
   <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
 </ui-combobox>
 ```
+
+## Request validation and focus
+
+Use the native command channel to request the same validation used when the
+field loses focus. `validation-change` reports a pending state followed by the
+result, including its issues; application validation remains owned by the form.
+
+```js
+const combobox = document.getElementById("fruit");
+combobox.addEventListener("validation-change", (event) => {
+  if (event.detail.status !== "pending") console.log(event.detail.issues);
+});
+combobox.dispatchEvent(new CommandEvent("command", { command: "--validate" }));
+combobox.querySelector('input[role="combobox"]').focus();
+```
+
+A button can request validation without JavaScript:
+
+```html
+<ui-button commandfor="fruit" command="--validate">Check selection</ui-button>
+```
+
+This replaces `await combobox.validate()` and `combobox.focusInput()`. Listen
+before dispatching the command: a validation result may be reported
+synchronously. Focusing uses the native input's focus behavior and options.

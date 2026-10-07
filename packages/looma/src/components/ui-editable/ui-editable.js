@@ -3,7 +3,7 @@ function triggerFor(event) {
 }
 
 /** Owns the display/edit transition so authors only provide value and label. */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const { preview, input } = host.refs;
@@ -118,4 +118,9 @@ export default function controller(host) {
     input.removeEventListener("blur", onInputBlur);
     document.removeEventListener("pointerdown", onDocumentPointerdown, true);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

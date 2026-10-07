@@ -3,7 +3,7 @@ import { trackTrigger } from "../shared/trigger.js";
 let panelIds = 0;
 
 /** Lists the authored panels (each labelled by its aria-label) as tabs and shows the selected one. */
-export default function controller(host) {
+function connect(host) {
   const { list, panels: container } = host.refs;
   const [trigger, stopTracking] = trackTrigger(host);
   const panels = () => Array.from(container.children).filter((child) => child instanceof HTMLElement);
@@ -114,4 +114,9 @@ export default function controller(host) {
     list.removeEventListener("focusout", onFocusout);
     list.removeEventListener("wheel", onWheel);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

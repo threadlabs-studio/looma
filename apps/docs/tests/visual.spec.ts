@@ -23,14 +23,11 @@ for (const theme of ["light", "dark"] as const) {
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
           const name = `${viewport.name}-${theme}/${doc.path === "./" ? "home" : doc.path.replaceAll("/", "--")}`;
-          // This single slash glyph varies by three rasterized pixels across repeated Chromium captures.
-          // Keep every other page at zero changed pixels; a larger catalog change still fails.
-          const maxDiffPixels = name === "mobile-dark/components" ? 3 : 0;
           // Desktop Table HTML/Vue captures have stable, reviewed GitHub-hosted rasterization variants.
           // Keep both rendering environments at zero changed pixels instead of increasing tolerance.
           const githubTable = process.env.GITHUB_ACTIONS === "true" && viewport.name === "desktop" && doc.path === "components/ui-table";
           const pageImage = githubTable ? `${name}--github-actions` : name;
-          await screenshot(page, `${pageImage}.png`, true, maxDiffPixels);
+          await screenshot(page, `${pageImage}.png`, true);
           expect(JSON.stringify(await accessibilityFindings(page), null, 2)).toMatchSnapshot(`${name}--accessibility.txt`);
           if (doc.component) {
             await page.getByRole("tab", { name: "API", exact: true }).click();

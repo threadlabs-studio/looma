@@ -12,7 +12,7 @@ function positive(value, fallback) {
  * off-canvas drawer (a popover). A button toggles it with the platform's invoker commands:
  * `<button commandfor="nav" command="--toggle">`.
  */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const view = document.defaultView;
@@ -187,4 +187,9 @@ export default function controller(host) {
     element.removeEventListener("toggle", onPopoverToggle);
     document.removeEventListener("click", onDocumentClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }
