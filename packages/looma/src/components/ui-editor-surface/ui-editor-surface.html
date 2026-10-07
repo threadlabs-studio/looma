@@ -1,0 +1,23 @@
+<template component="ui-editor-surface">
+  <defs>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >The document canvas. comfortable preserves the editor's normal room and mobile toolbar clearance. compact fits a read-only excerpt to its content without
+      outer padding.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+    }
+    /* The document renderer consumes these inherited surface settings. They do not style controls. */
+    :host([density="compact"]) {
+      --_ui-editor-content-min-height: 0px;
+      --_ui-editor-content-padding-block: 0px;
+      --_ui-editor-content-padding-inline: 0px;
+      --_ui-editor-mobile-bottom-space: 0px;
+    }
+  </style>
+</template>

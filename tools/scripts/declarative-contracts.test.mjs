@@ -34,7 +34,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 74);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 75);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
@@ -147,7 +147,7 @@ test("redundant layout aliases stay compatible without remaining public componen
   )).tags;
   const { navigationTags } = await readRepositoryProjectionTags();
 
-  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "gap", "justify", "wrap"]);
+  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "padding", "paddingEnd", "wrap"]);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
   assert.ok(!navigationTags.includes("ui-floating-action-button"));
   assert.equal(classifications["ui-search-result-row"].navigationParent, "ui-search-shell");

@@ -1,0 +1,23 @@
+/* The editor surface owns its renderer canvas. Existing hooks retain their defaults. */
+[data-component~="ui-editor-surface"] .ProseMirror {
+  min-height: var(--ui-editor-content-min-height, var(--_ui-editor-content-min-height, 300px));
+  padding:
+    var(--ui-editor-content-padding-block, var(--_ui-editor-content-padding-block, var(--ui-space-4)))
+    var(--ui-editor-content-padding-inline, var(--_ui-editor-content-padding-inline, var(--ui-space-6)));
+  outline: none;
+  color: var(--ui-editor-content-color, var(--ui-text-primary));
+  caret-color: var(--ui-editor-caret-color, var(--ui-accent-solid));
+  font-family: var(--ui-editor-font-family, var(--ui-font-family-sans));
+  font-size: var(--ui-editor-font-size, var(--ui-font-size-md));
+  line-height: var(--ui-editor-line-height, var(--ui-line-height-relaxed));
+}
+
+@media (max-width: 767px) {
+  [data-component~="ui-editor-surface"] .ProseMirror {
+    padding-bottom: var(--ui-editor-mobile-bottom-space, var(--_ui-editor-mobile-bottom-space, 80px));
+  }
+}
+
+
+[data-component~="ui-editor-surface"][data-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
+[data-component~="ui-editor-surface"][data-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }

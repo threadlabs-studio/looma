@@ -323,6 +323,11 @@
           "id": "02-danger",
           "title": "Danger",
           "behavior": false
+        },
+        {
+          "id": "03-semantic-tones",
+          "title": "Quiet semantic surfaces",
+          "behavior": false
         }
       ]
     },
