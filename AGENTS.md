@@ -109,7 +109,10 @@ Every app using Looma pays for a changed API, so the bar is high.
   pull request declared, and npm plus the tags record every patch since. For a
   minor or major, set the version ahead of the registry in the PR
   (`node tools/scripts/release-version.mjs --apply 0.8.0`) and it publishes as
-  declared. Add a `CHANGELOG.md` entry with the change.
+  declared. Merging releases, so `CHANGELOG.md` has no Unreleased section: add
+  the entry under `## vX.Y.Z` for the version the merge releases (the patch
+  after npm's `latest`, or the declared version). If another merge takes that
+  version first, move the entry to the next one.
 - Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
 - Looma is pre-1.0: breaking changes bump the minor version.
 
