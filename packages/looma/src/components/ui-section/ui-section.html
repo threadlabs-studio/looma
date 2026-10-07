@@ -43,6 +43,9 @@
     :host([variant="card"][tone="danger"]) {
       border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
       border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
+      /* An accent edge keeps the corners on its side straight. */
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
       background: var(--ui-danger-soft);
     }
 

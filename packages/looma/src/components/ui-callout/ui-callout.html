@@ -110,6 +110,9 @@
         color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
       border-inline-start: var(--ui-callout-leading-border-width, var(--ui-accent-line-width)) solid var(--ui-callout-border, var(--_callout-border));
       border-radius: var(--ui-radius-md);
+      /* An accent edge keeps the corners on its side straight. */
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
       background: var(--ui-callout-surface, var(--_callout-surface));
       color: var(--ui-callout-text, var(--ui-text-primary));
       font-family: var(--ui-font-family-sans);
