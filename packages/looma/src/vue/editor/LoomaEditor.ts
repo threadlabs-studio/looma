@@ -1,3 +1,4 @@
+import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
 import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
@@ -49,7 +50,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, Checkbox, Cluster, Combobox, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Checkbox, Cluster, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -269,6 +270,8 @@ export const LoomaEditor = defineComponent({
     // Deliberate exception to Looma's opt-in boolean rule: an editor that is
     // read-only unless configured would violate the primary UX promised by this wrapper.
     editable: { type: Boolean, default: true },
+    /** Compact read-only excerpts fit their content; editable documents retain the standard canvas. */
+    contentDensity: { type: String as PropType<"comfortable" | "compact">, default: "comfortable" },
     placeholder: {
       type: String,
       default: "Type “/” for commands, or start writing…",
@@ -1949,7 +1952,7 @@ export const LoomaEditor = defineComponent({
                 },
               },
             }, { default: () => h(ImageControls, { editor: instance }) }) : null,
-        instance ? h(Stack, { gap: "none" }, () => h(EditorContent, { editor: instance })) : null,
+        instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h(EditorContent, { editor: instance })) : null,
         codeUi.open
           ? h("div", {
               ref: codeLanguageShell,

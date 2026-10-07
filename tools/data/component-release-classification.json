@@ -114,6 +114,10 @@
       "package": "@threadlabs/looma",
       "navigationParent": "ui-editor-slash-menu"
     },
+    "ui-editor-surface": {
+      "status": "internal",
+      "package": "@threadlabs/looma"
+    },
     "ui-editor-table-context-menu": {
       "status": "published",
       "package": "@threadlabs/looma"
