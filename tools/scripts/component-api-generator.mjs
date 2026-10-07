@@ -20,6 +20,7 @@ const EVENT_DETAIL_DOCS = {
   select: "Emitted when a selectable option becomes active.",
   change: "Emitted when a toggleable control changes checked state.",
   dismiss: "Emitted when a toast item is dismissed from its region.",
+  "show-toast": "Dispatch on the region to add a message; an optional id identifies its later dismiss event.",
   toggle: "Emitted once each time the panel opens or closes, docked or as a drawer.",
 };
 
@@ -506,10 +507,6 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
     designTokens,
     attributes: attributes.sort((left, right) => left.name.localeCompare(right.name)),
     properties: properties.sort((left, right) => left.name.localeCompare(right.name)),
-    methods: (contract.methods ?? []).map((method) => ({
-      name: method.name,
-      returns: declarativeTypeToTypeScript(method.returns ?? "promise(undefined)"),
-    })),
     events: events.sort((left, right) => left.name.localeCompare(right.name)),
     slots: (contract.slots ?? []).map((name) => ({ name, description: slotDescription(name) })),
   };
@@ -564,5 +561,5 @@ export async function generateComponentApiMetadata() {
     adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
-  return { schemaVersion: 3, components };
+  return { schemaVersion: 4, components };
 }

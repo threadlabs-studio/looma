@@ -121,11 +121,11 @@
       color: var(--ui-text-secondary);
     }
 
-    :host-state([anticipatory]) {
+    :host([anticipatory]) {
       position: relative;
     }
 
-    :host-state([anticipatory])::before {
+    :host([anticipatory])::before {
       content: "";
       position: absolute;
       inset: 50% auto auto 50%;
@@ -140,26 +140,26 @@
       pointer-events: none;
     }
 
-    :host-state([anticipatory]):disabled::before {
+    :host([anticipatory]):disabled::before {
       opacity: 0;
     }
 
     /* At rest an anticipatory button shows only its guide dot. The icon grows into place when
        proximity, hover, or focus reveals it; the button's hit area and guide remain stable. */
-    :host-state([anticipatory]) .content {
+    :host([anticipatory]) .content {
       opacity: 1;
       transform: scale(1);
       transition: opacity var(--ui-motion-fast) var(--ui-motion-ease), transform calc(var(--ui-motion-fast) * 2) cubic-bezier(0.2, 1.4, 0.35, 1);
     }
 
     @media (hover: hover) and (pointer: fine) {
-      :host-state([anticipatory]):not(:host-state([variant="solid"]), :host-state([loading]), :host-state([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible) {
+      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
         background-color: transparent;
         box-shadow: none;
       }
 
-      :host-state([anticipatory]):not(:host-state([variant="solid"]), :host-state([loading]), :host-state([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible)
+      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible)
         .content {
         opacity: 0;
         transform: scale(0.65);
@@ -167,7 +167,7 @@
       }
     }
 
-    :host-state([anticipatory]):is(:host-state([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible)::before {
+    :host([anticipatory]):is(:host([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible)::before {
       opacity: 0;
     }
 
@@ -198,7 +198,7 @@
     }
 
     @media (hover: none), (pointer: coarse) {
-      :host-state([anticipatory])::before {
+      :host([anticipatory])::before {
         opacity: 0;
       }
     }
@@ -233,7 +233,7 @@
       transform: translate(-50%, -50%);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_size: 1.75rem;
       inline-size: var(--ui-icon-button-size, var(--_size));
       block-size: var(--ui-icon-button-size, var(--_size));
@@ -241,7 +241,7 @@
       min-block-size: var(--ui-icon-button-size, var(--_size));
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_size: 2.5rem;
       inline-size: var(--ui-icon-button-size, var(--_size));
       block-size: var(--ui-icon-button-size, var(--_size));
@@ -250,33 +250,33 @@
     }
 
     /* A text button's companion uses control geometry; compact icon buttons keep their own density. */
-    :host-state([matchButton]) {
+    :host([matchButton]) {
       --_size: var(--ui-control-size-md);
       block-size: auto;
       align-self: stretch;
     }
 
-    :host-state([matchButton][size="sm"]) {
+    :host([matchButton][size="sm"]) {
       --_size: var(--ui-control-size-sm);
     }
 
-    :host-state([matchButton][size="lg"]) {
+    :host([matchButton][size="lg"]) {
       --_size: var(--ui-control-size-lg);
     }
 
     @media (pointer: coarse) {
-      :host-state([matchButton]) {
+      :host([matchButton]) {
         inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
         min-inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
         min-block-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
       }
     }
 
-    :host-state([round]) {
+    :host([round]) {
       border-radius: var(--ui-radius-round);
     }
 
-    :host-state([variant="outline"]) {
+    :host([variant="outline"]) {
       border-color: var(--ui-icon-button-border, var(--ui-control-border, var(--ui-border-strong)));
       background-color: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
       background-image: var(--ui-raised-highlight);
@@ -284,7 +284,7 @@
       box-shadow: var(--ui-raised);
     }
 
-    :host-state([variant="solid"]) {
+    :host([variant="solid"]) {
       background-color: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
       background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-solid-text, var(--ui-text-on-accent));
@@ -300,15 +300,15 @@
       color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
     }
 
-    :host-state([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
+    :host([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
       border-color: var(--ui-icon-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border)));
     }
 
-    :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
+    :host([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
       background-color: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
     }
 
-    :host-state([variant="ghost"])[aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
+    :host([variant="ghost"])[aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
       background-color: var(--ui-icon-button-active-surface, color-mix(in srgb, currentColor 16%, transparent));
       color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
       box-shadow: var(--ui-pressed);
@@ -318,7 +318,7 @@
       transform: scale(var(--ui-icon-button-active-scale, 0.96));
     }
 
-    :is(:host-state([loading]), :host-state([pending])) {
+    :is(:host([loading]), :host([pending])) {
       cursor: progress;
     }
 
@@ -328,12 +328,12 @@
       justify-content: center;
     }
 
-    :is(:host-state([loading]), :host-state([pending])) .content {
+    :is(:host([loading]), :host([pending])) .content {
       display: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
-      :host-state([anticipatory]) .content {
+      :host([anticipatory]) .content {
         transition: none;
       }
     }
@@ -355,7 +355,7 @@
       background-image: none;
     }
 
-    :host-state([variant="ghost"]):disabled {
+    :host([variant="ghost"]):disabled {
       border-color: transparent;
     }
 
@@ -367,11 +367,11 @@
       --_ui-default-icon-stroke-width: var(--_ui-icon-button-icon-stroke-width, 1.75);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_icon-button-icon-default: var(--ui-icon-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_icon-button-icon-default: var(--ui-icon-size-lg);
     }
 

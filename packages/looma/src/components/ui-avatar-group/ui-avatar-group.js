@@ -1,6 +1,6 @@
 // Hides avatars beyond `max`, counts them into the "+N" badge, and overlaps the rest. Projected
 // avatars are component roots, which this component's styles do not reach, so the overlap is inline.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const update = () => {
     const max = Number(host.props.max.value);
@@ -30,4 +30,9 @@ export default function controller(host) {
     stop();
     observer.disconnect();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -2,7 +2,7 @@ import { createViewportSurface } from "../shared/overlay.js";
 import { normalizeAnchor, positionMenu } from "../shared/editor.js";
 
 // Places the menu at the slash and tracks the highlighted item; the template renders the items.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const authoredLabel = element.hasAttribute("aria-label") || element.hasAttribute("aria-labelledby");
   const place = () => {
@@ -71,4 +71,9 @@ export default function controller(host) {
     element.removeEventListener("click", onClick);
     element.removeEventListener("mouseover", onMouseover);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

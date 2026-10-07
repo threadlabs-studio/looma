@@ -1,10 +1,11 @@
+import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
-import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
+import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
 import { announceOverlayOpen, createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { createLowlight } from "lowlight";
-import { NodeSelection, TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
+import { AllSelection, NodeSelection, TextSelection, type Selection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -32,7 +33,6 @@ import {
   measureTableOverlayGeometry,
   normalizeActiveTableColumnWidths,
   resolveTableCellAt,
-  shouldShowTextFormattingToolbar,
   type LoomaSlashMenuSnapshot,
   type LoomaSlashCommand,
   type LoomaMentionItem,
@@ -50,7 +50,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, Checkbox, Cluster, Combobox, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Checkbox, Cluster, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -120,8 +120,9 @@ export type LoomaImageUploader = (
 /**
  * Chooses whether formatting controls follow a selection, occupy persistent
  * editor chrome, or open from an app-owned button (`popover`, with a text-only
- * bubble for selections). `contextual` exposes all commands at a focused caret
- * as well as a selection; it does not alter document commands or stored content.
+ * bubble for selections). Floating tools open on text selection or a held press
+ * and dismiss on Escape/caret movement. `contextual` includes the full command
+ * set. Narrow viewports retain a dock; document commands/content are unchanged.
  */
 export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
 
@@ -269,6 +270,8 @@ export const LoomaEditor = defineComponent({
     // Deliberate exception to Looma's opt-in boolean rule: an editor that is
     // read-only unless configured would violate the primary UX promised by this wrapper.
     editable: { type: Boolean, default: true },
+    /** Compact read-only excerpts fit their content; editable documents retain the standard canvas. */
+    contentDensity: { type: String as PropType<"comfortable" | "compact">, default: "comfortable" },
     placeholder: {
       type: String,
       default: "Type “/” for commands, or start writing…",
@@ -435,6 +438,32 @@ export const LoomaEditor = defineComponent({
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
     const editorFocused = ref(false);
+    // These snapshots affect chrome only, never the document or undo history.
+    let dismissedFormattingSelection: Selection | null = null;
+    let heldFormattingSelection: TextSelection | null = null;
+    let formattingPopup: {
+      show: () => void;
+      hide: () => void;
+      popper: HTMLElement;
+      setProps: (props: { getReferenceClientRect: () => DOMRect }) => void;
+    } | null = null;
+    let heldPressTimer: ReturnType<typeof setTimeout> | undefined;
+    let heldPress: { id: number; x: number; y: number; time: number } | null = null;
+    const floatingFormattingMode = () => props.toolbarMode !== "sticky"
+      && !(props.toolbarMode === "popover" && props.toolbarOpen) && !mobile.value;
+    const formattingPickerOpen = () => linkOpen.value || tablePickerOpen.value;
+    const cancelHeldPress = () => {
+      clearTimeout(heldPressTimer);
+      heldPressTimer = undefined;
+      heldPress = null;
+    };
+    const formattingSelectionActive = (instance: Editor) => {
+      const selection = instance.state.selection;
+      return (selection instanceof TextSelection || selection instanceof AllSelection && Boolean(instance.state.doc.textContent))
+        && !dismissedFormattingSelection?.eq(selection)
+        && (!selection.empty || Boolean(heldFormattingSelection?.eq(selection)));
+    };
+
     const editorStateVersion = ref(0);
     const mobileToolbarMode = ref<"formatting" | "table">("formatting");
     let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -641,6 +670,12 @@ export const LoomaEditor = defineComponent({
       onFocus: ({ editor: instance }) => rememberSelection(instance),
       onSelectionUpdate: ({ editor: instance }) => {
         rememberSelection(instance);
+        if (floatingFormattingMode()) {
+          const selection = instance.state.selection;
+          if (!dismissedFormattingSelection?.eq(selection)) dismissedFormattingSelection = null;
+          if (!heldFormattingSelection?.eq(selection)) heldFormattingSelection = null;
+          if (!formattingSelectionActive(instance)) formattingPopup?.hide();
+        }
         if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
           linkContextEditing.value = false;
         }
@@ -966,12 +1001,21 @@ export const LoomaEditor = defineComponent({
       editor.value?.commands.dismissLoomaSlashMenu();
     });
     watch(() => props.editable, (editable) => {
+      cancelHeldPress();
+      heldFormattingSelection = null;
       editor.value?.setEditable(editable);
+      if (!editable) formattingPopup?.hide();
       if (editor.value) imageDelivery.reset(editor.value);
       root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
         chip.setAttribute("aria-disabled", String(!editable));
       });
       if (!editable) chipOpen.value = false;
+    });
+    watch([linkOpen, tablePickerOpen], ([link, table]) => {
+      if (link || table || !floatingFormattingMode() || editor.value?.isFocused
+        || formattingPopup?.popper.contains(document.activeElement)) return;
+      heldFormattingSelection = null;
+      formattingPopup?.hide();
     });
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
@@ -1184,10 +1228,14 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorBlur = () => {
+      cancelHeldPress();
       queueMicrotask(updateTableUi);
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
+        if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.popper.contains(document.activeElement)) {
+          heldFormattingSelection = null;
+        }
       }, 0);
     };
 
@@ -1219,11 +1267,16 @@ export const LoomaEditor = defineComponent({
       // A menu's own scroll does not move its anchor or change the active table.
       if (event?.type === "scroll" && event.target instanceof Node
         && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
+      // The shared viewport pass runs a frame later; a change from before the press did not move it.
+      if (!event || !heldPress || event.timeStamp >= heldPress.time) cancelHeldPress();
+      const wasMobile = mobile.value;
       if (slash.active && slash.getRect) slash.rect = slash.getRect();
       if (mention.active && mention.getRect) mention.rect = mention.getRect();
       updateMobileViewport();
+      if (wasMobile !== mobile.value) heldFormattingSelection = null;
       updateTableUi();
       updateCodeUi();
+      if (floatingFormattingMode() && editor.value && !formattingSelectionActive(editor.value)) formattingPopup?.hide();
       tableUi.menuOpen = false;
     };
 
@@ -1286,6 +1339,42 @@ export const LoomaEditor = defineComponent({
       ) {
         closeTableUi();
       }
+    };
+
+    const onFormattingPointerDown = (event: PointerEvent) => {
+      cancelHeldPress();
+      const instance = editor.value;
+      if (!floatingFormattingMode() || tableResizeActive || !props.editable || !instance || event.button !== 0 || !event.isPrimary
+        || !(event.target instanceof Element) || !instance.view.dom.contains(event.target)
+        || event.target.closest("button, input, select, textarea, [data-looma-image-node]")) return;
+      heldPress = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp };
+      heldPressTimer = setTimeout(() => {
+        heldPressTimer = undefined;
+        const selection = instance.state.selection;
+        if (!heldPress || !floatingFormattingMode() || tableResizeActive || !props.editable || !instance.isFocused
+          || slash.active || mention.active || !(selection instanceof TextSelection)) return;
+        dismissedFormattingSelection = null;
+        heldFormattingSelection = selection;
+        formattingPopup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, selection.from, selection.to) });
+        formattingPopup?.show();
+      }, 500);
+    };
+    const onFormattingPointerMove = (event: PointerEvent) => {
+      if (heldPress?.id === event.pointerId
+        && Math.hypot(event.clientX - heldPress.x, event.clientY - heldPress.y) > 8) cancelHeldPress();
+    };
+    const onFormattingPointerEnd = (event: PointerEvent) => {
+      if (heldPress?.id === event.pointerId) cancelHeldPress();
+    };
+    const onFormattingKeyDown = (event: KeyboardEvent) => {
+      cancelHeldPress();
+      if (event.key !== "Escape" || !floatingFormattingMode() || !(event.target instanceof Node)
+        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))) return;
+      const selection = editor.value?.state.selection;
+      dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
+      heldFormattingSelection = null;
+      formattingPopup?.hide();
+      hideTool();
     };
 
     const onResizePointerDown = (event: PointerEvent) => {
@@ -1386,13 +1475,25 @@ export const LoomaEditor = defineComponent({
       updateMobileViewport();
       stopViewport = observeOverlayViewport(document, onViewportChange);
       document.addEventListener("pointerdown", onDocumentPointerDown, true);
+      document.addEventListener("pointerdown", onFormattingPointerDown);
+      document.addEventListener("pointermove", onFormattingPointerMove);
+      document.addEventListener("pointerup", onFormattingPointerEnd);
+      document.addEventListener("pointercancel", onFormattingPointerEnd);
+      document.addEventListener("keydown", onFormattingKeyDown);
       document.addEventListener("pointerdown", onResizePointerDown, true);
       document.addEventListener("pointerup", onResizePointerUp, true);
       root.value?.addEventListener("error", onImageError, true);
     });
     onBeforeUnmount(() => {
       stopViewport?.();
+      cancelHeldPress();
+      formattingPopup = null;
       document.removeEventListener("pointerdown", onDocumentPointerDown, true);
+      document.removeEventListener("pointerdown", onFormattingPointerDown);
+      document.removeEventListener("pointermove", onFormattingPointerMove);
+      document.removeEventListener("pointerup", onFormattingPointerEnd);
+      document.removeEventListener("pointercancel", onFormattingPointerEnd);
+      document.removeEventListener("keydown", onFormattingKeyDown);
       document.removeEventListener("pointerdown", onResizePointerDown, true);
       document.removeEventListener("pointerup", onResizePointerUp, true);
       root.value?.removeEventListener("error", onImageError, true);
@@ -1802,12 +1903,24 @@ export const LoomaEditor = defineComponent({
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
-              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
+              updateDelay: 0,
+              shouldShow: ({ editor: menuEditor }: { editor: Editor }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
-                && (props.toolbarMode === "contextual"
-                  ? !slash.active && !mention.active && (menuEditor.isFocused || linkContextEditing.value)
-                  : shouldShowTextFormattingToolbar(menuEditor, from, to)),
-              tippyOptions: { ...floatingTippyOptions("top", props.toolbarMode === "contextual" ? root.value : null), maxWidth: "none" },
+                && !slash.active && !mention.active
+                && (menuEditor.isFocused || linkContextEditing.value || formattingPickerOpen())
+                && formattingSelectionActive(menuEditor),
+              tippyOptions: {
+                ...floatingTippyOptions("top", props.toolbarMode === "contextual" ? root.value : null),
+                maxWidth: "none",
+                onCreate: (popup) => { formattingPopup = popup; },
+                onDestroy: (popup) => {
+                  formattingPopup = null;
+                  tippyPresentations.get(popup.popper)?.destroy();
+                },
+                // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
+                onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingSelectionActive(instance)
+                  ? false : undefined,
+              },
             }, { default: () => props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
@@ -1861,7 +1974,7 @@ export const LoomaEditor = defineComponent({
                 },
               },
             }, { default: () => h(ImageControls, { editor: instance }) }) : null,
-        instance ? h(Stack, { gap: "none" }, () => h(EditorContent, { editor: instance })) : null,
+        instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h(EditorContent, { editor: instance })) : null,
         codeUi.open
           ? h("div", {
               ref: codeLanguageRef,

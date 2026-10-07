@@ -3,9 +3,10 @@
     <prop
       name="type"
       type="keyword"
-      values="text, search, tel, url, email, password, date, month, week, time, datetime-local, number, range, color"
+      values="text, search, tel, url, email, password, date, month, week, time, datetime-local, number, range, color, file"
       default="text"
-    >The native input mode. Number and range modes accept numeric values; the other supported modes accept strings.</prop>
+    >The native input mode. Number and range modes accept numeric values; the other supported modes accept strings. File inputs expose selected files through
+      the native change event's target.files. Their value can only be set to an empty string to clear the selection.</prop>
     <type name="input-value" from="type">
       <option value="text" type="string"></option>
       <option value="search" type="string"></option>
@@ -21,6 +22,7 @@
       <option value="number" type="number"></option>
       <option value="range" type="number"></option>
       <option value="color" type="string"></option>
+      <option value="file" type="string"></option>
     </type>
     <prop name="value" type="input-value"
     >The input's value: text, or a number for type="number" and type="range" fields. Setting or changing it replaces the live text; between changes the user's
@@ -118,13 +120,13 @@
     }
 
     /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-sm)));
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
@@ -134,12 +136,12 @@
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
       :host,
-      :host-state([size="sm"]),
-      :host-state([size="lg"]) {
+      :host([size="sm"]),
+      :host([size="lg"]) {
         font-size: var(--ui-font-size-md);
       }
 
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-min-block-size)));
       }
     }

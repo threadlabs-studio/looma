@@ -185,6 +185,11 @@
           "behavior": false
         },
         {
+          "id": "07-icon",
+          "title": "Leading icon",
+          "behavior": false
+        },
+        {
           "id": "08-square",
           "title": "Icon marks",
           "behavior": false
@@ -317,6 +322,11 @@
         {
           "id": "02-danger",
           "title": "Danger",
+          "behavior": false
+        },
+        {
+          "id": "03-semantic-tones",
+          "title": "Quiet semantic surfaces",
           "behavior": false
         }
       ]
@@ -1018,6 +1028,11 @@
         {
           "id": "04-icon-prefix",
           "title": "Icon prefix",
+          "behavior": false
+        },
+        {
+          "id": "05-multiline",
+          "title": "Multiline message",
           "behavior": false
         }
       ]

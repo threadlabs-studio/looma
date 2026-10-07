@@ -15,7 +15,7 @@ import "@threadlabs/looma/vue.css";
 import { Button, TopBar } from "@threadlabs/looma/vue";
 ```
 
-The Vue components are ordinary Vue 3.5 single-file components, compiled to JavaScript with
+The Vue components are ordinary Vue 3.5.43+ single-file components, compiled to JavaScript with
 declarations; the `.vue` sources ship beside them. They depend on Vue and Looma only.
 
 The editor is Tiptap-based and needs `@tiptap/vue-3@^2.11.5`:
