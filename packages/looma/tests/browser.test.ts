@@ -7656,3 +7656,93 @@ it("preserves the native first option when Select has no controlled value", asyn
     assert.equal(converted, native);
   } finally { await html.close(); await vue.close(); }
 });
+
+
+describe("Prop-driven reading surfaces", () => {
+  it("keeps soft tones distinct in HTML and Vue without recoloring child actions", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`soft-card-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Card, Button, Stack } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Stack, {}, () => ["neutral", "accent", "info", "success", "warning"].map(tone => h(Card, { id: tone, variant: "subtle", tone }, () => h(Button, { tone: "neutral" }, () => "Inspect")))) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? ["neutral", "accent", "info", "success", "warning"].map(tone => `<ui-card id="${tone}" variant="subtle" tone="${tone}"><ui-button tone="neutral">Inspect</ui-button></ui-card>`).join("") : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const colors = await page.evaluate(() => ["neutral", "accent", "info", "success", "warning"].map(id => {
+        const card = document.getElementById(id)!;
+        const button = card.querySelector("button, ui-button")!;
+        return { surface: getComputedStyle(card).backgroundColor, button: getComputedStyle(button).backgroundColor, border: getComputedStyle(card).borderTopColor };
+      }));
+      assert.equal(new Set(colors.map(color => color.surface)).size, 5);
+      assert.equal(new Set(colors.map(color => color.button)).size, 1);
+      assert.ok(colors.every(color => color.border === "rgba(0, 0, 0, 0)"));
+      await page.close();
+    }
+  });
+  it("bounds a scrolling stack and protects its footer in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`bounded-stack-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Stack, ScrollArea, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Stack, { id:"frame", height: 500 }, () => [
+          h(Text, {}, () => "Files"),
+          h(ScrollArea, { id:"scroll", fill:true }, () => h(Stack, {}, () => Array.from({length:40}, (_, i) => h(Text, {}, () => "Line " + i)))),
+          h(Cluster, { id:"footer", fixed:true, padding:"m", paddingEnd:"xl" }, () => [h(Text, {grow:true, truncate:true}, () => "A long selected document path"), h(Button, {}, () => "Save")])
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? `<ui-stack id="frame" height="500"><ui-text>Files</ui-text><ui-scroll-area id="scroll" fill><ui-stack>${Array.from({length:40}, (_, i) => `<ui-text>Line ${i}</ui-text>`).join("")}</ui-stack></ui-scroll-area><ui-cluster id="footer" fixed padding="m" padding-end="xl"><ui-text grow truncate>A long selected document path</ui-text><ui-button>Save</ui-button></ui-cluster></ui-stack>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const state = await page.evaluate(() => {
+        const frame=document.getElementById("frame")!, scroll=document.getElementById("scroll")!, footer=document.getElementById("footer")!;
+        return {height:frame.getBoundingClientRect().height, scrollable:scroll.scrollHeight > scroll.clientHeight, footer:footer.getBoundingClientRect().bottom <= frame.getBoundingClientRect().bottom, clearance:parseFloat(getComputedStyle(footer).paddingInlineEnd), grow:getComputedStyle(footer.querySelector("p, ui-text")!).flexGrow};
+      });
+      assert.equal(state.height,500);
+      assert.equal(state.scrollable,true);
+      assert.equal(state.footer,true);
+      assert.equal(state.clearance,64);
+      assert.equal(state.grow,"1");
+      await page.close();
+    }
+  });
+
+  it("caps a growing textarea through maxRows in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`bounded-field-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Textarea, {rows:3, maxRows:6, autosize:true}) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? `<ui-textarea rows="3" max-rows="6" autosize></ui-textarea>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const field = page.locator("textarea");
+      await field.fill(Array.from({length:40}, (_, i) => "Line " + i).join("\n"));
+      const state = await field.evaluate(element => ({height:element.getBoundingClientRect().height, scrollable:element.scrollHeight > element.clientHeight, maximum:parseFloat(getComputedStyle(element).maxHeight)}));
+      assert.ok(state.height <= state.maximum + 1);
+      assert.ok(state.height > 60 && state.height < 250);
+      assert.equal(state.scrollable,true);
+      await page.close();
+    }
+  });
+
+  it("fits compact read-only editor excerpts while preserving the default canvas", async () => {
+    const path = await bundle("compact-editor-surface", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = {type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Rich excerpt",marks:[{type:"bold"}]}]}]};
+      createApp({render: () => h("div", {}, [h(LoomaEditor,{modelValue:content,editable:false,label:"Default excerpt"}),h(LoomaEditor,{modelValue:content,editable:false,contentDensity:"compact",label:"Compact excerpt"})])}).mount("#app");
+    `);
+    for (const width of [375,1280]) {
+      const page = await open(path, `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width,height:812}});
+      await page.getByRole("textbox", {name:"Compact excerpt",exact:true}).waitFor();
+      const state = await page.evaluate(() => ["Default excerpt","Compact excerpt"].map(label => {
+        const node=document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
+        return {height:node.getBoundingClientRect().height,boundaryHeight:node.closest(".looma-editor")!.getBoundingClientRect().height,padding:getComputedStyle(node).padding,bold:node.querySelector("strong")?.textContent};
+      }));
+      assert.ok(state[0].height >= 300);
+      assert.ok(state[1].height > 0 && state[1].height < 60);
+      assert.ok(state[1].boundaryHeight < 60);
+      assert.equal(state[1].padding,"0px");
+      assert.equal(state[1].bold,state[0].bold);
+      if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR, `editor-excerpts-${width}.png`)});
+      await page.close();
+    }
+  });
+
+});

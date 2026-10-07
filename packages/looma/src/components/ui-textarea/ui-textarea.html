@@ -8,6 +8,8 @@
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
     <prop name="rows" type="integer" default="4">Initial number of visible text rows.</prop>
+    <prop name="maxRows" type="integer"
+    >Optional maximum visible rows, for a growing field in a bounded layout. Extra text scrolls inside the field. Omit it to retain unbounded growth.</prop>
     <prop name="autosize" type="boolean" default="false"
     >Grow with the text while keeping rows as the minimum visible height. Uses CSS field sizing where supported; other browsers keep the native rows
       behavior.</prop>
@@ -23,6 +25,7 @@
     from:aria-invalid="invalid"
     from:rows="rows"
     style:--_rows="rows"
+    style:--_max-rows="maxRows"
   ></textarea>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
@@ -162,6 +165,10 @@
       padding: var(--ui-space-3) var(--ui-space-4);
       padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-4)));
       font-size: var(--ui-font-size-md);
+    }
+
+    :host([maxRows]) {
+      max-block-size: calc(max(var(--_rows), var(--_max-rows)) * 1lh + var(--_padding-block) + var(--_padding-block) + 2px);
     }
 
     @supports (field-sizing: content) {
