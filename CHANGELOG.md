@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.25.6
+
+- Correct Dialog's action bottom gutter, optically balance the header inset, and compact intrinsic sizing. Its body uses Scroll Area's additive `trim` option to remove outer projected margins while preserving spacing between items. Open dialogs now animate content growth and shrinkage over the dialog motion duration to preserve visual continuity instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
+- Dialog and non-modal Search Shell now render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return. Dialog body spacing remains intact around its nested Scroll Area.
+- Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
+- Table context menus keep their minimum width inside narrow presentation viewports.
+
 ## v0.25.5
 
 - Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
