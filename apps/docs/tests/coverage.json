@@ -1783,12 +1783,12 @@
         {
           "id": "01-authored",
           "title": "Authored status and action",
-          "behavior": false
+          "behavior": true
         },
         {
           "id": "02-danger",
           "title": "Danger alert",
-          "behavior": false
+          "behavior": true
         }
       ]
     },
