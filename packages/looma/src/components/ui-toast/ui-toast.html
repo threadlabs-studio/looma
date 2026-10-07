@@ -5,7 +5,7 @@
     <prop name="tone" type="keyword" values="neutral, info, success, warning, danger" default="neutral"
     >Semantic accent for this message. Danger uses an assertive alert role; the other tones use polite status semantics.</prop>
     <prop name="duration" type="number" default="0"
-    >Milliseconds before requesting dismissal; 0 keeps the toast until an action dismisses it. The timer pauses on hover or focus.</prop>
+    >Milliseconds before the toast dismisses itself; 0 keeps it until an action dismisses it. The timer pauses on hover or focus.</prop>
     <event name="dismiss" type="object">
       <prop name="id" required type="string"></prop>
       <prop name="reason" required type="keyword" values="action, timeout"></prop>
@@ -52,6 +52,8 @@
       inline-size: 100%;
       margin: 0;
       padding: var(--ui-space-3) var(--ui-space-4);
+      /* The dismiss button ends the row; its own padding supplies the rest of the end space. */
+      padding-inline-end: var(--ui-space-2);
       border: var(--ui-border-width) solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-inline-start: var(--ui-accent-line-width) solid var(--ui-toast-accent, var(--_ui-toast-accent));
       border-radius: var(--ui-toast-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
@@ -73,6 +75,14 @@
     :host([tone="danger"]) {
       --_ui-toast-accent: var(--ui-danger-solid);
     }
+    /* A toned toast's accent edge keeps the corners on its side straight. */
+    :host([tone="info"]),
+    :host([tone="success"]),
+    :host([tone="warning"]),
+    :host([tone="danger"]) {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
 
     .message {
       min-inline-size: 0;
@@ -80,9 +90,6 @@
     }
     .action:not(:has(> *)) {
       display: none;
-    }
-    .dismiss {
-      margin-inline-end: calc(var(--ui-space-2) * -1);
     }
 
     :host[hidden] {

@@ -7,6 +7,9 @@
     <prop name="orientation" type="keyword" values="vertical, horizontal" default="vertical"
     >The direction the content scrolls. Vertical scrolls up and down and clips sideways overflow; horizontal scrolls sideways and clips vertical
       overflow.</prop>
+    <prop name="padding" type="keyword" values="none, xs, sm, md, lg" default="none"
+    >The space inside the scrolling region, on Card's scale: xs is 0.5rem, sm 0.75rem, md 1.5rem, and lg 2rem. It scrolls with the content, so the scrollbar and
+      fades stay at the edges.</prop>
   </defs>
   <div><div class="content" $ref="content"><slot></slot></div></div>
   <style>
@@ -59,6 +62,19 @@
     }
     :host([size="lg"]) {
       max-block-size: 30rem;
+    }
+
+    :host([padding="xs"]) {
+      padding: var(--ui-space-2);
+    }
+    :host([padding="sm"]) {
+      padding: var(--ui-space-3);
+    }
+    :host([padding="md"]) {
+      padding: var(--ui-space-5);
+    }
+    :host([padding="lg"]) {
+      padding: var(--ui-space-6);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
