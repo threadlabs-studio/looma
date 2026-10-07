@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Tree Item offers actionsVisible for persistent status and controls, with long labels fading beneath them at rest and on hover or focus.
+
 ## v0.25.6
 
 - List rows show a quiet hover surface across their full hit area and retain their current state while hovered. List Item offers leadingInteractive to keep a leading control separate from the row link. Checkboxes accept an accessible label without visible text, and Cluster can align the first text baselines of wrapped columns.
