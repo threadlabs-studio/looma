@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.26.1
+## v0.26.2
 
 - Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport. Separators sit only between sections, and cell background swatches keep whole labels: three to a row at the menu's full width, fewer in a narrower menu.
+
+## v0.26.1
+
+- Dialog body content aligns with its title in HTML and Vue, keeps short content compact, and uses equal side and bottom gutters around its actions. Dialog owns its body layout instead of styling a nested component root excluded by HTML scoping. Scroll Area adds opt-in `trim` to remove only projected content's outer block margins; existing scroll areas keep their margins.
 
 ## v0.26.0
 

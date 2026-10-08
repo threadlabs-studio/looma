@@ -40,7 +40,7 @@
       <h2 class="title" $if="$label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
-    <ui-scroll-area class="body"><slot></slot></ui-scroll-area>
+    <div class="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
     <footer><slot name="actions"></slot></footer>
   </dialog>
   <style>
@@ -137,7 +137,7 @@
       display: none;
     }
 
-    /* Header and actions stay pinned; only the body scrolls when content is long. */
+    /* Own the layout wrapper; nested component roots are outside these scoped rules. */
     header {
       display: flex;
       align-items: center;
@@ -216,9 +216,11 @@
     }
 
     .body {
+      display: flex;
+      flex-direction: column;
       flex: 1 1 auto;
       min-block-size: 0;
-      padding: var(--ui-space-5);
+      padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-5);
     }
 
     footer {
@@ -227,7 +229,7 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: var(--ui-space-2);
-      padding: var(--ui-space-3) var(--ui-space-5);
+      padding: 0 var(--ui-space-5) var(--ui-space-5);
     }
 
     footer:empty {
