@@ -35,6 +35,9 @@
     <prop name="selected" type="boolean" default="false"
     >Marks the item selected: it sets aria-selected and highlights the row. This is controlled state; respond to the parent Tree's select request by updating
       it.</prop>
+    <prop name="actionsVisible" type="boolean" default="false"
+    >Keeps the actions slot visible before hover or focus, for persistent status or controls. The label fades beneath its measured width on pointer devices;
+      touch rows retain a separate actions column with a short end fade. Does not change keyboard navigation or start the marquee.</prop>
     <prop name="marquee" type="boolean" default="false"
     >Scrolls a name too long for its row while a pointer hovers the row or keyboard focus is in it, rests at the end, then scrolls it again from the start. A
       touch does not start it. Off by default: a tree of short names should not move, and a product decides whether reading the whole name matters more than a
@@ -371,6 +374,7 @@
        the truncation mark while it shows: an ellipsis under it would read as a second one. */
     .row:hover > .label,
     .row:focus-within > .label,
+    :host([actionsVisible]) > .row > .label,
     :host[data-move-source] > .row > .label {
       text-overflow: clip;
       mask-image: linear-gradient(
@@ -382,6 +386,7 @@
 
     .row:hover > .label:dir(rtl),
     .row:focus-within > .label:dir(rtl),
+    :host([actionsVisible]) > .row > .label:dir(rtl),
     :host[data-move-source] > .row > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
@@ -464,6 +469,7 @@
 
     .row:hover > .actions,
     .row:focus-within > .actions,
+    :host([actionsVisible]) > .row > .actions,
     :host[data-move-source] > .row > .actions {
       opacity: 1;
       pointer-events: auto;
@@ -498,6 +504,14 @@
           transparent var(--_marquee-icon-width, 0px),
           #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
         );
+      }
+
+      /* Persistent content has its own column on touch. Fade only the label's end. */
+      :host([actionsVisible]) > .row > .label {
+        mask-image: linear-gradient(to right, #000 calc(100% - var(--ui-space-1)), transparent 100%);
+      }
+      :host([actionsVisible]) > .row > .label:dir(rtl) {
+        mask-image: linear-gradient(to left, #000 calc(100% - var(--ui-space-1)), transparent 100%);
       }
 
       .row[data-ui-marquee] > .label:dir(rtl) {

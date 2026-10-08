@@ -1939,6 +1939,11 @@
           "id": "05-lazy",
           "title": "Lazy branch",
           "behavior": false
+        },
+        {
+          "id": "06-persistent-actions",
+          "title": "Persistent actions",
+          "behavior": false
         }
       ]
     },
