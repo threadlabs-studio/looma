@@ -773,7 +773,6 @@ body {
 
 .looma-component-preview--compact [data-component~="ui-editor-table-context-menu"] {
   max-height: calc(13rem - 2rem);
-  translate: none !important;
 }
 
 .looma-preview-scenarios {

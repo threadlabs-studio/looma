@@ -132,6 +132,14 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+The 0.26.1 reference refresh records the Table Context Menu page's three menus
+open inside their example stages, in the HTML and Vue views. The menu translated
+itself into the viewport when it opened and on every viewport resize, so menus
+below the first screen left their stages, and each full-page capture's resize
+moved them again; earlier references recorded those stages empty. The menu now
+applies its viewport correction only inside a fixed or absolutely positioned
+box, as in LoomaEditor.
+
 The 0.26 reference refresh updates the navbar version on every desktop page and
 the Node range in Getting Started. Each desktop reference is the reviewed 0.25
 image with its navbar version area (x 1150–1220, y 12–52) taken from a new
@@ -164,9 +172,8 @@ the pixel comparison remains unchanged. Focus, open overlays, and selections rem
 intact. Screenshots disable animations and hide the
 caret without hiding content. Visual pages hide the navbar version label
 (`.looma-version`) from first paint through an adopted stylesheet, because the
-label changes with every release rather than with the page under review. A
-capture-time mask adds page nodes that HTML Next's document observer sees; the
-Table Context Menu page then draws open menus that ordinary captures show empty. Keep the Playwright version, image digest, font
+label changes with every release rather than with the page under review. The
+adopted stylesheet leaves page markup unchanged. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
 The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
