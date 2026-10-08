@@ -21,19 +21,19 @@
     >The value as assistive technology reads it ("$750 of $1,240 collected", "3 of 5 done, overdue"). Empty reads the whole percentage in the current
       locale.</prop>
     <!-- Derived as it renders, so every render path, a server render included, draws the bar and states its value without JavaScript. -->
-    <computed name="amount" from="clamp(0, value, max)"></computed>
-    <computed name="percent" from="{ true: amount / max * 100, false: 0 }[concat(max > 0)]"></computed>
+    <computed name="amount" from="clamp(0, $value, $max)"></computed>
+    <computed name="percent" from="{ true: $amount / $max * 100, false: 0 }[concat($max > 0)]"></computed>
   </defs>
   <span
     role="meter"
     aria-valuemin="0"
-    from:aria-valuemax="max"
-    from:aria-valuenow="amount"
-    from:aria-valuetext="{ true: valueText, false: format($percent / 100, 'percent', { maximumFractionDigits: 0 }) }[concat(valueText != '')]"
-    from:aria-label="{ true: label, false: null }[concat(label != '')]"
-    from:data-ui-meter-segments="{ true: segments, false: null }[concat(segments > 1)]"
+    from:aria-valuemax="$max"
+    from:aria-valuenow="$amount"
+    from:aria-valuetext="{ true: $valueText, false: format($percent / 100, 'percent', { maximumFractionDigits: 0 }) }[concat($valueText != '')]"
+    from:aria-label="{ true: $label, false: null }[concat($label != '')]"
+    from:data-ui-meter-segments="{ true: $segments, false: null }[concat($segments > 1)]"
   >
-    <span class="fill" style:inline-size="concat(percent, '%')"></span>
+    <span class="fill" style:inline-size="concat($percent, '%')"></span>
   </span>
   <style>
     /* How far along something is: a track, filled from the start in the tone's colour. The track is a

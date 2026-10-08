@@ -106,25 +106,25 @@
       type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
     ></event>
   </defs>
-  <div aria-label="Table controls" from:hidden="not open">
+  <div aria-label="Table controls" from:hidden="not $open">
     <div class="rows">
       <div
-        $each="control of rows"
-        $key="control.key"
+        $each="control of $rows"
+        $key="$control.key"
         class="control row"
-        class:active="control.key = activeKey"
-        style:top="control.offset"
-        from:data-control-key="control.key"
+        class:active="$control.key = $activeKey"
+        style:top="$control.offset"
+        from:data-control-key="$control.key"
       >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
         <button
           type="button"
           class="handle"
-          from:data-ui-affordance="control.affordance"
-          from:data-action="control.action"
-          from:data-boundary-index="control.index"
-          from:aria-label="control.label"
+          from:data-ui-affordance="$control.affordance"
+          from:data-action="$control.action"
+          from:data-boundary-index="$control.index"
+          from:aria-label="$control.label"
         >
           <ui-icon name="plus"></ui-icon>
           <span class="tooltip" role="tooltip">{$control.label}</span>
@@ -133,36 +133,36 @@
     </div>
     <div class="cols">
       <div
-        $each="control of cols"
-        $key="control.key"
+        $each="control of $cols"
+        $key="$control.key"
         class="control col"
-        class:active="control.key = activeKey"
-        style:left="control.offset"
-        from:data-control-key="control.key"
+        class:active="$control.key = $activeKey"
+        style:left="$control.offset"
+        from:data-control-key="$control.key"
       >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
         <button
           type="button"
           class="handle"
-          from:data-ui-affordance="control.affordance"
-          from:data-action="control.action"
-          from:data-boundary-index="control.index"
-          from:aria-label="control.label"
+          from:data-ui-affordance="$control.affordance"
+          from:data-action="$control.action"
+          from:data-boundary-index="$control.index"
+          from:aria-label="$control.label"
         >
           <ui-icon name="plus"></ui-icon>
           <span class="tooltip" role="tooltip">{$control.label}</span>
         </button>
       </div>
     </div>
-    <template $if="hovered">
+    <template $if="$hovered">
       <button
         type="button"
         class="selector row"
-        style:top="hovered.rowOffset"
+        style:top="$hovered.rowOffset"
         data-action="select-row"
-        from:data-row-index="hovered.rowIndex"
-        from:data-column-index="hovered.columnIndex"
+        from:data-row-index="$hovered.rowIndex"
+        from:data-column-index="$hovered.columnIndex"
         title="Drag row to reorder; click for actions"
         aria-label="Row actions"
       >
@@ -171,10 +171,10 @@
       <button
         type="button"
         class="selector column"
-        style:left="hovered.columnOffset"
+        style:left="$hovered.columnOffset"
         data-action="select-column"
-        from:data-row-index="hovered.rowIndex"
-        from:data-column-index="hovered.columnIndex"
+        from:data-row-index="$hovered.rowIndex"
+        from:data-column-index="$hovered.columnIndex"
         title="Drag column to reorder; click for actions"
         aria-label="Column actions"
       >
@@ -182,14 +182,14 @@
       </button>
     </template>
     <button
-      $if="active"
+      $if="$active"
       type="button"
       class="cell-menu"
-      style:left="active.menuLeft"
-      style:top="active.menuTop"
+      style:left="$active.menuLeft"
+      style:top="$active.menuTop"
       data-action="open-cell-menu"
-      from:data-row-index="active.rowIndex"
-      from:data-column-index="active.columnIndex"
+      from:data-row-index="$active.rowIndex"
+      from:data-column-index="$active.columnIndex"
       title="Cell actions"
       aria-label="Cell actions"
     >
