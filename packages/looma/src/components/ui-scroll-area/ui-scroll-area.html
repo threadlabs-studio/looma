@@ -7,6 +7,9 @@
     <prop name="orientation" type="keyword" values="vertical, horizontal" default="vertical"
     >The direction the content scrolls. Vertical scrolls up and down and clips sideways overflow; horizontal scrolls sideways and clips vertical
       overflow.</prop>
+    <prop name="trim" type="boolean" default="false"
+    >Removes the outer block margins of the first and last projected items when the surrounding panel owns its edge padding. Margins between items remain
+      intact.</prop>
   </defs>
   <div><div class="content" $ref="content"><slot></slot></div></div>
   <style>
@@ -39,6 +42,15 @@
 
     .content {
       display: flow-root;
+    }
+
+    /* Trim projected edges without changing spacing inside an item. */
+    :host([trim]) .content > :slotted(:first-child) {
+      margin-block-start: 0;
+    }
+
+    :host([trim]) .content > :slotted(:last-child) {
+      margin-block-end: 0;
     }
 
     :host([orientation="horizontal"]) {
