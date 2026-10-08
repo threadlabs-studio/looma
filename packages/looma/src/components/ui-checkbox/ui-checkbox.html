@@ -30,15 +30,15 @@
   <label>
     <input
       type="checkbox"
-      from:aria-label="label"
+      from:aria-label="$label"
       $ref="input"
-      .checked="internalChecked"
-      .indeterminate="indeterminate"
-      from:disabled="disabled"
-      from:aria-invalid="invalid"
-      from:required="required"
-      from:name="name"
-      from:value="value"
+      .checked="$internalChecked"
+      .indeterminate="$indeterminate"
+      from:disabled="$disabled"
+      from:aria-invalid="$invalid"
+      from:required="$required"
+      from:name="$name"
+      from:value="$value"
     >
     <span class="text">
       <span class="label"><slot></slot></span>

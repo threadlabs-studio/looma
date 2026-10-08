@@ -25,11 +25,11 @@
       type="checkbox"
       role="switch"
       $ref="input"
-      .checked="internalChecked"
-      from:disabled="disabled"
-      from:required="required"
-      from:name="name"
-      from:value="value"
+      .checked="$internalChecked"
+      from:disabled="$disabled"
+      from:required="$required"
+      from:name="$name"
+      from:value="$value"
     >
     <span class="text">
       <span class="label"><slot></slot></span>

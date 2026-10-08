@@ -369,66 +369,66 @@
     </event>
   </defs>
   <div>
-    <label from:for="concat(uid, '-input')" class:sr-only="labelVisibility = 'sr-only'">{$label}<template $if="required">
+    <label from:for="concat($uid, '-input')" class:sr-only="$labelVisibility = 'sr-only'">{$label}<template $if="$required">
         *</template></label>
     <div class="control">
       <div class="field" $ref="field">
         <div class="entry">
           <slot name="start"></slot>
-          <template $if="multiple">
+          <template $if="$multiple">
             <button
-              $each="item, index of internalItems"
-              $key="item.id"
+              $each="item, index of $internalItems"
+              $key="$item.id"
               class="item"
               type="button"
               tabindex="-1"
-              from:data-index="index"
-              from:disabled="disabled or readonly or item.disabled"
-              from:aria-label="concat(item.label, ', press Delete or Backspace to remove')"
+              from:data-index="$index"
+              from:disabled="$disabled or $readonly or $item.disabled"
+              from:aria-label="concat($item.label, ', press Delete or Backspace to remove')"
             >
-              <slot from:name="concat('item-', item.id)"><ui-badge>{$item.label}</ui-badge></slot>
+              <slot from:name="concat('item-', $item.id)"><ui-badge>{$item.label}</ui-badge></slot>
             </button>
           </template>
           <input
             $ref="input"
-            from:id="concat(uid, '-input')"
+            from:id="concat($uid, '-input')"
             role="combobox"
             aria-autocomplete="list"
             autocomplete="off"
-            from:aria-controls="concat(uid, '-listbox')"
-            from:aria-expanded="expanded"
-            from:aria-invalid="invalid or validationStatus = 'error'"
-            from:aria-busy="loading or validationStatus = 'pending'"
-            .value="display"
-            from:placeholder="placeholder"
-            from:disabled="disabled"
-            from:readonly="readonly"
-            from:required="required and not (multiple and internalItems.0)"
+            from:aria-controls="concat($uid, '-listbox')"
+            from:aria-expanded="$expanded"
+            from:aria-invalid="$invalid or $validationStatus = 'error'"
+            from:aria-busy="$loading or $validationStatus = 'pending'"
+            .value="$display"
+            from:placeholder="$placeholder"
+            from:disabled="$disabled"
+            from:readonly="$readonly"
+            from:required="$required and not ($multiple and $internalItems.0)"
           >
         </div>
-        <input $if="name and not multiple" type="hidden" from:name="name" from:value="submitted" from:disabled="disabled">
-        <template $if="name and multiple">
-          <input $each="item of internalItems" $key="item.id" type="hidden" from:name="name" from:value="item.value" from:disabled="disabled">
+        <input $if="$name and not $multiple" type="hidden" from:name="$name" from:value="$submitted" from:disabled="$disabled">
+        <template $if="$name and $multiple">
+          <input $each="item of $internalItems" $key="$item.id" type="hidden" from:name="$name" from:value="$item.value" from:disabled="$disabled">
         </template>
         <button
-          $if="clearable"
+          $if="$clearable"
           type="button"
           data-combobox-action="clear"
           aria-label="Clear"
-          from:disabled="disabled or readonly or (not raw and (multiple or selected = null))"
+          from:disabled="$disabled or $readonly or (not $raw and ($multiple or $selected = null))"
         >
           <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M7 7l10 10M17 7 7 17"></path>
           </svg>
         </button>
         <button
-          $if="disclosure"
+          $if="$disclosure"
           type="button"
           data-combobox-action="disclosure"
           tabindex="-1"
           aria-label="Show suggestions"
-          from:aria-controls="concat(uid, '-listbox')"
-          from:disabled="disabled or readonly"
+          from:aria-controls="concat($uid, '-listbox')"
+          from:disabled="$disabled or $readonly"
         >
           <svg
             class="affordance-icon"
@@ -444,7 +444,7 @@
           </svg>
         </button>
       </div>
-      <button $if="help" class="help" from:id="concat(uid, '-help')" type="button" aria-label="Help" from:disabled="disabled">
+      <button $if="$help" class="help" from:id="concat($uid, '-help')" type="button" aria-label="Help" from:disabled="$disabled">
         <svg
           class="help-icon"
           aria-hidden="true"
@@ -461,60 +461,60 @@
         </svg>
       </button>
     </div>
-    <ui-tooltip $if="help" trigger="click" from:id="concat(uid, '-help-text')" from:for="concat(uid, '-help')">{$help}</ui-tooltip>
-    <div class="popup" $ref="popup" from:hidden="not expanded">
-      <div role="listbox" $ref="listbox" from:id="concat(uid, '-listbox')" from:aria-label="concat(label, ' suggestions')" from:aria-busy="loading">
-        <div $each="group of groups" $key="group.name" from:role="group.role" from:aria-label="group.label">
-          <div $if="group.name" class="group">{$group.name}</div>
+    <ui-tooltip $if="$help" trigger="click" from:id="concat($uid, '-help-text')" from:for="concat($uid, '-help')">{$help}</ui-tooltip>
+    <div class="popup" $ref="popup" from:hidden="not $expanded">
+      <div role="listbox" $ref="listbox" from:id="concat($uid, '-listbox')" from:aria-label="concat($label, ' suggestions')" from:aria-busy="$loading">
+        <div $each="group of $groups" $key="$group.name" from:role="$group.role" from:aria-label="$group.label">
+          <div $if="$group.name" class="group">{$group.name}</div>
           <div
-            $each="row of group.rows"
-            $key="row.id"
+            $each="row of $group.rows"
+            $key="$row.id"
             class="option"
-            class:active="row.index = active"
+            class:active="$row.index = $active"
             role="option"
             data-ui-choice-option
-            from:data-multiple="multiple"
-            from:id="concat(uid, '-option-', row.index)"
-            from:aria-selected="row.selected"
-            from:aria-disabled="row.disabled"
-            from:data-index="row.index"
-            from:aria-labelledby="row.labelledBy"
-            from:aria-describedby="row.detail"
+            from:data-multiple="$multiple"
+            from:id="concat($uid, '-option-', $row.index)"
+            from:aria-selected="$row.selected"
+            from:aria-disabled="$row.disabled"
+            from:data-index="$row.index"
+            from:aria-labelledby="$row.labelledBy"
+            from:aria-describedby="$row.detail"
           >
-            <slot from:name="concat('option-', row.id)">
-              <span $if="row.detail" class="detail">
+            <slot from:name="concat('option-', $row.id)">
+              <span $if="$row.detail" class="detail">
                 <span class="line">
-                  <span class="primary" from:id="concat(uid, '-option-', row.index, '-label')">{$row.label}</span>
-                  <ui-badge $if="row.tag" from:tone="row.tag.tone" style:--ui-badge-color="row.tag.color"><span
-                      from:id="concat(uid, '-option-', row.index, '-tag')"
+                  <span class="primary" from:id="concat($uid, '-option-', $row.index, '-label')">{$row.label}</span>
+                  <ui-badge $if="$row.tag" from:tone="$row.tag.tone" style:--ui-badge-color="$row.tag.color"><span
+                      from:id="concat($uid, '-option-', $row.index, '-tag')"
                     >{$row.tag.label}</span></ui-badge>
                 </span>
-                <span $if="row.description" class="description" from:id="concat(uid, '-option-', row.index, '-description')">{$row.description}</span>
+                <span $if="$row.description" class="description" from:id="concat($uid, '-option-', $row.index, '-description')">{$row.description}</span>
               </span>
-              <span $if="not row.detail" class="primary">{$row.label}</span>
+              <span $if="not $row.detail" class="primary">{$row.label}</span>
             </slot>
           </div>
         </div>
         <div
-          $if="creatable"
+          $if="$creatable"
           class="option"
-          class:active="createIndex = active"
+          class:active="$createIndex = $active"
           role="option"
           data-ui-choice-option
-          from:data-multiple="multiple"
+          from:data-multiple="$multiple"
           aria-selected="false"
-          from:id="concat(uid, '-option-', createIndex)"
-          from:data-index="createIndex"
-          $value="concat('Create “', raw, '”')"
+          from:id="concat($uid, '-option-', $createIndex)"
+          from:data-index="$createIndex"
+          $value="concat('Create “', $raw, '”')"
         >
         </div>
-        <div $if="message" class="message">{$message}</div>
-        <div $if="not loading and not rows.0 and not creatable and not lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
+        <div $if="$message" class="message">{$message}</div>
+        <div $if="not $loading and not $rows.0 and not $creatable and not $lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
       </div>
       <slot name="footer"></slot>
     </div>
-    <div class="message" from:id="concat(uid, '-validation')" from:hidden="not validation.issues.length">
-      <div $each="issue of validation.issues">{$issue.message}</div>
+    <div class="message" from:id="concat($uid, '-validation')" from:hidden="not $validation.issues.length">
+      <div $each="issue of $validation.issues">{$issue.message}</div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{$statusText}</div>
     <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>

@@ -7,7 +7,7 @@
     <prop name="selectable" type="boolean" default="false">Gives a document divider a pointer-sized hit area. The editor owns selection and deletion.</prop>
     <prop name="selected" type="boolean" default="false">Shows the selected document divider. Selection does not change separator semantics.</prop>
   </defs>
-  <hr from:aria-orientation="orientation">
+  <hr from:aria-orientation="$orientation">
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-separator-color {
