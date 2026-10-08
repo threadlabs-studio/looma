@@ -1,6 +1,7 @@
 // Drives the built package (run `pnpm build` first) in Chromium, the way consumers use it: a Vue app
 // importing @threadlabs/looma/vue, and a plain page registering the components with dist/index.js.
 import assert from "node:assert/strict";
+import type { Editor } from "@tiptap/core";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -265,6 +266,7 @@ describe("Anchored overlay placement", () => {
       createApp({ render: () => h(LoomaEditor, {
         label: "Writing",
         modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+        onReady: (editor) => { window.fixtureEditor = editor; },
       }) }).mount("#app");
     `);
     const page = await open(path, `
@@ -272,13 +274,10 @@ describe("Anchored overlay placement", () => {
       <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
       <div id="app"></div>
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
-    const editor = page.getByRole("textbox", { name: "Writing" });
-    await editor.focus();
-    // Set a known caret before selecting a real character.
-    await editor.press("End");
-    await editor.press("ArrowLeft");
-    await editor.press("Shift+ArrowRight");
-    await page.waitForFunction(() => (window.getSelection()?.toString().length ?? 0) > 0);
+    // Select "some" through the editor. Keys pressed right after focus race ProseMirror's post-focus
+    // selection restore, which can put back the caret it last read and drop the selection.
+    await page.waitForFunction(() => "fixtureEditor" in window);
+    await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
     await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
