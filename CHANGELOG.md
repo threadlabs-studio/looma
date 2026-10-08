@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.1
+
+- Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport.
+
 ## v0.26.0
 
 - **Breaking runtime requirement:** Looma requires Node 22.22.2 or later in Node 22, or Node 24.15 or later in Node 24 (previously 22.13 and 24.0). Looma now depends on HTML Next 1.0.0-alpha.35, whose server rendering uses jsdom 30, and jsdom 30 supports only those releases. Keeping the older range would let apps install a renderer that their Node release does not support. To migrate, update Node within its current major version.
