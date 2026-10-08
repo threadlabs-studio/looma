@@ -17,7 +17,7 @@ test("derives the public contract from one maintained declarative definition", (
         <prop name="items" type="list(object({ id: string }))">Structured items.</prop>
         <event name="change" type="object({ value: string })"></event>
       </defs>
-      <input from:disabled="disabled">
+      <input from:disabled="$disabled">
       <style>:scope { color: var(--ui-text-primary); }</style>
     </template>
   `, "ui-example");
@@ -115,7 +115,7 @@ test("a button renders as a link through its polymorphic root, not a second comp
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
   assert.equal(contracts["ui-button"].props.as?.type, "keyword");
   assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
-  assert.match(source, /<a\s+\$when="as = 'a'"/);
+  assert.match(source, /<a\s+\$when="\$as = 'a'"/);
   assert.match(source, /<button\s+\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {

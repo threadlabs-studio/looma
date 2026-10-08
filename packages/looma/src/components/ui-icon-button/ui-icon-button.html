@@ -23,14 +23,14 @@
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button
-    from:disabled="disabled"
+    from:disabled="$disabled"
     type="button"
-    from:aria-label="label"
-    from:data-match-button="matchButton"
-    from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
-    from:aria-busy="loading or pending"
+    from:aria-label="$label"
+    from:data-match-button="$matchButton"
+    from:aria-disabled="{ true: 'true', false: null }[concat($loading or $pending)]"
+    from:aria-busy="$loading or $pending"
   >
-    <ui-spinner $if="loading or pending" size="sm"></ui-spinner>
+    <ui-spinner $if="$loading or $pending" size="sm"></ui-spinner>
     <span class="content"><slot></slot></span>
   </button>
   <style>

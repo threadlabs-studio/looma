@@ -37,22 +37,22 @@
   </defs>
   <div>
     <div class="field">
-      <button class="preview" $ref="preview" type="button" from:disabled="disabled">
+      <button class="preview" $ref="preview" type="button" from:disabled="$disabled">
         <span class="text">{$internalValue}</span>
-        <span $if="hint" class="hint" aria-hidden="true">{$hint}</span>
+        <span $if="$hint" class="hint" aria-hidden="true">{$hint}</span>
       </button>
       <input
         class="input"
         $ref="input"
         type="text"
-        .value="draft"
-        from:aria-label="label"
-        from:placeholder="placeholder"
-        from:required="required"
-        from:disabled="disabled or not internalEdit"
+        .value="$draft"
+        from:aria-label="$label"
+        from:placeholder="$placeholder"
+        from:required="$required"
+        from:disabled="$disabled or not $internalEdit"
       >
     </div>
-    <div $if="actions" class="actions">
+    <div $if="$actions" class="actions">
       <button class="save" type="button">{$saveLabel}</button>
       <button class="cancel" type="button">{$cancelLabel}</button>
     </div>

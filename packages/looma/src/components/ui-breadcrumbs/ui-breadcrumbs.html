@@ -2,7 +2,7 @@
   <defs>
     <prop name="label" type="string" default="Breadcrumb">The navigation landmark's accessible name.</prop>
   </defs>
-  <nav from:aria-label="label"><ol role="list"><slot></slot></ol></nav>
+  <nav from:aria-label="$label"><ol role="list"><slot></slot></ol></nav>
   <style>
     /* Where a view sits: a trail of ui-breadcrumb-item, from the top down to the current view. It wraps
        rather than scrolls, so every step stays reachable. */

@@ -9,7 +9,7 @@
     <prop name="columns" type="integer"
     >Maximum columns when there is room. Omit for no cap. The grid still drops columns as its container narrows; it never forces a fixed column count.</prop>
   </defs>
-  <div style:--_grid-column-cap="columns"><slot></slot></div>
+  <div style:--_grid-column-cap="$columns"><slot></slot></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-grid-gap {
