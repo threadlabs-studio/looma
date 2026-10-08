@@ -165,8 +165,8 @@ intact. Screenshots disable animations and hide the
 caret without hiding content. Visual pages hide the navbar version label
 (`.looma-version`) from first paint through an adopted stylesheet, because the
 label changes with every release rather than with the page under review. A
-capture-time mask would add page nodes that HTML Next's document observer sees;
-on the Table Context Menu page that redraws the open menus mid-capture. Keep the Playwright version, image digest, font
+capture-time mask adds page nodes that HTML Next's document observer sees; the
+Table Context Menu page then draws open menus that ordinary captures show empty. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
 The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
