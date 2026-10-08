@@ -285,6 +285,35 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Table context menu placement", () => {
+  it("leaves a menu in normal flow in place and keeps a floating menu inside the viewport", async () => {
+    const path = await bundle("html-table-context-menu", `import "@threadlabs/looma";`);
+    const actions = `actions='["add-row-before","add-row-after","add-column-before","add-column-after","delete-table"]'`;
+    const page = await open(path, `
+      <div style="height: 1500px"></div>
+      <div id="stage" style="position: relative; overflow: auto; padding: 20px">
+        <ui-editor-table-context-menu id="inline" ${actions} open></ui-editor-table-context-menu>
+      </div>
+      <div style="position: fixed; top: 560px; left: 1000px">
+        <ui-editor-table-context-menu id="floating" ${actions} open></ui-editor-table-context-menu>
+      </div>
+    `, [join(root, "tokens.css")], { viewport: { width: 1100, height: 600 } });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>("#floating")?.style.translate);
+    // A resize re-measures, as a full-page capture or a rotated phone does.
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    const inline = await page.locator("#inline").evaluate((element) => {
+      const menu = element.getBoundingClientRect();
+      const stage = element.parentElement!.getBoundingClientRect();
+      return { translate: element.style.translate, inside: menu.top >= stage.top && menu.bottom <= stage.bottom };
+    });
+    assert.deepEqual(inline, { translate: "", inside: true });
+    const floating = await page.locator("#floating").boundingBox();
+    assert.ok(floating && floating.x + floating.width <= 1100 - 12 && floating.y + floating.height <= 640 - 12, `floating menu fits the viewport: ${JSON.stringify(floating)}`);
+    await page.close();
+  });
+});
+
 describe("Touch input typography", () => {
   it("keeps editable fields readable inside caption typography", async () => {
     const path = await bundle("touch-caption-input", `
