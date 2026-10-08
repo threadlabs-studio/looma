@@ -89,7 +89,7 @@ certify these pages as free of accessibility defects.
 
 ## Run locally
 
-Use Node 22.13 or 24 and pnpm through Corepack. Run browser commands sequentially,
+Use Node 22.22.2+ or 24.15+ and pnpm through Corepack. Run browser commands sequentially,
 with one worker; the package's ordinary test command also launches browsers.
 
 ```sh
