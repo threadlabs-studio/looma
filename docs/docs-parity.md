@@ -162,10 +162,11 @@ TOC classes, or the zero-pixel comparison.
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
 intact. Screenshots disable animations and hide the
-caret without hiding content. They mask the navbar version label
-(`.looma-version`) with Playwright's default `#FF00FF` box, because the label
-changes with every release rather than with the page under review; on desktop the
-box covers x 1151–1219, y 20–46. Keep the Playwright version, image digest, font
+caret without hiding content. Visual pages hide the navbar version label
+(`.looma-version`) from first paint through an adopted stylesheet, because the
+label changes with every release rather than with the page under review. A
+capture-time mask would add page nodes that HTML Next's document observer sees;
+on the Table Context Menu page that redraws the open menus mid-capture. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
 The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
