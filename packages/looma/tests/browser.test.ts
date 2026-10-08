@@ -1139,6 +1139,92 @@ describe("Menu structure and navigation", () => {
 });
 
 describe("Dialog close policy and presentation", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`keeps ${adapter} dialog content inset and actions equally padded with early or late CSS`, async () => {
+      const path = await bundle(`${adapter}-dialog-spacing`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button, Dialog } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Publish changes?" }, {
+          default: () => h("p", { id: "message" }, "Your edits will be visible to everyone with access to this project."),
+          actions: () => [h(Button, { variant: "outline" }, () => "Cancel"), h(Button, {}, () => "Publish")],
+        }) }).mount("#app");
+      `);
+      const css = [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])];
+      for (const width of [1024, 375]) {
+        for (const late of [false, true]) {
+          const page = await open(path, adapter === "html" ? `
+            <ui-dialog id="dialog" open modal label="Publish changes?">
+              <p id="message">Your edits will be visible to everyone with access to this project.</p>
+              <ui-button slot="actions" variant="outline">Cancel</ui-button><ui-button slot="actions">Publish</ui-button>
+            </ui-dialog>
+          ` : '<div id="app"></div>', late ? [] : css, { viewport: { width, height: 720 }, reducedMotion: "reduce" });
+          if (late) for (const stylesheet of css) await page.addStyleTag({ path: stylesheet });
+          await page.waitForFunction(() => document.querySelector<HTMLDialogElement>("#dialog")?.open);
+          const geometry = await page.locator("#dialog").evaluate(element => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            const message = element.querySelector("#message")!.getBoundingClientRect();
+            const title = element.querySelector(".title")!.getBoundingClientRect();
+            const footer = element.querySelector("footer")!;
+            const action = footer.lastElementChild!.getBoundingClientRect();
+            const body = element.querySelector(".body")!.getBoundingClientRect();
+            return {
+              left: message.left - rect.left - parseFloat(style.borderLeftWidth),
+              right: rect.right - message.right - parseFloat(style.borderRightWidth),
+              title: title.left - rect.left - parseFloat(style.borderLeftWidth),
+              actionRight: rect.right - action.right - parseFloat(style.borderRightWidth),
+              actionBottom: rect.bottom - action.bottom - parseFloat(style.borderBottomWidth),
+              bodyTop: message.top - body.top, bodyBottom: body.bottom - message.bottom,
+              gutter: parseFloat(getComputedStyle(footer).paddingInlineEnd),
+              height: rect.height, viewportHeight: innerHeight, scroll: element.scrollHeight - element.clientHeight,
+            };
+          });
+          const near = (actual: number, expected: number, message: string) => assert.ok(Math.abs(actual - expected) < 1, `${adapter}, ${width}px, late CSS ${late}: ${message}: ${JSON.stringify(geometry)}`);
+          near(geometry.left, geometry.gutter, "body aligns with the title and footer gutter");
+          near(geometry.right, geometry.gutter, "body has equal side padding");
+          near(geometry.title, geometry.gutter, "title aligns with the body");
+          near(geometry.actionRight, geometry.gutter, "actions keep their end gutter");
+          near(geometry.actionBottom, geometry.gutter, "actions have equal bottom and side gutters");
+          near(geometry.bodyTop, 12, "paragraph's outer top margin does not inflate the body inset");
+          near(geometry.bodyBottom, geometry.gutter, "paragraph's outer bottom margin does not inflate the body inset");
+          assert.ok(geometry.height < geometry.viewportHeight / 2, "short content stays compact");
+          assert.equal(geometry.scroll, 0, "the outer dialog does not scroll");
+          await page.close();
+        }
+      }
+    });
+
+    it(`keeps ${adapter} dialog chrome pinned while the body grows, scrolls, and shrinks`, async () => {
+      const path = await bundle(`${adapter}-dialog-scroll`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button, Dialog } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Review changes" }, {
+          default: () => h("div", { id: "content" }, "Short content"),
+          actions: () => h(Button, {}, () => "Accept"),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-dialog id="dialog" open modal label="Review changes"><div id="content">Short content</div><ui-button slot="actions">Accept</ui-button></ui-dialog>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+        { viewport: { width: 375, height: 600 }, reducedMotion: "reduce" });
+      const dialog = page.locator("#dialog");
+      const short = await dialog.boundingBox();
+      await page.locator("#content").evaluate(element => { element.innerHTML = "<p>Review this change.</p>".repeat(80); });
+      const tall = await dialog.boundingBox();
+      assert.ok(short && tall && tall.height > short.height && tall.y >= 16 && tall.y + tall.height <= 584, "growth stops at both viewport gutters");
+      const scroller = page.locator('#dialog [data-component~="ui-scroll-area"]');
+      assert.equal(await scroller.evaluate(element => element.scrollHeight > element.clientHeight), true, "long content scrolls inside Scroll Area");
+      const pinned = await page.locator("#dialog header, #dialog footer").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().y));
+      await scroller.evaluate(element => { element.scrollTop = element.scrollHeight; });
+      assert.ok(await scroller.evaluate(element => element.scrollTop) > 0);
+      assert.deepEqual(await page.locator("#dialog header, #dialog footer").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().y)), pinned, "header and actions stay pinned while scrolling");
+      await page.locator("#content").evaluate(element => { element.textContent = "Short content"; });
+      const shrunk = await dialog.boundingBox();
+      assert.ok(shrunk && Math.abs(shrunk.height - short!.height) < 1, "removing long content restores the compact height");
+      await page.close();
+    });
+  }
+
   const isOpen = (id: string) => `document.querySelector("#${id}").open`;
 
   it("keeps nested modal dialogs open with only one visible backdrop", async () => {
@@ -2396,6 +2482,28 @@ function scrollFades(page: Page, selector: string) {
 }
 
 describe("Scroll area", () => {
+  it("trims only projected edge margins when requested in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-scroll-area-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { ScrollArea } from "@threadlabs/looma/vue";
+        createApp({ render: () => [false, true].map(trim => h(ScrollArea, { id: trim ? "trimmed" : "default", trim },
+          () => [h("p", "First"), h("section", [h("p", "Nested")]), h("p", "Last")])) }).mount("#app");
+      `);
+      const content = '<p>First</p><section><p>Nested</p></section><p>Last</p>';
+      const page = await open(path, adapter === "html" ? `<ui-scroll-area id="default">${content}</ui-scroll-area><ui-scroll-area id="trimmed" trim>${content}</ui-scroll-area>` : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.addStyleTag({ content: "p { margin-block: 20px }" });
+      const margins = async (id: string) => page.locator(`#${id} p`).evaluateAll(elements => elements.map(element => {
+        const style = getComputedStyle(element);
+        return [parseFloat(style.marginTop), parseFloat(style.marginBottom)];
+      }));
+      assert.deepEqual(await margins("default"), [[20, 20], [20, 20], [20, 20]], "default scroll areas preserve authored margins");
+      assert.deepEqual(await margins("trimmed"), [[0, 20], [20, 20], [20, 0]], "trim removes only the outside margins, preserving nested content");
+      await page.close();
+    }
+  });
+
   const items = Array.from({ length: 30 }, (_, index) => `<p>Item ${index}</p>`).join("");
   const settle = (page: Page) => page.waitForTimeout(250);
 

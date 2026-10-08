@@ -132,7 +132,7 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
-The 0.26.1 reference refresh records the Table Context Menu page's three menus
+The 0.26.2 reference refresh records the Table Context Menu page's three menus
 open inside their example stages, in the HTML and Vue views. The menu translated
 itself into the viewport when it opened and on every viewport resize, so menus
 below the first screen left their stages, and each full-page capture's resize
