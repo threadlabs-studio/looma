@@ -104,11 +104,13 @@ export async function screenshot(page: Page, name: string, fullPage = false, max
     });
   }
   await paint(page);
+  // The navbar version label changes with every release, not with the page under review.
+  const mask = [page.locator(".looma-version")];
   if (name.endsWith("/docs-api-sync.png")) {
     // Compare the settled static guide's first capture: repeated live-page capture can remount its TOC.
-    await expect(await page.screenshot({ fullPage, animations: "disabled", caret: "hide" })).toMatchSnapshot(name, { maxDiffPixels });
+    await expect(await page.screenshot({ fullPage, animations: "disabled", caret: "hide", mask })).toMatchSnapshot(name, { maxDiffPixels });
   } else {
-    await expect(page).toHaveScreenshot(name, { fullPage, maxDiffPixels, timeout: 15_000 });
+    await expect(page).toHaveScreenshot(name, { fullPage, maxDiffPixels, mask, timeout: 15_000 });
   }
 }
 
