@@ -25,26 +25,26 @@
   </defs>
   <div
     role="listbox"
-    from:tabindex="{ true: '-1', false: '0' }[concat(disabled)]"
-    from:aria-multiselectable="multiple"
-    from:aria-disabled="disabled"
-    from:aria-required="required"
-    from:aria-invalid="invalid or validationError"
-    style:--_rows="rows"
+    from:tabindex="{ true: '-1', false: '0' }[concat($disabled)]"
+    from:aria-multiselectable="$multiple"
+    from:aria-disabled="$disabled"
+    from:aria-required="$required"
+    from:aria-invalid="$invalid or $validationError"
+    style:--_rows="$rows"
   >
     <ui-scroll-area class="choices" $ref="choices">
       <div
-        $each="choice of choices"
-        $key="choice.index"
+        $each="choice of $choices"
+        $key="$choice.index"
         class="option"
-        class:active="choice.index = active"
+        class:active="$choice.index = $active"
         role="option"
         data-ui-choice-option
-        from:data-multiple="multiple"
-        from:id="concat(uid, '-option-', choice.index)"
-        from:data-index="choice.index"
-        from:aria-selected="choice.selected"
-        from:aria-disabled="choice.disabled"
+        from:data-multiple="$multiple"
+        from:id="concat($uid, '-option-', $choice.index)"
+        from:data-index="$choice.index"
+        from:aria-selected="$choice.selected"
+        from:aria-disabled="$choice.disabled"
       >
         <span>{$choice.label}</span>
       </div>
@@ -52,25 +52,25 @@
     <select
       class="fallback"
       $ref="options"
-      from:size="rows"
-      from:multiple="multiple"
-      from:disabled="disabled"
-      from:required="required"
-      from:name="name"
+      from:size="$rows"
+      from:multiple="$multiple"
+      from:disabled="$disabled"
+      from:required="$required"
+      from:name="$name"
       aria-label="Choices"
     >
       <slot></slot>
     </select>
-    <template $if="name and not disabled">
-      <input $each="selected of selection" type="hidden" from:name="name" from:value="selected">
+    <template $if="$name and not $disabled">
+      <input $each="selected of $selection" type="hidden" from:name="$name" from:value="$selected">
     </template>
     <input
       class="validity"
       $ref="validity"
       type="checkbox"
-      from:required="required and not hasSelection and not disabled"
-      from:checked="hasSelection"
-      from:disabled="disabled"
+      from:required="$required and not $hasSelection and not $disabled"
+      from:checked="$hasSelection"
+      from:disabled="$disabled"
       aria-hidden="true"
       tabindex="-1"
     >
