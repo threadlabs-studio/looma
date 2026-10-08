@@ -1198,6 +1198,18 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await expect(footer).toHaveCSS("justify-content", "flex-end");
   const [cancel, publish] = await Promise.all([footer.getByRole("button", { name: "Cancel" }).boundingBox(), footer.getByRole("button", { name: "Publish" }).boundingBox()]);
   expect(publish!.x).toBeGreaterThan(cancel!.x);
+  const spacing = await dialog.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const border = parseFloat(getComputedStyle(element).borderLeftWidth);
+    const title = element.querySelector(".title")!.getBoundingClientRect();
+    const message = element.querySelector(".body p")!.getBoundingClientRect();
+    const action = element.querySelector("footer")!.lastElementChild!.getBoundingClientRect();
+    return { title: title.left - rect.left - border, message: message.left - rect.left - border,
+      right: rect.right - action.right - border, bottom: rect.bottom - action.bottom - border };
+  });
+  expect(spacing.message).toBeGreaterThan(0);
+  expect(spacing.message).toBeCloseTo(spacing.title, 0);
+  expect(spacing.bottom).toBeCloseTo(spacing.right, 0);
   await footer.getByRole("button", { name: "Publish" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
 
@@ -1218,7 +1230,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await expect(dialog).not.toHaveAttribute("open", "");
 
   dialog = await open("Long content");
-  const body = dialog.locator(".body");
+  const body = dialog.locator(".body [data-component~='ui-scroll-area']");
   expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await body.evaluate((element) => { element.scrollTop = element.scrollHeight; });
   await expect(dialog.locator("header")).toBeInViewport();
