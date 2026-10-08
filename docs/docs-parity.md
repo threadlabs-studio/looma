@@ -138,7 +138,9 @@ image with its navbar version area (x 1150–1220, y 12–52) taken from a new
 container capture. Getting Started uses its full new captures, which differ only
 in the navbar and the Node-range line. Twelve new captures also differed in
 table-of-contents highlight or overlay pixels, the capture instability described
-above; their references keep the reviewed state. Component markup moved to HTML
+above; their references keep the reviewed state. The four desktop Table
+`--github-actions` references take the same area from GitHub's captures, which
+match the reviewed images everywhere else. Component markup moved to HTML
 Next's `$` references in the same release without changing rendered pages.
 
 The 0.25 reference refresh updates the navbar version, removes the unsupported
