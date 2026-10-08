@@ -132,6 +132,15 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+The 0.26 reference refresh updates the navbar version on every desktop page and
+the Node range in Getting Started. Each desktop reference is the reviewed 0.25
+image with its navbar version area (x 1150–1220, y 12–52) taken from a new
+container capture. Getting Started uses its full new captures, which differ only
+in the navbar and the Node-range line. Twelve new captures also differed in
+table-of-contents highlight or overlay pixels, the capture instability described
+above; their references keep the reviewed state. Component markup moved to HTML
+Next's `$` references in the same release without changing rendered pages.
+
 The 0.25 reference refresh updates the navbar version, removes the unsupported
 Methods section from component API tabs, and records the native-event migration
 guides and file-input type. The GitHub Table captures were regenerated in the
