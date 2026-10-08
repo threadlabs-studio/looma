@@ -312,6 +312,32 @@ describe("Table context menu placement", () => {
     assert.ok(floating && floating.x + floating.width <= 1100 - 12 && floating.y + floating.height <= 640 - 12, `floating menu fits the viewport: ${JSON.stringify(floating)}`);
     await page.close();
   });
+
+  it("separates sections only between them and fits fewer swatches to a row in a narrow container", async () => {
+    const path = await bundle("html-table-context-menu-sections", `import "@threadlabs/looma";`);
+    const swatches = `actions='["background-none","background-gray","background-yellow","background-blue","background-green","background-red","add-row-after","delete-table"]'`;
+    const page = await open(path, `
+      <ui-editor-table-context-menu id="plain" actions='["add-row-after","delete-table"]' open></ui-editor-table-context-menu>
+      <div style="position: fixed; top: 0; right: 0"><ui-editor-table-context-menu id="full" ${swatches} open></ui-editor-table-context-menu></div>
+      <div style="width: 227px"><ui-editor-table-context-menu id="narrow" ${swatches} open></ui-editor-table-context-menu></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => document.querySelectorAll("#narrow .swatch-button").length === 6);
+    const layout = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const buttons = [...element.querySelectorAll(".swatch-button")].map((button) => button.getBoundingClientRect());
+      return {
+        width: element.getBoundingClientRect().width,
+        separators: [...element.querySelectorAll(".sep")].map((sep) => getComputedStyle(sep).display !== "none"),
+        perRow: buttons.filter((button) => button.top === buttons[0]?.top).length,
+        narrowest: Math.round(Math.min(...buttons.map((button) => button.width))),
+      };
+    });
+    assert.deepEqual((await layout("plain")).separators, [false, true], "no separator above the first section");
+    const full = await layout("full");
+    assert.deepEqual({ width: full.width, separators: full.separators, perRow: full.perRow }, { width: 272, separators: [true, true], perRow: 3 });
+    const narrow = await layout("narrow");
+    assert.deepEqual({ width: narrow.width, perRow: narrow.perRow, narrowest: narrow.narrowest }, { width: 227, perRow: 2, narrowest: 80 });
+    await page.close();
+  });
 });
 
 describe("Touch input typography", () => {

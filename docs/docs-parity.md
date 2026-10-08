@@ -138,7 +138,10 @@ itself into the viewport when it opened and on every viewport resize, so menus
 below the first screen left their stages, and each full-page capture's resize
 moved them again; earlier references recorded those stages empty. The menu now
 applies its viewport correction only inside a fixed or absolutely positioned
-box, as in LoomaEditor.
+box, as in LoomaEditor. The same refresh records two corrections to the menu:
+no separator above its first section (Open and Row actions), and whole swatch
+labels. Swatches wrap three to a row at the menu's full width, so the Actions
+menu, with two swatches, takes the width of its commands.
 
 The 0.26 reference refresh updates the navbar version on every desktop page and
 the Node range in Getting Started. Each desktop reference is the reviewed 0.25
