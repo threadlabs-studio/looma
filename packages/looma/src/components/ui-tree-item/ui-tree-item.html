@@ -57,25 +57,25 @@
   </defs>
   <div
     role="treeitem"
-    from:aria-label="label"
-    from:aria-level="structuralLevel"
-    from:aria-selected="selected"
-    from:aria-disabled="disabled"
-    from:data-item-id="itemId"
-    from:data-drag-type="dragType"
-    from:data-drop-scope="dropScope"
-    from:data-accepts="accepts"
-    from:data-drop-depth="dropDepth"
-    from:data-subtree-depth="subtreeDepth"
+    from:aria-label="$label"
+    from:aria-level="$structuralLevel"
+    from:aria-selected="$selected"
+    from:aria-disabled="$disabled"
+    from:data-item-id="$itemId"
+    from:data-drag-type="$dragType"
+    from:data-drop-scope="$dropScope"
+    from:data-accepts="$accepts"
+    from:data-drop-depth="$dropDepth"
+    from:data-subtree-depth="$subtreeDepth"
   >
     <div class="row" $ref="row">
       <button
-        $if="sortable and not disabled"
+        $if="$sortable and not $disabled"
         class="drag-handle"
         $ref="dragHandle"
         type="button"
         draggable="true"
-        from:aria-label="{ true: concat('Cancel moving ', label), false: concat('Drag ', label, ' to reorder') }[concat(moving)]"
+        from:aria-label="{ true: concat('Cancel moving ', $label), false: concat('Drag ', $label, ' to reorder') }[concat($moving)]"
       >
         <svg
           aria-hidden="true"
@@ -95,26 +95,26 @@
           <circle cx="15" cy="19" r="1"></circle>
         </svg>
       </button>
-      <button class="disclosure" $ref="disclosure" type="button" from:disabled="disabled" from:hidden="not isContainer">
+      <button class="disclosure" $ref="disclosure" type="button" from:disabled="$disabled" from:hidden="not $isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
       <label class="selection-hit"><input
           class="selection-checkbox"
           type="checkbox"
           tabindex="-1"
-          from:checked="selected"
-          from:disabled="disabled"
-          from:aria-label="concat('Select ', label)"
+          from:checked="$selected"
+          from:disabled="$disabled"
+          from:aria-label="concat('Select ', $label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
       <span class="actions" $ref="actions">
-        <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
+        <ui-button $if="$moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
         <span $else><slot name="actions"></slot></span>
       </span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
-    <div class="children" $ref="children" role="group" from:hidden="not (isContainer and internalExpanded)"><slot></slot></div>
+    <div class="children" $ref="children" role="group" from:hidden="not ($isContainer and $internalExpanded)"><slot></slot></div>
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>

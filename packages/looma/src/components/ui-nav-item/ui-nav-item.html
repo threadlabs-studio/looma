@@ -22,11 +22,11 @@
   </defs>
   <template $match>
     <a
-      $when="as = 'a'"
-      from:href="href"
-      from:target="target"
-      from:rel="rel"
-      from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat(current)]"
+      $when="$as = 'a'"
+      from:href="$href"
+      from:target="$target"
+      from:rel="$rel"
+      from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat($current)]"
     >
       <span class="indicator" aria-hidden="true"></span>
       <span class="leading"><slot name="leading"></slot></span>
@@ -36,7 +36,7 @@
       </span>
       <span class="trailing"><slot name="trailing"></slot></span>
     </a>
-    <button $else type="button" from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat(current)]">
+    <button $else type="button" from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat($current)]">
       <span class="indicator" aria-hidden="true"></span>
       <span class="leading"><slot name="leading"></slot></span>
       <span class="content">

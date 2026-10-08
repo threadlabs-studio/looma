@@ -8,7 +8,7 @@
     >Marks the row as the current result: it gets the hover surface and aria-current="true", which assistive technology announces as current. Set it on one row
       at a time, such as the result the arrow keys have moved to.</prop>
   </defs>
-  <button type="button" from:disabled="disabled" from:aria-current="selected">
+  <button type="button" from:disabled="$disabled" from:aria-current="$selected">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot name="title"></slot></span>
