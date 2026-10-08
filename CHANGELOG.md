@@ -2,8 +2,8 @@
 
 ## v0.26.0
 
-- **Breaking runtime requirement:** Looma requires Node 22.22.2 or later in Node 22, or Node 24.15 or later in Node 24 (previously 22.13 and 24.0). Looma now depends on HTML Next 1.0.0-alpha.34, whose server rendering uses jsdom 30, and jsdom 30 supports only those releases. Keeping the older range would let apps install a renderer that their Node release does not support. To migrate, update Node within its current major version.
-- Component definitions write references to their props and state as `$name`, the expression syntax HTML Next 1.0.0-alpha.34 requires. Props, events, slots and rendered markup are unchanged. HTML Next components that an app writes beside Looma use the same HTML Next version, so their expression references need `$` as well; HTML Next's 1.0.0-alpha.34 changelog lists every affected attribute.
+- **Breaking runtime requirement:** Looma requires Node 22.22.2 or later in Node 22, or Node 24.15 or later in Node 24 (previously 22.13 and 24.0). Looma now depends on HTML Next 1.0.0-alpha.35, whose server rendering uses jsdom 30, and jsdom 30 supports only those releases. Keeping the older range would let apps install a renderer that their Node release does not support. To migrate, update Node within its current major version.
+- Component definitions write references to their props and state as `$name`, the expression syntax HTML Next requires since 1.0.0-alpha.34. Props, events, slots and rendered markup are unchanged. HTML Next components that an app writes beside Looma use the same HTML Next version, so their expression references need `$` as well, and their `$sort` keys start from the loop item (`$sort="p.price"` under `$each="p of $products"`). HTML Next's 1.0.0-alpha.34 and 1.0.0-alpha.35 changelog entries list every affected attribute.
 
 ## v0.25.7
 
