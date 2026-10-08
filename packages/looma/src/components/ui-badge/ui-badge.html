@@ -7,12 +7,13 @@
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
       colour, which overrides the tone.</prop>
-    <prop name="shape" type="keyword" values="pill, tag, dot, square" default="pill"
+    <prop name="shape" type="keyword" values="pill, tag, dot, square, circle" default="pill"
     >Silhouette. pill is rounded at both ends; tag is a pointed label. dot is a compact circular signal with visually hidden text: include a state label, or set
       aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
-      decorative icon when adjacent words name it.</prop>
+      decorative icon when adjacent words name it. circle frames a visible single glyph or icon in a fixed circle, centered in both directions.</prop>
     <prop name="size" type="keyword" values="xs, md" default="md"
-    >Scale. xs is a compact count beside small controls; md is the usual text badge. A square is 24px at xs and 32px at md with default spacing.</prop>
+    >Scale. xs is a compact count beside small controls; md is the usual text badge. A square is 24px at xs and 32px at md with default spacing. A circle is
+      16px at xs and 24px at md.</prop>
   </defs>
   <span>
     <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
@@ -25,6 +26,10 @@
       inherits: false;
     }
     @property --ui-badge-square-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-circle-size {
       syntax: "*";
       inherits: false;
     }
@@ -315,6 +320,40 @@
     }
 
     :host([shape="square"]) .label:empty {
+      display: none;
+    }
+
+    /* A visible glyph needs fixed geometry, unlike a content-sized pill or a hidden-label dot. */
+    :host([shape="circle"]) {
+      --_badge-circle-size: var(--ui-badge-circle-size, calc(var(--ui-space-3) * 2));
+      display: inline-flex;
+      flex: none;
+      inline-size: var(--_badge-circle-size);
+      block-size: var(--_badge-circle-size);
+      min-inline-size: var(--_badge-circle-size);
+      min-block-size: var(--_badge-circle-size);
+      padding: 0;
+      border-radius: var(--ui-radius-round);
+      text-box-trim: none;
+    }
+
+    :host([shape="circle"][size="xs"]) {
+      --_badge-circle-size: var(--ui-badge-circle-size, var(--ui-space-4));
+    }
+
+    :host([shape="circle"]) .label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      text-box-trim: none;
+    }
+
+    :host([shape="circle"]) .label :slotted(svg) {
+      margin-inline-end: 0;
+    }
+
+    :host([shape="circle"]) .label:empty {
       display: none;
     }
 

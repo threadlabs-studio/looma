@@ -55,6 +55,101 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Pressed icon controls and circular marks", () => {
+  it("keeps an accent outline toggle pressed after release in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-pressed-icon`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { IconButton, Icon, Tooltip } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(IconButton, { id: "toggle", label: "Notifications", variant: "outline", tone: "accent", anticipatory: true, "aria-pressed": true }, () => h(Icon, { name: "bell" })),
+          h(IconButton, { id: "neutral", label: "Neutral", variant: "outline" }, () => h(Icon, { name: "bell" })),
+          h(Tooltip, { for: "toggle" }, () => "Notifications")
+        ] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-icon-button id="toggle" label="Notifications" variant="outline" tone="accent" anticipatory aria-pressed="true"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-icon-button id="neutral" label="Neutral" variant="outline"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-tooltip for="toggle">Notifications</ui-tooltip>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const paint = (id: string) => page.locator(id).evaluate(element => {
+        const style = getComputedStyle(element);
+        return { border: style.borderColor, color: style.color, surface: style.backgroundColor, image: style.backgroundImage, shadow: style.boxShadow,
+          iconOpacity: getComputedStyle(element.querySelector(".content")!).opacity };
+      });
+      await page.waitForSelector('#toggle[data-component~="ui-icon-button"]');
+      const selected = await paint("#toggle");
+      assert.ok(selected.shadow.includes("inset"), `${adapter}: selected control stays inset at rest`);
+      assert.equal(selected.image, "none");
+      assert.equal(selected.iconOpacity, "1", "selected anticipatory control remains visible");
+      assert.notEqual(selected.border, (await paint("#neutral")).border);
+      await page.locator("#toggle").click();
+      assert.equal(await page.locator("#toggle").getAttribute("aria-pressed"), "true", "consumer owns toggle state");
+      await page.mouse.move(300, 200);
+      await page.locator("#toggle").blur();
+      assert.ok((await paint("#toggle")).shadow.includes("inset"));
+      await page.locator("#toggle").focus();
+      assert.ok((await paint("#toggle")).shadow.includes("inset"), "focus keeps selected state");
+      await page.getByRole("tooltip").waitFor({ state: "visible" });
+      await page.locator("#toggle").evaluate(element => {
+        element.setAttribute("aria-pressed", "false");
+      });
+      assert.notEqual((await paint("#toggle")).surface, selected.surface, "native state update releases the wash");
+      await page.locator("#toggle").evaluate(element => element.setAttribute("aria-pressed", "true"));
+      await page.emulateMedia({ forcedColors: "active" });
+      assert.equal(await page.locator("#toggle").evaluate(element => getComputedStyle(element).outlineStyle), "solid", "pressed state survives forced colors");
+      await page.emulateMedia({ forcedColors: "none" });
+      await page.locator("#toggle").evaluate(element => { element.setAttribute("aria-pressed", "true"); (element as HTMLButtonElement).disabled = true; });
+      assert.equal((await paint("#toggle")).shadow, "none", "disabled overrides selected elevation");
+      await page.close();
+    }
+  });
+
+  it("centers visible circular glyphs with fixed geometry in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-circle-badge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(Badge, { id: "small", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category D" }, () => "D"),
+          h(Badge, { id: "letter", shape: "circle", variant: "outline", "aria-label": "Category R" }, () => "R"),
+          h(Badge, { id: "medium", shape: "circle", tone: "accent" }, () => h(Icon, { name: "check" }))] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#small[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        for (const [id, expected] of [["small", 16], ["letter", 24], ["medium", 24]] as const) {
+          const geometry = await page.locator(`#${id}`).evaluate(element => {
+            const box = element.getBoundingClientRect(), label = element.querySelector(".label")!.getBoundingClientRect();
+            return { width: box.width, height: box.height, x: (label.left + label.right - box.left - box.right) / 2, y: (label.top + label.bottom - box.top - box.bottom) / 2,
+              clip: getComputedStyle(element.querySelector(".label")!).clipPath };
+          });
+          assert.equal(geometry.width, expected, `${adapter}/${width}/${id}`);
+          assert.equal(geometry.height, expected, `${adapter}/${width}/${id}`);
+          assert.ok(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, `${adapter}/${width}/${id}: centered glyph ${JSON.stringify(geometry)}`);
+          assert.equal(geometry.clip, "none", "circle content remains visible");
+          if (id !== "medium") {
+            const inkOffset = await page.locator(`#${id}`).evaluate(element => {
+              const label = element.querySelector(".label")!, range = document.createRange();
+              range.selectNodeContents(label);
+              const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+              const canvas = document.createElement("canvas").getContext("2d")!;
+              canvas.font = getComputedStyle(label).font;
+              const metrics = canvas.measureText(label.textContent!);
+              // A centered font line box alone does not prove that uppercase ink is centered.
+              const baseline = text.bottom - metrics.fontBoundingBoxDescent;
+              return baseline - (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 - (box.top + box.bottom) / 2;
+            });
+            assert.ok(Math.abs(inkOffset) < 1, `${adapter}/${width}/${id}: uppercase ink offset ${inkOffset}`);
+          }
+        }
+      }
+      await page.close();
+    }
+  });
+});
+
 describe("Anchored overlay placement", () => {
   it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
     const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
