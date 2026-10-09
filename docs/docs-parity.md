@@ -68,9 +68,9 @@ the live examples; they are not three additional rendered scenarios.
 
 ## Existing visual quirks
 
-Some standalone editor mention/slash picker examples are open without an
-application anchor and appear near the viewport corner rather than inside their
-preview card. The catalog heading also wraps its last letter at 375px. References
+Standalone editor mention/slash picker examples open at the viewport
+coordinates their `anchor-rect` supplies, so they sit at their preview frame's
+edge rather than at the body inset. The catalog heading also wraps its last letter at 375px. References
 retain those current layouts. Caret-anchored menus in the editor guide have
 separate interaction/state coverage. Review intentional corrections through the
 same targeted baseline update process. API tables can also wrap short type names
@@ -98,6 +98,11 @@ corepack pnpm --filter @threadlabs/looma-docs typecheck:tests
 corepack pnpm --filter @threadlabs/looma-docs test:parity:container
 corepack pnpm --filter @threadlabs/looma-docs test:visual
 ```
+
+The docs build sets `USE_SIMPLE_CSS_MINIFIER=true`, Docusaurus's switch to cssnano alone. Its
+default second pass, clean-css, rewrites native `@scope` blocks, which HTML Next's Vue output uses
+since 1.0.0-alpha.41: it drops each block's first selector and moves the rest outside the scope, so
+the editor guide's Vue components lost their styles.
 
 For native browser runs, install the three engines with
 `PLAYWRIGHT_SKIP_BROWSER_GC=1 corepack pnpm --filter @threadlabs/looma-docs exec playwright install chromium firefox webkit`
@@ -132,6 +137,27 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+The 0.27.0 reference refresh records floating surfaces in the browser's top layer
+and the component corrections released with them. Static, always-open popup
+examples (Menu, Menu Item, Menu Group, the editor menus, Search Shell, and Table
+Context Menu) render in isolated preview documents with their own top layer. An
+open menu written without `for` sits at its written place, the preview body's
+12px inset, instead of the frame's corner. Table Context Menu has no separator
+above its first section, and its swatches keep whole labels, three to a row at
+the menu's full width. Dialog references record the top-layer dialog, its
+optical header inset and content-sized height, plus new catalog-dialog and mobile
+growth, body-scroll, and shrink states. Documentation heading and paragraph rules
+no longer reach into component examples, which changes example text in pages
+such as Disclosure, Menu, and Table; the desktop Table pages are 38px shorter.
+Their `--github-actions` variants are GitHub's captures of the same Table page
+from hosted docs-parity runs on #299's branch, with the navbar version area (x 1150–1220,
+y 12–52) taken from the local capture as in the 0.26 refresh; they differ from
+the local references only in the known sticky-header glyph rows.
+Toast examples start hidden behind a button; danger Card and Section, Callout,
+and toned Toasts keep straight corners on their accent edge; and the Scroll Area
+page documents `padding`. The catalog dialog capture also hides the navbar version
+label, as every other capture does.
+
 The 0.26 reference refresh updates the navbar version on every desktop page and
 the Node range in Getting Started. Each desktop reference is the reviewed 0.25
 image with its navbar version area (x 1150–1220, y 12–52) taken from a new
@@ -164,9 +190,8 @@ the pixel comparison remains unchanged. Focus, open overlays, and selections rem
 intact. Screenshots disable animations and hide the
 caret without hiding content. Visual pages hide the navbar version label
 (`.looma-version`) from first paint through an adopted stylesheet, because the
-label changes with every release rather than with the page under review. A
-capture-time mask adds page nodes that HTML Next's document observer sees; the
-Table Context Menu page then draws open menus that ordinary captures show empty. Keep the Playwright version, image digest, font
+label changes with every release rather than with the page under review. The
+adopted stylesheet leaves page markup unchanged. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
 The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent

@@ -49,7 +49,8 @@ const app = createSSRApp({
 
 const html = await renderToString(app);
 for (const tag of ["ui-stack", "ui-button", "ui-context-menu", "ui-editor-toolbar"]) {
-  if (!html.includes(`data-component="${tag}"`)) throw new Error(`unexpected Vue SSR output for ${tag}: ${html}`);
+  // Converted Vue marks each component root with its tag as a class.
+  if (!new RegExp(`class="(?:[^"]* )?${tag}(?: [^"]*)?"`).test(html)) throw new Error(`unexpected Vue SSR output for ${tag}: ${html}`);
 }
 if (!html.includes("<button") || html.includes("<ui-button")) {
   throw new Error(`unexpected Vue SSR output: ${html}`);

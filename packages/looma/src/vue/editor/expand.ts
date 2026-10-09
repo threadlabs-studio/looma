@@ -24,7 +24,7 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
     expanded.value = true;
     (event as CustomEvent<{ pending: Promise<void>[] }>).detail.pending.push(nextTick().then(async () => {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-      const panel = dom.querySelector<HTMLElement>("[data-component='ui-disclosure'] .panel");
+      const panel = dom.querySelector<HTMLElement>(":is([data-component~='ui-disclosure'], .ui-disclosure) .panel");
       await Promise.all((panel?.getAnimations() ?? []).map(animation => animation.finished.catch(() => {})));
     }));
   };

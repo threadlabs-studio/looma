@@ -1,5 +1,5 @@
 // Drives LoomaEditor's table and slash-menu UI from the built package (run `pnpm build` first) in
-// Chromium, through the public surface only: roles, accessible names, ARIA state, data-component,
+// Chromium, through the public surface only: roles, accessible names, ARIA state, the component marker,
 // computed styles, and geometry. Helpers are copied from browser.test.ts on purpose.
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -224,7 +224,7 @@ describe("LoomaEditor links", () => {
     const form = linkForm(page);
     await form.getByRole("heading", { name: "Add link" }).waitFor({ timeout: 1000 });
     await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
-    await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 2, "results use flat component rows");
+    await equals(() => form.locator(':is([data-component~="ui-search-result-row"], .ui-search-result-row)').count(), 2, "results use flat component rows");
     assert.match(await form.getByRole("button", { name: "Save link" }).getAttribute("data-ui-button-state") ?? "", /variant=solid/);
     assert.equal(await form.getByRole("searchbox").getAttribute("placeholder"), "Search pages or paste a URL…");
     assert.equal(await form.getByRole("tab").count(), 0, "one field replaces destination modes");
@@ -241,6 +241,13 @@ describe("LoomaEditor links", () => {
     await page.setViewportSize({ width: 375, height: 760 });
     await prose(page).locator("p").click({ position: { x: 8, y: 8 } });
     const trigger = page.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" });
+    const chrome = await page.locator(".looma-editor__mobile-toolbar-shell").evaluate(element => {
+      const style = getComputedStyle(element);
+      return { topLayer: element.matches(":popover-open"), padding: parseFloat(style.paddingTop), border: parseFloat(style.borderTopWidth), background: style.backgroundColor };
+    });
+    assert.equal(chrome.topLayer, true);
+    assert.ok(chrome.padding > 0 && chrome.border > 0, "top-layer presentation preserves toolbar chrome");
+    assert.notEqual(chrome.background, "rgba(0, 0, 0, 0)");
     await trigger.hover();
     await page.mouse.down();
     // A real press is held briefly; an instantaneous automated click can miss the blur race.
@@ -249,7 +256,7 @@ describe("LoomaEditor links", () => {
     await page.mouse.up();
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("More");
-    await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 5, "results appear");
+    await equals(() => form.locator(':is([data-component~="ui-search-result-row"], .ui-search-result-row)').count(), 5, "results appear");
     assert.equal(await trigger.count(), 1, "the field keeps its mobile anchor mounted");
     await form.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.close();
@@ -267,9 +274,9 @@ describe("LoomaEditor links", () => {
       const input = form.getByRole("searchbox", { name: "Link destination" });
       await input.fill("More");
       const results = form.getByLabel("Destination search results");
-      const rows = results.locator('[data-component="ui-search-result-row"]');
+      const rows = results.locator(':is([data-component~="ui-search-result-row"], .ui-search-result-row)');
       await equals(() => rows.count(), 5, "remaining results are available to scroll");
-      const iconBox = await form.locator('[data-component="ui-input-group"] svg').first().boundingBox();
+      const iconBox = await form.locator(':is([data-component~="ui-input-group"], .ui-input-group) svg').first().boundingBox();
       const inputBox = await input.boundingBox();
       const padding = Number.parseFloat(await input.evaluate(element => getComputedStyle(element).paddingInlineStart));
       assert.ok(iconBox && inputBox && inputBox.x + padding - iconBox.x - iconBox.width <= 8.5, "one icon-to-value gap");
@@ -645,7 +652,7 @@ describe("LoomaEditor collapsible sections", () => {
       await page.keyboard.type("After section");
       await equals(() => prose(page).locator(":scope > p").last().textContent(), "After section", "shortcut or touch block action leaves the container");
       await activate(section.getByRole("button", { name: "Section settings", exact: true }));
-      const settings = page.locator('[data-component="ui-popover"][aria-label="Section settings"]');
+      const settings = page.locator(':is([data-component~="ui-popover"], .ui-popover)[aria-label="Section settings"]');
       await settings.getByRole("textbox", { name: "Summary" }).fill("More context");
       await activate(settings.getByRole("checkbox", { name: "Initially expanded" }));
       const bounds = await settings.boundingBox();
@@ -710,7 +717,7 @@ describe("LoomaEditor automatic table of contents", () => {
       const nav = prose(page).getByRole("navigation", { name: "Table of contents" });
       await equals(() => nav.getByRole("link").count(), 3, "all headings appear automatically");
       await activate(nav.getByRole("button", { name: "Table of contents settings" }));
-      const settings = page.locator('[data-component="ui-popover"][aria-label="Table of contents settings"]');
+      const settings = page.locator(':is([data-component~="ui-popover"], .ui-popover)[aria-label="Table of contents settings"]');
       await activate(settings.getByRole("button", { name: "Formatting", exact: true }));
       const format = page.getByRole("menu", { name: "Formatting", exact: true });
       if (width === 1280) {
@@ -861,7 +868,7 @@ describe("LoomaEditor tables", () => {
     await page.keyboard.type("Column A");
     await cell(page, 1, 2).click();
     await page.keyboard.type("Column B");
-    const overlay = page.locator('[data-component="ui-editor-table-overlay"]');
+    const overlay = page.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
     await cell(page, 2, 0).hover();
     const rowGrip = overlay.getByRole("button", { name: "Row actions" });
     const rowBox = await rowGrip.boundingBox();
@@ -873,7 +880,7 @@ describe("LoomaEditor tables", () => {
     assert.equal(await overlay.locator("[data-drop-indicator]").getAttribute("hidden"), null, "row drop indicator appears");
     await page.mouse.up();
     await equals(() => cell(page, 1, 0).textContent(), "Row B", "row moved by drag");
-    assert.equal(await page.locator('[data-component="ui-editor-table-context-menu"]').count(), 0, "drag does not open an action menu");
+    assert.equal(await page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)').count(), 0, "drag does not open an action menu");
     await cell(page, 2, 2).hover();
     const columnGrip = overlay.getByRole("button", { name: "Column actions" });
     const columnBox = await columnGrip.boundingBox();
@@ -901,7 +908,7 @@ describe("LoomaEditor tables", () => {
     const insertTable = page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Insert table" });
     await insertTable.click();
     await equals(() => insertTable.getAttribute("aria-expanded"), "true", "Insert table opens the grid");
-    const grid = page.locator('[data-component="ui-editor-insert-table-grid"]');
+    const grid = page.locator(':is([data-component~="ui-editor-insert-table-grid"], .ui-editor-insert-table-grid)');
     await grid.getByRole("group", { name: "Table dimensions" }).waitFor();
     const hint = async () => (await grid.textContent())?.match(/\d+ × \d+/)?.[0];
     const twoByTwo = grid.getByRole("button", { name: "2 rows by 2 columns" });
@@ -922,7 +929,7 @@ describe("LoomaEditor tables", () => {
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
     await page.keyboard.type("/tab");
-    const slash = page.locator('[data-component="ui-editor-slash-menu"]');
+    const slash = page.locator(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)');
     await slash.getByRole("option", { name: /table/i }).first().waitFor();
     await slash.getByRole("option", { name: /table insert a table/i }).click();
     await table(page).waitFor();
@@ -990,7 +997,7 @@ describe("LoomaEditor tables", () => {
     await openTableMenu(page);
     assert.equal(await headerColumn().getAttribute("aria-checked"), "true");
     await cell(page, 1, 0).click({ button: "right" });
-    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    const context = page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
     await context.waitFor();
     assert.equal(await context.getByRole("menuitemcheckbox", { name: "Header column" }).getAttribute("aria-checked"), "true");
     await page.close();
@@ -1006,7 +1013,7 @@ describe("LoomaEditor tables", () => {
     await cell(page, 2, 0).click();
     await page.keyboard.type("Row B");
     await cell(page, 2, 0).click({ button: "right" });
-    const context = () => page.locator('[data-component="ui-editor-table-context-menu"]');
+    const context = () => page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
     assert.deepEqual(errors, []);
     assert.equal(await context().count(), 1);
     await context().getByRole("menuitem", { name: "Move row up" }).click();
@@ -1026,8 +1033,8 @@ describe("LoomaEditor tables", () => {
     const page = await openEditor();
     await insertTableFromSlashMenu(page);
     await cell(page, 1, 1).hover();
-    const overlay = page.locator('[data-component="ui-editor-table-overlay"]');
-    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    const overlay = page.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
+    const context = page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
     await overlay.getByRole("button", { name: "Row actions" }).click();
     await context.waitFor();
     assert.equal(await context.getByRole("menuitem", { name: "Move row up" }).count(), 1);
@@ -1045,7 +1052,7 @@ describe("LoomaEditor tables", () => {
     const page = await openEditor();
     await insertTableFromSlashMenu(page);
     await cell(page, 0, 0).click();
-    const overlay = page.locator('[data-component="ui-editor-table-overlay"]');
+    const overlay = page.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
     const handles = overlay.getByRole("button", { name: "Insert row below" });
     await handles.first().waitFor();
     const handle = handles.nth(0);
@@ -1118,7 +1125,7 @@ describe("LoomaEditor tables", () => {
     await insertTableFromSlashMenu(page);
     const first = cell(page, 0, 0);
     await first.click({ button: "right" });
-    const menu = page.locator('[data-component="ui-editor-table-context-menu"][role="menu"]');
+    const menu = page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)[role="menu"]');
     await menu.waitFor();
     const bounds = await menu.boundingBox();
     assert.ok(bounds && bounds.width <= 280, `context menu is at most 280px wide (${bounds?.width})`);
@@ -1352,7 +1359,7 @@ describe("image controls tooltips", () => {
       const name = await button.getAttribute("aria-label");
       assert.equal(await button.getAttribute("title"), null, "no native tooltip");
       await button.hover();
-      const tooltip = page.locator('[data-component="ui-tooltip"]').filter({ hasText: name! });
+      const tooltip = page.locator(':is([data-component~="ui-tooltip"], .ui-tooltip)').filter({ hasText: name! });
       await tooltip.waitFor();
       assert.ok((await button.getAttribute("aria-describedby"))?.split(/\s+/).includes((await tooltip.getAttribute("id"))!), "standard described tooltip");
       await page.mouse.move(700, 700);

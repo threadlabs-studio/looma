@@ -30,8 +30,9 @@
       box-shadow: inset 0 0 0 1px var(--ui-accent-soft);
     }
 
-    /* A slotted Avatar (a person's photo) is its own circle. */
-    :host .avatar:has(> [data-component~="ui-avatar"]) {
+    /* A slotted Avatar (a person's photo) is its own circle. Its root carries data-component in HTML
+       and its tag as a class in Vue; neither tool lowers a component tag inside :has(). */
+    :host .avatar:has(> :is([data-component~="ui-avatar"], .ui-avatar)) {
       background: none;
       box-shadow: none;
     }

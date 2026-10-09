@@ -10,8 +10,9 @@ Overlay primitive that coordinates native `dialog` behavior with shared overlay 
 
 A dialog is non-modal unless you set `modal`, like the native `<dialog>`: `show()` is non-modal
 and `showModal()` is modal. A non-modal dialog leaves the rest of the page usable, with no backdrop
-and no scroll lock. `modal` opens it in the top layer over a backdrop, makes the rest of the page
-inert, and locks page scrolling until it closes. Either way, focus moves into the dialog when it
+and no scroll lock. Both modes render in the browser's top layer, above page content and outside
+ancestor clipping or transforms. Non-modal presentation uses a manual popover on the native dialog;
+`modal` adds a backdrop, makes the rest of the page inert, and locks page scrolling until it closes. Either way, focus moves into the dialog when it
 opens and returns to where it was when it closes.
 
 `closedby` uses the native `<dialog closedby>` values. Unset, it follows native `<dialog>`: a modal
@@ -37,6 +38,15 @@ those widths do not fit. The `open` and `close` events carry `{open, reason, tri
 
 The header and actions stay in place while long content scrolls in a Scroll Area. Its edges fade
 only when content continues beyond them, blending into the dialog's own surface in any theme.
+
+Dialog height follows its content; `sm`, `md`, and `lg` choose widths, not minimum heights.
+At the viewport limit only the body scrolls. The action row has the same bottom gutter as its
+side gutters, and the body's Scroll Area trims outer content margins so they do not double the
+dialog's padding. `fullscreen` explicitly fills the viewport.
+
+Changes to an open dialog's content animate its height over `--ui-dialog-duration` (the standard
+motion duration by default). Growth stops at the viewport limit and shrinking returns to intrinsic
+height. A new content change retargets the active resize. Reduced-motion preferences resize immediately.
 
 ## Theming
 

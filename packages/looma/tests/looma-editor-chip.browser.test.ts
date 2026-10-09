@@ -41,7 +41,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
 
       editor!.chain().focus().insertContent("Article /chip").run();
       await flushBrowser();
-      const chipOption = () => [...(host.querySelectorAll<HTMLElement>('[data-component~="ui-editor-slash-menu"] [role="option"]'))]
+      const chipOption = () => [...(host.querySelectorAll<HTMLElement>(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu) [role="option"]'))]
         .find((item) => item.textContent?.includes("Chip"));
       await vi.waitFor(() => expect(chipOption()).toBeTruthy(), { timeout: 3000 });
       await userEvent.click(chipOption()!);
@@ -73,7 +73,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
 
     editor!.chain().focus().insertContent("Article /chip").run();
     await flushBrowser();
-    const menu = host.querySelector<HTMLElement>('[data-component~="ui-editor-slash-menu"]');
+    const menu = host.querySelector<HTMLElement>(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)');
     expect(menu?.textContent).toContain("Chip");
     const item = [...(menu?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
       .find((option) => option.textContent?.includes("Chip"));
