@@ -22,6 +22,7 @@ apps/storybook/.storywright/tmp/
 apps/storybook/.storywright/report/
 apps/storybook/.storywright/review/
 .release/
+.qualification/
 
 # Compiled Java class files
 *.class
