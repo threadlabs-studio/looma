@@ -22,22 +22,22 @@
     <event name="highlight" type="object({ index: integer, value: string })"></event>
     <event name="select" type="object({ index: integer, value: string })"></event>
   </defs>
-  <div role="listbox" from:aria-busy="loading" from:hidden="not visible">
+  <div role="listbox" from:aria-busy="$loading" from:hidden="not $visible">
     <div class="header"><slot name="header"></slot></div>
-    <div $if="searching" class="loading" role="status">{$loadingLabel}</div>
-    <ul $if="not searching" class="list" role="presentation">
+    <div $if="$searching" class="loading" role="status">{$loadingLabel}</div>
+    <ul $if="not $searching" class="list" role="presentation">
       <li
-        $each="row, index of rows"
-        from:id="concat(prefix, '-option-', index)"
+        $each="row, index of $rows"
+        from:id="concat($prefix, '-option-', $index)"
         class="item"
-        class:active="index = active"
+        class:active="$index = $active"
         role="option"
-        from:aria-selected="index = active"
-        from:data-index="index"
-        from:data-value="row.id"
+        from:aria-selected="$index = $active"
+        from:data-index="$index"
+        from:data-value="$row.id"
       >
         <span class="avatar" aria-hidden="true">{$row.initials}</span>
-        <span class="body"><span class="label">{$row.label}</span><span $if="row.detail" class="detail">{$row.detail}</span></span>
+        <span class="body"><span class="label">{$row.label}</span><span $if="$row.detail" class="detail">{$row.detail}</span></span>
       </li>
       <slot></slot>
     </ul>
