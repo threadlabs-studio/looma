@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.1
+
+- Looma builds with HTML Next 1.0.0-alpha.41. Its Vue components mark their root with the component's tag as a class (`class="ui-button"`) rather than `data-component`, and scope their styles with native `@scope`; both markers are rendering details, not API, as the Tokens guide says. The editor surface, collapsible editor sections, and a mention row's slotted avatar match either marker. Conditional content (`$if`, `$match`) keeps its elements, focus, and typed text when its decision does not change, and bindings write only changed values.
+
 ## v0.27.0
 
 - **Breaking: authored toasts hide themselves when dismissed.** Previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. A toast authored `hidden` waits to be shown before its duration starts. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.

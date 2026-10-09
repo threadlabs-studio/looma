@@ -198,11 +198,11 @@ test("the context menu opens on a context click, not a plain click", async ({
 
   await target.click({ button: "right", position: { x: 24, y: 24 } });
   await expect(firstItem).toBeVisible();
-  const contextSurface = page.locator("[data-component~='ui-context-menu'] [popover]").first();
+  const contextSurface = page.locator(":is([data-component~='ui-context-menu'], .ui-context-menu) [popover]").first();
   await expect(contextSurface).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
   const geometry = await page.evaluate(() => {
     const target = document.querySelector<HTMLElement>("#context-menu-target")!;
-    const surface = document.querySelector<HTMLElement>("[data-component~='ui-context-menu'] [popover]")!;
+    const surface = document.querySelector<HTMLElement>(":is([data-component~='ui-context-menu'], .ui-context-menu) [popover]")!;
     const targetBounds = target.getBoundingClientRect();
     const surfaceBounds = surface.getBoundingClientRect();
     const style = getComputedStyle(surface);
@@ -258,7 +258,7 @@ test("menu for association toggles the anchored menu", async ({ page }) => {
 test("affordance-scope visibly reveals an anticipatory Looma control near the pointer", async ({ page }) => {
   await page.goto("components/ui-affordance-scope", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default radius']");
-  const affordance = scenario.locator("[data-component~='ui-icon-button']").first();
+  const affordance = scenario.locator(":is([data-component~='ui-icon-button'], .ui-icon-button)").first();
   await expect(affordance).toHaveRole("button", { name: "Add" });
   // At rest only the guide dot shows; the icon starts scaled down and transparent.
   await expect(affordance.locator(".content")).toHaveCSS("opacity", "0");
@@ -273,7 +273,7 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
 
   // guide="none": nothing marks the button at rest, and it still reveals as the pointer nears.
   await page.mouse.move(0, 0);
-  const quiet = page.locator("[data-preview-scenario='guide=\"none\"'] [data-component~='ui-icon-button']").first();
+  const quiet = page.locator("[data-preview-scenario='guide=\"none\"'] :is([data-component~='ui-icon-button'], .ui-icon-button)").first();
   await quiet.scrollIntoViewIfNeeded();
   await expect(quiet.locator(".content")).toHaveCSS("opacity", "0");
   expect(await quiet.evaluate((element) => getComputedStyle(element, "::before").opacity)).toBe("0");
@@ -286,10 +286,10 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
   await page.goto("components/ui-popover", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
-  await expect(page.locator("[data-component~='ui-popover'] .surface:visible")).toHaveCount(0);
+  await expect(page.locator(":is([data-component~='ui-popover'], .ui-popover) .surface:visible")).toHaveCount(0);
   const scenario = page.locator("[data-preview-scenario='Trigger binding']");
   const trigger = scenario.getByRole("button", { name: "Open popover" });
-  const popover = scenario.locator("[data-component~='ui-popover']");
+  const popover = scenario.locator(":is([data-component~='ui-popover'], .ui-popover)");
   await expect(popover).not.toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   const restingSurface = await trigger.evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -309,7 +309,7 @@ test("popover trigger opens, positions, and closes the settled component", async
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
 
   const placed = page.locator(`[data-preview-scenario='placement="top-end"']`);
-  const placedPopover = placed.locator("[data-component~='ui-popover']");
+  const placedPopover = placed.locator(":is([data-component~='ui-popover'], .ui-popover)");
   await expect(placedPopover).not.toBeVisible();
   const placedTrigger = placed.getByRole("button", { name: "Open popover" });
   await placedTrigger.click();
@@ -325,8 +325,8 @@ test("popover trigger opens, positions, and closes the settled component", async
 test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async ({ page }) => {
   await page.goto("components/ui-tooltip", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Target binding']");
-  const trigger = scenario.locator("[data-component~='ui-button']");
-  const tooltip = scenario.locator("[data-component~='ui-tooltip']");
+  const trigger = scenario.locator(":is([data-component~='ui-button'], .ui-button)");
+  const tooltip = scenario.locator(":is([data-component~='ui-tooltip'], .ui-tooltip)");
   await expect(trigger).toBeVisible();
   await trigger.focus();
   await expect(tooltip).toBeVisible();
@@ -351,7 +351,7 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
 
   const sideScenario = page.locator("[data-preview-scenario='Side placement']");
   await sideScenario.locator("#side-tooltip-trigger").focus();
-  const sideTooltip = sideScenario.locator("[data-component~='ui-tooltip']");
+  const sideTooltip = sideScenario.locator(":is([data-component~='ui-tooltip'], .ui-tooltip)");
   await expect(sideTooltip).toHaveAttribute("data-ui-actual-placement", "right");
   const sideArrow = () => sideTooltip.locator(".surface").evaluate((element) => {
     const style = getComputedStyle(element, "::after");
@@ -364,11 +364,11 @@ test("solid icon buttons keep their fill and loading shows a ring", async ({ pag
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-icon-button", { waitUntil: "domcontentloaded" });
   for (const scenario of ["Size and variant", "round"]) {
-    const solid = page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-icon-button'][data-ui-icon-button-state~='variant=solid']`);
+    const solid = page.locator(`[data-preview-scenario='${scenario}'] :is([data-component~='ui-icon-button'], .ui-icon-button)[data-ui-icon-button-state~='variant=solid']`);
     const colors = await computedOpaqueColors(solid);
     expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   }
-  const spinner = page.locator("[data-preview-scenario='Loading icon action'] [data-component~='ui-spinner']");
+  const spinner = page.locator("[data-preview-scenario='Loading icon action'] :is([data-component~='ui-spinner'], .ui-spinner)");
   await expect(spinner.locator("svg .arc")).toHaveCSS("stroke-linecap", "round");
   await expect(spinner.locator("svg .arc")).toHaveCSS("animation-name", "ui-spinner-dash");
 });
@@ -420,7 +420,7 @@ test("text fields keep error and readonly borders stable on hover", async ({ pag
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Show a notification']");
-  const region = scenario.locator("[data-component~='ui-toast-region']");
+  const region = scenario.locator(":is([data-component~='ui-toast-region'], .ui-toast-region)");
   // The region answers "show a toast" only once the runtime has lowered it and its controller ran.
   // It is a manual popover, so it stays hidden until it holds one.
   await expect(region).toBeAttached();
@@ -479,7 +479,7 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(sidebar.getByRole("link", { name: "Editor Table Overlay", exact: true })).toHaveCount(0);
 
   // Cards are live like the component pages: a guide dot at rest, the button as the pointer nears it.
-  const anticipatoryControl = page.locator('[data-component-card="ui-affordance-scope"] [data-component~="ui-icon-button"]').first();
+  const anticipatoryControl = page.locator('[data-component-card="ui-affordance-scope"] :is([data-component~="ui-icon-button"], .ui-icon-button)').first();
   await anticipatoryControl.scrollIntoViewIfNeeded();
   await expect(anticipatoryControl.locator(".content")).toHaveCSS("opacity", "0");
   expect(await anticipatoryControl.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
@@ -509,7 +509,7 @@ test("table overlay uses one structured geometry property", async ({ page }) => 
   await page.goto("components/ui-editor-table-overlay", { waitUntil: "domcontentloaded" });
 
   const primary = page.locator("[data-preview-scenario='Open with geometry']");
-  const overlay = primary.locator('[data-component~="ui-editor-table-overlay"]');
+  const overlay = primary.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
   await expect(overlay).toBeVisible();
   await expect(overlay.getByRole("button", { name: "Cell actions" })).toBeVisible();
   await expect(overlay.getByRole("button", { name: /Insert row/ })).toHaveCount(3);
@@ -548,7 +548,7 @@ test("table context menus fit a narrow presentation viewport", async ({ page }) 
   await page.goto("components/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
   const preview = page.locator("[data-preview-scenario='Actions'] iframe");
   await preview.evaluate((frame) => { frame.style.width = "200px"; });
-  const menu = preview.contentFrame().locator('[data-component~="ui-editor-table-context-menu"]');
+  const menu = preview.contentFrame().locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
   await expect(menu).toBeVisible();
   await expect.poll(() => menu.evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -624,7 +624,7 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
   await page.goto("components/ui-avatar", { waitUntil: "domcontentloaded" });
   await ready(page);
   const imageScenario = page.locator("[data-preview-scenario='Image']");
-  const authoredImage = imageScenario.locator("[data-component~='ui-avatar'] img:not(.image)");
+  const authoredImage = imageScenario.locator(":is([data-component~='ui-avatar'], .ui-avatar) img:not(.image)");
   await expect(authoredImage).toHaveCount(1);
   await expect(authoredImage).toBeVisible();
   expect(await authoredImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
@@ -633,8 +633,8 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
 
   await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
   await ready(page);
-  const group = page.locator("[data-preview-scenario='Default maximum'] [data-component~='ui-avatar-group']");
-  const avatars = group.locator("[data-component~='ui-avatar']");
+  const group = page.locator("[data-preview-scenario='Default maximum'] :is([data-component~='ui-avatar-group'], .ui-avatar-group)");
+  const avatars = group.locator(":is([data-component~='ui-avatar'], .ui-avatar)");
   await expect(avatars).toHaveCount(3);
   const boxes = await avatars.evaluateAll((elements) => elements.map((element) => {
     const bounds = element.getBoundingClientRect();
@@ -673,7 +673,7 @@ test("disclosure owns its trigger and animates one grid row between closed and o
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-disclosure", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
-  const disclosure = scenario.locator("[data-component~='ui-disclosure']");
+  const disclosure = scenario.locator(":is([data-component~='ui-disclosure'], .ui-disclosure)");
   const trigger = disclosure.getByRole("button", { name: "Details" });
   const panel = disclosure.locator(".panel");
   await expect(trigger).toBeVisible();
@@ -696,7 +696,7 @@ test("disclosure owns its trigger and animates one grid row between closed and o
 test("tabs generate a full-width tablist from labeled panels without raw button or ARIA wiring", async ({ page }) => {
   await page.goto("components/ui-tabs", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default horizontal']");
-  const tabs = scenario.locator("[data-component~='ui-tabs']");
+  const tabs = scenario.locator(":is([data-component~='ui-tabs'], .ui-tabs)");
   const tablist = tabs.getByRole("tablist", { name: "View" });
   const tabButtons = tablist.getByRole("tab");
   await expect(tabButtons).toHaveCount(2);
@@ -766,7 +766,7 @@ test("top bar stays visible and renders each authored region at desktop document
   await page.goto("components/ui-top-bar", { waitUntil: "domcontentloaded" });
 
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const defaultBar = defaultScenario.locator("[data-component~='ui-top-bar']");
+  const defaultBar = defaultScenario.locator(":is([data-component~='ui-top-bar'], .ui-top-bar)");
   await expect(defaultBar).toBeVisible();
   await expect(defaultBar).toContainText("Title");
   const defaultBounds = await defaultBar.boundingBox();
@@ -774,7 +774,7 @@ test("top bar stays visible and renders each authored region at desktop document
   expect(defaultBounds!.height).toBeGreaterThanOrEqual(48);
 
   const regionsScenario = page.locator("[data-preview-scenario='leading, search, and actions slots']");
-  const regionsBar = regionsScenario.locator("[data-component~='ui-top-bar']");
+  const regionsBar = regionsScenario.locator(":is([data-component~='ui-top-bar'], .ui-top-bar)");
   await expect(regionsBar).toBeVisible();
   await expect(regionsBar).toContainText("Back");
   await expect(regionsBar).toContainText("Search");
@@ -833,7 +833,7 @@ test("search shell owns native dialog visibility and exposes configured regions 
 test("ui-button authors one declarative element and lowers directly to a native button", async ({ page }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const button = defaultScenario.locator("button[data-component~='ui-button']");
+  const button = defaultScenario.locator("button:is([data-component~='ui-button'], .ui-button)");
   await expect(button).toHaveCount(1);
   await expect(button).toHaveText("Button");
   await expect(button.locator("button")).toHaveCount(0);
@@ -846,13 +846,13 @@ test("ui-button authors one declarative element and lowers directly to a native 
   expect(bounds).not.toBeNull();
   expect(bounds!.height).toBeLessThanOrEqual(40);
 
-  const ghost = page.locator("[data-preview-scenario='variant'] [data-component~='ui-button'][data-ui-button-state~='variant=ghost']");
+  const ghost = page.locator("[data-preview-scenario='variant'] :is([data-component~='ui-button'], .ui-button)[data-ui-button-state~='variant=ghost']");
   const before = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   await ghost.hover();
   const after = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(after).not.toBe(before);
 
-  const links = page.locator("[data-preview-scenario='as a link'] a[data-component~='ui-button']");
+  const links = page.locator("[data-preview-scenario='as a link'] a:is([data-component~='ui-button'], .ui-button)");
   await expect(links).toHaveCount(3);
   await expect(links.first()).toHaveAttribute("href", "#get-started");
   await expect(links.last()).not.toHaveAttribute("href");
@@ -861,18 +861,18 @@ test("ui-button authors one declarative element and lowers directly to a native 
     await expect(link).toHaveCSS("text-decoration-line", "none");
   }
 
-  const loading = page.locator("[data-preview-scenario='Loading action'] button[data-component~='ui-button']");
+  const loading = page.locator("[data-preview-scenario='Loading action'] button:is([data-component~='ui-button'], .ui-button)");
   await expect(loading).toHaveAttribute("aria-busy", "false");
   await loading.click();
   await expect(loading).toHaveAttribute("aria-busy", "true");
-  await expect(loading.locator("[data-component~='ui-spinner'] svg .arc")).toHaveCSS("stroke-linecap", "round");
+  await expect(loading.locator(":is([data-component~='ui-spinner'], .ui-spinner) svg .arc")).toHaveCSS("stroke-linecap", "round");
   await expect(loading).toHaveAttribute("aria-busy", "false");
 });
 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
   await page.goto("components/ui-input", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const input = defaultScenario.locator("input[data-component~='ui-input']");
+  const input = defaultScenario.locator("input:is([data-component~='ui-input'], .ui-input)");
   await expect(input).toHaveCount(1);
   await expect(input).toHaveAttribute("placeholder", "Enter text");
   await expect(input.locator("input")).toHaveCount(0);
@@ -908,7 +908,7 @@ test("ui-input authors one declarative element and lowers directly to an editabl
 
 test("ui-input-group frames its input like a lone Input, in readable text", async ({ page }) => {
   await page.goto("components/ui-input-group", { waitUntil: "domcontentloaded" });
-  const group = page.locator("[data-preview-scenario='Suffix'] [data-component~='ui-input-group']");
+  const group = page.locator("[data-preview-scenario='Suffix'] :is([data-component~='ui-input-group'], .ui-input-group)");
   const input = group.getByRole("textbox", { name: "Site address" });
   await expect(input).toHaveAttribute("aria-describedby", /\S/);
 
@@ -932,7 +932,7 @@ test("ui-input-group frames its input like a lone Input, in readable text", asyn
 test("ui-select authors options directly and lowers to one native select", async ({ page }) => {
   await page.goto("components/ui-select", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const select = defaultScenario.locator("select[data-component~='ui-select']");
+  const select = defaultScenario.locator("select:is([data-component~='ui-select'], .ui-select)");
   await expect(select).toHaveCount(1);
   await expect(select.locator("select")).toHaveCount(0);
   await select.selectOption("two");
@@ -950,7 +950,7 @@ test("ui-select authors options directly and lowers to one native select", async
 test("ui-textarea authors one declarative element and lowers directly to a native textarea", async ({ page }) => {
   await page.goto("components/ui-textarea", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const textarea = defaultScenario.locator("textarea[data-component~='ui-textarea']");
+  const textarea = defaultScenario.locator("textarea:is([data-component~='ui-textarea'], .ui-textarea)");
   await expect(textarea).toHaveCount(1);
   await expect(textarea).toHaveAttribute("rows", "4");
   await expect(textarea.locator("textarea")).toHaveCount(0);
@@ -1055,21 +1055,21 @@ test("ui-cluster wraps and applies its declared spacing and alignment values", a
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component~='ui-cluster']");
+  const basicRow = page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-cluster'], .ui-cluster)");
   await expect(basicRow).toBeVisible();
   await expect(basicRow).toHaveCSS("gap", "12px");
   await expect(basicRow).toHaveCSS("flex-wrap", "wrap");
   const rows = await basicRow.locator(":scope > *").evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size);
   expect(rows).toBeGreaterThan(1);
 
-  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component~='ui-cluster']`);
+  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] :is([data-component~='ui-cluster'], .ui-cluster)`);
   await expect(largerSpacing).toHaveCSS("gap", "24px");
 
-  const alignment = page.locator(`[data-preview-scenario='align="end"'] [data-component~='ui-cluster']`);
+  const alignment = page.locator(`[data-preview-scenario='align="end"'] :is([data-component~='ui-cluster'], .ui-cluster)`);
   await expect(alignment).toHaveCSS("gap", "12px");
   await expect(alignment).toHaveCSS("align-items", "flex-end");
 
-  const oneRow = page.locator(`[data-preview-scenario='wrap="nowrap"'] [data-component~='ui-cluster']`);
+  const oneRow = page.locator(`[data-preview-scenario='wrap="nowrap"'] :is([data-component~='ui-cluster'], .ui-cluster)`);
   await expect(oneRow).toHaveCSS("flex-wrap", "nowrap");
   const oneRowTops = await oneRow.locator(":scope > *").evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size);
   expect(oneRowTops).toBe(1);
@@ -1086,7 +1086,7 @@ test("ui-cluster wraps and applies its declared spacing and alignment values", a
     }
     // Observation and lowering are asynchronous; two frames include the resulting style pass.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component~='ui-cluster']")).map((cluster) => {
+    return Array.from(fixture.querySelectorAll<HTMLElement>(":is([data-component~='ui-cluster'], .ui-cluster)")).map((cluster) => {
       const style = getComputedStyle(cluster);
       return { gap: style.gap, align: style.alignItems, wrap: style.flexWrap };
     });
@@ -1101,8 +1101,8 @@ test("ui-stack examples expose spacing and stretching through bounded children",
   await page.goto("components/ui-stack", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const defaultStack = page.locator("[data-preview-scenario='Default'] [data-component~='ui-stack']");
-  const configuredStack = page.locator(`[data-preview-scenario='gap="xl" and align="center"'] [data-component~='ui-stack']`);
+  const defaultStack = page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-stack'], .ui-stack)");
+  const configuredStack = page.locator(`[data-preview-scenario='gap="xl" and align="center"'] :is([data-component~='ui-stack'], .ui-stack)`);
   await expect(defaultStack).toHaveCSS("gap", "16px");
   await expect(defaultStack).toHaveCSS("align-items", "stretch");
   await expect(defaultStack.locator(":scope > [data-slotted]").first()).toHaveCSS("border-top-style", "solid");
@@ -1111,10 +1111,10 @@ test("ui-stack examples expose spacing and stretching through bounded children",
 
   const widths = await page.evaluate(() => {
     const defaultButton = document.querySelector<HTMLElement>(
-      "[data-preview-scenario='Default'] [data-component~='ui-stack'] > [data-slotted]"
+      "[data-preview-scenario='Default'] :is([data-component~='ui-stack'], .ui-stack) > [data-slotted]"
     )!;
     const centeredButton = document.querySelector<HTMLElement>(
-      `[data-preview-scenario='gap="xl" and align="center"'] [data-component~='ui-stack'] > [data-slotted]`
+      `[data-preview-scenario='gap="xl" and align="center"'] :is([data-component~='ui-stack'], .ui-stack) > [data-slotted]`
     )!;
     return { defaultWidth: defaultButton.getBoundingClientRect().width, centeredWidth: centeredButton.getBoundingClientRect().width };
   });
@@ -1125,7 +1125,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto("components/ui-grid", { waitUntil: "domcontentloaded" });
-  const grid = page.locator("[data-preview-scenario='Default'] [data-component~='ui-grid']");
+  const grid = page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-grid'], .ui-grid)");
   const gridItems = grid.locator(":scope > [data-slotted]");
   await expect(gridItems).toHaveCount(3);
   const gridRects = await gridItems.evaluateAll((items) => items.map((item) => {
@@ -1137,7 +1137,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   expect(gridRects.every(({ width }) => width > 100)).toBe(true);
 
   await page.goto("components/ui-container", { waitUntil: "domcontentloaded" });
-  const centers = page.locator("[data-component~='ui-container']");
+  const centers = page.locator(":is([data-component~='ui-container'], .ui-container)");
   await expect(centers).toHaveCount(4);
   const centerOffsets = await centers.evaluateAll((centerElements) => centerElements.map((center) => {
     const stage = center.closest(".looma-preview-scenario__stage")!;
@@ -1153,7 +1153,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   // Sidebar is the panel only: an aside the page places beside its main content, toggled by a command.
   await page.goto("components/ui-sidebar", { waitUntil: "domcontentloaded" });
   const shell = page.locator("[data-preview-scenario='App shell'] .demo-app-shell");
-  const sidebar = shell.locator("[data-component~='ui-sidebar']");
+  const sidebar = shell.locator(":is([data-component~='ui-sidebar'], .ui-sidebar)");
   const main = shell.locator("main");
   await expect(sidebar).toBeVisible();
   expect(await sidebar.evaluate((element) => element.localName)).toBe("aside");
@@ -1181,7 +1181,7 @@ test("ui-switcher can be exercised above and below its intrinsic threshold", asy
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("components/ui-switcher", { waitUntil: "domcontentloaded" });
   const control = page.getByRole("slider", { name: "Preview width" }).first();
-  const switcher = page.locator("[data-preview-scenario='Default'] [data-component~='ui-switcher']");
+  const switcher = page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-switcher'], .ui-switcher)");
   const itemTops = () => switcher.locator(":scope > [data-slotted]").evaluateAll((items) =>
     items.map((item) => Math.round(item.getBoundingClientRect().top))
   );
@@ -1196,7 +1196,7 @@ test("ui-reel exposes a discoverable, keyboard-scrollable overflow viewport", as
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("components/ui-reel", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Gap, item width, and snap']");
-  const reel = scenario.locator("[data-component~='ui-reel']");
+  const reel = scenario.locator(":is([data-component~='ui-reel'], .ui-reel)");
   await expect(reel).toBeVisible();
   const overflow = await reel.evaluate((element) => ({
     clientWidth: element.clientWidth,
@@ -1339,7 +1339,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await expect(dialog).not.toHaveAttribute("open", "");
 
   dialog = await open("Long content");
-  const body = dialog.locator(".body [data-component~='ui-scroll-area']");
+  const body = dialog.locator(".body :is([data-component~='ui-scroll-area'], .ui-scroll-area)");
   expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await body.evaluate((element) => { element.scrollTop = element.scrollHeight; });
   await expect(dialog.locator("header")).toBeInViewport();
@@ -1352,7 +1352,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const comboboxes = page.locator("[data-component~='ui-combobox']");
+  const comboboxes = page.locator(":is([data-component~='ui-combobox'], .ui-combobox)");
   await expect(comboboxes).toHaveCount(10);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
@@ -1384,7 +1384,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
 
 test("the selected values example starts from data and keeps the user's changes", async ({ page }) => {
   await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
-  const regions = page.locator("[data-component~='ui-combobox']").filter({ has: page.getByRole("combobox", { name: /Regions/ }) });
+  const regions = page.locator(":is([data-component~='ui-combobox'], .ui-combobox)").filter({ has: page.getByRole("combobox", { name: /Regions/ }) });
   const chips = regions.locator(".item");
   await expect(chips).toHaveText(["North", "West"]);
   await regions.getByRole("combobox").fill("Ea");
@@ -1599,7 +1599,7 @@ test("tone colours available actions and disabled actions use one neutral treatm
   await page.goto("components/ui-button", { waitUntil: "networkidle" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
   const stage = page.locator("[data-preview-scenario='variant'] .looma-preview-scenario__stage");
-  await expect(stage.locator("[data-component~='ui-button']").first()).toBeVisible();
+  await expect(stage.locator(":is([data-component~='ui-button'], .ui-button)").first()).toBeVisible();
 
   const painted = await stage.evaluate(async (host) => {
     host.innerHTML = "";
@@ -1618,7 +1618,7 @@ test("tone colours available actions and disabled actions use one neutral treatm
       host.append(button);
     }
     await new Promise((resolve) => setTimeout(resolve, 600));
-    return Object.fromEntries([...host.querySelectorAll("[data-component~='ui-button']")].map((button) => {
+    return Object.fromEntries([...host.querySelectorAll(":is([data-component~='ui-button'], .ui-button)")].map((button) => {
       const style = getComputedStyle(button);
       return [button.id, {
         border: style.borderColor,
@@ -1678,7 +1678,7 @@ test("tone colours available actions and disabled actions use one neutral treatm
   expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
 
   // Nothing jumps under the pointer.
-  const button = stage.locator("[data-component~='ui-button']").first();
+  const button = stage.locator(":is([data-component~='ui-button'], .ui-button)").first();
   const resting = await button.evaluate((element) => getComputedStyle(element).transform);
   await button.hover();
   await expect.poll(async () => button.evaluate((element) => getComputedStyle(element).transform)).toBe(resting);
@@ -1708,14 +1708,14 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; });
 
   // Off by default: a tree of names that fit should not move.
-  const plain = page.locator("[data-preview-scenario='Default'] [data-component~='ui-tree-item'] .row").first();
+  const plain = page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-tree-item'], .ui-tree-item) .row").first();
   await plain.hover();
   await page.waitForTimeout(900);
   await expect(plain).not.toHaveAttribute("data-ui-marquee", /.*/);
 
   const scenario = page.locator("[data-preview-scenario='marquee']");
   await scenario.scrollIntoViewIfNeeded();
-  const rows = scenario.locator("[data-component~='ui-tree-item'] .row");
+  const rows = scenario.locator(":is([data-component~='ui-tree-item'], .ui-tree-item) .row");
   const fits = rows.nth(0);
   const overflows = rows.nth(1);
 
@@ -1783,7 +1783,7 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
 test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
   await page.goto("components/ui-tree-item", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Actions slot']");
-  const row = scenario.locator("[data-component~='ui-tree-item'] .row").first();
+  const row = scenario.locator(":is([data-component~='ui-tree-item'], .ui-tree-item) .row").first();
   await expect(row).toBeVisible();
 
   // Controls that only appear on hover must not shorten the label: a sidebar row should run out
@@ -1819,7 +1819,7 @@ test("tree row actions reveal on hover instead of reserving row width", async ({
       position: getComputedStyle(actions).position,
       mask: labelStyle.maskImage,
       textOverflow: labelStyle.textOverflow,
-      publishedWidth: getComputedStyle(element.closest("[data-component~='ui-tree-item']")!)
+      publishedWidth: getComputedStyle(element.closest(":is([data-component~='ui-tree-item'], .ui-tree-item)")!)
         .getPropertyValue("--_tree-actions-width"),
       actionsWidth: actions.getBoundingClientRect().width,
       labelToRowEnd: element.getBoundingClientRect().right - label.getBoundingClientRect().right
@@ -1842,15 +1842,15 @@ test("catalog cards centre a nested demo and give a form footer the card's width
   await scope.scrollIntoViewIfNeeded();
   const offCentre = await scope.evaluate((preview) => {
     const card = preview.getBoundingClientRect();
-    const buttons = Array.from(preview.querySelectorAll("[data-component~='ui-icon-button']"), (button) => button.getBoundingClientRect());
+    const buttons = Array.from(preview.querySelectorAll(":is([data-component~='ui-icon-button'], .ui-icon-button)"), (button) => button.getBoundingClientRect());
     return Math.abs((buttons[0].left + buttons.at(-1)!.right) / 2 - (card.left + card.right) / 2);
   });
   expect(offCentre).toBeLessThan(2);
 
   // The form fills the card, so its Action Bar is wide enough to set its actions in one row.
-  const bar = page.locator("[data-component-card='ui-action-bar'] [data-component~='ui-action-bar']");
+  const bar = page.locator("[data-component-card='ui-action-bar'] :is([data-component~='ui-action-bar'], .ui-action-bar)");
   await bar.scrollIntoViewIfNeeded();
-  const rows = await bar.locator("[data-component~='ui-button']").evaluateAll((buttons) =>
+  const rows = await bar.locator(":is([data-component~='ui-button'], .ui-button)").evaluateAll((buttons) =>
     new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top))).size);
   expect(rows).toBe(1);
 });
@@ -1888,7 +1888,7 @@ test("the catalog renders one filter per sidebar category and each filter narrow
 test("checkbox, switch, and radio APIs generate their own aligned native controls", async ({ page }) => {
   await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
   const checkboxScenario = page.locator("[data-preview-scenario='Default']");
-  await expect(checkboxScenario.locator("[data-component~='ui-checkbox']")).toBeVisible();
+  await expect(checkboxScenario.locator(":is([data-component~='ui-checkbox'], .ui-checkbox)")).toBeVisible();
   const checkbox = checkboxScenario.getByRole("checkbox", { name: "Checkbox" });
   await expect(checkbox).toBeVisible();
   await checkbox.check();
@@ -1898,7 +1898,7 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
   await expect(checkboxCode).not.toContainText("<input");
 
   const multiline = page.locator("[data-preview-scenario='Multi-line label']");
-  const alignment = await multiline.locator("[data-component~='ui-checkbox']").evaluate((root) => {
+  const alignment = await multiline.locator(":is([data-component~='ui-checkbox'], .ui-checkbox)").evaluate((root) => {
     const input = root.querySelector("input")!;
     const label = root.querySelector(".label")!;
     const inputBounds = input.getBoundingClientRect();
@@ -1917,7 +1917,7 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
   await page.goto("components/ui-switch", { waitUntil: "domcontentloaded" });
   // The runtime lowers the component after load; its styles only apply once it has.
   await expect(
-    page.locator("[data-preview-scenario='Default'] [data-component~='ui-switch']")
+    page.locator("[data-preview-scenario='Default'] :is([data-component~='ui-switch'], .ui-switch)")
   ).toBeVisible();
   const switchControl = page.locator("[data-preview-scenario='Default']").getByRole("switch", { name: "Switch" });
   const offGeometry = await switchControl.evaluate((input) => {
@@ -1981,10 +1981,10 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await ready(page);
     await page.waitForLoadState("networkidle");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
+    const badges = page.locator("[data-preview-scenario] :is([data-component~='ui-badge'], .ui-badge):not([data-ui-badge-state~='shape=dot'])");
     // Text treatments retain their order; leading icons, square and circle marks extend the gallery.
     await expect(badges).toHaveCount(32);
-    const leading = page.locator('[data-preview-example="07-icon"] [data-component~="ui-badge"]');
+    const leading = page.locator('[data-preview-example="07-icon"] :is([data-component~="ui-badge"], .ui-badge)');
     await expect(leading).toHaveCount(3);
     for (const badge of await leading.all()) await expect(badge.locator("svg")).toBeVisible();
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
@@ -2031,7 +2031,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     for (const treatment of treatments.slice(6, 11)) expect(treatment.border).not.toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
-    const dots = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=dot']");
+    const dots = page.locator("[data-preview-scenario] :is([data-component~='ui-badge'], .ui-badge)[data-ui-badge-state~='shape=dot']");
     await expect(dots).toHaveCount(2);
     await expect(dots.nth(0)).toContainText("New messages");
     await expect(dots.nth(1)).toContainText("Waiting for your reply");
@@ -2048,7 +2048,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
       expect(signal.clippedLabel).toBe("inset(50%)");
     }
     expect(signals[0]!.background).not.toBe(signals[1]!.background);
-    const squares = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=square']");
+    const squares = page.locator("[data-preview-scenario] :is([data-component~='ui-badge'], .ui-badge)[data-ui-badge-state~='shape=square']");
     await expect(squares).toHaveCount(3);
     for (const [index, size] of [32, 32, 24].entries()) {
       const mark = squares.nth(index);
@@ -2057,7 +2057,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
       expect(bounds?.width).toBe(size);
       expect(bounds?.height).toBe(size);
     }
-    const circles = page.locator('[data-preview-example="09-circle"] [data-component~="ui-badge"]');
+    const circles = page.locator('[data-preview-example="09-circle"] :is([data-component~="ui-badge"], .ui-badge)');
     await expect(circles).toHaveCount(3);
     for (const [index, size] of [16, 24, 24].entries()) {
       const bounds = await circles.nth(index).boundingBox();
@@ -2069,7 +2069,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
 
 test("every callout tone renders its icon without an empty oversized indent", async ({ page }) => {
   await page.goto("components/ui-callout", { waitUntil: "domcontentloaded" });
-  const callouts = page.locator("[data-preview-scenario] [data-component~='ui-callout']");
+  const callouts = page.locator("[data-preview-scenario] :is([data-component~='ui-callout'], .ui-callout)");
   await expect(callouts).toHaveCount(5);
   const treatments = await callouts.evaluateAll((roots) => roots.map((root) => {
     const surface = root;
@@ -2135,7 +2135,7 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
   await page.evaluate(() => {
     const received: string[] = [];
     (window as unknown as { expandEvents: string[] }).expandEvents = received;
-    for (const element of document.querySelectorAll("#tree-conformance [data-component~='ui-tree-item']")) {
+    for (const element of document.querySelectorAll("#tree-conformance :is([data-component~='ui-tree-item'], .ui-tree-item)")) {
       element.addEventListener("expand", (event) => {
         received.push(`${(element as HTMLElement).getAttribute("data-item-id") ?? element.getAttribute("aria-label")}:${(event as CustomEvent<{ id: string }>).detail.id}`);
       });

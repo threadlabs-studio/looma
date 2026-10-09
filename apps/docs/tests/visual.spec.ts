@@ -112,7 +112,7 @@ for (const theme of ["light", "dark"] as const) {
           element.textContent = Array.from({ length: 24 }, (_, index) => `Review note ${index + 1}: Additional content belongs in the scrolling body while the title and actions stay visible.`).join(" ");
         });
         await expect.poll(() => dialog.evaluate(element => element.getAnimations().length), { intervals: [10, 20, 50] }).toBeGreaterThan(0);
-        const body = dialog.locator('.body [data-component~="ui-scroll-area"]');
+        const body = dialog.locator('.body :is([data-component~="ui-scroll-area"], .ui-scroll-area)');
         await expect.poll(() => body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
         await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
         await expect(dialog.locator("header")).toBeInViewport();
