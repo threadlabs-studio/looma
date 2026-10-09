@@ -1,9 +1,10 @@
 <!--
 title: Authored status and action
-description: A toast can carry a semantic tone and an authored action. The application handles the action and removes the toast after its dismiss event.
+description: A toast can carry a semantic tone and an authored action. It starts hidden here; the application clears hidden to show it and handles the action, and the toast hides itself when dismissed.
 -->
+<ui-button id="show-saved-toast">Show toast</ui-button>
 <ui-toast-region placement="top-end">
-  <ui-toast id="saved-toast" tone="success">
+  <ui-toast id="saved-toast" tone="success" hidden>
     Draft saved.
     <button slot="action" type="button">Undo</button>
   </ui-toast>

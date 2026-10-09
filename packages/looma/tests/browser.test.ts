@@ -413,6 +413,71 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Table context menu placement", () => {
+  // Owner model: a menu is shown at the place it is written and travels with that place; only a
+  // menu written in a fixed or absolutely positioned box, as LoomaEditor places it, answers to the viewport.
+  it("shows a menu at its written place and keeps a floating menu inside the viewport", async () => {
+    const path = await bundle("html-table-context-menu", `import "@threadlabs/looma";`);
+    const actions = `actions='["add-row-before","add-row-after","add-column-before","add-column-after","delete-table"]'`;
+    const page = await open(path, `
+      <div style="height: 1500px"></div>
+      <div id="stage" style="position: relative; overflow: auto; padding: 20px">
+        <ui-editor-table-context-menu id="inline" ${actions} open></ui-editor-table-context-menu>
+      </div>
+      <div style="height: 1500px"></div>
+      <div style="position: fixed; top: 560px; left: 1000px">
+        <ui-editor-table-context-menu id="floating" ${actions} open></ui-editor-table-context-menu>
+      </div>
+    `, [join(root, "tokens.css")], { viewport: { width: 1100, height: 600 } });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>("#floating")?.style.translate);
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Offset from the written place: the stage's padding edge, whatever the scroll or viewport.
+    const offset = () => page.locator("#inline").evaluate((element) => {
+      const menu = element.getBoundingClientRect();
+      const stage = element.parentElement!.getBoundingClientRect();
+      return { x: menu.left - stage.left, y: menu.top - stage.top };
+    });
+    // A resize re-measures, as a full-page capture or a rotated phone does; the place below the fold stays put.
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "below the first screen, the menu is not pulled into the viewport");
+    await page.evaluate(() => scrollTo(0, 1300));
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "the menu travels with its place as the page scrolls");
+    const floating = await page.locator("#floating").boundingBox();
+    assert.ok(floating && floating.x + floating.width <= 1100 - 12 && floating.y + floating.height <= 640 - 12, `floating menu fits the viewport: ${JSON.stringify(floating)}`);
+    await page.close();
+  });
+
+  it("separates sections only between them and fits fewer swatches to a row in a narrow menu", async () => {
+    const path = await bundle("html-table-context-menu-sections", `import "@threadlabs/looma";`);
+    const swatches = `actions='["background-none","background-gray","background-yellow","background-blue","background-green","background-red","add-row-after","delete-table"]'`;
+    const page = await open(path, `
+      <ui-editor-table-context-menu id="plain" actions='["add-row-after","delete-table"]' open></ui-editor-table-context-menu>
+      <div style="position: fixed; top: 0; right: 0"><ui-editor-table-context-menu id="full" ${swatches} open></ui-editor-table-context-menu></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => document.querySelectorAll("#full .swatch-button").length === 6);
+    const layout = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const buttons = [...element.querySelectorAll(".swatch-button")].map((button) => button.getBoundingClientRect());
+      return {
+        width: element.getBoundingClientRect().width,
+        separators: [...element.querySelectorAll(".sep")].map((sep) => getComputedStyle(sep).display !== "none"),
+        perRow: buttons.filter((button) => button.top === buttons[0]?.top).length,
+        narrowest: Math.round(Math.min(...buttons.map((button) => button.width))),
+      };
+    });
+    assert.deepEqual((await layout("plain")).separators, [false, true], "no separator above the first section");
+    const full = await layout("full");
+    assert.deepEqual({ width: full.width, separators: full.separators, perRow: full.perRow }, { width: 272, separators: [true, true], perRow: 3 });
+    // A phone viewport narrows the menu to 100vw - 24px; its labels stay whole by fitting fewer to a row.
+    await page.setViewportSize({ width: 251, height: 720 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const narrow = await layout("full");
+    assert.deepEqual({ width: narrow.width, perRow: narrow.perRow, narrowest: narrow.narrowest }, { width: 227, perRow: 2, narrowest: 80 });
+    await page.close();
+  });
+});
+
 describe("Touch input typography", () => {
   it("keeps editable fields readable inside caption typography", async () => {
     const path = await bundle("touch-caption-input", `
@@ -492,7 +557,7 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
-  it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
+  it("shows authored toasts, hides one on dismissal, and shows it again when hidden clears", async () => {
     const path = await bundle("html-authored-toast", `
       import "@threadlabs/looma";
       window.dismissals = [];
@@ -515,9 +580,13 @@ describe("Toast composition and placement", () => {
     assert.ok(position.bottom < 40 && position.right < 40, JSON.stringify(position));
     await page.getByRole("button", { name: "Undo" }).click();
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "saved", reason: "action", trigger: "pointer" }]);
-    assert.equal(await page.locator("#saved").count(), 1, "authored content stays owned by the consumer");
-    await page.locator("#saved").evaluate((element) => element.remove());
-    await page.locator("#failed").evaluate((element) => element.remove());
+    assert.equal(await page.locator("#saved").count(), 1, "authored content stays in the document");
+    assert.equal(await page.locator("#saved").isHidden(), true, "a dismissed toast hides itself");
+    await page.locator("#saved").evaluate((element: HTMLElement) => { element.hidden = false; });
+    assert.equal(await page.locator("#saved").isVisible(), true, "clearing hidden shows it again");
+    await page.getByRole("button", { name: "Undo" }).click();
+    assert.equal((await page.evaluate(() => (window as any).dismissals)).length, 2, "a reshown toast dismisses again");
+    await page.locator("#failed").getByRole("button", { name: "Dismiss notification" }).click();
     await page.waitForFunction(() => !document.querySelector("#region")!.matches(":popover-open"));
     await page.close();
   });
@@ -535,6 +604,26 @@ describe("Toast composition and placement", () => {
     await page.mouse.move(0, 0);
     await page.waitForFunction(() => (window as any).dismissals.length === 1);
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "toast", reason: "timeout", trigger: "programmatic" }]);
+    assert.equal(await page.locator("#toast").isHidden(), true, "a timed toast hides itself");
+    await page.close();
+  });
+
+  it("times an authored hidden toast only once it is shown, and again each time it is shown", async () => {
+    const path = await bundle("html-hidden-timed-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail.reason));
+    `);
+    const page = await open(path, `<ui-toast-region id="region"><ui-toast id="toast" hidden duration="200">Timed</ui-toast></ui-toast-region>`, [join(root, "tokens.css")]);
+    await page.waitForTimeout(400);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [], "a toast that was never shown does not time out");
+    assert.equal(await page.locator("#region").evaluate((element) => element.matches(":popover-open")), false);
+    for (const shown of [1, 2]) {
+      await page.locator("#toast").evaluate((element: HTMLElement) => { element.hidden = false; });
+      await page.waitForFunction((count) => (window as any).dismissals.length === count, shown);
+      assert.equal(await page.locator("#toast").isHidden(), true, `showing ${shown} timed out and hid the toast`);
+    }
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), ["timeout", "timeout"]);
     await page.close();
   });
 

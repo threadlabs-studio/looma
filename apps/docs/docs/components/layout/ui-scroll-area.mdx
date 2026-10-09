@@ -19,6 +19,10 @@ Every Looma component that scrolls its own content (Sidebar, Reel, the editor to
 
 `--ui-scroll-fade-size` sets how far each fade reaches (24px by default), for every Looma scroller at once or for one area. The editor toolbar also reads `--ui-editor-toolbar-fade-size`.
 
+## Padding
+
+`padding` puts space inside the scrolling region: `none` by default, then `xs`, `sm`, `md`, and `lg` on Card's scale. The space scrolls with the content, so the scrollbar and the edge fades stay at the area's edges. Use it when the area is a panel's body, instead of padding a wrapper around the area or the content inside it.
+
 ## Keyboard
 
 A keyboard user scrolls an area by moving focus through what is inside it. When nothing inside can take focus, give the area `tabindex="0"`, `role="region"`, and an `aria-label`, so it can be focused and scrolled with the arrow keys.
