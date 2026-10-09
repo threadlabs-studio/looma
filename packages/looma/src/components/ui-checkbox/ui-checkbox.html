@@ -1,5 +1,6 @@
 <template component="ui-checkbox" controller="./ui-checkbox.js">
   <defs>
+    <prop name="label" type="string" default="">An accessible name for a checkbox without a visible label slot. It names the native input.</prop>
     <prop name="checked" type="boolean" default="false"
     >Whether the checkbox is checked initially or when set externally. A form reset returns it to this.</prop>
     <prop name="disabled" type="boolean" default="false">Disables the native checkbox, so it cannot be toggled or focused.</prop>
@@ -29,14 +30,15 @@
   <label>
     <input
       type="checkbox"
+      from:aria-label="$label"
       $ref="input"
-      .checked="internalChecked"
-      .indeterminate="indeterminate"
-      from:disabled="disabled"
-      from:aria-invalid="invalid"
-      from:required="required"
-      from:name="name"
-      from:value="value"
+      .checked="$internalChecked"
+      .indeterminate="$indeterminate"
+      from:disabled="$disabled"
+      from:aria-invalid="$invalid"
+      from:required="$required"
+      from:name="$name"
+      from:value="$value"
     >
     <span class="text">
       <span class="label"><slot></slot></span>

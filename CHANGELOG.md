@@ -1,188 +1,358 @@
 # Changelog
 
-## Unreleased
+## v0.27.0
 
-- Dialog body text is padded and aligned with the title again. Listbox caps its visible choices at `rows` and hides them until it upgrades, and the Toast dismiss button sits at the intended distance from the edge. Each of these components styled a nested component's root, which HTML Next's scoped styles never match, so the rules had no effect. Scroll Area adds a `padding` option (`none` by default, then `xs`, `sm`, `md`, `lg` on Card's scale) that scrolls with the content, keeping the scrollbar and fades at the edges.
-
-- **Authored toasts hide themselves when dismissed (0.26):** previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.
-
+- **Breaking: authored toasts hide themselves when dismissed.** Previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. A toast authored `hidden` waits to be shown before its duration starts. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.
+- Listbox caps its visible choices at `rows` and hides them until it upgrades, and the Toast dismiss button sits at the intended distance from the edge. Both styled a nested component's root, which HTML Next's scoped styles never match, so the rules had no effect. Scroll Area adds a `padding` option (`none` by default, then `xs`, `sm`, `md`, `lg` on Card's scale) that scrolls with the content, keeping the scrollbar and fades at the edges.
 - A colored accent edge now has straight corners on its side: toned Toasts (authored or from Toast Region), Callout, and danger Card and Section cards no longer round the corners their stripe runs into.
+
+## v0.26.2
+
+- Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
+- Badge adds a fixed circular shape that centers a visible glyph or icon, including a compact 16px size.
+- Container offers opt-in `fill` to keep readable lines while its scrolling content fits a bounded panel.
+
+## v0.26.1
+
+- Dialog body content aligns with its title in HTML and Vue, keeps short content compact, and uses equal side and bottom gutters around its actions. Dialog owns its body layout instead of styling a nested component root excluded by HTML scoping. Scroll Area adds opt-in `trim` to remove only projected content's outer block margins; existing scroll areas keep their margins.
+
+## v0.26.0
+
+- **Breaking runtime requirement:** Looma requires Node 22.22.2 or later in Node 22, or Node 24.15 or later in Node 24 (previously 22.13 and 24.0). Looma now depends on HTML Next 1.0.0-alpha.35, whose server rendering uses jsdom 30, and jsdom 30 supports only those releases. Keeping the older range would let apps install a renderer that their Node release does not support. To migrate, update Node within its current major version.
+- Component definitions write references to their props and state as `$name`, the expression syntax HTML Next requires since 1.0.0-alpha.34. Props, events, slots and rendered markup are unchanged. HTML Next components that an app writes beside Looma use the same HTML Next version, so their expression references need `$` as well, and their `$sort` keys start from the loop item (`$sort="p.price"` under `$each="p of $products"`). HTML Next's 1.0.0-alpha.34 and 1.0.0-alpha.35 changelog entries list every affected attribute.
+
+## v0.25.7
+
+- Tree Item offers actionsVisible for persistent status and controls, with long labels fading beneath them at rest and on hover or focus.
+
+## v0.25.6
+
+- List rows show a quiet hover surface across their full hit area and retain their current state while hovered. List Item offers leadingInteractive to keep a leading control separate from the row link. Checkboxes accept an accessible label without visible text, and Cluster can align the first text baselines of wrapped columns.
+
+## v0.25.5
 
 - Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
 
+## v0.25.4
+
 - Badges align and space ordinary icon-and-text content without clipping glyphs, and offer a leading `icon` slot that stays visible when labels truncate. Buttons now space ordinary icons and text consistently.
+
+## v0.25.3
 
 - Collapsed tree branches keep their own disclosure direction beneath expanded ancestors, matching the files they actually show.
 
+## v0.25.2
+
 - Multiline Input Group offers an upper-end action position with text space reserved for changing labels and pending indicators, keeping the native textarea resize grip clear. Existing below-text placement remains the default.
+
+## v0.25.1
 
 - Input Group supports multiline Textarea fields with an action below the text, sharing one border and accessible focus/invalid/disabled treatment in HTML and Vue.
 
-- Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
+## v0.25.0
 
+- Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
 - **Breaking: controller commands replace generated element methods.** Combobox's `validate()` and `focusInput()` and Toast Region's `show()` depended on `<method>`, an unsupported HTML Next construct outside the public proposal’s controller/event model. This removes that named-export bridge; aliases would require maintaining a separate imperative library adapter. Request combobox validation with a native `validate` event or `CommandEvent("command", { command: "--validate" })` and read `validation-change`; focus its native input directly. Add programmatic toasts with `CustomEvent("show-toast", { detail: { message, id?, tone?, duration? } })`; supply `id` when correlating `dismiss`. The existing `--show-toast` button command remains available. Controller connection subscriptions preserve setup and cleanup through reconnects. Component CSS now distinguishes resolved props with `:host([prop])` from mutable/computed state with `:host-state([state])`.
+
+## v0.24.1
 
 - Floating formatting supports Select All. Link and table pickers keep their toolbar anchor while editing; anchored surfaces retain their last valid position when a trigger becomes unavailable and wait for usable bounds before first opening.
 
-- Holding a table column resize handle keeps floating text formatting closed.
+## v0.24.0
 
+- Holding a table column resize handle keeps floating text formatting closed.
 - **Desktop floating toolbar behavior changes (0.24):** formatting opens on text selection or a held primary press and dismisses with Escape or caret movement. Previously, contextual tools appeared on every caret focus and obscured the writing surface. This shared default keeps floating tools tied to intent; an app-specific option would leave the obstructive default in other consumers. Apps needing persistent controls can use `toolbarMode="sticky"` or their explicit formatting popover. Small viewports retain the editing dock; toolbar placement defaults and document commands are unchanged.
+
+## v0.23.25
+
 - Card buttons center their grid row within spare height, so single-line labels sit vertically centered while wrapped labels retain top-aligned icons and content.
+
+## v0.23.24
+
+- Column-resize hints stay inside fitting tables, including narrow screens and larger text.
+- Tooltips and popovers follow moving controls so hints do not cover their triggers.
+
+## v0.23.23
+
+- Button’s CardButton variant uses Button with its existing tones, an arbitrary icon slot, flexible top-aligned content, and a vertically centered action slot that defaults to a caret. Card borders and inline padding stay uniform.
+- Separator can use strong emphasis when a composition needs clearer separation.
+
+## v0.23.22
 
 - Editable images no longer become viewer tab stops. Clicking selects the image and shows one contextual bar for block/center placement, left/right text wrapping, description, and deletion. Drag any corner to resize at the intrinsic aspect ratio; release commits one undo step, and Escape cancels. A shared Image primitive owns selection and resize handles; controls retain the UI font and standard hover/focus tooltips. Choosing wrapping uses one-third of the column on desktop and full-width stacking on small screens; corner dragging overrides the default size. Reading mode retains viewer activation and placement. Images fit narrow grid tracks without scrolling; full-width phone wrapping hides inactive resize handles. Image dimensions, placement, and responsiveness round-trip through the shared preset.
 - Document dividers use the shared Separator’s optional selectable/selected states for a larger pointer target and selection feedback. Text/code Tab inserts a literal tab instead of skipping down the document; list indentation and table cell navigation keep precedence, and Shift-Tab outside them allows keyboard exit.
-
 - `/expand`, `/toggle`, and `/details` insert collapsible sections with summary/default-expansion settings built from shared controls. Rich bodies round-trip through JSON and semantic HTML; plain text retains collapsed content. Reader toggles are temporary, and TOC navigation reveals hidden headings before focusing them.
 - Turnkey editors accept `slashCommands` to extend or replace the existing inventory. Commands support stable IDs, optional groups, and capability predicates. Slash search ranks exact aliases first, prioritizes callouts over the quote alias, shows an accessible no-results state, and rejects stale menu selections. Hover and keyboard selection stay synchronized. Image is omitted without an upload/picker capability; literal code does not open slash suggestions.
 - `/toc` inserts an automatic table of contents from document headings, with plain, bulleted, or numbered formatting and heading-depth settings built from shared controls. Heading anchors survive renames and moves, and read-only entries navigate without opening link editing. Headless integrations can inspect derived entries for document projections.
 - `/status` finds the existing Chip command and retains its label/color editor and document format. Existing `/link` behavior is covered through slash insertion, keyboard destination selection, and cancellation.
 - Escape closes only the top nested Menu or Popover, preserving its containing settings surface.
+
+## v0.23.21
+
 - Repeated component rows use inline text expressions; the updated converter emits the same direct Vue bindings as `$value`, without per-row text components.
+
+## v0.23.20
+
+- Radio Group's value consistently owns initial selection and form-reset selection in HTML and Vue, even when a child Radio is authored checked. The disabled example declares its selection on the group.
+
+## v0.23.19
+
 - Contextual formatting gives slash-command and mention suggestions priority, so their results remain clickable.
+
+## v0.23.18
+
 - Trees retain a keyboard entry point when row controllers load later or a hidden tree becomes visible, preserving the last focused row.
 - Contextual editor controls stay inside the document area rather than covering actions above it; link actions share that surface without covering formatting commands.
 
+## v0.23.17
+
 - Component text uses `{$variable}` for inline values and slot fallbacks. IDs and accessible labels use `concat()`; Intl `format()` is reserved for localized presentation.
 - Meters without `valueText` announce a whole percentage in the current browser or server locale, so assistive technology reads the appropriate digits and spacing. Explicit `valueText` stays verbatim, and fill widths remain locale-independent CSS percentages.
+
+## v0.23.16
+
 - IconButton can match an adjacent Button’s height with `matchButton` (`match-button` in HTML), including themed sizes and touch controls. Compact icon buttons keep their existing sizes.
+
+## v0.23.15
 
 - Touch tree rows keep labels separate from actions after tapping, including RTL and multiple selection.
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
+
+## v0.23.14
+
 - Resizing a table column no longer adds a one-pixel scrollbar when the drag ends. Repeated reconciliation keeps fitting tables within the editor and preserves scrolling for wide tables.
-- Column-resize hints stay inside fitting tables, including narrow screens and larger text.
+
+## v0.23.13
 
 - Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
+
+## v0.23.12
+
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
-- Radio Group's value consistently owns initial selection and form-reset selection in HTML and Vue, even when a child Radio is authored checked. The disabled example declares its selection on the group.
+
+## v0.23.11
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.
+
+## v0.23.10
 
 - Trees can reserve guided move activation for keyboard and touch, leaving desktop grips drag-only. Guided moves offer a visible standard Cancel button, Escape, and source-handle cancellation without changing order.
 - Navigation disclosure labels, icons, and carets stay neutral when expanded; selection color remains reserved for current destinations.
 
+## v0.23.9
+
 - Sidebar resize handles report the requested width while layout animation settles, including when restoring a saved width.
-- Tooltips and popovers follow moving controls so hints do not cover their triggers.
+
+## v0.23.8
 
 - Disclosures can require one named-group member to stay open, animate bounded fill transfers, and rotate custom indicators without replacing them. Navigation headers and Nav Items share icon columns, spacing, and hover treatment; Nav Items support a trailing slot. Navigation icon columns now keep the body-size width at either density rather than shrinking compact icons below their neighbours.
 - Feedback, reveal, and layout motion derive from shared duration and easing tokens. Docked sidebars animate occupied width, keep their content canvas stable, disable hidden controls, and support a collapsed-width hook for a separate rail. Drag resizing remains immediate and reduced motion disables transitions.
 
+## v0.23.7
+
 - Badge supports a rounded square for icon marks beside headings, using the existing semantic tones and shared spacing and radius tokens.
+
+## v0.23.6
 
 - List Items can wrap full titles and descriptions on narrow screens while preserving one-line rows by default. The shared icon catalog includes a notification bell.
 
+## v0.23.5
+
 - List Items can highlight several new items with a quiet accent wash without announcing a current or selected destination. Badges support a small dot shape with an accessible state label.
+
+## v0.23.4
 
 - Single-selection trees report a row’s default action on click or Enter, including an already selected row; selection and activation remain separate events.
 
+## v0.23.3
+
 - On phones, Link stays available during a held press and its picker keeps the toolbar anchor while its field has focus.
+
+## v0.23.2
 
 - Small Scroll Areas leave room after three compact results for the overflow fade, keeping the third location readable.
 
+## v0.23.1
+
 - Compact search results keep their title and location together when app buttons inherit body typography, so three rows fit before scrolling.
+
+## v0.23.0
 
 - Borders, dividers, emphasis edges, and keyboard focus now follow shared semantic width tokens across components and the editor.
 - **Visual default change for selected rows (0.23):** navigation, trees, lists, search results, and choices share a faint accent surface, readable accent text, and selection corners. Nav Item keeps regular label weight and has no stripe by default; `variant="line"` provides a square, continuous edge marker. The previous rounded surface and inset stripe combined incompatible edge treatments; the surface default works alongside other row selections, while apps that need an edge explicitly choose `variant="line"`. Existing instance hooks remain available.
 - Nav Item supports compact rows. The icon catalog includes compass and history icons.
-
 - Disclosure can fill the available height in a bounded accordion, keeping its header visible while a nested Scroll Area scrolls. Its indicator slot accepts a custom decorative icon.
+
+## v0.22.14
 
 - Link pickers use standard fields, flat rich search results, and primary/secondary actions. With a destination search provider, one field searches or accepts a pasted full URL without switching modes. Existing-link actions use the same controls and UI font. Compact results show three rows before scrolling. Link is available from selected text, and `linkBaseUrl` makes newly inserted same-origin links relative across picker and paste flows.
 
+## v0.22.13
+
 - Typing `/link` opens the editor's link picker, including host-supplied destination search when available.
+
+## v0.22.12
+
 - Editor links can search host-provided destinations separately from website URLs. Existing links show the destination's full address or resolved title, with clear edit, remove, and open actions.
+
+## v0.22.11
+
 - Tooltips now close immediately when another tooltip, popup, dialog, Search Shell, sidebar drawer, toast, or editor toolbar opens, including while a delayed tooltip is queued. Nested modal dialogs keep one visible backdrop and closing a child leaves its parent open.
 - Editor selection and link toolbars escape clipped containers. The editor guide now shows how sticky and selection toolbars behave, and Input Group gives fixed affixes a neutral surface and divider.
 
+## v0.22.10
+
 - Looma now uses HTML Next alpha.19. Its controllers read declared props through `host.props.<name>.value`, matching HTML Next’s separate prop handles. This preserves the existing component API while allowing the host to expose each prop’s supplied input and validity independently from component-owned state.
+
+## v0.22.9
+
 - Badges can use `size="xs"` for compact counts beside small controls, with the usual tone and variant choices.
 
+## v0.22.8
+
 - Search Shell stays open when a component inside it, such as a Tooltip on its Clear button, reports its own `close`. Only the dialog closing itself closes the shell.
+
+## v0.22.7
+
 - A `<kbd>` in Tooltip's or Menu Item's `shortcut` slot reads in the surrounding type in Vue too, instead of the browser's monospace.
+
+## v0.22.6
+
 - Looma now uses HTML Next alpha.18. Combobox expressions use dotted list indexes (`rows.0` and `internalItems.0`) so they compile under the updated expression grammar; the public Combobox API is unchanged.
+
+## v0.22.5
+
 - The editor toolbar's shortcut hints show ⌘ on a Mac in a secure context too, where the browser reports the platform as "macOS" rather than "MacIntel".
+
+## v0.22.4
+
 - Tooltip has a `shortcut` slot: a keyboard shortcut follows the label after a thin divider, in smaller, quieter text, as Menu Item shows one. The editor toolbar's tooltips now show each command's shortcut this way, written for the reader's platform (⌘B on Apple devices, Ctrl+B elsewhere).
+
+## v0.22.3
+
 - Mention rows keep a highlighted person's initials visible: on the highlighted row the initials circle takes the surface colour with a fine accent ring instead of blending into the highlight. A photo Avatar placed in a Mention Menu Item's `start` slot shows as its own circle, without the initials circle behind it.
+
+## v0.22.2
+
 - Looma now uses HTML Next alpha.16. Vue components that validate their props no longer overflow the call stack on mount in a DOM without native form validity, such as happy-dom in component tests.
+
+## v0.22.1
+
 - `@threadlabs/looma/vue/editor` also exports the menus' authored rows: `EditorMentionMenuItem`, `EditorSlashMenuItem`, and `EditorSlashMenuGroup`, so an app can compose the editor's person and command rows from the editor entry point alone.
+
+## v0.22.0
+
 - Looma now uses HTML Next alpha.15. Its component definitions declare typed literal state values and rely on the new value constraints and validity behavior. This changes authored definitions; the public component tags and JavaScript arrays retain their existing shape.
+- Authors of custom HTML Next definitions use typed literal `value` on `<state>` and `expr:value` for
+  action-time expressions on `<set>` and `<dispatch>`, in place of the `:value` expression.
+
+## v0.21.6
+
 - Avatar Group has an `xs` size for a group inside a line of small text: xs avatars overlap by a smaller amount and the +N badge matches their size.
 - Extra-small Buttons have 1px more room above and below their content and 1px less at each side, so an avatar inside an `xs` pill no longer touches its edge. Under touch, an `xs` Button keeps its size inside its line of text and takes presses through an invisible touch-sized hit area, as link Buttons do, instead of growing to the touch minimum.
+
+## v0.21.5
+
 - Vue components accept a bare boolean attribute as `true`, as Vue does: `<Avatar decorative />` now works instead of throwing. This follows HTML Next alpha.14.
 - Button has an `xs` size (1.5rem) and a `shape="pill"` option with fully rounded ends, for a small choice inside a line of text, such as a status or a person.
 - Menu has a `size="sm"` option that matches a small trigger: smaller text, shorter rows, a smaller check, and a narrower minimum width.
 - **Visual change for radio Menu Items:** the chosen item now shows a check instead of a filled radio circle, the same mark checkbox items use. A radio circle reads as a form control inside a menu, and a check is the convention people expect there. Unchosen items keep an empty slot, so labels stay aligned.
 - **Visual change for Ghost Button:** while pressed or holding its menu open, it sinks into a light surface with a faint edge, instead of a darker tinted fill. The darker fill read as heavier than hover, so an open menu's trigger looked stuck.
+
+## v0.21.4
+
 - Avatar's `xs` initials are smaller (9px), so two initials sit comfortably inside the 1.25rem circle. Every size sets its own line height, so the initials sit the same wherever the avatar appears.
+
+## v0.21.3
+
 - Avatar has an `xs` size (1.25rem) with the smallest initials, for naming a person inline in a line of small text.
+
+## v0.21.2
+
 - Component definitions use HTML Next's `list` declaration for nested collections. This changes authored definitions only; consumers still receive JavaScript arrays and use the same component APIs.
+
+## v0.21.1
+
 - Nested Tree items now advance by one indent per level, keeping deeper pages and folders aligned instead of shifting them progressively farther right.
-- Looma's declarative component definitions use `from:attr` for reactive one-way values. Component consumers keep the same HTML and Vue APIs. Authors of custom HTML Next definitions should replace `:attr` with `from:attr` in rendered markup, use typed literal `value` on `<state>`, and use `expr:value` for action-time expressions on `<set>` and `<dispatch>`.
+
+## v0.21.0
+
+- Looma's declarative component definitions now use `from:attr` for reactive one-way values. This follows HTML Next alpha.12; component consumers keep the same HTML and Vue APIs. Authors of custom HTML Next definitions should replace `:attr` with `from:attr` in rendered markup. The `:value` expression on `<state>`, `<set>`, and `<dispatch>` keeps its existing syntax because it is evaluated when that declaration or handler runs.
+
+## v0.20.0
+
 - **Breaking runtime requirement:** Looma now supports Node 22.13 and Node 24, matching its HTML Next dependency. Node 20 is no longer supported.
 - **Breaking for Table Overlay:** its catch-all `action` event is replaced by named insertion, selection, reorder, and menu events. Listen for `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `reorder-row`, `reorder-column`, `open-cell-menu`, `open-row-menu`, or `open-column-menu` and read the fields directly from each event detail. The editor adapter continues to handle these actions.
+- **Breaking for Input:** `type` selects the declared `value` and Vue `modelValue` type. Number and range modes use a JavaScript number; other modes use a string. An omitted value without a default is `null`, and a number field reports `null` when its text contains no number. Generated Vue types preserve the relationship. Numeric bindings keep in-progress text such as `12.`, `1.0`, and `1e3` without moving the caret.
+
+## v0.19.1
+
 - Tree marquee measures the rendered name instead of a full-width link and its padding, so short names stay still and long names stop at a narrow fade before row actions without extra travel.
-- Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
-  it later, and `@` in inline code or code blocks no longer start a search.
-- The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
+
+## v0.19.0
+
 - **Changed default for `LoomaEditor` code blocks:** apps that omitted `codeLanguages` previously had no language picker or syntax highlighting, even though they could insert code blocks. The editor now offers every bundled Highlight.js grammar in its searchable picker. An explicit choice loads only its grammar; Auto loads 20 common grammars when code is present. This makes code blocks useful in the usual editor setup without adding grammars to documents that contain no code. Pass `{}` to retain plain code blocks, or a grammar map to keep an application-owned list.
 - Editor table options stay within the viewport, scroll to every action, and close with Escape or an outside click. Row and column grips can drag to reorder while clicks still open their action menus. The options swatches are round and have more room, and paragraphs after tables have a larger gap.
+
+## v0.18.6
+
+- Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
+  it later, and `@` in inline code or code blocks no longer start a search.
+
+## v0.18.5
+
+- The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
+
+## v0.18.4
+
 - Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
+
+## v0.18.3
+
 - `LoomaEditor` has a `popover` toolbar mode: the full toolbar opens from an app's own button
   (`toolbarTriggerId`, `v-model:toolbar-open`), and selecting text shows a text-only bubble. Use it
   when the page already has a place for tools, such as a page bar.
+
+## v0.18.2
+
+- The code language selector floats above the code block holding the cursor, like the table toolbar,
+  instead of reserving empty space at the top of every editable code block.
+
+## v0.18.1
+
 - Menu Item now spaces slotted icons from their labels. Ghost Button and Icon Button stay visibly pressed while an anchored Menu or Popover is open; Popover also reports that open state on its trigger with `aria-expanded`.
+
+## v0.18.0
+
 - **Breaking for Listbox:** its visible upgraded root is now an ARIA listbox with styled choice rows instead of a native `<select size>`. The native control's option styling could not show the same checked choices as Combobox or follow Looma's surface treatment; an additive variant would leave the default Listbox with the same problem. A plain native select remains visible before JavaScript upgrades the component, then becomes hidden and disabled. Authored `<option>` children, `value`/`values`, `name`, reset, and required form validation still work. Code that queried the root as an `HTMLSelectElement` or read `selectedOptions` must use its `change` event (`detail.value` and `detail.values`) or the authored options instead. The root remains focusable and supports arrows, typeahead, click, and Space to toggle multiple choices.
 - Combobox and Listbox now draw multiple-choice rows and checkmarks from the same style rules. Checkbox's Select all example demonstrates how a group restores the native mixed state after one item changes.
 - Input and Textarea rest with a softer control edge and gain a modestly stronger edge on hover. Error and readonly borders stay stable on hover; Input Group and Select also preserve error borders.
 - Fallback Avatars use a quiet accent edge; the active ring uses a finer accent line. Subtle Badges have slightly lighter fills, and tag shapes keep a visible edge around their point.
 - Spinner now uses a rounded SVG arc that changes length over a faint circular track. Button and Icon Button loading states share this motion, and reduced-motion mode holds the arc still.
+- Pasted Markdown or HTML code blocks no longer end with an extra empty line. The newline that
+  closes a code block's last line is dropped; a blank line the author typed stays.
+
+## v0.17.4
+
 - Spinner draws its ring on the rendered element, restoring loading indicators in Button and Icon Button. The Button loading example now starts pressable and demonstrates the transition.
 - Solid Icon Button keeps its accent fill in generated CSS, so its light icon stays readable. Boxed Button links resist ordinary page link underlines.
 - Search Shell removes redundant internal divider lines; Search Result Rows use spacing and hover or selected surfaces. Side Tooltip pointers draw both edges toward their trigger, Checkbox checks sit centrally, and Input Group affixes use muted text.
 - Component pages put examples and API immediately after a short introduction, with longer guidance below.
 
+## v0.17.3
+
+- Republishes 0.17.2 unchanged: 0.17.2 reached npm, but its post-publish registry check failed, so
+  it was never tagged.
+
+## v0.17.2
+
 - Editable code blocks now show a compact language selector when the app registers syntax
   grammars. **Auto** names the detected language; a manual choice is saved in the document and
   can be cleared back to Auto. Typing three backticks starts a code block immediately.
-- Code block syntax grammars are now opt-in through `codeLanguages` on `LoomaEditor`
-  and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
-  styles the highlighted tokens with theme-aware colors.
 
-- The code language selector floats above the code block holding the cursor, like the table toolbar,
-  instead of reserving empty space at the top of every editable code block.
-- Pasted Markdown or HTML code blocks no longer end with an extra empty line. The newline that
-  closes a code block's last line is dropped; a blank line the author typed stays.
-- Adjacent span labels from pasted HTML layout wrappers keep a readable space
-  when the wrapper is reconstructed as editor text.
-- The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
-- A short YAML frontmatter block at the start of pasted Markdown stays as an editable
-  YAML code block, while the following heading and body become document structure.
-- Two-column editor tables now fit their available width and wrap cell text. Tables
-  with many columns or deliberately wide saved columns still scroll horizontally.
-- The inline chip editor now opens below a chip on a narrow page when there is room,
-  so editing a chip near the page heading does not cover the title and actions.
-  It still flips above when the viewport has more room there.
-- **Breaking for Input:** `type` selects the declared `value` and Vue `modelValue` type. Number and range modes use a JavaScript number; other modes use a string. An omitted value without a default is `null`, and a number field reports `null` when its text contains no number. Generated Vue types preserve the relationship. Numeric bindings keep in-progress text such as `12.`, `1.0`, and `1e3` without moving the caret.
-- New hooks, all additive and unset by default, so an app styles these from a class of its own:
-  - Button: `--ui-button-white-space` (for example `nowrap` to keep a label on one line). Unset, a
-    button still wraps as its container does.
-  - Select: `--ui-select-surface`, `--ui-select-border`, `--ui-select-border-hover`, and
-    `--ui-select-focus-border`, matching Input's.
-  - Widths: `--ui-input-inline-size`, `--ui-select-inline-size`, `--ui-nav-item-inline-size`, and
-    `--ui-form-field-min-inline-size`.
-  - Form Field: `--ui-form-field-label-text`, `--ui-form-field-label-font-size`,
-    `--ui-form-field-help-text`, and `--ui-form-field-help-font-size`.
-- Text's `as` adds heading levels, `h2` to `h6`, for a heading below a Page Header's `h1` and a
-  Section's `h2`. A Text heading takes its size and weight from `size` and `weight`, not from the
-  browser's heading styles.
-- Docs: the conventions page no longer describes a host reset, `@layer components`, `.ui-scope`,
-  font-stack presets, or `data-ui-inherit-typography`. Those belonged to packages Looma retired
-  before this one; no current component or runtime implements them. The page now says what does
-  apply: components style themselves and inherit everything else from the page.
+## v0.17.1
 
-- Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
-  plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
-  document structure; native editor content stays native.
 - Disabled Button and Icon Button use a flat neutral surface, border, and text so their disabled
   state remains clear across variants and tones. The default danger red is brighter in light and
   dark themes. `loading` is the preferred Button and Icon Button prop; `pending` remains as a
@@ -274,6 +444,71 @@
 - The Editor docs now use one guide with section links in the sidebar. An interactive editor
   playground demonstrates toolbar placement, highlighting, slash commands, mentions, and tables.
   Empty mention and slash menu header areas stay hidden in the docs build.
+
+## v0.17.0
+
+- Code block syntax grammars are now opt-in through `codeLanguages` on `LoomaEditor`
+  and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
+  styles the highlighted tokens with theme-aware colors.
+
+## v0.16.5
+
+- Adjacent span labels from pasted HTML layout wrappers keep a readable space
+  when the wrapper is reconstructed as editor text.
+
+## v0.16.4
+
+- The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
+- A short YAML frontmatter block at the start of pasted Markdown stays as an editable
+  YAML code block, while the following heading and body become document structure.
+- Two-column editor tables now fit their available width and wrap cell text. Tables
+  with many columns or deliberately wide saved columns still scroll horizontally.
+- The inline chip editor now opens below a chip on a narrow page when there is room,
+  so editing a chip near the page heading does not cover the title and actions.
+  It still flips above when the viewport has more room there.
+
+## v0.16.3
+
+- New hooks, all additive and unset by default, so an app styles these from a class of its own:
+  - Button: `--ui-button-white-space` (for example `nowrap` to keep a label on one line). Unset, a
+    button still wraps as its container does.
+  - Select: `--ui-select-surface`, `--ui-select-border`, `--ui-select-border-hover`, and
+    `--ui-select-focus-border`, matching Input's.
+  - Widths: `--ui-input-inline-size`, `--ui-select-inline-size`, `--ui-nav-item-inline-size`, and
+    `--ui-form-field-min-inline-size`.
+  - Form Field: `--ui-form-field-label-text`, `--ui-form-field-label-font-size`,
+    `--ui-form-field-help-text`, and `--ui-form-field-help-font-size`.
+- Text's `as` adds heading levels, `h2` to `h6`, for a heading below a Page Header's `h1` and a
+  Section's `h2`. A Text heading takes its size and weight from `size` and `weight`, not from the
+  browser's heading styles.
+- Docs: the conventions page no longer describes a host reset, `@layer components`, `.ui-scope`,
+  font-stack presets, or `data-ui-inherit-typography`. Those belonged to packages Looma retired
+  before this one; no current component or runtime implements them. The page now says what does
+  apply: components style themselves and inherit everything else from the page.
+- Input takes a number. Its `value` and Vue `modelValue` accept `string | number` (`modelValue`
+  also takes `null`), so a `type="number"` field binds to a number, and it reports a number as the
+  user types, or an empty string while it holds no number, as Vue's `v-model` does. The Vue
+  `update:modelValue` event is still typed `string`; typing it from the value awaits the generator. Bound to a number, the field never writes
+  over text that means the same number while the user types it: `12.`, `1.0`, `1e3`, or an empty
+  field keep their text and caret. A field bound to text was rewritten on every keystroke, so typing
+  `12.5`, Backspace, `8` lost the point.
+
+## v0.16.2
+
+- Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
+  plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
+  document structure; native editor content stays native.
+
+## v0.16.1
+
+- LoomaEditor adds clickable inline chips through `/chip` or `insertLoomaChip()` on selected text.
+  A focused popover edits the label and six theme colors; each chip gets a slightly stronger,
+  theme-matched border and persists as a semantic text span within its paragraph.
+- Subtle badges and tags now have a slightly darker tone-matched edge instead of a border identical
+  to their fill. Colored solid and outline variants keep their existing treatments.
+
+## v0.16.0
+
 - **Breaking (0.16.0): Dialog is non-modal again unless you set `modal`.** `<ui-dialog modal>` and
   `<Dialog modal>` open it with `showModal()`: top layer, backdrop, the rest of the page inert, and
   page scroll locked. Without `modal` it opens with `show()`, as before 0.15 and like native
@@ -292,30 +527,26 @@
     modal. `modeless` is deprecated and does nothing now; it is still accepted, `modal` wins when both
     are set, and it can be removed. A non-modal dialog that should still close on Escape sets
     `closedby="closerequest"`.
-- LoomaEditor adds clickable inline chips through `/chip` or `insertLoomaChip()` on selected text.
-  A focused popover edits the label and six theme colors; each chip gets a slightly stronger,
-  theme-matched border and persists as a semantic text span within its paragraph.
-- Subtle badges and tags now have a slightly darker tone-matched edge instead of a border identical
-  to their fill. Colored solid and outline variants keep their existing treatments.
+
+## v0.15.7
+
 - Tree `marquee`: a long name fades out fully before the leading icon as it slides (it faded to
   the icon's middle), rests at the end, then scrolls again while the row stays hovered or keyboard
   focused; it used to stop at the end. Keyboard focus on the item itself, as the tree roves, now
   starts it. A touch pointer, or the focus a tap leaves, no longer does.
+
+## v0.15.6
+
 - LoomaEditor adds a `disableHighlight` prop (and `getDefaultEditorExtensions` a
   `disableHighlight` option). When set, authors can't highlight: no Highlight button, no
   `Mod-Shift-H`, no `==text==` typing or paste rule, and pasted `<mark>` keeps only its text.
   Highlights already in the document still show. Off by default, so nothing changes.
-- LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
-  the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
-  blocks become editable editor content. Source markup is reconstructed as supported editor nodes,
-  rather than inserted verbatim; surplus layout wrappers lose their tags while retaining ordinary text.
+
+## v0.15.5
+
 - Pasted HTML elements with an inline `display: none` declaration are omitted with their contents.
   A paste containing only such elements leaves the document unchanged. Literal HTML inside a code
   block remains code text.
-- The focused empty-editor placeholder remains readable when the active-block marker is enabled.
-
-- Button’s CardButton variant uses Button with its existing tones, an arbitrary icon slot, flexible top-aligned content, and a vertically centered action slot that defaults to a caret. Card borders and inline padding stay uniform.
-- Separator can use strong emphasis when a composition needs clearer separation.
 
 ## v0.15.4
 
@@ -323,6 +554,11 @@
   of the warning colour with the ink instead of 85%, so a theme can choose a bright, saturated amber
   for tints, borders, and icons and its warning text still reads at 4.5:1 on every surface. Warning
   text in the default theme is slightly darker.
+- LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
+  the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
+  blocks become editable editor content. Source markup is reconstructed as supported editor nodes,
+  rather than inserted verbatim; surplus layout wrappers lose their tags while retaining ordinary text.
+- The focused empty-editor placeholder remains readable when the active-block marker is enabled.
 
 ## v0.15.3
 

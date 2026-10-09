@@ -89,7 +89,7 @@ certify these pages as free of accessibility defects.
 
 ## Run locally
 
-Use Node 22.13 or 24 and pnpm through Corepack. Run browser commands sequentially,
+Use Node 22.22.2+ or 24.15+ and pnpm through Corepack. Run browser commands sequentially,
 with one worker; the package's ordinary test command also launches browsers.
 
 ```sh
@@ -132,6 +132,17 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+The 0.26 reference refresh updates the navbar version on every desktop page and
+the Node range in Getting Started. Each desktop reference is the reviewed 0.25
+image with its navbar version area (x 1150–1220, y 12–52) taken from a new
+container capture. Getting Started uses its full new captures, which differ only
+in the navbar and the Node-range line. Twelve new captures also differed in
+table-of-contents highlight or overlay pixels, the capture instability described
+above; their references keep the reviewed state. The four desktop Table
+`--github-actions` references take the same area from GitHub's captures, which
+match the reviewed images everywhere else. Component markup moved to HTML
+Next's `$` references in the same release without changing rendered pages.
+
 The 0.25 reference refresh updates the navbar version, removes the unsupported
 Methods section from component API tabs, and records the native-event migration
 guides and file-input type. The GitHub Table captures were regenerated in the
@@ -151,7 +162,11 @@ TOC classes, or the zero-pixel comparison.
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
 intact. Screenshots disable animations and hide the
-caret without hiding content. Keep the Playwright version, image digest, font
+caret without hiding content. Visual pages hide the navbar version label
+(`.looma-version`) from first paint through an adopted stylesheet, because the
+label changes with every release rather than with the page under review. A
+capture-time mask adds page nodes that HTML Next's document observer sees; the
+Table Context Menu page then draws open menus that ordinary captures show empty. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
 The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent

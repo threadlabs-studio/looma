@@ -44,14 +44,14 @@
     </event>
   </defs>
   <div>
-    <div class="heading" $ref="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
-      <button class="trigger" type="button" $ref="trigger" from:aria-controls="contentId" from:aria-expanded="internalOpen" from:disabled="disabled">
+    <div class="heading" $ref="heading" from:role="$headingRole" from:aria-level="$headingAriaLevel">
+      <button class="trigger" type="button" $ref="trigger" from:aria-controls="$contentId" from:aria-expanded="$internalOpen" from:disabled="$disabled">
         <span class="leading"><slot name="leading"></slot></span>
         <span class="summary"><slot name="summary">{$summary}</slot></span>
         <span class="indicator" aria-hidden="true"><slot name="indicator"><span class="chevron"></span></slot></span>
       </button>
     </div>
-    <div class="panel" $ref="panel" from:id="contentId"><div class="panel-inner"><slot></slot></div></div>
+    <div class="panel" $ref="panel" from:id="$contentId"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */

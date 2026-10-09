@@ -3,7 +3,7 @@
     <prop name="label" type="string" default="">Names this group of related slash commands.</prop>
   </defs>
   <li role="presentation">
-    <div role="group" from:aria-label="label">
+    <div role="group" from:aria-label="$label">
       <div class="heading">{$label}</div>
       <ul role="presentation"><slot></slot></ul>
     </div>
