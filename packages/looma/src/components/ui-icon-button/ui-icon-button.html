@@ -381,11 +381,11 @@
 
     @media (forced-colors: active) {
       :host([variant="outline"])[aria-pressed="true"]:enabled {
-        outline: 2px solid Highlight;
-        outline-offset: -4px;
+        outline: var(--ui-focus-width) solid Highlight;
+        outline-offset: calc(-2 * var(--ui-focus-width));
       }
       :host([variant="outline"])[aria-pressed="true"]:enabled:focus-visible {
-        outline-offset: 2px;
+        outline-offset: var(--ui-focus-width);
       }
     }
 
