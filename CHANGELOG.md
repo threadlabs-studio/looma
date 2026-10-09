@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.26.2
+
+- Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
+- Badge adds a fixed circular shape that centers a visible glyph or icon, including a compact 16px size.
+- Container offers opt-in `fill` to keep readable lines while its scrolling content fits a bounded panel.
+
 ## v0.26.1
 
 - Dialog body content aligns with its title in HTML and Vue, keeps short content compact, and uses equal side and bottom gutters around its actions. Dialog owns its body layout instead of styling a nested component root excluded by HTML scoping. Scroll Area adds opt-in `trim` to remove only projected content's outer block margins; existing scroll areas keep their margins.
