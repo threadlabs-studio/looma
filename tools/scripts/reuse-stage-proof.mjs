@@ -127,7 +127,7 @@ async function main() {
   const checkout = validateProvider({ repository, stage, run, job, commit, log, currentWorkflow, providerWorkflow,
     packageManager: JSON.parse(readFileSync("package.json", "utf8")).packageManager,
     imageOS, imageVersion: process.env.ImageVersion });
-  const localEntries = execFileSync("git", ["ls-tree", "-r", "-z", "HEAD"], { encoding: "utf8" }).split("\0").filter(Boolean).map((entry) => {
+  const localEntries = execFileSync("git", ["-c", `safe.directory=${process.cwd()}`, "ls-tree", "-r", "-z", "HEAD"], { encoding: "utf8" }).split("\0").filter(Boolean).map((entry) => {
     const [, mode, type, sha, path] = entry.match(/^(\d+) (\w+) ([a-f0-9]+)\t([\s\S]+)$/);
     return { mode, type, sha, path };
   });
