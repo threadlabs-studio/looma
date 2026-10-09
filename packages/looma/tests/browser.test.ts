@@ -556,7 +556,7 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
-  it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
+  it("shows authored toasts, hides one on dismissal, and shows it again when hidden clears", async () => {
     const path = await bundle("html-authored-toast", `
       import "@threadlabs/looma";
       window.dismissals = [];
@@ -579,9 +579,13 @@ describe("Toast composition and placement", () => {
     assert.ok(position.bottom < 40 && position.right < 40, JSON.stringify(position));
     await page.getByRole("button", { name: "Undo" }).click();
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "saved", reason: "action", trigger: "pointer" }]);
-    assert.equal(await page.locator("#saved").count(), 1, "authored content stays owned by the consumer");
-    await page.locator("#saved").evaluate((element) => element.remove());
-    await page.locator("#failed").evaluate((element) => element.remove());
+    assert.equal(await page.locator("#saved").count(), 1, "authored content stays in the document");
+    assert.equal(await page.locator("#saved").isHidden(), true, "a dismissed toast hides itself");
+    await page.locator("#saved").evaluate((element: HTMLElement) => { element.hidden = false; });
+    assert.equal(await page.locator("#saved").isVisible(), true, "clearing hidden shows it again");
+    await page.getByRole("button", { name: "Undo" }).click();
+    assert.equal((await page.evaluate(() => (window as any).dismissals)).length, 2, "a reshown toast dismisses again");
+    await page.locator("#failed").getByRole("button", { name: "Dismiss notification" }).click();
     await page.waitForFunction(() => !document.querySelector("#region")!.matches(":popover-open"));
     await page.close();
   });
@@ -599,6 +603,26 @@ describe("Toast composition and placement", () => {
     await page.mouse.move(0, 0);
     await page.waitForFunction(() => (window as any).dismissals.length === 1);
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "toast", reason: "timeout", trigger: "programmatic" }]);
+    assert.equal(await page.locator("#toast").isHidden(), true, "a timed toast hides itself");
+    await page.close();
+  });
+
+  it("times an authored hidden toast only once it is shown, and again each time it is shown", async () => {
+    const path = await bundle("html-hidden-timed-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail.reason));
+    `);
+    const page = await open(path, `<ui-toast-region id="region"><ui-toast id="toast" hidden duration="200">Timed</ui-toast></ui-toast-region>`, [join(root, "tokens.css")]);
+    await page.waitForTimeout(400);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [], "a toast that was never shown does not time out");
+    assert.equal(await page.locator("#region").evaluate((element) => element.matches(":popover-open")), false);
+    for (const shown of [1, 2]) {
+      await page.locator("#toast").evaluate((element: HTMLElement) => { element.hidden = false; });
+      await page.waitForFunction((count) => (window as any).dismissals.length === count, shown);
+      assert.equal(await page.locator("#toast").isHidden(), true, `showing ${shown} timed out and hid the toast`);
+    }
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), ["timeout", "timeout"]);
     await page.close();
   });
 

@@ -7,9 +7,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 # Toast
 
 Author a toast inside Toast Region when its message has a tone, rich content, or an action. The
-`action` slot can hold a button or link; your application handles its activation. An authored toast
-emits `dismiss` with `{id, reason, trigger}` after its close button, action, or duration fires. The
-application removes it from its rendered list; Looma never deletes authored content.
+`action` slot can hold a button or link; your application handles its activation. Like a dialog
+closing, a toast hides itself (`hidden`) when its close button, action, or duration fires, then emits
+`dismiss` with `{id, reason, trigger}`. Clear `hidden` to show it again; Looma never deletes
+authored content, so an application that keeps a list may still remove it on `dismiss`.
 
 `duration="0"` is persistent. A timed toast pauses on hover or focus. Give a person another route
 to a time-sensitive action, since the toast may disappear before they reach it. `tone="danger"`

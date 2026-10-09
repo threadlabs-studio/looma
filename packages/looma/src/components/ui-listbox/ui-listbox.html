@@ -32,23 +32,25 @@
     from:aria-invalid="$invalid or $validationError"
     style:--_rows="$rows"
   >
-    <ui-scroll-area class="choices" $ref="choices">
-      <div
-        $each="choice of $choices"
-        $key="$choice.index"
-        class="option"
-        class:active="$choice.index = $active"
-        role="option"
-        data-ui-choice-option
-        from:data-multiple="$multiple"
-        from:id="concat($uid, '-option-', $choice.index)"
-        from:data-index="$choice.index"
-        from:aria-selected="$choice.selected"
-        from:aria-disabled="$choice.disabled"
-      >
-        <span>{$choice.label}</span>
-      </div>
-    </ui-scroll-area>
+    <div class="choices">
+      <ui-scroll-area $ref="choices">
+        <div
+          $each="choice of $choices"
+          $key="$choice.index"
+          class="option"
+          class:active="$choice.index = $active"
+          role="option"
+          data-ui-choice-option
+          from:data-multiple="$multiple"
+          from:id="concat($uid, '-option-', $choice.index)"
+          from:data-index="$choice.index"
+          from:aria-selected="$choice.selected"
+          from:aria-disabled="$choice.disabled"
+        >
+          <span>{$choice.label}</span>
+        </div>
+      </ui-scroll-area>
+    </div>
     <select
       class="fallback"
       $ref="options"
@@ -115,7 +117,10 @@
       outline: none;
     }
 
+    /* Its own box around the nested Scroll Area, which it shrinks into so the choices scroll. */
     .choices {
+      display: flex;
+      flex-direction: column;
       max-block-size: calc(max(2, var(--_rows, 5)) * var(--ui-control-size-md));
     }
 
