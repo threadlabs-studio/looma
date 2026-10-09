@@ -1217,14 +1217,19 @@ for (const theme of ["light", "dark"] as const) {
       // Real motion matters: the original hover transform repeatedly changed the containing block.
       await page.emulateMedia({ reducedMotion: "no-preference", colorScheme: theme });
       await page.goto("components", { waitUntil: "domcontentloaded" });
-      // Hydrated, with every lazy card preview mounted: an earlier click or lookup can miss the live trigger.
-      await ready(page);
+      // Hydrated before the filter click, then every filtered preview mounted with its controllers loaded,
+      // as the catalog dialog capture waits: an earlier click can miss or race the live trigger.
+      // Docusaurus enables its theme button on hydration.
+      await expect(page.locator('button[aria-label^="Switch between dark and light mode"]').first()).toBeEnabled();
       await page.getByRole("button", { name: /^Overlay/ }).click();
+      await ready(page);
       const card = page.locator('[data-component-card="ui-dialog"]');
       await card.scrollIntoViewIfNeeded();
-      await expect(card.locator(".looma-live-example-loading")).toHaveCount(0);
       const trigger = card.getByRole("button", { name: "Open dialog" });
       await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+      // The card lifts on hover with real motion; press once it settles, so press and release land together.
+      await trigger.hover();
+      await expect.poll(() => card.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
       await trigger.click();
       const dialog = card.locator("dialog");
       await expect(dialog).toBeVisible();
