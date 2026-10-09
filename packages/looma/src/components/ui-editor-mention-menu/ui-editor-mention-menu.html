@@ -44,6 +44,12 @@
     <div class="empty" $ref="empty"><slot name="empty"></slot></div>
   </div>
   <style>
+    :host[popover] {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+    }
+
     :host {
       user-select: none;
     }

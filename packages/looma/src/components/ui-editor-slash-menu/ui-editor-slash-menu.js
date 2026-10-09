@@ -1,3 +1,4 @@
+import { createViewportSurface } from "../shared/overlay.js";
 import { normalizeAnchor, positionMenu } from "../shared/editor.js";
 
 // Places the menu at the slash and tracks the highlighted item; the template renders the items.
@@ -7,6 +8,7 @@ function connect(host) {
   const place = () => {
     if (host.state.visible) positionMenu(element, normalizeAnchor(host.props.anchorRect.value), 280);
   };
+  const surface = createViewportSurface(element, { position: place });
   const options = () => Array.from(element.querySelectorAll('[role="option"]'));
   const syncOptions = () => {
     const query = String(host.props.query.value || "").trim().toLocaleLowerCase();
@@ -31,7 +33,8 @@ function connect(host) {
     const visible = Boolean(host.props.open.value && normalizeAnchor(host.props.anchorRect.value)
       && (rows.length > 0 || host.refs.empty.children.length));
     if (host.state.visible !== visible) host.state.visible = visible;
-    place();
+    if (visible) surface.show();
+    else surface.hide();
   };
   const stop = host.effect(() => {
     const items = Array.isArray(host.props.items.value) ? host.props.items.value : [];
@@ -60,20 +63,13 @@ function connect(host) {
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
   element.addEventListener("mouseover", onMouseover);
-  window.addEventListener("resize", place);
-  window.addEventListener("scroll", place, true);
-  window.visualViewport?.addEventListener("resize", place);
-  window.visualViewport?.addEventListener("scroll", place);
   return () => {
     stop();
+    surface.destroy();
     observer.disconnect();
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
     element.removeEventListener("mouseover", onMouseover);
-    window.removeEventListener("resize", place);
-    window.removeEventListener("scroll", place, true);
-    window.visualViewport?.removeEventListener("resize", place);
-    window.visualViewport?.removeEventListener("scroll", place);
   };
 }
 

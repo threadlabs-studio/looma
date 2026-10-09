@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.27.1
+
+- Popovers and menus render in the browser's top layer, above page content and outside ancestor clipping, transforms and stacking contexts. One anchored with `for` stays attached to its anchor as the page scrolls or resizes. One without `for` stays at the place it is written and travels with it, instead of moving to the viewport corner. Table Context Menu follows the same model: in page flow it stays where it is written, and in a fixed or absolutely positioned box, as LoomaEditor places it, it keeps inside the viewport.
+- Dialog and non-modal Search Shell render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return.
+- Dialog optically balances its header inset and sizes to its content. Open dialogs animate content growth and shrinkage over the dialog motion duration instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
+- Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
+- Table context menus keep their minimum width inside narrow presentation viewports.
+
+## v0.26.3
+
+- Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport. Separators sit only between sections, and cell background swatches keep whole labels: three to a row at the menu's full width, fewer in a narrower menu.
+
 ## v0.26.2
 
 - Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.

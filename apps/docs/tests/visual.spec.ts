@@ -28,6 +28,7 @@ for (const theme of ["light", "dark"] as const) {
           await page.goto(doc.path, { waitUntil: "domcontentloaded" });
           await ready(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
           const name = `${viewport.name}-${theme}/${doc.path === "./" ? "home" : doc.path.replaceAll("/", "--")}`;
           // Desktop Table HTML/Vue captures have stable, reviewed GitHub-hosted rasterization variants.
           // Keep both rendering environments at zero changed pixels instead of increasing tolerance.
@@ -46,6 +47,7 @@ for (const theme of ["light", "dark"] as const) {
             await page.reload({ waitUntil: "domcontentloaded" });
             await ready(page);
             await expect(page.locator('.looma-mode-code[data-framework-mode="vue"]')).toHaveCount(doc.examples.length);
+            if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
             const vueImage = githubTable ? `${name}--vue--github-actions` : `${name}--vue`;
             await screenshot(page, `${vueImage}.png`, true);
           }
@@ -71,6 +73,65 @@ for (const theme of ["light", "dark"] as const) {
         await page.getByRole("searchbox", { name: /^Search components/ }).fill("no-component-with-this-name");
         await expect(page.getByRole("heading", { name: "No components found", exact: true })).toBeVisible();
         await screenshot(page, `${viewport.name}-${theme}/states/catalog-empty.png`, true);
+      });
+      test("catalog dialog in the top layer", async ({ page }) => {
+        await page.goto("components/", { waitUntil: "domcontentloaded" });
+        await ready(page);
+        await page.getByRole("button", { name: /^Overlay/ }).click();
+        await ready(page);
+        const card = page.locator('[data-component-card="ui-dialog"]');
+        await card.evaluate(element => element.scrollIntoView({ block: "start", behavior: "instant" }));
+        const trigger = card.getByRole("button", { name: "Open dialog", exact: true });
+        await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+        await trigger.click();
+        const dialog = card.locator("dialog");
+        await expect(dialog).toBeVisible();
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+        await expect(page.getByRole("button", { name: "Scroll back to top", exact: true, includeHidden: true })).toHaveCSS("opacity", "0");
+        await page.mouse.move(0, 0);
+        // Keep the containing page and dialog together; fractional locator crops can vary at rounded corners.
+        await screenshot(page, `${viewport.name}-${theme}/states/catalog-dialog.png`);
+      });
+      if (viewport.name === "mobile") test("dialog content growth, body scrolling, and shrinkage", async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
+        await ready(page);
+        const example = page.locator('[data-preview-scenario="Default"]');
+        const trigger = example.getByRole("button", { name: /^Open/ });
+        await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+        await trigger.click();
+        const dialog = example.locator("dialog");
+        await expect(dialog).toBeVisible();
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        // Let the intrinsic observer record the initial open height before changing its content.
+        await dialog.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+        const paragraph = dialog.locator(".body p").first();
+        const original = await paragraph.textContent();
+        await paragraph.evaluate((element) => {
+          element.textContent = Array.from({ length: 24 }, (_, index) => `Review note ${index + 1}: Additional content belongs in the scrolling body while the title and actions stay visible.`).join(" ");
+        });
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length), { intervals: [10, 20, 50] }).toBeGreaterThan(0);
+        const body = dialog.locator('.body [data-component~="ui-scroll-area"]');
+        await expect.poll(() => body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        await expect(dialog.locator("header")).toBeInViewport();
+        await expect(dialog.getByRole("button", { name: "Publish", exact: true })).toBeInViewport();
+        const grown = await dialog.boundingBox();
+        expect(grown!.height).toBeGreaterThan(viewport.height * 0.85);
+        expect(grown!.y).toBeGreaterThanOrEqual(0);
+        expect(grown!.y + grown!.height).toBeLessThanOrEqual(viewport.height);
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-content-grown.png`);
+        await body.evaluate(element => { element.scrollTop = Math.floor((element.scrollHeight - element.clientHeight) / 2); });
+        // Let the scroll event and Scroll Area's scheduled mask update paint before capturing its fade.
+        await body.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-body-scrolled.png`);
+        await paragraph.evaluate((element, text) => { element.textContent = text; }, original);
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length), { intervals: [10, 20, 50] }).toBeGreaterThan(0);
+        await expect.poll(() => dialog.evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(300);
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        expect(await body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(false);
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-content-shrunk.png`);
       });
       test("editor guide selection toolbar and mention suggestions", async ({ page }) => {
         await page.goto("editor/");

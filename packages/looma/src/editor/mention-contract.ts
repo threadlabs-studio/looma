@@ -51,6 +51,8 @@ export interface LoomaMentionMenuSnapshot {
   selectedIndex: number;
   query: string;
   rect: DOMRect | null;
+  /** Re-measures the current virtual anchor after scrolling; valid for this snapshot only. */
+  getRect?: () => DOMRect | null;
   loading: boolean;
   highlight: ((index: number) => void) | null;
   select: ((index: number) => void) | null;
