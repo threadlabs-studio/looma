@@ -145,7 +145,7 @@ growth, body-scroll, and shrink states. Documentation heading and paragraph rule
 no longer reach into component examples, which changes example text in pages
 such as Disclosure, Menu, and Table; the desktop Table pages are 38px shorter.
 Their `--github-actions` variants are GitHub's captures of the same Table page
-(hosted docs-parity run 37676077440), with the navbar version area (x 1150–1220,
+from hosted docs-parity runs on #299's branch, with the navbar version area (x 1150–1220,
 y 12–52) taken from the local capture as in the 0.26 refresh; they differ from
 the local references only in the known sticky-header glyph rows.
 Toast examples start hidden behind a button; danger Card and Section, Callout,
