@@ -16,7 +16,8 @@
     <prop name="size" type="keyword" values="xs, sm, md" default="md"
     >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header; xs is
       1.25rem with small initials, for a person named inline in a line of small text.</prop>
-    <prop name="shape" type="keyword" values="circle, square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
+    <prop name="shape" type="keyword" values="circle, square" default="circle"
+    >Circle by default, with a shallow shadow; square uses the theme's medium radius.</prop>
     <prop name="decorative" type="boolean" default="false">Hides the avatar from assistive technology when adjacent text already identifies the person.</prop>
     <prop name="active" type="boolean" default="false"
     >Marks the person as active now, such as editing the same page: a fine accent ring around the avatar. The ring is not announced, so say what it means in alt
@@ -94,6 +95,10 @@
 
     :host-state([hasImage]) {
       border-color: var(--ui-avatar-border, var(--ui-border-strong));
+    }
+
+    :host([shape="circle"]) {
+      box-shadow: var(--ui-shadow-sm);
     }
 
     :host([shape="square"]) {

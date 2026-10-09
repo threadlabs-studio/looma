@@ -3,7 +3,8 @@
 ## v0.26.3
 
 - Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
-- Badge adds a larger 32px circle and 40px square with `size="lg"`, with room for short counts such as `30` and `99+`. Its `inverse` variant reverses the solid tone's contrast pair for labels on a filled control. Ordinary clipped labels keep full font metrics and existing container geometry; active text trimming consistently uses capital height and the alphabetic baseline.
+- Badge adds a larger 32px circle and 40px square with `size="lg"`, with room for short counts such as `30` and `99+`. Its `inverse` variant uses a partly translucent contrasting surface for labels on a filled control, retaining readable tone ink. Text pills and fixed text marks use the same capital-height/alphabetic-baseline centering. Ellipsis clips only horizontal overflow, keeping ascenders and descenders visible within the existing badge geometry.
+- Inverse circular counts and round avatars have a shallow shadow, giving them a small amount of lift above the surrounding surface.
 - List Item adds opt-in `align="title"` to keep leading and trailing marks beside the first title line when descriptions wrap. Existing rows retain centered alignment.
 
 ## v0.26.2
