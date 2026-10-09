@@ -167,19 +167,29 @@ describe("Pressed icon controls and circular marks", () => {
             assert.ok(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, `${adapter}/${width}/${id}: centered glyph ${JSON.stringify(geometry)}`);
             assert.equal(geometry.clip, "none", "circle content remains visible");
             if (id !== "medium") {
-              const inkOffset = await page.locator(`#${id}`).evaluate(element => {
+              const measureTextOffset = () => page.locator(`#${id}`).evaluate(element => {
                 const label = element.querySelector(".label")!, range = document.createRange();
                 range.selectNodeContents(label);
                 const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
                 const canvas = document.createElement("canvas").getContext("2d")!;
                 canvas.font = getComputedStyle(label).font;
                 const metrics = canvas.measureText(label.textContent!);
-                // A centered font line box alone does not prove that uppercase ink is centered.
+                // Horizontally, center the advance: the font's asymmetric side bearings belong to the glyph.
+                // Vertically, a centered line box alone does not prove that capital/numeral ink is centered.
                 const baseline = text.bottom - metrics.fontBoundingBoxDescent;
                 return { y: baseline - (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 - (box.top + box.bottom) / 2,
-                  x: text.left + (metrics.actualBoundingBoxRight - metrics.actualBoundingBoxLeft) / 2 - (box.left + box.right) / 2 };
+                  x: text.left + metrics.width / 2 - (box.left + box.right) / 2 };
               });
-              assert.ok(Math.abs(inkOffset.y) < 0.5 && Math.abs(inkOffset.x) < 0.5, `${adapter}/${width}/${font}/${id}: visible ink offset ${JSON.stringify(inkOffset)}`);
+              const textOffset = await measureTextOffset();
+              assert.ok(Math.abs(textOffset.y) < 0.5 && Math.abs(textOffset.x) < 0.5, `${adapter}/${width}/${font}/${id}: centered text offset ${JSON.stringify(textOffset)}`);
+              if (id === "letter") {
+                // Prove that each measurement still rejects a real layout shift, including this asymmetric glyph.
+                for (const [axis, transform] of [["x", "translateX(1px)"], ["y", "translateY(1px)"]] as const) {
+                  await page.locator(`#${id} .label`).evaluate((label, transform) => { (label as HTMLElement).style.transform = transform; }, transform);
+                  assert.ok(Math.abs((await measureTextOffset())[axis]) >= 0.5, `${adapter}/${width}/${font}: detects a shifted ${axis} axis`);
+                }
+                await page.locator(`#${id} .label`).evaluate(label => { (label as HTMLElement).style.removeProperty("transform"); });
+              }
             }
           }
         }
