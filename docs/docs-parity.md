@@ -144,7 +144,10 @@ optical header inset and content-sized height, plus new catalog-dialog and mobil
 growth, body-scroll, and shrink states. Documentation heading and paragraph rules
 no longer reach into component examples, which changes example text in pages
 such as Disclosure, Menu, and Table; the desktop Table pages are 38px shorter.
-Their `--github-actions` variants come from GitHub's captures of this revision.
+Their `--github-actions` variants are GitHub's captures of the same Table page
+(hosted docs-parity run 37676077440), with the navbar version area (x 1150–1220,
+y 12–52) taken from the local capture as in the 0.26 refresh; they differ from
+the local references only in the known sticky-header glyph rows.
 Toast examples start hidden behind a button; danger Card and Section, Callout,
 and toned Toasts keep straight corners on their accent edge; and the Scroll Area
 page documents `padding`. The catalog dialog capture also hides the navbar version
