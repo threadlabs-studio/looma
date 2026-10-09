@@ -35,6 +35,12 @@ pnpm dev:storybook
 Run the narrowest relevant check while iterating and report exactly what ran.
 Never claim a check passed unless it was run.
 
+CI selects affected package cases and documentation consumers, reuses exact
+provider-verified unchanged inputs, and admits at most 15 estimated aggregate
+runner minutes across its workflows. Unknown or oversized scope stops before
+checks; never replace missing proof with an unrelated full sweep. See
+`docs/change-dependent-qualification.md` for selection and receipt boundaries.
+
 ## Component Rules
 
 - Accessibility first and mobile first.
