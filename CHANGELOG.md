@@ -6,6 +6,10 @@
 - Listbox caps its visible choices at `rows` and hides them until it upgrades, and the Toast dismiss button sits at the intended distance from the edge. Both styled a nested component's root, which HTML Next's scoped styles never match, so the rules had no effect. Scroll Area adds a `padding` option (`none` by default, then `xs`, `sm`, `md`, `lg` on Card's scale) that scrolls with the content, keeping the scrollbar and fades at the edges.
 - A colored accent edge now has straight corners on its side: toned Toasts (authored or from Toast Region), Callout, and danger Card and Section cards no longer round the corners their stripe runs into.
 
+## v0.26.3
+
+- Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport. Separators sit only between sections, and cell background swatches keep whole labels: three to a row at the menu's full width, fewer in a narrower menu.
+
 ## v0.26.2
 
 - Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
