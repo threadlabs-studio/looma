@@ -55,5 +55,18 @@ export default defineConfig({
   // one's search field shows its focus ring depends on upgrade timing, so it
   // flakes. Storywright 1.8 declares `hooks.beforeScreenshot` but never calls
   // it, so the harness cannot blur first; re-include once hooks run.
-  exclude: ['Overlay/Search Shell/Examples'],
+  // ponytail: each editor menu Examples story opens several menus at once in
+  // one document's top layer, where they overlap at shared anchor rects or
+  // written places, so which paints on top varies by run. Their Default stories
+  // stay covered, and the docs compare every example in its own preview frame;
+  // re-include them once stories render always-open popups in separate frames.
+  exclude: [
+    'Overlay/Search Shell/Examples',
+    'Editor/Mention Menu/Examples',
+    'Editor/Mention Menu Item/Examples',
+    'Editor/Slash Menu/Examples',
+    'Editor/Slash Menu Group/Examples',
+    'Editor/Slash Menu Item/Examples',
+    'Editor/Table Context Menu/Examples',
+  ],
 })
