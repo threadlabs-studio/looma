@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   docs-parity:
@@ -19,21 +20,33 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Check proof validator
+        run: node --test tools/scripts/reuse-stage-proof.test.mjs
+      - name: Reuse executed stage proof
+        id: proof
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/scripts/reuse-stage-proof.mjs --stage docs-parity --run-id 37990395609
       - name: Align browser home ownership with the container user
+        if: steps.proof.outputs.reused != 'true'
         # GitHub mounts the runner-owned home into this root-run container; Firefox checks its owner.
         run: chown "$(id -u):$(id -g)" "$HOME"
       - name: Install pinned pnpm dependencies
+        if: steps.proof.outputs.reused != 'true'
         run: corepack enable && corepack pnpm install --frozen-lockfile
       - name: Build documentation
+        if: steps.proof.outputs.reused != 'true'
         run: corepack pnpm --filter @threadlabs/looma build && corepack pnpm --filter @threadlabs/looma-docs build
       - name: Check route and example coverage
+        if: steps.proof.outputs.reused != 'true'
         run: node tools/scripts/docs-coverage.mjs && corepack pnpm --filter @threadlabs/looma-docs typecheck:tests
       - name: Check behavior in three browsers
+        if: steps.proof.outputs.reused != 'true'
         env:
           LOOMA_DOCS_REPORT: behavior
         run: corepack pnpm --filter @threadlabs/looma-docs test:parity
       - name: Compare reviewed visuals
-        if: success() || failure()
+        if: (success() || failure()) && steps.proof.outputs.reused != 'true' && steps.proof.outcome == 'success'
         env:
           LOOMA_DOCS_CANONICAL: "1"
           LOOMA_DOCS_REPORT: visual
