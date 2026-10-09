@@ -2,14 +2,15 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { admitQualification, browserTestIds, caseNamePattern, checkoutRevision, fingerprint, selectChecks, stageInputs, stages, testCases, validateBrowserReport, validateCheckout, validateNodeReport, validateProvider, validateReceipt, validateVitestReport, workflowPaths } from "./ci-selection.mjs";
+import { admitQualification, browserTestIds, caseNamePattern, checkoutRevision, fingerprint, isBrowserTest, selectChecks, stageInputs, stages, testCases, validateBrowserReport, validateCheckout, validateNodeReport, validateProvider, validateReceipt, validateVitestReport, vitestArguments, workflowPaths } from "./ci-selection.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const gitOwnership = ["-c", `safe.directory=${root}`];
 const directory = path.join(root, ".qualification");
 const legacyWorkflows = { ci: "19e4690a057127cf4eafb7c516c111adbe18c4d82263559cc8245c31eabd625b", docs: "f4e077101e415305d9143325ae4c0bdba838f5308f38dfd3a0d9bd1ec8bffda1" };
 const legacySteps = { ci: { quality: ["Setup pnpm", "Setup Node", "Install dependencies", "Install Chromium", "Check code documentation", "Check component formatting", "Build", "Lint", "Typecheck", "Test", "Test in a browser"], "package-consumer": ["Setup pnpm", "Setup Node", "Use release npm CLI", "Install dependencies", "Verify release packaging"] },
   docs: { "docs-behavior": ["Install pinned pnpm dependencies", "Build documentation", "Check route and example coverage", "Check behavior in three browsers"], "docs-visual": ["Install pinned pnpm dependencies", "Build documentation", "Compare reviewed visuals"] } };
-const git = (args, options = {}) => { const { raw, ...execution } = options; const result = execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 ** 2, ...execution }); return raw ? result : result.trim(); };
+const git = (args, options = {}) => { const { raw, ...execution } = options; const result = execFileSync("git", [...gitOwnership, ...args], { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 ** 2, ...execution }); return raw ? result : result.trim(); };
 const json = (file) => JSON.parse(readFileSync(path.join(directory, file), "utf8"));
 const write = (file, value) => writeFileSync(path.join(directory, file), JSON.stringify(value) + "\n");
 const run = (args, options = {}) => { const result = spawnSync("pnpm", args, { cwd: root, stdio: "inherit", env: process.env, ...options }); if (result.error) throw result.error; if (result.status !== 0) throw new Error(`Selected check failed: pnpm ${args.join(" ")}`); };
@@ -18,11 +19,11 @@ const api = async (endpoint, binary = false) => {
   if (!response.ok) throw new Error(`Provider API ${endpoint}: ${response.status}`);
   return binary ? Buffer.from(await response.arrayBuffer()) : response.json();
 };
-const getRevision = (revision) => { if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error("Invalid provider revision"); if (spawnSync("git", ["cat-file", "-e", `${revision}^{commit}`], { cwd: root, stdio: "ignore" }).status !== 0) git(["fetch", "--no-tags", "origin", revision]); };
+const getRevision = (revision) => { if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error("Invalid provider revision"); if (spawnSync("git", [...gitOwnership, "cat-file", "-e", `${revision}^{commit}`], { cwd: root, stdio: "ignore" }).status !== 0) git(["fetch", "--no-tags", "origin", revision]); };
 function validateRevision(provider, revision) {
   getRevision(revision);
   const parents = git(["rev-list", "--parents", "-n", "1", revision]).split(" ").slice(1);
-  const retained = provider.event === "push" || spawnSync("git", ["merge-base", "--is-ancestor", parents[0], "origin/main"], { cwd: root }).status === 0;
+  const retained = provider.event === "push" || spawnSync("git", [...gitOwnership, "merge-base", "--is-ancestor", parents[0], "origin/main"], { cwd: root }).status === 0;
   validateCheckout(provider, revision, parents, retained);
 }
 const snapshots = new Map();
@@ -38,7 +39,7 @@ export function snapshot(revision, source = false) {
   }));
   if (!source) { snapshots.set(key, files); return files; }
   const needed = Object.keys(files).filter((file) => /^(?:packages\/looma\/(?:src|tests)\/|apps\/docs\/(?:docs\/|src\/|tests\/[^/]+\.(?:ts|json)$)|tools\/scripts\/)/.test(file) && /\.(?:html|tsx?|js|mjs|mdx?|json)$/.test(file));
-  const batch = execFileSync("git", ["cat-file", "--batch"], { cwd: root, input: needed.map((file) => files[file].split(":")[1]).join("\n") + "\n", maxBuffer: 32 * 1024 ** 2 });
+  const batch = execFileSync("git", [...gitOwnership, "cat-file", "--batch"], { cwd: root, input: needed.map((file) => files[file].split(":")[1]).join("\n") + "\n", maxBuffer: 32 * 1024 ** 2 });
   let offset = 0;
   for (const file of needed) {
     const headerEnd = batch.indexOf(10, offset);
@@ -153,7 +154,7 @@ async function plan(workflow, current) {
   write("plan.json", receipt);
   if (process.env.GITHUB_OUTPUT) {
     for (const stage of stages[workflow]) appendFileSync(process.env.GITHUB_OUTPUT, `${stage}=${!receipt.stages[stage].reused}\n`);
-    appendFileSync(process.env.GITHUB_OUTPUT, `chromium=${!receipt.stages.quality?.reused && Object.keys(receipt.selection.packageTests).some((file) => /browser\.test\.ts$/.test(file))}\n`);
+    appendFileSync(process.env.GITHUB_OUTPUT, `chromium=${!receipt.stages.quality?.reused && Object.keys(receipt.selection.packageTests).some(isBrowserTest)}\n`);
   }
   console.log(JSON.stringify({ changes: receipt.changes, selection: receipt.selection, stages: receipt.stages, budget }, null, 2));
 }
@@ -190,8 +191,7 @@ function quality(selection) {
   }
   for (const [file, titles] of Object.entries(selection.packageTests)) {
     const report = path.join(directory, `${path.basename(file)}-report.json`);
-    run(["--filter", "@threadlabs/looma", "exec", "vitest", "run", file.replace(/^packages\/looma\//, ""),
-      ...(file.endsWith(".browser.test.ts") ? ["--config", "vitest.browser.config.ts"] : []), ...(titles ? ["--testNamePattern", caseNamePattern(titles)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=json", `--outputFile=${report}`]);
+    run(vitestArguments(file, titles, report));
     tests.push(...validateVitestReport(JSON.parse(readFileSync(report, "utf8")), titles));
   }
   if (selection.storybook) run(["--filter", "@threadlabs/looma-storybook", "build"]);

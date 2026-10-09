@@ -40,8 +40,10 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
   assert.match(workflow, /playwright install --with-deps chromium/);
   assert.match(workflow, /ci-qualification\.mjs run ci quality/);
   const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
-  assert.match(qualifier, /"vitest", "run"/);
-  assert.match(qualifier, /vitest\.browser\.config\.ts/);
+  assert.match(qualifier, /run\(vitestArguments\(/);
+  const selector = await readFile(path.join(repoRoot, "tools/scripts/ci-selection.mjs"), "utf8");
+  assert.match(selector, /"vitest", "run"/);
+  assert.match(selector, /vitest\.browser\.config\.ts/);
   assert.match(
     JSON.parse(rootPackage).scripts["release:verify"],
     /pnpm test:facade-consumer/,
