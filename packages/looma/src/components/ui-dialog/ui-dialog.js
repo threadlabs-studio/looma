@@ -42,6 +42,7 @@ function observeContentHeight(dialog, refs) {
   });
   // Observe Scroll Area's intrinsic flow wrapper, not its constrained scrolling viewport.
   // Watching the dialog or body would feed animation frames back into the resize observer.
+  // Scroll Area offers no public hook for that wrapper, so this reads its rendered structure.
   for (const region of [refs.header, refs.body?.firstElementChild?.firstElementChild, refs.footer]) {
     if (region) observer.observe(region);
   }
