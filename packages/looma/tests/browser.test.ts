@@ -608,6 +608,25 @@ describe("Toast composition and placement", () => {
     await page.close();
   });
 
+  it("times an authored hidden toast only once it is shown, and again each time it is shown", async () => {
+    const path = await bundle("html-hidden-timed-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail.reason));
+    `);
+    const page = await open(path, `<ui-toast-region id="region"><ui-toast id="toast" hidden duration="200">Timed</ui-toast></ui-toast-region>`, [join(root, "tokens.css")]);
+    await page.waitForTimeout(400);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [], "a toast that was never shown does not time out");
+    assert.equal(await page.locator("#region").evaluate((element) => element.matches(":popover-open")), false);
+    for (const shown of [1, 2]) {
+      await page.locator("#toast").evaluate((element: HTMLElement) => { element.hidden = false; });
+      await page.waitForFunction((count) => (window as any).dismissals.length === count, shown);
+      assert.equal(await page.locator("#toast").isHidden(), true, `showing ${shown} timed out and hid the toast`);
+    }
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), ["timeout", "timeout"]);
+    await page.close();
+  });
+
   it("pauses while an action has focus and supports keyboard dismissal across themes", async () => {
     const path = await bundle("html-toast-focus", `
       import "@threadlabs/looma";
