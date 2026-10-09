@@ -1,8 +1,14 @@
 # Changelog
 
-## v0.26.2
+## v0.26.3
 
 - Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport. Separators sit only between sections, and cell background swatches keep whole labels: three to a row at the menu's full width, fewer in a narrower menu.
+
+## v0.26.2
+
+- Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
+- Badge adds a fixed circular shape that centers a visible glyph or icon, including a compact 16px size.
+- Container offers opt-in `fill` to keep readable lines while its scrolling content fits a bounded panel.
 
 ## v0.26.1
 
