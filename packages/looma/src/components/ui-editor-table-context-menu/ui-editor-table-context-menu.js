@@ -53,9 +53,28 @@ function connect(host) {
     if (x || y) element.style.translate = `${x}px ${y}px`;
   };
   const surface = createViewportSurface(element, { position: nudge });
+  // Scroll and resize events do not report layout that moves the place; sample it while shown.
+  let frame = null;
+  let last = "";
+  const track = () => {
+    frame = null;
+    if (!place || !element.matches(":popover-open")) return;
+    const at = place.rect();
+    if (`${at.left},${at.top}` !== last) {
+      last = `${at.left},${at.top}`;
+      surface.refresh();
+    }
+    frame = requestAnimationFrame(track);
+  };
+  const untrack = () => {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+    last = "";
+  };
   const show = () => {
     if (!element.matches(":popover-open")) place = writtenPlace(element, ["translate"]);
     surface.show();
+    frame ??= requestAnimationFrame(track);
   };
   const stop = host.effect(() => {
     const scope = String(host.props.scope.value || "cell");
@@ -73,7 +92,10 @@ function connect(host) {
       }))
       .filter((section) => section.items.length);
     if (host.props.open.value) queueMicrotask(() => { if (host.props.open.value) show(); });
-    else surface.hide();
+    else {
+      untrack();
+      surface.hide();
+    }
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
@@ -82,6 +104,7 @@ function connect(host) {
   element.addEventListener("click", onClick);
   return () => {
     stop();
+    untrack();
     surface.destroy();
     element.removeEventListener("click", onClick);
   };
