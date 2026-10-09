@@ -7810,16 +7810,22 @@ describe("Combobox chip truncation", () => {
   const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
   const checkTextRoom = async (page: Page) => {
     const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
-      const box = label.getBoundingClientRect();
+      const badge = label.closest('[data-component~="ui-badge"]')!, box = badge.getBoundingClientRect();
+      const chip = label.closest(".item")!.getBoundingClientRect();
       const range = document.createRange();
       range.selectNodeContents(label);
       const text = range.getBoundingClientRect();
-      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+      const context = document.createElement("canvas").getContext("2d")!;
+      context.font = getComputedStyle(label).font;
+      const ink = context.measureText(label.textContent!), baseline = text.bottom - ink.fontBoundingBoxDescent;
+      return { label: label.textContent, top: Math.max(box.top, chip.top), bottom: Math.min(box.bottom, chip.bottom),
+        textTop: baseline - ink.actualBoundingBoxAscent, textBottom: baseline + ink.actualBoundingBoxDescent, overflowY: getComputedStyle(label).overflowY };
     }));
     assert.ok(bounds.length > 0);
     for (const box of bounds) {
-      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
-      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+      assert.equal(box.overflowY, "visible", `${box.label}: the trimmed label never clips vertical ink`);
+      assert.ok(box.textBottom <= box.bottom, `${box.label}: complete descender ink stays inside the badge and chip`);
+      assert.ok(box.textTop >= box.top, `${box.label}: complete ascender ink stays inside the badge and chip`);
     }
   };
   const check = async (page: Page) => {
@@ -7833,15 +7839,21 @@ describe("Combobox chip truncation", () => {
         const box = item.getBoundingClientRect();
         const badgeBox = badge.getBoundingClientRect();
         const labelBox = label.getBoundingClientRect();
-        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).overflow, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
+        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflowX: getComputedStyle(label).overflowX, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
       });
       assert.ok(geometry.badgeWidth <= geometry.itemWidth + 1, "badge stays within the capped chip");
       assert.ok(geometry.labelInside, "label stays inside the badge");
       assert.ok(geometry.clipped, "long label is constrained");
-      assert.equal(geometry.overflow, "hidden");
+      assert.equal(geometry.overflowX, "clip");
       assert.equal(geometry.ellipsis, "ellipsis");
       assert.equal(geometry.text, label, "full label remains available to assistive technology");
       await checkTextRoom(page);
+      if (width === 375) {
+        const ellipsis = await chip.screenshot();
+        await chip.locator(".label").evaluate(label => { (label as HTMLElement).style.textOverflow = "clip"; });
+        assert.notDeepEqual(await chip.screenshot(), ellipsis, "horizontal-only clipping still paints an ellipsis");
+        await chip.locator(".label").evaluate(label => { (label as HTMLElement).style.textOverflow = ""; });
+      }
       await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
     }
     await page.getByRole("combobox", { name: "Filter" }).focus();
