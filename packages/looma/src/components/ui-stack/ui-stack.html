@@ -12,7 +12,7 @@
     >Where items sit along a stack that is taller than its content: start (the default), center, end, or between, which spreads the spare space between items.
       It has no effect unless the stack is given a height or stretched to one.</prop>
   </defs>
-  <div style:--ui-stack-height="height"><slot></slot></div>
+  <div style:--ui-stack-height="$height"><slot></slot></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-stack-height {

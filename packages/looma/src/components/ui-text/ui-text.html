@@ -24,16 +24,16 @@
       heading, h2 to h6, below a Page Header's h1 and a Section's h2. A heading takes its size and weight from size and weight, like any other text.</prop>
   </defs>
   <template $match>
-    <span $when="as = 'span'"><slot></slot></span>
-    <div $when="as = 'div'"><slot></slot></div>
-    <small $when="as = 'small'"><slot></slot></small>
-    <strong $when="as = 'strong'"><slot></slot></strong>
-    <label $when="as = 'label'"><slot></slot></label>
-    <h2 $when="as = 'h2'"><slot></slot></h2>
-    <h3 $when="as = 'h3'"><slot></slot></h3>
-    <h4 $when="as = 'h4'"><slot></slot></h4>
-    <h5 $when="as = 'h5'"><slot></slot></h5>
-    <h6 $when="as = 'h6'"><slot></slot></h6>
+    <span $when="$as = 'span'"><slot></slot></span>
+    <div $when="$as = 'div'"><slot></slot></div>
+    <small $when="$as = 'small'"><slot></slot></small>
+    <strong $when="$as = 'strong'"><slot></slot></strong>
+    <label $when="$as = 'label'"><slot></slot></label>
+    <h2 $when="$as = 'h2'"><slot></slot></h2>
+    <h3 $when="$as = 'h3'"><slot></slot></h3>
+    <h4 $when="$as = 'h4'"><slot></slot></h4>
+    <h5 $when="$as = 'h5'"><slot></slot></h5>
+    <h6 $when="$as = 'h6'"><slot></slot></h6>
     <p $else><slot></slot></p>
   </template>
   <style>

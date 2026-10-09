@@ -30,7 +30,7 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <fieldset role="radiogroup" from:aria-required="required" from:aria-invalid="invalid" from:disabled="disabled">
+  <fieldset role="radiogroup" from:aria-required="$required" from:aria-invalid="$invalid" from:disabled="$disabled">
     <legend>{$label}</legend>
     <slot></slot>
   </fieldset>

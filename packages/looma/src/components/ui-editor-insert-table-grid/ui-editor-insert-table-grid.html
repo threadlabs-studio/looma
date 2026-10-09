@@ -15,24 +15,24 @@
     <state type="boolean" name="withHeaderRow" value="false"></state>
     <event name="insert" type="object({ rows: integer, cols: integer, withHeaderRow: boolean })"></event>
   </defs>
-  <div from:hidden="not open">
+  <div from:hidden="not $open">
     <p class="hint">{$hint}</p>
-    <div class="grid" $ref="grid" role="group" aria-label="Table dimensions" style:--_rows="rows" style:--_cols="cols">
+    <div class="grid" $ref="grid" role="group" aria-label="Table dimensions" style:--_rows="$rows" style:--_cols="$cols">
       <button
-        $each="cell of cells"
-        $key="cell.key"
+        $each="cell of $cells"
+        $key="$cell.key"
         type="button"
         class="cell"
-        class:selected="cell.selected"
-        from:data-row="cell.row"
-        from:data-col="cell.col"
-        from:aria-label="cell.label"
-        from:aria-pressed="cell.selected"
-        from:tabindex="cell.tabIndex"
+        class:selected="$cell.selected"
+        from:data-row="$cell.row"
+        from:data-col="$cell.col"
+        from:aria-label="$cell.label"
+        from:aria-pressed="$cell.selected"
+        from:tabindex="$cell.tabIndex"
       >
       </button>
     </div>
-    <label class="header"><input type="checkbox" $ref="header" .checked="withHeaderRow"> Header row</label>
+    <label class="header"><input type="checkbox" $ref="header" .checked="$withHeaderRow"> Header row</label>
   </div>
   <style>
     :host {

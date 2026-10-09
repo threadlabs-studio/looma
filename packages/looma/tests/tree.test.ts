@@ -178,7 +178,7 @@ beforeAll(async () => {
     createApp({
       render: () => h(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
         h(TreeItem, { itemId: "short", label: "Short" }),
-        h(TreeItem, { itemId: "long", label: name }, {
+        h(TreeItem, { itemId: "long", label: name, actionsVisible: window.spec.tree?.actionsVisible }, {
           leading: () => h("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
           actions: () => h("button", { type: "button" }, "More"),
         }),
@@ -637,6 +637,23 @@ describe("Tree selection", () => {
 });
 
 describe("Tree marquee", () => {
+  it("fades the title under persistent actions before pointer hover and respects RTL and touch", async () => {
+    for (const touch of [false, true]) for (const direction of ["ltr", "rtl"]) {
+      const page = await open({ tree: { actionsVisible: true }, items: [] }, marqueePath, { hasTouch: touch, isMobile: touch, viewport: { width: 375, height: 812 } });
+      await page.locator("#app").evaluate((element, value) => { element.dir = value; }, direction);
+      const state = await item(page, "long").evaluate(element => {
+        const row = element.firstElementChild!;
+        const label = row.querySelector<HTMLElement>(":scope > .label")!;
+        const actions = row.querySelector<HTMLElement>(":scope > .actions")!;
+        return { opacity: getComputedStyle(actions).opacity, mask: getComputedStyle(label).maskImage, clip: getComputedStyle(label).clipPath };
+      });
+      assert.equal(state.opacity, "1", "persistent controls are visible without hover");
+      assert.match(state.mask, /linear-gradient/, "the title fades at rest");
+      assert.equal(state.clip, "none", "no hard clipping edge beside controls");
+      assert.ok(state.mask.includes(direction === "rtl" ? "to left" : "to right"));
+      await page.close();
+    }
+  });
   const row = (page: Page) => item(page, "long").locator(":scope > :first-child");
   const moving = async (page: Page) => (await row(page).getAttribute("data-ui-marquee")) !== null;
 

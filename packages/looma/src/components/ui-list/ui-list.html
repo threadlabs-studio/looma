@@ -11,7 +11,7 @@
       padding, for a short list of facts inside other content, such as the features a plan includes.</prop>
   </defs>
   <template $match>
-    <ol $when="as = 'ol'"><slot></slot></ol>
+    <ol $when="$as = 'ol'"><slot></slot></ol>
     <ul $else role="list"><slot></slot></ul>
   </template>
   <style>

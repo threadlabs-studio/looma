@@ -35,9 +35,9 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <dialog from:aria-label="accessibleLabel">
+  <dialog from:aria-label="$accessibleLabel">
     <header $ref="header">
-      <h2 class="title" $if="label">{$label}</h2>
+      <h2 class="title" $if="$label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
     <div class="body" $ref="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
@@ -137,7 +137,7 @@
       display: none;
     }
 
-    /* Header and actions stay pinned; only the body scrolls when content is long. */
+    /* Own the layout wrapper; nested component roots are outside these scoped rules. */
     header {
       display: flex;
       align-items: center;

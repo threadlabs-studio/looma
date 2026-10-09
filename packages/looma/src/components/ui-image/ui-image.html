@@ -20,8 +20,8 @@
   </defs>
   <figure>
     <div class="frame" $ref="frame">
-      <slot name="media"><img from:src="src" from:alt="alt" from:width="width" from:height="height"></slot>
-      <div class="handles" from:hidden="not (selected and resizable)">
+      <slot name="media"><img from:src="$src" from:alt="$alt" from:width="$width" from:height="$height"></slot>
+      <div class="handles" from:hidden="not ($selected and $resizable)">
         <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
         <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
         <button type="button" class="handle" data-corner="bottom-left" aria-label="Resize image from bottom left"></button>

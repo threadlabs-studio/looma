@@ -1,11 +1,31 @@
 # Changelog
 
-## v0.25.7
+## v0.27.1
 
-- Correct Dialog's action bottom gutter, optically balance the header inset, and compact intrinsic sizing. Its body uses Scroll Area's additive `trim` option to remove outer projected margins while preserving spacing between items. Open dialogs now animate content growth and shrinkage over the dialog motion duration to preserve visual continuity instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
-- Dialog and non-modal Search Shell now render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return. Dialog body spacing remains intact around its nested Scroll Area.
+- Popovers and menus render in the browser's top layer, above page content and outside ancestor clipping, transforms and stacking contexts. One anchored with `for` stays attached to its anchor as the page scrolls or resizes. One without `for` stays at the place it is written and travels with it, instead of moving to the viewport corner. Table Context Menu follows the same model: in page flow it stays where it is written, and in a fixed or absolutely positioned box, as LoomaEditor places it, it keeps inside the viewport.
+- Dialog and non-modal Search Shell render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return.
+- Dialog optically balances its header inset and sizes to its content. Open dialogs animate content growth and shrinkage over the dialog motion duration instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
 - Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
 - Table context menus keep their minimum width inside narrow presentation viewports.
+
+## v0.26.2
+
+- Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
+- Badge adds a fixed circular shape that centers a visible glyph or icon, including a compact 16px size.
+- Container offers opt-in `fill` to keep readable lines while its scrolling content fits a bounded panel.
+
+## v0.26.1
+
+- Dialog body content aligns with its title in HTML and Vue, keeps short content compact, and uses equal side and bottom gutters around its actions. Dialog owns its body layout instead of styling a nested component root excluded by HTML scoping. Scroll Area adds opt-in `trim` to remove only projected content's outer block margins; existing scroll areas keep their margins.
+
+## v0.26.0
+
+- **Breaking runtime requirement:** Looma requires Node 22.22.2 or later in Node 22, or Node 24.15 or later in Node 24 (previously 22.13 and 24.0). Looma now depends on HTML Next 1.0.0-alpha.35, whose server rendering uses jsdom 30, and jsdom 30 supports only those releases. Keeping the older range would let apps install a renderer that their Node release does not support. To migrate, update Node within its current major version.
+- Component definitions write references to their props and state as `$name`, the expression syntax HTML Next requires since 1.0.0-alpha.34. Props, events, slots and rendered markup are unchanged. HTML Next components that an app writes beside Looma use the same HTML Next version, so their expression references need `$` as well, and their `$sort` keys start from the loop item (`$sort="p.price"` under `$each="p of $products"`). HTML Next's 1.0.0-alpha.34 and 1.0.0-alpha.35 changelog entries list every affected attribute.
+
+## v0.25.7
+
+- Tree Item offers actionsVisible for persistent status and controls, with long labels fading beneath them at rest and on hover or focus.
 
 ## v0.25.6
 

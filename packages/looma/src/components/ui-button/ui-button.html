@@ -40,53 +40,53 @@
   </defs>
   <template $match>
     <a
-      $when="variant = 'card' and as = 'a'"
-      from:href="{ true: null, false: href }[concat(disabled or loading or pending)]"
-      from:target="target"
-      from:rel="rel"
-      from:aria-disabled="{ true: 'true', false: null }[concat(disabled or loading or pending)]"
-      from:aria-busy="loading or pending"
-      from:tabindex="{ true: '0', false: null }[concat((loading or pending) and not disabled)]"
+      $when="$variant = 'card' and $as = 'a'"
+      from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
+      from:target="$target"
+      from:rel="$rel"
+      from:aria-disabled="{ true: 'true', false: null }[concat($disabled or $loading or $pending)]"
+      from:aria-busy="$loading or $pending"
+      from:tabindex="{ true: '0', false: null }[concat(($loading or $pending) and not $disabled)]"
     >
-      <span class="card-icon"><ui-spinner $if="loading or pending" size="sm"></ui-spinner><template $if="not (loading or pending)"><slot
+      <span class="card-icon"><ui-spinner $if="$loading or $pending" size="sm"></ui-spinner><template $if="not ($loading or $pending)"><slot
             name="icon"
           ></slot></template></span>
       <span class="card-content"><slot></slot></span>
       <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
     </a>
     <button
-      $when="variant = 'card'"
-      from:type="type"
-      from:disabled="disabled"
-      from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
-      from:aria-busy="loading or pending"
+      $when="$variant = 'card'"
+      from:type="$type"
+      from:disabled="$disabled"
+      from:aria-disabled="{ true: 'true', false: null }[concat($loading or $pending)]"
+      from:aria-busy="$loading or $pending"
     >
-      <span class="card-icon"><ui-spinner $if="loading or pending" size="sm"></ui-spinner><template $if="not (loading or pending)"><slot
+      <span class="card-icon"><ui-spinner $if="$loading or $pending" size="sm"></ui-spinner><template $if="not ($loading or $pending)"><slot
             name="icon"
           ></slot></template></span>
       <span class="card-content"><slot></slot></span>
       <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
     </button>
     <a
-      $when="as = 'a'"
-      from:href="{ true: null, false: href }[concat(disabled or loading or pending)]"
-      from:target="target"
-      from:rel="rel"
-      from:aria-disabled="{ true: 'true', false: null }[concat(disabled or loading or pending)]"
-      from:aria-busy="loading or pending"
-      from:tabindex="{ true: '0', false: null }[concat((loading or pending) and not disabled)]"
+      $when="$as = 'a'"
+      from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
+      from:target="$target"
+      from:rel="$rel"
+      from:aria-disabled="{ true: 'true', false: null }[concat($disabled or $loading or $pending)]"
+      from:aria-busy="$loading or $pending"
+      from:tabindex="{ true: '0', false: null }[concat(($loading or $pending) and not $disabled)]"
     >
-      <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
+      <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
     </a>
     <button
       $else
-      from:type="type"
-      from:disabled="disabled"
-      from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
-      from:aria-busy="loading or pending"
+      from:type="$type"
+      from:disabled="$disabled"
+      from:aria-disabled="{ true: 'true', false: null }[concat($loading or $pending)]"
+      from:aria-busy="$loading or $pending"
     >
-      <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
+      <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
     </button>
   </template>

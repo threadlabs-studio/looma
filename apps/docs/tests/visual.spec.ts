@@ -15,6 +15,13 @@ for (const theme of ["light", "dark"] as const) {
       test.use({ viewport, colorScheme: theme });
       test.beforeEach(async ({ page }) => {
         await page.addInitScript((theme) => localStorage.setItem("theme", theme), theme);
+        // The navbar version label changes with every release, not with the page under review.
+        // An adopted sheet hides it from first paint without adding nodes that page observers see.
+        await page.addInitScript(() => {
+          const sheet = new CSSStyleSheet();
+          sheet.replaceSync(".looma-version { visibility: hidden !important; }");
+          document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        });
       });
       for (const doc of coverage.pages) {
         test(`${doc.path}: reviewed page and examples`, async ({ page }) => {
