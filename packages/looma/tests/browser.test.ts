@@ -70,7 +70,7 @@ describe("Pressed icon controls and circular marks", () => {
       const content = adapter === "html" ? `<ui-container id="reading" fill><ui-stack fill><ui-scroll-area id="scroll" fill>${Array.from({ length: 50 }, (_, i) => `<p>Reading line ${i}</p>`).join("")}</ui-scroll-area><ui-button id="continue">Continue</ui-button></ui-stack></ui-container>` : "";
       const page = await open(path, `<div id="app" style="display:grid;height:320px;width:100%">${content}</div>`,
         [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
-      await page.waitForSelector('#reading[data-component~="ui-container"]');
+      await page.waitForSelector('#reading:is([data-component~="ui-container"], .ui-container)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
         const geometry = await page.evaluate(() => {
@@ -111,7 +111,7 @@ describe("Pressed icon controls and circular marks", () => {
         return { border: style.borderColor, color: style.color, surface: style.backgroundColor, image: style.backgroundImage, shadow: style.boxShadow,
           iconOpacity: getComputedStyle(element.querySelector(".content")!).opacity };
       });
-      await page.waitForSelector('#toggle[data-component~="ui-icon-button"]');
+      await page.waitForSelector('#toggle:is([data-component~="ui-icon-button"], .ui-icon-button)');
       const selected = await paint("#toggle");
       assert.ok(selected.shadow.includes("inset"), `${adapter}: selected control stays inset at rest`);
       assert.equal(selected.image, "none");
@@ -150,7 +150,7 @@ describe("Pressed icon controls and circular marks", () => {
       `);
       const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge>' : '<div id="app"></div>',
         [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
-      await page.waitForSelector('#small[data-component~="ui-badge"]');
+      await page.waitForSelector('#small:is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
         for (const [id, expected] of [["small", 16], ["letter", 24], ["medium", 24]] as const) {
@@ -449,7 +449,7 @@ describe("Anchored overlay placement", () => {
         <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
         ${popup}
       `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
-      await other.waitForFunction(() => document.querySelector("dialog")?.open || document.querySelector("ui-toast-region, [data-component~='ui-toast-region']")?.matches(":popover-open"));
+      await other.waitForFunction(() => document.querySelector("dialog")?.open || document.querySelector("ui-toast-region, :is([data-component~='ui-toast-region'], .ui-toast-region)")?.matches(":popover-open"));
       assert.equal(await other.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, `${name} closes an existing tooltip`);
       await other.close();
     }
@@ -1457,7 +1457,7 @@ describe("Dialog close policy and presentation", () => {
       await page.locator("#content").evaluate(element => { element.innerHTML = "<p>Review this change.</p>".repeat(80); });
       const tall = await dialog.boundingBox();
       assert.ok(short && tall && tall.height > short.height && tall.y >= 16 && tall.y + tall.height <= 584, "growth stops at both viewport gutters");
-      const scroller = page.locator('#dialog [data-component~="ui-scroll-area"]');
+      const scroller = page.locator('#dialog :is([data-component~="ui-scroll-area"], .ui-scroll-area)');
       assert.equal(await scroller.evaluate(element => element.scrollHeight > element.clientHeight), true, "long content scrolls inside Scroll Area");
       const pinned = await page.locator("#dialog header, #dialog footer").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().y));
       await scroller.evaluate(element => { element.scrollTop = element.scrollHeight; });
@@ -1495,7 +1495,7 @@ describe("Dialog close policy and presentation", () => {
         const body = element.querySelector(".body")!;
         const content = element.querySelector("#content")!;
         const action = element.querySelector("footer button")!.getBoundingClientRect();
-        const scroll = body.querySelector<HTMLElement>('[data-component~=ui-scroll-area]')!;
+        const scroll = body.querySelector<HTMLElement>(':is([data-component~=ui-scroll-area], .ui-scroll-area)')!;
         const border = parseFloat(getComputedStyle(element).borderBottomWidth);
         return { height: rect.height, top: rect.top, bottom: rect.bottom, contentHeight: content.getBoundingClientRect().height,
           marginStart: parseFloat(getComputedStyle(content).marginTop), marginEnd: parseFloat(getComputedStyle(content).marginBottom),
@@ -1508,7 +1508,7 @@ describe("Dialog close policy and presentation", () => {
       assert.equal(short.marginStart + short.marginEnd, 0, `${adapter}: paragraph edge margins do not inflate the dialog`);
       assert.ok(short.height < 200, `${adapter}: one line does not create an oversized dialog (${short.height}px)`);
       await page.evaluate(() => (window as any).setLines(60));
-      await page.waitForFunction(() => document.querySelector('[data-component~=ui-scroll-area]')!.scrollHeight > document.querySelector('[data-component~=ui-scroll-area]')!.clientHeight);
+      await page.waitForFunction(() => document.querySelector(':is([data-component~=ui-scroll-area], .ui-scroll-area)')!.scrollHeight > document.querySelector(':is([data-component~=ui-scroll-area], .ui-scroll-area)')!.clientHeight);
       const tall = await measure();
       assert.ok(tall.height > short.height && tall.top >= 16 && tall.bottom <= 584, `${adapter}: growth stops at viewport gutters`);
       assert.equal(tall.scrolls, true);
@@ -1560,7 +1560,7 @@ describe("Dialog close policy and presentation", () => {
       const capped = await sample(60);
       assert.ok(capped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: growth animates toward the viewport cap`);
       assert.ok(Math.abs(capped.at(-1)! - 968) < 1, `${adapter}: animated growth respects both 16px viewport gutters`);
-      assert.equal(await page.locator('[data-component~=ui-scroll-area]').evaluate(element => element.scrollHeight > element.clientHeight), true);
+      assert.equal(await page.locator(':is([data-component~=ui-scroll-area], .ui-scroll-area)').evaluate(element => element.scrollHeight > element.clientHeight), true);
       const uncapped = await sample(4);
       assert.ok(uncapped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: shrinkage animates away from the viewport cap`);
       assert.ok(Math.abs(uncapped.at(-1)! - retargeted.at(-1)!) < 1);
@@ -2062,7 +2062,7 @@ describe("Loading actions", () => {
       const action = page.locator(`#${id}`);
       assert.equal(await action.getAttribute("aria-disabled"), "true");
       assert.equal(await action.getAttribute("aria-busy"), "true");
-      assert.equal(await action.locator("ui-spinner, [data-component='ui-spinner']").count(), 1);
+      assert.equal(await action.locator("ui-spinner, :is([data-component~='ui-spinner'], .ui-spinner)").count(), 1);
       await action.focus();
       assert.equal(await action.evaluate((element) => element === document.activeElement), true);
       const box = await action.boundingBox();
@@ -2073,12 +2073,12 @@ describe("Loading actions", () => {
     assert.equal(await page.locator("#more").getAttribute("aria-label"), "More");
     assert.equal(await page.locator("#link").getAttribute("href"), null);
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
-    const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
+    const spinner = await page.locator("#save ui-spinner, #save :is([data-component~='ui-spinner'], .ui-spinner)").boundingBox();
     const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
     const label = await page.locator("#save span").last().boundingBox();
     assert.ok(spinner && spinnerWrap && label);
     assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
-    const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");
+    const arc = page.locator("#save :is([data-component~='ui-spinner'], .ui-spinner) svg .arc");
     assert.equal(await arc.evaluate((element) => getComputedStyle(element).strokeLinecap), "round");
     assert.equal(await arc.evaluate((element) => getComputedStyle(element).animationName), "ui-spinner-dash");
     assert.ok(label.x - (spinnerWrap.x + spinnerWrap.width) >= 7, "loading spinner has space before the label");
@@ -2154,8 +2154,8 @@ describe("Avatar fallbacks and counts", () => {
       </ui-avatar-group>
     `, [join(root, "tokens.css")]);
     assert.equal(await page.locator("#anonymous").getAttribute("aria-label"), "Avatar");
-    assert.equal(await page.locator('#anonymous [data-component="ui-icon"]').count(), 1);
-    assert.equal(await page.locator("#anonymous .fallback ui-icon, #anonymous .fallback [data-component='ui-icon']").first().isVisible(), true, await page.locator("#anonymous .fallback").evaluate((element) => element.outerHTML));
+    assert.equal(await page.locator('#anonymous :is([data-component~="ui-icon"], .ui-icon)').count(), 1);
+    assert.equal(await page.locator("#anonymous .fallback ui-icon, #anonymous .fallback :is([data-component~='ui-icon'], .ui-icon)").first().isVisible(), true, await page.locator("#anonymous .fallback").evaluate((element) => element.outerHTML));
     assert.equal(await page.locator("#anonymous .fallback > span:first-child").isVisible(), false);
     assert.equal(await page.locator("#decorative").getAttribute("aria-hidden"), "true");
     assert.equal(await page.locator("#decorative").getAttribute("role"), null);
@@ -2363,8 +2363,8 @@ describe("Vue components", () => {
 
     const button = page.locator("#save");
     assert.equal(await button.evaluate((element) => element.localName), "button");
-    assert.equal(await button.getAttribute("class"), "consumer");
-    assert.equal(await button.getAttribute("data-component"), "ui-button");
+    // Converted Vue marks the component root with its tag as a class, beside the consumer's own.
+    assert.equal(await button.getAttribute("class"), "ui-button consumer");
     // The state's tokens, not their order: the order follows how the adapter applied them.
     assert.deepEqual(
       (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
@@ -2468,7 +2468,7 @@ describe("Button as a link", () => {
     const link = page.locator("#solid-link");
     assert.equal(await link.evaluate((element) => element.localName), "a");
     assert.equal(await link.getAttribute("href"), "#next");
-    assert.equal(await link.getAttribute("data-component"), "ui-button");
+    assert.equal(await link.evaluate((element) => element.classList.contains("ui-button")), true);
     for (const attribute of ["type", "disabled", "aria-disabled", "role"]) {
       assert.equal(await link.getAttribute(attribute), null, `a link carries no ${attribute}`);
     }
@@ -2518,7 +2518,7 @@ describe("Button as a link", () => {
       <ui-button id="off" as="a" href="#next" variant="solid" disabled>Go</ui-button>
       <ui-button id="submit" type="submit">Send</ui-button>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#off[data-component="ui-button"]');
+    await page.waitForSelector('#off:is([data-component~="ui-button"], .ui-button)');
     assert.equal(await page.locator("#link").evaluate((element) => element.localName), "a");
     assert.equal(await page.locator("#link").getAttribute("href"), "#next");
     assert.equal(await page.locator("#link").getAttribute("type"), null);
@@ -2539,7 +2539,7 @@ describe("Badge shape", () => {
       <ui-badge id="tag" shape="tag">Tag</ui-badge>
       <ui-badge id="rtl" shape="tag" dir="rtl">Tag</ui-badge>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#rtl[data-component="ui-badge"]');
+    await page.waitForSelector('#rtl:is([data-component~="ui-badge"], .ui-badge)');
     const shape = (selector: string) => page.locator(selector).evaluate((element) => {
       const style = getComputedStyle(element);
       return { clip: style.clipPath, radius: style.borderTopLeftRadius, border: style.borderTopColor, end: style.paddingInlineEnd, start: style.paddingInlineStart };
@@ -2629,7 +2629,7 @@ describe("Badge colour", () => {
       ${Object.entries(hues).flatMap(([name, hue]) => variants.map((variant) =>
         `<ui-badge id="${name}-${variant}" class="hue" variant="${variant}" style="--ui-badge-color: ${hue}">${name}</ui-badge>`)).join("")}
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")]);
-    await page.waitForSelector('#explicit[data-component~="ui-badge"]');
+    await page.waitForSelector('#explicit:is([data-component~="ui-badge"], .ui-badge)');
     const paint = (selector: string) => page.locator(selector).evaluate((element) => {
       const style = getComputedStyle(element);
       return { surface: style.backgroundColor, text: style.color, border: style.borderTopColor };
@@ -2679,21 +2679,21 @@ describe("Badge box", () => {
   // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle variants have a
   // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
   async function checkBadges(page: Page) {
-    await page.waitForSelector('#flex [data-component~="ui-badge"]');
-    const compact = await page.locator('#compact [data-component~="ui-badge"]').boundingBox();
+    await page.waitForSelector('#flex :is([data-component~="ui-badge"], .ui-badge)');
+    const compact = await page.locator('#compact :is([data-component~="ui-badge"], .ui-badge)').boundingBox();
     assert.ok(compact && compact.height <= 18 && compact.width <= 18, `compact count badge is ${JSON.stringify(compact)}`);
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
     const sizes = async () => {
-      const block = await width('#block [data-component~="ui-badge"]');
+      const block = await width('#block :is([data-component~="ui-badge"], .ui-badge)');
       assert.ok(block < 200, `a badge in a 400px block is ${block}px wide`);
-      assert.ok(Math.abs(block - await width('#flex [data-component~="ui-badge"]')) < 0.5, "a badge in a block is as wide as in a flex row");
+      assert.ok(Math.abs(block - await width('#flex :is([data-component~="ui-badge"], .ui-badge)')) < 0.5, "a badge in a block is as wide as in a flex row");
       // max-width: 100% still caps a long label (the host is content-box, so padding sits outside it).
-      assert.equal(await page.locator('#narrow [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).width), "60px");
+      assert.equal(await page.locator('#narrow :is([data-component~="ui-badge"], .ui-badge)').evaluate((element) => getComputedStyle(element).width), "60px");
     };
     assert.equal(await page.evaluate(() => CSS.supports("text-box-trim: trim-both")), true);
     await sizes();
 
-    const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
+    const edges = () => page.locator('#tones :is([data-component~="ui-badge"], .ui-badge)').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element);
       const badge = element.getAttribute("data-ui-badge-state") ?? element.outerHTML;
       return { badge, border: style.borderTopColor, surface: style.backgroundColor };
@@ -2724,7 +2724,7 @@ describe("Badge box", () => {
       };
       for (const sheet of [...document.styleSheets, ...document.adoptedStyleSheets]) drop(sheet.cssRules, (at) => sheet.deleteRule(at));
     });
-    assert.notEqual(await page.locator('#block [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).textBoxTrim), "trim-both");
+    assert.notEqual(await page.locator('#block :is([data-component~="ui-badge"], .ui-badge)').evaluate((element) => getComputedStyle(element).textBoxTrim), "trim-both");
     await sizes();
   }
 
@@ -2745,7 +2745,7 @@ describe("Badge box", () => {
         createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"]), h(Badge, { id: "ordinary-square", shape: "square" }, () => icon()), h(Badge, { id: "slot-square", shape: "square" }, { icon })] }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
-      await page.waitForSelector('[data-component~="ui-badge"]');
+      await page.waitForSelector(':is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
         for (const id of ['ordinary-badge', 'ordinary-button']) {
@@ -2781,7 +2781,7 @@ describe("Badge box", () => {
         createApp({ render: () => h(Badge, { id: "chip", tone: "success" }, { icon: () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]), default: () => "Yes" }) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? `<ui-badge id="chip" tone="success">${svg} Yes</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
-      await page.waitForSelector('#chip[data-component~="ui-badge"]');
+      await page.waitForSelector('#chip:is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
         const geometry = await page.locator('#chip').evaluate(element => {
@@ -2840,7 +2840,7 @@ describe("Combobox validation message", () => {
   it("shows its validation message in HTML, not only in Vue", async () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
+    await page.waitForSelector('#fruit:is([data-component~="ui-combobox"], .ui-combobox)');
     assert.equal(await page.locator('#fruit input[role="combobox"]').evaluate((input) => {
       (input as HTMLInputElement).focus();
       return input.ownerDocument.activeElement === input;
@@ -2922,7 +2922,7 @@ describe("Scroll area", () => {
   it("fades only the edges that hide content, in HTML", async () => {
     const path = await bundle("html-scroll-area", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-scroll-area id="area" style="height: 120px">${items}</ui-scroll-area>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#area[data-component~="ui-scroll-area"]');
+    await page.waitForSelector('#area:is([data-component~="ui-scroll-area"], .ui-scroll-area)');
     await checkFades(page);
     await page.close();
   });
@@ -2942,7 +2942,7 @@ describe("Scroll area", () => {
   it("fades sideways, from the start edge, in a right-to-left horizontal area", async () => {
     const path = await bundle("html-scroll-area-rtl", `import "@threadlabs/looma";`);
     const page = await open(path, `<div dir="rtl"><ui-scroll-area id="area" orientation="horizontal" style="width: 200px"><p style="width: 2000px">Wide</p></ui-scroll-area></div>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#area[data-component~="ui-scroll-area"]');
+    await page.waitForSelector('#area:is([data-component~="ui-scroll-area"], .ui-scroll-area)');
     await settle(page);
     assert.deepEqual(await scrollFades(page, "#area"), { start: "0", end: "1" });
     assert.match(await page.locator("#area").evaluate((element) => getComputedStyle(element).maskImage), /^linear-gradient\(to left/);
@@ -3277,7 +3277,7 @@ describe("Input group behavior", () => {
     assert.equal(await page.locator("#g-site .affix").first().getAttribute("aria-hidden"), "true");
 
     // Exactly one tab stop per field, the inner input, in DOM order both ways.
-    assert.equal(await page.locator("[data-component~='ui-input-group'][tabindex], [data-component~='ui-input-group'] span[tabindex]").count(), 0);
+    assert.equal(await page.locator(":is([data-component~='ui-input-group'], .ui-input-group)[tabindex], :is([data-component~='ui-input-group'], .ui-input-group) span[tabindex]").count(), 0);
     await page.locator("#before").focus();
     const forward = [];
     for (let step = 0; step < 4; step += 1) {
@@ -3411,7 +3411,7 @@ describe("Button touch target", () => {
   it("takes a press within the control minimum under touch, link-style and xs included", async () => {
     const path = await bundle("html-button-touch", `import "@threadlabs/looma";`);
     const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button><p style="margin-top: 80px">Looked after by <ui-button id="pill" variant="ghost" size="xs" shape="pill">Grace</ui-button></p></div>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#see-all[data-component~="ui-button"]');
+    await page.waitForSelector('#see-all:is([data-component~="ui-button"], .ui-button)');
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
     for (const id of ["#see-all", "#pill"]) {
       const reaches = await page.locator(id).evaluate((element) => {
@@ -3463,7 +3463,7 @@ describe("Form control sizes", () => {
   it("line up small fields, buttons, and choices on one row, and leave md alone", async () => {
     const path = await bundle("html-form-sizes", `import "@threadlabs/looma";`);
     const page = await open(path, row, [join(root, "tokens.css")]);
-    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.match((await page.locator("#input").getAttribute("data-ui-input-state")) ?? "", /(^| )size=sm( |$)/);
     assert.match((await page.locator("#checkbox").getAttribute("data-ui-checkbox-state")) ?? "", /(^| )size=sm( |$)/);
     const sizes = await measure(page);
@@ -3479,7 +3479,7 @@ describe("Form control sizes", () => {
   it("line up large fields, buttons, and choices on one row", async () => {
     const path = await bundle("html-form-sizes-lg", `import "@threadlabs/looma";`);
     const page = await open(path, sizedRow("lg"), [join(root, "tokens.css")]);
-    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.match((await page.locator("#radio").getAttribute("data-ui-radio-state")) ?? "", /(^| )size=lg( |$)/);
     const sizes = await measure(page);
     assert.deepEqual(sizes.heights, { input: 48, select: 48, combobox: 48, multiple: 48, button: 48, checkbox: 48, radio: 48, switch: 48 });
@@ -3495,7 +3495,7 @@ describe("Form control sizes", () => {
     await page.setContent(`<!doctype html><html><body>${row}</body></html>`);
     await page.addStyleTag({ path: join(root, "tokens.css") });
     await page.addScriptTag({ path });
-    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), true);
     const sizes = await measure(page);
     // The combobox's clear and disclosure buttons are 44px themselves, inside its 1px border.
@@ -3512,7 +3512,7 @@ describe("Form control sizes", () => {
       <ui-input-group id="md"><span slot="prefix">https://</span><ui-input aria-label="Site"></ui-input></ui-input-group>
       <ui-input-group id="lg"><span slot="prefix">https://</span><ui-input size="lg" aria-label="Site"></ui-input></ui-input-group>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#lg [data-component~="ui-input"]');
+    await page.waitForSelector('#lg :is([data-component~="ui-input"], .ui-input)');
     const heights = await page.evaluate(() => ["sm", "md", "lg"].map((id) => Math.round(document.getElementById(id)!.getBoundingClientRect().height)));
     assert.deepEqual(heights, [32, 40, 48]);
     await page.close();
@@ -3546,7 +3546,7 @@ describe("Cluster justify", () => {
       <ui-cluster id="end" justify="end"><span>Action</span></ui-cluster>
       <ui-cluster id="plain"><span>Action</span></ui-cluster>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#plain[data-component~="ui-cluster"]');
+    await page.waitForSelector('#plain:is([data-component~="ui-cluster"], .ui-cluster)');
     const justify = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).justifyContent);
     assert.equal(await justify("#between"), "space-between");
     assert.equal(await justify("#end"), "flex-end");
@@ -3570,7 +3570,7 @@ describe("Cluster wrap", () => {
     </div>`;
 
   async function checkWrap(page: Page) {
-    await page.waitForSelector('#nowrap[data-component~="ui-cluster"]');
+    await page.waitForSelector('#nowrap:is([data-component~="ui-cluster"], .ui-cluster)');
     const top = (id: string) => page.locator(`#${id}`).evaluate((element) => Math.round(element.getBoundingClientRect().top));
     assert.equal(await page.locator("#wraps").evaluate((element) => getComputedStyle(element).flexWrap), "wrap");
     assert.equal(await page.locator("#nowrap").evaluate((element) => getComputedStyle(element).flexWrap), "nowrap");
@@ -3612,15 +3612,15 @@ describe("Help toggletip", () => {
       <ui-icon-button id="svg-md" label="Add">${svg}</ui-icon-button>
       <ui-tooltip id="tip" for="help-sm" trigger="click">Receipts go to this address.</ui-tooltip>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#help-md [data-component~="ui-icon"] circle');
+    await page.waitForSelector('#help-md :is([data-component~="ui-icon"], .ui-icon) circle');
     const size = (selector: string) => page.locator(selector).evaluate((element) => {
       const { width, height } = element.getBoundingClientRect();
       return { width, height, stroke: getComputedStyle(element.querySelector("svg") ?? element).strokeWidth };
     });
-    assert.equal(await page.locator('#help-md [data-component~="ui-icon"] svg > g > *').count(), 3, "circle-help: a circle and two paths");
-    assert.deepEqual(await size('#help-sm [data-component~="ui-icon"]'), await size("#svg-sm svg"));
-    assert.deepEqual(await size('#help-md [data-component~="ui-icon"]'), await size("#svg-md svg"));
-    assert.ok((await size('#help-sm [data-component~="ui-icon"]')).width < (await size('#help-md [data-component~="ui-icon"]')).width);
+    assert.equal(await page.locator('#help-md :is([data-component~="ui-icon"], .ui-icon) svg > g > *').count(), 3, "circle-help: a circle and two paths");
+    assert.deepEqual(await size('#help-sm :is([data-component~="ui-icon"], .ui-icon)'), await size("#svg-sm svg"));
+    assert.deepEqual(await size('#help-md :is([data-component~="ui-icon"], .ui-icon)'), await size("#svg-md svg"));
+    assert.ok((await size('#help-sm :is([data-component~="ui-icon"], .ui-icon)')).width < (await size('#help-md :is([data-component~="ui-icon"], .ui-icon)')).width);
 
     const tip = page.locator("#tip");
     await page.locator("#help-sm").focus();
@@ -3638,7 +3638,7 @@ describe("Text links", () => {
   it("underlines a link in running text", async () => {
     const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#line[data-component~="ui-text"]');
+    await page.waitForSelector('#line:is([data-component~="ui-text"], .ui-text)');
     assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
     await page.close();
   });
@@ -3650,7 +3650,7 @@ describe("Text tones", () => {
     const page = await open(path, `
       <ui-text id="info" tone="info">Scheduled for pickup.</ui-text>
       <ui-text id="warning" tone="warning">Needs a carrier.</ui-text>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#warning[data-component~="ui-text"]');
+    await page.waitForSelector('#warning:is([data-component~="ui-text"], .ui-text)');
     const colours = await page.evaluate(() => {
       const resolve = (token: string) => {
         const probe = document.createElement("span");
@@ -3681,7 +3681,7 @@ describe("Form field error", () => {
         <ui-input id="name" name="name"></ui-input>
         <span slot="error" id="message">That name is taken.</span>
       </ui-form-field>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#name[data-component~="ui-input"]');
+    await page.waitForSelector('#name:is([data-component~="ui-input"], .ui-input)');
     const colours = await page.evaluate(() => {
       const probe = document.createElement("span");
       probe.style.color = "var(--ui-danger)";
@@ -3708,10 +3708,10 @@ describe("Form field error", () => {
           <ui-input id="action-input"></ui-input>
         </ui-form-field>
       </ui-grid>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#action-input[data-component~="ui-input"]');
+    await page.waitForSelector('#action-input:is([data-component~="ui-input"], .ui-input)');
     const geometry = await page.evaluate(() => {
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
-      const gap = (field: string) => box(`#${field} [data-component~="ui-input"]`).top - box(`#${field} label`).bottom;
+      const gap = (field: string) => box(`#${field} :is([data-component~="ui-input"], .ui-input)`).top - box(`#${field} label`).bottom;
       return { plain: gap("plain"), action: gap("action"), button: box("#action-help"), label: box("#action label") };
     });
     assert.ok(geometry.button.height > geometry.label.height, "the action is taller than the label text");
@@ -3753,7 +3753,7 @@ describe("Compact list", () => {
     const page = await open(path, `
       <ui-list id="rows" aria-label="Rows"><ui-list-item id="row">One</ui-list-item></ui-list>
       <ui-list id="facts" density="compact" aria-label="Facts"><ui-list-item id="fact">One</ui-list-item></ui-list>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#fact[data-component~="ui-list-item"]');
+    await page.waitForSelector('#fact:is([data-component~="ui-list-item"], .ui-list-item)');
     const size = (id: string) => page.locator(id).evaluate((element) => ({ height: element.getBoundingClientRect().height, padding: getComputedStyle(element).paddingInlineStart }));
     const row = await size("#row");
     const fact = await size("#fact");
@@ -3788,8 +3788,8 @@ describe("View primitives", () => {
     // Loading is a polite status with a spinner; an error is an alert.
     assert.equal(await page.locator("#loading").getAttribute("role"), "status");
     assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
-    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .track").count(), 1);
-    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .arc").count(), 1);
+    assert.equal(await page.locator("#loading :is([data-component~='ui-spinner'], .ui-spinner) svg .track").count(), 1);
+    assert.equal(await page.locator("#loading :is([data-component~='ui-spinner'], .ui-spinner) svg .arc").count(), 1);
     // A trail is a navigation landmark of an ordered list; the current step is marked; the first
     // step has no separator before it.
     assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
@@ -3977,7 +3977,7 @@ describe("List item", () => {
           <ui-list-item id="card" variant="card"><a href="#card">Card</a></ui-list-item>
         </ui-list>
       </div>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#item[data-component~="ui-list-item"]');
+    await page.waitForSelector('#item:is([data-component~="ui-list-item"], .ui-list-item)');
     await checkItem(page);
     await page.close();
   });
@@ -4022,7 +4022,7 @@ describe("Square icon badges", () => {
         <ui-badge id="small" shape="square" size="xs" tone="accent" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
         <ui-badge id="pill">Published</ui-badge>`;
       const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
-      await page.waitForSelector('#square[data-component~="ui-badge"]');
+      await page.waitForSelector('#square:is([data-component~="ui-badge"], .ui-badge)');
       for (const [id, size] of [["square", 32], ["small", 24]] as const) {
         const box = await page.locator(`#${id}`).boundingBox();
         const icon = await page.locator(`#${id} svg`).boundingBox();
@@ -4071,7 +4071,7 @@ describe("Quiet attention presentation", () => {
         <ui-badge id="new-dot" shape="dot" tone="accent" variant="solid">New messages</ui-badge>
         <ui-badge id="pending-dot" shape="dot" tone="warning">Waiting for your reply</ui-badge>`;
       const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
-      await page.waitForSelector('#new-one[data-component~="ui-list-item"]');
+      await page.waitForSelector('#new-one:is([data-component~="ui-list-item"], .ui-list-item)');
       const style = (selector: string, property: string) => page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
       assert.notEqual(await style("#new-one", "background-color"), await style("#plain", "background-color"));
       assert.equal(await style("#new-one", "color"), await style("#plain", "color"));
@@ -4249,7 +4249,7 @@ describe("Nav item", () => {
         <ui-nav-item id="surface" current="page">Overview</ui-nav-item>
         <ui-nav-item id="line" variant="line" current="page">Reports</ui-nav-item>
       </div>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#surface[data-component~="ui-nav-item"]');
+    await page.waitForSelector('#surface:is([data-component~="ui-nav-item"], .ui-nav-item)');
     assert.equal(await page.locator("#surface .indicator").isVisible(), false, "rounded surface selection has no edge stripe");
     assert.equal(await page.locator("#surface").evaluate(el => getComputedStyle(el).borderRadius), "13px");
     assert.equal(await page.locator("#line").evaluate(el => getComputedStyle(el).borderRadius), "0px");
@@ -4358,7 +4358,7 @@ describe("Nav item", () => {
       </nav>
       <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current="true">Shipments</ui-nav-item><ui-nav-item id="rtl-line" variant="line" current="true">Reports</ui-nav-item></nav>`,
     [join(root, "tokens.css")]);
-    await page.waitForSelector('#long[data-component~="ui-nav-item"]');
+    await page.waitForSelector('#long:is([data-component~="ui-nav-item"], .ui-nav-item)');
     await checkNavItem(page);
     await page.close();
   });
@@ -4459,7 +4459,7 @@ describe("Editor toolbar row", () => {
   it("keeps one row that scrolls, fading only the edges that hide controls, in HTML", async () => {
     const path = await bundle("html-toolbar-row", `import "@threadlabs/looma";`);
     const page = await open(path, `<div id="frame" style="width: 320px"><ui-editor-toolbar id="toolbar">${buttons}</ui-editor-toolbar></div>`, [join(root, "tokens.css")]);
-    await page.waitForSelector('#toolbar[data-component~="ui-editor-toolbar"]');
+    await page.waitForSelector('#toolbar:is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar)');
     await checkRow(page);
     await page.close();
   });
@@ -4501,7 +4501,7 @@ describe("Mention rows", () => {
         <ui-editor-mention-menu-item id="active" value="ada" initials="AL" aria-selected="true">Ada Lovelace</ui-editor-mention-menu-item>
         <ui-editor-mention-menu-item id="photo" value="grace" aria-selected="true"><ui-avatar slot="start" name="Grace Hopper" size="sm"></ui-avatar>Grace Hopper</ui-editor-mention-menu-item>
       </ul>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#photo [data-component~="ui-avatar"]');
+    await page.waitForSelector('#photo :is([data-component~="ui-avatar"], .ui-avatar)');
     const colours = (id: string) => page.evaluate((selector) => {
       const row = document.querySelector<HTMLElement>(selector)!;
       return { row: getComputedStyle(row).backgroundColor, circle: getComputedStyle(row.querySelector(".avatar")!).backgroundColor };
@@ -4538,10 +4538,10 @@ describe("Avatar group xs", () => {
         <ui-avatar name="Alan Turing" size="xs"></ui-avatar>
       </ui-avatar-group>
       <ui-avatar-group id="md" label="People"><ui-avatar name="Ada Lovelace"></ui-avatar><ui-avatar name="Grace Hopper"></ui-avatar></ui-avatar-group>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#xs [data-component~="ui-avatar"]');
+    await page.waitForSelector('#xs :is([data-component~="ui-avatar"], .ui-avatar)');
     const layout = (id: string) => page.evaluate((selector) => {
       const group = document.querySelector(selector)!;
-      const avatars = [...group.querySelectorAll<HTMLElement>('[data-component~="ui-avatar"]')].filter((element) => element.getBoundingClientRect().width > 0);
+      const avatars = [...group.querySelectorAll<HTMLElement>(':is([data-component~="ui-avatar"], .ui-avatar)')].filter((element) => element.getBoundingClientRect().width > 0);
       const badge = group.querySelector<HTMLElement>(".overflow")!;
       const [first, second] = avatars.map((element) => element.getBoundingClientRect());
       return { overlap: first!.right - second!.left, avatar: first!.height, badge: badge.hidden ? 0 : badge.getBoundingClientRect().height, text: badge.textContent?.trim() };
@@ -4561,7 +4561,7 @@ describe("Small pill button and small menu", () => {
     const page = await open(path, `
       <ui-button id="xs" variant="ghost" tone="neutral" size="xs" shape="pill">On track</ui-button>
       <ui-button id="sm" size="sm">Small</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#xs[data-component~="ui-button"]');
+    await page.waitForSelector('#xs:is([data-component~="ui-button"], .ui-button)');
     const xs = await page.evaluate(() => {
       const button = document.querySelector<HTMLElement>("#xs")!;
       const style = getComputedStyle(button);
@@ -4581,7 +4581,7 @@ describe("Small pill button and small menu", () => {
     const page = await open(path, `
       <ui-button id="hovered" variant="ghost" tone="neutral">Hovered</ui-button>
       <ui-button id="open" variant="ghost" tone="neutral" aria-expanded="true">Open</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#open[data-component~="ui-button"]');
+    await page.waitForSelector('#open:is([data-component~="ui-button"], .ui-button)');
     await page.hover("#hovered");
     await page.waitForTimeout(300);
     const lightness = (id: string) => page.evaluate((selector) => {
@@ -4605,17 +4605,17 @@ describe("Small pill button and small menu", () => {
       <ui-menu id="md" inline aria-label="Standard">
         <ui-menu-item value="a">Standard</ui-menu-item>
       </ui-menu>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#md [data-component~="ui-menu-item"]');
+    await page.waitForSelector('#md :is([data-component~="ui-menu-item"], .ui-menu-item)');
     const row = (selector: string) => page.evaluate((target) => {
       const item = document.querySelector<HTMLElement>(target)!;
       return { height: item.getBoundingClientRect().height, font: parseFloat(getComputedStyle(item).fontSize) };
     }, selector);
-    const [small, standard] = [await row('#sm [data-component~="ui-menu-item"]'), await row('#md [data-component~="ui-menu-item"]')];
+    const [small, standard] = [await row('#sm :is([data-component~="ui-menu-item"], .ui-menu-item)'), await row('#md :is([data-component~="ui-menu-item"], .ui-menu-item)')];
     assert.ok(small.height < standard.height, `small rows (${small.height}px) are shorter than standard (${standard.height}px)`);
     assert.ok(small.font < standard.font, "small rows use smaller text");
     const widths = await page.evaluate(() => ["#sm", "#md"].map((id) => document.querySelector(id)!.getBoundingClientRect().width));
     assert.ok(widths[0]! < widths[1]!, `a small menu (${widths[0]}px) is narrower than a standard one (${widths[1]}px)`);
-    const checks = await page.evaluate(() => [...document.querySelectorAll('#sm [data-component~="ui-menu-item"]')]
+    const checks = await page.evaluate(() => [...document.querySelectorAll('#sm :is([data-component~="ui-menu-item"], .ui-menu-item)')]
       .map((item) => Boolean(item.querySelector(".indicator svg"))));
     assert.deepEqual(checks, [false, true]);
     await page.close();
@@ -4629,7 +4629,7 @@ describe("Avatar sizes", () => {
       <ui-avatar id="md" name="Ada Lovelace"></ui-avatar>
       <ui-avatar id="sm" name="Ada Lovelace" size="sm"></ui-avatar>
       <ui-avatar id="xs" name="Ada Lovelace" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#xs[data-component~="ui-avatar"]');
+    await page.waitForSelector('#xs:is([data-component~="ui-avatar"], .ui-avatar)');
     const measure = (id: string) => page.evaluate((selector) => {
       const element = document.querySelector<HTMLElement>(selector)!;
       // The sizes are the circle inside its 1px border.
@@ -4648,7 +4648,7 @@ describe("Avatar sizes", () => {
     const page = await open(path, `
       <span style="font-size: 12px; line-height: 2.2">Looked after by: <ui-avatar id="inline" name="Grace Hopper" size="xs"></ui-avatar> Grace</span>
       <ui-avatar id="alone" name="Grace Hopper" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#inline[data-component~="ui-avatar"]');
+    await page.waitForSelector('#inline:is([data-component~="ui-avatar"], .ui-avatar)');
     const offset = (id: string) => page.evaluate((selector) => {
       const avatar = document.querySelector<HTMLElement>(selector)!;
       const text = [...avatar.querySelectorAll("*"), avatar].map((element) => [...element.childNodes])
@@ -4672,8 +4672,8 @@ describe("Avatar initials", () => {
     const page = await open(path, `
       <ui-avatar id="person" name="Ada Lovelace"></ui-avatar>
       <ui-badge id="badge" tone="accent" variant="subtle">Tag</ui-badge>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
-    await page.waitForSelector('#person[data-component~="ui-avatar"]');
-    await page.waitForSelector('#badge[data-component~="ui-badge"]');
+    await page.waitForSelector('#person:is([data-component~="ui-avatar"], .ui-avatar)');
+    await page.waitForSelector('#badge:is([data-component~="ui-badge"], .ui-badge)');
     // Text on the soft accent surface is the theme's subtle accent text, as a subtle accent badge's is:
     // a theme whose accent is too light to read on its own soft tint tunes that one token for both.
     const colour = (id: string) => page.evaluate((selector) => getComputedStyle(document.querySelector(selector)!).color, id);
@@ -4820,7 +4820,7 @@ describe("Tree link rows", () => {
     </ui-tree>`;
 
   async function checkRows(page: Page) {
-    await page.waitForSelector('#folder[data-component~="ui-tree-item"]');
+    await page.waitForSelector('#folder:is([data-component~="ui-tree-item"], .ui-tree-item)');
     await page.evaluate(() => {
       (window as unknown as { clicks: { meta: boolean }[] }).clicks = [];
       document.querySelector("#page-link")!.addEventListener("click", (event) => {
@@ -4899,9 +4899,9 @@ describe("Tree link rows", () => {
 
 describe("Nested Tree disclosure state", () => {
   async function checkDisclosureState(page: Page) {
-    const parent = page.locator('#parent[data-component~="ui-tree-item"]');
-    const branch = page.locator('#branch[data-component~="ui-tree-item"]');
-    const leaf = page.locator('#leaf[data-component~="ui-tree-item"]');
+    const parent = page.locator('#parent:is([data-component~="ui-tree-item"], .ui-tree-item)');
+    const branch = page.locator('#branch:is([data-component~="ui-tree-item"], .ui-tree-item)');
+    const leaf = page.locator('#leaf:is([data-component~="ui-tree-item"], .ui-tree-item)');
     await parent.waitFor({ state: "visible" });
     assert.equal(await parent.getAttribute("aria-expanded"), "true");
     assert.equal(await branch.getAttribute("aria-expanded"), "false");
@@ -4957,7 +4957,7 @@ describe("Nested Tree disclosure state", () => {
 
 describe("Tree drag handle", () => {
   async function checkHandles(page: Page) {
-    await page.waitForSelector('#leaf[data-component~="ui-tree-item"]');
+    await page.waitForSelector('#leaf:is([data-component~="ui-tree-item"], .ui-tree-item)');
     await page.locator("#leaf-icon").hover();
     const leaf = await page.evaluate(() => {
       const item = document.querySelector("#leaf")!;
@@ -5303,7 +5303,7 @@ describe("Help affordance", () => {
     assert.equal(geometry.insideInput, false);
     assert.equal(await field.locator(".help").count(), 0, "it is not inside the box");
 
-    const tip = page.locator('[data-component~="ui-tooltip"]');
+    const tip = page.locator(':is([data-component~="ui-tooltip"], .ui-tooltip)');
     assert.equal(await tip.isVisible(), false);
     // Hovering a question mark says nothing, so it opens on press and closes the same way.
     await help.hover();
@@ -5828,16 +5828,16 @@ describe("Editor toolbar tooltips", () => {
       createApp({ render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky" }) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
-    const bold = page.locator('[data-component~="ui-editor-toolbar"] button').first();
+    const bold = page.locator(':is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar) button').first();
     await bold.waitFor();
     assert.equal(await bold.getAttribute("title"), null, "no native title");
     // Checklist and Divider live in the slash menu, so the row fits at page width.
-    const labels = await page.locator('[data-component~="ui-editor-toolbar"] button')
+    const labels = await page.locator(':is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar) button')
       .evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")));
     assert.ok(labels.includes("Bold") && labels.includes("Redo"), `toolbar labels: ${labels.join(", ")}`);
     assert.equal(labels.includes("Checklist") || labels.includes("Divider"), false);
 
-    const tip = page.locator('[data-component~="ui-tooltip"]');
+    const tip = page.locator(':is([data-component~="ui-tooltip"], .ui-tooltip)');
     await bold.hover();
     await tip.waitFor({ state: "visible" });
     assert.match((await tip.textContent()) ?? "", /Bold/);
@@ -5852,9 +5852,9 @@ describe("Editor toolbar tooltips", () => {
     });
 
     // Moving along the row re-points the same tooltip without waiting again.
-    const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
+    const italic = page.locator(':is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar) button').nth(1);
     await italic.hover();
-    await page.waitForFunction(() => /Italic/.test(document.querySelector('[data-component~="ui-tooltip"]')?.textContent ?? ""));
+    await page.waitForFunction(() => /Italic/.test(document.querySelector(':is([data-component~="ui-tooltip"], .ui-tooltip)')?.textContent ?? ""));
     assert.equal(await tip.isVisible(), true);
     assert.equal(await tip.locator("kbd").textContent(), "⌘I");
     await page.close();
@@ -5894,12 +5894,12 @@ describe("LoomaEditor", () => {
     const prose = page.locator(".ProseMirror");
     await prose.waitFor();
     assert.equal(await prose.textContent(), "Hello");
-    assert.ok(await page.locator('[data-component="ui-editor-toolbar"] button').count() > 0, "formatting toolbar renders");
+    assert.ok(await page.locator(':is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar) button').count() > 0, "formatting toolbar renders");
     await prose.click();
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
     await page.keyboard.type("/");
-    const slash = page.locator('[data-component="ui-editor-slash-menu"]');
+    const slash = page.locator(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)');
     await slash.locator('[role="option"]').first().waitFor();
     assert.ok(await slash.locator('[role="option"]').count() > 3, "slash menu lists blocks");
     const blank = await slash.locator('[role="option"]').evaluateAll((options) =>
@@ -5918,7 +5918,7 @@ describe("HTML components", () => {
       <ui-disclosure id="more" summary="More"><p>Details</p></ui-disclosure>
       <ui-form-field><label slot="label" id="field-label" for="field">Name</label><input id="field"></ui-form-field>
     `, [join(root, "tokens.css")]);
-    await page.waitForSelector('#save[data-component="ui-button"]');
+    await page.waitForSelector('#save:is([data-component~="ui-button"], .ui-button)');
     const button = page.locator("#save");
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
@@ -5932,7 +5932,7 @@ describe("HTML components", () => {
     await trigger.click();
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
 
-    await page.waitForSelector('[data-component~="ui-form-field"]');
+    await page.waitForSelector(':is([data-component~="ui-form-field"], .ui-form-field)');
     assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
     await page.close();
   });
@@ -6067,17 +6067,17 @@ describe("Combobox option detail", () => {
       (element.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean)
         .map((id) => (element.getRootNode() as Document).getElementById(id)?.textContent?.trim()).join(", "));
     assert.equal(await description(riley), "Contact, Harbor Supply Co.");
-    const tone = (option: typeof riley) => option.locator('[data-component="ui-badge"]').getAttribute("data-ui-badge-state");
+    const tone = (option: typeof riley) => option.locator(':is([data-component~="ui-badge"], .ui-badge)').getAttribute("data-ui-badge-state");
     assert.match(await tone(riley) ?? "", /\btone=neutral\b/, "an untoned tag is neutral");
     const sam = page.getByRole("option", { name: "Sam Ortiz", exact: true });
     assert.equal(await description(sam), "Harbor Supply Co.");
-    assert.equal(await sam.locator('[data-component="ui-badge"]').count(), 0);
+    assert.equal(await sam.locator(':is([data-component~="ui-badge"], .ui-badge)').count(), 0);
     const harbor = page.getByRole("option", { name: "Harbor Supply Co.", exact: true });
     assert.equal(await description(harbor), "Inactive");
     assert.match(await tone(harbor) ?? "", /\btone=warning\b/);
     // A tag colour reaches the tag's badge as its colour hook.
     const northwind = page.getByRole("option", { name: "Northwind Traders", exact: true });
-    const hook = (option: typeof riley) => option.locator('[data-component="ui-badge"]').evaluate((badge) => getComputedStyle(badge).getPropertyValue("--ui-badge-color").trim());
+    const hook = (option: typeof riley) => option.locator(':is([data-component~="ui-badge"], .ui-badge)').evaluate((badge) => getComputedStyle(badge).getPropertyValue("--ui-badge-color").trim());
     assert.equal(await hook(northwind), "teal");
     assert.equal(await hook(harbor), "", "an uncoloured tag sets no colour");
     // A plain row renders as it always has.
@@ -6765,7 +6765,7 @@ describe("Editable click away", () => {
   it("keeps focus where the user clicked in HTML", async () => {
     const path = await bundle("html-editable-away", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-editable id="note" value="Inline"></ui-editable><input id="other" aria-label="Other">`, [join(root, "tokens.css")]);
-    await page.locator('#note[data-component~="ui-editable"]').waitFor();
+    await page.locator('#note:is([data-component~="ui-editable"], .ui-editable)').waitFor();
     await check(page);
     await page.close();
   });
@@ -6892,7 +6892,7 @@ describe("Form participation", () => {
   };
 
   const exercise = async (page: Page) => {
-    await page.waitForSelector('#req-tags[data-component~="ui-combobox"] input[role="combobox"]');
+    await page.waitForSelector('#req-tags:is([data-component~="ui-combobox"], .ui-combobox) input[role="combobox"]');
     assert.deepEqual(await entries(page), initial);
 
     await page.locator("#title").fill("Final");
@@ -7111,7 +7111,7 @@ describe("Table", () => {
     const html = await renderToString(createSSRApp({
       render: () => h(Table, { density: "compact", stickyHeader: true }, () => h("table", [h("caption", "Orders"), h("tbody", h("tr", h("td", "1")))])),
     }));
-    assert.match(html, /^<div data-component="ui-table"/);
+    assert.match(html, /^<div class="ui-table"/);
     assert.match(html, /data-ui-table-state="density density=compact stickyHeader"/);
     assert.match(html, /<table[^>]*><caption[^>]*>Orders<\/caption>/);
     assert.doesNotMatch(html, /role=|tabindex=/);
@@ -7399,7 +7399,7 @@ describe("Component hooks", () => {
   it("style only the instance they are set on, in HTML", async () => {
     const path = await bundle("html-hooks", `import "@threadlabs/looma";`);
     const page = await open(path, html(tree), [join(root, "tokens.css")]);
-    await page.waitForSelector('#nav-themed[data-component~="ui-nav-item"]');
+    await page.waitForSelector('#nav-themed:is([data-component~="ui-nav-item"], .ui-nav-item)');
     await checkHooks(page);
     await page.close();
   });
@@ -7445,7 +7445,7 @@ describe("Theme levels", () => {
       </section>`;
     const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
     const page = await open(path, body, css);
-    await page.waitForSelector('#group-input[data-component~="ui-input"]');
+    await page.waitForSelector('#group-input:is([data-component~="ui-input"], .ui-input)');
     const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) =>
       getComputedStyle(element).getPropertyValue(name), property);
 
@@ -7991,7 +7991,7 @@ describe("Combobox chip truncation", () => {
       const chip = page.getByRole("button", { name: `${label}, press Delete or Backspace to remove` });
       await chip.waitFor();
       const geometry = await chip.evaluate((item) => {
-        const badge = item.querySelector<HTMLElement>('[data-component~="ui-badge"]')!;
+        const badge = item.querySelector<HTMLElement>(':is([data-component~="ui-badge"], .ui-badge)')!;
         const label = badge.querySelector<HTMLElement>(".label")!;
         const box = item.getBoundingClientRect();
         const badgeBox = badge.getBoundingClientRect();
@@ -8151,7 +8151,7 @@ describe("Image surface", () => {
     const { renderToString } = await import("vue/server-renderer");
     const { Image } = await import("@threadlabs/looma/vue");
     const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
-    assert.match(html, /^<figure data-component="ui-image"/);
+    assert.match(html, /^<figure class="ui-image"/);
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
     assert.match(html, /class="handles" hidden/);
   });
@@ -8324,7 +8324,7 @@ describe("Independent leading controls and text baselines", () => {
         <ui-list-item id="current" current><a href="#current">Current document</a></ui-list-item></ui-list>
         <ui-cluster id="baseline" align="baseline" wrap="nowrap"><ui-text id="number" size="md" weight="normal" font="sans">61</ui-text><ui-stack><div style="font: 16px/24px var(--ui-font-family-sans, sans-serif); width: 190px"><p id="prose" style="margin: 0">Existing text that wraps onto more than one line of prose.</p></div></ui-stack></ui-cluster>`;
       const page = await open(path, html, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
-      await page.waitForSelector('#plain[data-component~="ui-list-item"]');
+      await page.waitForSelector('#plain:is([data-component~="ui-list-item"], .ui-list-item)');
       const input = page.getByRole("checkbox", { name: "Include document", exact: true });
       assert.equal(await input.count(), 1, `${framework} names the unlabeled checkbox`);
       await input.check({timeout: 3000});

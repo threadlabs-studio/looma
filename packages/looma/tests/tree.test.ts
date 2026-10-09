@@ -1,5 +1,5 @@
 // Drives Tree / TreeItem drag and drop in Chromium with real pointer drags, against the built package
-// (run `pnpm build` first). Assertions go through the public surface: events, ARIA, data-component,
+// (run `pnpm build` first). Assertions go through the public surface: events, ARIA, the component marker,
 // computed styles, and geometry.
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -50,7 +50,7 @@ async function open(spec: Spec, script = bundlePath, options: BrowserContextOpti
   for (const path of [join(root, "tokens.css"), join(root, "vue/components.css")]) await page.addStyleTag({ path });
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
   await page.addScriptTag({ path: script });
-  await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]', { state });
+  await page.waitForSelector(':is([data-component~="ui-tree"], .ui-tree) [role="treeitem"]', { state });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
   return page;
@@ -246,8 +246,8 @@ describe("Tree drag and drop", () => {
 
   it("renders a tree with levels and expansion state", async () => {
     const page = await open({ items: files });
-    assert.equal(await page.locator('[data-component="ui-tree"]').getAttribute("role"), "tree");
-    assert.equal(await item(page, "docs").getAttribute("data-component"), "ui-tree-item");
+    assert.equal(await page.locator(':is([data-component~="ui-tree"], .ui-tree)').getAttribute("role"), "tree");
+    assert.equal(await item(page, "docs").evaluate((element) => element.classList.contains("ui-tree-item")), true);
     assert.equal(await item(page, "docs").getAttribute("aria-level"), "1");
     assert.equal(await item(page, "guide").getAttribute("aria-level"), "2");
     assert.equal(await item(page, "docs").getAttribute("aria-expanded"), "true");

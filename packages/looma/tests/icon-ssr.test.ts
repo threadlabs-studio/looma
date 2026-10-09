@@ -34,7 +34,7 @@ describe("Icon server render", () => {
 
   it("renders the spinner's SVG track and arc without requiring an external asset", async () => {
     const html = await render(h(Spinner));
-    expect(html).toContain('class="ring"');
+    expect(html).toMatch(/class="[^"]*\bring\b/);
     expect(html).toContain('aria-hidden="true"');
     expect(shapes(html)).toEqual([
       '<circle class="track" cx="25" cy="25" r="20">',
