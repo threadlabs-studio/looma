@@ -209,6 +209,9 @@ describe("Anchored overlay placement", () => {
     await page.evaluate(() => { scrollTo(0, 100); document.querySelector("#scroller")!.scrollTop = 40; });
     await frames();
     assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "page and nested scrolling carry each popup with its place");
+    await page.evaluate(() => document.querySelector("#stage")!.insertAdjacentHTML("beforebegin", '<div style="block-size: 100px"></div>'));
+    await frames();
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "layout that moves the place carries each popup without a scroll");
     await page.close();
   });
 
@@ -520,6 +523,10 @@ describe("Table context menu placement", () => {
     await page.evaluate(() => scrollTo(0, 1300));
     await frames();
     assert.deepEqual(await offset(), { x: 20, y: 20 }, "the menu travels with its place as the page scrolls");
+    // Content above the place grows without a scroll or resize event, as fonts or lazy content do.
+    await page.evaluate(() => document.querySelector("#stage")!.insertAdjacentHTML("beforebegin", '<div style="height: 100px"></div>'));
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "the menu follows layout that moves its place");
     const floating = await page.locator("#floating").boundingBox();
     assert.ok(floating && floating.x + floating.width <= 1100 - 12 && floating.y + floating.height <= 640 - 12, `floating menu fits the viewport: ${JSON.stringify(floating)}`);
     await page.close();
