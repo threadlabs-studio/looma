@@ -1,5 +1,8 @@
 <template component="ui-container">
   <defs>
+    <prop name="fill" type="boolean" default="false"
+    >Keeps the readable width while filling available layout space. Uses a flex column so scrolling children can shrink inside a bounded flex or grid parent.
+      Omit it to keep the usual block layout.</prop>
     <prop name="measure" type="keyword" values="narrow, wide"
     >The container's maximum width, in characters of the current font: narrow is 45ch, wide is 80ch, and unset is 65ch, a comfortable reading line. The
       container centres itself when its parent is wider. The --ui-container-measure custom property, set on the container itself, overrides it; set on an
@@ -31,6 +34,14 @@
 
     :host([measure="narrow"]) {
       --_container-measure: 45ch;
+    }
+    :host([fill]) {
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-inline-size: 0;
+      min-block-size: 0;
     }
     :host([measure="wide"]) {
       --_container-measure: 80ch;

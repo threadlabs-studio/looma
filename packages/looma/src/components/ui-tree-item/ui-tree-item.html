@@ -35,6 +35,9 @@
     <prop name="selected" type="boolean" default="false"
     >Marks the item selected: it sets aria-selected and highlights the row. This is controlled state; respond to the parent Tree's select request by updating
       it.</prop>
+    <prop name="actionsVisible" type="boolean" default="false"
+    >Keeps the actions slot visible before hover or focus, for persistent status or controls. The label fades beneath its measured width on pointer devices;
+      touch rows retain a separate actions column with a short end fade. Does not change keyboard navigation or start the marquee.</prop>
     <prop name="marquee" type="boolean" default="false"
     >Scrolls a name too long for its row while a pointer hovers the row or keyboard focus is in it, rests at the end, then scrolls it again from the start. A
       touch does not start it. Off by default: a tree of short names should not move, and a product decides whether reading the whole name matters more than a
@@ -54,25 +57,25 @@
   </defs>
   <div
     role="treeitem"
-    from:aria-label="label"
-    from:aria-level="structuralLevel"
-    from:aria-selected="selected"
-    from:aria-disabled="disabled"
-    from:data-item-id="itemId"
-    from:data-drag-type="dragType"
-    from:data-drop-scope="dropScope"
-    from:data-accepts="accepts"
-    from:data-drop-depth="dropDepth"
-    from:data-subtree-depth="subtreeDepth"
+    from:aria-label="$label"
+    from:aria-level="$structuralLevel"
+    from:aria-selected="$selected"
+    from:aria-disabled="$disabled"
+    from:data-item-id="$itemId"
+    from:data-drag-type="$dragType"
+    from:data-drop-scope="$dropScope"
+    from:data-accepts="$accepts"
+    from:data-drop-depth="$dropDepth"
+    from:data-subtree-depth="$subtreeDepth"
   >
     <div class="row" $ref="row">
       <button
-        $if="sortable and not disabled"
+        $if="$sortable and not $disabled"
         class="drag-handle"
         $ref="dragHandle"
         type="button"
         draggable="true"
-        from:aria-label="{ true: concat('Cancel moving ', label), false: concat('Drag ', label, ' to reorder') }[concat(moving)]"
+        from:aria-label="{ true: concat('Cancel moving ', $label), false: concat('Drag ', $label, ' to reorder') }[concat($moving)]"
       >
         <svg
           aria-hidden="true"
@@ -92,26 +95,26 @@
           <circle cx="15" cy="19" r="1"></circle>
         </svg>
       </button>
-      <button class="disclosure" $ref="disclosure" type="button" from:disabled="disabled" from:hidden="not isContainer">
+      <button class="disclosure" $ref="disclosure" type="button" from:disabled="$disabled" from:hidden="not $isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
       <label class="selection-hit"><input
           class="selection-checkbox"
           type="checkbox"
           tabindex="-1"
-          from:checked="selected"
-          from:disabled="disabled"
-          from:aria-label="concat('Select ', label)"
+          from:checked="$selected"
+          from:disabled="$disabled"
+          from:aria-label="concat('Select ', $label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
       <span class="actions" $ref="actions">
-        <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
+        <ui-button $if="$moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
         <span $else><slot name="actions"></slot></span>
       </span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
-    <div class="children" $ref="children" role="group" from:hidden="not (isContainer and internalExpanded)"><slot></slot></div>
+    <div class="children" $ref="children" role="group" from:hidden="not ($isContainer and $internalExpanded)"><slot></slot></div>
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>
@@ -371,6 +374,7 @@
        the truncation mark while it shows: an ellipsis under it would read as a second one. */
     .row:hover > .label,
     .row:focus-within > .label,
+    :host([actionsVisible]) > .row > .label,
     :host[data-move-source] > .row > .label {
       text-overflow: clip;
       mask-image: linear-gradient(
@@ -382,6 +386,7 @@
 
     .row:hover > .label:dir(rtl),
     .row:focus-within > .label:dir(rtl),
+    :host([actionsVisible]) > .row > .label:dir(rtl),
     :host[data-move-source] > .row > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
@@ -464,6 +469,7 @@
 
     .row:hover > .actions,
     .row:focus-within > .actions,
+    :host([actionsVisible]) > .row > .actions,
     :host[data-move-source] > .row > .actions {
       opacity: 1;
       pointer-events: auto;
@@ -498,6 +504,14 @@
           transparent var(--_marquee-icon-width, 0px),
           #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
         );
+      }
+
+      /* Persistent content has its own column on touch. Fade only the label's end. */
+      :host([actionsVisible]) > .row > .label {
+        mask-image: linear-gradient(to right, #000 calc(100% - var(--ui-space-1)), transparent 100%);
+      }
+      :host([actionsVisible]) > .row > .label:dir(rtl) {
+        mask-image: linear-gradient(to left, #000 calc(100% - var(--ui-space-1)), transparent 100%);
       }
 
       .row[data-ui-marquee] > .label:dir(rtl) {

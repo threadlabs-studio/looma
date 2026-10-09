@@ -51,67 +51,67 @@
       ></prop>
     </event>
   </defs>
-  <div role="toolbar" aria-label="Table actions" from:hidden="not open">
-    <div $if="alignments" class="group" role="group" aria-label="Cell alignment">
+  <div role="toolbar" aria-label="Table actions" from:hidden="not $open">
+    <div $if="$alignments" class="group" role="group" aria-label="Cell alignment">
       <button
-        $each="item of alignments"
-        $key="item.action"
+        $each="item of $alignments"
+        $key="$item.action"
         type="button"
         class="icon-button"
-        class:active="item.active"
-        from:data-action="item.action"
-        from:aria-label="item.label"
-        from:title="item.label"
-        from:aria-pressed="item.active"
+        class:active="$item.active"
+        from:data-action="$item.action"
+        from:aria-label="$item.label"
+        from:title="$item.label"
+        from:aria-pressed="$item.active"
       >
-        <ui-icon from:name="item.action"></ui-icon>
+        <ui-icon from:name="$item.action"></ui-icon>
       </button>
     </div>
-    <div $if="alignments and structure" class="sep" aria-hidden="true"></div>
-    <div $if="structure" class="group" role="group" aria-label="Table structure">
-      <button $each="item of structure" $key="item.action" type="button" from:data-action="item.action">
-        <ui-icon from:name="item.icon"></ui-icon>
+    <div $if="$alignments and $structure" class="sep" aria-hidden="true"></div>
+    <div $if="$structure" class="group" role="group" aria-label="Table structure">
+      <button $each="item of $structure" $key="$item.action" type="button" from:data-action="$item.action">
+        <ui-icon from:name="$item.icon"></ui-icon>
         <span>{$item.label}</span>
       </button>
     </div>
-    <div $if="(alignments or structure) and hasOverflow" class="sep" aria-hidden="true"></div>
-    <div $if="hasOverflow" class="overflow">
-      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" from:aria-expanded="overflowOpen">
+    <div $if="($alignments or $structure) and $hasOverflow" class="sep" aria-hidden="true"></div>
+    <div $if="$hasOverflow" class="overflow">
+      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" from:aria-expanded="$overflowOpen">
         <ui-icon name="table"></ui-icon>
         <span>Table options</span>
         <span class="chevron"><ui-icon name="chevron-down"></ui-icon></span>
       </button>
-      <div $if="overflowOpen" class="menu" role="menu" aria-label="More table actions">
-        <div $if="swatches" class="menu-section" role="none">
+      <div $if="$overflowOpen" class="menu" role="menu" aria-label="More table actions">
+        <div $if="$swatches" class="menu-section" role="none">
           <div class="menu-heading" role="presentation">Background</div>
           <div class="swatches" role="group" aria-label="Cell background">
             <button
-              $each="swatch of swatches"
-              $key="swatch.action"
+              $each="swatch of $swatches"
+              $key="$swatch.action"
               type="button"
               class="swatch-button"
-              class:selected="swatch.selected"
+              class:selected="$swatch.selected"
               role="menuitemradio"
-              from:aria-checked="swatch.selected"
-              from:data-action="swatch.action"
+              from:aria-checked="$swatch.selected"
+              from:data-action="$swatch.action"
             >
-              <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
+              <span class="swatch" class:default="not $swatch.color" style:--_swatch="$swatch.color"></span>
               <span>{$swatch.label}</span>
             </button>
           </div>
         </div>
-        <div $each="section of sections" $key="section.heading" class="menu-section divided" role="none">
+        <div $each="section of $sections" $key="$section.heading" class="menu-section divided" role="none">
           <div class="menu-heading" role="presentation">{$section.heading}</div>
           <button
-            $each="item of section.items"
-            $key="item.action"
+            $each="item of $section.items"
+            $key="$item.action"
             type="button"
-            from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[concat(item.checkable)]"
-            from:aria-checked="{ true: item.checked, false: null }[concat(item.checkable)]"
-            class:danger="item.danger"
-            from:data-action="item.action"
+            from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[concat($item.checkable)]"
+            from:aria-checked="{ true: $item.checked, false: null }[concat($item.checkable)]"
+            class:danger="$item.danger"
+            from:data-action="$item.action"
           >
-            <ui-icon from:name="item.icon"></ui-icon>
+            <ui-icon from:name="$item.icon"></ui-icon>
             <span>{$item.label}</span>
           </button>
         </div>

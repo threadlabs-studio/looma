@@ -13,6 +13,30 @@ Icon-only button primitive with stable square sizing and variant tokens for shel
 Set `loading` while an action runs. The icon gives way to a spinner; the button keeps its accessible
 `label` and focus, exposes `aria-disabled` and `aria-busy`, and blocks activation until cleared.
 
+## Tones and toggle state
+
+Set `tone="accent"` for an accent-coloured action or `tone="neutral"` for a neutral one.
+The tone applies to every variant. Omitting it preserves the existing defaults: neutral
+ghost and outline controls, and an accent-filled solid control.
+
+An outline button with native `aria-pressed="true"` retains a light wash and inset shadow
+after release. It keeps its outline instead of becoming a solid button. Set `aria-pressed`
+to `false` to release it. The app owns this state and handles the native `click`; Icon Button
+does not toggle it automatically. A pressed anticipatory control stays visible.
+
+Keep the accessible `label` stable as a toggle changes state. For a visible explanation on
+hover and keyboard focus, point a default `ui-tooltip` at the button's `id`.
+
+```html
+<ui-icon-button id="notifications" label="Notifications" variant="outline" tone="accent" aria-pressed="true">
+  <ui-icon name="bell"></ui-icon>
+</ui-icon-button>
+<ui-tooltip for="notifications">Notifications</ui-tooltip>
+```
+
+In Vue, bind `:aria-pressed="enabled"` and update that value in `@click`. The native attribute
+and its selected appearance are also present in server-rendered markup.
+
 
 ## Help toggletip
 

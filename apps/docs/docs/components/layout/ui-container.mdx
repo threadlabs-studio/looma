@@ -8,5 +8,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Container primitive for readable measure and horizontal gutters.
 
+Set `fill` when a readable column lives inside a bounded flex or grid panel. The container
+keeps its measure and gutters, grows into the available space, and lets scrolling children
+shrink. For example, a `Stack fill` inside it can hold a `ScrollArea fill` above persistent
+controls. The parent still owns the available height. Without `fill`, Container retains its
+normal block layout and intrinsic height.
+
 
 <ComponentExamplesApiTabs component="ui-container" />
