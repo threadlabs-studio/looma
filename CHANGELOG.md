@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.26.3
+
+- Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
+- List Item adds opt-in `align="title"` to keep leading and trailing marks beside the first title line when descriptions wrap. Existing rows retain centered alignment.
+
 ## v0.26.2
 
 - Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
