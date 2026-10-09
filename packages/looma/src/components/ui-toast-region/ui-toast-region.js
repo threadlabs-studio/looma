@@ -86,8 +86,16 @@ function connect(host) {
     if (event.target === element && typeof event.detail?.message === "string") add(event.detail.message, event.detail);
   };
   const stop = host.effect(sync);
-  const observer = new MutationObserver(sync);
-  observer.observe(element, { childList: true, subtree: true, attributeFilter: ["hidden"] });
+  // Children come and go, and an authored toast hides itself: watch each child's hidden, not the whole subtree.
+  const watchChildren = () => {
+    for (const child of element.children) observer.observe(child, { attributeFilter: ["hidden"] });
+  };
+  const observer = new MutationObserver(() => {
+    watchChildren();
+    sync();
+  });
+  observer.observe(element, { childList: true });
+  watchChildren();
   element.addEventListener("click", onClick);
   element.addEventListener("command", onCommand);
   element.addEventListener("show-toast", onShowToast);
