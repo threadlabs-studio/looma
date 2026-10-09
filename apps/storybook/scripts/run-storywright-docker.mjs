@@ -21,7 +21,10 @@ const args = process.argv.slice(2)
 const storywrightArgs = args.length > 0 ? args : ['test']
 // Keep this tag in lockstep with the pinned @playwright/test version in
 // package.json — a mismatch makes the preinstalled browser build unresolvable.
-const image = process.env.STORYWRIGHT_DOCKER_IMAGE ?? 'mcr.microsoft.com/playwright:v1.60.0-noble'
+// The digest pins the linux/amd64 image the baselines were rendered in, as the
+// docs parity checks pin theirs; a re-pushed tag cannot change the rendering.
+const image = process.env.STORYWRIGHT_DOCKER_IMAGE
+  ?? 'mcr.microsoft.com/playwright:v1.60.0-noble@sha256:83192064c7510f7ee73dd63dc5f22a5e01a92c81a2e6a9c715d9e3fe55471fd9'
 const platform = process.env.STORYWRIGHT_DOCKER_PLATFORM ?? 'linux/amd64'
 const volumePrefix = process.env.STORYWRIGHT_DOCKER_VOLUME_PREFIX ?? 'looma-storywright'
 const hostUid = process.getuid?.()
