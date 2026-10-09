@@ -72,6 +72,14 @@ is outside ancestor clipping, transforms, and stacking contexts. Anchored contro
 attached to their invoker; viewport dialogs remain viewport-centered. Inline menus and docked
 controls remain ordinary page content.
 
+A popover or menu without `for` also renders in the top layer, at the place it is written, and
+travels with that place. Engines disagree on a top-layer surface's static position (Chromium uses
+the viewport origin), so `writtenPlace` measures the surface in page flow before it is shown, then
+carries that point with the box that holds it through page and nested scrolling. It neither flips
+nor shifts into the viewport. Table Context Menu uses the same place; only a menu written in a
+fixed or absolutely positioned box, or placed by an integration's inline insets as LoomaEditor
+does, is kept inside the viewport.
+
 Native modal dialogs use `showModal()`. Non-modal dialogs use `show()` plus a manual popover,
 keeping focus and close semantics while leaving the rest of the page usable. Modality and top-layer
 presentation are separate responsibilities.

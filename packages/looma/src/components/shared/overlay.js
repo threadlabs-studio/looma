@@ -184,6 +184,57 @@ function layoutRect(surface) {
   return { left, top, right: left + width, bottom: top + height, width, height };
 }
 
+/**
+ * Where an unanchored surface is written, for presenting it there in the top layer. The top layer
+ * takes a surface out of page flow, and engines disagree on its static position there (Chromium
+ * uses the viewport origin), so measure the surface in flow before it is shown, with the inline
+ * styles its caller owns cleared. `rect()` then carries that place with the box that holds it, so
+ * the surface travels with scrolling and with layout around it. A fixed surface keeps its measured
+ * place; one an integration places with inline insets the caller does not own keeps its live box.
+ * `floating` reports a surface placed that way or written in a fixed or absolute box, which answers to
+ * the viewport. Call it only while the surface is outside the top layer.
+ */
+export function writtenPlace(surface, ownedStyles = []) {
+  const owner = surface.ownerDocument.defaultView;
+  const up = (node) => node.assignedSlot ?? node.parentElement ?? node.getRootNode().host ?? null;
+  let parent = up(surface);
+  while (parent && owner.getComputedStyle(parent).display === "contents") parent = up(parent);
+  const popover = surface.getAttribute("popover");
+  const hidden = surface.hidden;
+  const saved = ownedStyles.map((name) => [name, surface.style.getPropertyValue(name)]);
+  if (popover !== null) surface.removeAttribute("popover");
+  if (hidden) surface.hidden = false;
+  for (const name of ownedStyles) surface.style.removeProperty(name);
+  const spot = layoutRect(surface);
+  const floats = (node) => node instanceof owner.Element && /^(fixed|absolute)$/.test(owner.getComputedStyle(node).position);
+  const placed = ["left", "top"].some((name) => !ownedStyles.includes(name) && surface.style.getPropertyValue(name));
+  const fixed = owner.getComputedStyle(surface).position === "fixed";
+  const floating = placed || floats(surface) || floats(surface.offsetParent);
+  for (const [name, value] of saved) if (value) surface.style.setProperty(name, value);
+  if (hidden) surface.hidden = true;
+  if (popover !== null) surface.setAttribute("popover", popover);
+  // Settle the restored style, so showing it next still starts its entry transition from hidden.
+  void surface.offsetWidth;
+  // The document scroller's own box moves when it scrolls; any other parent's content moves inside it.
+  const scroll = () => !parent || parent === surface.ownerDocument.documentElement || parent === surface.ownerDocument.scrollingElement
+    ? [0, 0] : [parent.scrollLeft, parent.scrollTop];
+  let offset = null;
+  const rect = () => {
+    let { left, top } = placed ? layoutRect(surface) : spot;
+    if (!placed && !fixed && parent) {
+      const base = parent.getBoundingClientRect();
+      const [x, y] = scroll();
+      // Taken on first use, once the surface has left the flow: a parent that shrinks or re-centres
+      // without it must not move the place.
+      offset ??= { left: spot.left - base.left + x, top: spot.top - base.top + y };
+      left = base.left + offset.left - x;
+      top = base.top + offset.top - y;
+    }
+    return { left, top, right: left, bottom: top, width: 0, height: 0 };
+  };
+  return { rect, floating };
+}
+
 function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface)) {
   const bounds = viewport(surface.ownerDocument.defaultView);
   const [preferred, align = "center"] = placement.split("-");
@@ -334,8 +385,18 @@ export function createAnchoredSurface(surface, options = {}) {
   let destroyed = false;
   let anchorFrame = null;
   let lastAnchorRect = null;
-  const anchorRect = () => typeof anchor === "function" ? anchor() : anchor?.getBoundingClientRect();
+  // Without an anchor, the surface stays at the place it is written (measured on each show).
+  let written = null;
+  const anchorRect = () => typeof anchor === "function" ? anchor() : anchor ? anchor.getBoundingClientRect() : written?.rect();
   const position = () => {
+    if (!anchor && !point) {
+      if (!written) return;
+      show(surface);
+      // No flip or shift: the surface is at its place, which scrolling may carry out of view.
+      const rect = lastAnchorRect = written.rect();
+      Object.assign(surface.style, { left: `${Math.round(rect.left)}px`, top: `${Math.round(rect.top)}px`, right: "auto", bottom: "auto" });
+      return;
+    }
     const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 } : anchorRect();
     if (!rect) return;
     // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
@@ -356,7 +417,7 @@ export function createAnchoredSurface(surface, options = {}) {
   // While visible, sample the live anchor and only re-position when its bounds change.
   const trackAnchor = () => {
     anchorFrame = null;
-    if (!open || !anchor || point) return;
+    if (!open || !(anchor || written) || point) return;
     const rect = anchorRect();
     if (rect && (!lastAnchorRect || rect.left !== lastAnchorRect.left || rect.top !== lastAnchorRect.top
       || rect.width !== lastAnchorRect.width || rect.height !== lastAnchorRect.height)) presentation.refresh();
@@ -368,14 +429,30 @@ export function createAnchoredSurface(surface, options = {}) {
     lastAnchorRect = null;
   };
   const syncTracking = () => {
-    if (open && anchor && !point) {
+    if (open && (anchor || written) && !point) {
       if (anchorFrame === null) anchorFrame = owner.requestAnimationFrame(trackAnchor);
     } else stopTracking();
   };
   return {
     setAnchor(next) { point = null; anchor = next; syncTracking(); presentation.refresh(); },
     setPlacement(next) { placement = next || "bottom-start"; presentation.refresh(); },
-    show() { if (destroyed) return; point = null; open = true; presentation.show(); syncTracking(); },
+    show() {
+      if (destroyed) return;
+      point = null;
+      open = true;
+      if (anchor || topLayerOpen(surface)) {
+        presentation.show();
+        syncTracking();
+        return;
+      }
+      // Measure the written place a microtask later, once the host's open state styles it.
+      queueMicrotask(() => {
+        if (destroyed || !open || point || anchor || topLayerOpen(surface)) return;
+        written = writtenPlace(surface, ["position", "margin", "left", "top", "right", "bottom"]);
+        presentation.show();
+        syncTracking();
+      });
+    },
     showAtPoint(next) { if (destroyed) return; point = next; open = true; syncTracking(); presentation.show(); },
     hide() { open = false; point = null; syncTracking(); presentation.hide(); },
     refresh: presentation.refresh,
