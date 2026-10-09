@@ -1,0 +1,20 @@
+<!--
+title: Bounded reading panel
+description: Fill keeps the readable measure while a nested Scroll Area takes the remaining height. The panel's heading and action stay visible.
+-->
+<ui-stack height="240">
+  <ui-container fill>
+    <ui-stack gap="m" fill>
+      <ui-text as="h3" weight="semibold">Reading notes</ui-text>
+      <ui-scroll-area fill>
+        <ui-stack gap="m">
+          <ui-text>A bounded reading panel keeps each line at a comfortable measure.</ui-text>
+          <ui-text>Longer notes scroll within that panel while the surrounding controls stay in place.</ui-text>
+          <ui-text>The same container can hold a short note or a longer collection without changing its outer geometry.</ui-text>
+          <ui-text>Use the panel's available height instead of fixing the height of every paragraph.</ui-text>
+        </ui-stack>
+      </ui-scroll-area>
+      <ui-cluster justify="end"><ui-button variant="outline">Continue</ui-button></ui-cluster>
+    </ui-stack>
+  </ui-container>
+</ui-stack>

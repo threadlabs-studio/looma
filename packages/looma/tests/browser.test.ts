@@ -56,6 +56,39 @@ afterAll(async () => {
 });
 
 describe("Pressed icon controls and circular marks", () => {
+  it("keeps a readable Container bounded around scrolling content in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Container, Stack, ScrollArea, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Container, { id: "reading", fill: true }, () => h(Stack, { fill: true }, () => [
+          h(ScrollArea, { id: "scroll", fill: true }, () => Array.from({ length: 50 }, (_, i) => h("p", "Reading line " + i))),
+          h(Button, { id: "continue" }, () => "Continue")
+        ])) }).mount("#app");
+      `);
+      const content = adapter === "html" ? `<ui-container id="reading" fill><ui-stack fill><ui-scroll-area id="scroll" fill>${Array.from({ length: 50 }, (_, i) => `<p>Reading line ${i}</p>`).join("")}</ui-scroll-area><ui-button id="continue">Continue</ui-button></ui-stack></ui-container>` : "";
+      const page = await open(path, `<div id="app" style="display:grid;height:320px;width:100%">${content}</div>`,
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#reading[data-component~="ui-container"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const frame = document.querySelector("#app")!.getBoundingClientRect(), reading = document.querySelector("#reading")!.getBoundingClientRect();
+          const action = document.querySelector("#continue")!.getBoundingClientRect(), scroll = document.querySelector("#scroll")!;
+          return { height: reading.height, frameHeight: frame.height, width: reading.width, frameWidth: frame.width,
+            centered: Math.abs((reading.left + reading.right - frame.left - frame.right) / 2), actionBottom: action.bottom, frameBottom: frame.bottom,
+            scrolls: scroll.scrollHeight > scroll.clientHeight };
+        });
+        assert.equal(geometry.height, geometry.frameHeight, `${adapter}/${width}: fills the bounded parent`);
+        assert.ok(geometry.actionBottom <= geometry.frameBottom + 1, "action remains inside the panel");
+        assert.ok(geometry.scrolls, "long content scrolls instead of expanding the panel");
+        assert.ok(geometry.centered < 1, `${adapter}/${width}: reading column remains centered ${JSON.stringify(geometry)}`);
+        assert.ok(width === 375 ? geometry.width <= geometry.frameWidth : geometry.width < geometry.frameWidth, "readable measure remains bounded");
+      }
+      await page.close();
+    }
+  });
+
   it("keeps an accent outline toggle pressed after release in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-pressed-icon`, adapter === "html" ? `import "@threadlabs/looma";` : `
