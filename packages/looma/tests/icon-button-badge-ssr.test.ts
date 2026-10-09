@@ -3,10 +3,15 @@ import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import IconButton from "../vue/UiIconButton.js";
 import Badge from "../vue/UiBadge.js";
+import Container from "../vue/UiContainer.js";
 
 const render = (node: ReturnType<typeof h>) => renderToString(createSSRApp({ render: () => node }));
 
 describe("Icon Button and circular Badge before upgrade", () => {
+  it("exposes opt-in Container fill without changing its default", async () => {
+    expect(await render(h(Container, { fill: true }, () => "Read"))).toMatch(/data-ui-container-state="[^"]*fill/);
+    expect(await render(h(Container, null, () => "Read"))).not.toMatch(/data-ui-container-state="[^"]*fill/);
+  });
   it("preserves a consumer-owned native pressed state and accessible name", async () => {
     const html = await render(h(IconButton, { label: "Notifications", variant: "outline", tone: "accent", "aria-pressed": true }));
     expect(html).toMatch(/<button\b/);
