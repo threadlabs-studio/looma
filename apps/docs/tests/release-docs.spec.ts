@@ -1217,9 +1217,12 @@ for (const theme of ["light", "dark"] as const) {
       // Real motion matters: the original hover transform repeatedly changed the containing block.
       await page.emulateMedia({ reducedMotion: "no-preference", colorScheme: theme });
       await page.goto("components", { waitUntil: "domcontentloaded" });
+      // Hydrated, with every lazy card preview mounted: an earlier click or lookup can miss the live trigger.
+      await ready(page);
       await page.getByRole("button", { name: /^Overlay/ }).click();
       const card = page.locator('[data-component-card="ui-dialog"]');
       await card.scrollIntoViewIfNeeded();
+      await expect(card.locator(".looma-live-example-loading")).toHaveCount(0);
       const trigger = card.getByRole("button", { name: "Open dialog" });
       await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
       await trigger.click();
