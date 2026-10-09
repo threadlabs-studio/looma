@@ -1,11 +1,1 @@
-[
-  {
-    "id": "landmark-unique",
-    "impact": "moderate",
-    "targets": [
-      [
-        "div[data-placement=\"top-end\"]"
-      ]
-    ]
-  }
-]
+[]
