@@ -17,6 +17,7 @@ apps/docs/playwright-report/
 apps/docs/test-results/
 apps/storybook/storybook-static/
 .release/
+.qualification/
 
 # Compiled Java class files
 *.class
