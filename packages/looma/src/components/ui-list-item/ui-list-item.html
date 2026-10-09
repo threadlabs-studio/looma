@@ -8,6 +8,9 @@
       combining them with a leading control.</prop>
     <prop name="wrap" type="boolean" default="false"
     >Lets the title and description wrap so explanatory text stays readable on narrow screens. Omit it for the default equal-height, one-line rows.</prop>
+    <prop name="align" type="keyword" values="center, title" default="center"
+    >Where the leading and trailing regions sit vertically. center aligns them with the whole row. title aligns them with the first title line, keeping an
+      identifying icon beside its name when the title or description wraps. Taller controls retain their natural height.</prop>
     <prop name="current" type="boolean" default="false"
     >Marks the item as the current one, such as the site you are in: it takes the selected surface and aria-current="true", which assistive technology
       announces. Set it on one item at a time.</prop>
@@ -156,6 +159,16 @@
       font-size: var(--ui-font-size-md);
       font-weight: var(--_ui-list-item-title-weight, var(--ui-font-medium));
       line-height: var(--ui-line-height-tight);
+    }
+
+    /* Keep identity and disclosure marks beside the first line, even with a long description. */
+    :host([align="title"]) {
+      align-items: flex-start;
+    }
+
+    :host([align="title"]) .leading,
+    :host([align="title"]) .trailing {
+      min-block-size: calc(var(--ui-font-size-md) * var(--ui-line-height-tight));
     }
 
     .description {

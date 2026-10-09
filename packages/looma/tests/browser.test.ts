@@ -144,37 +144,43 @@ describe("Pressed icon controls and circular marks", () => {
         import { createApp, h } from "vue";
         import { Badge, Icon } from "@threadlabs/looma/vue";
         createApp({ render: () => [h(Badge, { id: "small", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category D" }, () => "D"),
-          h(Badge, { id: "letter", shape: "circle", variant: "outline", "aria-label": "Category R" }, () => "R"),
+          h(Badge, { id: "letter", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category R" }, () => "R"),
+          h(Badge, { id: "count", shape: "circle", size: "xs" }, () => "3"),
+          h(Badge, { id: "double", shape: "circle", size: "xs" }, () => "12"),
           h(Badge, { id: "medium", shape: "circle", tone: "accent" }, () => h(Icon, { name: "check" }))] }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge>' : '<div id="app"></div>',
+      const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" size="xs" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="count" shape="circle" size="xs">3</ui-badge><ui-badge id="double" shape="circle" size="xs">12</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge>' : '<div id="app"></div>',
         [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#small[data-component~="ui-badge"]');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
-        for (const [id, expected] of [["small", 16], ["letter", 24], ["medium", 24]] as const) {
-          const geometry = await page.locator(`#${id}`).evaluate(element => {
-            const box = element.getBoundingClientRect(), label = element.querySelector(".label")!.getBoundingClientRect();
-            return { width: box.width, height: box.height, x: (label.left + label.right - box.left - box.right) / 2, y: (label.top + label.bottom - box.top - box.bottom) / 2,
-              clip: getComputedStyle(element.querySelector(".label")!).clipPath };
-          });
-          assert.equal(geometry.width, expected, `${adapter}/${width}/${id}`);
-          assert.equal(geometry.height, expected, `${adapter}/${width}/${id}`);
-          assert.ok(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, `${adapter}/${width}/${id}: centered glyph ${JSON.stringify(geometry)}`);
-          assert.equal(geometry.clip, "none", "circle content remains visible");
-          if (id !== "medium") {
-            const inkOffset = await page.locator(`#${id}`).evaluate(element => {
-              const label = element.querySelector(".label")!, range = document.createRange();
-              range.selectNodeContents(label);
-              const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
-              const canvas = document.createElement("canvas").getContext("2d")!;
-              canvas.font = getComputedStyle(label).font;
-              const metrics = canvas.measureText(label.textContent!);
-              // A centered font line box alone does not prove that uppercase ink is centered.
-              const baseline = text.bottom - metrics.fontBoundingBoxDescent;
-              return baseline - (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 - (box.top + box.bottom) / 2;
+        for (const font of ["system-ui", "Arial"]) {
+          await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+          for (const [id, expected] of [["small", 16], ["letter", 16], ["count", 16], ["double", 16], ["medium", 24]] as const) {
+            const geometry = await page.locator(`#${id}`).evaluate(element => {
+              const box = element.getBoundingClientRect(), label = element.querySelector(".label")!.getBoundingClientRect();
+              return { width: box.width, height: box.height, x: (label.left + label.right - box.left - box.right) / 2, y: (label.top + label.bottom - box.top - box.bottom) / 2,
+                clip: getComputedStyle(element.querySelector(".label")!).clipPath };
             });
-            assert.ok(Math.abs(inkOffset) < 1, `${adapter}/${width}/${id}: uppercase ink offset ${inkOffset}`);
+            assert.equal(geometry.width, expected, `${adapter}/${width}/${id}`);
+            assert.equal(geometry.height, expected, `${adapter}/${width}/${id}`);
+            assert.ok(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, `${adapter}/${width}/${id}: centered glyph ${JSON.stringify(geometry)}`);
+            assert.equal(geometry.clip, "none", "circle content remains visible");
+            if (id !== "medium") {
+              const inkOffset = await page.locator(`#${id}`).evaluate(element => {
+                const label = element.querySelector(".label")!, range = document.createRange();
+                range.selectNodeContents(label);
+                const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+                const canvas = document.createElement("canvas").getContext("2d")!;
+                canvas.font = getComputedStyle(label).font;
+                const metrics = canvas.measureText(label.textContent!);
+                // A centered font line box alone does not prove that uppercase ink is centered.
+                const baseline = text.bottom - metrics.fontBoundingBoxDescent;
+                return { y: baseline - (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 - (box.top + box.bottom) / 2,
+                  x: text.left + (metrics.actualBoundingBoxRight - metrics.actualBoundingBoxLeft) / 2 - (box.left + box.right) / 2 };
+              });
+              assert.ok(Math.abs(inkOffset.y) < 0.5 && Math.abs(inkOffset.x) < 0.5, `${adapter}/${width}/${font}/${id}: visible ink offset ${JSON.stringify(inkOffset)}`);
+            }
           }
         }
       }
@@ -3644,6 +3650,38 @@ describe("List item", () => {
     assert.equal(await page.locator("#list").evaluate((element) => [element.tagName, element.getAttribute("role")].join(" ")), "UL list");
     assert.equal(await item.evaluate((element) => element.tagName), "LI");
   }
+
+  it("aligns leading and trailing marks with the first title line when requested in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const title = "A complete title that wraps on a phone without moving its icon";
+      const description = "A longer description that wraps onto several lines and keeps its icon beside the title.";
+      const path = await bundle(`${adapter}-list-title-alignment`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { List, ListItem, Icon } from "@threadlabs/looma/vue";
+        createApp({render: () => h(List, null, () => ["title", "center"].map(align => h(ListItem, {id: align, wrap: true, ...(align === "title" ? {align} : {})}, {
+          leading: () => h(Icon, {name: "file", style: "width:18px;height:18px"}),
+          default: () => h("a", {href: "#destination"}, ${JSON.stringify(title)}),
+          description: () => ${JSON.stringify(description)},
+          trailing: () => h(Icon, {name: "chevron-right", style: "width:16px;height:16px"})
+        }))) }).mount("#app");
+      `);
+      const html = ["title", "center"].map(align => `<ui-list-item id="${align}" wrap ${align === "title" ? 'align="title"' : ''}><ui-icon slot="leading" name="file" style="width:18px;height:18px"></ui-icon><a href="#destination">${title}</a><span slot="description">${description}</span><ui-icon slot="trailing" name="chevron-right" style="width:16px;height:16px"></ui-icon></ui-list-item>`).join("");
+      const page = await open(path, adapter === "html" ? `<ui-list>${html}</ui-list>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({width, height: 720});
+        const geometry = await page.evaluate(() => ["title", "center"].map(id => {
+          const item = document.getElementById(id)!, title = item.querySelector(".title")!, box = item.getBoundingClientRect();
+          const firstLineCenter = title.getBoundingClientRect().top + parseFloat(getComputedStyle(title).lineHeight) / 2;
+          const center = (selector: string) => { const rect = item.querySelector(selector)!.getBoundingClientRect(); return (rect.top + rect.bottom) / 2; };
+          return {id, leading: center(".leading"), trailing: center(".trailing"), firstLineCenter, rowCenter: (box.top + box.bottom) / 2};
+        }));
+        assert.ok(Math.abs(geometry[0].leading - geometry[0].firstLineCenter) < 0.5, `${adapter}/${width}: leading mark tracks first line ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry[0].trailing - geometry[0].firstLineCenter) < 0.5, "trailing mark follows the same line");
+        assert.ok(Math.abs(geometry[1].leading - geometry[1].rowCenter) < 0.5, "omitted alignment preserves centered rows");
+      }
+      await page.close();
+    }
+  });
 
   it("follows its title link from anywhere but a trailing control, in HTML", async () => {
     const path = await bundle("html-list-item", `import "@threadlabs/looma";`);

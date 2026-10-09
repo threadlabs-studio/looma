@@ -357,6 +357,17 @@
       display: none;
     }
 
+    /* Center capital and numeral ink, rather than the font's ascent/descent line box.
+       Icon labels retain flex geometry; untrimmed browsers keep that fallback too. */
+    @supports (text-box-trim: trim-both) {
+      :host([shape="circle"]) .label:not(:has(svg)) {
+        display: block;
+        text-box-trim: trim-both;
+        text-box-edge: cap alphabetic;
+        overflow: visible;
+      }
+    }
+
     /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
     :host([shape="dot"]) {
       position: relative;
