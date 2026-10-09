@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { affectedComponents, selectChecks, stageInputs, fingerprint, validateProvider, validateReceipt, validateBrowserReport } from "./ci-selection.mjs";
+import { execFileSync } from "node:child_process";
+import { snapshot } from "./ci-qualification.mjs";
+import { admitQualification, affectedComponents, affectedModules, caseNamePattern, checkoutRevision, selectChecks, stageInputs, fingerprint, validateCheckout, validateProvider, validateReceipt, validateBrowserReport, validateNodeReport, validateVitestReport } from "./ci-selection.mjs";
 
 const files = {
   "packages/looma/src/components/ui-button/ui-button.html": '<template component="ui-button"></template>',
@@ -36,6 +38,14 @@ test("test-only revisions preserve docs and package-consumer fingerprints", () =
   assert.deepEqual(plan.docsRoutes, []);
 });
 
+test("edited assertions select their case and edited helpers own their enclosing suite", () => {
+  const file = "packages/looma/tests/browser.test.ts";
+  const source = 'describe("Other", () => {\n it("other", () => {});\n});\ndescribe("chips", () => {\n const glyphs = () => "ink";\n it("native chips", () => { glyphs(); });\n it("Vue chips", () => { glyphs(); });\n});\n';
+  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[6, 6]] }).packageTests[file], ["chips native chips"]);
+  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[5, 5]] }).packageTests[file], ["chips native chips", "chips Vue chips"]);
+  assert.throws(() => selectChecks({ ...files, "tools/scripts/new-executable.mjs": "doWork()" }, ["tools/scripts/new-executable.mjs"]), /Unmapped executable/);
+});
+
 test("shared themes/compiler inputs select full coverage and unmapped inputs fail closed", () => {
   for (const changed of ["packages/looma/src/tokens/theme.css", "packages/looma/build.mjs", "pnpm-lock.yaml", "packages/looma/src/components/shared/focus.js"]) {
     assert.equal(selectChecks(files, [changed]).full, true, changed);
@@ -43,7 +53,7 @@ test("shared themes/compiler inputs select full coverage and unmapped inputs fai
   assert.throws(() => selectChecks(files, ["new-runtime/unknown.js"]), /Unmapped/);
 });
 
-const provider = { id: 42, run_attempt: 1, head_sha: "a".repeat(40), conclusion: "success", status: "completed", event: "pull_request", path: ".github/workflows/ci.yml", head_repository: { full_name: "threadlabs-studio/looma" } };
+const provider = { id: 42, run_attempt: 1, head_sha: "a".repeat(40), conclusion: "success", status: "completed", event: "pull_request", path: ".github/workflows/ci.yml", repository: { full_name: "threadlabs-studio/looma", id: 1 }, head_repository: { full_name: "threadlabs-studio/looma", id: 1 } };
 const identity = { repository: "threadlabs-studio/looma", revision: provider.head_sha, runId: "42", attempt: "1", workflow: "ci" };
 test("provider proof rejects a failed, forked, wrong-workflow or wrong-revision run", () => {
   assert.doesNotThrow(() => validateProvider(provider, identity));
@@ -67,4 +77,96 @@ test("browser proof refuses zero tests, skipped tests, failures and a discovery 
     const failed = structuredClone(report); failed.suites[0].specs[0].tests[0].results[0].status = status;
     assert.throws(() => validateBrowserReport(report, failed), /passed/);
   }
+});
+
+test("shared TS/controller imports propagate, while example compositions remain one-way docs consumers", () => {
+  const graph = { ...files,
+    "packages/looma/src/components/ui-button/ui-button.html": '<template component="ui-button" controller="./ui-button.js"></template>',
+    "packages/looma/src/components/shared/state.ts": "export const state = {};",
+    "packages/looma/src/components/ui-button/ui-button.js": 'import { state } from "../shared/state.js";',
+    "packages/looma/src/components/ui-table/examples/01-default.html": "<ui-badge>Ready</ui-badge>",
+    "packages/looma/src/components/ui-card/examples/01-default.html": "<ui-table>Other</ui-table>"
+  };
+  const shared = selectChecks(graph, ["packages/looma/src/components/shared/state.ts"]);
+  assert.equal(shared.full, false);
+  assert.deepEqual(shared.components, ["ui-button", "ui-menu"]);
+  assert.ok(affectedModules(graph, ["packages/looma/src/components/shared/state.ts"]).includes("packages/looma/src/components/ui-button/ui-button.html"));
+  const badge = selectChecks(graph, ["packages/looma/src/components/ui-badge/ui-badge.html"]);
+  assert.ok(badge.docsComponents.includes("ui-table"));
+  assert.ok(!badge.components.includes("ui-table"));
+  assert.ok(!badge.docsComponents.includes("ui-card"));
+});
+
+test("provider checkout binds immutable run head and retained main ancestry despite a later PR head/base", () => {
+  const run = { ...provider, pull_requests: [{ head: { sha: "later-head", repo: { id: 1 } }, base: { sha: "later-base", ref: "main", repo: { id: 1 } } }] };
+  const merge = "c".repeat(40), parents = ["b".repeat(40), run.head_sha];
+  const log = `timestamp [command]/usr/bin/git log -1 --format=%H\ntimestamp ${merge}\n`;
+  assert.equal(checkoutRevision(log), merge);
+  assert.doesNotThrow(() => validateCheckout(run, merge, parents, true));
+  assert.doesNotThrow(() => validateCheckout({ ...run, pull_requests: [] }, merge, parents, true));
+  assert.throws(() => validateCheckout(run, merge, parents, false), /ancestry/);
+  assert.throws(() => validateCheckout(run, merge, [parents[0], "later-head"], true), /head/);
+  assert.throws(() => checkoutRevision(log + log), /one actual/);
+  assert.throws(() => checkoutRevision("no checkout"), /one actual/);
+});
+
+test("merged source selects Badge consumers including Table, Combobox, Conventions, home and catalog", () => {
+  const actual = snapshot("origin/main", true);
+  const plan = selectChecks(actual, ["packages/looma/src/components/ui-badge/ui-badge.html"]);
+  assert.ok(plan.components.includes("ui-combobox"));
+  assert.ok(!plan.components.includes("ui-meter"), "a prose comparison is not a runtime dependency");
+  assert.ok(plan.docsComponents.includes("ui-table"));
+  for (const route of ["components/ui-badge", "components/ui-table", "components/ui-combobox", "conventions", "./", "components"]) assert.ok(plan.docsRoutes.includes(route), route);
+  assert.ok(!plan.docsRoutes.includes("components/ui-checkbox"));
+  assert.ok(plan.packageTests["packages/looma/tests/browser.test.ts"].includes("Combobox chip truncation ellipsizes native chip labels inside their badge at desktop and 375px"));
+});
+
+test("the real assertion-only revision owns the four shared chip cases and preserves UI/docs inputs", () => {
+  const base = "b4bcb3d", head = "963645e4";
+  const file = "packages/looma/tests/browser.test.ts";
+  const diff = execFileSync("git", ["diff", "--unified=0", base, head, "--", file], { encoding: "utf8" });
+  const hunks = [...diff.matchAll(/^@@ .* \+(\d+)(?:,(\d+))? @@/gm)].map((match) => [Number(match[1]), Number(match[1]) + Math.max(1, Number(match[2] ?? 1)) - 1]);
+  const before = snapshot(base), after = snapshot(head);
+  const plan = selectChecks(snapshot(head, true), [file], { [file]: hunks });
+  assert.deepEqual(plan.packageTests[file], ["Combobox chip truncation ellipsizes native chip labels inside their badge at desktop and 375px", "Combobox chip truncation ellipsizes Vue chip labels inside their badge at desktop and 375px", "Combobox chip truncation keeps short ${adapter} chip text and descenders visible at desktop and 375px"]);
+  assert.deepEqual(plan.docsRoutes, []);
+  for (const stage of ["package-consumer", "docs-behavior", "docs-visual"]) assert.equal(fingerprint(stageInputs(before, stage)), fingerprint(stageInputs(after, stage)), stage);
+});
+
+test("qualified names avoid unrelated duplicate titles and retain parameterized cases", () => {
+  const pattern = new RegExp(caseNamePattern(["Combobox cannot be cleared", "Dialog keeps ${adapter} inset", "%s tools dismiss"]));
+  assert.ok(pattern.test("Combobox cannot be cleared"));
+  assert.ok(!pattern.test("Select cannot be cleared"));
+  assert.ok(pattern.test("Dialog keeps html inset"));
+  assert.ok(pattern.test("bubble tools dismiss"));
+});
+
+test("Vitest proof refuses empty, skipped or missing selected cases while ignoring unchanged filtered cases", () => {
+  const report = { success: true, testResults: [{ assertionResults: [{ fullName: "chips native", status: "passed" }, { fullName: "other native", status: "pending" }] }] };
+  assert.deepEqual(validateVitestReport(report, ["chips native"]), ["chips native"]);
+  assert.throws(() => validateVitestReport(report, ["missing"]), /Empty/);
+  assert.throws(() => validateVitestReport(report, ["other native"]), /passed/);
+  assert.throws(() => validateVitestReport({ success: true, testResults: [] }, null), /Empty/);
+});
+
+test("Node proof rejects a successful file wrapper when no selected case ran", () => {
+  const passing = "# Subtest: suite\n    # Subtest: owned case\n    ok 1 - owned case\nok 1 - suite\n";
+  assert.deepEqual(validateNodeReport(passing, ["suite owned case"]), ["suite owned case"]);
+  assert.throws(() => validateNodeReport("# Subtest: tests/owner.test.mjs\nok 1 - tests/owner.test.mjs\n", ["owned case"]), /missing/);
+  for (const result of ["not ok 1 - owned case", "ok 1 - owned case # SKIP", "ok 1 - owned case # TODO"]) assert.throws(() => validateNodeReport(`# Subtest: owned case\n${result}\n`, ["owned case"]), /skipped or failed/);
+  assert.throws(() => validateNodeReport(passing, []), /Empty/);
+});
+
+test("aggregate admission includes both workflows and setup, rejecting full or unknown oversized scope", () => {
+  const selection = selectChecks(files, []);
+  const plans = { ci: { selection, stages: { quality: { reused: true }, "package-consumer": { reused: true } } }, docs: { selection, stages: { "docs-behavior": { reused: true }, "docs-visual": { reused: true } } } };
+  assert.deepEqual(admitQualification(plans, files), { estimatedMinutes: 4, limit: 15 });
+  const selected = structuredClone(plans);
+  selected.ci.stages.quality.reused = false;
+  selected.ci.selection.packageTests["packages/looma/tests/browser.test.ts"] = ["chip native", "chip Vue"];
+  assert.ok(admitQualification(selected, files).estimatedMinutes > 4);
+  selected.ci.selection.packageTests["packages/looma/tests/browser.test.ts"] = Array.from({ length: 300 }, (_, index) => `case ${index}`);
+  assert.throws(() => admitQualification(selected, files), /15 aggregate runner minutes/);
+  selected.ci.selection.packageTests = { "packages/looma/tests/unknown.test.ts": null };
+  assert.throws(() => admitQualification(selected, { ...files, "packages/looma/tests/unknown.test.ts": "generated unknown discovery" }), /No automatic full sweep/);
 });

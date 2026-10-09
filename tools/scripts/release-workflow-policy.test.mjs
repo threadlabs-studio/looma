@@ -87,7 +87,8 @@ test("docs deploy to Pages after CI passes on main", () => {
 test("ordinary CI qualifies the same package inputs used by release", async () => {
   assert.match(releasePackagingJob, /node-version: 24/);
   assert.match(releasePackagingJob, /pnpm install --frozen-lockfile/);
-  assert.match(releasePackagingJob, /^\s+run: pnpm release:verify$/m);
+  assert.match(releasePackagingJob, /ci-qualification\.mjs run ci package-consumer/);
+  assert.match(await read("tools/scripts/ci-qualification.mjs"), /run\(\["release:verify"\]\)/);
   execFileSync("git", ["ls-files", "--error-unmatch", "packages/looma/LICENSE"], {
     cwd: repoRoot,
     stdio: "ignore"

@@ -38,7 +38,10 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
 
   assert.match(workflow, /node-version: 24/);
   assert.match(workflow, /playwright install --with-deps chromium/);
-  assert.match(workflow, /pnpm test:browser/);
+  assert.match(workflow, /ci-qualification\.mjs run ci quality/);
+  const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
+  assert.match(qualifier, /"vitest", "run"/);
+  assert.match(qualifier, /vitest\.browser\.config\.ts/);
   assert.match(
     JSON.parse(rootPackage).scripts["release:verify"],
     /pnpm test:facade-consumer/,
@@ -72,10 +75,14 @@ test("the required verify result gates lint, quality, and release packaging", as
     /\n  verify:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
   )?.[0] ?? "";
 
-  assert.match(qualityJob, /run: pnpm lint/);
+  assert.match(qualityJob, /ci-qualification\.mjs run ci quality/);
+  const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
+  assert.match(qualifier, /"@threadlabs\/looma", "typecheck"/);
+  assert.equal(JSON.parse(loomaPackage).scripts.lint, JSON.parse(loomaPackage).scripts.typecheck);
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
-  assert.match(releasePackagingJob, /run: pnpm release:verify/);
+  assert.match(releasePackagingJob, /ci-qualification\.mjs run ci package-consumer/);
+  assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
   assert.match(verifyJob, /needs:[\s\S]*- quality[\s\S]*- release-package/);
   assert.match(verifyJob, /QUALITY_RESULT: \$\{\{ needs\.quality\.result \}\}/);
