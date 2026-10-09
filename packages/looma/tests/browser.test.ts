@@ -206,6 +206,42 @@ describe("Pressed icon controls and circular marks", () => {
       await page.close();
     }
   });
+
+  it("keeps translucent inverse counts readable on filled controls in both themes", async () => {
+    const tones = ["accent", "neutral", "danger", "success", "warning", "info"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-inverse-count-overlay`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => ${JSON.stringify(tones)}.map(tone => h(Button, { variant: "solid", tone }, () => ["Submit", h(Badge, { id: tone, shape: "circle", size: "lg", variant: "inverse", tone }, () => "99+")])) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#accent[data-component~="ui-badge"]');
+      for (const theme of ["light", "dark"]) {
+        await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+        const overlays = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
+          const context = document.createElement("canvas").getContext("2d")!;
+          const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
+          const luminance = () => {
+            const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
+            return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+          };
+          context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
+          const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
+          paint(style.color); const ink = luminance();
+          return { tone: element.id, opacity, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+        }));
+        for (const overlay of overlays) {
+          assert.ok(overlay.opacity > 0.75 && overlay.opacity < 0.95, `${adapter}/${theme}/${overlay.tone}: an overlay instead of an opaque cutout ${JSON.stringify(overlay)}`);
+          assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+        }
+      }
+      await page.close();
+    }
+  });
 });
 
 describe("Anchored overlay placement", () => {
@@ -2442,6 +2478,58 @@ describe("Badge box", () => {
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
 
+  it("centers status text optically while preserving ellipsis and descenders in HTML and Vue", async () => {
+    const cases = [
+      ...["md", "xs"].flatMap(size => ["Current", "Paid", "Docs", "Design", "gjpqy a long status with descenders"].map((label, index) => ({ id: `status-${size}-${index}`, label, size, shape: "pill" }))),
+      { id: "tag", label: "Current", size: "md", shape: "tag" },
+      { id: "square", label: "R", size: "xs", shape: "square" },
+    ];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-badge-text-center`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => ${JSON.stringify(cases)}.map(({ label, ...props }) => h(Badge, props, () => label)) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? cases.map(({ id, label, size, shape }) => `<ui-badge id="${id}" size="${size}" shape="${shape}">${label}</ui-badge>`).join(" ") : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#status-md-0[data-component~="ui-badge"]');
+      await page.locator('[id$="-4"]').evaluateAll(elements => elements.forEach(element => { (element as HTMLElement).style.maxWidth = "110px"; }));
+      for (const font of ["system-ui", "Arial"]) {
+        await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 720 });
+          const placements = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+            const label = element.querySelector(".label")!, style = getComputedStyle(label), box = element.getBoundingClientRect();
+            const range = document.createRange(); range.selectNodeContents(label);
+            const text = range.getBoundingClientRect(), canvas = document.createElement("canvas").getContext("2d")!;
+            canvas.font = style.font;
+            const cap = canvas.measureText("H"), ink = canvas.measureText(label.textContent!);
+            const baseline = text.bottom - ink.fontBoundingBoxDescent;
+            return { id: element.id, capOffset: baseline - cap.actualBoundingBoxAscent / 2 - (box.top + box.bottom) / 2,
+              top: baseline - ink.actualBoundingBoxAscent - box.top, bottom: box.bottom - baseline - ink.actualBoundingBoxDescent,
+              overflowY: style.overflowY, ellipsis: style.textOverflow, truncated: label.scrollWidth > label.clientWidth };
+          }));
+          for (const placement of placements) {
+            assert.ok(Math.abs(placement.capOffset) < 0.25, `${adapter}/${font}/${width}: ${placement.id} centers its cap and baseline ${JSON.stringify(placement)}`);
+            assert.ok(placement.top >= 0 && placement.bottom >= 0, `${adapter}/${font}/${width}: complete ascenders and descenders remain inside the badge ${JSON.stringify(placement)}`);
+          }
+          for (const placement of placements.filter(placement => placement.id.endsWith("-4"))) {
+            assert.equal(placement.truncated, true, "a constrained label still truncates");
+            assert.equal(placement.ellipsis, "ellipsis");
+            assert.equal(placement.overflowY, "visible", "truncation preserves vertical glyph ink");
+          }
+          if (width === 375 && font === "system-ui") {
+            const ellipsis = await page.locator("#status-md-4").screenshot();
+            await page.locator("#status-md-4 .label").evaluate(label => { (label as HTMLElement).style.textOverflow = "clip"; });
+            assert.notDeepEqual(await page.locator("#status-md-4").screenshot(), ellipsis, "ellipsis paints when only horizontal overflow is clipped");
+            await page.locator("#status-md-4 .label").evaluate(label => { (label as HTMLElement).style.textOverflow = ""; });
+          }
+        }
+      }
+      await page.close();
+    }
+  });
+
   it("spaces and centers ordinary SVG plus text children in badges and buttons", async () => {
     const icon = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
     for (const adapter of ["html", "vue"]) {
@@ -2505,12 +2593,12 @@ describe("Badge box", () => {
           (element as HTMLElement).style.maxWidth = '110px';
           const icon = element.querySelector('svg')!.getBoundingClientRect(), chip = element.getBoundingClientRect();
           const range = document.createRange(); range.selectNodeContents(label);
-          const text = range.getBoundingClientRect(), clip = label.getBoundingClientRect();
+          const text = range.getBoundingClientRect(), clip = chip;
           const canvas = document.createElement('canvas').getContext('2d')!;
           canvas.font = getComputedStyle(label).font;
           const metrics = canvas.measureText(label.textContent!);
           const baseline = text.bottom - metrics.fontBoundingBoxDescent;
-          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom,
+          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, vertical: getComputedStyle(label).overflowY, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom,
             top: baseline - metrics.actualBoundingBoxAscent - clip.top, bottom: clip.bottom - baseline - metrics.actualBoundingBoxDescent };
           label.textContent = 'Yes'; (element as HTMLElement).style.maxWidth = '';
           return result;
@@ -2518,7 +2606,8 @@ describe("Badge box", () => {
         assert.equal(constrained.clipped, true);
         assert.equal(constrained.overflow, 'ellipsis');
         assert.equal(constrained.visible, true, 'only the label truncates; the leading icon stays whole');
-        assert.ok(constrained.top >= -0.5 && constrained.bottom >= -0.5, 'the ellipsis box preserves complete ascenders and descenders');
+        assert.equal(constrained.vertical, 'visible', 'label truncation never clips vertical glyph ink');
+        assert.ok(constrained.top >= -0.5 && constrained.bottom >= -0.5, 'the badge preserves complete ascenders and descenders');
       }
       await page.close();
     }
