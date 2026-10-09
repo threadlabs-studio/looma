@@ -36,12 +36,12 @@
     </event>
   </defs>
   <dialog from:aria-label="$accessibleLabel">
-    <header>
+    <header $ref="header">
       <h2 class="title" $if="$label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
-    <div class="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
-    <footer><slot name="actions"></slot></footer>
+    <div class="body" $ref="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
+    <footer $ref="footer"><slot name="actions"></slot></footer>
   </dialog>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
@@ -143,7 +143,9 @@
       align-items: center;
       gap: var(--ui-space-3);
       flex: none;
-      padding: var(--ui-space-3) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5);
+      /* The title's ink sits inside its line box and the taller close target. Balance that
+         visible top inset against the action row's bottom inset, not just the boxes. */
+      padding: calc(var(--ui-space-3) + var(--ui-space-1) / 2) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5);
     }
 
     /* :host-qualified so page heading rules that reach in cannot outrank the dialog chrome. */
@@ -251,7 +253,7 @@
         overlay var(--_ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease) allow-discrete;
     }
 
-    :host[open]::backdrop {
+    :host[open]:modal::backdrop {
       background-color: var(--ui-overlay-backdrop);
       animation: ui-dialog-backdrop-enter var(--_ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
     }

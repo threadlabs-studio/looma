@@ -80,10 +80,16 @@
     </template>
   </div>
   <style>
+    :host[popover] {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+    }
+
     :host {
       /* The max-width is a promise about the menu's footprint, so it counts padding and border. */
       box-sizing: border-box;
-      min-width: 14rem;
+      min-width: min(14rem, calc(100vw - 24px));
       max-width: min(17rem, calc(100vw - 24px));
       max-height: min(28rem, calc(100vh - 24px));
       padding: var(--ui-space-2);

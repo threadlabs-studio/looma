@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/core";
-import { userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
@@ -23,8 +23,16 @@ afterEach(async () => {
 
 describe("LoomaEditor managed suggestion menus", () => {
   it("projects native suggestion rectangles through the managed component boundary", async () => {
+    const originalViewport = { width: window.innerWidth, height: window.innerHeight };
+    await page.viewport(1280, 800);
     const host = document.createElement("div");
-    document.body.append(host);
+    const scroller = document.createElement("div");
+    Object.assign(scroller.style, { height: "400px", overflow: "auto", transform: "translateY(0)" });
+    const spacer = document.createElement("div");
+    spacer.style.height = "100px";
+    host.style.minHeight = "800px";
+    scroller.append(spacer, host);
+    document.body.append(scroller);
     const browserErrors: string[] = [];
     const onError = (event: ErrorEvent) => browserErrors.push(event.message);
     window.addEventListener("error", onError);
@@ -59,9 +67,16 @@ describe("LoomaEditor managed suggestion menus", () => {
         expect(Number.parseFloat(menu?.style.top ?? "")).toBeGreaterThan(0);
         expect(Number.parseFloat(menu?.style.left ?? "")).toBeGreaterThanOrEqual(0);
       });
+      const menu = document.querySelector<HTMLElement>('[data-component~="ui-editor-mention-menu"]')!;
+      expect(menu.matches(":popover-open")).toBe(true);
+      const before = menu.getBoundingClientRect().top;
+      scroller.scrollTop = 40;
+      await flushBrowser();
+      await vi.waitFor(() => expect(Math.abs(menu.getBoundingClientRect().top - (before - 40))).toBeLessThan(2));
       expect(browserErrors).toEqual([]);
     } finally {
       window.removeEventListener("error", onError);
+      await page.viewport(originalViewport.width, originalViewport.height);
     }
   });
 

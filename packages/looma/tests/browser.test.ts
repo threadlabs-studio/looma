@@ -185,6 +185,83 @@ describe("Pressed icon controls and circular marks", () => {
 });
 
 describe("Anchored overlay placement", () => {
+  it("presents an open popover and menu without for in the top layer at their written place, traveling with it", async () => {
+    const path = await bundle("html-unanchored-popups", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="height: 300px"></div>
+      <div id="stage" style="margin-inline-start: 40px; padding: 20px"><ui-popover id="popover" open>Popover content</ui-popover></div>
+      <div id="scroller" style="block-size: 200px; overflow: auto; padding: 10px">
+        <ui-menu id="menu" open aria-label="Actions"><ui-menu-item value="alpha">Alpha</ui-menu-item></ui-menu>
+        <div style="block-size: 600px"></div>
+      </div>
+      <div style="block-size: 2000px"></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => ["#popover", "#menu"].every((id) => document.querySelector(id)!.matches(":popover-open")));
+    // Offsets from the written place: each holder's padding edge, less its own scroll.
+    const offsets = () => page.evaluate(() => Object.fromEntries([["popover", "#stage"], ["menu", "#scroller"]].map(([id, holder]) => {
+      const box = document.getElementById(id)!.getBoundingClientRect();
+      const base = document.querySelector(holder)!;
+      const rect = base.getBoundingClientRect();
+      return [id, [Math.round(box.left - rect.left), Math.round(box.top - rect.top + base.scrollTop)]];
+    })));
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "not the viewport corner");
+    await page.evaluate(() => { scrollTo(0, 100); document.querySelector("#scroller")!.scrollTop = 40; });
+    await frames();
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "page and nested scrolling carry each popup with its place");
+    await page.close();
+  });
+
+  it("shares one viewport listener across HTML and Vue popups, follows nested scrolling, and releases closed surfaces", async () => {
+    const path = await bundle("mixed-overlay-coordinator", `
+      import "@threadlabs/looma";
+      import { createApp, h, ref } from "vue";
+      import { Popover } from "@threadlabs/looma/vue";
+      const visible = ref(true);
+      window.vuePopupOpen = visible;
+      createApp({ render: () => h(Popover, { id: "vue-popup", open: visible.value, for: "vue-anchor" }, () => "Vue popup") }).mount("#app");
+    `);
+    const page = await open(path, `
+      <script>
+        window.viewportListeners = [];
+        const add = window.addEventListener.bind(window);
+        window.addEventListener = (type, listener, options) => {
+          if (type === "scroll" && options?.signal) window.viewportListeners.push(options.signal);
+          return add(type, listener, options);
+        };
+      </script>
+      <div id="scroller" style="height: 400px; width: 900px; overflow: auto; transform: translateY(0)">
+        <div style="height: 120px"></div>
+        <button id="html-anchor" style="margin-left: 100px">HTML</button>
+        <button id="vue-anchor" style="margin-left: 300px">Vue</button>
+        <ui-popover id="html-popup" for="html-anchor" open>HTML popup</ui-popover>
+        <div id="app"></div>
+        <div style="height: 1200px"></div>
+      </div>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const activeListeners = () => page.evaluate(() => (window as any).viewportListeners.filter((signal: AbortSignal) => !signal.aborted).length);
+    assert.equal(await activeListeners(), 1, "mixed adapters share one capture scroll listener");
+    const before = await page.locator("#html-popup").boundingBox();
+    await page.locator("#scroller").evaluate((element) => { element.scrollTop = 60; });
+    await page.waitForFunction(() => {
+      const anchor = document.querySelector("#html-anchor")!.getBoundingClientRect();
+      const popup = document.querySelector("#html-popup")!.getBoundingClientRect();
+      return Math.abs(popup.top - anchor.bottom - 4) <= 2;
+    });
+    const after = await page.locator("#html-popup").boundingBox();
+    assert.ok(Math.abs(before!.y - after!.y - 60) <= 2, "attachment follows a nested scrolling container");
+    for (const id of ["html-popup", "vue-popup"]) {
+      assert.equal(await page.locator(`#${id}`).evaluate((element) => element.matches(":popover-open")), true);
+    }
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#vue-popup")!.matches(":popover-open"));
+    assert.equal(await page.locator("#html-popup").evaluate((element) => element.matches(":popover-open")), true, "Escape closes only the top popup across adapters");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#html-popup")!.matches(":popover-open") && !document.querySelector("#vue-popup")!.matches(":popover-open"));
+    assert.equal(await activeListeners(), 0, "last close releases the shared listener");
+    await page.close();
+  });
+
   it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
     const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -1387,6 +1464,152 @@ describe("Dialog close policy and presentation", () => {
   }
 
   const isOpen = (id: string) => `document.querySelector("#${id}").open`;
+
+  it("fits short content with equal action gutters and caps growing HTML and Vue bodies at the viewport", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-content-size`, adapter === "html" ? `
+        import "@threadlabs/looma";
+        window.setLines = (count) => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Button, Dialog } from "@threadlabs/looma/vue";
+        const lines = ref(1);
+        window.setLines = (count) => { lines.value = count; };
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, {
+          default: () => h("p", { id: "content" }, Array(lines.value).fill("Content line").join("\\n")),
+          actions: () => h(Button, "Done"),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p><ui-button slot="actions">Done</ui-button></ui-dialog>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 600 }, reducedMotion: "reduce" });
+      await page.addStyleTag({ content: "body {font:16px/24px system-ui} p {white-space:pre-line; margin-block:20px}" });
+      const measure = () => page.locator("#dialog").evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        const body = element.querySelector(".body")!;
+        const content = element.querySelector("#content")!;
+        const action = element.querySelector("footer button")!.getBoundingClientRect();
+        const scroll = body.querySelector<HTMLElement>('[data-component~=ui-scroll-area]')!;
+        const border = parseFloat(getComputedStyle(element).borderBottomWidth);
+        return { height: rect.height, top: rect.top, bottom: rect.bottom, contentHeight: content.getBoundingClientRect().height,
+          marginStart: parseFloat(getComputedStyle(content).marginTop), marginEnd: parseFloat(getComputedStyle(content).marginBottom),
+          bottomInset: rect.bottom - border - action.bottom, inlineInset: parseFloat(getComputedStyle(body).paddingLeft),
+          scrolls: scroll.scrollHeight > scroll.clientHeight, actionBottom: action.bottom,
+        };
+      });
+      const short = await measure();
+      assert.equal(short.bottomInset, short.inlineInset, `${adapter}: actions have the same bottom and side gutters`);
+      assert.equal(short.marginStart + short.marginEnd, 0, `${adapter}: paragraph edge margins do not inflate the dialog`);
+      assert.ok(short.height < 200, `${adapter}: one line does not create an oversized dialog (${short.height}px)`);
+      await page.evaluate(() => (window as any).setLines(60));
+      await page.waitForFunction(() => document.querySelector('[data-component~=ui-scroll-area]')!.scrollHeight > document.querySelector('[data-component~=ui-scroll-area]')!.clientHeight);
+      const tall = await measure();
+      assert.ok(tall.height > short.height && tall.top >= 16 && tall.bottom <= 584, `${adapter}: growth stops at viewport gutters`);
+      assert.equal(tall.scrolls, true);
+      assert.ok(tall.actionBottom <= 560, `${adapter}: actions remain visible when the body overflows`);
+      await page.evaluate(() => (window as any).setLines(1));
+      await page.waitForFunction(() => document.querySelector("#dialog")!.getBoundingClientRect().height < 200);
+      assert.equal((await measure()).height, short.height, `${adapter}: shrinking restores intrinsic height`);
+      await page.close();
+    }
+  });
+
+  it("animates content growth and shrinkage, retargets an active resize, and respects reduced motion in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-height-motion`, adapter === "html" ? `
+        import "@threadlabs/looma";
+        window.setLines = count => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Dialog } from "@threadlabs/looma/vue";
+        const lines = ref(1);
+        window.setLines = count => { lines.value = count; };
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", { id: "content" }, Array(lines.value).fill("Content line").join("\\n"))) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p></ui-dialog>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 1000 }, reducedMotion: "no-preference" });
+      await page.addStyleTag({ content: 'body {font:16px/24px system-ui} p {white-space:pre-line} #dialog {--ui-dialog-duration:200ms}' });
+      await page.waitForFunction(() => document.querySelector("#dialog")!.getAnimations().length === 0);
+      const short = await page.locator("#dialog").evaluate(element => element.getBoundingClientRect().height);
+      const sample = async (lines: number, retarget = 0) => page.locator("#dialog").evaluate(async (element, { lines, retarget }) => {
+        (window as any).setLines(lines);
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+        const frames = [];
+        for (let frame = 0; frame < 30; frame++) {
+          if (frame === 3 && retarget) (window as any).setLines(retarget);
+          await new Promise(requestAnimationFrame);
+          frames.push(element.getBoundingClientRect().height);
+        }
+        return frames;
+      }, { lines, retarget });
+      const growing = await sample(8);
+      const tall = growing.at(-1)!;
+      assert.ok(growing.some(height => height > short + 1 && height < tall - 1), `${adapter}: growth has intermediate rendered heights`);
+      const shrinking = await sample(1);
+      assert.ok(shrinking.some(height => height > short + 1 && height < tall - 1), `${adapter}: shrinkage has intermediate rendered heights`);
+      assert.ok(Math.abs(shrinking.at(-1)! - short) < 1);
+      const retargeted = await sample(8, 4);
+      assert.ok(Math.abs(retargeted.at(-1)! - (short + 3 * 24)) < 1, `${adapter}: rapid content changes settle at the latest intrinsic height`);
+      const capped = await sample(60);
+      assert.ok(capped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: growth animates toward the viewport cap`);
+      assert.ok(Math.abs(capped.at(-1)! - 968) < 1, `${adapter}: animated growth respects both 16px viewport gutters`);
+      assert.equal(await page.locator('[data-component~=ui-scroll-area]').evaluate(element => element.scrollHeight > element.clientHeight), true);
+      const uncapped = await sample(4);
+      assert.ok(uncapped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: shrinkage animates away from the viewport cap`);
+      assert.ok(Math.abs(uncapped.at(-1)! - retargeted.at(-1)!) < 1);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      const immediate = await sample(1);
+      assert.ok(immediate.every(height => Math.abs(height - short) < 1), `${adapter}: reduced motion changes height immediately`);
+      await page.close();
+    }
+  });
+
+  it("keeps HTML and Vue non-modal dialogs above transformed, clipped ancestors without a backdrop", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-top-layer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Dialog } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", "Body")) }).mount("#app");
+      `);
+      const page = await open(path, `
+        <div id="card" style="transform: translateY(-2px); overflow: hidden; width: 160px; height: 80px">
+          ${adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p>Body</p></ui-dialog>' : '<div id="app"></div>'}
+        </div>
+        <div style="position: fixed; inset: 0; z-index: 2147483647; background: red"></div>
+      `, [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const dialog = page.locator("#dialog");
+      assert.equal(await dialog.evaluate((element) => element.matches(":popover-open")), true, `${adapter}: non-modal dialogs belong to the top layer`);
+      assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+      assert.equal(await dialog.evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+      const geometry = await dialog.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const body = element.querySelector(".body")!;
+        return {
+          centerX: box.x + box.width / 2, centerY: box.y + box.height / 2,
+          viewportX: innerWidth / 2, viewportY: innerHeight / 2,
+          paintedAbove: element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)),
+          padding: parseFloat(getComputedStyle(body).paddingLeft),
+        };
+      });
+      assert.ok(Math.abs(geometry.centerX - geometry.viewportX) < 2 && Math.abs(geometry.centerY - geometry.viewportY) < 2, `${adapter}: dialog stays viewport-centered`);
+      assert.equal(geometry.paintedAbove, true, `${adapter}: the dialog paints above ordinary page stacking contexts`);
+      assert.ok(geometry.padding > 0, `${adapter}: the nested scroll component does not erase dialog body spacing`);
+      await dialog.getByRole("button", { name: "Close" }).click();
+      await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+      assert.equal(await dialog.evaluate((element) => element.matches(":popover-open")), false, `${adapter}: closing releases the top layer`);
+      await page.close();
+    }
+  });
+
+  it("honors authored close commands outside a non-modal dialog", async () => {
+    const path = await bundle("html-dialog-external-close", `import "@threadlabs/looma";`);
+    const page = await open(path, '<button id="dismiss" command="close" commandfor="dialog">Dismiss dialog</button><ui-dialog id="dialog" open label="Details">Body</ui-dialog>', [join(root, "tokens.css")]);
+    await page.locator("#dismiss").click();
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator("#dialog").evaluate((dialog: HTMLDialogElement) => dialog.open), false);
+    assert.equal(await page.locator("#dialog").evaluate((dialog) => dialog.matches(":popover-open")), false);
+    await page.close();
+  });
 
   it("keeps nested modal dialogs open with only one visible backdrop", async () => {
     const path = await bundle("html-dialog-nested-backdrops", `import "@threadlabs/looma";`);
@@ -5537,6 +5760,7 @@ describe("Vue editor components", () => {
     assert.equal(await toolbar.locator(".menu").count(), 0);
     await toolbar.locator('[data-action="toggle-overflow"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 1);
+    await page.waitForFunction(() => document.querySelector("#toolbar .menu")?.matches(":popover-open"));
     assert.deepEqual(await toolbar.locator('.menu [role="menuitem"]').allTextContents(), ["Delete table"]);
     await toolbar.locator('[data-action="delete-table"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 0);

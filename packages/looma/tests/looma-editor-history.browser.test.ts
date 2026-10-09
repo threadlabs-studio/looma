@@ -529,7 +529,13 @@ describe("LoomaEditor history (real browser)", () => {
     await flushBrowser();
     const pre = host.querySelector("pre")!;
     const block = pre.getBoundingClientRect();
-    const picker = host.querySelector(".looma-editor__code-language")!.getBoundingClientRect();
+    const pickerElement = host.querySelector(".looma-editor__code-language")!;
+    expect(pickerElement.matches(":popover-open")).toBe(true);
+    const chrome = getComputedStyle(pickerElement);
+    expect(parseFloat(chrome.paddingTop)).toBeGreaterThan(0);
+    expect(parseFloat(chrome.borderTopWidth)).toBeGreaterThan(0);
+    expect(chrome.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    const picker = pickerElement.getBoundingClientRect();
     expect(picker.bottom).toBeLessThanOrEqual(block.top);
     expect(Math.abs((picker.left + picker.right) / 2 - (block.left + block.right) / 2)).toBeLessThan(1);
     // No space is reserved inside the block for the picker.
