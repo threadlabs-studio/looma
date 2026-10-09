@@ -3,6 +3,9 @@
     <prop name="variant" type="keyword" values="row, card" default="row"
     >How the item is drawn. A row is flat and takes a hover surface when it is a link, for items read down a list. A card sits on a raised, bordered surface,
       for items set in a grid (a List with layout="grid"). Both have the same parts: leading, title, description, and trailing.</prop>
+    <prop name="leadingInteractive" type="boolean" default="false"
+    >Makes the leading region an independent control above the row link. Use it for a checkbox or button; keep noninteractive row icons in the title link when
+      combining them with a leading control.</prop>
     <prop name="wrap" type="boolean" default="false"
     >Lets the title and description wrap so explanatory text stays readable on narrow screens. Omit it for the default equal-height, one-line rows.</prop>
     <prop name="current" type="boolean" default="false"
@@ -12,7 +15,7 @@
     >Gives an item a quiet accent wash without changing its text or announcing selection. Several items may be highlighted, such as new messages. Describe the
       reason in the item's text; use current only for the current destination.</prop>
   </defs>
-  <li from:aria-current="current">
+  <li from:aria-current="$current">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot></slot></span>
@@ -74,11 +77,11 @@
       background: var(--ui-surface-raised);
     }
 
-    :host:has(.title a[href]:hover) {
-      background: var(--ui-surface-hover);
+    :host:where(:has(.title a[href])):hover {
+      background: var(--ui-selection-surface);
     }
 
-    :host([variant="card"]):has(.title a[href]:hover) {
+    :host([variant="card"]):where(:has(.title a[href])):hover {
       border-color: var(--ui-border-strong);
     }
 
@@ -110,6 +113,12 @@
 
     :host([current]) .leading {
       color: var(--ui-selection-text);
+    }
+
+    /* An explicitly independent leading control sits above the stretched row link. */
+    :host([leadingInteractive]) .leading {
+      position: relative;
+      z-index: 1;
     }
 
     /* Trailing controls take their own clicks, above the title link's stretched hit area. */

@@ -84,7 +84,7 @@
     "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.29",
+    "@nextwebwg/html-next": "1.0.0-alpha.35",
     "dompurify": "3.4.15",
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
@@ -159,6 +159,6 @@
     "jsdom": "^27.0.0"
   },
   "engines": {
-    "node": ">=22.13 <23 || >=24 <25"
+    "node": ">=22.22.2 <23 || >=24.15 <25"
   }
 }

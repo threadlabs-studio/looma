@@ -35,12 +35,12 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <dialog from:aria-label="accessibleLabel">
+  <dialog from:aria-label="$accessibleLabel">
     <header>
-      <h2 class="title" $if="label">{$label}</h2>
+      <h2 class="title" $if="$label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
-    <ui-scroll-area class="body" from:fill="true" padding="md"><slot></slot></ui-scroll-area>
+    <div class="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
     <footer><slot name="actions"></slot></footer>
   </dialog>
   <style>
@@ -137,8 +137,7 @@
       display: none;
     }
 
-    /* Header and actions stay pinned; only the body scrolls when content is long. The body is a
-       nested Scroll Area, outside these rules, so its fill and padding are set on the invocation. */
+    /* Own the layout wrapper; nested component roots are outside these scoped rules. */
     header {
       display: flex;
       align-items: center;
@@ -216,13 +215,21 @@
       block-size: var(--ui-control-min-block-size);
     }
 
+    .body {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-block-size: 0;
+      padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-5);
+    }
+
     footer {
       display: flex;
       flex: none;
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: var(--ui-space-2);
-      padding: var(--ui-space-3) var(--ui-space-5);
+      padding: 0 var(--ui-space-5) var(--ui-space-5);
     }
 
     footer:empty {

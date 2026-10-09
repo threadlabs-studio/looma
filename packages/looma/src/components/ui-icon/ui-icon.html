@@ -79,25 +79,25 @@
         'user-round': [{ tag: 'circle', cx: '12', cy: '8', r: '5' }, { tag: 'path', d: 'M20 21a8 8 0 0 0-16 0' }],
         'users': [{ tag: 'path', d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }, { tag: 'path', d: 'M16 3.128a4 4 0 0 1 0 7.744' }, { tag: 'path', d: 'M22 21v-2a4 4 0 0 0-3-3.87' }, { tag: 'circle', cx: '9', cy: '7', r: '4' }],
         'x': [{ tag: 'path', d: 'M18 6 6 18' }, { tag: 'path', d: 'm6 6 12 12' }],
-      }[name]"
+      }[$name]"
     ></computed>
   </defs>
   <span aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
-      <g $each="shape of shapes">
-        <path $if="shape.tag = 'path'" from:d="shape.d"></path>
-        <circle $if="shape.tag = 'circle'" from:cx="shape.cx" from:cy="shape.cy" from:r="shape.r"></circle>
+      <g $each="shape of $shapes">
+        <path $if="$shape.tag = 'path'" from:d="$shape.d"></path>
+        <circle $if="$shape.tag = 'circle'" from:cx="$shape.cx" from:cy="$shape.cy" from:r="$shape.r"></circle>
         <rect
-          $if="shape.tag = 'rect'"
-          from:x="shape.x"
-          from:y="shape.y"
-          from:width="shape.width"
-          from:height="shape.height"
-          from:rx="shape.rx"
-          from:ry="shape.ry"
+          $if="$shape.tag = 'rect'"
+          from:x="$shape.x"
+          from:y="$shape.y"
+          from:width="$shape.width"
+          from:height="$shape.height"
+          from:rx="$shape.rx"
+          from:ry="$shape.ry"
         >
         </rect>
-        <line $if="shape.tag = 'line'" from:x1="shape.x1" from:y1="shape.y1" from:x2="shape.x2" from:y2="shape.y2"></line>
+        <line $if="$shape.tag = 'line'" from:x1="$shape.x1" from:y1="$shape.y1" from:x2="$shape.x2" from:y2="$shape.y2"></line>
       </g>
     </svg>
   </span>

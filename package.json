@@ -21,7 +21,7 @@
   ],
   "packageManager": "pnpm@10.7.1",
   "engines": {
-    "node": ">=22.13 <23 || >=24 <25"
+    "node": ">=22.22.2 <23 || >=24.15 <25"
   },
   "scripts": {
     "build": "pnpm --filter @threadlabs/looma build && pnpm -r --filter './apps/**' run build",

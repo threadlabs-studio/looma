@@ -23,18 +23,18 @@
     </event>
   </defs>
   <div>
-    <div class="list" $ref="list" role="tablist" from:aria-label="label" from:aria-orientation="orientation">
+    <div class="list" $ref="list" role="tablist" from:aria-label="$label" from:aria-orientation="$orientation">
       <slot name="tab">
         <button
-          $each="tab of tabs"
-          $key="tab.id"
+          $each="tab of $tabs"
+          $key="$tab.id"
           type="button"
           role="tab"
-          from:id="concat(tab.id, '-tab')"
-          from:value="tab.id"
-          from:aria-controls="tab.id"
-          from:aria-selected="tab.id = internalValue"
-          $value="tab.label"
+          from:id="concat($tab.id, '-tab')"
+          from:value="$tab.id"
+          from:aria-controls="$tab.id"
+          from:aria-selected="$tab.id = $internalValue"
+          $value="$tab.label"
         >
         </button>
       </slot>

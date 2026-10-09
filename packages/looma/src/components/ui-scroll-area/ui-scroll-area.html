@@ -10,6 +10,9 @@
     <prop name="padding" type="keyword" values="none, xs, sm, md, lg" default="none"
     >The space inside the scrolling region, on Card's scale: xs is 0.5rem, sm 0.75rem, md 1.5rem, and lg 2rem. It scrolls with the content, so the scrollbar and
       fades stay at the edges.</prop>
+    <prop name="trim" type="boolean" default="false"
+    >Removes the outer block margins of the first and last projected items when the surrounding panel owns its edge padding. Margins between items remain
+      intact.</prop>
   </defs>
   <div><div class="content" $ref="content"><slot></slot></div></div>
   <style>
@@ -42,6 +45,15 @@
 
     .content {
       display: flow-root;
+    }
+
+    /* Trim projected edges without changing spacing inside an item. */
+    :host([trim]) .content > :slotted(:first-child) {
+      margin-block-start: 0;
+    }
+
+    :host([trim]) .content > :slotted(:last-child) {
+      margin-block-end: 0;
     }
 
     :host([orientation="horizontal"]) {

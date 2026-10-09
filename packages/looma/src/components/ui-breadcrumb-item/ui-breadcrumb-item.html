@@ -3,7 +3,7 @@
     <prop name="current" type="boolean" default="false"
     >Marks the step as the view you are on: it is plain text with aria-current="page". Every other step holds a link.</prop>
   </defs>
-  <li from:aria-current="{ true: 'page', false: null }[concat(current)]">
+  <li from:aria-current="{ true: 'page', false: null }[concat($current)]">
     <span class="separator" aria-hidden="true"><ui-icon name="chevron-right"></ui-icon></span>
     <span class="content"><slot></slot></span>
   </li>

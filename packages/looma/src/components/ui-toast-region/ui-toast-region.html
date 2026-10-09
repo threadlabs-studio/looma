@@ -34,17 +34,17 @@
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
     <slot></slot>
     <div
-      $each="toast of toasts"
-      $key="toast.id"
+      $each="toast of $toasts"
+      $key="$toast.id"
       class="toast"
-      class:closing="toast.closing"
-      from:id="toast.id"
-      from:role="toast.role"
-      from:data-tone="toast.tone"
+      class:closing="$toast.closing"
+      from:id="$toast.id"
+      from:role="$toast.role"
+      from:data-tone="$toast.tone"
     >
       <span class="message">{$toast.message}</span>
-      <span class="dismiss" from:data-toast="toast.id">
-        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="concat('Dismiss ', toast.message)">
+      <span class="dismiss" from:data-toast="$toast.id">
+        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="concat('Dismiss ', $toast.message)">
           <ui-icon name="x"></ui-icon>
         </ui-icon-button>
       </span>

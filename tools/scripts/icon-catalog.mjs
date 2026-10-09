@@ -30,5 +30,5 @@ export function iconShapesExpression(catalog) {
   const shape = ([tag, attributes]) =>
     `{ ${[["tag", tag], ...Object.entries(attributes)].map(([key, value]) => `${key}: ${text(value)}`).join(", ")} }`;
   const entries = Object.entries(catalog).map(([name, nodes]) => `        ${text(name)}: [${nodes.map(shape).join(", ")}],`);
-  return `{\n${entries.join("\n")}\n      }[name]`;
+  return `{\n${entries.join("\n")}\n      }[$name]`;
 }
