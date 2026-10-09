@@ -13,7 +13,7 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
 ## Overlay Types
 
 - `ui-popover`: non-modal anchored overlay, light dismiss by default.
-- `ui-dialog`: modal overlay with focus trap, light dismiss off by default.
+- `ui-dialog`: viewport-centered overlay, non-modal by default; `modal` adds inertness, backdrop, and focus containment.
 
 ## Light Dismiss
 
@@ -66,11 +66,34 @@ keeps that containment current while the surface is open. This avoids both
 off-screen native placement and a full CSS syntax polyfill in every consumer
 bundle.
 
-The custom-element host owns top-layer placement only. For menus and popovers,
-a single shadow surface owns background, border, shadow, and conditional
-overflow scrolling. The public light-DOM overlay chrome applies only before
-custom-element definition, so it cannot paint a second box around the upgraded
-surface.
+Every open floating surface uses the browser's native top presentation layer. A popup stays in
+its authored DOM position for inheritance, events, and framework ownership, but its presentation
+is outside ancestor clipping, transforms, and stacking contexts. Anchored controls remain visually
+attached to their invoker; viewport dialogs remain viewport-centered. Inline menus and docked
+controls remain ordinary page content.
+
+A popover or menu without `for` also renders in the top layer, at the place it is written, and
+travels with that place. Engines disagree on a top-layer surface's static position (Chromium uses
+the viewport origin), so `writtenPlace` measures the surface in page flow before it is shown, then
+carries that point with the box that holds it through page and nested scrolling. It neither flips
+nor shifts into the viewport. Table Context Menu uses the same place; only a menu written in a
+fixed or absolutely positioned box, or placed by an integration's inline insets as LoomaEditor
+does, is kept inside the viewport.
+
+Native modal dialogs use `showModal()`. Non-modal dialogs use `show()` plus a manual popover,
+keeping focus and close semantics while leaving the rest of the page usable. Modality and top-layer
+presentation are separate responsibilities.
+
+`observeOverlayViewport` owns one capture scroll handler and a coalesced viewport pass per
+document, shared across separately loaded HTML and Vue bundles. Only active surfaces subscribe;
+the last unsubscribe removes the listeners. Nested scroller events, resize, and visual viewport
+changes remeasure each live element or virtual anchor. The shared flip/shift policy keeps anchored
+surfaces within viewport gutters; oversized surfaces constrain their own scrollable height.
+Editor suggestion snapshots expose `getRect()` to remeasure the current caret anchor after scroll.
+
+Static, always-open docs examples run in isolated preview documents with their own native top
+layers. Live triggered examples, including Dialog, use the page's top layer. Preview CSS must not
+turn a production popup into an inline or card-positioned surface.
 
 Unanchored viewport UI uses the same top-layer boundary through
 `createViewportSurface`; `ui-toast-region` is the canonical example. Its CSS
