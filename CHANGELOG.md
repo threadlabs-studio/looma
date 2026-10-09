@@ -11,6 +11,10 @@
 - Dialog optically balances its header inset and sizes to its content. Open dialogs animate content growth and shrinkage over the dialog motion duration instead of jumping; active resizing retargets, and reduced-motion users still resize immediately.
 - Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
 - Table context menus keep their minimum width inside narrow presentation viewports.
+- Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
+- Badge adds a larger 32px circle and 40px square with `size="lg"`, with room for short counts such as `30` and `99+`. Its `inverse` variant uses a partly translucent contrasting surface for labels on a filled control, retaining readable tone ink. Text pills and fixed text marks use the same capital-height/alphabetic-baseline centering. Ellipsis clips only horizontal overflow, keeping ascenders and descenders visible within the existing badge geometry.
+- Inverse circular counts and round avatars have a shallow shadow, giving them a small amount of lift above the surrounding surface.
+- List Item adds opt-in `align="title"` to keep leading and trailing marks beside the first title line when descriptions wrap. Existing rows retain centered alignment.
 
 ## v0.26.2
 
