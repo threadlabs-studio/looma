@@ -3,6 +3,10 @@ import path from "node:path";
 
 export const stages = { ci: ["quality", "package-consumer"], docs: ["docs-behavior", "docs-visual"] };
 export const workflowPaths = { ci: ".github/workflows/ci.yml", docs: ".github/workflows/docs-parity.yml" };
+export const isBrowserTest = (file) => /(?:^|\/)browser\.test\.ts$|\.browser\.test\.ts$/.test(file);
+export const vitestConfiguration = (file) => file.endsWith(".browser.test.ts") ? "vitest.browser.config.ts" : "vitest.config.ts";
+export const vitestArguments = (file, names, report) => ["--filter", "@threadlabs/looma", "exec", "vitest", "run", file.replace(/^packages\/looma\//, ""),
+  "--config", vitestConfiguration(file), ...(names ? ["--testNamePattern", caseNamePattern(names)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=json", `--outputFile=${report}`];
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const componentOf = (file) => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//.exec(file)?.[1];
 const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|packages\/looma\/(?:build\.mjs|package\.json|tsconfig[^/]*|src\/(?:tokens\/|env\.d\.ts))|tools\/(?:tsconfig\/|style-source-allowlist\.json|scripts\/style-source-policy\.mjs))/.test(file);
@@ -48,8 +52,26 @@ export function affectedComponents(files, initial, examples = false) {
 }
 
 /** Static cases in shared suites keep independent primitives out of a focused run. */
+function codePositions(source) {
+  const positions = new Uint8Array(source.length);
+  for (let index = 0; index < source.length; index++) {
+    const char = source[index];
+    if (char === '"' || char === "'" || char === "`") {
+      for (index++; index < source.length; index++) {
+        if (source[index] === "\\") index++;
+        else if (source[index] === char) break;
+      }
+      continue;
+    }
+    if (source.startsWith("//", index)) { const end = source.indexOf("\n", index); index = end < 0 ? source.length : end; continue; }
+    if (source.startsWith("/*", index)) { const end = source.indexOf("*/", index + 2); index = end < 0 ? source.length : end + 1; continue; }
+    positions[index] = 1;
+  }
+  return positions;
+}
 function calls(source, names) {
-  const starts = [...source.matchAll(new RegExp("\\b(?:" + names + ")(?:\\.(?:each|for)\\([^\\n]+\\))?\\(\\s*([\"'`])(.*?)\\1\\s*,", "g"))];
+  const positions = codePositions(source);
+  const starts = [...source.matchAll(new RegExp("\\b(?:" + names + ")(?:\\.(?:each|for)\\([^\\n]+\\))?\\(\\s*([\"'`])(.*?)\\1\\s*,", "g"))].filter((match) => positions[match.index]);
   return starts.map((match) => {
     const open = source.lastIndexOf("(", source.indexOf(match[1] + match[2] + match[1], match.index));
     let depth = 0, quote = null, end = source.length;
@@ -139,10 +161,10 @@ export function selectChecks(files, changes, hunks = {}) {
       const cases = testCases(source);
       const changed = changes.includes(file) || modules.includes(file);
       const edited = changed ? editedCases(source, hunks[file]) : [];
-      const selected = cases.filter((entry) => full || (nativeConfig && !file.endsWith(".browser.test.ts")) || (browserConfig && file.endsWith(".browser.test.ts")) || edited.some((change) => change.start === entry.start)
+      const selected = cases.filter((entry) => full || (nativeConfig && vitestConfiguration(file) === "vitest.config.ts") || (browserConfig && vitestConfiguration(file) === "vitest.browser.config.ts") || edited.some((change) => change.start === entry.start)
         || components.some((tag) => references(entry.source, tag)) || (editor && /editor|mention/i.test(file)));
       if (selected.length) packageTests[file] = selected.map(({ name }) => name);
-      else if ((changed || full || (nativeConfig && !file.endsWith(".browser.test.ts")) || (browserConfig && file.endsWith(".browser.test.ts")) || components.some((tag) => references(source, tag))) && !cases.length) packageTests[file] = null;
+      else if ((changed || full || (nativeConfig && vitestConfiguration(file) === "vitest.config.ts") || (browserConfig && vitestConfiguration(file) === "vitest.browser.config.ts") || components.some((tag) => references(source, tag))) && !cases.length) packageTests[file] = null;
       // A named import alias or an indirect shared harness cannot be safely mapped by spelling.
       else if (modules.includes(file) && !selected.length) packageTests[file] = null;
     }
@@ -301,7 +323,7 @@ export function qualificationMinutes(plans, files) {
     for (const [file, names] of Object.entries(selection.packageTests)) {
       const cases = names ?? testCases(files[file]).map(({ name }) => name);
       if (!cases.length) return Infinity; // Unknown generated discovery needs an explicit owner mapping.
-      minutes += cases.reduce((count, name) => count + (/\$\{|%(?:[sdifjo]|#)/.test(name) ? 3 : 1), 0) * (/browser\.test\.ts$/.test(file) ? 5 : 0.1) / 60;
+      minutes += cases.reduce((count, name) => count + (/\$\{|%(?:[sdifjo]|#)/.test(name) ? 3 : 1), 0) * (isBrowserTest(file) ? 5 : 0.1) / 60;
     }
     minutes += selection.scripts.length / 60;
   }
