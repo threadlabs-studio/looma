@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { snapshot } from "./ci-qualification.mjs";
-import { admitQualification, affectedComponents, affectedModules, caseNamePattern, checkoutRevision, selectChecks, stageInputs, fingerprint, validateCheckout, validateProvider, validateReceipt, validateBrowserReport, validateNodeReport, validateVitestReport } from "./ci-selection.mjs";
+import { admitQualification, affectedComponents, affectedModules, caseNamePattern, checkoutRevision, isBrowserTest, selectChecks, stageInputs, fingerprint, testCases, validateCheckout, validateProvider, validateReceipt, validateBrowserReport, validateNodeReport, validateVitestReport, vitestArguments } from "./ci-selection.mjs";
 
 const files = {
   "packages/looma/src/components/ui-button/ui-button.html": '<template component="ui-button"></template>',
@@ -139,6 +140,30 @@ test("qualified names avoid unrelated duplicate titles and retain parameterized 
   assert.ok(!pattern.test("Select cannot be cleared"));
   assert.ok(pattern.test("Dialog keeps html inset"));
   assert.ok(pattern.test("bubble tools dismiss"));
+});
+
+test("case discovery ignores fixture source strings and commented calls", () => {
+  const source = `const fixture = 'it("fictional", () => {});';\n// test("commented", () => {});\n/* describe("commented suite", () => { it("also fictional", () => {}); }); */\ndescribe("real", () => { it("owned", () => {}); });`;
+  assert.deepEqual(testCases(source).map(({ name }) => name), ["real owned"]);
+});
+
+test("main and editor browser suites share Chromium ownership while retaining their actual Vitest configs", () => {
+  const main = "packages/looma/tests/browser.test.ts", editor = "packages/looma/tests/looma-editor-chip.browser.test.ts";
+  for (const [file, config] of [[main, "vitest.config.ts"], [editor, "vitest.browser.config.ts"]]) {
+    assert.equal(isBrowserTest(file), true);
+    const args = vitestArguments(file, ["owned"], "report.json");
+    assert.equal(args[args.indexOf("--config") + 1], config);
+    assert.ok(args.includes("--maxWorkers=1"));
+  }
+  assert.equal(isBrowserTest("packages/looma/tests/tree.test.ts"), false);
+  const actual = snapshot("origin/main", true);
+  assert.ok(selectChecks(actual, ["packages/looma/vitest.config.ts"]).packageTests[main]);
+  assert.ok(selectChecks(actual, ["packages/looma/vitest.browser.config.ts"]).packageTests[editor]);
+  const runner = readFileSync(new URL("./ci-qualification.mjs", import.meta.url), "utf8");
+  assert.match(runner, /packageTests\)\.some\(isBrowserTest\)/);
+  assert.match(runner, /run\(vitestArguments\(/);
+  assert.match(runner, /safe\.directory=\$\{root\}/);
+  assert.doesNotMatch(runner, /git config --global/);
 });
 
 test("Vitest proof refuses empty, skipped or missing selected cases while ignoring unchanged filtered cases", () => {
