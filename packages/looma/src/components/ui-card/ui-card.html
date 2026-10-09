@@ -14,9 +14,9 @@
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
   <template $match>
-    <section $when="as = 'section'"><slot></slot></section>
-    <article $when="as = 'article'"><slot></slot></article>
-    <aside $when="as = 'aside'"><slot></slot></aside>
+    <section $when="$as = 'section'"><slot></slot></section>
+    <article $when="$as = 'article'"><slot></slot></article>
+    <aside $when="$as = 'aside'"><slot></slot></aside>
     <div $else><slot></slot></div>
   </template>
   <style>

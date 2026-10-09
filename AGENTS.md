@@ -5,7 +5,7 @@ This file is the canonical guidance for AI coding agents in this repository.
 
 ## Repository
 
-- pnpm workspace (`pnpm@10`, Node 22.13 or 24). The only package is `packages/looma`
+- pnpm workspace (`pnpm@10`, Node 22.22.2+ or 24.15+). The only package is `packages/looma`
   (`@threadlabs/looma`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.
@@ -113,7 +113,10 @@ Every app using Looma pays for a changed API, so the bar is high.
   pull request declared, and npm plus the tags record every patch since. For a
   minor or major, set the version ahead of the registry in the PR
   (`node tools/scripts/release-version.mjs --apply 0.8.0`) and it publishes as
-  declared. Add a `CHANGELOG.md` entry with the change.
+  declared. Merging releases, so `CHANGELOG.md` has no Unreleased section: add
+  the entry under `## vX.Y.Z` for the version the merge releases (the patch
+  after npm's `latest`, or the declared version). If another merge takes that
+  version first, move the entry to the next one.
 - Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
 - Looma is pre-1.0: breaking changes bump the minor version.
 

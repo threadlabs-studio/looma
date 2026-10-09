@@ -20,26 +20,26 @@
   </defs>
   <template $match>
     <a
-      $when="href and type = 'action'"
+      $when="$href and $type = 'action'"
       role="menuitem"
       tabindex="-1"
-      from:aria-disabled="disabled"
-      from:data-value="value"
-      from:href="{ true: null, false: href }[concat(disabled)]"
+      from:aria-disabled="$disabled"
+      from:data-value="$value"
+      from:href="{ true: null, false: $href }[concat($disabled)]"
     >
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
     </a>
     <div
       $else
-      from:role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
-      from:aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
+      from:role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[$type]"
+      from:aria-checked="{ action: null, checkbox: $internalChecked, radio: $internalChecked }[$type]"
       tabindex="-1"
-      from:aria-disabled="disabled"
-      from:data-value="value"
+      from:aria-disabled="$disabled"
+      from:data-value="$value"
     >
       <span class="indicator" aria-hidden="true">
-        <ui-icon $if="(type = 'checkbox' or type = 'radio') and internalChecked" name="check"></ui-icon>
+        <ui-icon $if="($type = 'checkbox' or $type = 'radio') and $internalChecked" name="check"></ui-icon>
       </span>
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
