@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.0
+
+- **Breaking: authored toasts hide themselves when dismissed.** Previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. A toast authored `hidden` waits to be shown before its duration starts. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.
+- Listbox caps its visible choices at `rows` and hides them until it upgrades, and the Toast dismiss button sits at the intended distance from the edge. Both styled a nested component's root, which HTML Next's scoped styles never match, so the rules had no effect. Scroll Area adds a `padding` option (`none` by default, then `xs`, `sm`, `md`, `lg` on Card's scale) that scrolls with the content, keeping the scrollbar and fades at the edges.
+- A colored accent edge now has straight corners on its side: toned Toasts (authored or from Toast Region), Callout, and danger Card and Section cards no longer round the corners their stripe runs into.
+
 ## v0.26.3
 
 - Table Context Menu keeps its place in normal page flow, so documentation and other in-page examples show the whole menu. A menu in a fixed or absolutely positioned box, as LoomaEditor places it, moves to stay inside the viewport. Separators sit only between sections, and cell background swatches keep whole labels: three to a row at the menu's full width, fewer in a narrower menu.
