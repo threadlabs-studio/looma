@@ -1,4 +1,4 @@
-import { createViewportSurface } from "../shared/overlay.js";
+import { createViewportSurface, writtenPlace } from "../shared/overlay.js";
 import { backgrounds, viewport } from "../shared/editor.js";
 
 const sections = [
@@ -26,27 +26,37 @@ const sections = [
   ]],
 ];
 
-const floats = (node) => node && /^(fixed|absolute)$/.test(getComputedStyle(node).position);
-
-// Lists the actions the selection permits, and nudges the open menu back inside the viewport.
+// Shows the menu at the place it is written, keeping one in a floating box inside the viewport, and lists
+// the actions the selection permits.
 function connect(host) {
   const element = host.element;
+  let place = null;
   const nudge = () => {
     element.style.translate = "";
-    // Only a floating menu answers to the viewport; one in normal flow scrolls with its page.
-    if (!floats(element) && !floats(element.offsetParent)) return;
+    if (!place) return;
     const rect = element.getBoundingClientRect();
-    const view = viewport();
-    const inset = 12;
-    let x = 0;
-    let y = 0;
-    if (rect.left < view.left + inset) x = view.left + inset - rect.left;
-    else if (rect.right > view.right - inset) x = view.right - inset - rect.right;
-    if (rect.top < view.top + inset) y = view.top + inset - rect.top;
-    else if (rect.bottom > view.bottom - inset) y = view.bottom - inset - rect.bottom;
+    const at = place.rect();
+    let x = at.left - rect.left;
+    let y = at.top - rect.top;
+    // Only a menu in a fixed or absolutely positioned box, as LoomaEditor places it, answers to the
+    // viewport; one in page flow travels with its place.
+    if (place.floating) {
+      const view = viewport();
+      const inset = 12;
+      const left = rect.left + x;
+      const top = rect.top + y;
+      if (left < view.left + inset) x += view.left + inset - left;
+      else if (left + rect.width > view.right - inset) x += view.right - inset - left - rect.width;
+      if (top < view.top + inset) y += view.top + inset - top;
+      else if (top + rect.height > view.bottom - inset) y += view.bottom - inset - top - rect.height;
+    }
     if (x || y) element.style.translate = `${x}px ${y}px`;
   };
   const surface = createViewportSurface(element, { position: nudge });
+  const show = () => {
+    if (!element.matches(":popover-open")) place = writtenPlace(element, ["translate"]);
+    surface.show();
+  };
   const stop = host.effect(() => {
     const scope = String(host.props.scope.value || "cell");
     const enabled = new Set((Array.isArray(host.props.actions.value) ? host.props.actions.value : []).filter((action) =>
@@ -62,7 +72,7 @@ function connect(host) {
           .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
-    if (host.props.open.value) queueMicrotask(() => { if (host.props.open.value) surface.show(); });
+    if (host.props.open.value) queueMicrotask(() => { if (host.props.open.value) show(); });
     else surface.hide();
   });
   const onClick = (event) => {

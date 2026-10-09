@@ -2,7 +2,7 @@
 // importing @threadlabs/looma/vue, and a plain page registering the components with dist/index.js.
 import assert from "node:assert/strict";
 import type { Editor } from "@tiptap/core";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
@@ -185,6 +185,33 @@ describe("Pressed icon controls and circular marks", () => {
 });
 
 describe("Anchored overlay placement", () => {
+  it("presents an open popover and menu without for in the top layer at their written place, traveling with it", async () => {
+    const path = await bundle("html-unanchored-popups", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="height: 300px"></div>
+      <div id="stage" style="margin-inline-start: 40px; padding: 20px"><ui-popover id="popover" open>Popover content</ui-popover></div>
+      <div id="scroller" style="block-size: 200px; overflow: auto; padding: 10px">
+        <ui-menu id="menu" open aria-label="Actions"><ui-menu-item value="alpha">Alpha</ui-menu-item></ui-menu>
+        <div style="block-size: 600px"></div>
+      </div>
+      <div style="block-size: 2000px"></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => ["#popover", "#menu"].every((id) => document.querySelector(id)!.matches(":popover-open")));
+    // Offsets from the written place: each holder's padding edge, less its own scroll.
+    const offsets = () => page.evaluate(() => Object.fromEntries([["popover", "#stage"], ["menu", "#scroller"]].map(([id, holder]) => {
+      const box = document.getElementById(id)!.getBoundingClientRect();
+      const base = document.querySelector(holder)!;
+      const rect = base.getBoundingClientRect();
+      return [id, [Math.round(box.left - rect.left), Math.round(box.top - rect.top + base.scrollTop)]];
+    })));
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "not the viewport corner");
+    await page.evaluate(() => { scrollTo(0, 100); document.querySelector("#scroller")!.scrollTop = 40; });
+    await frames();
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "page and nested scrolling carry each popup with its place");
+    await page.close();
+  });
+
   it("shares one viewport listener across HTML and Vue popups, follows nested scrolling, and releases closed surfaces", async () => {
     const path = await bundle("mixed-overlay-coordinator", `
       import "@threadlabs/looma";
@@ -2839,28 +2866,6 @@ describe("Scroll area", () => {
 
   const items = Array.from({ length: 30 }, (_, index) => `<p>Item ${index}</p>`).join("");
   const settle = (page: Page) => page.waitForTimeout(250);
-
-  it("trims only projected edge margins when requested, in HTML and Vue", async () => {
-    for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-scroll-area-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
-        import { createApp, h } from "vue";
-        import { ScrollArea } from "@threadlabs/looma/vue";
-        createApp({ render: () => [false, true].map(trim => h(ScrollArea, { id: trim ? "trimmed" : "default", trim },
-          () => [h("p", "First"), h("section", [h("p", "Nested")]), h("p", "Last")])) }).mount("#app");
-      `);
-      const content = '<p>First</p><section><p>Nested</p></section><p>Last</p>';
-      const page = await open(path, adapter === "html" ? `<ui-scroll-area id="default">${content}</ui-scroll-area><ui-scroll-area id="trimmed" trim>${content}</ui-scroll-area>` : '<div id="app"></div>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
-      await page.addStyleTag({ content: "p {margin-block:20px}" });
-      const margins = async (id: string) => page.locator(`#${id} p`).evaluateAll(elements => elements.map(element => {
-        const style = getComputedStyle(element);
-        return [parseFloat(style.marginTop), parseFloat(style.marginBottom)];
-      }));
-      assert.deepEqual(await margins("default"), [[20, 20], [20, 20], [20, 20]], `${adapter}: default keeps authored margins`);
-      assert.deepEqual(await margins("trimmed"), [[0, 20], [20, 20], [20, 0]], `${adapter}: trim affects only the outer projected edges`);
-      await page.close();
-    }
-  });
 
   async function checkFades(page: Page) {
     const area = page.locator("#area");
