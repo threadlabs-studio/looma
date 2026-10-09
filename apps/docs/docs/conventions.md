@@ -83,12 +83,13 @@ slots.
 
 Where optical text trimming is enabled, set `text-box-trim: trim-both` and
 `text-box-edge: cap alphabetic` together on the element that owns the text.
-Keep component-specific size and leading. These properties do not inherit, so a
-trimmed Button does not trim a nested Badge. Do not force inheritance globally or
-use offsets for individual letters. Clipped labels with ellipsis and native inputs
+Keep component-specific size and leading. Trimming does not inherit, so a trimmed
+Button does not activate trimming on a nested Badge. The edge metric can inherit;
+declare both settings on each text owner to keep its geometry independent. Do not
+force trim inheritance globally or use offsets for individual letters. Clipped labels with ellipsis and native inputs
 retain full font metrics; preserve visible descenders and caret geometry. Circular
 Badge labels have visible overflow and use the shared trim rule for centered marks.
-See the [CSS text-box specification](https://drafts.csswg.org/css-inline-3/#text-edges).
+See the [CSS text-box specification](https://drafts.csswg.org/css-inline-3/#text-box-trim).
 
 To give a page Looma's type, set it on the page itself:
 
