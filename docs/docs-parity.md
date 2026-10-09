@@ -99,6 +99,11 @@ corepack pnpm --filter @threadlabs/looma-docs test:parity:container
 corepack pnpm --filter @threadlabs/looma-docs test:visual
 ```
 
+The docs build sets `USE_SIMPLE_CSS_MINIFIER=true`, Docusaurus's switch to cssnano alone. Its
+default second pass, clean-css, rewrites native `@scope` blocks, which HTML Next's Vue output uses
+since 1.0.0-alpha.41: it drops each block's first selector and moves the rest outside the scope, so
+the editor guide's Vue components lost their styles.
+
 For native browser runs, install the three engines with
 `PLAYWRIGHT_SKIP_BROWSER_GC=1 corepack pnpm --filter @threadlabs/looma-docs exec playwright install chromium firefox webkit`
 and run `test:parity` instead.
