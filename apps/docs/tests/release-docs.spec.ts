@@ -1988,7 +1988,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
     // Text treatments retain their order; leading icons, square and circle marks extend the gallery.
-    await expect(badges).toHaveCount(32);
+    await expect(badges).toHaveCount(36);
     const leading = page.locator('[data-preview-example="07-icon"] [data-component~="ui-badge"]');
     await expect(leading).toHaveCount(3);
     for (const badge of await leading.all()) await expect(badge.locator("svg")).toBeVisible();
@@ -2054,8 +2054,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     }
     expect(signals[0]!.background).not.toBe(signals[1]!.background);
     const squares = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=square']");
-    await expect(squares).toHaveCount(3);
-    for (const [index, size] of [32, 32, 24].entries()) {
+    await expect(squares).toHaveCount(4);
+    for (const [index, size] of [32, 32, 24, 40].entries()) {
       const mark = squares.nth(index);
       await expect(mark.locator("svg")).toBeVisible();
       const bounds = await mark.boundingBox();
@@ -2063,12 +2063,21 @@ test("every badge tone remains legible and visually distinct in light and dark t
       expect(bounds?.height).toBe(size);
     }
     const circles = page.locator('[data-preview-example="09-circle"] [data-component~="ui-badge"]');
-    await expect(circles).toHaveCount(3);
-    for (const [index, size] of [16, 24, 24].entries()) {
+    await expect(circles).toHaveCount(6);
+    for (const [index, size] of [16, 24, 24, 32, 32, 32].entries()) {
       const bounds = await circles.nth(index).boundingBox();
       expect(bounds?.width).toBe(size);
       expect(bounds?.height).toBe(size);
     }
+    await expect(circles.nth(3)).toHaveText("30");
+    await expect(circles.nth(3)).toHaveAttribute("aria-label", "30 items");
+    await expect(circles.nth(4)).toHaveText("99+");
+    const countedAction = page.getByRole("button", { name: "Submit 120 items", exact: true });
+    await expect(countedAction).toBeVisible();
+    const inverseCount = countedAction.locator('[data-component~="ui-badge"]');
+    await expect(inverseCount).toHaveText("99+");
+    await expect(inverseCount).toHaveAttribute("data-ui-badge-state", /variant=inverse/);
+    await expect(inverseCount).toHaveAttribute("aria-hidden", "true");
   }
 });
 
