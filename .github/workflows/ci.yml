@@ -53,6 +53,16 @@ jobs:
       - name: Test in a browser
         run: pnpm test:browser
 
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-failures
+          path: |
+            apps/docs/test-results/
+            packages/looma/tests/__screenshots__/
+          if-no-files-found: ignore
+
   release-package:
     runs-on: ubuntu-latest
     timeout-minutes: 30

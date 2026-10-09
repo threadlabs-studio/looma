@@ -67,6 +67,11 @@ export async function ready(page: Page): Promise<void> {
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
   // Controller chunks are imported after the preview mounts; wait for these real asset reads too.
   await expect.poll(() => pendingAssets.get(page)?.size ?? 0).toBe(0);
+  // Each static floating preview owns its document, fonts, and lazy controller imports.
+  for (const frame of page.frames().filter((frame) => frame !== page.mainFrame())) {
+    await frame.waitForFunction(() => !document.querySelector('script[src]') || document.querySelector('[data-component]'));
+    await frame.evaluate(async () => { await document.fonts.ready; });
+  }
   const brokenImages = await page.evaluate(async () => {
     await document.fonts.ready;
     return (await Promise.all(Array.from(document.images).filter((image) => image.getAttribute("src")).map(async (image) => {
