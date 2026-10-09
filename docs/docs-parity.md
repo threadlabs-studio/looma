@@ -68,9 +68,9 @@ the live examples; they are not three additional rendered scenarios.
 
 ## Existing visual quirks
 
-Some standalone editor mention/slash picker examples are open without an
-application anchor and appear near the viewport corner rather than inside their
-preview card. The catalog heading also wraps its last letter at 375px. References
+Standalone editor mention/slash picker examples open at the viewport
+coordinates their `anchor-rect` supplies, so they sit at their preview frame's
+edge rather than at the body inset. The catalog heading also wraps its last letter at 375px. References
 retain those current layouts. Caret-anchored menus in the editor guide have
 separate interaction/state coverage. Review intentional corrections through the
 same targeted baseline update process. API tables can also wrap short type names
@@ -132,16 +132,23 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
-The 0.26.3 reference refresh records the Table Context Menu page's three menus
-open inside their example stages, in the HTML and Vue views. The menu translated
-itself into the viewport when it opened and on every viewport resize, so menus
-below the first screen left their stages, and each full-page capture's resize
-moved them again; earlier references recorded those stages empty. The menu now
-applies its viewport correction only inside a fixed or absolutely positioned
-box, as in LoomaEditor. The same refresh records two corrections to the menu:
-no separator above its first section (Open and Row actions), and whole swatch
-labels. Swatches wrap three to a row at the menu's full width, so the Actions
-menu, with two swatches, takes the width of its commands.
+The 0.27.0 reference refresh records floating surfaces in the browser's top layer
+and the component corrections released with them. Static, always-open popup
+examples (Menu, Menu Item, Menu Group, the editor menus, Search Shell, and Table
+Context Menu) render in isolated preview documents with their own top layer. An
+open menu written without `for` sits at its written place, the preview body's
+12px inset, instead of the frame's corner. Table Context Menu has no separator
+above its first section, and its swatches keep whole labels, three to a row at
+the menu's full width. Dialog references record the top-layer dialog, its
+optical header inset and content-sized height, plus new catalog-dialog and mobile
+growth, body-scroll, and shrink states. Documentation heading and paragraph rules
+no longer reach into component examples, which changes example text in pages
+such as Disclosure, Menu, and Table; the desktop Table pages are 38px shorter.
+Their `--github-actions` variants come from GitHub's captures of this revision.
+Toast examples start hidden behind a button; danger Card and Section, Callout,
+and toned Toasts keep straight corners on their accent edge; and the Scroll Area
+page documents `padding`. The catalog dialog capture also hides the navbar version
+label, as every other capture does.
 
 The 0.26 reference refresh updates the navbar version on every desktop page and
 the Node range in Getting Started. Each desktop reference is the reviewed 0.25
