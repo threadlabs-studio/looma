@@ -26,11 +26,15 @@ const sections = [
   ]],
 ];
 
+const floats = (node) => node && /^(fixed|absolute)$/.test(getComputedStyle(node).position);
+
 // Lists the actions the selection permits, and nudges the open menu back inside the viewport.
 function connect(host) {
   const element = host.element;
   const nudge = () => {
     element.style.translate = "";
+    // Only a floating menu answers to the viewport; one in normal flow scrolls with its page.
+    if (!floats(element) && !floats(element.offsetParent)) return;
     const rect = element.getBoundingClientRect();
     const view = viewport();
     const inset = 12;
