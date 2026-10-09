@@ -5,7 +5,8 @@
     <prop name="tone" type="keyword" values="neutral, info, success, warning, danger" default="neutral"
     >Semantic accent for this message. Danger uses an assertive alert role; the other tones use polite status semantics.</prop>
     <prop name="duration" type="number" default="0"
-    >Milliseconds before the toast dismisses itself; 0 keeps it until an action dismisses it. The timer pauses on hover or focus.</prop>
+    >Milliseconds the toast is shown before it dismisses itself; 0 keeps it until an action dismisses it. The timer starts when the toast is shown, starts again
+      each time it is shown, and pauses on hover or focus.</prop>
     <event name="dismiss" type="object">
       <prop name="id" required type="string"></prop>
       <prop name="reason" required type="keyword" values="action, timeout"></prop>

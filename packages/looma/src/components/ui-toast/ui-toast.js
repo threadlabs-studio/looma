@@ -24,7 +24,8 @@ function connect(host) {
   };
   const start = () => {
     clearTimeout(timer);
-    if (paused || dismissed || remaining <= 0) return;
+    // The duration counts only while the toast is shown; a hidden toast has nothing to time out.
+    if (paused || dismissed || element.hidden || remaining <= 0) return;
     started = Date.now();
     timer = setTimeout(() => dismiss("timeout", "programmatic"), remaining);
   };
@@ -51,9 +52,13 @@ function connect(host) {
     remaining = duration;
     start();
   });
-  // Shown again: a fresh request to dismiss, with the full duration.
+  // Hidden by the app, the timer stops; shown (again), it is a fresh request with the full duration.
   const shown = new MutationObserver(() => {
-    if (element.hidden || !dismissed) return;
+    if (element.hidden) {
+      clearTimeout(timer);
+      timer = null;
+      return;
+    }
     dismissed = false;
     paused = false;
     remaining = Math.max(0, Number(host.props.duration.value) || 0);
