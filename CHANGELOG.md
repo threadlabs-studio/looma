@@ -4,6 +4,7 @@
 
 - Toast, generated Toast Region messages, and Callout use an even rounded border instead of a thicker, differently colored leading edge. Toast tones color the whole outline; Callout retains its shaded background. This corrects the default shape for all notification consumers without changing props, dismissal behavior, or status semantics. Existing explicit border and surface hooks remain available.
 - Every Toast tone now has a softly shaded surface, including a quiet muted neutral tone, and uses the small text scale. This makes authored and generated notifications more compact and gives every message a visible tone without requiring a variant. Explicit surface hooks continue to override the default.
+- Toast's close icon sits slightly nearer the outer edge for more balanced spacing beside its message, while retaining its existing click and touch targets.
 
 ## v0.26.3
 
