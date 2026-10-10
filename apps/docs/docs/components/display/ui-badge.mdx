@@ -24,16 +24,21 @@ and Avatar for a person's identity. Hide a decorative square from assistive
 technology when nearby words already name it. Use a pill or tag for longer text.
 
 `shape="circle"` centers a visible glyph, icon or short bounded count in a fixed circle:
-24px by default, 16px with `size="xs"`, or 32px with `size="lg"`. Unlike `dot`, its content remains
+24px by default or with `size="sm"`, 16px with `size="xs"`, or 32px with `size="lg"`. Unlike `dot`, its content remains
 visible. Set `--ui-badge-circle-size` on the badge to change both dimensions together.
 All existing tones and variants apply. Use a pill for longer text, and provide an
 accessible name when a single glyph does not explain itself.
 
-For a count inside a filled action, use the same circle with `size="lg"` to fit
-two-digit counts and `99+`. The caller caps the visible count and names the full
+For a count inside a filled action, use `size="sm"` for a 24px circle with compact text that fits
+two-digit counts and `99+`; `size="lg"` keeps usual-size text in a roomier 32px circle. Place the
+badge in Button's `badge` slot to keep the standard action height. The caller caps the visible count and names the full
 count on the action; hide the redundant badge from assistive technology. Use
-`variant="inverse" tone="accent"` on a filled accent action: it reverses the solid
-tone's surface and text while preserving the contrast pair.
+`variant="inverse" tone="accent"` on a filled accent action: its circle uses a quiet tone-tinted translucent surface and theme-derived label ink.
+The contrasting surface is 66% opaque with a lighter border and tone ink in light themes, and 56%
+with a quieter border and theme ink in dark themes; neutral retains its
+reversed contrast pair. Set `--ui-badge-circle-opacity` on a circular inverse Badge instance to tune its fill, and check label contrast on the containing filled control. Existing badge surface, text
+and border hooks still take precedence. A circular inverse mark has one subtle shadow layer, retaining
+lift without a raised rim; its fill and border each paint once. Inverse pills retain their existing treatment.
 This is a composition of Badge, not a separate counter component.
 
 Subtle badges and pointed tags have a slightly darker, tone-matched border than their soft fill.

@@ -12,7 +12,7 @@ const editorStyles = path.join(repoRoot, "packages/looma/src/vue/editor/looma-ed
 // Optional inherited middle layer. These are deliberately unset in tokens.css, so each component
 // reads its global fallback when a consumer has not themed that group.
 const GROUP_TOKENS = new Set([
-  "--ui-field-radius", "--ui-field-danger", "--ui-action-radius",
+  "--ui-field-radius", "--ui-field-danger", "--ui-action-radius", "--ui-action-edge", "--ui-action-shadow",
   "--ui-overlay-radius", "--ui-overlay-surface", "--ui-overlay-border", "--ui-overlay-shadow",
 ]);
 
@@ -73,7 +73,7 @@ test("group tokens stay optional and shared across components", async () => {
     const users = [];
     for (const tag of tags) {
       const source = await readFile(path.join(componentsRoot, tag, `${tag}.html`), "utf8");
-      if (source.includes(`var(${token},`)) users.push(tag);
+      if (new RegExp(`var\\(\\s*${token}\\s*,`).test(source)) users.push(tag);
     }
     assert.ok(users.length >= 2, `${token} should theme a group, not only ${users.join(", ")}`);
   }

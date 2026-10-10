@@ -78,6 +78,7 @@
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
+      <span class="badge"><slot name="badge"></slot></span>
     </a>
     <button
       $else
@@ -88,6 +89,7 @@
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
+      <span class="badge"><slot name="badge"></slot></span>
     </button>
   </template>
   <style>
@@ -166,6 +168,16 @@
     }
 
     :host {
+      /* Optional inherited action-group values keep text and icon actions under the same light.
+         One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
+         A single ambient lift avoids stacking a face gradient or another inset bevel. */
+      --_ui-action-start: 1px;
+      --_ui-action-edge: var(
+        --ui-action-edge,
+        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.06)),
+        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
+      );
+      --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
       --_hue-active: var(--ui-accent-active);
@@ -184,6 +196,10 @@
       column-gap: var(--ui-space-2);
       vertical-align: middle;
       color: var(--_tone-text);
+    }
+
+    :host:dir(rtl) {
+      --_ui-action-start: -1px;
     }
 
     :host([align="start"]) {
@@ -212,8 +228,8 @@
       white-space: var(--ui-button-white-space, inherit);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
-      background-image: var(--ui-raised-highlight);
-      box-shadow: var(--ui-button-shadow, var(--ui-raised));
+      background-image: none;
+      box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
       cursor: pointer;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -232,6 +248,22 @@
       display: inline-flex;
       flex: none;
       vertical-align: middle;
+    }
+
+    /* A count is an adornment, not another line of label text. Keep the standard control height
+       with enough inset for a 24px mark; large content can still grow the button naturally. */
+    :host:not([variant="link"]):has(.badge:not(:empty)) {
+      padding-block: var(--ui-space-0-5);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+    }
+
+    .badge:empty {
+      display: none;
     }
 
     @supports (text-box-trim: trim-both) {
@@ -307,6 +339,15 @@
       background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
     }
 
+    /* A neutral card encloses content quietly; ordinary outlines keep their action-tone edge. */
+    :host([variant="card"][tone="neutral"]) {
+      border-color: var(--ui-button-border, var(--ui-border));
+    }
+
+    :host([variant="card"][tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--ui-border-strong));
+    }
+
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
@@ -318,7 +359,7 @@
       border-color: var(--_tone);
       background-color: var(--_tone);
       color: var(--_on-tone);
-      box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
+      box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
     }
 
     :is(:host([variant="solid"]), :host([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
@@ -400,14 +441,18 @@
     :host:focus-visible {
       outline: none;
       box-shadow:
-        var(--ui-button-shadow, var(--ui-raised)),
+        var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
     }
 
     :host([variant="solid"]):focus-visible {
       box-shadow:
-        var(--ui-button-solid-shadow, var(--ui-raised)),
+        var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
+    }
+
+    :is(:host([variant="ghost"]), :host([variant="link"]), :host([variant="card"])):focus-visible {
+      box-shadow: var(--ui-focus-halo);
     }
 
     /* A loading action stays visually active; only an explicitly disabled action takes the

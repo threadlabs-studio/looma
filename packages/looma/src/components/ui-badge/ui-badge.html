@@ -13,9 +13,10 @@
       aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
       decorative icon when adjacent words name it. circle frames a visible glyph, icon or short bounded count in a fixed circle, centered in both
       directions.</prop>
-    <prop name="size" type="keyword" values="xs, md, lg" default="md"
-    >Scale. xs is compact; md is the usual text badge; lg adds room to fixed marks while retaining the usual text size. A square is 24px at xs, 32px at md and
-      40px at lg. A circle is 16px at xs, 24px at md and 32px at lg; use lg for short counts such as 30 or 99+.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
+    >Scale. xs is compact; sm keeps the usual badge geometry with compact text, fitting short counts such as 99+ inside a 24px circle. md is the usual text
+      badge; lg adds room to fixed marks while retaining the usual text size. A square is 24px at xs, 32px at sm and md, and 40px at lg. A circle is 16px at xs,
+      24px at sm and md, and 32px at lg.</prop>
   </defs>
   <span>
     <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
@@ -32,6 +33,10 @@
       inherits: false;
     }
     @property --ui-badge-circle-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-circle-opacity {
       syntax: "*";
       inherits: false;
     }
@@ -191,6 +196,11 @@
       line-height: var(--ui-badge-line-height, 1);
     }
 
+    :host([size="sm"]) {
+      font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
+      line-height: var(--ui-badge-line-height, 1);
+    }
+
     :host([tone="accent"]) {
       --_badge-surface: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-border: var(--ui-accent-strong-surface, var(--ui-accent-solid));
@@ -272,8 +282,35 @@
       background-clip: padding-box;
     }
 
+    /* A circular count has a tone-tinted surface, a separate lighter rim and readable tone ink.
+       Dark controls retain a shaded surface and theme ink with a quieter rim. */
     :host([variant="inverse"][shape="circle"]) {
-      box-shadow: var(--ui-shadow-sm);
+      --_badge-color-surface: light-dark(
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-badge-circle-opacity, 66%), transparent),
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-badge-circle-opacity, 56%), transparent)
+      );
+      --_badge-color-border: light-dark(
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) 88%, transparent),
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) 44%, transparent)
+      );
+      --_badge-color-text: light-dark(
+        color-mix(in srgb, var(--_badge-color-ink) 65%, var(--ui-text-primary)),
+        color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-text-primary))
+      );
+      --_badge-count-surface: light-dark(
+        color-mix(in srgb, var(--_badge-text) var(--ui-badge-circle-opacity, 66%), transparent),
+        color-mix(in srgb, var(--_badge-text) var(--ui-badge-circle-opacity, 56%), transparent)
+      );
+      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-count-surface)));
+      border-color: var(
+        --ui-badge-border,
+        var(--_badge-color-border, light-dark(color-mix(in srgb, var(--_badge-text) 88%, transparent), color-mix(in srgb, var(--_badge-text) 44%, transparent)))
+      );
+      color: var(
+        --ui-badge-text,
+        var(--_badge-color-text, light-dark(color-mix(in srgb, var(--_badge-surface) 65%, var(--ui-text-primary)), var(--ui-text-primary)))
+      );
+      box-shadow: 0 1px 1px light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.12));
     }
 
     /* Neutral reverses a subtle surface/ink pair rather than a strong tone. Keep its original
