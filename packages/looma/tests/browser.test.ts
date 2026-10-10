@@ -4038,6 +4038,47 @@ describe("Shared visual geometry", () => {
 });
 
 describe("Nav item", () => {
+  it("shows hover feedback on a muted navigation surface in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) for (const theme of ["light", "dark"] as const) {
+      const path = await bundle(`${adapter}-nav-muted-hover`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { NavItem } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(NavItem, { id: "header", "aria-expanded": false }, () => "Pages"),
+          h(NavItem, { id: "account", "aria-haspopup": "menu" }, () => "Account"),
+          h(NavItem, { id: "selected", current: "page" }, () => "Current page"),
+        ] }).mount("#navigation");
+      `);
+      const content = adapter === "html" ? `
+        <ui-nav-item id="header" aria-expanded="false">Pages</ui-nav-item>
+        <ui-nav-item id="account" aria-haspopup="menu">Account</ui-nav-item>
+        <ui-nav-item id="selected" current="page">Current page</ui-nav-item>` : "";
+      const page = await open(path, `<nav id="navigation" style="width:280px;background:var(--ui-surface-muted)">${content}</nav>`,
+        [join(root, "tokens.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.emulateMedia({ colorScheme: theme });
+      await page.waitForSelector('#header[data-component~="ui-nav-item"]');
+      const fill = (selector: string) => page.locator(selector).evaluate(element => getComputedStyle(element).backgroundColor);
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        for (const id of ["header", "account"]) {
+          await page.mouse.move(350, 500);
+          await page.waitForTimeout(160);
+          assert.equal(await fill(`#${id}`), "rgba(0, 0, 0, 0)");
+          await page.locator(`#${id}`).hover();
+          await page.waitForTimeout(160);
+          assert.notEqual(await fill(`#${id}`), await fill("#navigation"), "hover must remain visible against the muted panel");
+        }
+        const selected = await fill("#selected");
+        await page.locator("#selected").hover();
+        await page.waitForTimeout(160);
+        assert.equal(await fill("#selected"), selected, "hover retains the current-page selection");
+      }
+      await page.locator("#header").focus();
+      await page.keyboard.press("Tab");
+      assert.equal(await page.locator("#account").evaluate(element => element.matches(":focus-visible")), true);
+      await page.close();
+    }
+  });
   const longDescription = "A description long enough that it cannot fit on one line of a narrow rail and must end in an ellipsis";
 
   // A colour as the page computes it, for comparing with a computed style.
