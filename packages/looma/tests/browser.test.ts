@@ -247,6 +247,16 @@ describe("Pressed icon controls and circular marks", () => {
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
+      const countOpacity = () => page.locator("#accent").evaluate(element => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        context.fillStyle = getComputedStyle(element).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+        return context.getImageData(0, 0, 1, 1).data[3]! / 255;
+      });
+      await page.evaluate(() => document.documentElement.style.setProperty("--ui-badge-circle-opacity", "50%"));
+      assert.ok(Math.abs(await countOpacity() - 0.5) < 0.01, "the optional circle-opacity hook inherits from a theme");
+      await page.locator("#accent").evaluate(element => (element as HTMLElement).style.setProperty("--ui-badge-circle-opacity", "60%"));
+      assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an instance circle-opacity value overrides the inherited theme value");
       await page.close();
     }
   });
@@ -1937,7 +1947,7 @@ describe("Loading actions", () => {
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
     const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
     const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
-    const label = await page.locator("#save span").last().boundingBox();
+    const label = await page.locator("#save").getByText("Save", { exact: true }).boundingBox();
     assert.ok(spinner && spinnerWrap && label);
     assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
     const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");

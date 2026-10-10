@@ -3,7 +3,7 @@ import path from "node:path";
 export const isBrowserTest = (file, source = "") => /(?:^|\/)browser\.test\.ts$|\.browser\.test\.ts$/.test(file) || /\bfrom\s*["']playwright["']/.test(source);
 export const vitestConfiguration = (file) => file.endsWith(".browser.test.ts") ? "vitest.browser.config.ts" : "vitest.config.ts";
 export const vitestArguments = (file, names, report) => ["--filter", "@threadlabs/looma", "exec", "vitest", "run", file.replace(/^packages\/looma\//, ""),
-  "--config", vitestConfiguration(file), ...(names ? ["--testNamePattern", caseNamePattern(names)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=json", `--outputFile=${report}`];
+  "--config", vitestConfiguration(file), ...(names ? ["--testNamePattern", caseNamePattern(names)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=default", "--reporter=json", `--outputFile=${report}`];
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const componentOf = (file) => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//.exec(file)?.[1];
 const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|packages\/looma\/(?:build\.mjs|package\.json|tsconfig[^/]*|src\/(?:tokens\/|env\.d\.ts))|tools\/(?:tsconfig\/|style-source-allowlist\.json|scripts\/style-source-policy\.mjs))/.test(file);
@@ -72,7 +72,9 @@ function calls(source, names) {
       if (char === '"' || char === "'" || char === "`") { quote = char; continue; }
       if (source.startsWith("//", index)) { index = source.indexOf("\n", index); if (index < 0) break; continue; }
       if (source.startsWith("/*", index)) { index = source.indexOf("*/", index + 2) + 1; if (index < 1) break; continue; }
-      if (char === "/" && /[=(:,\[!|&?;{}]$/.test(source.slice(open, index).trimEnd())) {
+      // Unary ! still expects an operand; a TypeScript postfix ! keeps the preceding value.
+      const beforeSlash = char === "/" ? source.slice(open, index).trimEnd().replace(/(?:!\s*)+$/, "").trimEnd() : "";
+      if (char === "/" && /(?:[=(:,\[|&?;{}]|\b(?:return|throw|yield|await|case))$/.test(beforeSlash)) {
         let characterClass = false;
         for (index++; index < source.length; index++) {
           if (source[index] === "\\") { index++; continue; }

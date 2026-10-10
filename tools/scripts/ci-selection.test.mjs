@@ -104,6 +104,23 @@ test("case discovery ignores fixture source strings and commented calls", () => 
   assert.deepEqual(testCases(source).map(({ name }) => name), ["real owned"]);
 });
 
+test("non-null division and unary regex negation preserve following nested suite names", () => {
+  const source = String.raw`describe("counts", () => {
+  it("opacity", () => {
+    const shadows = shadow.split(/,(?![^()]*\))/);
+    const opacity = pixels[3]! / 255;
+    assert.ok(!/[(\)]/.test(shadow));
+    return pixels[3]! / 255;
+  });
+});
+describe("actions", () => {
+  describe("nested", () => {
+    it("edge", () => {});
+  });
+});`;
+  assert.deepEqual(testCases(source).map(({ name }) => name), ["counts opacity", "actions nested edge"]);
+});
+
 test("main and editor browser suites share Chromium ownership while retaining their actual Vitest configs", () => {
   const main = "packages/looma/tests/browser.test.ts", editor = "packages/looma/tests/looma-editor-chip.browser.test.ts";
   for (const [file, config] of [[main, "vitest.config.ts"], [editor, "vitest.browser.config.ts"]]) {
@@ -121,6 +138,14 @@ test("main and editor browser suites share Chromium ownership while retaining th
   assert.doesNotMatch(runner, /api.github.com|legacyProof|baseline\(/);
   assert.match(runner, /safe\.directory=\$\{root\}/);
   assert.doesNotMatch(runner, /git config --global/);
+});
+
+test("qualification keeps readable Vitest failures alongside its validated JSON report", () => {
+  const report = ".qualification/browser.test.ts-report.json";
+  const args = vitestArguments("packages/looma/tests/browser.test.ts", ["owned"], report);
+  assert.ok(args.includes("--reporter=default"), "failed assertions must remain visible in CI logs");
+  assert.ok(args.includes("--reporter=json"), "qualification still validates the machine-readable report");
+  assert.ok(args.includes(`--outputFile=${report}`), "the validator must read the requested JSON path");
 });
 
 test("Vitest proof refuses empty, skipped or missing selected cases while ignoring unchanged filtered cases", () => {
