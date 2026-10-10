@@ -169,14 +169,15 @@
 
     :host {
       /* Optional inherited action-group values keep text and icon actions under the same light.
-         One fine top/start highlight follows the bottom/end lowlight at a joined action seam. */
+         One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
+         A single ambient lift avoids stacking a face gradient or another inset bevel. */
       --_ui-action-start: 1px;
       --_ui-action-edge: var(
         --ui-action-edge,
-        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.08)),
-        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.10))
+        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.06)),
+        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
-      --_ui-action-shadow: var(--_ui-action-edge), var(--ui-raised);
+      --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
       --_hue-active: var(--ui-accent-active);
@@ -227,7 +228,7 @@
       white-space: var(--ui-button-white-space, inherit);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
-      background-image: var(--ui-raised-highlight);
+      background-image: none;
       box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
       cursor: pointer;
       transition:

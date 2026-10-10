@@ -233,14 +233,17 @@ describe("Pressed icon controls and circular marks", () => {
           const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
           context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
           const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          const box = element.getBoundingClientRect();
           paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
           paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, borderOpacity, foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
         }));
         await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
         for (const overlay of overlays) {
           assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
           assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
+          assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
+          assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
@@ -2278,6 +2281,8 @@ describe("Shared action edges", () => {
             h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
             h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
           ])),
+          h(Button, { id: "stop", variant: "solid", tone: "neutral" }, () => "Stop"),
+          h(IconButton, { id: "stop-icon", variant: "solid", tone: "neutral", label: "Stop" }, icon),
           h(Button, { id: "outline" }, () => "View changes"),
           h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
           h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
@@ -2292,6 +2297,7 @@ describe("Shared action edges", () => {
           <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
           <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         </ui-cluster>`).join("") + `
+        <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="outline">View changes</ui-button>
         <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" as="a" href="#">Link</ui-button>
@@ -2307,6 +2313,12 @@ describe("Shared action edges", () => {
           assert.ok((await shadow("primary-0")).includes("1px 1px 0px 0px inset"), "a fine highlight at top/start");
           assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
           assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
+          assert.equal(await shadow("stop"), await shadow("stop-icon"), "neutral filled actions share the restrained recipe");
+          for (const id of ["primary-0", "more-0", "outline", "outline-icon", "stop", "stop-icon"]) {
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting boxed controls have one edge without a face gradient");
+            assert.equal((await shadow(id)).match(/inset/g)?.length, 2, "one highlight and one lowlight do not stack with another bevel");
+            assert.equal((await shadow(id)).split(/,(?![^()]*\))/).length, 3, "the edge pair has only one ambient lift layer");
+          }
           for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
           for (let index = 0; index < 3; index++) {
             const count = await page.locator(`#primary-${index} [data-component~="ui-badge"]`).evaluate(element => {
