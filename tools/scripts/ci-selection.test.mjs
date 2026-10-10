@@ -195,3 +195,21 @@ test("aggregate admission includes both workflows and setup, rejecting full or u
   selected.ci.selection.packageTests = { "packages/looma/tests/unknown.test.ts": null };
   assert.throws(() => admitQualification(selected, { ...files, "packages/looma/tests/unknown.test.ts": "generated unknown discovery" }), /No automatic full sweep/);
 });
+
+test("excluded generated docs cases do not turn an owned selection into unknown admission", () => {
+  const source = {
+    ...files,
+    "apps/docs/tests/release-docs.spec.ts": 'const candidatePages = [{ path: "./", heading: "Looma" }];\nfor (const candidatePage of candidatePages) test(`${candidatePage.heading} is accessible`, () => {});\ntest("ui-button native authored API", () => {});'
+  };
+  const selection = selectChecks(source, []);
+  selection.docsTests = { "apps/docs/tests/release-docs.spec.ts": "^ui-button native authored API$" };
+  const plans = {
+    ci: { selection, stages: { quality: { reused: true }, "package-consumer": { reused: true } } },
+    docs: { selection, stages: { "docs-behavior": { reused: false }, "docs-visual": { reused: true } } }
+  };
+  assert.ok(admitQualification(plans, source).estimatedMinutes < 15);
+  plans.docs.selection.docsTests["apps/docs/tests/release-docs.spec.ts"] = "accessible";
+  assert.ok(admitQualification(plans, source).estimatedMinutes < 15, "known generated runtime titles are counted");
+  source["apps/docs/tests/release-docs.spec.ts"] = 'test(`${unknown.heading} is accessible`, () => {});';
+  assert.throws(() => admitQualification(plans, source), /unknown|Infinity/);
+});
