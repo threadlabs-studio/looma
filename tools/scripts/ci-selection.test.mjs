@@ -41,6 +41,21 @@ test("edited assertions select their case and edited helpers own their enclosing
   assert.throws(() => selectChecks({ ...files, "tools/scripts/new-executable.mjs": "doWork()" }, ["tools/scripts/new-executable.mjs"]), /Unmapped executable/);
 });
 
+test("added suite boundaries and trailing blank lines own their cases without promoting unrelated tests", () => {
+  const file = "packages/looma/tests/browser.test.ts";
+  const unchanged = Array.from({ length: 90 }, (_, index) => `it("unrelated ${index}", () => {});`).join("\n");
+  const added = '\ndescribe("controls", () => {\n const paint = () => "edge";\n it("compact count", () => { paint(); });\n describe("focused actions", () => {\n  const focus = () => "ring";\n  it("shared edge", () => { focus(); });\n });\n});\n\n';
+  const source = unchanged + added;
+  const sourceFiles = { ...files, [file]: source };
+  const hunks = { [file]: [[91, source.split("\n").length]] };
+  const selection = automaticChecks(sourceFiles, [file], hunks);
+  assert.deepEqual(selection.packageTests[file], ["controls compact count", "controls focused actions shared edge"]);
+  assert.deepEqual(selection.browserTests[file], selection.packageTests[file]);
+  assert.deepEqual(selection.deferred, [], "both added regressions fit the cap without unrelated cases");
+  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[95, 96]] }).packageTests[file], ["controls focused actions shared edge"], "nested suite setup owns its nested cases");
+  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[92, 92]] }).packageTests[file], selection.packageTests[file], "outer suite setup still owns every descendant case");
+});
+
 test("shared themes/compiler inputs select full coverage and unmapped inputs fail closed", () => {
   for (const changed of ["packages/looma/src/tokens/theme.css", "packages/looma/build.mjs", "pnpm-lock.yaml", "packages/looma/src/components/shared/focus.js"]) {
     assert.equal(selectChecks(files, [changed]).full, true, changed);

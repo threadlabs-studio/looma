@@ -98,13 +98,18 @@ function editedCases(source, hunks) {
   if (!hunks) return cases;
   const selected = new Set();
   const scopes = calls(source, "describe");
+  const lines = source.split("\n");
   for (const [start, end] of hunks) {
     const direct = cases.filter((entry) => start <= entry.end && end >= entry.start);
     for (const entry of direct) selected.add(entry);
-    if (direct.length && direct.some((entry) => start >= entry.start && end <= entry.end)) continue;
-    // Changed shared setup/helpers affect the enclosing suite; imports own the complete file.
-    const scope = scopes.filter((entry) => start >= entry.start && end <= entry.end).sort((a, b) => (a.end - a.start) - (b.end - b.start))[0];
-    for (const entry of scope ? cases.filter((entry) => entry.start >= scope.start && entry.end <= scope.end) : cases) selected.add(entry);
+    // A diff hunk can include complete suites and the blank line between them.
+    // Attribute setup lines individually so that boundary never owns another suite.
+    for (let line = start; line <= end; line++) {
+      if (!lines[line - 1]?.trim() || direct.some(entry => line >= entry.start && line <= entry.end)) continue;
+      // Changed shared setup/helpers affect their enclosing suite; imports own the file.
+      const scope = scopes.filter(entry => line >= entry.start && line <= entry.end).sort((a, b) => (a.end - a.start) - (b.end - b.start))[0];
+      for (const entry of scope ? cases.filter(entry => entry.start >= scope.start && entry.end <= scope.end) : cases) selected.add(entry);
+    }
   }
   if (hunks.length && cases.length && !selected.size) throw new Error("Unmapped changed test hunks");
   return [...selected];
