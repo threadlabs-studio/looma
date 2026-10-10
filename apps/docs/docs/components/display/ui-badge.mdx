@@ -34,7 +34,8 @@ two-digit counts and `99+`; `size="lg"` keeps usual-size text in a roomier 32px 
 badge in Button's `badge` slot to keep the standard action height. The caller caps the visible count and names the full
 count on the action; hide the redundant badge from assistive technology. Use
 `variant="inverse" tone="accent"` on a filled accent action: its circle uses a quiet tone-tinted translucent surface and theme-derived label ink.
-The contrasting surface is 44% opaque in light themes and 56% in dark themes; neutral retains its
+The contrasting surface is 66% opaque with a lighter border and tone ink in light themes, and 56%
+with a quieter border and theme ink in dark themes; neutral retains its
 reversed contrast pair. Set inherited `--ui-action-count-opacity` to theme circular inverse counts
 together, and check label contrast on the containing filled control. Existing badge surface, text
 and border hooks still take precedence. Inverse pills retain their existing treatment.
