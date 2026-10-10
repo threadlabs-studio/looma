@@ -253,10 +253,11 @@ describe("Pressed icon controls and circular marks", () => {
         context.fillRect(0, 0, 1, 1);
         return context.getImageData(0, 0, 1, 1).data[3]! / 255;
       });
+      const defaultOpacity = await countOpacity();
       await page.evaluate(() => document.documentElement.style.setProperty("--ui-badge-circle-opacity", "50%"));
-      assert.ok(Math.abs(await countOpacity() - 0.5) < 0.01, "the optional circle-opacity hook inherits from a theme");
+      assert.ok(Math.abs(await countOpacity() - defaultOpacity) < 0.01, "the instance circle-opacity hook does not cascade from a container");
       await page.locator("#accent").evaluate(element => (element as HTMLElement).style.setProperty("--ui-badge-circle-opacity", "60%"));
-      assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an instance circle-opacity value overrides the inherited theme value");
+      assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an explicit instance circle-opacity value overrides its default");
       await page.close();
     }
   });
