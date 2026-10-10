@@ -44,6 +44,7 @@
 
     :host {
       --_ui-toast-accent: var(--ui-border-strong);
+      --_ui-toast-surface: var(--ui-surface-muted);
 
       display: flex;
       align-items: center;
@@ -54,23 +55,31 @@
       padding: var(--ui-space-3) var(--ui-space-4);
       border: var(--ui-border-width) solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-toast-accent, var(--_ui-toast-accent))));
       border-radius: var(--ui-toast-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
-      background: var(--ui-toast-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      background: var(--ui-toast-surface, var(--ui-overlay-surface, var(--_ui-toast-surface)));
       color: var(--ui-text-primary);
+      font-family: var(--ui-font-family-sans);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+      line-height: var(--ui-line-height-md);
       box-shadow: var(--ui-toast-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       pointer-events: auto;
     }
 
     :host([tone="info"]) {
       --_ui-toast-accent: var(--ui-info-solid);
+      --_ui-toast-surface: var(--ui-info-soft);
     }
     :host([tone="success"]) {
       --_ui-toast-accent: var(--ui-success-solid);
+      --_ui-toast-surface: var(--ui-success-soft);
     }
     :host([tone="warning"]) {
       --_ui-toast-accent: var(--ui-warning-solid);
+      --_ui-toast-surface: var(--ui-warning-soft);
     }
     :host([tone="danger"]) {
       --_ui-toast-accent: var(--ui-danger-solid);
+      --_ui-toast-surface: var(--ui-danger-soft);
     }
 
     .message {
