@@ -24,13 +24,14 @@ and Avatar for a person's identity. Hide a decorative square from assistive
 technology when nearby words already name it. Use a pill or tag for longer text.
 
 `shape="circle"` centers a visible glyph, icon or short bounded count in a fixed circle:
-24px by default, 16px with `size="xs"`, or 32px with `size="lg"`. Unlike `dot`, its content remains
+24px by default or with `size="sm"`, 16px with `size="xs"`, or 32px with `size="lg"`. Unlike `dot`, its content remains
 visible. Set `--ui-badge-circle-size` on the badge to change both dimensions together.
 All existing tones and variants apply. Use a pill for longer text, and provide an
 accessible name when a single glyph does not explain itself.
 
-For a count inside a filled action, use the same circle with `size="lg"` to fit
-two-digit counts and `99+`. The caller caps the visible count and names the full
+For a count inside a filled action, use `size="sm"` for a 24px circle with compact text that fits
+two-digit counts and `99+`; `size="lg"` keeps usual-size text in a roomier 32px circle. Place the
+badge in Button's `badge` slot to keep the standard action height. The caller caps the visible count and names the full
 count on the action; hide the redundant badge from assistive technology. Use
 `variant="inverse" tone="accent"` on a filled accent action: it reverses the solid
 tone's surface and text while preserving the contrast pair.

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.26.4
+
+- Button adds a `badge` slot that keeps compact circular counts aligned with ordinary actions and matching Icon Buttons. Badge adds `size="sm"` with compact text that fits bounded counts such as `99+` in a 24px circle. Existing Badge sizes and default Button content retain their spacing.
+- Neutral card Buttons use a quiet decorative border while standard outline actions retain their tone-colored edge.
+- Input Group adds `variant="subtle"` for a muted composer surface with one shared frame around its textarea and action, retaining standard focus and field states.
+
 ## v0.26.3
 
 - Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
