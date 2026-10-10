@@ -23,7 +23,7 @@
     <span class="label"><slot></slot></span>
   </span>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
+    /* Instance hooks do not inherit. Circle opacity is an optional inherited theme value. */
     @property --ui-badge-border {
       syntax: "*";
       inherits: false;
@@ -35,6 +35,10 @@
     @property --ui-badge-circle-size {
       syntax: "*";
       inherits: false;
+    }
+    @property --ui-badge-circle-opacity {
+      syntax: "*";
+      inherits: true;
     }
     @property --ui-badge-dot-size {
       syntax: "*";
@@ -282,8 +286,8 @@
        Dark controls retain a shaded surface and theme ink with a quieter rim. */
     :host([variant="inverse"][shape="circle"]) {
       --_badge-color-surface: light-dark(
-        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-action-count-opacity, 66%), transparent),
-        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-action-count-opacity, 56%), transparent)
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-badge-circle-opacity, 66%), transparent),
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-badge-circle-opacity, 56%), transparent)
       );
       --_badge-color-border: light-dark(
         color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) 88%, transparent),
@@ -294,8 +298,8 @@
         color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-text-primary))
       );
       --_badge-count-surface: light-dark(
-        color-mix(in srgb, var(--_badge-text) var(--ui-action-count-opacity, 66%), transparent),
-        color-mix(in srgb, var(--_badge-text) var(--ui-action-count-opacity, 56%), transparent)
+        color-mix(in srgb, var(--_badge-text) var(--ui-badge-circle-opacity, 66%), transparent),
+        color-mix(in srgb, var(--_badge-text) var(--ui-badge-circle-opacity, 56%), transparent)
       );
       --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-count-surface)));
       border-color: var(
