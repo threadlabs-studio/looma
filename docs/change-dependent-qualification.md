@@ -1,63 +1,86 @@
 # Change-dependent qualification
 
-CI qualifies changed package behavior and documentation against successful GitHub
-provider proof. Unchanged stages reuse verified inputs, including after a test-only
-revision or a merge into `main`. The `quality`, `release-package`, `verify`, and
-`docs-parity` checks remain present on every revision.
+Routine fixes target five minutes of CI elapsed time. Automatic qualification runs
+in parallel and has a ten-minute execution ceiling; release preparation,
+publication, and tagging have another five minutes. The longest configured path
+from checks through publication is fifteen minutes. Queue delays, runner provisioning,
+workflow handoff delays, and protected-environment approvals are outside these
+execution limits. Hosted timing must be confirmed after rollout.
 
-## Selection
+## Automatic checks
 
-`tools/scripts/ci-selection.mjs` follows relative JavaScript/TypeScript imports,
-HTML controller references, component definitions, and documentation imports.
-Runtime consumers receive package tests. Example compositions receive their
-documentation pages without treating an example as a dependency of the primitive.
-Documentation routes come from the coverage inventory or authored slug.
+| Check | Work | Job timeout |
+| --- | --- | --- |
+| `quality` | Selected tooling tests, package build and affected unit/SSR tests | 9 minutes |
+| `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 9 minutes |
+| `release-package` | Package-only build, tarball integrity, packed consumer matrix | 4 minutes |
+| `docs-parity` | Docs build, test typecheck and route/example coverage when docs inputs change | 9 minutes |
+| `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
 
-Named cases in shared test files use the complete suite and case name. Changed
-assertions select their case; changes to a shared helper select its enclosing
-suite. A file's imports or setup own its complete test file. Parameterized names
-retain their runtime instances. Browser runs use one worker.
+The first four jobs run independently. `quality`, `release-package`, `verify`, and
+`docs-parity` retain their branch-protection check names. A stage with no affected
+inputs reports its selection and succeeds without installing dependencies.
+The package build checks source types and generated Vue declarations; repeating
+lint/typecheck adds no proof. Style-source restrictions remain enforced by that build.
+Formatting, comment documentation checks, Storybook builds, documentation browser
+parity, full screenshot/axe sweeps, Firefox and WebKit are outside automatic release
+qualification. Package packing builds only the published package.
 
-Compiler/build, dependency, token/theme, and genuinely global shared inputs select
-their complete dependent surface. Unknown executable inputs or unmapped discovery
-stop qualification. Missing proof does not launch an automatic full sweep.
+Release preparation and publication each have two-minute timeouts; recording the
+tag has one minute. Docs deployment runs beside publication with a five-minute
+timeout. Trusted publishing, exact release-byte identity, packed consumers, public
+registry integrity/provenance and the public-registry consumer remain required.
 
-## Proof ownership
+## Selection and priority
 
-The four input fingerprints belong to package quality, packed package-consumer
-verification, documentation behavior, and documentation visuals. Package test
-edits do not invalidate package-consumer or documentation inputs. Behavior-only
-documentation test edits do not invalidate visual proof.
+`tools/scripts/ci-selection.mjs` follows relative JS/TS imports, HTML controller
+references and composed components. A PR compares its tested merge to its merge
+base; a main push compares to its `before` revision. Selection does not query past
+Actions runs, download receipts or require an expiring successful baseline.
 
-A receipt binds the repository, provider run and attempt, immutable execution
-head, actual tested checkout, stage inputs, and qualifier/workflow bytes. A PR's
-tested merge must retain its execution head and main ancestry; GitHub's current
-PR association is not an immutable checkout identity and may disappear after
-merge. Native proof also binds Node, pnpm, and the hosted image version. Visual
-proof binds the canonical browser container digest.
+Named cases in shared suites use their complete suite and case name. Edited
+assertions select their case; edited helpers select their enclosing suite. Imports
+or file setup select the file. All suites importing Playwright count as browser
+work, including `tree.test.ts` and `editor-table.test.ts`.
 
-Qualification can bootstrap from the two approved historical full-workflow
-digests. Each required job and execution step must have passed, and checkout logs
-must identify the tested commit. Subsequent receipts use attempt-specific GitHub
-artifacts. Empty, skipped, failed, mismatched, expired, or foreign proof is rejected.
+Browser priority is edited regressions, integration smoke checks, direct component
+behavior, then composed consumers. Automatic browser work is capped at 80 estimated
+instances; a parameterized case reserves three. Every deferred case is listed in
+`.qualification/plan.json` and the job log. The cap bounds the scope, not a claim
+that every test costs the same time; job timeouts enforce the execution ceiling.
+Unit/SSR and selected tooling tests are retained independently of the browser cap.
 
-## Runner-minute admission
+Dependency, compiler, theme and automatic CI recipe changes run all unit/tooling tests and an explicit
+integration smoke set: HTML registration, Vue rendering/model updates, modal
+focus/events, keyboard search, mobile chip geometry and editor table operations.
+Explicit component edits and changed browser regressions retain priority even
+when a global input also changes. Unknown executable inputs fail with an owner
+mapping error; there is no automatic full browser sweep.
 
-Both planners evaluate the combined CI and documentation selection before starting
-checks. The 15-minute estimate includes setup and proof across all six jobs,
-dependency installation, builds, package consumers, and selected test cases. An
-oversized or unknown selection stops and prints its estimate. Estimates are
-conservative admission weights, not measured timing guarantees. A genuinely global
-selection needs a separately authorized qualification decision; this workflow does
-not dispatch one automatically.
+## Ownership and extended verification
 
-Documentation builds once and serves that output to both selected stages. The
-runner checks browser discovery against the completed JSON report, and checks
-Vitest reports for every selected case before emitting proof.
+Looma owns its authored definitions, controllers, CSS, accessible interactions,
+editor data operations and HTML/Vue integration. These need real-browser tests.
+HTML Next owns generic lowering, binding, slot, event and converter conformance;
+its [runtime and framework parity suites](https://github.com/nextwebwg/html-next/blob/main/.github/workflows/ci.yml)
+are the platform's proof. Looma retains representative integration checks against
+its pinned dependency instead of multiplying every example across three engines.
 
-Read-only provider inspection is available with `node
-tools/scripts/ci-qualification.mjs inspect ci <run-id>` or `inspect docs <run-id>`.
-Supply `GITHUB_REPOSITORY`, a read-only `GITHUB_TOKEN`, and, for native proof, the
-intended `ImageOS` and `ImageVersion`. Inspection neither executes tests nor
-dispatches Actions. Native image changes, expired anchors, or changed qualification
-contracts can require fresh provider proof; they never silently reuse stale proof.
+One engine is sufficient for routine qualification. Firefox/WebKit remain useful
+for platform-specific CSS, focus, selection and editing changes; run them explicitly
+when a change needs that evidence. The manual **Extended verification** workflow
+runs the complete package suite and documentation behavior in Chromium, Firefox
+and WebKit, followed by canonical visual comparisons. It has no push, PR or schedule
+trigger and does not block routine publication.
+
+Local commands remain available:
+
+```sh
+pnpm --filter @threadlabs/looma build
+pnpm --filter @threadlabs/looma test:browser
+pnpm --filter @threadlabs/looma-docs test:parity
+pnpm --filter @threadlabs/looma-docs test:visual
+```
+
+Use one local browser worker. Inspect the automatic selection with
+`LOOMA_CI_BASE=<base-revision> node tools/scripts/ci-qualification.mjs plan`.

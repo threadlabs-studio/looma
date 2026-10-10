@@ -7,70 +7,75 @@ on:
 
 permissions:
   contents: read
-  actions: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CI: "true"
-  GITHUB_TOKEN: ${{ github.token }}
 
+# Independent checks start together. 9 minutes + the 1-minute verify gate leaves
+# 5 minutes for release prepare/publish/record: at most 15 active runner minutes.
+# Queue time and protected-environment approval time are outside runner control.
 jobs:
-  plan:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      quality: ${{ steps.plan.outputs.quality }}
-      package-consumer: ${{ steps.plan.outputs.package-consumer }}
-      chromium: ${{ steps.plan.outputs.chromium }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.21.0
-      - name: Select affected checks and validate provider baseline
-        id: plan
-        run: node tools/scripts/ci-qualification.mjs plan ci
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: qualification-ci-plan-${{ github.run_attempt }}
-          path: .qualification/plan.json
-          include-hidden-files: true
-          if-no-files-found: error
-
   quality:
-    needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 9
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: qualification-ci-plan-${{ github.run_attempt }}
-          path: .qualification
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        if: needs.plan.outputs.quality == 'true'
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24.21.0
-      - name: Install dependencies
-        if: needs.plan.outputs.quality == 'true'
-        run: pnpm install --frozen-lockfile
-      - name: Install selected browser engine
-        if: needs.plan.outputs.chromium == 'true'
-        run: pnpm --filter @threadlabs/looma exec playwright install --with-deps chromium
-      - name: Run selected quality checks or validate matching provider proof
-        run: node tools/scripts/ci-qualification.mjs run ci quality
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: Select affected tests
+        id: select
+        run: node tools/scripts/ci-qualification.mjs plan
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        if: steps.select.outputs.quality == 'true'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: steps.select.outputs.quality == 'true'
         with:
-          name: qualification-quality-${{ github.run_attempt }}
-          path: .qualification/quality.json
-          include-hidden-files: true
-          if-no-files-found: error
+          node-version: 24.21.0
+          cache: pnpm
+      - name: Install dependencies
+        if: steps.select.outputs.quality == 'true'
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Run quality checks
+        run: node tools/scripts/ci-qualification.mjs run quality
+
+  browser:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 9
+    # Browsers and OS libraries are preinstalled. No apt/CDN install on a fix.
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - name: Select affected tests
+        id: select
+        run: node tools/scripts/ci-qualification.mjs plan
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        if: steps.select.outputs.browser == 'true'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: steps.select.outputs.browser == 'true'
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+      - name: Install dependencies
+        if: steps.select.outputs.browser == 'true'
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Run browser checks
+        run: node tools/scripts/ci-qualification.mjs run browser
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -82,48 +87,39 @@ jobs:
           if-no-files-found: ignore
 
   release-package:
-    needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 4
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: qualification-ci-plan-${{ github.run_attempt }}
-          path: .qualification
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        if: needs.plan.outputs.package-consumer == 'true'
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24.21.0
-      - name: Use release npm CLI
-        if: needs.plan.outputs.package-consumer == 'true'
-        run: npm install --global npm@11.5.1
-      - name: Install dependencies
-        if: needs.plan.outputs.package-consumer == 'true'
-        run: pnpm install --frozen-lockfile
-      - name: Verify release packaging or validate matching provider proof
-        run: node tools/scripts/ci-qualification.mjs run ci package-consumer
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: Select affected tests
+        id: select
+        run: node tools/scripts/ci-qualification.mjs plan
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        if: steps.select.outputs.package == 'true'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: steps.select.outputs.package == 'true'
         with:
-          name: qualification-package-consumer-${{ github.run_attempt }}
-          path: .qualification/package-consumer.json
-          include-hidden-files: true
-          if-no-files-found: error
+          node-version: 24.21.0
+          cache: pnpm
+      - name: Install dependencies
+        if: steps.select.outputs.package == 'true'
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Run package-consumer checks
+        run: node tools/scripts/ci-qualification.mjs run package-consumer
 
   visual:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-
       # The runner script only needs Node; it installs and builds inside the
       # pinned Playwright image so CI renders exactly like the local baselines.
       - name: Storybook visual regression
@@ -131,41 +127,18 @@ jobs:
 
   verify:
     if: always()
-    needs:
-      - plan
-      - quality
-      - release-package
-      - visual
+    needs: [quality, browser, release-package, visual]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 1
     steps:
-      - name: Require quality, release packaging, and visual regression
+      - name: Require tests, release packaging, and visual regression
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
           RELEASE_PACKAGE_RESULT: ${{ needs.release-package.result }}
           VISUAL_RESULT: ${{ needs.visual.result }}
         run: |
           test "$QUALITY_RESULT" = "success"
+          test "$BROWSER_RESULT" = "success"
           test "$RELEASE_PACKAGE_RESULT" = "success"
           test "$VISUAL_RESULT" = "success"
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.21.0
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          pattern: qualification-*-${{ github.run_attempt }}
-          path: .qualification
-          merge-multiple: true
-      - name: Bind stage receipts to this exact provider revision
-        run: node tools/scripts/ci-qualification.mjs combine ci
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: qualification-ci-${{ github.run_attempt }}
-          path: .qualification/proof.json
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 90
