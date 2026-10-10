@@ -231,13 +231,16 @@ describe("Pressed icon controls and circular marks", () => {
           };
           context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
           const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
+          const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
           paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
           paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          return { tone: element.id, opacity, borderOpacity, foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
         }));
         await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
         for (const overlay of overlays) {
-          assert.ok(overlay.opacity >= 0.4 && overlay.opacity <= 0.6, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
