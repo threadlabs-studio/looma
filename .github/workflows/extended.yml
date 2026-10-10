@@ -1,0 +1,64 @@
+name: Extended verification
+
+# Explicit platform/browser/visual audits. Never a routine release dependency.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CI: "true"
+
+jobs:
+  package-browser:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - run: corepack enable && pnpm install --frozen-lockfile --prefer-offline
+      - run: pnpm --filter @threadlabs/looma build
+      - run: pnpm --filter @threadlabs/looma test:browser
+
+  documentation:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - name: Align browser home ownership
+        run: chown "$(id -u):$(id -g)" "$HOME"
+      - run: corepack enable && pnpm install --frozen-lockfile --prefer-offline
+      - run: pnpm --filter @threadlabs/looma build
+      - run: pnpm --filter @threadlabs/looma-docs build
+      - run: pnpm --filter @threadlabs/looma-docs typecheck:tests
+      - run: pnpm --filter @threadlabs/looma-docs docs:coverage
+      - name: Check full behavior in three engines
+        run: pnpm --filter @threadlabs/looma-docs exec playwright test --workers=1 --retries=0 --project=chromium --project=firefox --project=webkit
+      - name: Compare reviewed visuals
+        env:
+          LOOMA_DOCS_CANONICAL: "1"
+          LOOMA_DOCS_REPORT: visual
+        run: pnpm --filter @threadlabs/looma-docs exec playwright test --workers=1 --retries=0 --project=visual
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: extended-docs-failures
+          path: |
+            apps/docs/test-results/
+            apps/docs/playwright-report/
