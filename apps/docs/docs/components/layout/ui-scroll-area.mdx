@@ -15,9 +15,17 @@ A region that scrolls when its content outgrows it, and fades each edge that hid
 
 Every Looma component that scrolls its own content (Sidebar, Reel, the editor toolbar, a dialog's body, search results, and the editor's slash and mention menus) fades its edges this same way.
 
+Set `trim` when the surrounding panel owns its padding. It removes the first item's leading
+block margin and the last item's trailing block margin, retaining margins between items and
+inside their content. Without `trim`, authored margins are preserved.
+
 ## Size
 
 `--ui-scroll-fade-size` sets how far each fade reaches (24px by default), for every Looma scroller at once or for one area. The editor toolbar also reads `--ui-editor-toolbar-fade-size`.
+
+## Padding
+
+`padding` puts space inside the scrolling region: `none` by default, then `xs`, `sm`, `md`, and `lg` on Card's scale. The space scrolls with the content, so the scrollbar and the edge fades stay at the area's edges. Use it when the area is a panel's body, instead of padding a wrapper around the area or the content inside it.
 
 ## Keyboard
 

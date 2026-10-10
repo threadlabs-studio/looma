@@ -53,7 +53,8 @@ function connect(host) {
   const setup = () => {
     const nextFor = host.props.inline.value ? "" : String(host.props.for.value ?? "");
     const nextPlacement = String(host.props.placement.value ?? "bottom-start");
-    if (nextFor === lastFor && nextPlacement === lastPlacement && surface) return;
+    if (nextFor === lastFor && nextPlacement === lastPlacement && surface
+      && (!nextFor || anchor === document.getElementById(nextFor))) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
@@ -61,7 +62,7 @@ function connect(host) {
     anchor = ids.get(nextFor);
     if (anchor) anchorAria = { "aria-haspopup": anchor.getAttribute("aria-haspopup"), "aria-expanded": anchor.getAttribute("aria-expanded") };
     anchor?.addEventListener("click", onAnchorClick);
-    surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
+    surface = host.props.inline.value ? null : createAnchoredSurface(element, { anchor, placement: nextPlacement });
   };
   const apply = () => {
     const inline = Boolean(host.props.inline.value);
@@ -77,7 +78,8 @@ function connect(host) {
       anchor.setAttribute("aria-expanded", String(open));
     }
     if (inline) {
-      surface?.hide();
+      element.removeAttribute("popover");
+      element.hidden = false;
       closeOverlay(document, overlayId);
     } else if (open) {
       surface?.show();

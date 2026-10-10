@@ -526,7 +526,7 @@ test("editor table menus use one action capability set", async ({ page }) => {
   for (const tag of ["ui-editor-table-context-menu", "ui-editor-table-toolbar"] as const) {
     await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
     const configured = page.locator("[data-preview-scenario='Actions']");
-    await expect(configured.locator("[data-action^='add-row']").first()).toBeVisible();
+    await expect((tag === "ui-editor-table-context-menu" ? configured.frameLocator("iframe") : configured).locator("[data-action^='add-row']").first()).toBeVisible();
     const code = configured.locator(".looma-mode-code").first();
     await expect(code).toContainText("actions='[");
     await expect(code).not.toContainText("can-add-row");
@@ -544,10 +544,36 @@ test("editor table menus use one action capability set", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
-  // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
-  test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
-  for (const component of componentApi.components) {
+test("table context menus fit a narrow presentation viewport", async ({ page }) => {
+  await page.goto("components/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
+  const preview = page.locator("[data-preview-scenario='Actions'] iframe");
+  await preview.evaluate((frame) => { frame.style.width = "200px"; });
+  const menu = preview.contentFrame().locator('[data-component~="ui-editor-table-context-menu"]');
+  await expect(menu).toBeVisible();
+  await expect.poll(() => menu.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.left >= 0 && rect.right <= element.ownerDocument.documentElement.clientWidth;
+  })).toBe(true);
+});
+
+test("static popup part examples stay inside their own presentation viewport", async ({ page }) => {
+  for (const tag of ["ui-menu-item", "ui-menu-group", "ui-editor-mention-menu-item", "ui-editor-slash-menu-item", "ui-editor-slash-menu-group"]) {
+    await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
+    await ready(page);
+    const scenarios = page.locator("[data-preview-scenario]");
+    for (const scenario of await scenarios.all()) {
+      const preview = scenario.locator("iframe");
+      await expect(preview).toHaveCount(1);
+      const popup = preview.contentFrame().locator(":popover-open");
+      await expect(popup).toBeVisible();
+      await expect(scenario.locator(":popover-open")).toHaveCount(0);
+    }
+  }
+});
+
+// Each route gets the fixture's own page, asset diagnostics, and failure trace.
+for (const component of componentApi.components) {
+  test(`every component page renders distinct, visible, coded scenarios: ${component.tag}`, async ({ page }) => {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
     const scenarios = page.locator("[data-preview-scenario]");
@@ -574,14 +600,15 @@ test("every component page renders distinct, visible, coded scenarios", async ({
       ),
       `${component.tag} scenario stages should have visible geometry`
     ).toBe(true);
-    expect(
-      await page.locator(`[data-component~="${component.tag}"]`).count(),
-      `${component.tag} should lower to its live native root`
-    ).toBeGreaterThan(0);
+    const firstScenario = scenarios.first();
+    const nativeRoots = await firstScenario.locator("iframe").count()
+      ? firstScenario.frameLocator("iframe").locator(`[data-component~="${component.tag}"]`)
+      : page.locator(`[data-component~="${component.tag}"]`);
+    await expect(nativeRoots.first(), `${component.tag} should lower to its live native root`).toBeAttached();
     await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Framework Snippets" })).toHaveCount(0);
-  }
-});
+  });
+}
 
 test("component pages supply a live preview when no bespoke example exists", async ({
   page
@@ -760,43 +787,46 @@ test("search shell owns native dialog visibility and exposes configured regions 
   await page.goto("components/ui-search-shell", { waitUntil: "domcontentloaded" });
 
   const openScenario = page.locator("[data-preview-scenario='open']");
-  const dialog = openScenario.getByRole("dialog", { name: "Search commands" });
+  const openViewport = openScenario.frameLocator("iframe");
+  const dialog = openViewport.getByRole("dialog", { name: "Search commands" });
   await expect(dialog).toBeVisible();
-  await expect(openScenario.getByRole("searchbox", { name: "Search commands" })).toBeVisible();
-  await expect(openScenario.locator(".status")).toBeHidden();
-  await expect(openScenario.locator(".footer")).toBeHidden();
+  await expect(openViewport.getByRole("searchbox", { name: "Search commands" })).toBeVisible();
+  await expect(openViewport.locator(".status")).toBeHidden();
+  await expect(openViewport.locator(".footer")).toBeHidden();
   await expect(openScenario.locator(".looma-mode-code")).not.toContainText('slot="backdrop"');
   await expect(openScenario.locator(".looma-mode-code")).toContainText("<ui-search-shell open");
 
   const configured = page.locator("[data-preview-scenario='label, dismissible, status, and footer']");
-  const configuredDialog = configured.getByRole("dialog", { name: "Search documentation" });
+  const configuredViewport = configured.frameLocator("iframe");
+  const configuredDialog = configuredViewport.getByRole("dialog", { name: "Search documentation" });
   await expect(configuredDialog).toBeVisible();
   await expect(configuredDialog.getByText("3 results", { exact: true })).toBeVisible();
-  await expect(configured.getByRole("button", { name: "Close" })).toBeVisible();
-  const panelBounds = await configured.locator(".panel").boundingBox();
-  const inputBounds = await configured.getByRole("searchbox").boundingBox();
+  await expect(configuredViewport.getByRole("button", { name: "Close" })).toBeVisible();
+  const panelBounds = await configuredViewport.locator(".panel").boundingBox();
+  const inputBounds = await configuredViewport.getByRole("searchbox").boundingBox();
   expect(panelBounds).not.toBeNull();
   expect(inputBounds).not.toBeNull();
   expect(panelBounds!.width).toBeGreaterThanOrEqual(400);
   expect(inputBounds!.width).toBeGreaterThan(panelBounds!.width * 0.85);
   const [stageBounds, closeBounds] = await Promise.all([
-    configured.locator(".looma-preview-scenario__stage").boundingBox(),
-    configured.getByRole("button", { name: "Close" }).boundingBox()
+    configured.locator("iframe").boundingBox(),
+    configuredViewport.getByRole("button", { name: "Close" }).boundingBox()
   ]);
   expect(stageBounds).not.toBeNull();
   expect(closeBounds).not.toBeNull();
   expect(closeBounds!.y + closeBounds!.height).toBeLessThanOrEqual(stageBounds!.y + stageBounds!.height + 1);
-  const search = configured.getByRole("searchbox", { name: "Search documentation" });
+  const search = configuredViewport.getByRole("searchbox", { name: "Search documentation" });
   await search.fill("tokens");
-  await expect(configured.getByText("2 results", { exact: true })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Design tokens/ })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Token overrides/ })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Button variants/ })).toBeHidden();
+  await expect(configuredViewport.getByText("2 results", { exact: true })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Design tokens/ })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Token overrides/ })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Button variants/ })).toBeHidden();
   await search.fill("no matching component");
-  await expect(configured.getByText("0 results", { exact: true })).toBeVisible();
-  await expect(configured.locator("#docs-search-empty")).toBeVisible();
+  await expect(configuredViewport.getByText("0 results", { exact: true })).toBeVisible();
+  await expect(configuredViewport.locator("#docs-search-empty")).toBeVisible();
   await expect(configured.locator(".looma-mode-code").first()).toContainText("addEventListener(\"input\"");
-  await configured.getByRole("button", { name: "Close" }).click();
+  await configured.locator("iframe").scrollIntoViewIfNeeded();
+  await configuredViewport.getByRole("button", { name: "Close" }).click();
   await expect(configuredDialog).toBeHidden();
 });
 
@@ -1178,6 +1208,90 @@ test("ui-reel exposes a discoverable, keyboard-scrollable overflow viewport", as
   await reel.focus();
   await page.keyboard.press("ArrowRight");
   await expect.poll(() => reel.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+});
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [1100, 375]) {
+    test(`catalog dialog stays in the top layer with stable layout: ${theme}, ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 812 });
+      // Real motion matters: the original hover transform repeatedly changed the containing block.
+      await page.emulateMedia({ reducedMotion: "no-preference", colorScheme: theme });
+      await page.goto("components", { waitUntil: "domcontentloaded" });
+      // Hydrated before the filter click, then every filtered preview mounted with its controllers loaded,
+      // as the catalog dialog capture waits: an earlier click can miss or race the live trigger.
+      // Docusaurus enables its theme button on hydration.
+      await expect(page.locator('button[aria-label^="Switch between dark and light mode"]').first()).toBeEnabled();
+      await page.getByRole("button", { name: /^Overlay/ }).click();
+      await ready(page);
+      const card = page.locator('[data-component-card="ui-dialog"]');
+      await card.scrollIntoViewIfNeeded();
+      const trigger = card.getByRole("button", { name: "Open dialog" });
+      await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+      // The card lifts on hover with real motion; press once it settles, so press and release land together.
+      await trigger.hover();
+      await expect.poll(() => card.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+      await trigger.click();
+      const dialog = card.locator("dialog");
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toHaveJSProperty("open", true);
+      await expect.poll(() => dialog.evaluate((element) => element.getAnimations().length)).toBe(0);
+      // Park over the viewport dialog, where the old inline/viewport hover feedback loop began.
+      const box = (await dialog.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      const samples = await dialog.evaluate(async (element) => {
+        const samples = [];
+        for (let frame = 0; frame < 60; frame++) {
+          await new Promise(requestAnimationFrame);
+          const rect = element.getBoundingClientRect();
+          samples.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+            topLayer: element.matches(":popover-open"),
+            paintedAbove: element.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)),
+          });
+        }
+        return samples;
+      });
+      expect(samples.every((sample) => sample.topLayer && sample.paintedAbove)).toBe(true);
+      for (const sample of samples) {
+        expect(Math.abs(sample.x + sample.width / 2 - width / 2)).toBeLessThan(2);
+        expect(Math.abs(sample.y + sample.height / 2 - 406)).toBeLessThan(2);
+      }
+      const spacing = await dialog.evaluate((element) => {
+        const body = element.querySelector(".body")!;
+        const paragraph = body.querySelector("p")!;
+        const bodyRect = body.getBoundingClientRect();
+        const textRect = paragraph.getBoundingClientRect();
+        const dialogRect = element.getBoundingClientRect();
+        const footer = element.querySelector("footer")!;
+        const actionRect = footer.querySelector("button")!.getBoundingClientRect();
+        const border = parseFloat(getComputedStyle(element).borderBottomWidth);
+        return { padding: parseFloat(getComputedStyle(body).paddingLeft), textInset: textRect.left - bodyRect.left, textBottom: textRect.bottom, footerTop: footer.getBoundingClientRect().top,
+          bottomInset: dialogRect.bottom - border - actionRect.bottom,
+          trailingMargin: parseFloat(getComputedStyle(paragraph).marginBottom),
+        };
+      });
+      expect(spacing.padding).toBeGreaterThan(0);
+      expect(spacing.textInset).toBeGreaterThanOrEqual(spacing.padding);
+      expect(spacing.textBottom).toBeLessThanOrEqual(spacing.footerTop);
+      expect(spacing.bottomInset).toBeCloseTo(spacing.padding, 0);
+      expect(spacing.trailingMargin).toBe(0);
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).not.toBeVisible();
+      expect(await dialog.evaluate((element) => element.matches(":popover-open"))).toBe(false);
+      await expect(card.getByRole("button", { name: "Open dialog" })).toBeFocused();
+    });
+  }
+}
+
+test("mobile group-token documentation can be scrolled by keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("tokens", { waitUntil: "domcontentloaded" });
+  const table = page.getByRole("table", { name: "Group design tokens", exact: true });
+  await expect(table).toHaveAttribute("tabindex", "0");
+  await table.focus();
+  await expect(table).toBeFocused();
+  expect(await table.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => table.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
 });
 
 test("dialog closes via header button, actions, Escape, and outside press, with pinned chrome", async ({ page }) => {

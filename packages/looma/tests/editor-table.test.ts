@@ -241,6 +241,13 @@ describe("LoomaEditor links", () => {
     await page.setViewportSize({ width: 375, height: 760 });
     await prose(page).locator("p").click({ position: { x: 8, y: 8 } });
     const trigger = page.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" });
+    const chrome = await page.locator(".looma-editor__mobile-toolbar-shell").evaluate(element => {
+      const style = getComputedStyle(element);
+      return { topLayer: element.matches(":popover-open"), padding: parseFloat(style.paddingTop), border: parseFloat(style.borderTopWidth), background: style.backgroundColor };
+    });
+    assert.equal(chrome.topLayer, true);
+    assert.ok(chrome.padding > 0 && chrome.border > 0, "top-layer presentation preserves toolbar chrome");
+    assert.notEqual(chrome.background, "rgba(0, 0, 0, 0)");
     await trigger.hover();
     await page.mouse.down();
     // A real press is held briefly; an instantaneous automated click can miss the blur race.

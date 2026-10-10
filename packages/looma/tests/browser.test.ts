@@ -1,6 +1,7 @@
 // Drives the built package (run `pnpm build` first) in Chromium, the way consumers use it: a Vue app
 // importing @threadlabs/looma/vue, and a plain page registering the components with dist/index.js.
 import assert from "node:assert/strict";
+import type { Editor } from "@tiptap/core";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -245,6 +246,86 @@ describe("Pressed icon controls and circular marks", () => {
 });
 
 describe("Anchored overlay placement", () => {
+  it("presents an open popover and menu without for in the top layer at their written place, traveling with it", async () => {
+    const path = await bundle("html-unanchored-popups", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="height: 300px"></div>
+      <div id="stage" style="margin-inline-start: 40px; padding: 20px"><ui-popover id="popover" open>Popover content</ui-popover></div>
+      <div id="scroller" style="block-size: 200px; overflow: auto; padding: 10px">
+        <ui-menu id="menu" open aria-label="Actions"><ui-menu-item value="alpha">Alpha</ui-menu-item></ui-menu>
+        <div style="block-size: 600px"></div>
+      </div>
+      <div style="block-size: 2000px"></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => ["#popover", "#menu"].every((id) => document.querySelector(id)!.matches(":popover-open")));
+    // Offsets from the written place: each holder's padding edge, less its own scroll.
+    const offsets = () => page.evaluate(() => Object.fromEntries([["popover", "#stage"], ["menu", "#scroller"]].map(([id, holder]) => {
+      const box = document.getElementById(id)!.getBoundingClientRect();
+      const base = document.querySelector(holder)!;
+      const rect = base.getBoundingClientRect();
+      return [id, [Math.round(box.left - rect.left), Math.round(box.top - rect.top + base.scrollTop)]];
+    })));
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "not the viewport corner");
+    await page.evaluate(() => { scrollTo(0, 100); document.querySelector("#scroller")!.scrollTop = 40; });
+    await frames();
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "page and nested scrolling carry each popup with its place");
+    await page.evaluate(() => document.querySelector("#stage")!.insertAdjacentHTML("beforebegin", '<div style="block-size: 100px"></div>'));
+    await frames();
+    assert.deepEqual(await offsets(), { popover: [20, 20], menu: [10, 10] }, "layout that moves the place carries each popup without a scroll");
+    await page.close();
+  });
+
+  it("shares one viewport listener across HTML and Vue popups, follows nested scrolling, and releases closed surfaces", async () => {
+    const path = await bundle("mixed-overlay-coordinator", `
+      import "@threadlabs/looma";
+      import { createApp, h, ref } from "vue";
+      import { Popover } from "@threadlabs/looma/vue";
+      const visible = ref(true);
+      window.vuePopupOpen = visible;
+      createApp({ render: () => h(Popover, { id: "vue-popup", open: visible.value, for: "vue-anchor" }, () => "Vue popup") }).mount("#app");
+    `);
+    const page = await open(path, `
+      <script>
+        window.viewportListeners = [];
+        const add = window.addEventListener.bind(window);
+        window.addEventListener = (type, listener, options) => {
+          if (type === "scroll" && options?.signal) window.viewportListeners.push(options.signal);
+          return add(type, listener, options);
+        };
+      </script>
+      <div id="scroller" style="height: 400px; width: 900px; overflow: auto; transform: translateY(0)">
+        <div style="height: 120px"></div>
+        <button id="html-anchor" style="margin-left: 100px">HTML</button>
+        <button id="vue-anchor" style="margin-left: 300px">Vue</button>
+        <ui-popover id="html-popup" for="html-anchor" open>HTML popup</ui-popover>
+        <div id="app"></div>
+        <div style="height: 1200px"></div>
+      </div>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const activeListeners = () => page.evaluate(() => (window as any).viewportListeners.filter((signal: AbortSignal) => !signal.aborted).length);
+    assert.equal(await activeListeners(), 1, "mixed adapters share one capture scroll listener");
+    const before = await page.locator("#html-popup").boundingBox();
+    await page.locator("#scroller").evaluate((element) => { element.scrollTop = 60; });
+    await page.waitForFunction(() => {
+      const anchor = document.querySelector("#html-anchor")!.getBoundingClientRect();
+      const popup = document.querySelector("#html-popup")!.getBoundingClientRect();
+      return Math.abs(popup.top - anchor.bottom - 4) <= 2;
+    });
+    const after = await page.locator("#html-popup").boundingBox();
+    assert.ok(Math.abs(before!.y - after!.y - 60) <= 2, "attachment follows a nested scrolling container");
+    for (const id of ["html-popup", "vue-popup"]) {
+      assert.equal(await page.locator(`#${id}`).evaluate((element) => element.matches(":popover-open")), true);
+    }
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#vue-popup")!.matches(":popover-open"));
+    assert.equal(await page.locator("#html-popup").evaluate((element) => element.matches(":popover-open")), true, "Escape closes only the top popup across adapters");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#html-popup")!.matches(":popover-open") && !document.querySelector("#vue-popup")!.matches(":popover-open"));
+    assert.equal(await activeListeners(), 0, "last close releases the shared listener");
+    await page.close();
+  });
+
   it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
     const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -454,6 +535,7 @@ describe("Anchored overlay placement", () => {
       createApp({ render: () => h(LoomaEditor, {
         label: "Writing",
         modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+        onReady: (editor) => { window.fixtureEditor = editor; },
       }) }).mount("#app");
     `);
     const page = await open(path, `
@@ -461,15 +543,81 @@ describe("Anchored overlay placement", () => {
       <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
       <div id="app"></div>
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
-    const editor = page.getByRole("textbox", { name: "Writing" });
-    await editor.focus();
-    // Set a known caret before selecting a real character.
-    await editor.press("End");
-    await editor.press("ArrowLeft");
-    await editor.press("Shift+ArrowRight");
-    await page.waitForFunction(() => (window.getSelection()?.toString().length ?? 0) > 0);
+    // Select "some" through the editor. Keys pressed right after focus race ProseMirror's post-focus
+    // selection restore, which can put back the caret it last read and drop the selection.
+    await page.waitForFunction(() => "fixtureEditor" in window);
+    await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
     await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
+    await page.close();
+  });
+});
+
+describe("Table context menu placement", () => {
+  // Owner model: a menu is shown at the place it is written and travels with that place; only a
+  // menu written in a fixed or absolutely positioned box, as LoomaEditor places it, answers to the viewport.
+  it("shows a menu at its written place and keeps a floating menu inside the viewport", async () => {
+    const path = await bundle("html-table-context-menu", `import "@threadlabs/looma";`);
+    const actions = `actions='["add-row-before","add-row-after","add-column-before","add-column-after","delete-table"]'`;
+    const page = await open(path, `
+      <div style="height: 1500px"></div>
+      <div id="stage" style="position: relative; overflow: auto; padding: 20px">
+        <ui-editor-table-context-menu id="inline" ${actions} open></ui-editor-table-context-menu>
+      </div>
+      <div style="height: 1500px"></div>
+      <div style="position: fixed; top: 560px; left: 1000px">
+        <ui-editor-table-context-menu id="floating" ${actions} open></ui-editor-table-context-menu>
+      </div>
+    `, [join(root, "tokens.css")], { viewport: { width: 1100, height: 600 } });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>("#floating")?.style.translate);
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Offset from the written place: the stage's padding edge, whatever the scroll or viewport.
+    const offset = () => page.locator("#inline").evaluate((element) => {
+      const menu = element.getBoundingClientRect();
+      const stage = element.parentElement!.getBoundingClientRect();
+      return { x: menu.left - stage.left, y: menu.top - stage.top };
+    });
+    // A resize re-measures, as a full-page capture or a rotated phone does; the place below the fold stays put.
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "below the first screen, the menu is not pulled into the viewport");
+    await page.evaluate(() => scrollTo(0, 1300));
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "the menu travels with its place as the page scrolls");
+    // Content above the place grows without a scroll or resize event, as fonts or lazy content do.
+    await page.evaluate(() => document.querySelector("#stage")!.insertAdjacentHTML("beforebegin", '<div style="height: 100px"></div>'));
+    await frames();
+    assert.deepEqual(await offset(), { x: 20, y: 20 }, "the menu follows layout that moves its place");
+    const floating = await page.locator("#floating").boundingBox();
+    assert.ok(floating && floating.x + floating.width <= 1100 - 12 && floating.y + floating.height <= 640 - 12, `floating menu fits the viewport: ${JSON.stringify(floating)}`);
+    await page.close();
+  });
+
+  it("separates sections only between them and fits fewer swatches to a row in a narrow menu", async () => {
+    const path = await bundle("html-table-context-menu-sections", `import "@threadlabs/looma";`);
+    const swatches = `actions='["background-none","background-gray","background-yellow","background-blue","background-green","background-red","add-row-after","delete-table"]'`;
+    const page = await open(path, `
+      <ui-editor-table-context-menu id="plain" actions='["add-row-after","delete-table"]' open></ui-editor-table-context-menu>
+      <div style="position: fixed; top: 0; right: 0"><ui-editor-table-context-menu id="full" ${swatches} open></ui-editor-table-context-menu></div>
+    `, [join(root, "tokens.css")]);
+    await page.waitForFunction(() => document.querySelectorAll("#full .swatch-button").length === 6);
+    const layout = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const buttons = [...element.querySelectorAll(".swatch-button")].map((button) => button.getBoundingClientRect());
+      return {
+        width: element.getBoundingClientRect().width,
+        separators: [...element.querySelectorAll(".sep")].map((sep) => getComputedStyle(sep).display !== "none"),
+        perRow: buttons.filter((button) => button.top === buttons[0]?.top).length,
+        narrowest: Math.round(Math.min(...buttons.map((button) => button.width))),
+      };
+    });
+    assert.deepEqual((await layout("plain")).separators, [false, true], "no separator above the first section");
+    const full = await layout("full");
+    assert.deepEqual({ width: full.width, separators: full.separators, perRow: full.perRow }, { width: 272, separators: [true, true], perRow: 3 });
+    // A phone viewport narrows the menu to 100vw - 24px; its labels stay whole by fitting fewer to a row.
+    await page.setViewportSize({ width: 251, height: 720 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const narrow = await layout("full");
+    assert.deepEqual({ width: narrow.width, perRow: narrow.perRow, narrowest: narrow.narrowest }, { width: 227, perRow: 2, narrowest: 80 });
     await page.close();
   });
 });
@@ -553,7 +701,7 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
-  it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
+  it("shows authored toasts, hides one on dismissal, and shows it again when hidden clears", async () => {
     const path = await bundle("html-authored-toast", `
       import "@threadlabs/looma";
       window.dismissals = [];
@@ -576,9 +724,13 @@ describe("Toast composition and placement", () => {
     assert.ok(position.bottom < 40 && position.right < 40, JSON.stringify(position));
     await page.getByRole("button", { name: "Undo" }).click();
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "saved", reason: "action", trigger: "pointer" }]);
-    assert.equal(await page.locator("#saved").count(), 1, "authored content stays owned by the consumer");
-    await page.locator("#saved").evaluate((element) => element.remove());
-    await page.locator("#failed").evaluate((element) => element.remove());
+    assert.equal(await page.locator("#saved").count(), 1, "authored content stays in the document");
+    assert.equal(await page.locator("#saved").isHidden(), true, "a dismissed toast hides itself");
+    await page.locator("#saved").evaluate((element: HTMLElement) => { element.hidden = false; });
+    assert.equal(await page.locator("#saved").isVisible(), true, "clearing hidden shows it again");
+    await page.getByRole("button", { name: "Undo" }).click();
+    assert.equal((await page.evaluate(() => (window as any).dismissals)).length, 2, "a reshown toast dismisses again");
+    await page.locator("#failed").getByRole("button", { name: "Dismiss notification" }).click();
     await page.waitForFunction(() => !document.querySelector("#region")!.matches(":popover-open"));
     await page.close();
   });
@@ -596,6 +748,26 @@ describe("Toast composition and placement", () => {
     await page.mouse.move(0, 0);
     await page.waitForFunction(() => (window as any).dismissals.length === 1);
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "toast", reason: "timeout", trigger: "programmatic" }]);
+    assert.equal(await page.locator("#toast").isHidden(), true, "a timed toast hides itself");
+    await page.close();
+  });
+
+  it("times an authored hidden toast only once it is shown, and again each time it is shown", async () => {
+    const path = await bundle("html-hidden-timed-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail.reason));
+    `);
+    const page = await open(path, `<ui-toast-region id="region"><ui-toast id="toast" hidden duration="200">Timed</ui-toast></ui-toast-region>`, [join(root, "tokens.css")]);
+    await page.waitForTimeout(400);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [], "a toast that was never shown does not time out");
+    assert.equal(await page.locator("#region").evaluate((element) => element.matches(":popover-open")), false);
+    for (const shown of [1, 2]) {
+      await page.locator("#toast").evaluate((element: HTMLElement) => { element.hidden = false; });
+      await page.waitForFunction((count) => (window as any).dismissals.length === count, shown);
+      assert.equal(await page.locator("#toast").isHidden(), true, `showing ${shown} timed out and hid the toast`);
+    }
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), ["timeout", "timeout"]);
     await page.close();
   });
 
@@ -1360,6 +1532,152 @@ describe("Dialog close policy and presentation", () => {
   }
 
   const isOpen = (id: string) => `document.querySelector("#${id}").open`;
+
+  it("fits short content with equal action gutters and caps growing HTML and Vue bodies at the viewport", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-content-size`, adapter === "html" ? `
+        import "@threadlabs/looma";
+        window.setLines = (count) => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Button, Dialog } from "@threadlabs/looma/vue";
+        const lines = ref(1);
+        window.setLines = (count) => { lines.value = count; };
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, {
+          default: () => h("p", { id: "content" }, Array(lines.value).fill("Content line").join("\\n")),
+          actions: () => h(Button, "Done"),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p><ui-button slot="actions">Done</ui-button></ui-dialog>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 600 }, reducedMotion: "reduce" });
+      await page.addStyleTag({ content: "body {font:16px/24px system-ui} p {white-space:pre-line; margin-block:20px}" });
+      const measure = () => page.locator("#dialog").evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        const body = element.querySelector(".body")!;
+        const content = element.querySelector("#content")!;
+        const action = element.querySelector("footer button")!.getBoundingClientRect();
+        const scroll = body.querySelector<HTMLElement>('[data-component~=ui-scroll-area]')!;
+        const border = parseFloat(getComputedStyle(element).borderBottomWidth);
+        return { height: rect.height, top: rect.top, bottom: rect.bottom, contentHeight: content.getBoundingClientRect().height,
+          marginStart: parseFloat(getComputedStyle(content).marginTop), marginEnd: parseFloat(getComputedStyle(content).marginBottom),
+          bottomInset: rect.bottom - border - action.bottom, inlineInset: parseFloat(getComputedStyle(body).paddingLeft),
+          scrolls: scroll.scrollHeight > scroll.clientHeight, actionBottom: action.bottom,
+        };
+      });
+      const short = await measure();
+      assert.equal(short.bottomInset, short.inlineInset, `${adapter}: actions have the same bottom and side gutters`);
+      assert.equal(short.marginStart + short.marginEnd, 0, `${adapter}: paragraph edge margins do not inflate the dialog`);
+      assert.ok(short.height < 200, `${adapter}: one line does not create an oversized dialog (${short.height}px)`);
+      await page.evaluate(() => (window as any).setLines(60));
+      await page.waitForFunction(() => document.querySelector('[data-component~=ui-scroll-area]')!.scrollHeight > document.querySelector('[data-component~=ui-scroll-area]')!.clientHeight);
+      const tall = await measure();
+      assert.ok(tall.height > short.height && tall.top >= 16 && tall.bottom <= 584, `${adapter}: growth stops at viewport gutters`);
+      assert.equal(tall.scrolls, true);
+      assert.ok(tall.actionBottom <= 560, `${adapter}: actions remain visible when the body overflows`);
+      await page.evaluate(() => (window as any).setLines(1));
+      await page.waitForFunction(() => document.querySelector("#dialog")!.getBoundingClientRect().height < 200);
+      assert.equal((await measure()).height, short.height, `${adapter}: shrinking restores intrinsic height`);
+      await page.close();
+    }
+  });
+
+  it("animates content growth and shrinkage, retargets an active resize, and respects reduced motion in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-height-motion`, adapter === "html" ? `
+        import "@threadlabs/looma";
+        window.setLines = count => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Dialog } from "@threadlabs/looma/vue";
+        const lines = ref(1);
+        window.setLines = count => { lines.value = count; };
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", { id: "content" }, Array(lines.value).fill("Content line").join("\\n"))) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p></ui-dialog>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 1000 }, reducedMotion: "no-preference" });
+      await page.addStyleTag({ content: 'body {font:16px/24px system-ui} p {white-space:pre-line} #dialog {--ui-dialog-duration:200ms}' });
+      await page.waitForFunction(() => document.querySelector("#dialog")!.getAnimations().length === 0);
+      const short = await page.locator("#dialog").evaluate(element => element.getBoundingClientRect().height);
+      const sample = async (lines: number, retarget = 0) => page.locator("#dialog").evaluate(async (element, { lines, retarget }) => {
+        (window as any).setLines(lines);
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+        const frames = [];
+        for (let frame = 0; frame < 30; frame++) {
+          if (frame === 3 && retarget) (window as any).setLines(retarget);
+          await new Promise(requestAnimationFrame);
+          frames.push(element.getBoundingClientRect().height);
+        }
+        return frames;
+      }, { lines, retarget });
+      const growing = await sample(8);
+      const tall = growing.at(-1)!;
+      assert.ok(growing.some(height => height > short + 1 && height < tall - 1), `${adapter}: growth has intermediate rendered heights`);
+      const shrinking = await sample(1);
+      assert.ok(shrinking.some(height => height > short + 1 && height < tall - 1), `${adapter}: shrinkage has intermediate rendered heights`);
+      assert.ok(Math.abs(shrinking.at(-1)! - short) < 1);
+      const retargeted = await sample(8, 4);
+      assert.ok(Math.abs(retargeted.at(-1)! - (short + 3 * 24)) < 1, `${adapter}: rapid content changes settle at the latest intrinsic height`);
+      const capped = await sample(60);
+      assert.ok(capped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: growth animates toward the viewport cap`);
+      assert.ok(Math.abs(capped.at(-1)! - 968) < 1, `${adapter}: animated growth respects both 16px viewport gutters`);
+      assert.equal(await page.locator('[data-component~=ui-scroll-area]').evaluate(element => element.scrollHeight > element.clientHeight), true);
+      const uncapped = await sample(4);
+      assert.ok(uncapped.some(height => height > retargeted.at(-1)! + 1 && height < 967), `${adapter}: shrinkage animates away from the viewport cap`);
+      assert.ok(Math.abs(uncapped.at(-1)! - retargeted.at(-1)!) < 1);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      const immediate = await sample(1);
+      assert.ok(immediate.every(height => Math.abs(height - short) < 1), `${adapter}: reduced motion changes height immediately`);
+      await page.close();
+    }
+  });
+
+  it("keeps HTML and Vue non-modal dialogs above transformed, clipped ancestors without a backdrop", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-dialog-top-layer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Dialog } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", "Body")) }).mount("#app");
+      `);
+      const page = await open(path, `
+        <div id="card" style="transform: translateY(-2px); overflow: hidden; width: 160px; height: 80px">
+          ${adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p>Body</p></ui-dialog>' : '<div id="app"></div>'}
+        </div>
+        <div style="position: fixed; inset: 0; z-index: 2147483647; background: red"></div>
+      `, [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const dialog = page.locator("#dialog");
+      assert.equal(await dialog.evaluate((element) => element.matches(":popover-open")), true, `${adapter}: non-modal dialogs belong to the top layer`);
+      assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+      assert.equal(await dialog.evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+      const geometry = await dialog.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const body = element.querySelector(".body")!;
+        return {
+          centerX: box.x + box.width / 2, centerY: box.y + box.height / 2,
+          viewportX: innerWidth / 2, viewportY: innerHeight / 2,
+          paintedAbove: element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)),
+          padding: parseFloat(getComputedStyle(body).paddingLeft),
+        };
+      });
+      assert.ok(Math.abs(geometry.centerX - geometry.viewportX) < 2 && Math.abs(geometry.centerY - geometry.viewportY) < 2, `${adapter}: dialog stays viewport-centered`);
+      assert.equal(geometry.paintedAbove, true, `${adapter}: the dialog paints above ordinary page stacking contexts`);
+      assert.ok(geometry.padding > 0, `${adapter}: the nested scroll component does not erase dialog body spacing`);
+      await dialog.getByRole("button", { name: "Close" }).click();
+      await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+      assert.equal(await dialog.evaluate((element) => element.matches(":popover-open")), false, `${adapter}: closing releases the top layer`);
+      await page.close();
+    }
+  });
+
+  it("honors authored close commands outside a non-modal dialog", async () => {
+    const path = await bundle("html-dialog-external-close", `import "@threadlabs/looma";`);
+    const page = await open(path, '<button id="dismiss" command="close" commandfor="dialog">Dismiss dialog</button><ui-dialog id="dialog" open label="Details">Body</ui-dialog>', [join(root, "tokens.css")]);
+    await page.locator("#dismiss").click();
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator("#dialog").evaluate((dialog: HTMLDialogElement) => dialog.open), false);
+    assert.equal(await page.locator("#dialog").evaluate((dialog) => dialog.matches(":popover-open")), false);
+    await page.close();
+  });
 
   it("keeps nested modal dialogs open with only one visible backdrop", async () => {
     const path = await bundle("html-dialog-nested-backdrops", `import "@threadlabs/looma";`);
@@ -5605,6 +5923,7 @@ describe("Vue editor components", () => {
     assert.equal(await toolbar.locator(".menu").count(), 0);
     await toolbar.locator('[data-action="toggle-overflow"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 1);
+    await page.waitForFunction(() => document.querySelector("#toolbar .menu")?.matches(":popover-open"));
     assert.deepEqual(await toolbar.locator('.menu [role="menuitem"]').allTextContents(), ["Delete table"]);
     await toolbar.locator('[data-action="delete-table"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 0);

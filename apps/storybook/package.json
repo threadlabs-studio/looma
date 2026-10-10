@@ -1,13 +1,17 @@
 {
   "name": "@threadlabs/looma-storybook",
   "private": true,
-  "version": "0.26.0",
+  "version": "0.27.0",
   "type": "module",
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "storybook build",
+    "build:visual": "pnpm --filter \"@threadlabs/looma-storybook^...\" run build && pnpm generate:api && storybook build",
     "generate:api": "pnpm --dir ../.. generate:api",
     "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
+    "visual:test": "node ./scripts/run-storywright-docker.mjs test",
+    "visual:update": "node ./scripts/run-storywright-docker.mjs update",
+    "visual:report": "storywright report --open",
     "lint": "echo \"storybook: lint not configured\"",
     "test": "echo \"storybook: tests not configured\"",
     "typecheck": "echo \"storybook: typecheck not configured\""
@@ -20,9 +24,11 @@
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.60.0",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/web-components": "^8.6.14",
     "@storybook/web-components-vite": "^8.6.14",
+    "@storywright/cli": "~1.8.0",
     "@types/node": "^22.15.30",
     "rollup": "^4.44.1",
     "storybook": "^8.6.14",

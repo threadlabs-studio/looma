@@ -62,7 +62,7 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
   );
 });
 
-test("the required verify result gates unit tests, browser regressions, and release packaging", async () => {
+test("the required verify result gates unit tests, browser regressions, release packaging, and visual regression", async () => {
   const [workflow, rootPackage, loomaPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
     readFile(path.join(repoRoot, "package.json"), "utf8"),
@@ -88,7 +88,7 @@ test("the required verify result gates unit tests, browser regressions, and rele
   assert.match(releasePackagingJob, /ci-qualification\.mjs run package-consumer/);
   assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
-  assert.match(verifyJob, /needs: \[quality, browser, release-package\]/);
+  assert.match(verifyJob, /needs: \[quality, browser, release-package, visual\]/);
   assert.match(verifyJob, /QUALITY_RESULT: \$\{\{ needs\.quality\.result \}\}/);
   assert.match(
     verifyJob,
@@ -96,6 +96,7 @@ test("the required verify result gates unit tests, browser regressions, and rele
   );
   assert.match(verifyJob, /test "\$QUALITY_RESULT" = "success"/);
   assert.match(verifyJob, /test "\$RELEASE_PACKAGE_RESULT" = "success"/);
+  assert.match(verifyJob, /test "\$VISUAL_RESULT" = "success"/);
 });
 
 test("required release suites contain no skipped or todo scenarios", async () => {
