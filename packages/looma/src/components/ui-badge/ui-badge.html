@@ -23,7 +23,7 @@
     <span class="label"><slot></slot></span>
   </span>
   <style>
-    /* Instance hooks do not inherit. Circle opacity is an optional inherited theme value. */
+    /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-badge-border {
       syntax: "*";
       inherits: false;
@@ -38,7 +38,7 @@
     }
     @property --ui-badge-circle-opacity {
       syntax: "*";
-      inherits: true;
+      inherits: false;
     }
     @property --ui-badge-dot-size {
       syntax: "*";
