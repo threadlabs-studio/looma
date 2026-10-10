@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.26.3
+
+- Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
+- Badge adds a larger 32px circle and 40px square with `size="lg"`, with room for short counts such as `30` and `99+`. Its `inverse` variant uses a partly translucent contrasting surface for labels on a filled control, retaining readable tone ink. Text pills and fixed text marks use the same capital-height/alphabetic-baseline centering. Ellipsis clips only horizontal overflow, keeping ascenders and descenders visible within the existing badge geometry.
+- Inverse circular counts and round avatars have a shallow shadow, giving them a small amount of lift above the surrounding surface.
+- List Item adds opt-in `align="title"` to keep leading and trailing marks beside the first title line when descriptions wrap. Existing rows retain centered alignment.
+
+## v0.26.2
+
+- Icon Button accepts accent and neutral tones and keeps native pressed outline toggles visibly selected with a light wash and inset shadow. Existing appearances remain unchanged when tone is omitted.
+- Badge adds a fixed circular shape that centers a visible glyph or icon, including a compact 16px size.
+- Container offers opt-in `fill` to keep readable lines while its scrolling content fits a bounded panel.
+
 ## v0.26.1
 
 - Dialog body content aligns with its title in HTML and Vue, keeps short content compact, and uses equal side and bottom gutters around its actions. Dialog owns its body layout instead of styling a nested component root excluded by HTML scoping. Scroll Area adds opt-in `trim` to remove only projected content's outer block margins; existing scroll areas keep their margins.

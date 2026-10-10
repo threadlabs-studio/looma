@@ -1,0 +1,13 @@
+<!--
+title: Outline toggles
+description: Native aria-pressed keeps an outline action visibly pressed after release. The app owns the toggle state; an accent tone adds colour without a solid fill. A tooltip supplies the same label on hover and keyboard focus.
+-->
+<ui-cluster gap="m">
+  <ui-icon-button label="Notifications" variant="outline" tone="neutral" aria-pressed="false">
+    <ui-icon name="bell"></ui-icon>
+  </ui-icon-button>
+  <ui-icon-button id="notifications-toggle-example" label="Notifications" variant="outline" tone="accent" aria-pressed="true">
+    <ui-icon name="bell"></ui-icon>
+  </ui-icon-button>
+</ui-cluster>
+<ui-tooltip for="notifications-toggle-example">Notifications</ui-tooltip>

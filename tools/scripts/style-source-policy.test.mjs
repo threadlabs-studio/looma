@@ -1,9 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile, readdir } from 'node:fs/promises';
 import { additions, cssRules, inlineStyles, styleSourceProblems } from './style-source-policy.mjs';
 
 test('only approved primitives have styling; composition exceptions cannot grow or change', async () => {
   assert.deepEqual(await styleSourceProblems(), []);
+});
+
+test('active optical text trimming uses one explicit edge policy', async () => {
+  const root = new URL('../../packages/looma/src/components/', import.meta.url);
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !entry.name.startsWith('ui-')) continue;
+    const source = await readFile(new URL(`${entry.name}/${entry.name}.html`, root), 'utf8');
+    for (const style of source.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)) for (const rule of cssRules(style[1])) {
+      const declarations = rule.slice(rule.lastIndexOf('{') + 1);
+      if (!/text-box-trim:\s*trim-(?:both|start|end)/.test(declarations)) continue;
+      assert.match(declarations, /text-box-trim:\s*trim-both;/, entry.name);
+      assert.match(declarations, /text-box-edge:\s*cap alphabetic;/, entry.name);
+    }
+  }
 });
 
 test('rule identity includes appearance and placement conditions', () => {

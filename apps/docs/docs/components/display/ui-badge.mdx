@@ -17,11 +17,24 @@ control. Use words elsewhere when people need more than a compact signal.
 
 `shape="square"` frames an icon or single glyph in a rounded square. The same
 semantic tones and variants apply. Its default size is 32px, or 24px with
-`size="xs"`; both follow the global spacing scale. The corners follow
+`size="xs"` and 40px with `size="lg"`; these follow the global spacing scale. The corners follow
 `--ui-radius-md`. Set `--ui-badge-square-size` on a particular badge to change
 both dimensions together. It stays non-interactive: use IconButton for an action
 and Avatar for a person's identity. Hide a decorative square from assistive
 technology when nearby words already name it. Use a pill or tag for longer text.
+
+`shape="circle"` centers a visible glyph, icon or short bounded count in a fixed circle:
+24px by default, 16px with `size="xs"`, or 32px with `size="lg"`. Unlike `dot`, its content remains
+visible. Set `--ui-badge-circle-size` on the badge to change both dimensions together.
+All existing tones and variants apply. Use a pill for longer text, and provide an
+accessible name when a single glyph does not explain itself.
+
+For a count inside a filled action, use the same circle with `size="lg"` to fit
+two-digit counts and `99+`. The caller caps the visible count and names the full
+count on the action; hide the redundant badge from assistive technology. Use
+`variant="inverse" tone="accent"` on a filled accent action: it reverses the solid
+tone's surface and text while preserving the contrast pair.
+This is a composition of Badge, not a separate counter component.
 
 Subtle badges and pointed tags have a slightly darker, tone-matched border than their soft fill.
 Colored solid badges keep their filled edge; neutral solid uses the same soft treatment as neutral subtle.

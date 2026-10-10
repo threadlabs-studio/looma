@@ -55,6 +55,195 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Pressed icon controls and circular marks", () => {
+  it("keeps a readable Container bounded around scrolling content in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Container, Stack, ScrollArea, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Container, { id: "reading", fill: true }, () => h(Stack, { fill: true }, () => [
+          h(ScrollArea, { id: "scroll", fill: true }, () => Array.from({ length: 50 }, (_, i) => h("p", "Reading line " + i))),
+          h(Button, { id: "continue" }, () => "Continue")
+        ])) }).mount("#app");
+      `);
+      const content = adapter === "html" ? `<ui-container id="reading" fill><ui-stack fill><ui-scroll-area id="scroll" fill>${Array.from({ length: 50 }, (_, i) => `<p>Reading line ${i}</p>`).join("")}</ui-scroll-area><ui-button id="continue">Continue</ui-button></ui-stack></ui-container>` : "";
+      const page = await open(path, `<div id="app" style="display:grid;height:320px;width:100%">${content}</div>`,
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#reading[data-component~="ui-container"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const frame = document.querySelector("#app")!.getBoundingClientRect(), reading = document.querySelector("#reading")!.getBoundingClientRect();
+          const action = document.querySelector("#continue")!.getBoundingClientRect(), scroll = document.querySelector("#scroll")!;
+          return { height: reading.height, frameHeight: frame.height, width: reading.width, frameWidth: frame.width,
+            centered: Math.abs((reading.left + reading.right - frame.left - frame.right) / 2), actionBottom: action.bottom, frameBottom: frame.bottom,
+            scrolls: scroll.scrollHeight > scroll.clientHeight };
+        });
+        assert.equal(geometry.height, geometry.frameHeight, `${adapter}/${width}: fills the bounded parent`);
+        assert.ok(geometry.actionBottom <= geometry.frameBottom + 1, "action remains inside the panel");
+        assert.ok(geometry.scrolls, "long content scrolls instead of expanding the panel");
+        assert.ok(geometry.centered < 1, `${adapter}/${width}: reading column remains centered ${JSON.stringify(geometry)}`);
+        assert.ok(width === 375 ? geometry.width <= geometry.frameWidth : geometry.width < geometry.frameWidth, "readable measure remains bounded");
+      }
+      await page.close();
+    }
+  });
+
+  it("keeps an accent outline toggle pressed after release in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-pressed-icon`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { IconButton, Icon, Tooltip } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(IconButton, { id: "toggle", label: "Notifications", variant: "outline", tone: "accent", anticipatory: true, "aria-pressed": true }, () => h(Icon, { name: "bell" })),
+          h(IconButton, { id: "neutral", label: "Neutral", variant: "outline" }, () => h(Icon, { name: "bell" })),
+          h(Tooltip, { for: "toggle" }, () => "Notifications")
+        ] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-icon-button id="toggle" label="Notifications" variant="outline" tone="accent" anticipatory aria-pressed="true"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-icon-button id="neutral" label="Neutral" variant="outline"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-tooltip for="toggle">Notifications</ui-tooltip>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const paint = (id: string) => page.locator(id).evaluate(element => {
+        const style = getComputedStyle(element);
+        return { border: style.borderColor, color: style.color, surface: style.backgroundColor, image: style.backgroundImage, shadow: style.boxShadow,
+          iconOpacity: getComputedStyle(element.querySelector(".content")!).opacity };
+      });
+      await page.waitForSelector('#toggle[data-component~="ui-icon-button"]');
+      const selected = await paint("#toggle");
+      assert.ok(selected.shadow.includes("inset"), `${adapter}: selected control stays inset at rest`);
+      assert.equal(selected.image, "none");
+      assert.equal(selected.iconOpacity, "1", "selected anticipatory control remains visible");
+      assert.notEqual(selected.border, (await paint("#neutral")).border);
+      await page.locator("#toggle").click();
+      assert.equal(await page.locator("#toggle").getAttribute("aria-pressed"), "true", "consumer owns toggle state");
+      await page.mouse.move(300, 200);
+      await page.locator("#toggle").blur();
+      assert.ok((await paint("#toggle")).shadow.includes("inset"));
+      await page.locator("#toggle").focus();
+      assert.ok((await paint("#toggle")).shadow.includes("inset"), "focus keeps selected state");
+      await page.getByRole("tooltip").waitFor({ state: "visible" });
+      await page.locator("#toggle").evaluate(element => {
+        element.setAttribute("aria-pressed", "false");
+      });
+      assert.notEqual((await paint("#toggle")).surface, selected.surface, "native state update releases the wash");
+      await page.locator("#toggle").evaluate(element => element.setAttribute("aria-pressed", "true"));
+      await page.emulateMedia({ forcedColors: "active" });
+      assert.equal(await page.locator("#toggle").evaluate(element => getComputedStyle(element).outlineStyle), "solid", "pressed state survives forced colors");
+      await page.emulateMedia({ forcedColors: "none" });
+      await page.locator("#toggle").evaluate(element => { element.setAttribute("aria-pressed", "true"); (element as HTMLButtonElement).disabled = true; });
+      assert.equal((await paint("#toggle")).shadow, "none", "disabled overrides selected elevation");
+      await page.close();
+    }
+  });
+
+  it("centers visible circular glyphs with fixed geometry in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-circle-badge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(Badge, { id: "small", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category D" }, () => "D"),
+          h(Badge, { id: "letter", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category R" }, () => "R"),
+          h(Badge, { id: "count", shape: "circle", size: "xs" }, () => "3"),
+          h(Badge, { id: "double", shape: "circle", size: "xs" }, () => "12"),
+          h(Badge, { id: "large", shape: "circle", size: "lg" }, () => "30"),
+          h(Badge, { id: "maximum", shape: "circle", size: "lg" }, () => "99+"),
+          h(Badge, { id: "medium", shape: "circle", tone: "accent" }, () => h(Icon, { name: "check" })),
+          h(Cluster, { align: "center", wrap: "nowrap" }, () => [
+            h(Button, { id: "joined-primary", variant: "solid", size: "sm", "aria-label": "Submit 120 items" }, () => ["Submit", h(Badge, { id: "joined-count", shape: "circle", size: "lg", variant: "inverse", tone: "accent", "aria-hidden": "true" }, () => "99+")]),
+            h(IconButton, { id: "joined-menu", variant: "solid", size: "sm", matchButton: true, label: "More actions" }, () => h(Icon, { name: "chevron-down" }))]) ] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" size="xs" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="count" shape="circle" size="xs">3</ui-badge><ui-badge id="double" shape="circle" size="xs">12</ui-badge><ui-badge id="large" shape="circle" size="lg">30</ui-badge><ui-badge id="maximum" shape="circle" size="lg">99+</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge><ui-cluster align="center" wrap="nowrap"><ui-button id="joined-primary" variant="solid" size="sm" aria-label="Submit 120 items">Submit <ui-badge id="joined-count" shape="circle" size="lg" variant="inverse" tone="accent" aria-hidden="true">99+</ui-badge></ui-button><ui-icon-button id="joined-menu" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button></ui-cluster>' : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#small[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        for (const font of ["system-ui", "Arial"]) {
+          await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+          const primary = (await page.locator("#joined-primary").boundingBox())!, companion = (await page.locator("#joined-menu").boundingBox())!;
+          assert.ok(Math.abs(primary.height - companion.height) < 0.5 && Math.abs(primary.y - companion.y) < 0.5, `${adapter}/${width}/${font}: matching control height with a large nested count`);
+          for (const [id, expected] of [["small", 16], ["letter", 16], ["count", 16], ["double", 16], ["large", 32], ["maximum", 32], ["joined-count", 32], ["medium", 24]] as const) {
+            const geometry = await page.locator(`#${id}`).evaluate(element => {
+              const box = element.getBoundingClientRect(), label = element.querySelector(".label")!.getBoundingClientRect();
+              return { width: box.width, height: box.height, x: (label.left + label.right - box.left - box.right) / 2, y: (label.top + label.bottom - box.top - box.bottom) / 2,
+                clip: getComputedStyle(element.querySelector(".label")!).clipPath };
+            });
+            assert.equal(geometry.width, expected, `${adapter}/${width}/${id}`);
+            assert.equal(geometry.height, expected, `${adapter}/${width}/${id}`);
+            assert.ok(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, `${adapter}/${width}/${id}: centered glyph ${JSON.stringify(geometry)}`);
+            assert.equal(geometry.clip, "none", "circle content remains visible");
+            if (id !== "medium") {
+              const measureTextOffset = () => page.locator(`#${id}`).evaluate(element => {
+                const label = element.querySelector(".label")!, range = document.createRange();
+                range.selectNodeContents(label);
+                const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+                const canvas = document.createElement("canvas").getContext("2d")!;
+                canvas.font = getComputedStyle(label).font;
+                const metrics = canvas.measureText(label.textContent!);
+                // Horizontally, center the advance: the font's asymmetric side bearings belong to the glyph.
+                // Vertically, a centered line box alone does not prove that capital/numeral ink is centered.
+                const baseline = text.bottom - metrics.fontBoundingBoxDescent;
+                return { y: baseline - (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 - (box.top + box.bottom) / 2,
+                  x: text.left + metrics.width / 2 - (box.left + box.right) / 2,
+                  width: metrics.width, available: box.width - 2 * parseFloat(getComputedStyle(element).borderLeftWidth) };
+              });
+              const textOffset = await measureTextOffset();
+              assert.ok(Math.abs(textOffset.y) < 0.5 && Math.abs(textOffset.x) < 0.5, `${adapter}/${width}/${font}/${id}: centered text offset ${JSON.stringify(textOffset)}`);
+              assert.ok(textOffset.width <= textOffset.available, `${adapter}/${width}/${font}/${id}: complete text fits inside the circle ${JSON.stringify(textOffset)}`);
+              if (id === "letter") {
+                // Prove that each measurement still rejects a real layout shift, including this asymmetric glyph.
+                for (const [axis, transform] of [["x", "translateX(1px)"], ["y", "translateY(1px)"]] as const) {
+                  await page.locator(`#${id} .label`).evaluate((label, transform) => { (label as HTMLElement).style.transform = transform; }, transform);
+                  assert.ok(Math.abs((await measureTextOffset())[axis]) >= 0.5, `${adapter}/${width}/${font}: detects a shifted ${axis} axis`);
+                }
+                await page.locator(`#${id} .label`).evaluate(label => { (label as HTMLElement).style.removeProperty("transform"); });
+              }
+            }
+          }
+        }
+      }
+      await page.close();
+    }
+  });
+
+  it("keeps translucent inverse counts readable on filled controls in both themes", async () => {
+    const tones = ["accent", "neutral", "danger", "success", "warning", "info"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-inverse-count-overlay`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => ${JSON.stringify(tones)}.map(tone => h(Button, { variant: "solid", tone }, () => ["Submit", h(Badge, { id: tone, shape: "circle", size: "lg", variant: "inverse", tone }, () => "99+")])) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#accent[data-component~="ui-badge"]');
+      for (const theme of ["light", "dark"]) {
+        await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+        const overlays = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
+          const context = document.createElement("canvas").getContext("2d")!;
+          const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
+          const luminance = () => {
+            const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
+            return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+          };
+          context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
+          const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
+          paint(style.color); const ink = luminance();
+          return { tone: element.id, opacity, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+        }));
+        for (const overlay of overlays) {
+          assert.ok(overlay.opacity > 0.75 && overlay.opacity < 0.95, `${adapter}/${theme}/${overlay.tone}: an overlay instead of an opaque cutout ${JSON.stringify(overlay)}`);
+          assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+        }
+      }
+      await page.close();
+    }
+  });
+});
+
 describe("Anchored overlay placement", () => {
   it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
     const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
@@ -2170,7 +2359,7 @@ describe("Badge colour", () => {
   // --ui-badge-color derives a wash and an ink from one colour: it beats the tone, the explicit hooks
   // beat it, and its text keeps 4.5:1 for any hue in every variant and theme.
   const hues = { teal: "teal", violet: "#7c3aed", amber: "#f59e0b", paleYellow: "#fef9c3", black: "black", white: "white" };
-  const variants = ["subtle", "solid", "outline"];
+  const variants = ["subtle", "solid", "outline", "inverse"];
 
   it("overrides the tone, yields to explicit hooks, and keeps text contrast", async () => {
     const path = await bundle("html-badge-color", `import "@threadlabs/looma";`);
@@ -2228,7 +2417,7 @@ describe("Badge colour", () => {
 
 describe("Badge box", () => {
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
-  const variants = ["subtle", "solid"];
+  const variants = ["subtle", "solid", "inverse"];
 
   // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle variants have a
   // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
@@ -2255,7 +2444,7 @@ describe("Badge box", () => {
     const drawn = await edges();
     assert.equal(drawn.length, tones.length * variants.length);
     for (const { badge, border, surface } of drawn) {
-      if (badge.includes("variant=subtle") || badge.includes("tone=neutral")) assert.notEqual(border, surface, `${badge} has a defined edge`);
+      if (!badge.includes("variant=inverse") && (badge.includes("variant=subtle") || badge.includes("tone=neutral"))) assert.notEqual(border, surface, `${badge} has a defined edge`);
       else assert.equal(border, surface, `${badge} carries its solid fill to the edge`);
     }
 
@@ -2288,6 +2477,58 @@ describe("Badge box", () => {
     <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
+
+  it("centers status text optically while preserving ellipsis and descenders in HTML and Vue", async () => {
+    const cases = [
+      ...["md", "xs"].flatMap(size => ["Current", "Paid", "Docs", "Design", "gjpqy a long status with descenders"].map((label, index) => ({ id: `status-${size}-${index}`, label, size, shape: "pill" }))),
+      { id: "tag", label: "Current", size: "md", shape: "tag" },
+      { id: "square", label: "R", size: "xs", shape: "square" },
+    ];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-badge-text-center`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => ${JSON.stringify(cases)}.map(({ label, ...props }) => h(Badge, props, () => label)) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? cases.map(({ id, label, size, shape }) => `<ui-badge id="${id}" size="${size}" shape="${shape}">${label}</ui-badge>`).join(" ") : '<div id="app"></div>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#status-md-0[data-component~="ui-badge"]');
+      await page.locator('[id$="-4"]').evaluateAll(elements => elements.forEach(element => { (element as HTMLElement).style.maxWidth = "110px"; }));
+      for (const font of ["system-ui", "Arial"]) {
+        await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 720 });
+          const placements = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+            const label = element.querySelector(".label")!, style = getComputedStyle(label), box = element.getBoundingClientRect();
+            const range = document.createRange(); range.selectNodeContents(label);
+            const text = range.getBoundingClientRect(), canvas = document.createElement("canvas").getContext("2d")!;
+            canvas.font = style.font;
+            const cap = canvas.measureText("H"), ink = canvas.measureText(label.textContent!);
+            const baseline = text.bottom - ink.fontBoundingBoxDescent;
+            return { id: element.id, capOffset: baseline - cap.actualBoundingBoxAscent / 2 - (box.top + box.bottom) / 2,
+              top: baseline - ink.actualBoundingBoxAscent - box.top, bottom: box.bottom - baseline - ink.actualBoundingBoxDescent,
+              overflowY: style.overflowY, ellipsis: style.textOverflow, truncated: label.scrollWidth > label.clientWidth };
+          }));
+          for (const placement of placements) {
+            assert.ok(Math.abs(placement.capOffset) < 0.25, `${adapter}/${font}/${width}: ${placement.id} centers its cap and baseline ${JSON.stringify(placement)}`);
+            assert.ok(placement.top >= 0 && placement.bottom >= 0, `${adapter}/${font}/${width}: complete ascenders and descenders remain inside the badge ${JSON.stringify(placement)}`);
+          }
+          for (const placement of placements.filter(placement => placement.id.endsWith("-4"))) {
+            assert.equal(placement.truncated, true, "a constrained label still truncates");
+            assert.equal(placement.ellipsis, "ellipsis");
+            assert.equal(placement.overflowY, "visible", "truncation preserves vertical glyph ink");
+          }
+          if (width === 375 && font === "system-ui") {
+            const ellipsis = await page.locator("#status-md-4").screenshot();
+            await page.locator("#status-md-4 .label").evaluate(label => { (label as HTMLElement).style.textOverflow = "clip"; });
+            assert.notDeepEqual(await page.locator("#status-md-4").screenshot(), ellipsis, "ellipsis paints when only horizontal overflow is clipped");
+            await page.locator("#status-md-4 .label").evaluate(label => { (label as HTMLElement).style.textOverflow = ""; });
+          }
+        }
+      }
+      await page.close();
+    }
+  });
 
   it("spaces and centers ordinary SVG plus text children in badges and buttons", async () => {
     const icon = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
@@ -2351,13 +2592,22 @@ describe("Badge box", () => {
           label.textContent = 'A long label with descenders gjpqy';
           (element as HTMLElement).style.maxWidth = '110px';
           const icon = element.querySelector('svg')!.getBoundingClientRect(), chip = element.getBoundingClientRect();
-          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom };
+          const range = document.createRange(); range.selectNodeContents(label);
+          const text = range.getBoundingClientRect(), clip = chip;
+          const canvas = document.createElement('canvas').getContext('2d')!;
+          canvas.font = getComputedStyle(label).font;
+          const metrics = canvas.measureText(label.textContent!);
+          const baseline = text.bottom - metrics.fontBoundingBoxDescent;
+          const result = { clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).textOverflow, vertical: getComputedStyle(label).overflowY, visible: icon.left >= chip.left && icon.right <= chip.right && icon.top >= chip.top && icon.bottom <= chip.bottom,
+            top: baseline - metrics.actualBoundingBoxAscent - clip.top, bottom: clip.bottom - baseline - metrics.actualBoundingBoxDescent };
           label.textContent = 'Yes'; (element as HTMLElement).style.maxWidth = '';
           return result;
         });
         assert.equal(constrained.clipped, true);
         assert.equal(constrained.overflow, 'ellipsis');
         assert.equal(constrained.visible, true, 'only the label truncates; the leading icon stays whole');
+        assert.equal(constrained.vertical, 'visible', 'label truncation never clips vertical glyph ink');
+        assert.ok(constrained.top >= -0.5 && constrained.bottom >= -0.5, 'the badge preserves complete ascenders and descenders');
       }
       await page.close();
     }
@@ -3517,6 +3767,38 @@ describe("List item", () => {
     assert.equal(await item.evaluate((element) => element.tagName), "LI");
   }
 
+  it("aligns leading and trailing marks with the first title line when requested in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const title = "A complete title that wraps on a phone without moving its icon";
+      const description = "A longer description that wraps onto several lines and keeps its icon beside the title.";
+      const path = await bundle(`${adapter}-list-title-alignment`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { List, ListItem, Icon } from "@threadlabs/looma/vue";
+        createApp({render: () => h(List, null, () => ["title", "center"].map(align => h(ListItem, {id: align, wrap: true, ...(align === "title" ? {align} : {})}, {
+          leading: () => h(Icon, {name: "file", style: "width:18px;height:18px"}),
+          default: () => h("a", {href: "#destination"}, ${JSON.stringify(title)}),
+          description: () => ${JSON.stringify(description)},
+          trailing: () => h(Icon, {name: "chevron-right", style: "width:16px;height:16px"})
+        }))) }).mount("#app");
+      `);
+      const html = ["title", "center"].map(align => `<ui-list-item id="${align}" wrap ${align === "title" ? 'align="title"' : ''}><ui-icon slot="leading" name="file" style="width:18px;height:18px"></ui-icon><a href="#destination">${title}</a><span slot="description">${description}</span><ui-icon slot="trailing" name="chevron-right" style="width:16px;height:16px"></ui-icon></ui-list-item>`).join("");
+      const page = await open(path, adapter === "html" ? `<ui-list>${html}</ui-list>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({width, height: 720});
+        const geometry = await page.evaluate(() => ["title", "center"].map(id => {
+          const item = document.getElementById(id)!, title = item.querySelector(".title")!, box = item.getBoundingClientRect();
+          const firstLineCenter = title.getBoundingClientRect().top + parseFloat(getComputedStyle(title).lineHeight) / 2;
+          const center = (selector: string) => { const rect = item.querySelector(selector)!.getBoundingClientRect(); return (rect.top + rect.bottom) / 2; };
+          return {id, leading: center(".leading"), trailing: center(".trailing"), firstLineCenter, rowCenter: (box.top + box.bottom) / 2};
+        }));
+        assert.ok(Math.abs(geometry[0].leading - geometry[0].firstLineCenter) < 0.5, `${adapter}/${width}: leading mark tracks first line ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry[0].trailing - geometry[0].firstLineCenter) < 0.5, "trailing mark follows the same line");
+        assert.ok(Math.abs(geometry[1].leading - geometry[1].rowCenter) < 0.5, "omitted alignment preserves centered rows");
+      }
+      await page.close();
+    }
+  });
+
   it("follows its title link from anywhere but a trailing control, in HTML", async () => {
     const path = await bundle("html-list-item", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -3568,16 +3850,18 @@ describe("Square icon badges", () => {
         createApp({ render: () => [
           h(Badge, { id: "square", shape: "square", tone: "success", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
           h(Badge, { id: "small", shape: "square", size: "xs", tone: "accent", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
+          h(Badge, { id: "large", shape: "square", size: "lg", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
           h(Badge, { id: "pill" }, () => "Published"),
         ] }).mount("#app");
       `);
       const body = framework === "vue" ? `<div id="app"></div>` : `
         <ui-badge id="square" shape="square" tone="success" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
         <ui-badge id="small" shape="square" size="xs" tone="accent" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
+        <ui-badge id="large" shape="square" size="lg" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
         <ui-badge id="pill">Published</ui-badge>`;
       const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
       await page.waitForSelector('#square[data-component~="ui-badge"]');
-      for (const [id, size] of [["square", 32], ["small", 24]] as const) {
+      for (const [id, size] of [["square", 32], ["small", 24], ["large", 40]] as const) {
         const box = await page.locator(`#${id}`).boundingBox();
         const icon = await page.locator(`#${id} svg`).boundingBox();
         assert.ok(box && icon && box.width === size && box.height === size, `${framework} ${id} is a square`);
@@ -7526,16 +7810,22 @@ describe("Combobox chip truncation", () => {
   const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
   const checkTextRoom = async (page: Page) => {
     const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
-      const box = label.getBoundingClientRect();
+      const badge = label.closest('[data-component~="ui-badge"]')!, box = badge.getBoundingClientRect();
+      const chip = label.closest(".item")!.getBoundingClientRect();
       const range = document.createRange();
       range.selectNodeContents(label);
       const text = range.getBoundingClientRect();
-      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+      const context = document.createElement("canvas").getContext("2d")!;
+      context.font = getComputedStyle(label).font;
+      const ink = context.measureText(label.textContent!), baseline = text.bottom - ink.fontBoundingBoxDescent;
+      return { label: label.textContent, top: Math.max(box.top, chip.top), bottom: Math.min(box.bottom, chip.bottom),
+        textTop: baseline - ink.actualBoundingBoxAscent, textBottom: baseline + ink.actualBoundingBoxDescent, overflowY: getComputedStyle(label).overflowY };
     }));
     assert.ok(bounds.length > 0);
     for (const box of bounds) {
-      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
-      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+      assert.equal(box.overflowY, "visible", `${box.label}: the trimmed label never clips vertical ink`);
+      assert.ok(box.textBottom <= box.bottom, `${box.label}: complete descender ink stays inside the badge and chip`);
+      assert.ok(box.textTop >= box.top, `${box.label}: complete ascender ink stays inside the badge and chip`);
     }
   };
   const check = async (page: Page) => {
@@ -7549,15 +7839,21 @@ describe("Combobox chip truncation", () => {
         const box = item.getBoundingClientRect();
         const badgeBox = badge.getBoundingClientRect();
         const labelBox = label.getBoundingClientRect();
-        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).overflow, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
+        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflowX: getComputedStyle(label).overflowX, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
       });
       assert.ok(geometry.badgeWidth <= geometry.itemWidth + 1, "badge stays within the capped chip");
       assert.ok(geometry.labelInside, "label stays inside the badge");
       assert.ok(geometry.clipped, "long label is constrained");
-      assert.equal(geometry.overflow, "hidden");
+      assert.equal(geometry.overflowX, "clip");
       assert.equal(geometry.ellipsis, "ellipsis");
       assert.equal(geometry.text, label, "full label remains available to assistive technology");
       await checkTextRoom(page);
+      if (width === 375) {
+        const ellipsis = await chip.screenshot();
+        await chip.locator(".label").evaluate(label => { (label as HTMLElement).style.textOverflow = "clip"; });
+        assert.notDeepEqual(await chip.screenshot(), ellipsis, "horizontal-only clipping still paints an ellipsis");
+        await chip.locator(".label").evaluate(label => { (label as HTMLElement).style.textOverflow = ""; });
+      }
       await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
     }
     await page.getByRole("combobox", { name: "Filter" }).focus();
