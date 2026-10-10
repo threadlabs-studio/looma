@@ -190,7 +190,7 @@ async function main() {
   exceptions.push(...licenseState.exceptions);
   await cleanOutputDirectory(outputDirectory);
 
-  run("pnpm", ["build"], { stdio: "inherit" });
+  run("pnpm", ["--filter", "@threadlabs/looma", "build"], { stdio: "inherit" });
 
   const packedEntries = [];
   for (const releasePackage of RELEASE_PACKAGES) {
