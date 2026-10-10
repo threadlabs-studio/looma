@@ -168,6 +168,15 @@
     }
 
     :host {
+      /* Optional inherited action-group values keep text and icon actions under the same light.
+         One fine top/start highlight follows the bottom/end lowlight at a joined action seam. */
+      --_ui-action-start: 1px;
+      --_ui-action-edge: var(
+        --ui-action-edge,
+        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.08)),
+        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.35))
+      );
+      --_ui-action-shadow: var(--_ui-action-edge), var(--ui-raised);
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
       --_hue-active: var(--ui-accent-active);
@@ -186,6 +195,10 @@
       column-gap: var(--ui-space-2);
       vertical-align: middle;
       color: var(--_tone-text);
+    }
+
+    :host:dir(rtl) {
+      --_ui-action-start: -1px;
     }
 
     :host([align="start"]) {
@@ -215,7 +228,7 @@
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       background-image: var(--ui-raised-highlight);
-      box-shadow: var(--ui-button-shadow, var(--ui-raised));
+      box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
       cursor: pointer;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -345,7 +358,7 @@
       border-color: var(--_tone);
       background-color: var(--_tone);
       color: var(--_on-tone);
-      box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
+      box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
     }
 
     :is(:host([variant="solid"]), :host([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
@@ -427,14 +440,18 @@
     :host:focus-visible {
       outline: none;
       box-shadow:
-        var(--ui-button-shadow, var(--ui-raised)),
+        var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
     }
 
     :host([variant="solid"]):focus-visible {
       box-shadow:
-        var(--ui-button-solid-shadow, var(--ui-raised)),
+        var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
+    }
+
+    :is(:host([variant="ghost"]), :host([variant="link"]), :host([variant="card"])):focus-visible {
+      box-shadow: var(--ui-focus-halo);
     }
 
     /* A loading action stays visually active; only an explicitly disabled action takes the

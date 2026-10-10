@@ -278,7 +278,22 @@
       background-clip: padding-box;
     }
 
+    /* A circular count lifts the action's tone instead of reading as a near-white cutout.
+       Dark controls need a little more shade to keep all tone pairs at readable contrast. */
     :host([variant="inverse"][shape="circle"]) {
+      --_badge-color-surface: light-dark(
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-action-count-opacity, 44%), transparent),
+        color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-action-count-opacity, 56%), transparent)
+      );
+      --_badge-color-border: var(--_badge-color-surface);
+      --_badge-color-text: color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-text-primary));
+      --_badge-count-surface: light-dark(
+        color-mix(in srgb, var(--_badge-text) var(--ui-action-count-opacity, 44%), transparent),
+        color-mix(in srgb, var(--_badge-text) var(--ui-action-count-opacity, 56%), transparent)
+      );
+      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-count-surface)));
+      border-color: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-count-surface)));
+      color: var(--ui-badge-text, var(--ui-text-primary));
       box-shadow: var(--ui-shadow-sm);
     }
 

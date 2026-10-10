@@ -53,6 +53,12 @@ Set `--ui-accent` or `--ui-danger` on the theme root to change the action palett
 `--ui-button-radius` on one Button for an exception. The [theming guide](/tokens) explains the global,
 group, and component levels.
 
+Boxed Button and IconButton actions share a fine top/leading highlight and bottom/trailing lowlight.
+Joined actions show the trailing lowlight immediately before the next action's leading highlight.
+Set inherited `--ui-action-edge` to replace those inset edges, or `--ui-action-shadow` to replace the
+whole resting shadow for both components. Component shadow hooks still take precedence. Ghost and
+link actions stay flat; focus, pressed and disabled treatments retain their usual meaning.
+
 A label wraps as its container's text does. To keep one on a single line, such as in a narrow table
 cell, set `--ui-button-white-space: nowrap` on that button through a class of your own. It takes
 any `white-space` value; unset, the button inherits its container's.
