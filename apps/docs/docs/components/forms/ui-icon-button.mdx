@@ -13,6 +13,10 @@ Icon-only button primitive with stable square sizing and variant tokens for shel
 Set `loading` while an action runs. The icon gives way to a spinner; the button keeps its accessible
 `label` and focus, exposes `aria-disabled` and `aria-busy`, and blocks activation until cleared.
 
+Outline and solid Icon Buttons use Button's fine raised edge recipe, including mirrored edges in
+right-to-left layouts. The inherited `--ui-action-edge` and `--ui-action-shadow` values theme both
+components together; instance shadow hooks take precedence. Ghost controls remain flat.
+
 ## Tones and toggle state
 
 Set `tone="accent"` for an accent-coloured action or `tone="neutral"` for a neutral one.

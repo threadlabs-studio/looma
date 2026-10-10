@@ -1,5 +1,8 @@
 <template component="ui-input-group" controller="./ui-input-group.js">
   <defs>
+    <prop name="variant" type="keyword" values="outline, subtle" default="outline"
+    >outline uses the standard field edge and surface. subtle uses a quiet decorative edge and muted surface for a multiline composer. Both retain the same
+      focus, invalid and disabled states, and the field inside shares the group's one frame.</prop>
     <prop name="multiline" type="boolean" default="false">Groups a Textarea with an action below its text inside the shared frame.</prop>
     <prop name="actionPosition" type="keyword" values="below, top-end" default="below"
     >In a multiline group, below keeps the action under the text. top-end places it inside the textarea at its upper end and reserves text padding for its
@@ -77,6 +80,12 @@
       /* A press anywhere in the frame focuses the input. */
       cursor: text;
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host([variant="subtle"]) {
+      border-color: var(--ui-border);
+      background: var(--ui-surface-muted);
+      box-shadow: none;
     }
 
     /* The frame takes its input's size, so a small group lines up with small buttons and fields. */
