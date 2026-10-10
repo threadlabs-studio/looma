@@ -582,20 +582,36 @@ describe("Toast composition and placement", () => {
         for (const width of [1280, 375]) {
           await page.setViewportSize({ width, height: 900 });
           for (const kind of ["callout", "toast", "generated"]) for (const tone of tones) {
-            const style = await page.locator(`#${kind}-${tone}`).evaluate(element => {
+            const style = await page.locator(`#${kind}-${tone}`).evaluate((element, tone) => {
               const css = getComputedStyle(element);
+              const probe = element.appendChild(document.createElement("span"));
+              probe.style.backgroundColor = `var(${tone === "neutral" ? "--ui-surface-muted" : `--ui-${tone}-soft`})`;
+              probe.style.fontSize = "var(--ui-font-size-sm)";
+              const expectedSurface = getComputedStyle(probe).backgroundColor;
+              const expectedSize = getComputedStyle(probe).fontSize;
+              probe.remove();
               return { widths: [css.borderTopWidth, css.borderRightWidth, css.borderBottomWidth, css.borderLeftWidth],
                 colors: [css.borderTopColor, css.borderRightColor, css.borderBottomColor, css.borderLeftColor],
-                radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color };
-            });
+                radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color,
+                fontSize: css.fontSize, expectedSurface, expectedSize };
+            }, tone);
             assert.equal(new Set(style.widths).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: even border widths`);
             assert.ok(parseFloat(style.widths[0]) > 0, "notification outline remains visible");
             assert.equal(new Set(style.colors).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: one color around the rounded border`);
             assert.ok(parseFloat(style.radius) > 0, "rounded shape is retained");
             assert.notEqual(style.text, style.surface, "message remains readable");
+            assert.equal(style.surface, style.expectedSurface, `${kind}/${tone}: every tone has a shaded surface`);
+            assert.equal(style.fontSize, style.expectedSize, `${kind}/${tone}: uses small message typography`);
           }
         }
       }
+      await page.locator("#toast-neutral").evaluate(element => (element as HTMLElement).style.setProperty("--ui-toast-surface", "rgb(230, 225, 255)"));
+      await page.locator("#region").evaluate(element => (element as HTMLElement).style.setProperty("--ui-toast-region-surface", "rgb(225, 240, 255)"));
+      await page.locator("#app").evaluate(element => (element as HTMLElement).style.setProperty("--ui-overlay-surface", "rgb(245, 235, 225)"));
+      const surface = (id: string) => page.locator(`#${id}`).evaluate(element => getComputedStyle(element).backgroundColor);
+      assert.equal(await surface("toast-neutral"), "rgb(230, 225, 255)", "local Toast surface overrides group and tone defaults");
+      assert.equal(await surface("toast-success"), "rgb(245, 235, 225)", "the overlay group can override a tone surface");
+      assert.equal(await surface("generated-success"), "rgb(225, 240, 255)", "Toast Region surface overrides group and tone defaults");
       await page.close();
     }
   });

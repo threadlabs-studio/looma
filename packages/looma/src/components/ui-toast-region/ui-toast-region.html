@@ -142,6 +142,7 @@
 
     .toast {
       --_ui-toast-region-accent: var(--ui-border-strong);
+      --_ui-toast-region-tone-surface: var(--ui-surface-muted);
       display: grid;
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2);
@@ -149,23 +150,31 @@
       border: var(--ui-border-width) solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--_ui-toast-region-accent)));
       border-radius: var(--_ui-toast-region-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
-      background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--_ui-toast-region-tone-surface)));
       color: var(--ui-text-primary);
+      font-family: var(--ui-font-family-sans);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+      line-height: var(--ui-line-height-md);
       box-shadow: var(--_ui-toast-region-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       animation: ui-toast-enter var(--_ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     .toast[data-tone="info"] {
       --_ui-toast-region-accent: var(--ui-info-solid);
+      --_ui-toast-region-tone-surface: var(--ui-info-soft);
     }
     .toast[data-tone="success"] {
       --_ui-toast-region-accent: var(--ui-success-solid);
+      --_ui-toast-region-tone-surface: var(--ui-success-soft);
     }
     .toast[data-tone="warning"] {
       --_ui-toast-region-accent: var(--ui-warning-solid);
+      --_ui-toast-region-tone-surface: var(--ui-warning-soft);
     }
     .toast[data-tone="danger"] {
       --_ui-toast-region-accent: var(--ui-danger-solid);
+      --_ui-toast-region-tone-surface: var(--ui-danger-soft);
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
