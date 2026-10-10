@@ -218,6 +218,7 @@ describe("Pressed icon controls and circular marks", () => {
       const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
         [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#accent[data-component~="ui-badge"]');
+      await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
       for (const theme of ["light", "dark"]) {
         await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
         const overlays = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
@@ -230,15 +231,33 @@ describe("Pressed icon controls and circular marks", () => {
           };
           context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
           const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
+          const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          const box = element.getBoundingClientRect();
           paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
           paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
         }));
+        await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
         for (const overlay of overlays) {
-          assert.ok(overlay.opacity > 0.75 && overlay.opacity < 0.95, `${adapter}/${theme}/${overlay.tone}: an overlay instead of an opaque cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
+          assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
+          assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
+      const countOpacity = () => page.locator("#accent").evaluate(element => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        context.fillStyle = getComputedStyle(element).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+        return context.getImageData(0, 0, 1, 1).data[3]! / 255;
+      });
+      const defaultOpacity = await countOpacity();
+      await page.evaluate(() => document.documentElement.style.setProperty("--ui-badge-circle-opacity", "50%"));
+      assert.ok(Math.abs(await countOpacity() - defaultOpacity) < 0.01, "the instance circle-opacity hook does not cascade from a container");
+      await page.locator("#accent").evaluate(element => (element as HTMLElement).style.setProperty("--ui-badge-circle-opacity", "60%"));
+      assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an explicit instance circle-opacity value overrides its default");
       await page.close();
     }
   });
@@ -1929,7 +1948,7 @@ describe("Loading actions", () => {
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
     const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
     const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
-    const label = await page.locator("#save span").last().boundingBox();
+    const label = await page.locator("#save").getByText("Save", { exact: true }).boundingBox();
     assert.ok(spinner && spinnerWrap && label);
     assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
     const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");
@@ -2261,7 +2280,170 @@ describe("Vue components", () => {
   });
 });
 
+describe("Shared action edges", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`shares fine raised action edges and retains quiet, focused and disabled ${adapter} controls`, async () => {
+      const path = await bundle(`${adapter}-shared-action-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        const icon = () => h(Icon, { name: "chevron-down" });
+        createApp({ render: () => [
+          ...["3", "30", "99+"].map((count, index) => h(Cluster, { align: "center", wrap: "nowrap", style: { "--ui-cluster-gap": "0", "--ui-action-radius": "0" } }, () => [
+            h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
+            h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
+          ])),
+          h(Button, { id: "stop", variant: "solid", tone: "neutral" }, () => "Stop"),
+          h(IconButton, { id: "stop-icon", variant: "solid", tone: "neutral", label: "Stop" }, icon),
+          h(Button, { id: "outline" }, () => "View changes"),
+          h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
+          h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
+          h(Button, { id: "link", variant: "link", as: "a", href: "#" }, () => "Link"),
+          h(IconButton, { id: "ghost-icon", label: "Quiet" }, icon),
+          h(Button, { id: "disabled", variant: "solid", disabled: true }, () => "Disabled"),
+          h(IconButton, { id: "disabled-icon", variant: "solid", disabled: true, label: "Disabled" }, icon),
+        ] }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["3", "30", "99+"].map((count, index) => `
+        <ui-cluster align="center" wrap="nowrap" style="--ui-cluster-gap: 0; --ui-action-radius: 0">
+          <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
+          <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("") + `
+        <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="outline">View changes</ui-button>
+        <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" as="a" href="#">Link</ui-button>
+        <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="disabled" variant="solid" disabled>Disabled</ui-button><ui-icon-button id="disabled-icon" variant="solid" disabled label="Disabled"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); color: var(--ui-text-primary); background: var(--ui-surface-default); display: grid; gap: 16px; justify-items: start; } :root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
+        const shadow = (id: string) => page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow);
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          assert.equal(await shadow("primary-0"), await shadow("more-0"), "text and icon actions share the same raised edge and shadow");
+          assert.ok((await shadow("primary-0")).includes("1px 1px 0px 0px inset"), "a fine highlight at top/start");
+          assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
+          assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
+          assert.equal(await shadow("stop"), await shadow("stop-icon"), "neutral filled actions share the restrained recipe");
+          for (const id of ["primary-0", "more-0", "outline", "outline-icon", "stop", "stop-icon"]) {
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting boxed controls have one edge without a face gradient");
+            assert.equal((await shadow(id)).match(/inset/g)?.length, 2, "one highlight and one lowlight do not stack with another bevel");
+            assert.equal((await shadow(id)).split(/,(?![^()]*\))/).length, 3, "the edge pair has only one ambient lift layer");
+          }
+          for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
+          for (let index = 0; index < 3; index++) {
+            const count = await page.locator(`#primary-${index} [data-component~="ui-badge"]`).evaluate(element => {
+              const rect = element.getBoundingClientRect(), range = document.createRange();
+              range.selectNodeContents(element.querySelector(".label")!);
+              return { width: rect.width, height: rect.height, text: range.getBoundingClientRect().width };
+            });
+            assert.deepEqual([count.width, count.height], [24, 24], "3, 30 and 99+ use the same real circle");
+            assert.ok(count.text <= count.width - 2, "the bounded count fits inside its border");
+          }
+          assert.equal(await page.locator("#primary-0").evaluate(element => getComputedStyle(element).borderRightWidth), "1px", "the shared edge does not thicken the border");
+          await page.keyboard.press("Tab");
+          await page.locator("#primary-0").focus();
+          assert.ok((await shadow("primary-0")).includes("inset"), "keyboard focus retains the raised edge beneath its halo");
+          assert.ok((await shadow("primary-0")).includes("0px 0px 0px 3px"), "the text action keeps its visible focus halo");
+          await page.locator("#more-0").focus();
+          assert.ok((await shadow("more-0")).includes("inset"), "the companion keeps its edge beneath the focus halo");
+          assert.ok((await shadow("more-0")).includes("0px 0px 0px 3px"), "the icon action keeps its visible focus halo");
+          for (const id of ["ghost", "link", "ghost-icon"]) {
+            await page.locator("#" + id).focus();
+            assert.ok(!(await shadow(id)).includes("inset"), `${id} focuses without becoming raised`);
+            if (id === "link") {
+              const outline = await page.locator("#link").evaluate(element => { const style = getComputedStyle(element); return { width: style.outlineWidth, style: style.outlineStyle }; });
+              assert.deepEqual(outline, { width: "2px", style: "solid" }, "the inline link keeps its visible outline focus");
+            } else assert.ok((await shadow(id)).includes("0px 0px 0px 3px"), `${id} has visible keyboard focus`);
+          }
+          await page.locator("#ghost-icon").blur();
+          for (const width of [1280, 375]) {
+            await page.setViewportSize({ width, height: 720 });
+            await page.screenshot({ path: join(root, ".build", `${adapter}-shared-action-edges-${theme}-${width}.png`) });
+          }
+          for (const id of ["primary-0", "more-0"]) {
+            const rect = await page.locator("#" + id).boundingBox();
+            assert.ok(rect);
+            await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+            await page.mouse.down();
+            assert.ok((await shadow(id)).includes("0px 1px 2px 0px inset"), `${id} uses the pressed inset instead of its raised edge`);
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "pressed actions lose the resting highlight");
+            await page.mouse.up();
+          }
+          await page.evaluate(() => document.documentElement.dir = "rtl");
+          assert.ok((await shadow("outline")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
+          assert.ok((await shadow("outline")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
+          await page.evaluate(() => document.documentElement.dir = "ltr");
+        }
+        await page.evaluate(() => document.documentElement.style.setProperty("--ui-action-shadow", "0 0 0 2px rgb(1 2 3)"));
+        assert.equal(await shadow("primary-0"), await shadow("more-0"), "one ancestor action-group value themes both controls");
+        assert.ok((await shadow("primary-0")).includes("0px 0px 0px 2px"));
+        await page.locator("#primary-0").evaluate(element => (element as HTMLElement).style.setProperty("--ui-button-solid-shadow", "none"));
+        assert.equal(await shadow("primary-0"), "none", "an instance hook wins over its action-group theme");
+      } finally { await page.close(); }
+      const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+      try {
+        const heights = await touch.locator('#primary-0, #more-0').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+        assert.deepEqual(heights, [44, 44], "the shared edge preserves touch-sized primary and companion controls");
+      } finally { await touch.close(); }
+    });
+  }
+});
+
 describe("Button layout", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`keeps a compact circular count and ordinary ${adapter} actions at the same standard height`, async () => {
+      const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => ["sm", "md"].map(size => h(Cluster, { align: "center", wrap: "nowrap" }, () => [
+          h(Button, { id: size + "-ordinary", size }, () => "View changes"),
+          h(Button, { id: size + "-counted", size, variant: "solid" }, { default: () => "Submit", badge: () => h(Badge, { id: size + "-count", shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => "99+") }),
+          h(IconButton, { id: size + "-more", size, matchButton: true, label: "More actions" }, () => h(Icon, { name: "chevron-down" })),
+        ])) }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["sm", "md"].map(size => `
+        <ui-cluster align="center" wrap="nowrap">
+          <ui-button id="${size}-ordinary" size="${size}">View changes</ui-button>
+          <ui-button id="${size}-counted" size="${size}" variant="solid">Submit <ui-badge id="${size}-count" slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">99+</ui-badge></ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("");
+      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const font of ["system-ui", "Arial"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+          for (const size of ["sm", "md"]) {
+            const geometry = await page.evaluate(size => {
+              const ordinary = document.getElementById(size + "-ordinary")!.getBoundingClientRect();
+              const counted = document.getElementById(size + "-counted")!.getBoundingClientRect();
+              const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+              const badge = document.getElementById(size + "-count")!, mark = badge.getBoundingClientRect();
+              const label = badge.querySelector(".label")!, range = document.createRange();
+              range.selectNodeContents(label);
+              return { ordinary: ordinary.height, counted: counted.height, more: more.height, mark: [mark.width, mark.height], text: range.getBoundingClientRect().width,
+                available: mark.width - 2 * parseFloat(getComputedStyle(badge).borderLeftWidth) };
+            }, size);
+            assert.equal(geometry.counted, geometry.ordinary, `${adapter}/${width}/${font}/${size}: counted action uses the ordinary control height ${JSON.stringify(geometry)}`);
+            assert.equal(geometry.more, geometry.ordinary, "match-button keeps the same height");
+            assert.deepEqual(geometry.mark, [24, 24], "the compact count remains a true 24px circle");
+            assert.ok(geometry.text <= geometry.available, `the complete 99+ count fits ${JSON.stringify(geometry)}`);
+          }
+        }
+        await page.screenshot({ path: join(root, ".build", `${adapter}-compact-count-buttons-375.png`) });
+        const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+        try {
+          await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+          for (const size of ["sm", "md"]) {
+            const heights = await touch.evaluate(size => ["ordinary", "counted", "more"].map(id => document.getElementById(size + "-" + id)!.getBoundingClientRect().height), size);
+            assert.deepEqual(heights, [44, 44, 44], "all three controls retain the standard touch height");
+          }
+        } finally { await touch.close(); }
+      } finally { await page.close(); }
+    });
+  }
+
   it("lays content out from the start and stretches to its container when asked", async () => {
     const path = await bundle("vue-button-layout", `
       import { createApp, h } from "vue";
@@ -2963,6 +3145,53 @@ describe("Input group", () => {
 });
 
 describe("Multiline input group behavior", () => {
+  it("gives a subtle multiline composer one shared frame with a bottom-end icon action in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-subtle-composer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Icon, IconButton, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(InputGroup, { id: "composer", multiline: true, variant: "subtle" }, {
+          default: () => h(Textarea, { id: "message", rows: 3, "aria-label": "Message" }),
+          action: () => h(IconButton, { id: "send", variant: "solid", label: "Send message" }, () => h(Icon, { name: "check" })),
+        }), h(InputGroup, { id: "ordinary" }, () => h(Textarea, { "aria-label": "Ordinary" }))] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : `
+        <ui-input-group id="composer" multiline variant="subtle"><ui-textarea id="message" rows="3" aria-label="Message"></ui-textarea><ui-icon-button id="send" slot="action" variant="solid" label="Send message"><ui-icon name="check"></ui-icon></ui-icon-button></ui-input-group>
+        <ui-input-group id="ordinary"><ui-textarea aria-label="Ordinary"></ui-textarea></ui-input-group>`,
+      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const dir of ["ltr", "rtl"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.locator("html").evaluate((element, dir) => element.setAttribute("dir", dir), dir);
+          const surface = await page.locator("#composer").evaluate(element => {
+            const style = getComputedStyle(element), box = element.getBoundingClientRect();
+            const input = element.querySelector("textarea")!, field = input.getBoundingClientRect(), action = element.querySelector("button")!.getBoundingClientRect();
+            const probe = document.createElement("span");
+            probe.style.borderColor = "var(--ui-border)"; probe.style.backgroundColor = "var(--ui-surface-muted)"; element.append(probe);
+            const expected = getComputedStyle(probe), result = { border: style.borderTopColor, expectedBorder: expected.borderTopColor, surface: style.backgroundColor, expectedSurface: expected.backgroundColor,
+              innerBorder: getComputedStyle(input).borderTopWidth, innerSurface: getComputedStyle(input).backgroundColor, inside: action.bottom < box.bottom && action.top >= field.bottom,
+              end: getComputedStyle(element).direction === "ltr" ? box.right - action.right : action.left - box.left, overflow: document.documentElement.scrollWidth > innerWidth };
+            probe.remove(); return result;
+          });
+          assert.equal(surface.border, surface.expectedBorder, "the subtle composer uses a decorative neutral edge");
+          assert.equal(surface.surface, surface.expectedSurface, "the composer uses the standard muted surface");
+          assert.equal(surface.innerBorder, "0px", "the textarea adds no inner frame");
+          assert.equal(surface.innerSurface, "rgba(0, 0, 0, 0)", "the textarea shares its group's surface");
+          assert.equal(surface.inside, true, "the icon action stays inside the frame below the text");
+          assert.ok(surface.end <= 10, "the action sits at the logical end");
+          assert.equal(surface.overflow, false);
+        }
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#ordinary").evaluate(element => getComputedStyle(element).borderTopColor), "the default input frame remains stronger");
+        await page.locator("#message").focus();
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).boxShadow), "none", "the quiet composer retains the input focus ring");
+        await page.locator("html").evaluate(element => element.setAttribute("dir", "ltr"));
+        await page.locator("#message").blur();
+        await page.screenshot({ path: join(root, ".build", `${adapter}-subtle-composer-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
       const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
@@ -8004,6 +8233,34 @@ describe("Combobox chip truncation", () => {
 });
 
 describe("CardButton layout", () => {
+  it("uses a decorative neutral card edge while preserving accent outline and neutral navigation colors in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-neutral-card-edge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(Button, { id: "card", variant: "card", tone: "neutral" }, () => "Changed files"),
+          h(Button, { id: "outline" }, () => "View changes"), h(Button, { id: "navigation", variant: "ghost", tone: "neutral" }, () => "History")] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : '<ui-button id="card" variant="card" tone="neutral">Changed files</ui-button><ui-button id="outline">View changes</ui-button><ui-button id="navigation" variant="ghost" tone="neutral">History</ui-button>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        const neutral = await page.locator("#card").evaluate(element => {
+          const probe = document.createElement("span"); probe.style.borderColor = "var(--ui-border)"; element.append(probe);
+          const result = { actual: getComputedStyle(element).borderTopColor, expected: getComputedStyle(probe).borderTopColor }; probe.remove(); return result;
+        });
+        assert.equal(neutral.actual, neutral.expected, "a quiet card uses the standard decorative border");
+        assert.notEqual(await page.locator("#outline").evaluate(element => getComputedStyle(element).borderTopColor), neutral.actual, "ordinary accent actions retain their purple edge");
+        assert.equal(await page.locator("#navigation").evaluate(element => getComputedStyle(element).color), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "neutral navigation retains its ink");
+        await page.locator("#card").hover();
+        assert.notEqual(await page.locator("#card").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "hover keeps a decorative edge instead of an ink outline");
+        await page.setViewportSize({ width: 375, height: 720 });
+        await page.mouse.move(0, 700);
+        await page.screenshot({ path: join(root, ".build", `${adapter}-neutral-card-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["native", "Vue"]) {
     it(`keeps ${adapter} icon/content top-aligned and action centered with equal edges at 375px and RTL`, async () => {
       const label = "Read the latest project notes and decisions, including the changes that need another look.";

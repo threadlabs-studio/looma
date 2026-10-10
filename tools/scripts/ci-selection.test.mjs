@@ -41,6 +41,21 @@ test("edited assertions select their case and edited helpers own their enclosing
   assert.throws(() => selectChecks({ ...files, "tools/scripts/new-executable.mjs": "doWork()" }, ["tools/scripts/new-executable.mjs"]), /Unmapped executable/);
 });
 
+test("added suite boundaries and trailing blank lines own their cases without promoting unrelated tests", () => {
+  const file = "packages/looma/tests/browser.test.ts";
+  const unchanged = Array.from({ length: 90 }, (_, index) => `it("unrelated ${index}", () => {});`).join("\n");
+  const added = '\ndescribe("controls", () => {\n const paint = () => "edge";\n it("compact count", () => { paint(); });\n describe("focused actions", () => {\n  const focus = () => "ring";\n  it("shared edge", () => { focus(); });\n });\n});\n\n';
+  const source = unchanged + added;
+  const sourceFiles = { ...files, [file]: source };
+  const hunks = { [file]: [[91, source.split("\n").length]] };
+  const selection = automaticChecks(sourceFiles, [file], hunks);
+  assert.deepEqual(selection.packageTests[file], ["controls compact count", "controls focused actions shared edge"]);
+  assert.deepEqual(selection.browserTests[file], selection.packageTests[file]);
+  assert.deepEqual(selection.deferred, [], "both added regressions fit the cap without unrelated cases");
+  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[95, 96]] }).packageTests[file], ["controls focused actions shared edge"], "nested suite setup owns its nested cases");
+  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[92, 92]] }).packageTests[file], selection.packageTests[file], "outer suite setup still owns every descendant case");
+});
+
 test("shared themes/compiler inputs select full coverage and unmapped inputs fail closed", () => {
   for (const changed of ["packages/looma/src/tokens/theme.css", "packages/looma/build.mjs", "pnpm-lock.yaml", "packages/looma/src/components/shared/focus.js"]) {
     assert.equal(selectChecks(files, [changed]).full, true, changed);
@@ -89,6 +104,23 @@ test("case discovery ignores fixture source strings and commented calls", () => 
   assert.deepEqual(testCases(source).map(({ name }) => name), ["real owned"]);
 });
 
+test("non-null division and unary regex negation preserve following nested suite names", () => {
+  const source = String.raw`describe("counts", () => {
+  it("opacity", () => {
+    const shadows = shadow.split(/,(?![^()]*\))/);
+    const opacity = pixels[3]! / 255;
+    assert.ok(!/[(\)]/.test(shadow));
+    return pixels[3]! / 255;
+  });
+});
+describe("actions", () => {
+  describe("nested", () => {
+    it("edge", () => {});
+  });
+});`;
+  assert.deepEqual(testCases(source).map(({ name }) => name), ["counts opacity", "actions nested edge"]);
+});
+
 test("main and editor browser suites share Chromium ownership while retaining their actual Vitest configs", () => {
   const main = "packages/looma/tests/browser.test.ts", editor = "packages/looma/tests/looma-editor-chip.browser.test.ts";
   for (const [file, config] of [[main, "vitest.config.ts"], [editor, "vitest.browser.config.ts"]]) {
@@ -106,6 +138,14 @@ test("main and editor browser suites share Chromium ownership while retaining th
   assert.doesNotMatch(runner, /api.github.com|legacyProof|baseline\(/);
   assert.match(runner, /safe\.directory=\$\{root\}/);
   assert.doesNotMatch(runner, /git config --global/);
+});
+
+test("qualification keeps readable Vitest failures alongside its validated JSON report", () => {
+  const report = ".qualification/browser.test.ts-report.json";
+  const args = vitestArguments("packages/looma/tests/browser.test.ts", ["owned"], report);
+  assert.ok(args.includes("--reporter=default"), "failed assertions must remain visible in CI logs");
+  assert.ok(args.includes("--reporter=json"), "qualification still validates the machine-readable report");
+  assert.ok(args.includes(`--outputFile=${report}`), "the validator must read the requested JSON path");
 });
 
 test("Vitest proof refuses empty, skipped or missing selected cases while ignoring unchanged filtered cases", () => {
