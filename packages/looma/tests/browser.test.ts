@@ -553,6 +553,53 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  it("keeps rounded notification borders even across tones, themes and adapters", async () => {
+    const tones = ["neutral", "info", "success", "warning", "danger"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-notification-borders`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Callout, Toast, ToastRegion } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...${JSON.stringify(tones)}.flatMap(tone => [h(Callout, { id: "callout-" + tone, tone }, () => tone + " notice"),
+            h(Toast, { id: "toast-" + tone, tone }, () => tone + " notification")]),
+          h(ToastRegion, { id: "region", duration: 0 })
+        ]) }).mount("#app");
+      `);
+      const body = adapter === "html" ? tones.map(tone => `<ui-callout id="callout-${tone}" tone="${tone}">${tone} notice</ui-callout><ui-toast id="toast-${tone}" tone="${tone}">${tone} notification</ui-toast>`).join("")
+        + `<ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
+      const page = await open(path, `<div id="app">${body}</div>`,
+        ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css", ...(adapter === "vue" ? ["vue/components.css"] : [])].map(file => join(root, file)));
+      await page.addStyleTag({ content: ":root { --ui-accent-line-width: 4px; } #app { display:grid; gap:12px; }" });
+      for (const tone of tones) await page.locator("#region").evaluate((element, tone) => element.dispatchEvent(new CustomEvent("show-toast", {
+        detail: { id: "generated-" + tone, message: tone + " generated notification", tone, duration: 0 },
+      })), tone);
+      for (const theme of ["light", "dark", "high"]) {
+        await page.evaluate(theme => {
+          document.documentElement.setAttribute("data-theme", theme === "high" ? "light" : theme);
+          document.documentElement.toggleAttribute("data-contrast", theme === "high");
+          if (theme === "high") document.documentElement.setAttribute("data-contrast", "high");
+        }, theme);
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 900 });
+          for (const kind of ["callout", "toast", "generated"]) for (const tone of tones) {
+            const style = await page.locator(`#${kind}-${tone}`).evaluate(element => {
+              const css = getComputedStyle(element);
+              return { widths: [css.borderTopWidth, css.borderRightWidth, css.borderBottomWidth, css.borderLeftWidth],
+                colors: [css.borderTopColor, css.borderRightColor, css.borderBottomColor, css.borderLeftColor],
+                radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color };
+            });
+            assert.equal(new Set(style.widths).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: even border widths`);
+            assert.ok(parseFloat(style.widths[0]) > 0, "notification outline remains visible");
+            assert.equal(new Set(style.colors).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: one color around the rounded border`);
+            assert.ok(parseFloat(style.radius) > 0, "rounded shape is retained");
+            assert.notEqual(style.text, style.surface, "message remains readable");
+          }
+        }
+      }
+      await page.close();
+    }
+  });
+
   it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
     const path = await bundle("html-authored-toast", `
       import "@threadlabs/looma";
@@ -4010,7 +4057,8 @@ describe("Shared visual geometry", () => {
     }
     assert.equal(await css("#divider", "border-top-width"), "3px");
     assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
-    for (const selector of ["#card", "#callout", "#editor-callout", "#quote"]) {
+    assert.equal(await css("#callout", "border-inline-start-width"), "3px", "rounded Callout uses ordinary border width on every edge");
+    for (const selector of ["#card", "#editor-callout", "#quote"]) {
       assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
     }
     assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");
