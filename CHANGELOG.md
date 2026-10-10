@@ -2,6 +2,8 @@
 
 ## v0.26.4
 
+- Boxed Button and IconButton actions share fine raised edges that keep joined actions readable, with inherited edge and shadow theme values. Circular inverse Badge counts use a quieter tone-tinted surface and readable theme ink in light and dark themes; inverse pills retain their existing appearance.
+
 - Button adds a `badge` slot that keeps compact circular counts aligned with ordinary actions and matching Icon Buttons. Badge adds `size="sm"` with compact text that fits bounded counts such as `99+` in a 24px circle. Existing Badge sizes and default Button content retain their spacing.
 - Neutral card Buttons use a quiet decorative border while standard outline actions retain their tone-colored edge.
 - Input Group adds `variant="subtle"` for a muted composer surface with one shared frame around its textarea and action, retaining standard focus and field states.
