@@ -553,6 +553,54 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  it("balances toast content insets without external margins or smaller dismiss targets in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Toast, ToastRegion } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          h(Toast, { id: "authored", tone: "success" }, { default: () => "Notification received.", action: () => h("button", "Undo") }),
+          h(ToastRegion, { id: "region", duration: 0 })
+        ]) }).mount("#app");
+      `);
+      const body = adapter === "html" ? `<ui-toast id="authored" tone="success">Notification received.<button slot="action">Undo</button></ui-toast><ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
+      const page = await open(path, `<div id="app">${body}</div>`,
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { hasTouch: true });
+      await page.locator("#region").evaluate(element => element.dispatchEvent(new CustomEvent("show-toast", {
+        detail: { id: "generated", message: "Notification received.", duration: 0 },
+      })));
+      for (const direction of ["ltr", "rtl"]) for (const width of [1280, 375]) {
+        await page.evaluate(direction => document.documentElement.dir = direction, direction);
+        await page.setViewportSize({ width, height: 900 });
+        for (const id of ["authored", "generated"]) {
+          const geometry = await page.locator(`#${id}`).evaluate((element, direction) => {
+            const box = element.getBoundingClientRect(), message = element.querySelector(".message")!.getBoundingClientRect();
+            const button = element.querySelector('button[aria-label^="Dismiss"]')!, control = button.getBoundingClientRect();
+            const svg = button.querySelector("svg")!, frame = svg.getBoundingClientRect(), ink = svg.getBBox();
+            const scale = frame.width / svg.viewBox.baseVal.width, stroke = parseFloat(getComputedStyle(svg).strokeWidth) / 2;
+            const inkStart = frame.left + (ink.x - stroke) * scale, inkEnd = frame.left + (ink.x + ink.width + stroke) * scale;
+            const hit = getComputedStyle(button, "::after");
+            const dismiss = getComputedStyle(element.querySelector(".dismiss")!);
+            const buttonStyle = getComputedStyle(button);
+            return { textInset: direction === "rtl" ? box.right - message.right : message.left - box.left,
+              iconInset: direction === "rtl" ? inkStart - box.left : box.right - inkEnd,
+              contained: control.left >= box.left && control.right <= box.right,
+              margins: [dismiss.marginInlineStart, dismiss.marginInlineEnd],
+              buttonMargins: [buttonStyle.marginTop, buttonStyle.marginRight, buttonStyle.marginBottom, buttonStyle.marginLeft],
+              controlWidth: control.width, hitWidth: parseFloat(hit.width), hitHeight: parseFloat(hit.height) };
+          }, direction);
+          assert.deepEqual(geometry.margins, ["0px", "0px"], "the toast owns spacing without external dismiss margins");
+          assert.deepEqual(geometry.buttonMargins, ["0px", "0px", "0px", "0px"], "IconButton contributes no external margin");
+          assert.ok(Math.abs(geometry.textInset - geometry.iconInset) < 2, `${adapter}/${direction}/${width}/${id}: close visible insets ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.contained, "the dismiss control remains inside the toast");
+          assert.equal(geometry.controlWidth, 28, "compact close control retains its size");
+          assert.ok(geometry.hitWidth >= 44 && geometry.hitHeight >= 44, "touch dismissal retains its larger invisible target");
+        }
+      }
+      await page.close();
+    }
+  });
+
   it("keeps rounded notification borders even across tones, themes and adapters", async () => {
     const tones = ["neutral", "info", "success", "warning", "danger"];
     for (const adapter of ["html", "vue"]) {
