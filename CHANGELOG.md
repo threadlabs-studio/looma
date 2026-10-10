@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.4
+
+- Toast, generated Toast Region messages, and Callout use an even rounded border instead of a thicker, differently colored leading edge. Toast tones color the whole outline; Callout retains its shaded background. This corrects the default shape for all notification consumers without changing props, dismissal behavior, or status semantics. Existing explicit border and surface hooks remain available.
+
 ## v0.26.3
 
 - Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.
