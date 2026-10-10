@@ -69,13 +69,16 @@ is a release defect, not a reason to silently shrink the source inventory.
   `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`, `@threadlabs/looma/editor/extensions`, `@threadlabs/looma/vue`, and `@threadlabs/looma/vue/editor`. The
   release gate repeats that proof from packed artifacts outside the workspace.
 
+Qualification scope and execution limits are defined in
+[change-dependent qualification](change-dependent-qualification.md).
+
 ## Proof status
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
 | Exact source inventory | Contract-derived classification and projection gates cover 73 definitions: 71 published, one deferred, one internal | Must stay clean through publication |
-| Browser, accessibility and adapter gates | HTML and Vue interaction tests, editor browser tests, docs axe and contrast checks, and light/dark/high-contrast theme checks pass | Keep mandatory and unskipped in CI |
-| Docs and component catalog | Generated API metadata, docs and Storybook builds, and 65 docs browser checks pass | Keep source definitions, examples and navigation in sync |
+| Browser, accessibility and adapter gates | Affected HTML/Vue and editor regressions run in Chromium; exhaustive docs axe/contrast/theme and other-engine checks are explicit extended verification | Keep selected cases mandatory and unskipped; inspect deferred coverage |
+| Docs and component catalog | Changed docs build and route/example coverage run automatically; Storybook and exhaustive docs browser/visual checks run explicitly | Keep source definitions, examples and navigation in sync |
 | Packed package | A local `@threadlabs/looma@0.15.0` tarball passes the facade consumer matrix, TypeScript checks, and SSR imports | Repeat from the final release commit |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
