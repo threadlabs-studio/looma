@@ -36,8 +36,7 @@ count on the action; hide the redundant badge from assistive technology. Use
 `variant="inverse" tone="accent"` on a filled accent action: its circle uses a quiet tone-tinted translucent surface and theme-derived label ink.
 The contrasting surface is 66% opaque with a lighter border and tone ink in light themes, and 56%
 with a quieter border and theme ink in dark themes; neutral retains its
-reversed contrast pair. Set inherited `--ui-badge-circle-opacity` to theme circular inverse counts
-together, and check label contrast on the containing filled control. Existing badge surface, text
+reversed contrast pair. Set `--ui-badge-circle-opacity` on a circular inverse Badge instance to tune its fill, and check label contrast on the containing filled control. Existing badge surface, text
 and border hooks still take precedence. A circular inverse mark has one subtle shadow layer, retaining
 lift without a raised rim; its fill and border each paint once. Inverse pills retain their existing treatment.
 This is a composition of Badge, not a separate counter component.
