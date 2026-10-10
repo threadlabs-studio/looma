@@ -1,5 +1,11 @@
 # Documentation parity checks
 
+Full browser and visual parity runs explicitly through **Extended verification**
+or the local commands below. The required automatic `docs-parity` check validates
+changed documentation builds, test types and route/example coverage. It does not
+run the full browser/visual matrix. See
+[change-dependent qualification](change-dependent-qualification.md) for the release budget.
+
 The documentation baseline is the site built from main at `c2813512`, with the
 Docusaurus iterable-spread correction in `apps/docs/babel.config.js` and the
 catalog/editor MDX paragraph correction and shared Vue highlighting registration.
@@ -103,8 +109,7 @@ For native browser runs, install the three engines with
 `PLAYWRIGHT_SKIP_BROWSER_GC=1 corepack pnpm --filter @threadlabs/looma-docs exec playwright install chromium firefox webkit`
 and run `test:parity` instead.
 
-The existing `test:browser` command remains the Chromium compatibility check for
-the main quality workflow. The new Documentation parity workflow runs all three
+The local `test:browser` command remains available for Chromium checks. The manual Extended verification workflow runs all three
 engines and the visual comparison, retaining separate behavior and visual HTML
 reports, traces, and image differences on failure. The strict test typecheck
 covers the new harness and declares its Node types in the docs workspace, so
@@ -231,7 +236,7 @@ For a container visual run, use an address reachable inside the container; the
 wrapper forwards the URL when supplied. A migration must pass these checks
 without routine baseline regeneration.
 
-The migration gate is a green Documentation parity run on the baseline revision,
-reviewed image/finding baselines, and a required `docs-parity` check in repository
-branch protection. Adding the workflow file alone does not alter branch
-protection. Keep generator migration blocked until that gate is established.
+Generator migrations require a green manual Extended verification run on the
+baseline revision and reviewed image/finding baselines. The required automatic
+`docs-parity` check supplies build/coverage proof only; it cannot substitute for
+that migration evidence.

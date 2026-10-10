@@ -35,11 +35,12 @@ pnpm dev:storybook
 Run the narrowest relevant check while iterating and report exactly what ran.
 Never claim a check passed unless it was run.
 
-CI selects affected package cases and documentation consumers, reuses exact
-provider-verified unchanged inputs, and admits at most 15 estimated aggregate
-runner minutes across its workflows. Unknown or oversized scope stops before
-checks; never replace missing proof with an unrelated full sweep. See
-`docs/change-dependent-qualification.md` for selection and receipt boundaries.
+CI prioritizes affected package tests in parallel: routine fixes target five
+minutes, and the configured qualification/publication path is capped at fifteen
+execution minutes. Chromium is the automatic browser engine; exhaustive docs,
+visual and cross-browser sweeps require explicit extended verification. Unknown
+executable inputs need an owner mapping. See
+`docs/change-dependent-qualification.md` for selection, deferred cases and limits.
 
 ## Component Rules
 
