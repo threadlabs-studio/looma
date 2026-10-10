@@ -37,8 +37,9 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
   ]);
 
   assert.match(workflow, /node-version: 24/);
-  assert.match(workflow, /playwright install --with-deps chromium/);
-  assert.match(workflow, /ci-qualification\.mjs run ci quality/);
+  assert.match(workflow, /mcr\.microsoft\.com\/playwright:v1\.60\.0-noble@sha256:/);
+  assert.doesNotMatch(workflow, /playwright install|--project=firefox|--project=webkit/);
+  assert.match(workflow, /ci-qualification\.mjs run quality/);
   const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualifier, /run\(vitestArguments\(/);
   const selector = await readFile(path.join(repoRoot, "tools/scripts/ci-selection.mjs"), "utf8");
@@ -61,7 +62,7 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
   );
 });
 
-test("the required verify result gates lint, quality, and release packaging", async () => {
+test("the required verify result gates unit tests, browser regressions, and release packaging", async () => {
   const [workflow, rootPackage, loomaPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
     readFile(path.join(repoRoot, "package.json"), "utf8"),
@@ -77,16 +78,17 @@ test("the required verify result gates lint, quality, and release packaging", as
     /\n  verify:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
   )?.[0] ?? "";
 
-  assert.match(qualityJob, /ci-qualification\.mjs run ci quality/);
+  assert.match(qualityJob, /ci-qualification\.mjs run quality/);
   const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
-  assert.match(qualifier, /"@threadlabs\/looma", "typecheck"/);
+  assert.match(qualifier, /"@threadlabs\/looma", "build"/);
+  assert.match(await readFile(path.join(repoRoot, "packages/looma/build.mjs"), "utf8"), /vue-tsc/);
   assert.equal(JSON.parse(loomaPackage).scripts.lint, JSON.parse(loomaPackage).scripts.typecheck);
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
-  assert.match(releasePackagingJob, /ci-qualification\.mjs run ci package-consumer/);
+  assert.match(releasePackagingJob, /ci-qualification\.mjs run package-consumer/);
   assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
-  assert.match(verifyJob, /needs:[\s\S]*- quality[\s\S]*- release-package/);
+  assert.match(verifyJob, /needs: \[quality, browser, release-package\]/);
   assert.match(verifyJob, /QUALITY_RESULT: \$\{\{ needs\.quality\.result \}\}/);
   assert.match(
     verifyJob,
@@ -210,4 +212,29 @@ test("the public consumer command is a separate fail-closed registry gate", asyn
   assert.match(script, /NPM_CONFIG_USERCONFIG/);
   assert.match(script, /NODE_AUTH_TOKEN/);
   assert.match(script, /finally/);
+});
+
+
+test("automatic checks and publication fit a 15-minute parallel critical path", async () => {
+  const ci = await readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8");
+  const release = await readFile(path.join(repoRoot, ".github/workflows/release.yml"), "utf8");
+  const docs = await readFile(path.join(repoRoot, ".github/workflows/docs.yml"), "utf8");
+  const parity = await readFile(path.join(repoRoot, ".github/workflows/docs-parity.yml"), "utf8");
+  const minutes = source => [...source.matchAll(/timeout-minutes: (\d+)/g)].map(match => Number(match[1]));
+  const ciLimits = minutes(ci);
+  const gate = ciLimits.at(-1);
+  const qualification = Math.max(...ciLimits.slice(0, -1)) + gate;
+  assert.ok(qualification + minutes(release).reduce((a, b) => a + b, 0) <= 15);
+  assert.ok(qualification + Math.max(...minutes(docs)) <= 15);
+  assert.ok(Math.max(...minutes(parity)) <= 15);
+  assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
+  assert.doesNotMatch(parity, /playwright.*test|docs-visual|container:/);
+  const extended = await readFile(path.join(repoRoot, ".github/workflows/extended.yml"), "utf8");
+  assert.match(extended, /workflow_dispatch:/);
+  assert.doesNotMatch(extended, /pull_request:|push:|schedule:|workflow_run:/);
+  assert.match(extended, /--project=firefox/);
+  assert.match(extended, /--project=webkit/);
+  const packaging = await readFile(path.join(repoRoot, "tools/scripts/verify-packages.mjs"), "utf8");
+  assert.match(packaging, /\["--filter", "@threadlabs\/looma", "build"\]/);
+  assert.doesNotMatch(packaging, /\["build"\]/);
 });

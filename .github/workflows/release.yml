@@ -30,7 +30,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 2
     permissions:
       contents: read
     outputs:
@@ -91,7 +91,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.resolve.outputs.release == 'true'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Verify and pack release bytes
         if: steps.resolve.outputs.release == 'true'
@@ -112,7 +112,7 @@ jobs:
     if: needs.prepare.outputs.releasing == 'true'
     needs: [prepare, publish]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 1
     permissions:
       contents: write
     steps:
@@ -138,7 +138,7 @@ jobs:
     if: needs.prepare.outputs.releasing == 'true'
     needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 2
     environment: npm-release
     permissions:
       contents: read
