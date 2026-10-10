@@ -117,14 +117,15 @@
 
     :host {
       /* Optional inherited action-group values keep text and icon actions under the same light.
-         One fine top/start highlight follows the bottom/end lowlight at a joined action seam. */
+         One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
+         A single ambient lift avoids stacking a face gradient or another inset bevel. */
       --_ui-action-start: 1px;
       --_ui-action-edge: var(
         --ui-action-edge,
-        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.08)),
-        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.10))
+        inset var(--_ui-action-start) 1px 0 light-dark(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.06)),
+        inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
-      --_ui-action-shadow: var(--_ui-action-edge), var(--ui-raised);
+      --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
       /* Hooks do not inherit, so the parts below read them from the root. */
       --_ui-icon-button-icon-size: var(--ui-icon-button-icon-size);
       --_ui-icon-button-icon-stroke-width: var(--ui-icon-button-icon-stroke-width);
@@ -310,14 +311,14 @@
     :host([variant="outline"]) {
       border-color: var(--ui-icon-button-border, var(--_icon-button-border, var(--ui-control-border, var(--ui-border-strong))));
       background-color: var(--ui-icon-button-outline-surface, var(--_icon-button-outline-surface, var(--ui-surface-default)));
-      background-image: var(--ui-raised-highlight);
+      background-image: none;
       color: var(--ui-icon-button-outline-text, var(--_icon-button-text, var(--ui-text-primary)));
       box-shadow: var(--ui-action-shadow, var(--_ui-action-shadow));
     }
 
     :host([variant="solid"]) {
       background-color: var(--ui-icon-button-solid-surface, var(--_icon-button-solid-surface, var(--ui-accent-solid)));
-      background-image: var(--ui-raised-highlight);
+      background-image: none;
       color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
       box-shadow: var(--ui-icon-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
     }

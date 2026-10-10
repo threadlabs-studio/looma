@@ -53,7 +53,8 @@ Set `--ui-accent` or `--ui-danger` on the theme root to change the action palett
 `--ui-button-radius` on one Button for an exception. The [theming guide](/tokens) explains the global,
 group, and component levels.
 
-Boxed Button and IconButton actions share a fine top/leading highlight and bottom/trailing lowlight.
+Boxed Button and IconButton actions have a flat face, one fine top/leading highlight and bottom/trailing
+lowlight, and a single ambient shadow. Their default does not stack a face gradient or another inset bevel.
 Joined actions show the trailing lowlight immediately before the next action's leading highlight.
 Set inherited `--ui-action-edge` to replace those inset edges, or `--ui-action-shadow` to replace the
 whole resting shadow for both components. Component shadow hooks still take precedence. Ghost and
