@@ -78,6 +78,7 @@
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
+      <span class="badge"><slot name="badge"></slot></span>
     </a>
     <button
       $else
@@ -88,6 +89,7 @@
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
+      <span class="badge"><slot name="badge"></slot></span>
     </button>
   </template>
   <style>
@@ -234,6 +236,22 @@
       vertical-align: middle;
     }
 
+    /* A count is an adornment, not another line of label text. Keep the standard control height
+       with enough inset for a 24px mark; large content can still grow the button naturally. */
+    :host:not([variant="link"]):has(.badge:not(:empty)) {
+      padding-block: var(--ui-space-0-5);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+    }
+
+    .badge:empty {
+      display: none;
+    }
+
     @supports (text-box-trim: trim-both) {
       :host {
         text-box-trim: trim-both;
@@ -305,6 +323,15 @@
     :host:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--_tone-hover));
       background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
+    }
+
+    /* A neutral card encloses content quietly; ordinary outlines keep their action-tone edge. */
+    :host([variant="card"][tone="neutral"]) {
+      border-color: var(--ui-button-border, var(--ui-border));
+    }
+
+    :host([variant="card"][tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--ui-border-strong));
     }
 
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
