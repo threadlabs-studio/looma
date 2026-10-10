@@ -2151,6 +2151,59 @@ describe("Vue components", () => {
 });
 
 describe("Button layout", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`keeps a compact circular count and ordinary ${adapter} actions at the same standard height`, async () => {
+      const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => ["sm", "md"].map(size => h(Cluster, { align: "center", wrap: "nowrap" }, () => [
+          h(Button, { id: size + "-ordinary", size }, () => "View changes"),
+          h(Button, { id: size + "-counted", size, variant: "solid" }, { default: () => "Submit", badge: () => h(Badge, { id: size + "-count", shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => "99+") }),
+          h(IconButton, { id: size + "-more", size, matchButton: true, label: "More actions" }, () => h(Icon, { name: "chevron-down" })),
+        ])) }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["sm", "md"].map(size => `
+        <ui-cluster align="center" wrap="nowrap">
+          <ui-button id="${size}-ordinary" size="${size}">View changes</ui-button>
+          <ui-button id="${size}-counted" size="${size}" variant="solid">Submit <ui-badge id="${size}-count" slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">99+</ui-badge></ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("");
+      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const font of ["system-ui", "Arial"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+          for (const size of ["sm", "md"]) {
+            const geometry = await page.evaluate(size => {
+              const ordinary = document.getElementById(size + "-ordinary")!.getBoundingClientRect();
+              const counted = document.getElementById(size + "-counted")!.getBoundingClientRect();
+              const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+              const badge = document.getElementById(size + "-count")!, mark = badge.getBoundingClientRect();
+              const label = badge.querySelector(".label")!, range = document.createRange();
+              range.selectNodeContents(label);
+              return { ordinary: ordinary.height, counted: counted.height, more: more.height, mark: [mark.width, mark.height], text: range.getBoundingClientRect().width,
+                available: mark.width - 2 * parseFloat(getComputedStyle(badge).borderLeftWidth) };
+            }, size);
+            assert.equal(geometry.counted, geometry.ordinary, `${adapter}/${width}/${font}/${size}: counted action uses the ordinary control height ${JSON.stringify(geometry)}`);
+            assert.equal(geometry.more, geometry.ordinary, "match-button keeps the same height");
+            assert.deepEqual(geometry.mark, [24, 24], "the compact count remains a true 24px circle");
+            assert.ok(geometry.text <= geometry.available, `the complete 99+ count fits ${JSON.stringify(geometry)}`);
+          }
+        }
+        await page.screenshot({ path: join(root, ".build", `${adapter}-compact-count-buttons-375.png`) });
+        const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+        try {
+          await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+          for (const size of ["sm", "md"]) {
+            const heights = await touch.evaluate(size => ["ordinary", "counted", "more"].map(id => document.getElementById(size + "-" + id)!.getBoundingClientRect().height), size);
+            assert.deepEqual(heights, [44, 44, 44], "all three controls retain the standard touch height");
+          }
+        } finally { await touch.close(); }
+      } finally { await page.close(); }
+    });
+  }
+
   it("lays content out from the start and stretches to its container when asked", async () => {
     const path = await bundle("vue-button-layout", `
       import { createApp, h } from "vue";
@@ -2852,6 +2905,53 @@ describe("Input group", () => {
 });
 
 describe("Multiline input group behavior", () => {
+  it("gives a subtle multiline composer one shared frame with a bottom-end icon action in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-subtle-composer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Icon, IconButton, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(InputGroup, { id: "composer", multiline: true, variant: "subtle" }, {
+          default: () => h(Textarea, { id: "message", rows: 3, "aria-label": "Message" }),
+          action: () => h(IconButton, { id: "send", variant: "solid", label: "Send message" }, () => h(Icon, { name: "check" })),
+        }), h(InputGroup, { id: "ordinary" }, () => h(Textarea, { "aria-label": "Ordinary" }))] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : `
+        <ui-input-group id="composer" multiline variant="subtle"><ui-textarea id="message" rows="3" aria-label="Message"></ui-textarea><ui-icon-button id="send" slot="action" variant="solid" label="Send message"><ui-icon name="check"></ui-icon></ui-icon-button></ui-input-group>
+        <ui-input-group id="ordinary"><ui-textarea aria-label="Ordinary"></ui-textarea></ui-input-group>`,
+      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const dir of ["ltr", "rtl"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.locator("html").evaluate((element, dir) => element.setAttribute("dir", dir), dir);
+          const surface = await page.locator("#composer").evaluate(element => {
+            const style = getComputedStyle(element), box = element.getBoundingClientRect();
+            const input = element.querySelector("textarea")!, field = input.getBoundingClientRect(), action = element.querySelector("button")!.getBoundingClientRect();
+            const probe = document.createElement("span");
+            probe.style.borderColor = "var(--ui-border)"; probe.style.backgroundColor = "var(--ui-surface-muted)"; element.append(probe);
+            const expected = getComputedStyle(probe), result = { border: style.borderTopColor, expectedBorder: expected.borderTopColor, surface: style.backgroundColor, expectedSurface: expected.backgroundColor,
+              innerBorder: getComputedStyle(input).borderTopWidth, innerSurface: getComputedStyle(input).backgroundColor, inside: action.bottom < box.bottom && action.top >= field.bottom,
+              end: getComputedStyle(element).direction === "ltr" ? box.right - action.right : action.left - box.left, overflow: document.documentElement.scrollWidth > innerWidth };
+            probe.remove(); return result;
+          });
+          assert.equal(surface.border, surface.expectedBorder, "the subtle composer uses a decorative neutral edge");
+          assert.equal(surface.surface, surface.expectedSurface, "the composer uses the standard muted surface");
+          assert.equal(surface.innerBorder, "0px", "the textarea adds no inner frame");
+          assert.equal(surface.innerSurface, "rgba(0, 0, 0, 0)", "the textarea shares its group's surface");
+          assert.equal(surface.inside, true, "the icon action stays inside the frame below the text");
+          assert.ok(surface.end <= 10, "the action sits at the logical end");
+          assert.equal(surface.overflow, false);
+        }
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#ordinary").evaluate(element => getComputedStyle(element).borderTopColor), "the default input frame remains stronger");
+        await page.locator("#message").focus();
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).boxShadow), "none", "the quiet composer retains the input focus ring");
+        await page.locator("html").evaluate(element => element.setAttribute("dir", "ltr"));
+        await page.locator("#message").blur();
+        await page.screenshot({ path: join(root, ".build", `${adapter}-subtle-composer-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
       const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
@@ -7892,6 +7992,34 @@ describe("Combobox chip truncation", () => {
 });
 
 describe("CardButton layout", () => {
+  it("uses a decorative neutral card edge while preserving accent outline and neutral navigation colors in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-neutral-card-edge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(Button, { id: "card", variant: "card", tone: "neutral" }, () => "Changed files"),
+          h(Button, { id: "outline" }, () => "View changes"), h(Button, { id: "navigation", variant: "ghost", tone: "neutral" }, () => "History")] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : '<ui-button id="card" variant="card" tone="neutral">Changed files</ui-button><ui-button id="outline">View changes</ui-button><ui-button id="navigation" variant="ghost" tone="neutral">History</ui-button>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        const neutral = await page.locator("#card").evaluate(element => {
+          const probe = document.createElement("span"); probe.style.borderColor = "var(--ui-border)"; element.append(probe);
+          const result = { actual: getComputedStyle(element).borderTopColor, expected: getComputedStyle(probe).borderTopColor }; probe.remove(); return result;
+        });
+        assert.equal(neutral.actual, neutral.expected, "a quiet card uses the standard decorative border");
+        assert.notEqual(await page.locator("#outline").evaluate(element => getComputedStyle(element).borderTopColor), neutral.actual, "ordinary accent actions retain their purple edge");
+        assert.equal(await page.locator("#navigation").evaluate(element => getComputedStyle(element).color), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "neutral navigation retains its ink");
+        await page.locator("#card").hover();
+        assert.notEqual(await page.locator("#card").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "hover keeps a decorative edge instead of an ink outline");
+        await page.setViewportSize({ width: 375, height: 720 });
+        await page.mouse.move(0, 700);
+        await page.screenshot({ path: join(root, ".build", `${adapter}-neutral-card-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["native", "Vue"]) {
     it(`keeps ${adapter} icon/content top-aligned and action centered with equal edges at 375px and RTL`, async () => {
       const label = "Read the latest project notes and decisions, including the changes that need another look.";

@@ -13,9 +13,10 @@
       aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
       decorative icon when adjacent words name it. circle frames a visible glyph, icon or short bounded count in a fixed circle, centered in both
       directions.</prop>
-    <prop name="size" type="keyword" values="xs, md, lg" default="md"
-    >Scale. xs is compact; md is the usual text badge; lg adds room to fixed marks while retaining the usual text size. A square is 24px at xs, 32px at md and
-      40px at lg. A circle is 16px at xs, 24px at md and 32px at lg; use lg for short counts such as 30 or 99+.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
+    >Scale. xs is compact; sm keeps the usual badge geometry with compact text, fitting short counts such as 99+ inside a 24px circle. md is the usual text
+      badge; lg adds room to fixed marks while retaining the usual text size. A square is 24px at xs, 32px at sm and md, and 40px at lg. A circle is 16px at xs,
+      24px at sm and md, and 32px at lg.</prop>
   </defs>
   <span>
     <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
@@ -187,6 +188,11 @@
       min-inline-size: 1rem;
       min-block-size: var(--ui-badge-min-block-size, 1rem);
       padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, 0.125rem);
+      font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
+      line-height: var(--ui-badge-line-height, 1);
+    }
+
+    :host([size="sm"]) {
       font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
       line-height: var(--ui-badge-line-height, 1);
     }
