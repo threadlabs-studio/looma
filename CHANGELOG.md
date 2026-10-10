@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.4
+
+- Navigation rows show visible hover feedback on muted panels, including section buttons and menu triggers. The hover fill mixes a little theme ink into its surface, so it stays distinct in light and dark themes; current-page selection and keyboard focus retain their existing treatments.
+
 ## v0.26.3
 
 - Circular Badge labels center capitals and numerals by their visible capital height in browsers supporting text-box trimming; icons retain their existing alignment.

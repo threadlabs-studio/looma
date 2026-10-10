@@ -194,7 +194,9 @@
     --ui-nav-compact-padding-inline: var(--ui-space-2);
     --ui-nav-compact-padding-block: var(--ui-space-1);
     --ui-nav-compact-min-block-size: var(--ui-control-size-sm);
-    --ui-nav-hover-surface: var(--ui-surface-hover);
+    /* Navigation panels may already use the muted hover surface. Mix in ink so
+       row feedback remains visible there, including in a dark theme. */
+    --ui-nav-hover-surface: color-mix(in oklab, var(--ui-text) 6%, var(--ui-surface-hover));
 
     --ui-accent-soft: var(--ui-accent-subtle);
     --ui-accent-contrast: var(--ui-on-accent);
