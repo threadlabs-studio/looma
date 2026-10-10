@@ -555,6 +555,117 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  it("balances toast content insets without external margins or smaller dismiss targets in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Toast, ToastRegion } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          h(Toast, { id: "authored", tone: "success" }, { default: () => "Notification received.", action: () => h("button", "Undo") }),
+          h(ToastRegion, { id: "region", duration: 0 })
+        ]) }).mount("#app");
+      `);
+      const body = adapter === "html" ? `<ui-toast id="authored" tone="success">Notification received.<button slot="action">Undo</button></ui-toast><ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
+      const page = await open(path, `<div id="app">${body}</div>`,
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { hasTouch: true });
+      await page.locator("#region").evaluate(element => element.dispatchEvent(new CustomEvent("show-toast", {
+        detail: { id: "generated", message: "Notification received.", duration: 0 },
+      })));
+      for (const direction of ["ltr", "rtl"]) for (const width of [1280, 375]) {
+        await page.evaluate(direction => document.documentElement.dir = direction, direction);
+        await page.setViewportSize({ width, height: 900 });
+        for (const id of ["authored", "generated"]) {
+          const geometry = await page.locator(`#${id}`).evaluate((element, direction) => {
+            const box = element.getBoundingClientRect(), message = element.querySelector(".message")!.getBoundingClientRect();
+            const button = element.querySelector('button[aria-label^="Dismiss"]')!, control = button.getBoundingClientRect();
+            const svg = button.querySelector("svg")!, frame = svg.getBoundingClientRect(), ink = svg.getBBox();
+            const scale = frame.width / svg.viewBox.baseVal.width, stroke = parseFloat(getComputedStyle(svg).strokeWidth) / 2;
+            const inkStart = frame.left + (ink.x - stroke) * scale, inkEnd = frame.left + (ink.x + ink.width + stroke) * scale;
+            const hit = getComputedStyle(button, "::after");
+            const dismiss = getComputedStyle(element.querySelector(".dismiss")!);
+            const buttonStyle = getComputedStyle(button);
+            return { textInset: direction === "rtl" ? box.right - message.right : message.left - box.left,
+              iconInset: direction === "rtl" ? inkStart - box.left : box.right - inkEnd,
+              contained: control.left >= box.left && control.right <= box.right,
+              margins: [dismiss.marginInlineStart, dismiss.marginInlineEnd],
+              buttonMargins: [buttonStyle.marginTop, buttonStyle.marginRight, buttonStyle.marginBottom, buttonStyle.marginLeft],
+              controlWidth: control.width, hitWidth: parseFloat(hit.width), hitHeight: parseFloat(hit.height) };
+          }, direction);
+          assert.deepEqual(geometry.margins, ["0px", "0px"], "the toast owns spacing without external dismiss margins");
+          assert.deepEqual(geometry.buttonMargins, ["0px", "0px", "0px", "0px"], "IconButton contributes no external margin");
+          assert.ok(Math.abs(geometry.textInset - geometry.iconInset) < 2, `${adapter}/${direction}/${width}/${id}: close visible insets ${JSON.stringify(geometry)}`);
+          assert.ok(geometry.contained, "the dismiss control remains inside the toast");
+          assert.equal(geometry.controlWidth, 28, "compact close control retains its size");
+          assert.ok(geometry.hitWidth >= 44 && geometry.hitHeight >= 44, "touch dismissal retains its larger invisible target");
+        }
+      }
+      await page.close();
+    }
+  });
+
+  it("keeps rounded notification borders even across tones, themes and adapters", async () => {
+    const tones = ["neutral", "info", "success", "warning", "danger"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-notification-borders`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Callout, Toast, ToastRegion } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...${JSON.stringify(tones)}.flatMap(tone => [h(Callout, { id: "callout-" + tone, tone }, () => tone + " notice"),
+            h(Toast, { id: "toast-" + tone, tone }, () => tone + " notification")]),
+          h(ToastRegion, { id: "region", duration: 0 })
+        ]) }).mount("#app");
+      `);
+      const body = adapter === "html" ? tones.map(tone => `<ui-callout id="callout-${tone}" tone="${tone}">${tone} notice</ui-callout><ui-toast id="toast-${tone}" tone="${tone}">${tone} notification</ui-toast>`).join("")
+        + `<ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
+      const page = await open(path, `<div id="app">${body}</div>`,
+        ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css", ...(adapter === "vue" ? ["vue/components.css"] : [])].map(file => join(root, file)));
+      await page.addStyleTag({ content: ":root { --ui-accent-line-width: 4px; } #app { display:grid; gap:12px; }" });
+      for (const tone of tones) await page.locator("#region").evaluate((element, tone) => element.dispatchEvent(new CustomEvent("show-toast", {
+        detail: { id: "generated-" + tone, message: tone + " generated notification", tone, duration: 0 },
+      })), tone);
+      for (const theme of ["light", "dark", "high"]) {
+        await page.evaluate(theme => {
+          document.documentElement.setAttribute("data-theme", theme === "high" ? "light" : theme);
+          document.documentElement.toggleAttribute("data-contrast", theme === "high");
+          if (theme === "high") document.documentElement.setAttribute("data-contrast", "high");
+        }, theme);
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 900 });
+          for (const kind of ["callout", "toast", "generated"]) for (const tone of tones) {
+            const style = await page.locator(`#${kind}-${tone}`).evaluate((element, tone) => {
+              const css = getComputedStyle(element);
+              const probe = element.appendChild(document.createElement("span"));
+              probe.style.backgroundColor = `var(${tone === "neutral" ? "--ui-surface-muted" : `--ui-${tone}-soft`})`;
+              probe.style.fontSize = "var(--ui-font-size-sm)";
+              const expectedSurface = getComputedStyle(probe).backgroundColor;
+              const expectedSize = getComputedStyle(probe).fontSize;
+              probe.remove();
+              return { widths: [css.borderTopWidth, css.borderRightWidth, css.borderBottomWidth, css.borderLeftWidth],
+                colors: [css.borderTopColor, css.borderRightColor, css.borderBottomColor, css.borderLeftColor],
+                radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color,
+                fontSize: css.fontSize, expectedSurface, expectedSize };
+            }, tone);
+            assert.equal(new Set(style.widths).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: even border widths`);
+            assert.ok(parseFloat(style.widths[0]) > 0, "notification outline remains visible");
+            assert.equal(new Set(style.colors).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: one color around the rounded border`);
+            assert.ok(parseFloat(style.radius) > 0, "rounded shape is retained");
+            assert.notEqual(style.text, style.surface, "message remains readable");
+            assert.equal(style.surface, style.expectedSurface, `${kind}/${tone}: every tone has a shaded surface`);
+            assert.equal(style.fontSize, style.expectedSize, `${kind}/${tone}: uses small message typography`);
+          }
+        }
+      }
+      await page.locator("#toast-neutral").evaluate(element => (element as HTMLElement).style.setProperty("--ui-toast-surface", "rgb(230, 225, 255)"));
+      await page.locator("#region").evaluate(element => (element as HTMLElement).style.setProperty("--ui-toast-region-surface", "rgb(225, 240, 255)"));
+      await page.locator("#app").evaluate(element => (element as HTMLElement).style.setProperty("--ui-overlay-surface", "rgb(245, 235, 225)"));
+      const surface = (id: string) => page.locator(`#${id}`).evaluate(element => getComputedStyle(element).backgroundColor);
+      assert.equal(await surface("toast-neutral"), "rgb(230, 225, 255)", "local Toast surface overrides group and tone defaults");
+      assert.equal(await surface("toast-success"), "rgb(245, 235, 225)", "the overlay group can override a tone surface");
+      assert.equal(await surface("generated-success"), "rgb(225, 240, 255)", "Toast Region surface overrides group and tone defaults");
+      await page.close();
+    }
+  });
+
   it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
     const path = await bundle("html-authored-toast", `
       import "@threadlabs/looma";
@@ -4213,7 +4324,8 @@ describe("Shared visual geometry", () => {
     }
     assert.equal(await css("#divider", "border-top-width"), "3px");
     assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
-    for (const selector of ["#card", "#callout", "#editor-callout", "#quote"]) {
+    assert.equal(await css("#callout", "border-inline-start-width"), "3px", "rounded Callout uses ordinary border width on every edge");
+    for (const selector of ["#card", "#editor-callout", "#quote"]) {
       assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
     }
     assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");

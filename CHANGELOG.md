@@ -1,12 +1,18 @@
 # Changelog
 
-## v0.26.4
+## v0.26.5
 
 - Boxed Button and IconButton actions share fine raised edges that keep joined actions readable, with inherited edge and shadow theme values. Circular inverse Badge counts use a quieter tone-tinted surface and readable theme ink in light and dark themes; inverse pills retain their existing appearance.
 
 - Button adds a `badge` slot that keeps compact circular counts aligned with ordinary actions and matching Icon Buttons. Badge adds `size="sm"` with compact text that fits bounded counts such as `99+` in a 24px circle. Existing Badge sizes and default Button content retain their spacing.
 - Neutral card Buttons use a quiet decorative border while standard outline actions retain their tone-colored edge.
 - Input Group adds `variant="subtle"` for a muted composer surface with one shared frame around its textarea and action, retaining standard focus and field states.
+
+## v0.26.4
+
+- Toast, generated Toast Region messages, and Callout use an even rounded border instead of a thicker, differently colored leading edge. Toast tones color the whole outline; Callout retains its shaded background. This corrects the default shape for all notification consumers without changing props, dismissal behavior, or status semantics. Existing explicit border and surface hooks remain available.
+- Every Toast tone now has a softly shaded surface, including a quiet muted neutral tone, and uses the small text scale. This makes authored and generated notifications more compact and gives every message a visible tone without requiring a variant. Explicit surface hooks continue to override the default.
+- Toast's close icon sits slightly nearer the outer edge for more balanced spacing beside its message, while retaining its existing click and touch targets.
 
 ## v0.26.3
 

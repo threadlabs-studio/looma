@@ -141,30 +141,42 @@
     }
 
     .toast {
+      --_ui-toast-region-accent: var(--ui-border-strong);
+      --_ui-toast-region-tone-surface: var(--ui-surface-muted);
       display: grid;
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2);
       align-items: start;
-      border: var(--ui-border-width) solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border: var(--ui-border-width) solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--_ui-toast-region-accent)));
       border-radius: var(--_ui-toast-region-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
-      background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      /* The close button's internal space supplies the rest of the trailing inset. */
+      padding-inline-end: var(--ui-space-2);
+      background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--_ui-toast-region-tone-surface)));
       color: var(--ui-text-primary);
+      font-family: var(--ui-font-family-sans);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+      line-height: var(--ui-line-height-md);
       box-shadow: var(--_ui-toast-region-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       animation: ui-toast-enter var(--_ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     .toast[data-tone="info"] {
-      border-inline-start: var(--ui-accent-line-width) solid var(--ui-info-solid);
+      --_ui-toast-region-accent: var(--ui-info-solid);
+      --_ui-toast-region-tone-surface: var(--ui-info-soft);
     }
     .toast[data-tone="success"] {
-      border-inline-start: var(--ui-accent-line-width) solid var(--ui-success-solid);
+      --_ui-toast-region-accent: var(--ui-success-solid);
+      --_ui-toast-region-tone-surface: var(--ui-success-soft);
     }
     .toast[data-tone="warning"] {
-      border-inline-start: var(--ui-accent-line-width) solid var(--ui-warning-solid);
+      --_ui-toast-region-accent: var(--ui-warning-solid);
+      --_ui-toast-region-tone-surface: var(--ui-warning-soft);
     }
     .toast[data-tone="danger"] {
-      border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger-solid);
+      --_ui-toast-region-accent: var(--ui-danger-solid);
+      --_ui-toast-region-tone-surface: var(--ui-danger-soft);
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
@@ -238,7 +250,6 @@
 
     .dismiss {
       align-self: center;
-      margin-inline-end: calc(var(--ui-space-2) * -1);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
