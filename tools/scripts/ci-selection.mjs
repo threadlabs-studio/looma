@@ -309,6 +309,21 @@ export function validateBrowserReport(discovery, report) {
   return actual.map(({ id }) => id);
 }
 
+/** Expand known static loop titles; unknown generated discovery remains fail closed. */
+function generatedTitles(source, title) {
+  const interpolation = /^\$\{([\w]+)(?:\.([\w]+))?\}/.exec(title);
+  if (!interpolation || title.slice(interpolation[0].length).includes("${")) return null;
+  const [, variable, field] = interpolation;
+  const loop = new RegExp(`for \\(const ${escape(variable)} of (\\[[\\s\\S]*?\\]|[\\w]+)(?: as const)?\\)`).exec(source);
+  if (!loop) return null;
+  const body = loop[1].startsWith("[") ? loop[1] : new RegExp(`const ${escape(loop[1])} = (\\[[\\s\\S]*?\\])(?: as const)?;`).exec(source)?.[1];
+  if (!body) return null;
+  const values = field ? [...body.matchAll(new RegExp(`\\b${escape(field)}:\\s*["']([^"']+)["']`, "g"))].map((match) => match[1])
+    : [...body.matchAll(/["']([^"']+)["']/g)].map((match) => match[1]);
+  if (!values.length || (!field && !/^\[\s*(?:["'][^"']+["']\s*,?\s*)+\]$/.test(body)) || (field && values.length !== [...body.matchAll(/\{/g)].length)) return null;
+  return values.map((value) => title.replace(interpolation[0], value));
+}
+
 /** One admission decision counts both workflows, setup and proof, before either starts checks. */
 export function qualificationMinutes(plans, files) {
   let minutes = 4; // Six hosted jobs: checkout/setup, provider reads, receipt upload/download and gate.
@@ -341,7 +356,11 @@ export function qualificationMinutes(plans, files) {
         let cases = 0;
         if (entry.title.startsWith("${doc.path}")) cases = pages.filter((page) => accepts(`${page.path}: content`)).length;
         else if (entry.title.startsWith("${state.component}")) cases = states.filter(accepts).length * (visual ? 1 : 2);
-        else if (entry.dynamic) return Infinity;
+        else if (entry.dynamic) {
+          const titles = generatedTitles(files[file], entry.title);
+          if (!titles) return Infinity;
+          cases = titles.filter(accepts).length;
+        }
         else if (accepts(entry.title)) cases = 1;
         // Visual cases each read three lenses; behavior runs in three engines, with one worker.
         minutes += cases * (visual ? 4 * 15 : 3 * 2.5) / 60;
