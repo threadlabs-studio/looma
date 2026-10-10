@@ -1,0 +1,18 @@
+<!--
+title: Circular marks
+description: Circles center a visible glyph, icon or short bounded count. The large circle fits 30 and 99+; an inverse counter reuses the same Badge inside a filled action. Name the full count on the action.
+-->
+<ui-cluster gap="m">
+  <ui-badge shape="circle" size="xs" variant="outline" tone="neutral" aria-label="Category A">A</ui-badge>
+  <ui-badge shape="circle" variant="outline" tone="accent" aria-label="Category B">B</ui-badge>
+  <ui-badge shape="circle" tone="success" role="img" aria-label="Complete"><ui-icon name="check"></ui-icon></ui-badge>
+  <ui-badge shape="circle" size="lg" aria-label="30 items">30</ui-badge>
+  <ui-badge shape="circle" size="lg" aria-label="More than 99 items">99+</ui-badge>
+  <ui-button variant="solid" size="sm" aria-label="Submit 120 items">Submit <ui-badge
+      shape="circle"
+      size="lg"
+      tone="accent"
+      variant="inverse"
+      aria-hidden="true"
+    >99+</ui-badge></ui-button>
+</ui-cluster>
