@@ -218,6 +218,7 @@ describe("Pressed icon controls and circular marks", () => {
       const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
         [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#accent[data-component~="ui-badge"]');
+      await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
       for (const theme of ["light", "dark"]) {
         await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
         const overlays = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
@@ -232,10 +233,11 @@ describe("Pressed icon controls and circular marks", () => {
           const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
           paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
           paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          return { tone: element.id, opacity, foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
         }));
+        await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
         for (const overlay of overlays) {
-          assert.ok(overlay.opacity > 0.75 && overlay.opacity < 0.95, `${adapter}/${theme}/${overlay.tone}: an overlay instead of an opaque cutout ${JSON.stringify(overlay)}`);
+          assert.ok(overlay.opacity >= 0.4 && overlay.opacity <= 0.6, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
@@ -2148,6 +2150,107 @@ describe("Vue components", () => {
     assert.equal(await page.locator("#fruit input").inputValue(), "Pear");
     await page.close();
   });
+});
+
+describe("Shared action edges", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`shares fine raised action edges and retains quiet, focused and disabled ${adapter} controls`, async () => {
+      const path = await bundle(`${adapter}-shared-action-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        const icon = () => h(Icon, { name: "chevron-down" });
+        createApp({ render: () => [
+          ...["3", "30", "99+"].map((count, index) => h(Cluster, { align: "center", wrap: "nowrap", style: { "--ui-cluster-gap": "0", "--ui-action-radius": "0" } }, () => [
+            h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
+            h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
+          ])),
+          h(Button, { id: "outline" }, () => "View changes"),
+          h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
+          h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
+          h(Button, { id: "link", variant: "link", as: "a", href: "#" }, () => "Link"),
+          h(IconButton, { id: "ghost-icon", label: "Quiet" }, icon),
+          h(Button, { id: "disabled", variant: "solid", disabled: true }, () => "Disabled"),
+          h(IconButton, { id: "disabled-icon", variant: "solid", disabled: true, label: "Disabled" }, icon),
+        ] }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["3", "30", "99+"].map((count, index) => `
+        <ui-cluster align="center" wrap="nowrap" style="--ui-cluster-gap: 0; --ui-action-radius: 0">
+          <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
+          <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("") + `
+        <ui-button id="outline">View changes</ui-button>
+        <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" as="a" href="#">Link</ui-button>
+        <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="disabled" variant="solid" disabled>Disabled</ui-button><ui-icon-button id="disabled-icon" variant="solid" disabled label="Disabled"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); color: var(--ui-text-primary); background: var(--ui-surface-default); display: grid; gap: 16px; justify-items: start; } :root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
+        const shadow = (id: string) => page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow);
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          assert.equal(await shadow("primary-0"), await shadow("more-0"), "text and icon actions share the same raised edge and shadow");
+          assert.ok((await shadow("primary-0")).includes("1px 1px 0px 0px inset"), "a fine highlight at top/start");
+          assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
+          assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
+          for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
+          for (let index = 0; index < 3; index++) {
+            const count = await page.locator(`#primary-${index} [data-component~="ui-badge"]`).evaluate(element => {
+              const rect = element.getBoundingClientRect(), range = document.createRange();
+              range.selectNodeContents(element.querySelector(".label")!);
+              return { width: rect.width, height: rect.height, text: range.getBoundingClientRect().width };
+            });
+            assert.deepEqual([count.width, count.height], [24, 24], "3, 30 and 99+ use the same real circle");
+            assert.ok(count.text <= count.width - 2, "the bounded count fits inside its border");
+          }
+          assert.equal(await page.locator("#primary-0").evaluate(element => getComputedStyle(element).borderRightWidth), "1px", "the shared edge does not thicken the border");
+          await page.keyboard.press("Tab");
+          await page.locator("#primary-0").focus();
+          assert.ok((await shadow("primary-0")).includes("inset"), "keyboard focus retains the raised edge beneath its halo");
+          assert.ok((await shadow("primary-0")).includes("0px 0px 0px 3px"), "the text action keeps its visible focus halo");
+          await page.locator("#more-0").focus();
+          assert.ok((await shadow("more-0")).includes("inset"), "the companion keeps its edge beneath the focus halo");
+          assert.ok((await shadow("more-0")).includes("0px 0px 0px 3px"), "the icon action keeps its visible focus halo");
+          for (const id of ["ghost", "link", "ghost-icon"]) {
+            await page.locator("#" + id).focus();
+            assert.ok(!(await shadow(id)).includes("inset"), `${id} focuses without becoming raised`);
+            if (id === "link") {
+              const outline = await page.locator("#link").evaluate(element => { const style = getComputedStyle(element); return { width: style.outlineWidth, style: style.outlineStyle }; });
+              assert.deepEqual(outline, { width: "2px", style: "solid" }, "the inline link keeps its visible outline focus");
+            } else assert.ok((await shadow(id)).includes("0px 0px 0px 3px"), `${id} has visible keyboard focus`);
+          }
+          await page.locator("#ghost-icon").blur();
+          for (const width of [1280, 375]) {
+            await page.setViewportSize({ width, height: 720 });
+            await page.screenshot({ path: join(root, ".build", `${adapter}-shared-action-edges-${theme}-${width}.png`) });
+          }
+          for (const id of ["primary-0", "more-0"]) {
+            const rect = await page.locator("#" + id).boundingBox();
+            assert.ok(rect);
+            await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+            await page.mouse.down();
+            assert.ok((await shadow(id)).includes("0px 1px 2px 0px inset"), `${id} uses the pressed inset instead of its raised edge`);
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "pressed actions lose the resting highlight");
+            await page.mouse.up();
+          }
+          await page.evaluate(() => document.documentElement.dir = "rtl");
+          assert.ok((await shadow("outline")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
+          assert.ok((await shadow("outline")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
+          await page.evaluate(() => document.documentElement.dir = "ltr");
+        }
+        await page.evaluate(() => document.documentElement.style.setProperty("--ui-action-shadow", "0 0 0 2px rgb(1 2 3)"));
+        assert.equal(await shadow("primary-0"), await shadow("more-0"), "one ancestor action-group value themes both controls");
+        assert.ok((await shadow("primary-0")).includes("0px 0px 0px 2px"));
+        await page.locator("#primary-0").evaluate(element => (element as HTMLElement).style.setProperty("--ui-button-solid-shadow", "none"));
+        assert.equal(await shadow("primary-0"), "none", "an instance hook wins over its action-group theme");
+      } finally { await page.close(); }
+      const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+      try {
+        const heights = await touch.locator('#primary-0, #more-0').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+        assert.deepEqual(heights, [44, 44], "the shared edge preserves touch-sized primary and companion controls");
+      } finally { await touch.close(); }
+    });
+  }
 });
 
 describe("Button layout", () => {
