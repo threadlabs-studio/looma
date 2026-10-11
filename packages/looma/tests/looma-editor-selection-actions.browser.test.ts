@@ -53,3 +53,13 @@ it('puts selection actions in the existing narrow editing dock', async () => {
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__mobile-toolbar-shell [aria-label="Annotate"]')).toBeTruthy());
   expect(document.querySelector('[data-tippy-root]')).toBeNull();
 });
+it('dismisses the expanded Format inventory on Escape and permits a fresh selection gesture', async () => {
+  const { editor } = await mount();
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Format"]')).toBeTruthy());
+  await userEvent.click(document.querySelector('[aria-label="Format"]')!);
+  await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting')?.matches(':popover-open')).toBe(true));
+  await userEvent.keyboard('{Escape}');
+  await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting')?.matches(':popover-open')).toBe(false));
+  editor.chain().focus().setTextSelection({ from: 1, to: 7 }).run();
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Annotate"]')).toBeTruthy());
+});
