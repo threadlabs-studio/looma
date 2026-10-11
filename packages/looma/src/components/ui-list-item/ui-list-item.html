@@ -80,21 +80,24 @@
       background: var(--ui-surface-raised);
     }
 
-    :host:where(:has(.title a[href])):hover {
+    :host:where(:has(.title a[href])):hover,
+    :host([highlighted]),
+    :host([current]) {
       background: var(--ui-selection-surface);
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--ui-selection-border);
     }
 
     :host([variant="card"]):where(:has(.title a[href])):hover {
       border-color: var(--ui-border-strong);
     }
 
-    :host([highlighted]) {
-      background: var(--ui-selection-surface);
+    :host([current]) {
+      color: var(--ui-selection-text);
     }
 
-    :host([current]) {
-      background: var(--ui-selection-surface);
-      color: var(--ui-selection-text);
+    /* Framed cards already have their own edge; the stronger focus ring stays separate. */
+    :host([variant="card"]) {
+      box-shadow: none;
     }
 
     :host:has(.title a[href]:focus-visible) {
