@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Escape closes the complete Format inventory and its contextual selection gesture.
+
 - Add opt-in compact editor formatting and host-owned passage actions, including read-only selections and the narrow editing dock.
 
 ## v0.26.7
