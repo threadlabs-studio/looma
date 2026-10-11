@@ -4326,6 +4326,86 @@ describe("Readable explanatory lists", () => {
 });
 
 describe("Shared visual geometry", () => {
+  it("defines pale row highlights on toned panels without moving content or weakening focus in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import {createApp, h} from "vue";
+        import {Card, Stack, NavItem, Tree, TreeItem, List, ListItem} from "@threadlabs/looma/vue";
+        createApp({render:()=>h(Card,{tone:"success",variant:"subtle",padding:"lg"},()=>h(Stack,{gap:"m"},()=>[
+          h(NavItem,{id:"nav",as:"a",href:"#overview",current:"page"},()=>"Overview"),
+          h(NavItem,{id:"nav-hover",as:"a",href:"#activity"},()=>"Activity"),
+          h(NavItem,{id:"line",variant:"line",current:"page"},()=>"Line destination"),
+          h(Tree,{label:"Files"},()=>[
+            h(TreeItem,{id:"tree",label:"Selected guide",selected:true}),
+            h(TreeItem,{id:"tree-disabled",label:"Unavailable guide",selected:true,disabled:true})]),
+          h(List,{},()=>[
+            h(ListItem,{id:"list",current:true},()=>h("a",{href:"#guide"},"Selected guide")),
+            h(ListItem,{id:"highlight",highlighted:true},()=>h("a",{href:"#updates"},"New updates")),
+            h(ListItem,{id:"list-hover"},()=>h("a",{href:"#other"},"Another guide")),
+            h(ListItem,{id:"card",variant:"card"},()=>h("a",{href:"#card"},"Framed guide"))])
+        ]))}).mount("#app");`);
+      const markup = adapter === "vue" ? '<div id="app"></div>' : `
+        <ui-card tone="success" variant="subtle" padding="lg"><ui-stack gap="m">
+          <ui-nav-item id="nav" as="a" href="#overview" current="page">Overview</ui-nav-item>
+          <ui-nav-item id="nav-hover" as="a" href="#activity">Activity</ui-nav-item>
+          <ui-nav-item id="line" variant="line" current="page">Line destination</ui-nav-item>
+          <ui-tree label="Files"><ui-tree-item id="tree" label="Selected guide" selected></ui-tree-item>
+            <ui-tree-item id="tree-disabled" label="Unavailable guide" selected disabled></ui-tree-item></ui-tree>
+          <ui-list><ui-list-item id="list" current><a href="#guide">Selected guide</a></ui-list-item>
+            <ui-list-item id="highlight" highlighted><a href="#updates">New updates</a></ui-list-item>
+            <ui-list-item id="list-hover"><a href="#other">Another guide</a></ui-list-item>
+            <ui-list-item id="card" variant="card"><a href="#card">Framed guide</a></ui-list-item></ui-list>
+        </ui-stack></ui-card>`;
+      for (const theme of ["light", "dark"]) {
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")]);
+        await page.addStyleTag({content:"body { margin:0; padding:16px; font-family:var(--ui-font-family-sans); background:var(--ui-surface); }"});
+        await page.locator("html").evaluate((el, theme) => el.setAttribute("data-theme",theme),theme);
+        const look = (selector: string) => page.locator(selector).evaluate(el=>{
+          const css=getComputedStyle(el),box=el.getBoundingClientRect();
+          return {shadow:css.boxShadow,width:box.width,height:box.height,padding:css.padding,border:css.borderWidth,weight:css.fontWeight};
+        });
+        for (const width of [1280,375]) {
+          await page.setViewportSize({width,height:900});
+          await page.mouse.move(0,0);
+          for (const selector of ["#nav","#tree > .row","#list","#highlight"]) {
+            assert.match((await look(selector)).shadow,/inset/,`${adapter}/${theme}: ${selector} has a faint complete edge`);
+          }
+          assert.equal((await look("#line")).shadow,"none","line navigation retains its separate straight indicator");
+          assert.equal((await look("#tree-disabled > .row")).shadow,"none","disabled rows do not look active");
+          for (const selector of ["#nav-hover","#list-hover","#tree > .row"]) {
+            const before=await look(selector);
+            await page.locator(selector).hover();
+            const after=await look(selector);
+            assert.match(after.shadow,/inset/,`${selector} hover remains defined on the soft panel`);
+            assert.deepEqual({...after,shadow:before.shadow},before,"the inset edge changes no row geometry or text weight");
+            await page.mouse.move(0,0);
+          }
+          await page.locator("#card").hover();
+          assert.equal((await look("#card")).shadow,"none","a framed card does not gain a second border");
+          await page.mouse.move(0,0);
+          for (const [target,surface] of [["#list a","#list"],["#tree","#tree > .row"]]) {
+            await page.keyboard.press("Tab");
+            await page.locator(target).focus();
+            assert.notEqual((await look(surface)).shadow,"none","keyboard focus always retains its visible ring");
+            assert.doesNotMatch((await look(surface)).shadow,/inset/,"the stronger keyboard ring replaces the decorative edge");
+          }
+          await page.locator("#nav").focus();
+          assert.equal(await page.locator("#nav").evaluate(el=>getComputedStyle(el).outlineStyle),"solid");
+          if (process.env.LOOMA_SCREENSHOT_DIR && width===375 && adapter==="vue") {
+            await page.locator("#nav").blur();
+            await page.locator("#list-hover").hover();
+            await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR,`highlight-edges-${theme}-${width}.png`)});
+          }
+        }
+        await page.emulateMedia({forcedColors:"active"});
+        for (const selector of ["#nav","#list","#tree > .row"]) {
+          assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).outlineStyle),"solid","selected boundaries survive forced colors");
+        }
+        await page.close();
+      }
+    }
+  });
+
   it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
     const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
     const page = await open(path, `

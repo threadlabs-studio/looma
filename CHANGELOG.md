@@ -4,6 +4,10 @@
 
 - Add opt-in compact editor formatting and host-owned passage actions, including read-only selections and the narrow editing dock.
 
+## v0.26.7
+
+- Pale list, surface navigation and tree highlights have a faint continuous inset edge that stays visible on softly toned panels. Keyboard focus keeps its stronger ring, with no row size change or second border on framed list cards.
+
 ## v0.26.5
 
 - Boxed Button and IconButton actions use flat faces, fine edges and one soft shadow that keep joined actions readable, with inherited edge and shadow theme values. Circular inverse Badge counts use a tone-tinted surface with a lighter rim and readable tone ink in light themes, and a shaded surface in dark themes; inverse pills retain their existing appearance.
