@@ -175,3 +175,18 @@ The line sits outside the content box, so a consumer that sets
 `--ui-editor-content-padding-inline` to `0` must leave it room on its own wrapper. The marker comes
 from the `LoomaActiveBlock` extension in `@threadlabs/looma/editor/extensions`, which adds the
 `looma-active-block` class to the block and nothing else.
+
+
+## Passage actions and compact formatting
+
+`compactToolbar` is opt-in. On desktop it keeps Bold, Italic and Link beside
+Format, which exposes the existing complete formatting inventory. The narrow
+editing dock retains its formatting controls.
+
+`selectionActions` accepts `{ id, label }` commands owned by the application.
+They appear only for a nonempty text selection, before formatting in the narrow
+dock. Read-only selections expose the actions without exposing edit controls.
+`selectionAction` emits `{ id, from, to, text, before, after }`, captured before
+the host moves focus. These actions never mutate the document. The host owns
+permissions, durable annotation identity, panels and return navigation; positions
+are from the current editor snapshot, not a lasting anchor.
