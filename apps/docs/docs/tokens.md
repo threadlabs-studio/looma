@@ -137,6 +137,12 @@ readable accent text, and medium radius. The default tint is 6%; selected naviga
 resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
 radius override.
 
+List rows, surface navigation and tree highlights use `--ui-selection-border` for
+a faint continuous inset edge. Its default mixes 20% accent into the page surface,
+giving pale fills definition on softly toned panels without changing row size.
+Keyboard focus retains its stronger independent ring; framed list cards and
+explicit line navigation retain their existing edges.
+
 ```css
 :root {
   --ui-border-width: 1px;

@@ -113,6 +113,11 @@
       color: var(--ui-selection-text);
     }
 
+    /* A complete inset edge separates pale fills without changing rail geometry. */
+    :host([variant="surface"]):is(:hover, [aria-current]) {
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--ui-selection-border);
+    }
+
     :host([variant="line"]) {
       border-radius: 0;
     }
