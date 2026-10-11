@@ -1344,6 +1344,7 @@ export const LoomaEditor = defineComponent({
       const selection = editor.value?.state.selection;
       dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
       heldFormattingSelection = null;
+      formatOpen.value = false;
       formattingPopup?.hide();
       hideTool();
     };
