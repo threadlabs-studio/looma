@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.26.6
+## Unreleased
+
+- Add opt-in compact editor formatting and host-owned passage actions, including read-only selections and the narrow editing dock.
+
+## v0.26.7
 
 - Pale list, surface navigation and tree highlights have a faint continuous inset edge that stays visible on softly toned panels. Keyboard focus keeps its stronger ring, with no row size change or second border on framed list cards.
 
