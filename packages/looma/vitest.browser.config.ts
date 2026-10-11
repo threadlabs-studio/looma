@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     include: [
+      "tests/looma-editor-selection-actions.browser.test.ts",
       "tests/looma-editor-active-block.browser.test.ts",
       "tests/looma-editor-history.browser.test.ts",
       "tests/looma-editor-mention.browser.test.ts",
