@@ -5,6 +5,8 @@ export * from "./primitives";
 export {
   LoomaEditor,
   type LoomaEditorToolbarMode,
+  type LoomaEditorSelectionAction,
+  type LoomaEditorSelectionActionDetail,
   type LoomaEditorSlashCommands,
   type LoomaLinkTarget,
   type LoomaLinkSearch,
