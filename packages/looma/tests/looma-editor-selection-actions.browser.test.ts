@@ -1,0 +1,55 @@
+import type { Editor } from '@tiptap/core';
+import { userEvent } from '@vitest/browser/context';
+import { afterEach, expect, it, vi } from 'vitest';
+import { createApp, h, nextTick, type App } from 'vue';
+import { LoomaEditor } from '../src/vue/editor/LoomaEditor';
+import '../tokens.css';
+import '../theme-light.css';
+import '../vue/components.css';
+let app: App;
+afterEach(() => { app?.unmount(); document.body.innerHTML = ''; vi.restoreAllMocks(); });
+async function mount(editable = true, width = 1280) {
+  vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(width);
+  const host = document.createElement('div'); host.style.width = '600px'; host.style.marginTop = '150px'; document.body.append(host);
+  let editor!: Editor;
+  const action = vi.fn();
+  app = createApp({ render: () => h(LoomaEditor, { editable, toolbarMode: 'contextual', compactToolbar: true,
+    selectionActions: [{ id: 'note', label: 'Annotate' }, { id: 'query', label: 'Ask about selection' }],
+    modelValue: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Before selected words after.' }] }] },
+    onSelectionAction: action, onReady: (instance: Editor) => { editor = instance; },
+  }) }); app.mount(host); await nextTick();
+  await vi.waitFor(() => expect(editor).toBeTruthy());
+  editor.commands.focus(); editor.commands.setTextSelection({ from: 8, to: 22 });
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  return { editor, action };
+}
+it('keeps direct actions compact and emits the exact selection without editing it', async () => {
+  const { editor, action } = await mount(); const before = editor.getJSON();
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Annotate"]')).toBeTruthy());
+  const compact = document.querySelector('[aria-label="Annotate"]')!.closest('[aria-label="Editor toolbar"]')!;
+  expect(compact.querySelector('[aria-label="Format"]')).toBeTruthy();
+  expect(compact.querySelector('[aria-label="Heading 1"]')).toBeNull();
+  await userEvent.click(document.querySelector('[aria-label="Annotate"]')!);
+  expect(action).toHaveBeenCalledWith(expect.objectContaining({ id: 'note', from: 8, to: 22, text: 'selected words', before: 'Before ', after: ' after.' }));
+  expect(editor.getJSON()).toEqual(before);
+});
+it('exposes full formatting through Format and preserves the selected range', async () => {
+  const { editor } = await mount();
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Format"]')).toBeTruthy());
+  await userEvent.click(document.querySelector('[aria-label="Format"]')!);
+  await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting [aria-label="Heading 2"]')).toBeTruthy());
+  await userEvent.click(document.querySelector('.looma-editor__compact-formatting [aria-label="Heading 2"]')!);
+  expect(editor.isActive('heading', { level: 2 })).toBe(true);
+});
+it('permits read-only selection actions without exposing formatting', async () => {
+  const { editor, action } = await mount(false); const before = editor.getJSON();
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Annotate"]')).toBeTruthy());
+  expect(document.querySelector('[aria-label="Bold"]')).toBeNull();
+  await userEvent.click(document.querySelector('[aria-label="Annotate"]')!);
+  expect(action).toHaveBeenCalledOnce(); expect(editor.getJSON()).toEqual(before);
+});
+it('puts selection actions in the existing narrow editing dock', async () => {
+  await mount(true, 375);
+  await vi.waitFor(() => expect(document.querySelector('.looma-editor__mobile-toolbar-shell [aria-label="Annotate"]')).toBeTruthy());
+  expect(document.querySelector('[data-tippy-root]')).toBeNull();
+});
