@@ -45,6 +45,8 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           # Full history and tags: the last `v*` tag is what "changed since the last release" diffs.
           fetch-depth: 0
+          # Keep release history and tags without downloading every historical file.
+          filter: blob:none
           persist-credentials: false
 
       - name: Setup pnpm
