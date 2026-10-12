@@ -183,7 +183,7 @@
     --ui-accent-solid: var(--ui-accent);
     /* One quiet selection recipe for destination/content rows. Hue derives from the brand;
        corners derive from the scale, and selected labels retain their resting weight. */
-    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 6%, var(--ui-surface));
+    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 10%, var(--ui-surface));
     --ui-selection-border: color-mix(in oklab, var(--ui-accent) 20%, var(--ui-surface));
     --ui-selection-text: var(--ui-accent-subtle-text);
     --ui-selection-radius: var(--ui-radius-md);
