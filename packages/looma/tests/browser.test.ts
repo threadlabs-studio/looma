@@ -4326,6 +4326,98 @@ describe("Readable explanatory lists", () => {
 });
 
 describe("Shared visual geometry", () => {
+  it("keeps row highlights in their surface hue and restores brand selection on nested neutral panels in HTML and Vue", async () => {
+    const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-tonal-highlights`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import {createApp, h} from "vue";
+        import {Card, Stack, Section, Callout, NavItem, Tree, TreeItem, List, ListItem, SearchResultRow, Button} from "@threadlabs/looma/vue";
+        const rows = id => [
+          h(NavItem,{id:id+"-nav",current:"page"},()=>"Overview"),
+          h(NavItem,{id:id+"-hover"},()=>"Activity"),
+          h(Tree,{label:"Documents"},()=>h(TreeItem,{id:id+"-tree",selected:true,label:"Selected guide"})),
+          h(List,{},()=>h(ListItem,{id:id+"-list",current:true},()=>h("a",{href:"#guide"},"Selected guide"))),
+          h(SearchResultRow,{id:id+"-search",selected:true},{title:()=>"Search result"}),
+          h(Button,{id:id+"-action",tone:"accent"},()=>"Continue")];
+        createApp({render:()=>h(Stack,{},()=>[
+          ...${JSON.stringify(tones)}.map(tone=>h(Card,{id:tone,tone,variant:"subtle",padding:"sm"},()=>rows(tone))),
+          h(Card,{id:"outer",tone:"success"},()=>[
+            h(Card,{id:"nested",padding:"sm"},()=>rows("nested")),
+            h(Section,{id:"plain"},()=>rows("plain")),
+            h(Section,{id:"section",variant:"card",tone:"danger"},()=>rows("section")),
+            h(Callout,{id:"callout",tone:"info"},()=>rows("callout")),
+            h(Callout,{id:"note",tone:"neutral"},()=>rows("note"))])
+        ])}).mount("#app");`);
+      const rows = (id: string) => `<ui-nav-item id="${id}-nav" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="${id}-hover">Activity</ui-nav-item>
+        <ui-tree label="Documents"><ui-tree-item id="${id}-tree" selected label="Selected guide"></ui-tree-item></ui-tree>
+        <ui-list><ui-list-item id="${id}-list" current><a href="#guide">Selected guide</a></ui-list-item></ui-list>
+        <ui-search-result-row id="${id}-search" selected><span slot="title">Search result</span></ui-search-result-row>
+        <ui-button id="${id}-action" tone="accent">Continue</ui-button>`;
+      const markup = adapter === "vue" ? '<div id="app"></div>' : `<ui-stack>
+        ${tones.map(tone=>`<ui-card id="${tone}" tone="${tone}" variant="subtle" padding="sm">${rows(tone)}</ui-card>`).join("")}
+        <ui-card id="outer" tone="success">
+          <ui-card id="nested" padding="sm">${rows("nested")}</ui-card>
+          <ui-section id="plain">${rows("plain")}</ui-section>
+          <ui-section id="section" variant="card" tone="danger">${rows("section")}</ui-section>
+          <ui-callout id="callout" tone="info">${rows("callout")}</ui-callout>
+          <ui-callout id="note" tone="neutral">${rows("note")}</ui-callout>
+        </ui-card></ui-stack>`;
+      for (const theme of ["light", "dark"]) {
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")], {reducedMotion:"reduce"});
+        await page.locator("html").evaluate((el, theme)=>el.setAttribute("data-theme",theme),theme);
+        const color = (selector: string) => page.locator(selector).evaluate(el=> {
+          const probe=document.body.appendChild(document.createElement("i"));
+          probe.style.color=`oklch(from ${getComputedStyle(el).backgroundColor} l c h)`;
+          const resolved=getComputedStyle(probe).color;
+          probe.remove();
+          return resolved.match(/[+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?/g)!.map(Number);
+        });
+        const surface = (selector: string) => page.locator(selector).evaluate(el=>getComputedStyle(el).backgroundColor);
+        const neutral = await surface("#neutral-nav");
+        const action = await surface("#neutral-action");
+        for (const id of [...tones,"nested","plain","section","callout","note"]) {
+          assert.equal(await surface(`#${id}-action`),action,"surface context preserves independent action intent");
+          if (["neutral","nested","note"].includes(id)) {
+            assert.equal(await surface(`#${id}-nav`),neutral,"opaque neutral surfaces restore brand selection");
+            continue;
+          }
+          const panel = await color(id==="plain" ? "#outer" : `#${id}`);
+          for (const selector of [`#${id}-nav`, `#${id}-tree > .row`, `#${id}-list`, `#${id}-search`]) {
+            const row=await color(selector);
+            const hueGap=Math.abs(((row[2]-panel[2]+540)%360)-180);
+            assert.ok(row[1]>panel[1]*1.5 || panel[1]>=0.03,"highlight retains a visible tonal tint rather than reading grey");
+            assert.ok(hueGap<1,`${adapter}/${theme}/${id}: highlight shares surface hue (${hueGap.toFixed(1)} degrees)`);
+            assert.ok(theme==="light" ? row[0]<panel[0]-0.025 : row[0]>panel[0]+0.025,"highlight has a visible lightness step");
+          }
+          await page.locator(`#${id}-hover`).hover();
+          assert.equal(await surface(`#${id}-hover`),await surface(`#${id}-nav`),"hover and selection share the tonal treatment");
+        }
+        if (process.env.LOOMA_SCREENSHOT_DIR && adapter === "vue") {
+          await page.setViewportSize({width:375,height:720});
+          await page.addStyleTag({content:"body {margin:0;padding:16px;font-family:var(--ui-font-family-sans);background:var(--ui-surface);color:var(--ui-text-primary)}"});
+          await page.evaluate(()=>{
+            for (const id of ["outer","warning","danger"]) document.getElementById(id)!.hidden=true;
+            for (const id of ["neutral","accent","success","info"]) {
+              const card=document.getElementById(id)!;
+              for (const child of Array.from(card.children)) if (!child.id.endsWith("-nav") && !child.id.endsWith("-hover")) (child as HTMLElement).hidden=true;
+              const label=document.createElement("span");
+              label.textContent={neutral:"Neutral surface · brand highlight",accent:"Purple surface · purple highlight",success:"Green surface · green highlight",info:"Blue surface · blue highlight"}[id]!;
+              label.style.fontSize="var(--ui-font-size-sm)";
+              card.prepend(label);
+            }
+          });
+          await page.locator("#info-hover").hover();
+          await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR,`tonal-highlights-${theme}-375.png`)});
+        }
+        // Neutral resets retain a consumer's explicitly themed brand selection, too.
+        await page.locator("html").evaluate(el=>(el as HTMLElement).style.setProperty("--ui-selection-surface","rgb(235,220,255)"));
+        assert.equal(await surface("#nested-nav"),"rgb(235, 220, 255)");
+        await page.close();
+      }
+    }
+  });
+
   it("defines pale row highlights on toned panels without moving content or weakening focus in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
