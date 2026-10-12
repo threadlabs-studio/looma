@@ -4331,7 +4331,7 @@ describe("Shared visual geometry", () => {
       const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
         import {createApp, h} from "vue";
         import {Card, Stack, NavItem, Tree, TreeItem, List, ListItem} from "@threadlabs/looma/vue";
-        createApp({render:()=>h(Card,{tone:"success",variant:"subtle",padding:"lg"},()=>h(Stack,{gap:"m"},()=>[
+        createApp({render:()=>h(Card,{id:"panel",tone:"success",variant:"subtle",padding:"lg"},()=>h(Stack,{gap:"m"},()=>[
           h(NavItem,{id:"nav",as:"a",href:"#overview",current:"page"},()=>"Overview"),
           h(NavItem,{id:"nav-hover",as:"a",href:"#activity"},()=>"Activity"),
           h(NavItem,{id:"line",variant:"line",current:"page"},()=>"Line destination"),
@@ -4345,7 +4345,7 @@ describe("Shared visual geometry", () => {
             h(ListItem,{id:"card",variant:"card"},()=>h("a",{href:"#card"},"Framed guide"))])
         ]))}).mount("#app");`);
       const markup = adapter === "vue" ? '<div id="app"></div>' : `
-        <ui-card tone="success" variant="subtle" padding="lg"><ui-stack gap="m">
+        <ui-card id="panel" tone="success" variant="subtle" padding="lg"><ui-stack gap="m">
           <ui-nav-item id="nav" as="a" href="#overview" current="page">Overview</ui-nav-item>
           <ui-nav-item id="nav-hover" as="a" href="#activity">Activity</ui-nav-item>
           <ui-nav-item id="line" variant="line" current="page">Line destination</ui-nav-item>
@@ -4369,6 +4369,25 @@ describe("Shared visual geometry", () => {
           await page.mouse.move(0,0);
           for (const selector of ["#nav","#tree > .row","#list","#highlight"]) {
             assert.match((await look(selector)).shadow,/inset/,`${adapter}/${theme}: ${selector} has a faint complete edge`);
+          }
+          if (theme === "light") {
+            const contrast = await page.locator("#list").evaluate(el => {
+              const canvas = document.createElement("canvas");
+              canvas.width = canvas.height = 1;
+              const context = canvas.getContext("2d")!;
+              const luminance = (color: string) => {
+                context.fillStyle = color;
+                context.fillRect(0, 0, 1, 1);
+                const channels = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3)
+                  .map(channel => channel / 255)
+                  .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+                return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+              };
+              const row = luminance(getComputedStyle(el).backgroundColor);
+              const panel = luminance(getComputedStyle(document.getElementById("panel")!).backgroundColor);
+              return (Math.max(row, panel) + 0.05) / (Math.min(row, panel) + 0.05);
+            });
+            assert.ok(contrast > 1.05, `${adapter}: highlighted fill stays distinct from the pale panel (${contrast.toFixed(3)}:1)`);
           }
           assert.equal((await look("#line")).shadow,"none","line navigation retains its separate straight indicator");
           assert.equal((await look("#tree-disabled > .row")).shadow,"none","disabled rows do not look active");

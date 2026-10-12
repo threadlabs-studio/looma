@@ -133,7 +133,7 @@ changes the emphasis width too, unless a theme deliberately sets them independen
 
 Selected navigation, tree, list, search, and choice rows share `--ui-selection-surface`,
 `--ui-selection-text`, and `--ui-selection-radius`. They derive from the accent, page surface,
-readable accent text, and medium radius. The default tint is 6%; selected navigation keeps its
+readable accent text, and medium radius. The default tint is 10%, giving highlighted rows more contrast against softly toned panels; selected navigation keeps its
 resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
 radius override.
 

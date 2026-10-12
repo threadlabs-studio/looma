@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.26.9
+## v0.26.10
 
 - Annotated editor ranges can expose grouped host actions at the caret in the contextual toolbar and narrow dock, including read-only documents.
+
+## v0.26.9
+
+- Hovered and selected rows use a slightly stronger accent tint, so their filled area remains distinct from softly colored panels while retaining the faint edge and stronger keyboard focus.
 
 ## v0.26.8
 
