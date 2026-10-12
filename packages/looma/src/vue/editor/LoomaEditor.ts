@@ -128,6 +128,10 @@ export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextu
 
 /** Host-owned non-mutating commands for the selected passage. */
 export interface LoomaEditorSelectionAction { id: string; label: string; }
+/** Host action available at a collapsed caret inside an ephemeral editor range. */
+export interface LoomaEditorRangeAction extends LoomaEditorSelectionAction { from: number; to: number; }
+/** Matching ranges are grouped into one control for each action ID. */
+export interface LoomaEditorRangeActionDetail { id: string; ranges: { from: number; to: number }[]; }
 /** Exact editor range captured before focus leaves for a host action. */
 export interface LoomaEditorSelectionActionDetail { id: string; from: number; to: number; text: string; before: string; after: string; }
 
@@ -348,6 +352,8 @@ export const LoomaEditor = defineComponent({
     compactToolbar: { type: Boolean, default: false },
     /** Optional passage actions also work on read-only selections without granting editing. */
     selectionActions: { type: Array as PropType<LoomaEditorSelectionAction[]>, default: () => [] },
+    /** Opt-in caret actions; the host owns durable identities and recalculates positions after edits. */
+    rangeActions: { type: Array as PropType<LoomaEditorRangeAction[]>, default: () => [] },
     toolbarTriggerId: {
       type: String,
       default: "",
@@ -372,6 +378,7 @@ export const LoomaEditor = defineComponent({
     update: (_value: JSONContent) => true,
     ready: (_editor: Editor) => true,
     selectionAction: (_detail: LoomaEditorSelectionActionDetail) => true,
+    rangeAction: (_detail: LoomaEditorRangeActionDetail) => true,
     uploadError: (_error: unknown, _file: File) => true,
     imageActivate: (_detail: LoomaImageActivationDetail) => true,
     imageRenditionError: (_detail: LoomaImageRenditionErrorDetail) => true,
@@ -471,11 +478,18 @@ export const LoomaEditor = defineComponent({
       heldPressTimer = undefined;
       heldPress = null;
     };
+    const activeRangeActions = (instance: Editor) => {
+      const selection = instance.state.selection;
+      if (!(selection instanceof TextSelection) || !selection.empty) return [];
+      return props.rangeActions.filter(action => Number.isSafeInteger(action.from) && Number.isSafeInteger(action.to)
+        && action.from >= 0 && action.to > action.from && action.to <= instance.state.doc.content.size
+        && action.from <= selection.from && selection.from <= action.to);
+    };
     const formattingSelectionActive = (instance: Editor) => {
       const selection = instance.state.selection;
       return (selection instanceof TextSelection || selection instanceof AllSelection && Boolean(instance.state.doc.textContent))
         && !dismissedFormattingSelection?.eq(selection)
-        && (!selection.empty || Boolean(heldFormattingSelection?.eq(selection)));
+        && (!selection.empty || Boolean(heldFormattingSelection?.eq(selection)) || activeRangeActions(instance).length > 0);
     };
 
     const editorStateVersion = ref(0);
@@ -1031,6 +1045,11 @@ export const LoomaEditor = defineComponent({
       heldFormattingSelection = null;
       formattingPopup?.hide();
     });
+    watch(() => props.rangeActions, () => {
+      const instance = editor.value;
+      if (instance) instance.view.dispatch(instance.state.tr.setMeta("loomaRangeActionsChanged", true));
+    });
+
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
         editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
@@ -1705,9 +1724,27 @@ export const LoomaEditor = defineComponent({
       }, () => loomaIcon(icon));
     };
 
+    const renderRangeActions = (instance: Editor) => {
+      const groups = new Map<string, { label: string; ranges: Map<string, { from: number; to: number }> }>();
+      for (const action of activeRangeActions(instance)) {
+        const group = groups.get(action.id) ?? { label: action.label, ranges: new Map() };
+        group.ranges.set(`${action.from}:${action.to}`, { from: action.from, to: action.to });
+        groups.set(action.id, group);
+      }
+      return [...groups].map(([id, group]) => h(Button, {
+        key: id, "aria-label": group.label, type: "button", variant: "ghost", tone: "neutral", size: "sm",
+        onPointerdown: (event: PointerEvent) => event.preventDefault(),
+        onClick: () => {
+          emit("rangeAction", { id, ranges: [...group.ranges.values()] });
+          formattingPopup?.hide();
+        },
+      }, () => group.label));
+    };
+
     const renderSelectionActions = (instance: Editor) => {
       const selection = instance.state.selection;
-      if (selection.empty || !(selection instanceof TextSelection || selection instanceof AllSelection)) return [];
+      if (selection.empty) return renderRangeActions(instance);
+      if (!(selection instanceof TextSelection || selection instanceof AllSelection)) return [];
       return props.selectionActions.map(action => h(Button, {
         key: action.id, "aria-label": action.label,
         type: "button", variant: "ghost", tone: "neutral", size: "sm",
@@ -1904,7 +1941,7 @@ export const LoomaEditor = defineComponent({
           placement: "top",
           inverse: true,
         }, () => "Drag to resize column") : null,
-        instance && (props.editable || props.selectionActions.length) && !mobile.value
+        instance && (props.editable || props.selectionActions.length || props.rangeActions.length) && !mobile.value
           && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
               editor: instance,
@@ -1913,7 +1950,7 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor }: { editor: Editor }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && !slash.active && !mention.active
-                && (!props.editable && props.selectionActions.length > 0 || menuEditor.isFocused || formattingPopup?.popper.contains(document.activeElement) || linkContextEditing.value || formattingPickerOpen())
+                && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.popper.contains(document.activeElement) || linkContextEditing.value || formattingPickerOpen())
                 && formattingSelectionActive(menuEditor),
               tippyOptions: {
                 onCreate: (popup) => { formattingPopup = popup; },
@@ -2012,7 +2049,7 @@ export const LoomaEditor = defineComponent({
               onValueChange: (event: CustomEvent<{ value: string | null; kind: string }>) => chooseCodeLanguage(event.detail),
             }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
           : null,
-        instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty) && mobile.value && (editorFocused.value || linkOpen.value || !props.editable)
+        instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty || activeRangeActions(instance).length > 0) && mobile.value && (editorFocused.value || linkOpen.value || !props.editable)
           ? h("div", {
               ref: mobileToolbarShell,
               class: "looma-editor__mobile-toolbar-shell",
