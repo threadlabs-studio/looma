@@ -133,7 +133,7 @@ changes the emphasis width too, unless a theme deliberately sets them independen
 
 Selected navigation, tree, list, search, and choice rows share `--ui-selection-surface`,
 `--ui-selection-text`, and `--ui-selection-radius`. They derive from the accent, page surface,
-readable accent text, and medium radius. The default tint is 10%, giving highlighted rows more contrast against softly toned panels; selected navigation keeps its
+readable accent text, and medium radius. The default tint on neutral surfaces is 10%; selected navigation keeps its
 resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
 radius override.
 
@@ -142,6 +142,14 @@ a faint continuous inset edge. Its default mixes 20% accent into the page surfac
 giving pale fills definition on softly toned panels without changing row size.
 Keyboard focus retains its stronger independent ring; framed list cards and
 explicit line navigation retain their existing edges.
+
+Colored Cards, Callouts and card Sections derive highlights from their actual surface hue,
+with a darker lightness step in light themes and a lighter one in dark themes. A bounded
+chroma increase keeps pale highlights visibly in their color family instead of reading grey. The faint edge
+follows the same hue. The surface supplies a scoped internal row recipe without redeclaring public theme tokens. Nested neutral
+panels restore the global brand recipe; transparent Sections inherit the surrounding context.
+Action buttons retain their own intent colors and keyboard focus stays independent. Per-row
+surface hooks remain the most specific override.
 
 ```css
 :root {

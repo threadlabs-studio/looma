@@ -342,8 +342,8 @@
   }
 
   [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]) {
-    background: var(--ui-selection-surface);
-    color: var(--ui-selection-text);
+    background: var(--_ui-selection-context-surface, var(--ui-selection-surface));
+    color: var(--_ui-selection-context-text, var(--ui-selection-text));
   }
 
   [data-ui-choice-option][data-multiple] {
