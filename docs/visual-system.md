@@ -49,7 +49,13 @@ uses `--ui-focus-width` (2px), with its offset following the same dimension. A t
 edge is a theme choice, not a component-specific default.
 
 Selected rows use `--ui-selection-surface`, `--ui-selection-text`, and
-`--ui-selection-radius`. Navigation uses regular label weight. A surface treatment has shared
+`--ui-selection-radius`. Neutral surfaces use the brand tint. Colored Cards, Callouts and card
+Sections shade row highlights in their own hue: a small darker lightness step and a stronger, bounded tint in a light scheme,
+and a lighter step in a dark scheme. Their faint inset edge uses the same hue. Opaque neutral
+panels reset that context; transparent Sections inherit it. The panel supplies a scoped internal row recipe within its surface; it does not redeclare
+public theme tokens.
+Instance-specific row hooks still win. Surface context does not change action intent or keyboard
+focus. Navigation uses regular label weight. A surface treatment has shared
 corners and no stripe; Nav Item's explicit line variant has square corners and a continuous
 logical-start edge. Forced colors preserve a complete outline for surface selection and the edge
 for line selection. Keyboard focus has its own outline.

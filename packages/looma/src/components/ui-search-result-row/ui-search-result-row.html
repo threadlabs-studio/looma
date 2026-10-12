@@ -92,15 +92,15 @@
     }
 
     :host:hover:enabled {
-      background: var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%));
+      background: var(--ui-search-result-row-hover-surface, var(--_ui-selection-context-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%)));
     }
 
     :host([selected]) {
       background: var(
         --ui-search-result-row-selected-bg,
-        var(--ui-selection-surface)
+        var(--_ui-selection-context-surface, var(--ui-selection-surface))
       );
-      color: var(--ui-selection-text);
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
     }
 
     :host:focus-visible {

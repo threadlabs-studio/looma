@@ -95,6 +95,16 @@
       --_ui-callout-icon-size: var(--ui-callout-icon-size);
 
       --_callout-surface: var(--ui-info-soft);
+      --_ui-selection-context-surface: light-dark(
+        oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-border: light-dark(
+        oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.085) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.085) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-text: var(--ui-text-primary);
+
       --_callout-border: var(--ui-info-solid);
       --_callout-icon: var(--ui-info-solid);
 
@@ -138,6 +148,9 @@
     }
 
     :host([tone="neutral"]), :host([tone="note"]) {
+      --_ui-selection-context-surface: initial;
+      --_ui-selection-context-border: initial;
+      --_ui-selection-context-text: initial;
       --_callout-surface: var(--ui-surface-muted);
       --_callout-border: var(--ui-border-strong);
       --_callout-icon: var(--ui-text-secondary);
