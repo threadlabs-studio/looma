@@ -29,6 +29,9 @@
     }
 
     :host([variant="card"]) {
+      --_ui-selection-context-surface: initial;
+      --_ui-selection-context-border: initial;
+      --_ui-selection-context-text: initial;
       padding: var(--ui-space-5);
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
@@ -41,6 +44,15 @@
     }
 
     :host([variant="card"][tone="danger"]) {
+      --_ui-selection-context-surface: light-dark(
+        oklch(from var(--ui-danger-soft) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--ui-danger-soft) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-border: light-dark(
+        oklch(from var(--ui-danger-soft) calc(l - 0.085) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--ui-danger-soft) calc(l + 0.085) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-text: var(--ui-text-primary);
       border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
       border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
       background: var(--ui-danger-soft);

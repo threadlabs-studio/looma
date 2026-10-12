@@ -97,7 +97,7 @@
     }
 
     :host:hover:not([aria-current]) {
-      background: var(--ui-nav-hover-surface);
+      background: var(--_ui-selection-context-surface, var(--ui-nav-hover-surface));
       color: var(--ui-text-primary);
     }
 
@@ -109,13 +109,13 @@
     }
 
     :host[aria-current] {
-      background: var(--ui-nav-item-current-surface, var(--ui-selection-surface));
-      color: var(--ui-selection-text);
+      background: var(--ui-nav-item-current-surface, var(--_ui-selection-context-surface, var(--ui-selection-surface)));
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
     }
 
     /* A complete inset edge separates pale fills without changing rail geometry. */
     :host([variant="surface"]):is(:hover, [aria-current]) {
-      box-shadow: inset 0 0 0 var(--ui-border-width) var(--ui-selection-border);
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--_ui-selection-context-border, var(--ui-selection-border));
     }
 
     :host([variant="line"]) {
