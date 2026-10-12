@@ -7,6 +7,8 @@ export {
   type LoomaEditorToolbarMode,
   type LoomaEditorSelectionAction,
   type LoomaEditorSelectionActionDetail,
+  type LoomaEditorRangeAction,
+  type LoomaEditorRangeActionDetail,
   type LoomaEditorSlashCommands,
   type LoomaLinkTarget,
   type LoomaLinkSearch,

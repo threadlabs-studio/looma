@@ -190,3 +190,11 @@ dock. Read-only selections expose the actions without exposing edit controls.
 the host moves focus. These actions never mutate the document. The host owns
 permissions, durable annotation identity, panels and return navigation; positions
 are from the current editor snapshot, not a lasting anchor.
+
+`rangeActions` accepts `{ id, label, from, to }` actions for a collapsed text
+caret. Clicking inside a matching range opens the contextual toolbar, including
+in read-only documents; narrow viewports use the existing editing dock. Actions
+with the same ID share one button. `rangeAction` emits `{ id, ranges }`, with
+unique matching `{ from, to }` pairs captured before focus moves. Invalid or
+out-of-document ranges are ignored. The host recalculates these ephemeral
+positions after content changes and owns annotation persistence and paint.
