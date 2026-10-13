@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.15
+
+- Text supports opt-in font-edge trimming for compact headings and labels, so adjacent icons and surface padding can align without application styling overrides. Existing prose metrics stay unchanged.
+
 ## v0.26.14
 
 - Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.

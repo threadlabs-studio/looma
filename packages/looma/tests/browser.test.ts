@@ -56,6 +56,51 @@ afterAll(async () => {
 });
 
 describe("Pressed icon controls and circular marks", () => {
+  it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Card, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Card, { id: "panel", padding: "sm" }, () => [
+          h(Cluster, { id: "header", align: "center", gap: "s", wrap: "nowrap" }, () => [
+            h("svg", { id: "mark", width: 16, height: 16, "aria-hidden": true }, () => h("circle", { cx: 8, cy: 8, r: 7 })),
+            h(Text, { id: "title", as: "h2", size: "lg", weight: "semibold", trim: true }, () => "Continue your conversation")
+          ]),
+          h(Text, { id: "prose", size: "lg" }, () => "Ordinary prose keeps its existing leading."),
+          h(Button, { id: "continue" }, () => "Continue")
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-card id="panel" padding="sm">
+          <ui-cluster id="header" align="center" gap="s" wrap="nowrap">
+            <svg id="mark" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7"></circle></svg>
+            <ui-text id="title" as="h2" size="lg" weight="semibold" trim>Continue your conversation</ui-text>
+          </ui-cluster>
+          <ui-text id="prose" size="lg">Ordinary prose keeps its existing leading.</ui-text>
+          <ui-button id="continue">Continue</ui-button>
+        </ui-card>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#title[data-component~="ui-text"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const title = document.getElementById("title")!, prose = document.getElementById("prose")!;
+          const text = title.getBoundingClientRect(), icon = document.getElementById("mark")!.getBoundingClientRect();
+          return { trim: getComputedStyle(title).textBoxTrim, edge: getComputedStyle(title).textBoxEdge,
+            proseTrim: getComputedStyle(prose).textBoxTrim, proseLeading: getComputedStyle(prose).lineHeight,
+            titleHeight: text.height, proseHeight: prose.getBoundingClientRect().height,
+            centerOffset: Math.abs(text.y + text.height / 2 - icon.y - icon.height / 2) };
+        });
+        assert.equal(geometry.trim, "trim-both", `${adapter}/${width}: explicit text trim is applied`);
+        assert.equal(geometry.edge, "cap alphabetic");
+        assert.equal(geometry.proseTrim, "none", "prose retains its default font metrics");
+        assert.ok(geometry.titleHeight < parseFloat(geometry.proseLeading), "trimmed header removes extra line-edge space");
+        assert.ok(geometry.centerOffset < 1, "header text and identifying mark share a center");
+      }
+      await page.close();
+    }
+  });
+
   it("keeps a readable Container bounded around scrolling content in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@threadlabs/looma";` : `
