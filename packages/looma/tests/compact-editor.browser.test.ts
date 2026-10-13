@@ -12,9 +12,10 @@ afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });
 it("formats short text through native shortcuts and Markdown without document controls", async () => {
   await page.viewport(375, 650);
   const model = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const id = ref("message");
   let editor!: Editor;
   const host = document.createElement("div"); document.body.append(host);
-  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: "message", label: "Comment", modelValue: model.value,
+  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: id.value, label: "Comment", modelValue: model.value,
     "onUpdate:modelValue": value => { model.value = value; }, onReady: value => { editor = value; } }), h(LoomaCompactContent, { content: model.value })]) });
   app.mount(host); await nextTick(); await nextTick();
   const field = page.getByRole("textbox", { name: "Comment" });
@@ -38,4 +39,6 @@ it("formats short text through native shortcuts and Markdown without document co
   model.value = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Restored", marks: [{ type: "bold" }] }] }] };
   await nextTick(); await expect.element(field).toHaveTextContent("Restored");
   expect(host.querySelector(".looma-compact-content strong")?.textContent).toBe("Restored");
+  id.value = "next-message"; await nextTick();
+  expect(host.querySelector('[role="textbox"]')?.id).toBe("next-message");
 });
