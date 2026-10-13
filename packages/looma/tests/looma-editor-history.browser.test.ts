@@ -86,6 +86,23 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("dismisses held-caret formatting before cancelling an input rule", async () => {
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    await userEvent.click(editor.view.dom); await userEvent.keyboard("**keep**");
+    const formatted = editor.getHTML();
+    const bounds = editor.view.dom.getBoundingClientRect();
+    const press = (type: string) => editor.view.dom.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, pointerId: 1, pointerType: "mouse", button: 0, isPrimary: true,
+      clientX: bounds.left + 10, clientY: bounds.top + 10,
+    }));
+    press("pointerdown"); await new Promise(resolve => setTimeout(resolve, 550)); press("pointerup");
+    await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expectFloatingToolbarHidden();
+    expect(editor.getHTML()).toBe(formatted);
+    await userEvent.keyboard("{Escape}");
+    expect(editor.getHTML()).toBe("<p>**keep**</p>");
+  });
   it.each(["bubble", "contextual", "popover"] as const)("%s floating tools support Select All and dismiss it with Escape", async (toolbarMode) => {
     await page.viewport(1280, 720);
     const { editor } = await mountEditor({ toolbarMode });
