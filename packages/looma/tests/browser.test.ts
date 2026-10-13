@@ -2568,6 +2568,48 @@ describe("Button as a link", () => {
 });
 
 describe("Badge shape", () => {
+  it("keeps compact text pills padded without enlarging fixed marks in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-compact-pill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(Badge, { id: "compact", size: "xs" }, () => "On track"),
+          h(Badge, { id: "regular" }, () => "On track"),
+          h(Badge, { id: "circle", shape: "circle", size: "xs" }, () => "7"),
+          h(Badge, { id: "square", shape: "square", size: "xs" }, () => "A")
+        ] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-badge id="compact" size="xs">On track</ui-badge>
+        <ui-badge id="regular">On track</ui-badge>
+        <ui-badge id="circle" shape="circle" size="xs">7</ui-badge>
+        <ui-badge id="square" shape="square" size="xs">A</ui-badge>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#compact[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element), bounds = element.getBoundingClientRect();
+          return { id: element.id, start: parseFloat(style.paddingInlineStart), end: parseFloat(style.paddingInlineEnd), width: bounds.width, height: bounds.height };
+        }));
+        const compact = geometry.find(mark => mark.id === "compact")!, regular = geometry.find(mark => mark.id === "regular")!;
+        assert.equal(compact.start, 4, `${adapter}/${width}: compact pill separates text from its leading edge`);
+        assert.equal(compact.end, 4, `${adapter}/${width}: compact pill separates text from its trailing edge`);
+        assert.equal(regular.start, 8, "ordinary pill spacing stays unchanged");
+        assert.equal(regular.end, 8, "ordinary pill spacing stays unchanged");
+        for (const [id, size] of [["circle", 16], ["square", 24]] as const) {
+          const mark = geometry.find(mark => mark.id === id)!;
+          assert.equal(mark.start, 0, "fixed shapes retain their own centered geometry");
+          assert.equal(mark.end, 0, "fixed shapes retain their own centered geometry");
+          assert.equal(mark.width, size);
+          assert.equal(mark.height, size);
+        }
+      }
+      await page.close();
+    }
+  });
+
   it("draws a tag flat at the start and pointed at the end, leaving the pill as it was", async () => {
     const path = await bundle("html-badge-shape", `import "@threadlabs/looma";`);
     const page = await open(path, `
