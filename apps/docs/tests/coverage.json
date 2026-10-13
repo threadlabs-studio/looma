@@ -1265,6 +1265,11 @@
           "id": "05-steps",
           "title": "Steps",
           "behavior": false
+        },
+        {
+          "id": "06-distribution",
+          "title": "Distribution",
+          "behavior": false
         }
       ]
     },
