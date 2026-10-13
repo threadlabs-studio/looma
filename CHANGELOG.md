@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.13
+
+- Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
+
 ## Unreleased
 
 - Add a toolbar-free compact Vue editor and safe content renderer for short rich text, with bold, italic, inline code, Markdown typing and history shortcuts.
