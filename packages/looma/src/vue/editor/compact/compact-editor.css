@@ -1,6 +1,8 @@
 /* Short-form field primitive: the same field tokens as Textarea. */
 .looma-compact-editor {
   min-inline-size: 0;
+  box-sizing: border-box;
+  min-block-size: calc(4.5em + 2 * var(--ui-border-width));
   border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
   border-radius: var(--ui-field-radius, var(--ui-radius-md));
   background: var(--ui-control-surface, var(--ui-surface-elevated));
@@ -12,7 +14,8 @@
   outline-offset: var(--ui-focus-ring-offset, 2px);
 }
 .looma-compact-editor .ProseMirror {
-  min-block-size: calc(3 * 1.5em);
+  box-sizing: border-box;
+  min-block-size: 4.5em;
   max-block-size: 12em;
   overflow-y: auto;
   padding: var(--ui-space-2) var(--ui-space-3);

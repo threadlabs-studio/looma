@@ -17,7 +17,10 @@ it("formats short text through native shortcuts and Markdown without document co
   const host = document.createElement("div"); document.body.append(host);
   app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: id.value, label: "Comment", modelValue: model.value,
     "onUpdate:modelValue": value => { model.value = value; }, onReady: value => { editor = value; } }), h(LoomaCompactContent, { content: model.value })]) });
-  app.mount(host); await nextTick(); await nextTick();
+  app.mount(host);
+  const initialHeight = host.querySelector(".looma-compact-editor")!.getBoundingClientRect().height;
+  await nextTick(); await nextTick();
+  expect(host.querySelector(".looma-compact-editor")!.getBoundingClientRect().height).toBe(initialHeight);
   const field = page.getByRole("textbox", { name: "Comment" });
   await field.click();
   const mod = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
