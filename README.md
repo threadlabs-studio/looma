@@ -75,3 +75,26 @@ currently promises. React support is in development.
 ## License
 
 MIT. See [LICENSE](./LICENSE).
+
+## Compact rich text
+
+Import `LoomaCompactEditor` and `LoomaCompactContent` from
+`@threadlabs/looma/vue/editor/compact`. Bind a Tiptap JSON document through
+`v-model`; use `label` for the accessible textbox name and `id` for an external
+label. The editor owns its instance and supports paragraphs, hard breaks, bold,
+italic, inline code, Markdown typing rules and undo/redo without toolbars. Enter
+creates a paragraph; Shift+Enter creates a line break. The `editable` prop defaults
+to true, matching the document editor. `focus()` focuses the field.
+
+The compact field uses the same field surface, border, radius and focus tokens
+as Textarea. Its text grows inside a bounded scrolling field; narrow/coarse-pointer
+use keeps body-sized type. The renderer emits escaped Vue nodes and works in SSR.
+It renders only the basic supported nodes and marks; it does not interpret HTML.
+
+Optional `extensions` are installed at creation, and `ready` emits the Tiptap
+instance. Hosts can use these for domain-specific reference pickers while keeping
+lookup and persistence outside the shared editor. Extension configuration is fixed
+for an instance; remount to change it. Hosts adding new node types own their
+serialization and read rendering. This entry loads no document toolbar, slash
+menu, tables, image controls or syntax highlighting. Its CSS is included in
+`@threadlabs/looma/vue.css`, alongside the other Vue component styles.
