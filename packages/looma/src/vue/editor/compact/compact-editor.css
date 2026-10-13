@@ -20,6 +20,7 @@
 }
 .looma-compact-editor, .looma-compact-content {
   font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-normal, 400);
   line-height: var(--ui-line-height-md);
   overflow-wrap: anywhere;
 }
