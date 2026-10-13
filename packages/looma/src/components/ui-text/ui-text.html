@@ -1,5 +1,8 @@
 <template component="ui-text">
   <defs>
+    <prop name="trim" type="boolean" default="false"
+    >Removes extra font space above the capital height and below the baseline, for compact headings and labels. Prose keeps its existing line-edge space by
+      default. Browsers without text-box-trim retain normal font metrics.</prop>
     <prop name="grow" type="boolean" default="false">Lets this text use remaining inline space in a flex row, including when truncated.</prop>
     <prop name="font" type="keyword" values="inherit, sans" default="inherit"
     >Use sans for UI text rendered outside its original font context; inherit preserves the surrounding typeface.</prop>
@@ -73,6 +76,12 @@
     :host([size="lg"]) {
       font-size: var(--ui-font-size-lg);
       line-height: var(--ui-line-height-relaxed);
+    }
+
+    /* Opt in at the text owner; trimming does not inherit from a surrounding layout. */
+    :host([trim]) {
+      text-box-trim: trim-both;
+      text-box-edge: cap alphabetic;
     }
 
     :host([tone="secondary"]) {
