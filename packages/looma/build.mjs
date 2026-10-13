@@ -80,6 +80,7 @@ await build({
         ["index", join(vueSource, "index.ts")],
         ...names.map((name) => [name, join(vueSource, `${name}.vue`)]),
         ["editor/index", join(root, "src/vue/editor/index.ts")],
+        ["editor/compact/index", join(root, "src/vue/editor/compact/index.ts")],
       ]),
       formats: ["es"],
       cssFileName: "components",
