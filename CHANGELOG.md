@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.13
+
+- Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
+
 ## Unreleased
 
 - Compact fields reserve their initial editing height before mount, keeping surrounding scrolling layouts stable.

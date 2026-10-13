@@ -191,7 +191,9 @@
       box-sizing: border-box;
       min-inline-size: 1rem;
       min-block-size: var(--ui-badge-min-block-size, 1rem);
-      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, 0.125rem);
+      /* Compact text still needs room at both rounded edges. Fixed marks override this
+         padding below; ordinary text badges retain their larger spacing. */
+      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, var(--ui-space-1));
       font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
       line-height: var(--ui-badge-line-height, 1);
     }
