@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.26.13
+## v0.26.14
 
 - Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
 
