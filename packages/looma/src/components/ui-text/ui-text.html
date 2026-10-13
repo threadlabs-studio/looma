@@ -143,6 +143,12 @@
       white-space: nowrap;
     }
 
+    /* Trim ends the layout box at the baseline; preserve descending ink while clipping long labels. */
+    :host([trim][truncate]) {
+      overflow-x: clip;
+      overflow-y: visible;
+    }
+
     :host([align="center"]) {
       text-align: center;
     }
