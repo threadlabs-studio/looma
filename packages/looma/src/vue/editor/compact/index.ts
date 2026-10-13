@@ -11,6 +11,9 @@ const emptyDocument = (): JSONContent => ({ type: "doc", content: [{ type: "para
  * Toolbar-free editing for short rich text. Owns editor lifecycle and standard
  * formatting/history shortcuts; the host owns persistence and optional extensions.
  * Importing this entry is SSR-safe and does not load the full document editor.
+ * @ownership The component owns the editor; callers own content and extensions.
+ * @lifecycle Mount creates one editor; unmount destroys it and prop watchers.
+ * @failure Persistence failures are host-owned; the controlled document can restore input.
  */
 export const LoomaCompactEditor = defineComponent({
   name: "LoomaCompactEditor",
