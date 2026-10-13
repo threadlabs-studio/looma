@@ -14,6 +14,8 @@
 
 ## Unreleased
 
+- Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
+
 - Compact fields reserve their initial editing height before mount, keeping surrounding scrolling layouts stable.
 
 - Add a toolbar-free compact Vue editor and safe content renderer for short rich text, with bold, italic, inline code, Markdown typing and history shortcuts.
