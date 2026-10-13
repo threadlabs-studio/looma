@@ -4,6 +4,7 @@
  */
 
 import { Extension, mergeAttributes, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
+import { LoomaInputRuleHistory } from "./input-rule-history";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -191,6 +192,7 @@ export function getDefaultEditorExtensions(
     dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,
+    LoomaInputRuleHistory,
     Dropcursor,
     Gapcursor,
     Link.configure({

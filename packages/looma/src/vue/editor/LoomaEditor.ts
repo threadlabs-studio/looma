@@ -688,7 +688,9 @@ export const LoomaEditor = defineComponent({
       ],
       content: props.modelValue,
       editable: props.editable,
-      editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
+      editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
+        handleKeyDown: (_view, event) => onFormattingKeyDown(event),
+      },
       onCreate: ({ editor: instance }) => {
         emit("ready", instance);
         instance.state.doc.descendants((node) => {
@@ -1359,13 +1361,15 @@ export const LoomaEditor = defineComponent({
     const onFormattingKeyDown = (event: KeyboardEvent) => {
       cancelHeldPress();
       if (event.key !== "Escape" || !floatingFormattingMode() || !(event.target instanceof Node)
-        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))) return;
+        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))
+        || !(formatOpen.value || formattingPopup?.popper.style.visibility === "visible")) return false;
       const selection = editor.value?.state.selection;
       dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
       heldFormattingSelection = null;
       formatOpen.value = false;
       formattingPopup?.hide();
       hideTool();
+      return true;
     };
 
     const onResizePointerDown = (event: PointerEvent) => {
