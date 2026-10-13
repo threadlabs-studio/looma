@@ -21,6 +21,7 @@ export const LoomaCompactEditor = defineComponent({
   props: {
     modelValue: { type: Object as PropType<JSONContent>, default: emptyDocument },
     label: { type: String, default: "Message" },
+    id: { type: String, default: "" },
     editable: { type: Boolean, default: true },
     extensions: { type: Array as PropType<AnyExtension[]>, default: () => [] },
   },
@@ -35,7 +36,7 @@ export const LoomaCompactEditor = defineComponent({
         extensions: [...getCompactEditorExtensions(), ...props.extensions],
         content: props.modelValue,
         editable: props.editable,
-        editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label, ...(typeof attrs.id === "string" ? { id: attrs.id } : {}) } },
+        editorProps: { attributes: () => ({ role: "textbox", "aria-multiline": "true", "aria-label": props.label, "aria-readonly": String(!props.editable), id: props.id }) },
         onUpdate: ({ editor }) => emit("update:modelValue", editor.getJSON()),
       });
       emit("ready", editor.value);
@@ -43,8 +44,7 @@ export const LoomaCompactEditor = defineComponent({
     watch(() => props.modelValue, value => {
       if (editor.value && JSON.stringify(value) !== JSON.stringify(editor.value.getJSON())) editor.value.commands.setContent(value, false);
     }, { deep: true });
-    watch(() => props.editable, value => editor.value?.setEditable(value));
-    watch(() => props.label, value => editor.value?.setOptions({ editorProps: { attributes: { ...editor.value.options.editorProps.attributes, "aria-label": value } } }));
+    watch(() => [props.id, props.label, props.editable], () => editor.value?.setEditable(props.editable, false));
     onBeforeUnmount(() => editor.value?.destroy());
     expose({ focus: () => editor.value?.commands.focus(), getEditor: () => editor.value });
     return () => h("div", { ...attrs, id: undefined, class: ["looma-compact-editor", attrs.class] }, [editor.value ? h(EditorContent, { editor: editor.value }) : null]);
