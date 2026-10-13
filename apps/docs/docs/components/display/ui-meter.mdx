@@ -12,4 +12,6 @@ A meter is `role="meter"` with its value, bounds, and `valueText` as ARIA values
 
 For a count of steps, such as an order moving from placed to delivered, `segments` draws the bar as that many equal segments (from 2 to 12), so it reads as "step 4 of 6" rather than as a percentage. Set `max` to the same number and `value` to the steps done, and say the step in `valueText` ("Shipped, step 4 of 6"), since the segments are drawn, not read. The segments are drawn as the page renders too, and each keeps its own outline in forced colours.
 
+For mutually exclusive categories, use `variant="distribution"` with `parts` containing positive finite `value` and CSS `color` pairs. Flex ratios preserve their relative shares without rounded percentages, including before JavaScript. The bar fills its available width; it does not measure one progress value, so its role is `img` and its accessible name combines `label` with `valueText`. Describe each category and count in `valueText` and provide a visible text legend. Zero/negative parts draw nothing; an empty distribution retains a quiet track. In forced colours, outlined proportions remain visible and the text legend carries category identity. Ordinary progress meters keep their existing width, bounds, tones and step segments.
+
 <ComponentExamplesApiTabs component="ui-meter" />

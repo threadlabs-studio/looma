@@ -8857,3 +8857,26 @@ describe("Independent leading controls and text baselines", () => {
     }
   });
 });
+
+describe("Meter categorical distribution", () => {
+  it("keeps proportional geometry and descriptions in HTML and Vue at phone width", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-distribution`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Meter } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Meter, { variant: "distribution", label: "Outcomes", valueText: "2 waiting, 5 accepted, 2 declined",
+          parts: [{value:2,color:"#789168"},{value:5,color:"#b97731"},{value:2,color:"#533b29"},{value:0,color:"red"}] }) }).mount("#app");`);
+      const page = await open(path, adapter === "html" ? `<ui-meter variant="distribution" label="Outcomes" value-text="2 waiting, 5 accepted, 2 declined" parts='[{"value":2,"color":"#789168"},{"value":5,"color":"#b97731"},{"value":2,"color":"#533b29"},{"value":0,"color":"red"}]'></ui-meter>` : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: {width:375,height:700} });
+      const distribution = page.getByRole("img", {name:"Outcomes: 2 waiting, 5 accepted, 2 declined"});
+      const widths = await distribution.locator(".part").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+      assert.equal(widths.length, 3);
+      assert.ok(Math.abs(widths[1] / widths[0] - 2.5) < 0.02, JSON.stringify({adapter, widths, root: await distribution.evaluate(node => ({html:node.outerHTML,display:getComputedStyle(node).display}))}));
+      assert.ok(Math.abs(widths[2] - widths[0]) < 0.1);
+      assert.equal(await distribution.getAttribute("aria-valuenow"), null);
+      await page.emulateMedia({forcedColors:"active"});
+      assert.equal(await distribution.locator(".part").first().evaluate(node => getComputedStyle(node).outlineStyle), "solid");
+      await page.close();
+    }
+  });
+});

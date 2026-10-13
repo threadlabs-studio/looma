@@ -1,0 +1,13 @@
+<!--
+title: Distribution
+description: Mutually exclusive categories share one bar in proportion to their counts. A complete description and a visible text legend carry meaning without colour.
+-->
+<ui-stack gap="s">
+  <ui-meter
+    variant="distribution"
+    label="Requests by outcome"
+    value-text="2 waiting, 5 accepted, 2 declined"
+    parts='[{"value":2,"color":"#789168"},{"value":5,"color":"#b97731"},{"value":2,"color":"#533b29"}]'
+  ></ui-meter>
+  <ui-text size="sm">Waiting 2 · Accepted 5 · Declined 2</ui-text>
+</ui-stack>
