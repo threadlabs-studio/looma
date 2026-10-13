@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a toolbar-free compact Vue editor and safe content renderer for short rich text, with bold, italic, inline code, Markdown typing and history shortcuts.
+
 ## v0.26.11
 
 - Row highlights on colored Cards, Callouts and card Sections use a shade of the surrounding surface instead of an unrelated brand wash. Neutral panels retain brand highlights, including nested panels. Hover, selection and their faint edges stay coherent in light and dark themes; action intents and keyboard focus remain independent.

@@ -1,0 +1,41 @@
+import { page, userEvent } from "@vitest/browser/context";
+import { afterEach, expect, it } from "vitest";
+import { createApp, h, nextTick, ref, type App } from "vue";
+import type { Editor, JSONContent } from "@tiptap/core";
+import { LoomaCompactEditor, LoomaCompactContent } from "../vue/editor/compact/index.js";
+import "../tokens.css";
+import "../theme-light.css";
+import "../vue/components.css";
+let app: App;
+afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });
+
+it("formats short text through native shortcuts and Markdown without document controls", async () => {
+  await page.viewport(375, 650);
+  const model = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  let editor!: Editor;
+  const host = document.createElement("div"); document.body.append(host);
+  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: "message", label: "Comment", modelValue: model.value,
+    "onUpdate:modelValue": value => { model.value = value; }, onReady: value => { editor = value; } }), h(LoomaCompactContent, { content: model.value })]) });
+  app.mount(host); await nextTick(); await nextTick();
+  const field = page.getByRole("textbox", { name: "Comment" });
+  await field.click();
+  const mod = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
+  await userEvent.keyboard(`{${mod}>}b{/${mod}}Bold{${mod}>}b{/${mod}} {${mod}>}i{/${mod}}italic{${mod}>}i{/${mod}} `);
+  await userEvent.keyboard("`run()` ");
+  await expect.element(field).toHaveTextContent("Bold italic run()");
+  expect(editor.getHTML()).toContain("<strong>Bold</strong>");
+  expect(editor.getHTML()).toContain("<em>italic</em>");
+  expect(editor.getHTML()).toContain("<code>run()</code>");
+  await userEvent.keyboard("**typed** ");
+  expect(editor.getHTML()).toContain("<strong>typed</strong>");
+  const before = JSON.stringify(model.value);
+  await userEvent.keyboard(`{${mod}>}z{/${mod}}`);
+  expect(JSON.stringify(model.value)).not.toBe(before);
+  await userEvent.keyboard(`{${mod}>}{Shift>}z{/Shift}{/${mod}}`);
+  expect(JSON.stringify(model.value)).toBe(before);
+  expect(host.querySelector('[role="toolbar"]')).toBeNull();
+  expect(host.scrollWidth).toBeLessThanOrEqual(375);
+  model.value = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Restored", marks: [{ type: "bold" }] }] }] };
+  await nextTick(); await expect.element(field).toHaveTextContent("Restored");
+  expect(host.querySelector(".looma-compact-content strong")?.textContent).toBe("Restored");
+});
