@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.26.15
+## v0.26.16
 
 - Text supports opt-in font-edge trimming for compact headings and labels, so adjacent icons and surface padding can align without application styling overrides. Existing prose metrics stay unchanged.
+
+## v0.26.15
+
+- Escape cancels the latest Markdown conversion when no menu is open. Undo restores its complete literal source and Redo reapplies formatting in compact and document editors.
 
 ## v0.26.14
 
