@@ -34,6 +34,12 @@ formatting commands, selection and focus, and every editor control. See
 
 ## Toolbar
 
+Markdown typing conversions are separate undo steps. Undo restores the complete
+literal source; Redo reapplies its formatting. Escape immediately after a
+conversion also restores the literal source when no menu is open. Typing or
+moving the caret ends that Escape cancellation opportunity. Open menus retain
+their usual Escape dismissal.
+
 The toolbar is always one row, in four groups. When it is wider than the space it has, the row scrolls sideways instead of wrapping, and each edge that hides controls fades into the toolbar's colour:
 
 - **Text:** Bold, Italic, Underline, Strike, Highlight, Inline code, Link.
