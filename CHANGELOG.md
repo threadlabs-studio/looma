@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.15
+
+- Escape cancels the latest Markdown conversion when no menu is open. Undo restores its complete literal source and Redo reapplies formatting in compact and document editors.
+
 ## v0.26.14
 
 - Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
