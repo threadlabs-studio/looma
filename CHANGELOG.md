@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.26.18
+
+- Table cell actions follow hover and keyboard focus and remain usable after deleting a row. Empty cell state no longer interrupts table controls.
+- Bulleted and numbered lists use compact spacing between items, including inside table cells, while retaining paragraph and nested-list separation.
+
 ## v0.26.17
 
 - Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
