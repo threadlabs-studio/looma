@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.26.20
+## v0.26.21
 
 - Cell background menus recognize saved preset colors in both hex and RGB form, keeping the current color selected after an HTML round trip.
+
+## v0.26.20
+
+- Deleting a table dismisses its cell controls immediately, including controls opened by hovering a cell.
 
 ## v0.26.19
 
