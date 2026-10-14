@@ -81,6 +81,8 @@
 
 ## Unreleased
 
+- Overlay counts keep a quiet circular boundary on filled actions while preserving text contrast.
+
 - Compact fields reserve their initial editing height before mount, keeping surrounding scrolling layouts stable.
 
 - Add a toolbar-free compact Vue editor and safe content renderer for short rich text, with bold, italic, inline code, Markdown typing and history shortcuts.
