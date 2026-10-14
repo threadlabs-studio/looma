@@ -131,7 +131,8 @@
     "packages/looma/src/tokens/theme-dark.css",
     "packages/looma/src/tokens/theme-high-contrast.css",
     "packages/looma/src/tokens/theme-light.css",
-    "packages/looma/src/tokens/tokens.css"
+    "packages/looma/src/tokens/tokens.css",
+    "packages/looma/src/vue/editor/compact/compact-editor.css"
   ],
   "frozenCssDebt": {
     "packages/looma/src/vue/editor/looma-editor.css": [

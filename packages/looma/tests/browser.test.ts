@@ -57,6 +57,57 @@ afterAll(async () => {
 });
 
 describe("Pressed icon controls and circular marks", () => {
+  it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Card, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Card, { id: "panel", padding: "sm" }, () => [
+          h(Cluster, { id: "header", align: "center", gap: "s", wrap: "nowrap" }, () => [
+            h("svg", { id: "mark", width: 16, height: 16, "aria-hidden": true }, () => h("circle", { cx: 8, cy: 8, r: 7 })),
+            h(Text, { id: "title", as: "h2", size: "lg", weight: "semibold", trim: true }, () => "Continue your conversation")
+          ]),
+          h(Text, { id: "prose", size: "lg" }, () => "Ordinary prose keeps its existing leading."),
+          h(Text, { id: "clipped", trim: true, truncate: true, style: { width: "80px" } }, () => "Typography with hanging gyp descenders"),
+          h(Button, { id: "continue" }, () => "Continue")
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-card id="panel" padding="sm">
+          <ui-cluster id="header" align="center" gap="s" wrap="nowrap">
+            <svg id="mark" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7"></circle></svg>
+            <ui-text id="title" as="h2" size="lg" weight="semibold" trim>Continue your conversation</ui-text>
+          </ui-cluster>
+          <ui-text id="prose" size="lg">Ordinary prose keeps its existing leading.</ui-text>
+          <ui-text id="clipped" trim truncate style="width:80px">Typography with hanging gyp descenders</ui-text>
+          <ui-button id="continue">Continue</ui-button>
+        </ui-card>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#title[data-component~="ui-text"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const title = document.getElementById("title")!, prose = document.getElementById("prose")!;
+          const text = title.getBoundingClientRect(), icon = document.getElementById("mark")!.getBoundingClientRect();
+          return { trim: getComputedStyle(title).textBoxTrim, edge: getComputedStyle(title).textBoxEdge,
+            clippedY: getComputedStyle(document.getElementById("clipped")!).overflowY,
+            clippedX: getComputedStyle(document.getElementById("clipped")!).overflowX,
+            proseTrim: getComputedStyle(prose).textBoxTrim, proseLeading: getComputedStyle(prose).lineHeight,
+            titleHeight: text.height, proseHeight: prose.getBoundingClientRect().height,
+            centerOffset: Math.abs(text.y + text.height / 2 - icon.y - icon.height / 2) };
+        });
+        assert.equal(geometry.trim, "trim-both", `${adapter}/${width}: explicit text trim is applied`);
+        assert.equal(geometry.edge, "cap alphabetic");
+        assert.equal(geometry.proseTrim, "none", "prose retains its default font metrics");
+        assert.equal(geometry.clippedY, "visible", "trimmed truncation keeps descending ink visible");
+        assert.equal(geometry.clippedX, "clip", "long labels remain clipped horizontally");
+        assert.ok(geometry.titleHeight < parseFloat(geometry.proseLeading), "trimmed header removes extra line-edge space");
+        assert.ok(geometry.centerOffset < 1, "header text and identifying mark share a center");
+      }
+      await page.close();
+    }
+  });
+
   it("keeps a readable Container bounded around scrolling content in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@threadlabs/looma";` : `
@@ -219,6 +270,7 @@ describe("Pressed icon controls and circular marks", () => {
       const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
         [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#accent[data-component~="ui-badge"]');
+      await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
       for (const theme of ["light", "dark"]) {
         await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
         const overlays = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
@@ -231,15 +283,33 @@ describe("Pressed icon controls and circular marks", () => {
           };
           context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
           const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
+          const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+          const box = element.getBoundingClientRect();
           paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
           paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
         }));
+        await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
         for (const overlay of overlays) {
-          assert.ok(overlay.opacity > 0.75 && overlay.opacity < 0.95, `${adapter}/${theme}/${overlay.tone}: an overlay instead of an opaque cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+          assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
+          assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
+          assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
           assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
         }
       }
+      const countOpacity = () => page.locator("#accent").evaluate(element => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        context.fillStyle = getComputedStyle(element).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+        return context.getImageData(0, 0, 1, 1).data[3]! / 255;
+      });
+      const defaultOpacity = await countOpacity();
+      await page.evaluate(() => document.documentElement.style.setProperty("--ui-badge-circle-opacity", "50%"));
+      assert.ok(Math.abs(await countOpacity() - defaultOpacity) < 0.01, "the instance circle-opacity hook does not cascade from a container");
+      await page.locator("#accent").evaluate(element => (element as HTMLElement).style.setProperty("--ui-badge-circle-opacity", "60%"));
+      assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an explicit instance circle-opacity value overrides its default");
       await page.close();
     }
   });
@@ -1294,6 +1364,50 @@ describe("Disclosure composition", () => {
 });
 
 describe("Menu structure and navigation", () => {
+  it("aligns icon and label columns across grouped and iconless items in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-menu-columns`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Menu, MenuItem, MenuGroup, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Menu, { inline: true, icons: true }, () => [
+          h(MenuItem, { id: "first", value: "edit" }, { icon: () => h(Icon, { name: "pencil" }), default: () => "Edit", shortcut: () => "Cmd E" }),
+          h(MenuGroup, {}, () => [
+            h(MenuItem, { id: "plain", value: "comments" }, () => "Comments"),
+            h(MenuItem, { id: "link", href: "/history", value: "history" }, { icon: () => h(Icon, { name: "history" }), default: () => "History", shortcut: () => "Cmd H" }),
+            h(MenuItem, { id: "danger", tone: "danger", value: "delete" }, { icon: () => h(Icon, { name: "trash-2" }), default: () => "Delete" })
+          ])
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-menu inline icons>
+          <ui-menu-item id="first" value="edit"><ui-icon slot="icon" name="pencil"></ui-icon>Edit<span slot="shortcut">Cmd E</span></ui-menu-item>
+          <ui-menu-group>
+            <ui-menu-item id="plain" value="comments">Comments</ui-menu-item>
+            <ui-menu-item id="link" href="/history" value="history"><ui-icon slot="icon" name="history"></ui-icon>History<span slot="shortcut">Cmd H</span></ui-menu-item>
+            <ui-menu-item id="danger" tone="danger" value="delete"><ui-icon slot="icon" name="trash-2"></ui-icon>Delete</ui-menu-item>
+          </ui-menu-group>
+        </ui-menu>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#first[data-component~="ui-menu-item"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const items = ["first", "plain", "link", "danger"].map(id => document.getElementById(id)!);
+          return { labels: items.map(item => item.querySelector(".label")!.getBoundingClientRect().left),
+            icons: items.map(item => item.querySelector(".icon")?.getBoundingClientRect().width ?? 0),
+            shortcuts: [items[0], items[2]].map(item => item.querySelector(".shortcut")!.getBoundingClientRect().right),
+            danger: getComputedStyle(items[3]).color, normal: getComputedStyle(items[0]).color };
+        });
+        assert.ok(Math.max(...geometry.labels) - Math.min(...geometry.labels) < 1, `${adapter}/${width}: labels share one column ${JSON.stringify(geometry)}`);
+        assert.deepEqual(geometry.icons, [16, 16, 16, 16], "iconless rows reserve the icon column");
+        assert.ok(Math.abs(geometry.shortcuts[0] - geometry.shortcuts[1]) < 1, "shortcut hints share a trailing column");
+        assert.notEqual(geometry.danger, geometry.normal, "destructive tone survives column layout");
+      }
+      await page.getByRole("menuitem", { name: "Edit", exact: true }).focus();
+      await page.keyboard.press("ArrowDown");
+      assert.equal(await page.locator("#plain").evaluate(el => el === document.activeElement), true);
+      await page.close();
+    }
+  });
   it("dismisses only the top menu when Escape bubbles through its containing popover", async () => {
     const path = await bundle("html-nested-menu-escape", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -2247,7 +2361,7 @@ describe("Loading actions", () => {
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
     const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
     const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
-    const label = await page.locator("#save span").last().boundingBox();
+    const label = await page.locator("#save").getByText("Save", { exact: true }).boundingBox();
     assert.ok(spinner && spinnerWrap && label);
     assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
     const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");
@@ -2579,7 +2693,170 @@ describe("Vue components", () => {
   });
 });
 
+describe("Shared action edges", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`shares fine raised action edges and retains quiet, focused and disabled ${adapter} controls`, async () => {
+      const path = await bundle(`${adapter}-shared-action-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        const icon = () => h(Icon, { name: "chevron-down" });
+        createApp({ render: () => [
+          ...["3", "30", "99+"].map((count, index) => h(Cluster, { align: "center", wrap: "nowrap", style: { "--ui-cluster-gap": "0", "--ui-action-radius": "0" } }, () => [
+            h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
+            h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
+          ])),
+          h(Button, { id: "stop", variant: "solid", tone: "neutral" }, () => "Stop"),
+          h(IconButton, { id: "stop-icon", variant: "solid", tone: "neutral", label: "Stop" }, icon),
+          h(Button, { id: "outline" }, () => "View changes"),
+          h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
+          h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
+          h(Button, { id: "link", variant: "link", as: "a", href: "#" }, () => "Link"),
+          h(IconButton, { id: "ghost-icon", label: "Quiet" }, icon),
+          h(Button, { id: "disabled", variant: "solid", disabled: true }, () => "Disabled"),
+          h(IconButton, { id: "disabled-icon", variant: "solid", disabled: true, label: "Disabled" }, icon),
+        ] }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["3", "30", "99+"].map((count, index) => `
+        <ui-cluster align="center" wrap="nowrap" style="--ui-cluster-gap: 0; --ui-action-radius: 0">
+          <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
+          <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("") + `
+        <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="outline">View changes</ui-button>
+        <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" as="a" href="#">Link</ui-button>
+        <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        <ui-button id="disabled" variant="solid" disabled>Disabled</ui-button><ui-icon-button id="disabled-icon" variant="solid" disabled label="Disabled"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); color: var(--ui-text-primary); background: var(--ui-surface-default); display: grid; gap: 16px; justify-items: start; } :root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
+        const shadow = (id: string) => page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow);
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          assert.equal(await shadow("primary-0"), await shadow("more-0"), "text and icon actions share the same raised edge and shadow");
+          assert.ok((await shadow("primary-0")).includes("1px 1px 0px 0px inset"), "a fine highlight at top/start");
+          assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
+          assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
+          assert.equal(await shadow("stop"), await shadow("stop-icon"), "neutral filled actions share the restrained recipe");
+          for (const id of ["primary-0", "more-0", "outline", "outline-icon", "stop", "stop-icon"]) {
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting boxed controls have one edge without a face gradient");
+            assert.equal((await shadow(id)).match(/inset/g)?.length, 2, "one highlight and one lowlight do not stack with another bevel");
+            assert.equal((await shadow(id)).split(/,(?![^()]*\))/).length, 3, "the edge pair has only one ambient lift layer");
+          }
+          for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
+          for (let index = 0; index < 3; index++) {
+            const count = await page.locator(`#primary-${index} [data-component~="ui-badge"]`).evaluate(element => {
+              const rect = element.getBoundingClientRect(), range = document.createRange();
+              range.selectNodeContents(element.querySelector(".label")!);
+              return { width: rect.width, height: rect.height, text: range.getBoundingClientRect().width };
+            });
+            assert.deepEqual([count.width, count.height], [24, 24], "3, 30 and 99+ use the same real circle");
+            assert.ok(count.text <= count.width - 2, "the bounded count fits inside its border");
+          }
+          assert.equal(await page.locator("#primary-0").evaluate(element => getComputedStyle(element).borderRightWidth), "1px", "the shared edge does not thicken the border");
+          await page.keyboard.press("Tab");
+          await page.locator("#primary-0").focus();
+          assert.ok((await shadow("primary-0")).includes("inset"), "keyboard focus retains the raised edge beneath its halo");
+          assert.ok((await shadow("primary-0")).includes("0px 0px 0px 3px"), "the text action keeps its visible focus halo");
+          await page.locator("#more-0").focus();
+          assert.ok((await shadow("more-0")).includes("inset"), "the companion keeps its edge beneath the focus halo");
+          assert.ok((await shadow("more-0")).includes("0px 0px 0px 3px"), "the icon action keeps its visible focus halo");
+          for (const id of ["ghost", "link", "ghost-icon"]) {
+            await page.locator("#" + id).focus();
+            assert.ok(!(await shadow(id)).includes("inset"), `${id} focuses without becoming raised`);
+            if (id === "link") {
+              const outline = await page.locator("#link").evaluate(element => { const style = getComputedStyle(element); return { width: style.outlineWidth, style: style.outlineStyle }; });
+              assert.deepEqual(outline, { width: "2px", style: "solid" }, "the inline link keeps its visible outline focus");
+            } else assert.ok((await shadow(id)).includes("0px 0px 0px 3px"), `${id} has visible keyboard focus`);
+          }
+          await page.locator("#ghost-icon").blur();
+          for (const width of [1280, 375]) {
+            await page.setViewportSize({ width, height: 720 });
+            await page.screenshot({ path: join(root, ".build", `${adapter}-shared-action-edges-${theme}-${width}.png`) });
+          }
+          for (const id of ["primary-0", "more-0"]) {
+            const rect = await page.locator("#" + id).boundingBox();
+            assert.ok(rect);
+            await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+            await page.mouse.down();
+            assert.ok((await shadow(id)).includes("0px 1px 2px 0px inset"), `${id} uses the pressed inset instead of its raised edge`);
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "pressed actions lose the resting highlight");
+            await page.mouse.up();
+          }
+          await page.evaluate(() => document.documentElement.dir = "rtl");
+          assert.ok((await shadow("outline")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
+          assert.ok((await shadow("outline")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
+          await page.evaluate(() => document.documentElement.dir = "ltr");
+        }
+        await page.evaluate(() => document.documentElement.style.setProperty("--ui-action-shadow", "0 0 0 2px rgb(1 2 3)"));
+        assert.equal(await shadow("primary-0"), await shadow("more-0"), "one ancestor action-group value themes both controls");
+        assert.ok((await shadow("primary-0")).includes("0px 0px 0px 2px"));
+        await page.locator("#primary-0").evaluate(element => (element as HTMLElement).style.setProperty("--ui-button-solid-shadow", "none"));
+        assert.equal(await shadow("primary-0"), "none", "an instance hook wins over its action-group theme");
+      } finally { await page.close(); }
+      const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+      try {
+        const heights = await touch.locator('#primary-0, #more-0').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+        assert.deepEqual(heights, [44, 44], "the shared edge preserves touch-sized primary and companion controls");
+      } finally { await touch.close(); }
+    });
+  }
+});
+
 describe("Button layout", () => {
+  for (const adapter of ["html", "vue"]) {
+    it(`keeps a compact circular count and ordinary ${adapter} actions at the same standard height`, async () => {
+      const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => ["sm", "md"].map(size => h(Cluster, { align: "center", wrap: "nowrap" }, () => [
+          h(Button, { id: size + "-ordinary", size }, () => "View changes"),
+          h(Button, { id: size + "-counted", size, variant: "solid" }, { default: () => "Submit", badge: () => h(Badge, { id: size + "-count", shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => "99+") }),
+          h(IconButton, { id: size + "-more", size, matchButton: true, label: "More actions" }, () => h(Icon, { name: "chevron-down" })),
+        ])) }).mount("#app");
+      `);
+      const body = adapter === "vue" ? '<div id="app"></div>' : ["sm", "md"].map(size => `
+        <ui-cluster align="center" wrap="nowrap">
+          <ui-button id="${size}-ordinary" size="${size}">View changes</ui-button>
+          <ui-button id="${size}-counted" size="${size}" variant="solid">Submit <ui-badge id="${size}-count" slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">99+</ui-badge></ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </ui-cluster>`).join("");
+      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const font of ["system-ui", "Arial"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.addStyleTag({ content: `:root { --ui-font-family-sans: ${font}; }` });
+          for (const size of ["sm", "md"]) {
+            const geometry = await page.evaluate(size => {
+              const ordinary = document.getElementById(size + "-ordinary")!.getBoundingClientRect();
+              const counted = document.getElementById(size + "-counted")!.getBoundingClientRect();
+              const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+              const badge = document.getElementById(size + "-count")!, mark = badge.getBoundingClientRect();
+              const label = badge.querySelector(".label")!, range = document.createRange();
+              range.selectNodeContents(label);
+              return { ordinary: ordinary.height, counted: counted.height, more: more.height, mark: [mark.width, mark.height], text: range.getBoundingClientRect().width,
+                available: mark.width - 2 * parseFloat(getComputedStyle(badge).borderLeftWidth) };
+            }, size);
+            assert.equal(geometry.counted, geometry.ordinary, `${adapter}/${width}/${font}/${size}: counted action uses the ordinary control height ${JSON.stringify(geometry)}`);
+            assert.equal(geometry.more, geometry.ordinary, "match-button keeps the same height");
+            assert.deepEqual(geometry.mark, [24, 24], "the compact count remains a true 24px circle");
+            assert.ok(geometry.text <= geometry.available, `the complete 99+ count fits ${JSON.stringify(geometry)}`);
+          }
+        }
+        await page.screenshot({ path: join(root, ".build", `${adapter}-compact-count-buttons-375.png`) });
+        const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+        try {
+          await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
+          for (const size of ["sm", "md"]) {
+            const heights = await touch.evaluate(size => ["ordinary", "counted", "more"].map(id => document.getElementById(size + "-" + id)!.getBoundingClientRect().height), size);
+            assert.deepEqual(heights, [44, 44, 44], "all three controls retain the standard touch height");
+          }
+        } finally { await touch.close(); }
+      } finally { await page.close(); }
+    });
+  }
+
   it("lays content out from the start and stretches to its container when asked", async () => {
     const path = await bundle("vue-button-layout", `
       import { createApp, h } from "vue";
@@ -2704,6 +2981,48 @@ describe("Button as a link", () => {
 });
 
 describe("Badge shape", () => {
+  it("keeps compact text pills padded without enlarging fixed marks in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-compact-pill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(Badge, { id: "compact", size: "xs" }, () => "On track"),
+          h(Badge, { id: "regular" }, () => "On track"),
+          h(Badge, { id: "circle", shape: "circle", size: "xs" }, () => "7"),
+          h(Badge, { id: "square", shape: "square", size: "xs" }, () => "A")
+        ] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-badge id="compact" size="xs">On track</ui-badge>
+        <ui-badge id="regular">On track</ui-badge>
+        <ui-badge id="circle" shape="circle" size="xs">7</ui-badge>
+        <ui-badge id="square" shape="square" size="xs">A</ui-badge>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#compact[data-component~="ui-badge"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.locator('[data-component~="ui-badge"]').evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element), bounds = element.getBoundingClientRect();
+          return { id: element.id, start: parseFloat(style.paddingInlineStart), end: parseFloat(style.paddingInlineEnd), width: bounds.width, height: bounds.height };
+        }));
+        const compact = geometry.find(mark => mark.id === "compact")!, regular = geometry.find(mark => mark.id === "regular")!;
+        assert.equal(compact.start, 4, `${adapter}/${width}: compact pill separates text from its leading edge`);
+        assert.equal(compact.end, 4, `${adapter}/${width}: compact pill separates text from its trailing edge`);
+        assert.equal(regular.start, 8, "ordinary pill spacing stays unchanged");
+        assert.equal(regular.end, 8, "ordinary pill spacing stays unchanged");
+        for (const [id, size] of [["circle", 16], ["square", 24]] as const) {
+          const mark = geometry.find(mark => mark.id === id)!;
+          assert.equal(mark.start, 0, "fixed shapes retain their own centered geometry");
+          assert.equal(mark.end, 0, "fixed shapes retain their own centered geometry");
+          assert.equal(mark.width, size);
+          assert.equal(mark.height, size);
+        }
+      }
+      await page.close();
+    }
+  });
+
   it("draws a tag flat at the start and pointed at the end, leaving the pill as it was", async () => {
     const path = await bundle("html-badge-shape", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -3281,6 +3600,53 @@ describe("Input group", () => {
 });
 
 describe("Multiline input group behavior", () => {
+  it("gives a subtle multiline composer one shared frame with a bottom-end icon action in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-subtle-composer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Icon, IconButton, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(InputGroup, { id: "composer", multiline: true, variant: "subtle" }, {
+          default: () => h(Textarea, { id: "message", rows: 3, "aria-label": "Message" }),
+          action: () => h(IconButton, { id: "send", variant: "solid", label: "Send message" }, () => h(Icon, { name: "check" })),
+        }), h(InputGroup, { id: "ordinary" }, () => h(Textarea, { "aria-label": "Ordinary" }))] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : `
+        <ui-input-group id="composer" multiline variant="subtle"><ui-textarea id="message" rows="3" aria-label="Message"></ui-textarea><ui-icon-button id="send" slot="action" variant="solid" label="Send message"><ui-icon name="check"></ui-icon></ui-icon-button></ui-input-group>
+        <ui-input-group id="ordinary"><ui-textarea aria-label="Ordinary"></ui-textarea></ui-input-group>`,
+      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        for (const width of [1280, 375]) for (const dir of ["ltr", "rtl"]) {
+          await page.setViewportSize({ width, height: 720 });
+          await page.locator("html").evaluate((element, dir) => element.setAttribute("dir", dir), dir);
+          const surface = await page.locator("#composer").evaluate(element => {
+            const style = getComputedStyle(element), box = element.getBoundingClientRect();
+            const input = element.querySelector("textarea")!, field = input.getBoundingClientRect(), action = element.querySelector("button")!.getBoundingClientRect();
+            const probe = document.createElement("span");
+            probe.style.borderColor = "var(--ui-border)"; probe.style.backgroundColor = "var(--ui-surface-muted)"; element.append(probe);
+            const expected = getComputedStyle(probe), result = { border: style.borderTopColor, expectedBorder: expected.borderTopColor, surface: style.backgroundColor, expectedSurface: expected.backgroundColor,
+              innerBorder: getComputedStyle(input).borderTopWidth, innerSurface: getComputedStyle(input).backgroundColor, inside: action.bottom < box.bottom && action.top >= field.bottom,
+              end: getComputedStyle(element).direction === "ltr" ? box.right - action.right : action.left - box.left, overflow: document.documentElement.scrollWidth > innerWidth };
+            probe.remove(); return result;
+          });
+          assert.equal(surface.border, surface.expectedBorder, "the subtle composer uses a decorative neutral edge");
+          assert.equal(surface.surface, surface.expectedSurface, "the composer uses the standard muted surface");
+          assert.equal(surface.innerBorder, "0px", "the textarea adds no inner frame");
+          assert.equal(surface.innerSurface, "rgba(0, 0, 0, 0)", "the textarea shares its group's surface");
+          assert.equal(surface.inside, true, "the icon action stays inside the frame below the text");
+          assert.ok(surface.end <= 10, "the action sits at the logical end");
+          assert.equal(surface.overflow, false);
+        }
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#ordinary").evaluate(element => getComputedStyle(element).borderTopColor), "the default input frame remains stronger");
+        await page.locator("#message").focus();
+        assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).boxShadow), "none", "the quiet composer retains the input focus ring");
+        await page.locator("html").evaluate(element => element.setAttribute("dir", "ltr"));
+        await page.locator("#message").blur();
+        await page.screenshot({ path: join(root, ".build", `${adapter}-subtle-composer-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
       const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
@@ -4415,6 +4781,197 @@ describe("Readable explanatory lists", () => {
 });
 
 describe("Shared visual geometry", () => {
+  it("keeps row highlights in their surface hue and restores brand selection on nested neutral panels in HTML and Vue", async () => {
+    const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-tonal-highlights`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import {createApp, h} from "vue";
+        import {Card, Stack, Section, Callout, NavItem, Tree, TreeItem, List, ListItem, SearchResultRow, Button} from "@threadlabs/looma/vue";
+        const rows = id => [
+          h(NavItem,{id:id+"-nav",current:"page"},()=>"Overview"),
+          h(NavItem,{id:id+"-hover"},()=>"Activity"),
+          h(Tree,{label:"Documents"},()=>h(TreeItem,{id:id+"-tree",selected:true,label:"Selected guide"})),
+          h(List,{},()=>h(ListItem,{id:id+"-list",current:true},()=>h("a",{href:"#guide"},"Selected guide"))),
+          h(SearchResultRow,{id:id+"-search",selected:true},{title:()=>"Search result"}),
+          h(Button,{id:id+"-action",tone:"accent"},()=>"Continue")];
+        createApp({render:()=>h(Stack,{},()=>[
+          ...${JSON.stringify(tones)}.map(tone=>h(Card,{id:tone,tone,variant:"subtle",padding:"sm"},()=>rows(tone))),
+          h(Card,{id:"outer",tone:"success"},()=>[
+            h(Card,{id:"nested",padding:"sm"},()=>rows("nested")),
+            h(Section,{id:"plain"},()=>rows("plain")),
+            h(Section,{id:"section",variant:"card",tone:"danger"},()=>rows("section")),
+            h(Callout,{id:"callout",tone:"info"},()=>rows("callout")),
+            h(Callout,{id:"note",tone:"neutral"},()=>rows("note"))])
+        ])}).mount("#app");`);
+      const rows = (id: string) => `<ui-nav-item id="${id}-nav" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="${id}-hover">Activity</ui-nav-item>
+        <ui-tree label="Documents"><ui-tree-item id="${id}-tree" selected label="Selected guide"></ui-tree-item></ui-tree>
+        <ui-list><ui-list-item id="${id}-list" current><a href="#guide">Selected guide</a></ui-list-item></ui-list>
+        <ui-search-result-row id="${id}-search" selected><span slot="title">Search result</span></ui-search-result-row>
+        <ui-button id="${id}-action" tone="accent">Continue</ui-button>`;
+      const markup = adapter === "vue" ? '<div id="app"></div>' : `<ui-stack>
+        ${tones.map(tone=>`<ui-card id="${tone}" tone="${tone}" variant="subtle" padding="sm">${rows(tone)}</ui-card>`).join("")}
+        <ui-card id="outer" tone="success">
+          <ui-card id="nested" padding="sm">${rows("nested")}</ui-card>
+          <ui-section id="plain">${rows("plain")}</ui-section>
+          <ui-section id="section" variant="card" tone="danger">${rows("section")}</ui-section>
+          <ui-callout id="callout" tone="info">${rows("callout")}</ui-callout>
+          <ui-callout id="note" tone="neutral">${rows("note")}</ui-callout>
+        </ui-card></ui-stack>`;
+      for (const theme of ["light", "dark"]) {
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")], {reducedMotion:"reduce"});
+        await page.locator("html").evaluate((el, theme)=>el.setAttribute("data-theme",theme),theme);
+        const color = (selector: string) => page.locator(selector).evaluate(el=> {
+          const probe=document.body.appendChild(document.createElement("i"));
+          probe.style.color=`oklch(from ${getComputedStyle(el).backgroundColor} l c h)`;
+          const resolved=getComputedStyle(probe).color;
+          probe.remove();
+          return resolved.match(/[+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?/g)!.map(Number);
+        });
+        const surface = (selector: string) => page.locator(selector).evaluate(el=>getComputedStyle(el).backgroundColor);
+        const neutral = await surface("#neutral-nav");
+        const action = await surface("#neutral-action");
+        for (const id of [...tones,"nested","plain","section","callout","note"]) {
+          assert.equal(await surface(`#${id}-action`),action,"surface context preserves independent action intent");
+          if (["neutral","nested","note"].includes(id)) {
+            assert.equal(await surface(`#${id}-nav`),neutral,"opaque neutral surfaces restore brand selection");
+            continue;
+          }
+          const panel = await color(id==="plain" ? "#outer" : `#${id}`);
+          for (const selector of [`#${id}-nav`, `#${id}-tree > .row`, `#${id}-list`, `#${id}-search`]) {
+            const row=await color(selector);
+            const hueGap=Math.abs(((row[2]-panel[2]+540)%360)-180);
+            assert.ok(row[1]>panel[1]*1.5 || panel[1]>=0.03,"highlight retains a visible tonal tint rather than reading grey");
+            assert.ok(hueGap<1,`${adapter}/${theme}/${id}: highlight shares surface hue (${hueGap.toFixed(1)} degrees)`);
+            assert.ok(theme==="light" ? row[0]<panel[0]-0.025 : row[0]>panel[0]+0.025,"highlight has a visible lightness step");
+          }
+          await page.locator(`#${id}-hover`).hover();
+          assert.equal(await surface(`#${id}-hover`),await surface(`#${id}-nav`),"hover and selection share the tonal treatment");
+        }
+        if (process.env.LOOMA_SCREENSHOT_DIR && adapter === "vue") {
+          await page.setViewportSize({width:375,height:720});
+          await page.addStyleTag({content:"body {margin:0;padding:16px;font-family:var(--ui-font-family-sans);background:var(--ui-surface);color:var(--ui-text-primary)}"});
+          await page.evaluate(()=>{
+            for (const id of ["outer","warning","danger"]) document.getElementById(id)!.hidden=true;
+            for (const id of ["neutral","accent","success","info"]) {
+              const card=document.getElementById(id)!;
+              for (const child of Array.from(card.children)) if (!child.id.endsWith("-nav") && !child.id.endsWith("-hover")) (child as HTMLElement).hidden=true;
+              const label=document.createElement("span");
+              label.textContent={neutral:"Neutral surface · brand highlight",accent:"Purple surface · purple highlight",success:"Green surface · green highlight",info:"Blue surface · blue highlight"}[id]!;
+              label.style.fontSize="var(--ui-font-size-sm)";
+              card.prepend(label);
+            }
+          });
+          await page.locator("#info-hover").hover();
+          await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR,`tonal-highlights-${theme}-375.png`)});
+        }
+        // Neutral resets retain a consumer's explicitly themed brand selection, too.
+        await page.locator("html").evaluate(el=>(el as HTMLElement).style.setProperty("--ui-selection-surface","rgb(235,220,255)"));
+        assert.equal(await surface("#nested-nav"),"rgb(235, 220, 255)");
+        await page.close();
+      }
+    }
+  });
+
+  it("defines pale row highlights on toned panels without moving content or weakening focus in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import {createApp, h} from "vue";
+        import {Card, Stack, NavItem, Tree, TreeItem, List, ListItem} from "@threadlabs/looma/vue";
+        createApp({render:()=>h(Card,{id:"panel",tone:"success",variant:"subtle",padding:"lg"},()=>h(Stack,{gap:"m"},()=>[
+          h(NavItem,{id:"nav",as:"a",href:"#overview",current:"page"},()=>"Overview"),
+          h(NavItem,{id:"nav-hover",as:"a",href:"#activity"},()=>"Activity"),
+          h(NavItem,{id:"line",variant:"line",current:"page"},()=>"Line destination"),
+          h(Tree,{label:"Files"},()=>[
+            h(TreeItem,{id:"tree",label:"Selected guide",selected:true}),
+            h(TreeItem,{id:"tree-disabled",label:"Unavailable guide",selected:true,disabled:true})]),
+          h(List,{},()=>[
+            h(ListItem,{id:"list",current:true},()=>h("a",{href:"#guide"},"Selected guide")),
+            h(ListItem,{id:"highlight",highlighted:true},()=>h("a",{href:"#updates"},"New updates")),
+            h(ListItem,{id:"list-hover"},()=>h("a",{href:"#other"},"Another guide")),
+            h(ListItem,{id:"card",variant:"card"},()=>h("a",{href:"#card"},"Framed guide"))])
+        ]))}).mount("#app");`);
+      const markup = adapter === "vue" ? '<div id="app"></div>' : `
+        <ui-card id="panel" tone="success" variant="subtle" padding="lg"><ui-stack gap="m">
+          <ui-nav-item id="nav" as="a" href="#overview" current="page">Overview</ui-nav-item>
+          <ui-nav-item id="nav-hover" as="a" href="#activity">Activity</ui-nav-item>
+          <ui-nav-item id="line" variant="line" current="page">Line destination</ui-nav-item>
+          <ui-tree label="Files"><ui-tree-item id="tree" label="Selected guide" selected></ui-tree-item>
+            <ui-tree-item id="tree-disabled" label="Unavailable guide" selected disabled></ui-tree-item></ui-tree>
+          <ui-list><ui-list-item id="list" current><a href="#guide">Selected guide</a></ui-list-item>
+            <ui-list-item id="highlight" highlighted><a href="#updates">New updates</a></ui-list-item>
+            <ui-list-item id="list-hover"><a href="#other">Another guide</a></ui-list-item>
+            <ui-list-item id="card" variant="card"><a href="#card">Framed guide</a></ui-list-item></ui-list>
+        </ui-stack></ui-card>`;
+      for (const theme of ["light", "dark"]) {
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")]);
+        await page.addStyleTag({content:"body { margin:0; padding:16px; font-family:var(--ui-font-family-sans); background:var(--ui-surface); }"});
+        await page.locator("html").evaluate((el, theme) => el.setAttribute("data-theme",theme),theme);
+        const look = (selector: string) => page.locator(selector).evaluate(el=>{
+          const css=getComputedStyle(el),box=el.getBoundingClientRect();
+          return {shadow:css.boxShadow,width:box.width,height:box.height,padding:css.padding,border:css.borderWidth,weight:css.fontWeight};
+        });
+        for (const width of [1280,375]) {
+          await page.setViewportSize({width,height:900});
+          await page.mouse.move(0,0);
+          for (const selector of ["#nav","#tree > .row","#list","#highlight"]) {
+            assert.match((await look(selector)).shadow,/inset/,`${adapter}/${theme}: ${selector} has a faint complete edge`);
+          }
+          if (theme === "light") {
+            const contrast = await page.locator("#list").evaluate(el => {
+              const canvas = document.createElement("canvas");
+              canvas.width = canvas.height = 1;
+              const context = canvas.getContext("2d")!;
+              const luminance = (color: string) => {
+                context.fillStyle = color;
+                context.fillRect(0, 0, 1, 1);
+                const channels = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3)
+                  .map(channel => channel / 255)
+                  .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+                return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+              };
+              const row = luminance(getComputedStyle(el).backgroundColor);
+              const panel = luminance(getComputedStyle(document.getElementById("panel")!).backgroundColor);
+              return (Math.max(row, panel) + 0.05) / (Math.min(row, panel) + 0.05);
+            });
+            assert.ok(contrast > 1.05, `${adapter}: highlighted fill stays distinct from the pale panel (${contrast.toFixed(3)}:1)`);
+          }
+          assert.equal((await look("#line")).shadow,"none","line navigation retains its separate straight indicator");
+          assert.equal((await look("#tree-disabled > .row")).shadow,"none","disabled rows do not look active");
+          for (const selector of ["#nav-hover","#list-hover","#tree > .row"]) {
+            const before=await look(selector);
+            await page.locator(selector).hover();
+            const after=await look(selector);
+            assert.match(after.shadow,/inset/,`${selector} hover remains defined on the soft panel`);
+            assert.deepEqual({...after,shadow:before.shadow},before,"the inset edge changes no row geometry or text weight");
+            await page.mouse.move(0,0);
+          }
+          await page.locator("#card").hover();
+          assert.equal((await look("#card")).shadow,"none","a framed card does not gain a second border");
+          await page.mouse.move(0,0);
+          for (const [target,surface] of [["#list a","#list"],["#tree","#tree > .row"]]) {
+            await page.keyboard.press("Tab");
+            await page.locator(target).focus();
+            assert.notEqual((await look(surface)).shadow,"none","keyboard focus always retains its visible ring");
+            assert.doesNotMatch((await look(surface)).shadow,/inset/,"the stronger keyboard ring replaces the decorative edge");
+          }
+          await page.locator("#nav").focus();
+          assert.equal(await page.locator("#nav").evaluate(el=>getComputedStyle(el).outlineStyle),"solid");
+          if (process.env.LOOMA_SCREENSHOT_DIR && width===375 && adapter==="vue") {
+            await page.locator("#nav").blur();
+            await page.locator("#list-hover").hover();
+            await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR,`highlight-edges-${theme}-${width}.png`)});
+          }
+        }
+        await page.emulateMedia({forcedColors:"active"});
+        for (const selector of ["#nav","#list","#tree > .row"]) {
+          assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).outlineStyle),"solid","selected boundaries survive forced colors");
+        }
+        await page.close();
+      }
+    }
+  });
+
   it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
     const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -6051,6 +6608,45 @@ describe("Vue editor components", () => {
       ["action", { action: "delete-table" }],
       ["insert", { rows: 2, cols: 4, withHeaderRow: false }],
     ]);
+    await page.close();
+  });
+
+  it.each(["HTML", "Vue"])("matches equivalent cell backgrounds without selecting custom colors in %s", async (adapter) => {
+    const actions = ["background-none", "background-gray", "background-yellow"];
+    const path = await bundle(`cell-background-${adapter.toLowerCase()}`, adapter === "HTML" ? `
+      import "@threadlabs/looma";
+      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      window.setBackground = value => {
+        for (const id of ["context", "toolbar"]) updateComponentProps(document.getElementById(id), { cellBackground: value });
+      };
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { EditorTableContextMenu, EditorTableToolbar } from "@threadlabs/looma/vue";
+      const background = ref("");
+      window.setBackground = value => { background.value = value; };
+      createApp({ render: () => h("div", [
+        h(EditorTableContextMenu, { id: "context", open: true, actions: ${JSON.stringify(actions)}, cellBackground: background.value }),
+        h(EditorTableToolbar, { id: "toolbar", open: true, actions: ${JSON.stringify(actions)}, cellBackground: background.value }),
+      ]) }).mount("#app");
+    `);
+    const body = adapter === "HTML" ? `<ui-editor-table-context-menu id="context" open actions='${JSON.stringify(actions)}'></ui-editor-table-context-menu>
+      <ui-editor-table-toolbar id="toolbar" open actions='${JSON.stringify(actions)}'></ui-editor-table-toolbar>` : '<div id="app"></div>';
+    const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    // Keep the independent fixtures apart so neither menu covers the other.
+    await page.locator("#context").evaluate(element => { (element as HTMLElement).style.left = "500px"; });
+    await page.locator("#toolbar").getByRole("button", { name: "Table options" }).click();
+    for (const [color, expected] of [["rgb(243, 244, 246)", "Gray"], [" #F3F4F6 ", "Gray"], ["rgba(243, 244, 246, 1)", "Gray"],
+      ["rgba(243, 244, 246, 0.5)", null], ["#123456", null], ["not-a-color", null], ["", "Default"]] as const) {
+      await page.evaluate(value => (window as unknown as { setBackground(value: string): void }).setBackground(value), color);
+      for (const id of ["context", "toolbar"]) {
+        const selected = page.locator(`#${id} [role="menuitemradio"][aria-checked="true"]`);
+        await page.waitForFunction(({ id, expected }) => {
+          const items = document.querySelectorAll(`#${id} [role="menuitemradio"][aria-checked="true"]`);
+          return expected === null ? items.length === 0 : items.length === 1 && items[0]?.textContent?.trim() === expected;
+        }, { id, expected });
+        assert.equal(await selected.count(), expected === null ? 0 : 1, `${adapter} ${id} reflects ${color}`);
+      }
+    }
     await page.close();
   });
 
@@ -8187,6 +8783,70 @@ describe("App styling hooks", () => {
 });
 
 describe("Combobox completion", () => {
+  it("optionally clears unfinished multiple queries on blur in HTML and controlled Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-combobox-query-blur`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Combobox } from "@threadlabs/looma/vue";
+        const query = ref("");
+        createApp({ render: () => h(Combobox, { id: "choices", label: "Teams", multiple: true,
+          clearQueryOnBlur: true, openOnFocus: true, disclosure: true, autoHighlight: "single", selectOnTab: true,
+          query: query.value, "onUpdate:query": value => query.value = value,
+          selectedValues: ["docs"] }, () => [h("option", { value: "docs" }, "Docs"), h("option", { value: "design" }, "Design")]) }).mount("#app");`);
+      const page = await open(path, `<button id="before">Before</button>` + (adapter === "html" ? `<ui-combobox id="choices" label="Teams" multiple clear-query-on-blur open-on-focus disclosure auto-highlight="single" select-on-tab selected-values='["docs"]'><option value="docs">Docs</option><option value="design">Design</option></ui-combobox>` : `<div id="app"></div>`) + `<button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        const input = page.locator('#choices input[role="combobox"]');
+        await input.focus();
+        await page.waitForSelector('#choices [role="option"]');
+        for (const exit of ["Tab", "Shift+Tab", "pointer", "Escape"]) {
+          await input.fill("D");
+          if (exit === "pointer") await page.locator("#after").click();
+          else if (exit === "Escape") { await input.press("Escape"); await page.locator("#after").click(); }
+          else await input.press(exit);
+          await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#choices input')?.value === "");
+          assert.equal(await page.locator('#choices .item').count(), 1, "blur keeps the chosen item");
+        }
+        await input.fill("D");
+        await page.locator('#choices [data-combobox-action="disclosure"]').focus();
+        assert.equal(await input.inputValue(), "D", "focus inside the control keeps unfinished text");
+        await page.locator("#after").click();
+        await input.fill("Unknown");
+        await input.press("Enter");
+        assert.equal(await page.locator('#choices .item').count(), 1, "strict mode cannot create an option");
+        await page.locator("#after").click();
+        await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#choices input')?.value === "");
+        await input.fill("Docs");
+        await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
+        await input.press("Tab");
+        assert.equal(await page.locator('#choices .item').count(), 1, "Tab keeps an already selected match");
+        assert.equal(await input.inputValue(), "");
+      } finally { await page.close(); }
+    }
+  });
+
+  it("preserves unfinished multiple queries by default and keeps creation opt-in", async () => {
+    const path = await bundle("html-combobox-preserve-query", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="choices" label="Teams" multiple><option value="docs">Docs</option></ui-combobox><ui-combobox id="create" label="Create teams" multiple allow-create clear-query-on-blur></ui-combobox><button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css")]);
+    try {
+      const input = page.locator('#choices input[role="combobox"]');
+      await input.fill("Unfinished"); await page.locator("#after").click();
+      assert.equal(await input.inputValue(), "Unfinished");
+      const create = page.locator('#create input[role="combobox"]');
+      await page.evaluate(() => {
+        document.getElementById("create")!.addEventListener("create-item", event => {
+          document.getElementById("after")!.textContent = (event as CustomEvent).detail.query;
+        });
+      });
+      await create.fill("New team");
+      await page.waitForSelector('#create [role="option"]');
+      await create.press("Enter");
+      assert.equal(await page.locator('#after').textContent(), "New team");
+      await create.fill("Unfinished"); await page.locator("#after").click();
+      await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#create input')?.value === "");
+      assert.equal(await page.locator('#after').textContent(), "New team", "blur never creates unfinished text");
+    } finally { await page.close(); }
+  });
+
   const check = async (page: Page) => {
     const input = page.locator('#choices input[role="combobox"]');
     await input.fill("Des");
@@ -8323,6 +8983,34 @@ describe("Combobox chip truncation", () => {
 });
 
 describe("CardButton layout", () => {
+  it("uses a decorative neutral card edge while preserving accent outline and neutral navigation colors in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-neutral-card-edge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button } from "@threadlabs/looma/vue";
+        createApp({ render: () => [h(Button, { id: "card", variant: "card", tone: "neutral" }, () => "Changed files"),
+          h(Button, { id: "outline" }, () => "View changes"), h(Button, { id: "navigation", variant: "ghost", tone: "neutral" }, () => "History")] }).mount("#app");
+      `);
+      const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : '<ui-button id="card" variant="card" tone="neutral">Changed files</ui-button><ui-button id="outline">View changes</ui-button><ui-button id="navigation" variant="ghost" tone="neutral">History</ui-button>',
+        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
+        const neutral = await page.locator("#card").evaluate(element => {
+          const probe = document.createElement("span"); probe.style.borderColor = "var(--ui-border)"; element.append(probe);
+          const result = { actual: getComputedStyle(element).borderTopColor, expected: getComputedStyle(probe).borderTopColor }; probe.remove(); return result;
+        });
+        assert.equal(neutral.actual, neutral.expected, "a quiet card uses the standard decorative border");
+        assert.notEqual(await page.locator("#outline").evaluate(element => getComputedStyle(element).borderTopColor), neutral.actual, "ordinary accent actions retain their purple edge");
+        assert.equal(await page.locator("#navigation").evaluate(element => getComputedStyle(element).color), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "neutral navigation retains its ink");
+        await page.locator("#card").hover();
+        assert.notEqual(await page.locator("#card").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "hover keeps a decorative edge instead of an ink outline");
+        await page.setViewportSize({ width: 375, height: 720 });
+        await page.mouse.move(0, 700);
+        await page.screenshot({ path: join(root, ".build", `${adapter}-neutral-card-375.png`) });
+      } finally { await page.close(); }
+    }
+  });
+
   for (const adapter of ["native", "Vue"]) {
     it(`keeps ${adapter} icon/content top-aligned and action centered with equal edges at 375px and RTL`, async () => {
       const label = "Read the latest project notes and decisions, including the changes that need another look.";
@@ -8631,6 +9319,29 @@ describe("Independent leading controls and text baselines", () => {
         return range.getBoundingClientRect().y;
       }));
       assert.ok(Math.abs(glyphs[0]! - glyphs[1]!) < 1, `${framework} aligns first glyphs through a wrapped column: ${glyphs}`);
+      await page.close();
+    }
+  });
+});
+
+describe("Meter categorical distribution", () => {
+  it("keeps proportional geometry and descriptions in HTML and Vue at phone width", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-distribution`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Meter } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Meter, { variant: "distribution", label: "Outcomes", valueText: "2 waiting, 5 accepted, 2 declined",
+          parts: [{value:2,color:"#789168"},{value:5,color:"#b97731"},{value:2,color:"#533b29"},{value:0,color:"red"}] }) }).mount("#app");`);
+      const page = await open(path, adapter === "html" ? `<ui-meter variant="distribution" label="Outcomes" value-text="2 waiting, 5 accepted, 2 declined" parts='[{"value":2,"color":"#789168"},{"value":5,"color":"#b97731"},{"value":2,"color":"#533b29"},{"value":0,"color":"red"}]'></ui-meter>` : '<div id="app"></div>',
+        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: {width:375,height:700} });
+      const distribution = page.getByRole("img", {name:"Outcomes: 2 waiting, 5 accepted, 2 declined"});
+      const widths = await distribution.locator(".part").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+      assert.equal(widths.length, 3);
+      assert.ok(Math.abs(widths[1] / widths[0] - 2.5) < 0.02, JSON.stringify({adapter, widths, root: await distribution.evaluate(node => ({html:node.outerHTML,display:getComputedStyle(node).display}))}));
+      assert.ok(Math.abs(widths[2] - widths[0]) < 0.1);
+      assert.equal(await distribution.getAttribute("aria-valuenow"), null);
+      await page.emulateMedia({forcedColors:"active"});
+      assert.equal(await distribution.locator(".part").first().evaluate(node => getComputedStyle(node).outlineStyle), "solid");
       await page.close();
     }
   });

@@ -24,4 +24,16 @@ browser's heading size and weight do not apply, so a heading is only as large an
 </Section>
 ```
 
+Use `trim` for a compact heading or label whose visible letters should align with adjacent icons
+or a surface's padding. It removes extra font space at the capital and baseline edges without
+changing font size or line spacing between wrapped lines. Ordinary prose retains its existing
+metrics by default; browsers without `text-box-trim` retain normal font metrics.
+
+```vue
+<Cluster align="center" gap="s">
+  <Icon name="book-open" />
+  <Text as="h3" size="md" weight="semibold" trim>Shared reference</Text>
+</Cluster>
+```
+
 <ComponentExamplesApiTabs component="ui-text" />

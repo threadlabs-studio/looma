@@ -8,8 +8,8 @@
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
-    >accent, info, success and warning add a quiet semantic surface. danger retains its strong leading edge for consequential content. Tone never changes child
-      controls.</prop>
+    >accent, info, success and warning add a quiet semantic surface. danger retains its strong leading edge for consequential content. Row highlights follow the
+      surface hue; action controls retain their own intent.</prop>
     <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
@@ -23,6 +23,10 @@
     /* A surface that groups content. Its children stack with even space between them, so a card
        needs no layout of its own. */
     :host {
+      --_ui-card-surface: var(--ui-surface-raised);
+      --_ui-selection-context-surface: initial;
+      --_ui-selection-context-border: initial;
+      --_ui-selection-context-text: initial;
       display: flex;
       flex-direction: column;
       gap: var(--ui-space-4);
@@ -31,7 +35,7 @@
       padding: var(--ui-space-5);
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
-      background: var(--ui-surface-raised);
+      background: var(--_ui-card-surface);
       color: var(--ui-text-primary);
     }
 
@@ -50,7 +54,7 @@
 
     :host([variant="subtle"]) {
       border-color: transparent;
-      background: var(--ui-surface-muted);
+      --_ui-card-surface: var(--ui-surface-muted);
     }
 
     :host([variant="elevated"]) {
@@ -60,22 +64,22 @@
 
     :host([tone="accent"]) {
       border-color: color-mix(in srgb, var(--ui-accent) 25%, var(--ui-border-default));
-      background: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-surface-default));
+      --_ui-card-surface: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-surface-default));
     }
 
     :host([tone="info"]) {
       border-color: color-mix(in srgb, var(--ui-info) 25%, var(--ui-border-default));
-      background: color-mix(in srgb, var(--ui-info) 6%, var(--ui-surface-default));
+      --_ui-card-surface: color-mix(in srgb, var(--ui-info) 6%, var(--ui-surface-default));
     }
 
     :host([tone="success"]) {
       border-color: color-mix(in srgb, var(--ui-success) 25%, var(--ui-border-default));
-      background: color-mix(in srgb, var(--ui-success) 6%, var(--ui-surface-default));
+      --_ui-card-surface: color-mix(in srgb, var(--ui-success) 6%, var(--ui-surface-default));
     }
 
     :host([tone="warning"]) {
       border-color: color-mix(in srgb, var(--ui-warning) 25%, var(--ui-border-default));
-      background: color-mix(in srgb, var(--ui-warning) 6%, var(--ui-surface-default));
+      --_ui-card-surface: color-mix(in srgb, var(--ui-warning) 6%, var(--ui-surface-default));
     }
 
     :host([variant="subtle"]:is([tone="accent"], [tone="info"], [tone="success"], [tone="warning"])) {
@@ -88,7 +92,20 @@
       /* An accent edge keeps the corners on its side straight. */
       border-start-start-radius: 0;
       border-end-start-radius: 0;
-      background: var(--ui-danger-soft);
+      --_ui-card-surface: var(--ui-danger-soft);
+    }
+
+    /* A colored panel shades rows in its own hue, without changing button intent. */
+    :host([tone="accent"]), :host([tone="info"]), :host([tone="success"]), :host([tone="warning"]), :host([tone="danger"]) {
+      --_ui-selection-context-surface: light-dark(
+        oklch(from var(--_ui-card-surface) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--_ui-card-surface) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-border: light-dark(
+        oklch(from var(--_ui-card-surface) calc(l - 0.085) calc(max(c, min(0.045, c * 3))) h),
+        oklch(from var(--_ui-card-surface) calc(l + 0.085) calc(max(c, min(0.045, c * 3))) h)
+      );
+      --_ui-selection-context-text: var(--ui-text-primary);
     }
 
     :host([size="sm"]) {

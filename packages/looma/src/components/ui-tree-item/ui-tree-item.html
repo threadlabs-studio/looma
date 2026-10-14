@@ -178,21 +178,24 @@
     .row:hover,
     .row:focus-within {
       color: var(--ui-text-primary);
-      background: var(--ui-surface-muted);
+      background: var(--_ui-selection-context-surface, var(--ui-surface-muted));
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--_ui-selection-context-border, var(--ui-selection-border));
     }
 
     /* Selection is the same surface recipe as destination and choice rows. */
     :host([selected]) > .row {
-      color: var(--ui-selection-text);
-      background: var(--ui-selection-surface);
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
+      background: var(--_ui-selection-context-surface, var(--ui-selection-surface));
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--_ui-selection-context-border, var(--ui-selection-border));
     }
     :host([selected]):not([aria-disabled="true"]) > .row > .leading {
-      color: var(--ui-selection-text);
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
     }
 
     :host([disabled]) .row {
       color: var(--ui-disabled-text);
       background: var(--ui-disabled-surface);
+      box-shadow: none;
     }
 
     :host[data-dragging]:not([data-move-source]) .row {

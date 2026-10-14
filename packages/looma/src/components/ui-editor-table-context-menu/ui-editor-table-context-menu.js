@@ -1,5 +1,5 @@
 import { createViewportSurface, writtenPlace } from "../shared/overlay.js";
-import { backgrounds, viewport } from "../shared/editor.js";
+import { backgrounds, normalizeCellBackground, viewport } from "../shared/editor.js";
 
 const sections = [
   ["Structure", [
@@ -80,9 +80,9 @@ function connect(host) {
     const scope = String(host.props.scope.value || "cell");
     const enabled = new Set((Array.isArray(host.props.actions.value) ? host.props.actions.value : []).filter((action) =>
       scope === "cell" || (scope === "row" ? !action.includes("column") : !action.includes("row"))));
-    const background = String(host.props.cellBackground.value ?? "");
+    const background = normalizeCellBackground(host.props.cellBackground.value, element.ownerDocument);
     const swatches = backgrounds.filter(([action]) => enabled.has(action))
-      .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
+      .map(([action, label, color]) => ({ action, label, color, selected: normalizeCellBackground(color, element.ownerDocument) === background }));
     host.state.swatches = swatches.length ? swatches : null;
     host.state.sections = sections
       .map(([heading, items]) => ({
