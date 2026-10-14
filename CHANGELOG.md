@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.23
+
+- Multiple comboboxes can opt into clearing unfinished search text when focus leaves the control, without changing selected items, option creation, or the default query-preservation behavior.
+
 ## v0.26.22
 
 - Hold Command on macOS or Control elsewhere over editor links for a pointer cursor and click to open a new tab. Clicking a link normally reveals compact Open, Edit, and Remove actions above it. Link forms separate link utilities from aligned Cancel and Save actions.
