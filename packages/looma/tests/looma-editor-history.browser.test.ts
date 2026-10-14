@@ -805,3 +805,24 @@ it.each([1280, 375])("shows a compact Open link bar above a clicked link and dis
   editor.commands.setTextSelection(editor.state.doc.content.size - 2);
   await expect.element(reopenedActions).not.toBeVisible();
 });
+
+it("keeps editor popup anchors stable when links cross the phone breakpoint", async () => {
+  await page.viewport(1280, 812);
+  const { editor } = await mountEditor({ toolbarMode: "contextual" });
+  editor.commands.setContent('<p><a href="/linked-page">Linked page</a> after</p>');
+  await userEvent.click(editor.view.dom.querySelector("a")!);
+  await flushBrowser();
+  for (const width of [375, 1280, 375, 1280]) {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(width);
+    await page.viewport(width, 812);
+    window.dispatchEvent(new Event("resize"));
+    editor.commands.focus();
+    editor.commands.setTextSelection({ from: 1, to: 7 });
+    await flushBrowser();
+    editor.commands.setTextSelection(4);
+    await flushBrowser();
+    await vi.waitFor(() => expect({ focused: editor.isFocused, empty: editor.state.selection.empty, link: editor.isActive("link"), width }).toEqual({ focused: true, empty: true, link: true, width }));
+    await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+  }
+  expect(editor.getHTML()).toContain('href="/linked-page"');
+});
