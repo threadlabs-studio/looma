@@ -814,6 +814,15 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("keeps mobile table options open while their controls have focus", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>', "sticky", false, { viewport: { width: 375, height: 900 } });
+    await page.locator("#app").evaluate(element => { element.style.width = "100%"; });
+    await cell(page, 1, 1).locator("p").click();
+    await openTableMenu(page);
+    await tableMenu(page).getByRole("menuitem", { name: "Delete row", exact: true }).click();
+    await equals(() => rows(page).count(), 1, "mobile row deletion remains usable");
+    await page.close();
+  });
   it("accepts empty native overlay geometry and hovered actions without controller errors", async () => {
     const path = await bundle("native-table-overlay", 'import "@threadlabs/looma";');
     const geometry = { rowBoundaries: [0, 40, 80], columnBoundaries: [0, 80, 160], activeCell: null, hoveredCell: null };
