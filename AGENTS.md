@@ -54,6 +54,10 @@ executable inputs need an owner mapping. See
 - Framework adapters translate conventions only; they must not diverge in
   behavior from the underlying contract.
 - Use Lucide icons from `LOOMA_ICONS`, never Unicode glyphs as icon stand-ins.
+- An accent edge (a colored `border-inline-start` stripe) keeps the corners on its side
+  straight; never round a corner that a stripe runs into.
+- Style a nested component only through its props or the custom properties it
+  supports; never select its root (HTML Next scoping never matches it).
 
 ## Composed editor controls
 

@@ -49,7 +49,8 @@ function connect(host) {
   const setup = () => {
     const nextFor = String(host.props.for.value ?? "");
     const nextPlacement = String(host.props.placement.value ?? "bottom-start");
-    if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
+    if (surface && nextFor === lastFor && nextPlacement === lastPlacement
+      && (!nextFor || anchor === document.getElementById(nextFor))) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
@@ -57,7 +58,7 @@ function connect(host) {
     anchor = ids.get(nextFor);
     if (anchor) anchorExpanded = anchor.getAttribute("aria-expanded");
     anchor?.addEventListener("click", onAnchorClick);
-    surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset }) : null;
+    surface = createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset });
   };
   const apply = () => {
     const externalOpen = Boolean(host.props.open.value);
