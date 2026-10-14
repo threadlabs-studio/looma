@@ -814,6 +814,16 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("removes hovered cell controls when deleting the table", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr></table><p>After</p>');
+    await cell(page, 0, 1).locator("p").click();
+    await cell(page, 0, 1).hover();
+    await page.getByRole("button", { name: "Cell actions", exact: true }).click();
+    await page.locator('[data-component="ui-editor-table-context-menu"]').getByRole("menuitem", { name: "Delete table", exact: true }).click();
+    await equals(() => prose(page).locator("table").count(), 0, "table deletion removes table");
+    await page.locator('[data-component="ui-editor-table-overlay"]').waitFor({ state: "detached" });
+    await page.close();
+  });
   it("keeps mobile table options open while their controls have focus", async () => {
     const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>', "sticky", false, { viewport: { width: 375, height: 900 } });
     await page.locator("#app").evaluate(element => { element.style.width = "100%"; });
@@ -1189,6 +1199,54 @@ describe("LoomaEditor tables", () => {
     await menu.waitFor();
     await menu.getByRole("menuitem", { name: /add column right/i }).click();
     await equals(() => rows(page).nth(0).locator("th, td").count(), 4, "column added");
+    await page.close();
+  });
+
+  it.each([720, 375])("reflects saved cell backgrounds in both menus at %spx", async (width) => {
+    const page = await openEditor('<table><tr><th>Header</th><th>Other</th></tr><tr><td>Target</td><td>Neighbour</td></tr></table>');
+    await page.setViewportSize({ width, height: 812 });
+    await page.locator("#app").evaluate((element, width) => { element.style.width = `${width - 32}px`; }, width);
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    const target = cell(page, 1, 0);
+    const menu = width > 767 ? context : tableMenu(page);
+    const openCellMenu = async (selected: Locator) => {
+      if (width > 767) await selected.click({ button: "right" });
+      else {
+        await selected.click();
+        await page.getByRole("toolbar", { name: "Table editing" }).getByRole("button", { name: "Table options" }).click();
+      }
+    };
+    for (const label of ["Gray", "Yellow", "Blue", "Green", "Red"]) {
+      await openCellMenu(target);
+      await menu.getByRole("menuitemradio", { name: label, exact: true }).click();
+      // A real HTML round trip reproduces the browser's hex-to-RGB parsing.
+      await page.evaluate(() => {
+        const editor = (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor;
+        editor.commands.setContent(editor.getHTML());
+      });
+      await cell(page, 1, 1).click();
+      if (width > 767) {
+        await target.hover();
+        await page.locator('[data-component="ui-editor-table-overlay"]').getByRole("button", { name: "Cell actions" }).click();
+      } else await openCellMenu(target);
+      await equals(() => menu.getByRole("menuitemradio", { name: label, exact: true }).getAttribute("aria-checked"), "true", `${label} stays selected after HTML reload`);
+      assert.equal(await menu.locator('[role="menuitemradio"][aria-checked="true"]').count(), 1);
+      await page.keyboard.press("Escape");
+      await target.click();
+      if (width <= 767) {
+        const dock = page.getByRole("toolbar", { name: "Table editing" });
+        await dock.getByRole("button", { name: "Table options" }).click();
+      } else await openTableMenu(page);
+      await equals(() => tableMenu(page).getByRole("menuitemradio", { name: label, exact: true }).getAttribute("aria-checked"), "true", `${label} is selected in table options`);
+      await page.keyboard.press("Escape");
+    }
+    await openCellMenu(cell(page, 0, 0));
+    await equals(() => menu.getByRole("menuitemradio", { name: "Default", exact: true }).getAttribute("aria-checked"), "true", "unformatted header keeps its default styling");
+    await page.keyboard.press("Escape");
+    await openCellMenu(target);
+    await menu.getByRole("menuitemradio", { name: "Default", exact: true }).click();
+    await openCellMenu(target);
+    await equals(() => menu.getByRole("menuitemradio", { name: "Default", exact: true }).getAttribute("aria-checked"), "true", "clearing a background restores Default");
     await page.close();
   });
 
