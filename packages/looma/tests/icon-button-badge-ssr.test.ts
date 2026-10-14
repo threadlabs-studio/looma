@@ -12,6 +12,14 @@ describe("Icon Button and circular Badge before upgrade", () => {
     expect(await render(h(Container, { fill: true }, () => "Read"))).toMatch(/data-ui-container-state="[^"]*fill/);
     expect(await render(h(Container, null, () => "Read"))).not.toMatch(/data-ui-container-state="[^"]*fill/);
   });
+  it("renders the opt-in rounded bar guide before upgrade", async () => {
+    const html = await render(h(IconButton, { label: "Toggle panel", anticipatory: true, guide: "bar", tone: "neutral" }));
+    expect(html).toContain('aria-label="Toggle panel"');
+    expect(html).toMatch(/data-ui-icon-button-state="[^"]*guide=bar/);
+    expect(html).toMatch(/data-ui-icon-button-state="[^"]*anticipatory/);
+    expect(await render(h(IconButton, { label: "Add", anticipatory: true }))).toMatch(/data-ui-icon-button-state="[^"]*guide=dot/);
+  });
+
   it("preserves a consumer-owned native pressed state and accessible name", async () => {
     const html = await render(h(IconButton, { label: "Notifications", variant: "outline", tone: "accent", "aria-pressed": true }));
     expect(html).toMatch(/<button\b/);

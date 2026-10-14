@@ -56,6 +56,106 @@ afterAll(async () => {
 });
 
 describe("Pressed icon controls and circular marks", () => {
+  it("keeps a translated icon button centered while pressed in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-pressed-translation`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(IconButton, { id: "action", label: "Toggle panel", class: "positioned" }, () => "X") }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" class="positioned">X</ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const button = page.getByRole("button", { name: "Toggle panel" });
+      await page.addStyleTag({ content: ".positioned { position: fixed; top: 50%; left: 200px; transform: translateY(-50%); }" });
+      const before = (await button.boundingBox())!;
+      await button.hover();
+      await page.mouse.down();
+      await page.waitForTimeout(200);
+      const during = (await button.boundingBox())!;
+      assert.ok(Math.abs(before.y + before.height / 2 - during.y - during.height / 2) < 1, "pressing retains the translated center");
+      assert.equal(await button.evaluate(element => getComputedStyle(element).scale), "0.96", "press feedback composes with positioning transforms");
+      await page.mouse.up();
+      await page.close();
+    }
+  });
+
+  it("shows a neutral rounded bar until hover or keyboard focus in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-bar-guide`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { IconButton, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(IconButton, { id: "action", label: "Toggle panel", tone: "neutral", anticipatory: true, guide: "bar" }, () => h(Icon, { name: "panel-left-close" })) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" tone="neutral" anticipatory guide="bar"><ui-icon name="panel-left-close"></ui-icon></ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const button = page.getByRole("button", { name: "Toggle panel" });
+      await page.mouse.move(600, 400);
+      const guide = await button.evaluate(element => {
+        const style = getComputedStyle(element, "::before");
+        const sample = document.createElement("span");
+        sample.style.backgroundColor = "var(--ui-border-strong)";
+        element.append(sample);
+        const neutral = getComputedStyle(sample).backgroundColor;
+        sample.remove();
+        return { width: style.width, height: style.height, opacity: style.opacity, color: style.backgroundColor, neutral, radius: parseFloat(style.borderRadius), icon: getComputedStyle(element.querySelector(".content")!).opacity };
+      });
+      assert.equal(guide.width, "2px");
+      assert.equal(guide.height, "20px");
+      assert.equal(guide.opacity, "1", "the guide is always discoverable at rest");
+      assert.notEqual(guide.color, "rgba(0, 0, 0, 0)");
+      assert.equal(guide.color, guide.neutral, "the idle bar uses neutral border ink");
+      assert.ok(guide.radius >= 2);
+      assert.equal(guide.icon, "0");
+      await button.hover();
+      assert.equal(await button.locator(".content").evaluate(element => getComputedStyle(element).opacity), "1");
+      assert.equal(await button.evaluate(element => getComputedStyle(element, "::before").opacity), "0");
+      await page.mouse.move(600, 400);
+      await page.keyboard.press("Tab");
+      assert.equal(await button.evaluate(element => element.matches(":focus-visible")), true);
+      assert.equal(await button.locator(".content").evaluate(element => getComputedStyle(element).opacity), "1");
+      await page.close();
+    }
+  });
+
+  it("dismisses action hints on activation and retains only keyboard focus hints in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-action-tooltip`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { IconButton, Tooltip } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", [h(IconButton, { id: "action", label: "Toggle panel" }, () => "X"), h(Tooltip, { id: "hint", for: "action", showDelay: 100, hideDelay: 0 }, () => "Toggle panel"), h("button", { id: "next" }, "Next")]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel">X</ui-icon-button><ui-tooltip id="hint" for="action" show-delay="100" hide-delay="0">Toggle panel</ui-tooltip><button id="next">Next</button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const button = page.getByRole("button", { name: "Toggle panel" }), hint = page.locator("#hint");
+      await button.click();
+      await page.waitForTimeout(150);
+      assert.equal(await hint.isVisible(), false, "a quick action cancels its pending hover hint");
+      await page.mouse.move(600, 400);
+      await button.hover();
+      await hint.waitFor({ state: "visible" });
+      await button.click();
+      await page.waitForTimeout(150);
+      assert.equal(await hint.isVisible(), false, "activation dismisses the hint even with pointer focus and hover retained");
+      assert.equal(await button.evaluate(element => element === document.activeElement), true, "activation preserves button focus");
+      await page.mouse.move(600, 400);
+      assert.equal(await hint.isVisible(), false, "pointer focus cannot retain a tooltip");
+      await button.hover();
+      await hint.waitFor({ state: "visible" });
+      await page.mouse.move(600, 400);
+      await hint.waitFor({ state: "hidden" });
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      await hint.waitFor({ state: "visible" });
+      await page.mouse.move(600, 400);
+      assert.equal(await hint.isVisible(), true, "keyboard focus retains the hint");
+      await button.press("Enter");
+      await hint.waitFor({ state: "hidden" });
+      await button.press("Tab");
+      await button.press("Shift+Tab");
+      await hint.waitFor({ state: "visible" });
+      await button.press("Space");
+      await hint.waitFor({ state: "hidden" });
+      await page.close();
+    }
+  });
+
   it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
@@ -173,7 +273,10 @@ describe("Pressed icon controls and circular marks", () => {
       await page.locator("#toggle").blur();
       assert.ok((await paint("#toggle")).shadow.includes("inset"));
       await page.locator("#toggle").focus();
-      assert.ok((await paint("#toggle")).shadow.includes("inset"), "focus keeps selected state");
+      assert.equal(await page.getByRole("tooltip").isVisible(), false, "mouse-origin focus does not revive an activated hint");
+      await page.locator("#neutral").focus();
+      await page.keyboard.press("Shift+Tab");
+      assert.ok((await paint("#toggle")).shadow.includes("inset"), "keyboard focus keeps selected state");
       await page.getByRole("tooltip").waitFor({ state: "visible" });
       await page.locator("#toggle").evaluate(element => {
         element.setAttribute("aria-pressed", "false");
