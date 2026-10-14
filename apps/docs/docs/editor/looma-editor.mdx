@@ -122,8 +122,10 @@ The mobile toolbar's **Link** button also edits the link at the caret.
 With no selection, the form also asks for link text. It accepts `http:`, `https:`, `mailto:`,
 `tel:`, and relative URLs beginning with `/`, `#`, or `?`; other schemes are rejected before the
 document changes. The **Open link** action opens separately with `noopener noreferrer`. The **Open in new tab**
-choice controls the saved link's `target` and `rel` attributes. The editor restores its selection
-when the form saves, so moving focus to the form does not change the text being linked.
+choice updates the link's `target` and `rel` attributes directly. Valid destination and text
+changes apply immediately without moving focus from the field. There is no Save or Cancel footer;
+press Enter or Escape, or click outside, to close the popup. Incomplete or invalid URL entry leaves
+the last valid link intact. Open and Remove stay in the nearby link actions.
 
 The form follows the same theme layers as the rest of Looma: its surface, border, radius and shadow
 read inherited `--ui-overlay-*` values; its input radius reads `--ui-field-radius`; its invalid
