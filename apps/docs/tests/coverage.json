@@ -1186,6 +1186,11 @@
           "id": "07-small",
           "title": "Small menu",
           "behavior": false
+        },
+        {
+          "id": "08-icon-columns",
+          "title": "Aligned icon columns",
+          "behavior": false
         }
       ]
     },

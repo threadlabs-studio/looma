@@ -1,10 +1,14 @@
 # Changelog
 
-## v0.26.18
+## v0.26.19
 
 - Table cell actions follow hover and keyboard focus and remain usable after deleting a row. Empty cell state no longer interrupts table controls.
 - Table options remain open and clickable on phones while their controls have focus, and escape the scrolling dock's clipping.
 - Bulleted and numbered lists use compact spacing between items, including inside table cells, while retaining paragraph and nested-list separation.
+
+## v0.26.18
+
+- Menus support fixed icon columns that align labels across icon-bearing and text-only rows, including grouped items and links. Menu items accept decorative icons in a named slot and a danger tone for destructive actions.
 
 ## v0.26.17
 
