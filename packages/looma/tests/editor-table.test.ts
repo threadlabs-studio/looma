@@ -814,6 +814,54 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("accepts empty native overlay geometry and hovered actions without controller errors", async () => {
+    const path = await bundle("native-table-overlay", 'import "@threadlabs/looma";');
+    const geometry = { rowBoundaries: [0, 40, 80], columnBoundaries: [0, 80, 160], activeCell: null, hoveredCell: null };
+    const activeCell = { left: 0, top: 0, width: 80, height: 40, rowIndex: 0, columnIndex: 0 };
+    const hoveredCell = { ...activeCell, left: 80, top: 40, rowIndex: 1, columnIndex: 1 };
+    const page = await open(path, [geometry, { ...geometry, activeCell }, { ...geometry, activeCell, hoveredCell }]
+      .map((value, index) => `<ui-editor-table-overlay id="overlay-${index}" open geometry='${JSON.stringify(value)}'></ui-editor-table-overlay>`).join(""), [join(root, "tokens.css")]);
+    const menu = (index: number) => page.locator(`#overlay-${index}`).getByRole("button", { name: "Cell actions", exact: true });
+    assert.equal(await menu(0).count(), 0);
+    assert.equal(await menu(1).getAttribute("data-row-index"), "0");
+    assert.equal(await menu(2).getAttribute("data-row-index"), "1");
+    assert.equal(await menu(2).getAttribute("data-column-index"), "1");
+    await page.close();
+  });
+  it("keeps cell menus live after row deletion and tracks focus and scrolling", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>');
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.locator("#app").evaluate(element => { element.style.marginTop = "250px"; });
+    await cell(page, 0, 0).click();
+    await cell(page, 1, 1).hover();
+    const trigger = page.getByRole("button", { name: "Cell actions", exact: true });
+    await equals(() => trigger.getAttribute("data-row-index"), "1", "menu follows hover");
+    await equals(() => trigger.getAttribute("data-column-index"), "1", "menu follows hovered column");
+    await trigger.click();
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    await context.getByRole("menuitem", { name: "Delete row", exact: true }).click();
+    await equals(() => rows(page).count(), 1, "the hovered row was deleted");
+    await cell(page, 0, 0).locator("p").click({ position: { x: 2, y: 2 } });
+    await equals(() => page.evaluate(() => (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor.isActive("table")), true, "click selects the remaining table");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor.isFocused), true, "Tab stays in the table after deletion");
+    await page.locator("#outside").hover();
+    await equals(() => trigger.getAttribute("data-column-index"), "1", "menu follows keyboard focus");
+    const assertAnchor = async () => {
+      const tableBox = await table(page).boundingBox(), toolbarBox = await tableToolbar(page).boundingBox();
+      assert.ok(tableBox && toolbarBox && Math.abs(toolbarBox.y + 52 - tableBox.y) < 1, "toolbar remains beside its table");
+    };
+    await assertAnchor();
+    await page.evaluate(() => { document.body.style.minHeight = "1800px"; window.scrollTo(0, 100); });
+    await page.waitForTimeout(100);
+    await assertAnchor();
+    await prose(page).locator(":scope > p").last().click();
+    await tableToolbar(page).waitFor({ state: "hidden" });
+    assert.equal(await trigger.count(), 0, "cell menu closes after leaving table");
+    assert.deepEqual(errors, [], "no controller errors strand editor or surrounding controls");
+    await page.close();
+  });
   it("keeps table options reachable and dismissible in a short viewport", async () => {
     const page = await openEditor();
     await page.setViewportSize({ width: 800, height: 420 });
