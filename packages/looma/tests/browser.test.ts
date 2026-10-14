@@ -90,12 +90,18 @@ describe("Pressed icon controls and circular marks", () => {
       await page.mouse.move(600, 400);
       const guide = await button.evaluate(element => {
         const style = getComputedStyle(element, "::before");
-        return { width: style.width, height: style.height, opacity: style.opacity, color: style.backgroundColor, radius: parseFloat(style.borderRadius), icon: getComputedStyle(element.querySelector(".content")!).opacity };
+        const sample = document.createElement("span");
+        sample.style.backgroundColor = "var(--ui-border-strong)";
+        element.append(sample);
+        const neutral = getComputedStyle(sample).backgroundColor;
+        sample.remove();
+        return { width: style.width, height: style.height, opacity: style.opacity, color: style.backgroundColor, neutral, radius: parseFloat(style.borderRadius), icon: getComputedStyle(element.querySelector(".content")!).opacity };
       });
       assert.equal(guide.width, "2px");
       assert.equal(guide.height, "20px");
       assert.equal(guide.opacity, "1", "the guide is always discoverable at rest");
       assert.notEqual(guide.color, "rgba(0, 0, 0, 0)");
+      assert.equal(guide.color, guide.neutral, "the idle bar uses neutral border ink");
       assert.ok(guide.radius >= 2);
       assert.equal(guide.icon, "0");
       await button.hover();
