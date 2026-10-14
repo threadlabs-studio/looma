@@ -1196,6 +1196,7 @@ export const LoomaEditor = defineComponent({
 
     const updateTableUi = () => {
       const instance = editor.value;
+      if (hoveredTableCell && (!instance || instance.isDestroyed || !instance.view.dom.contains(hoveredTableCell))) hoveredTableCell = null;
       const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value, mobileToolbarShell.value]
         .some((shell) => shell?.contains(document.activeElement));
       if (

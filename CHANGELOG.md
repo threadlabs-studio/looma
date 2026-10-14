@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.20
+
+- Deleting a table dismisses its cell controls immediately, including controls opened by hovering a cell.
+
 ## v0.26.19
 
 - Table cell actions follow hover and keyboard focus and remain usable after deleting a row. Empty cell state no longer interrupts table controls.
