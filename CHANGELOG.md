@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.6
+
+- LoomaEditor's link, shortcut, selection-geometry, image-delivery and code-highlighting helpers move from the Vue editor into Looma's framework-neutral editor modules, the first step toward LoomaEditor as an HTML Next component (`docs/plans/2026-10-14-editor-html-next-component.md`). LoomaEditor's behavior and public API stay the same.
+
 ## v0.27.5
 
 - Callout adds the tones `tip` and `important`, and `caution` as an alias of `danger`, so its tones match VitePress, Docusaurus and GitHub alerts: note, tip, info, important, warning and danger. Each new tone has its own Lucide icon and colour. A `heading` option adds a short heading above the message. Existing tones keep their look; `note` remains the muted `neutral` aside.
