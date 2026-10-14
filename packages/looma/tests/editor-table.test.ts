@@ -1490,6 +1490,9 @@ describe("image controls tooltips", () => {
       await page.mouse.move(700, 700);
       await tooltip.waitFor({ state: "hidden" });
       await button.focus();
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      assert.equal(await button.evaluate(element => element.matches(":focus-visible")), true, "real keyboard focus reveals the hint");
       await tooltip.waitFor();
       await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
       await tooltip.waitFor({ state: "hidden" });
