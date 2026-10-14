@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.26.21
+## v0.26.22
 
 - Multiple comboboxes can opt into clearing unfinished search text when focus leaves the control, without changing selected items, option creation, or the default query-preservation behavior.
+
+## v0.26.21
+
+- Cell background menus recognize saved preset colors in both hex and RGB form, keeping the current color selected after an HTML round trip.
 
 ## v0.26.20
 
