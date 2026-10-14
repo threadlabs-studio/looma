@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.24
+
+- Editor link actions and formatting tools remain stable when changing the window width between desktop and phone layouts.
+
 ## v0.26.23
 
 - Multiple comboboxes can opt into clearing unfinished search text when focus leaves the control, without changing selected items, option creation, or the default query-preservation behavior.
