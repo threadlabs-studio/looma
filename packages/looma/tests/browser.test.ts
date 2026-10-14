@@ -1192,6 +1192,50 @@ describe("Disclosure composition", () => {
 });
 
 describe("Menu structure and navigation", () => {
+  it("aligns icon and label columns across grouped and iconless items in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-menu-columns`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Menu, MenuItem, MenuGroup, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Menu, { inline: true, icons: true }, () => [
+          h(MenuItem, { id: "first", value: "edit" }, { icon: () => h(Icon, { name: "pencil" }), default: () => "Edit", shortcut: () => "Cmd E" }),
+          h(MenuGroup, {}, () => [
+            h(MenuItem, { id: "plain", value: "comments" }, () => "Comments"),
+            h(MenuItem, { id: "link", href: "/history", value: "history" }, { icon: () => h(Icon, { name: "history" }), default: () => "History", shortcut: () => "Cmd H" }),
+            h(MenuItem, { id: "danger", tone: "danger", value: "delete" }, { icon: () => h(Icon, { name: "trash-2" }), default: () => "Delete" })
+          ])
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-menu inline icons>
+          <ui-menu-item id="first" value="edit"><ui-icon slot="icon" name="pencil"></ui-icon>Edit<span slot="shortcut">Cmd E</span></ui-menu-item>
+          <ui-menu-group>
+            <ui-menu-item id="plain" value="comments">Comments</ui-menu-item>
+            <ui-menu-item id="link" href="/history" value="history"><ui-icon slot="icon" name="history"></ui-icon>History<span slot="shortcut">Cmd H</span></ui-menu-item>
+            <ui-menu-item id="danger" tone="danger" value="delete"><ui-icon slot="icon" name="trash-2"></ui-icon>Delete</ui-menu-item>
+          </ui-menu-group>
+        </ui-menu>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.waitForSelector('#first[data-component~="ui-menu-item"]');
+      for (const width of [1280, 375]) {
+        await page.setViewportSize({ width, height: 720 });
+        const geometry = await page.evaluate(() => {
+          const items = ["first", "plain", "link", "danger"].map(id => document.getElementById(id)!);
+          return { labels: items.map(item => item.querySelector(".label")!.getBoundingClientRect().left),
+            icons: items.map(item => item.querySelector(".icon")?.getBoundingClientRect().width ?? 0),
+            shortcuts: [items[0], items[2]].map(item => item.querySelector(".shortcut")!.getBoundingClientRect().right),
+            danger: getComputedStyle(items[3]).color, normal: getComputedStyle(items[0]).color };
+        });
+        assert.ok(Math.max(...geometry.labels) - Math.min(...geometry.labels) < 1, `${adapter}/${width}: labels share one column ${JSON.stringify(geometry)}`);
+        assert.deepEqual(geometry.icons, [16, 16, 16, 16], "iconless rows reserve the icon column");
+        assert.ok(Math.abs(geometry.shortcuts[0] - geometry.shortcuts[1]) < 1, "shortcut hints share a trailing column");
+        assert.notEqual(geometry.danger, geometry.normal, "destructive tone survives column layout");
+      }
+      await page.getByRole("menuitem", { name: "Edit", exact: true }).focus();
+      await page.keyboard.press("ArrowDown");
+      assert.equal(await page.locator("#plain").evaluate(el => el === document.activeElement), true);
+      await page.close();
+    }
+  });
   it("dismisses only the top menu when Escape bubbles through its containing popover", async () => {
     const path = await bundle("html-nested-menu-escape", `import "@threadlabs/looma";`);
     const page = await open(path, `
