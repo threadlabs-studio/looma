@@ -834,9 +834,16 @@ export const LoomaEditor = defineComponent({
           }
         }).catch(() => {});
       }
-      void nextTick(() => (linkMode.value === "url"
-        ? linkDestinationInput()
-        : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus());
+      void nextTick(() => {
+        if (context) {
+          const popup = props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
+            ? formattingPopup : linkPopup;
+          popup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, instance.state.selection.from, instance.state.selection.to) });
+        }
+        (linkMode.value === "url"
+          ? linkDestinationInput()
+          : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
+      });
     };
     const saveLink = () => {
       const instance = editor.value;
@@ -2218,7 +2225,7 @@ export const LoomaEditor = defineComponent({
               editor.value?.commands.setTextSelection(current.to);
             }
           },
-        }, renderLinkForm),
+        }, () => linkOpen.value ? renderLinkForm() : null),
         props.editable && props.compactToolbar && !mobile.value ? h(Popover, {
           class: "looma-editor__compact-formatting", for: formatAnchorId,
           open: formatOpen.value, placement: "bottom-start",
