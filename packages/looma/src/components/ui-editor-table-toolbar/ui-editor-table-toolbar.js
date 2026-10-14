@@ -1,5 +1,5 @@
 import { closeOverlay, createViewportSurface, openOverlay, positionAnchoredSurface } from "../shared/overlay.js";
-import { backgrounds } from "../shared/editor.js";
+import { backgrounds, normalizeCellBackground } from "../shared/editor.js";
 
 const overflowSections = [
   ["Structure", [["add-row-before", "Add row above", "panel-top"], ["add-column-before", "Add column left", "panel-left"], ["toggle-header-row", "Header row", "rows"], ["toggle-header-column", "Header column", "columns"], ["move-row-up", "Move row up", "rows"], ["move-row-down", "Move row down", "rows"], ["move-column-left", "Move column left", "columns"], ["move-column-right", "Move column right", "columns"]]],
@@ -61,9 +61,9 @@ function connect(host) {
     host.state.structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label, icon]) => ({ action, label, icon }));
-    const background = String(host.props.cellBackground.value ?? "");
+    const background = normalizeCellBackground(host.props.cellBackground.value, host.element.ownerDocument);
     host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
-      .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
+      .map(([action, label, color]) => ({ action, label, color, selected: normalizeCellBackground(color, host.element.ownerDocument) === background }));
     host.state.sections = overflowSections
       .map(([heading, items]) => ({
         heading,

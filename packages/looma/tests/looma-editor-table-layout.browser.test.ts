@@ -2,6 +2,7 @@ import { Editor, type JSONContent } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { getDefaultEditorExtensions, normalizeActiveTableColumnWidths } from "../src/editor/extensions";
 import "../src/vue/editor/looma-editor.css";
+import "../src/components/ui-editor-surface/ui-editor-surface.css";
 import "../tokens.css";
 import "../theme-light.css";
 
@@ -42,6 +43,28 @@ afterEach(() => {
 });
 
 describe("LoomaEditor table layout (real browser)", () => {
+  it.each([375, 640])("keeps list items compact and preserves rich-list separation at %spx", (width) => {
+    const host = document.createElement("div");
+    host.className = "looma-editor";
+    host.style.width = `${width}px`;
+    document.body.append(host);
+    const editor = new Editor({ element: host, extensions: getDefaultEditorExtensions(),
+      content: '<table><tr><td><ul><li><p>First link</p></li><li><p>Second link</p></li></ul></td><td><ol><li><p>First paragraph</p><p>Second paragraph</p><ul><li><p>Nested item</p></li></ul></li></ol><p>After list</p></td></tr></table>' });
+    editors.push(editor);
+    const paragraphs = host.querySelectorAll("li > p");
+    expect(getComputedStyle(paragraphs[0]!).marginBottom).toBe("0px");
+    expect(getComputedStyle(paragraphs[1]!).marginBottom).toBe("0px");
+    expect(getComputedStyle(host.querySelector("td > ul")!).marginBottom).toBe("0px");
+    const decoration = document.createElement("div");
+    decoration.className = "column-resize-handle";
+    host.querySelector("td")!.append(decoration);
+    expect(getComputedStyle(host.querySelector("td > ul")!).marginBottom).toBe("0px");
+    const richParagraphs = host.querySelectorAll("ol > li > p");
+    expect(parseFloat(getComputedStyle(richParagraphs[0]!).marginBottom)).toBeGreaterThan(0);
+    expect(getComputedStyle(richParagraphs[1]!).marginBottom).toBe("0px");
+    expect(parseFloat(getComputedStyle(host.querySelector("ol > li > ul")!).marginTop)).toBeGreaterThan(0);
+    expect(parseFloat(getComputedStyle(host.querySelector("td > ol")!).marginBottom)).toBeGreaterThan(0);
+  });
   it("fits a two-column table to the page and wraps long cell text", () => {
     const { wrapper, element } = mountTable(640, 2,
       "This is a deliberately long explanation that should wrap inside its cell rather than make the whole table wider than the page.");

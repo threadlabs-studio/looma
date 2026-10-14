@@ -12,6 +12,94 @@
 - Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
 - Table context menus keep their minimum width inside narrow presentation viewports.
 
+## v0.26.25
+
+- Link fields apply valid destination, text, and new-tab changes directly while preserving input focus. The popup has no footer buttons; Enter, Escape, or an outside click closes it, and nearby link actions retain Open and Remove.
+
+## v0.26.24
+
+- Editor link actions and formatting tools remain stable when changing between desktop and phone layouts. Editing a link focuses one visible form and keeps its controls inside the viewport.
+
+## v0.26.23
+
+- Multiple comboboxes can opt into clearing unfinished search text when focus leaves the control, without changing selected items, option creation, or the default query-preservation behavior.
+
+## v0.26.22
+
+- Hold Command on macOS or Control elsewhere over editor links for a pointer cursor and click to open a new tab. Clicking a link normally reveals compact Open, Edit, and Remove actions above it. Link forms separate link utilities from aligned Cancel and Save actions.
+
+## v0.26.21
+
+- Cell background menus recognize saved preset colors in both hex and RGB form, keeping the current color selected after an HTML round trip.
+
+## v0.26.20
+
+- Deleting a table dismisses its cell controls immediately, including controls opened by hovering a cell.
+
+## v0.26.19
+
+- Table cell actions follow hover and keyboard focus and remain usable after deleting a row. Empty cell state no longer interrupts table controls.
+- Table options remain open and clickable on phones while their controls have focus, and escape the scrolling dock's clipping.
+- Bulleted and numbered lists use compact spacing between items, including inside table cells, while retaining paragraph and nested-list separation.
+
+## v0.26.18
+
+- Menus support fixed icon columns that align labels across icon-bearing and text-only rows, including grouped items and links. Menu items accept decorative icons in a named slot and a danger tone for destructive actions.
+
+## v0.26.17
+
+- Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
+
+## v0.26.16
+
+- Text supports opt-in font-edge trimming for compact headings and labels, so adjacent icons and surface padding can align without application styling overrides. Existing prose metrics stay unchanged.
+
+## v0.26.15
+
+- Escape cancels the latest Markdown conversion when no menu is open. Undo restores its complete literal source and Redo reapplies formatting in compact and document editors.
+
+## v0.26.14
+
+- Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
+
+## Unreleased
+
+- Compact fields reserve their initial editing height before mount, keeping surrounding scrolling layouts stable.
+
+- Add a toolbar-free compact Vue editor and safe content renderer for short rich text, with bold, italic, inline code, Markdown typing and history shortcuts.
+
+## v0.26.11
+
+- Row highlights on colored Cards, Callouts and card Sections use a shade of the surrounding surface instead of an unrelated brand wash. Neutral panels retain brand highlights, including nested panels. Hover, selection and their faint edges stay coherent in light and dark themes; action intents and keyboard focus remain independent.
+
+## v0.26.10
+
+- Annotated editor ranges can expose grouped host actions at the caret in the contextual toolbar and narrow dock, including read-only documents.
+
+## v0.26.9
+
+- Hovered and selected rows use a slightly stronger accent tint, so their filled area remains distinct from softly colored panels while retaining the faint edge and stronger keyboard focus.
+
+## v0.26.8
+
+- Escape closes the complete Format inventory and its contextual selection gesture.
+
+## v0.26.7
+
+- Pale list, surface navigation and tree highlights have a faint continuous inset edge that stays visible on softly toned panels. Keyboard focus keeps its stronger ring, with no row size change or second border on framed list cards.
+
+## v0.26.6
+
+- Add opt-in compact editor formatting and host-owned passage actions, including read-only selections and the narrow editing dock.
+
+## v0.26.5
+
+- Boxed Button and IconButton actions use flat faces, fine edges and one soft shadow that keep joined actions readable, with inherited edge and shadow theme values. Circular inverse Badge counts use a tone-tinted surface with a lighter rim and readable tone ink in light themes, and a shaded surface in dark themes; inverse pills retain their existing appearance.
+
+- Button adds a `badge` slot that keeps compact circular counts aligned with ordinary actions and matching Icon Buttons. Badge adds `size="sm"` with compact text that fits bounded counts such as `99+` in a 24px circle. Existing Badge sizes and default Button content retain their spacing.
+- Neutral card Buttons use a quiet decorative border while standard outline actions retain their tone-colored edge.
+- Input Group adds `variant="subtle"` for a muted composer surface with one shared frame around its textarea and action, retaining standard focus and field states.
+
 ## v0.26.4
 
 - Toast, generated Toast Region messages, and Callout use an even rounded border instead of a thicker, differently colored leading edge. Toast tones color the whole outline; Callout retains its shaded background. This corrects the default shape for all notification consumers without changing props, dismissal behavior, or status semantics. Existing explicit border and surface hooks remain available.

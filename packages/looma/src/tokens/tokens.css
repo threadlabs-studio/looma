@@ -183,7 +183,8 @@
     --ui-accent-solid: var(--ui-accent);
     /* One quiet selection recipe for destination/content rows. Hue derives from the brand;
        corners derive from the scale, and selected labels retain their resting weight. */
-    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 6%, var(--ui-surface));
+    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 10%, var(--ui-surface));
+    --ui-selection-border: color-mix(in oklab, var(--ui-accent) 20%, var(--ui-surface));
     --ui-selection-text: var(--ui-accent-subtle-text);
     --ui-selection-radius: var(--ui-radius-md);
     --ui-nav-icon-size: var(--ui-font-size-md);
@@ -341,8 +342,8 @@
   }
 
   [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]) {
-    background: var(--ui-selection-surface);
-    color: var(--ui-selection-text);
+    background: var(--_ui-selection-context-surface, var(--ui-selection-surface));
+    color: var(--_ui-selection-context-text, var(--ui-selection-text));
   }
 
   [data-ui-choice-option][data-multiple] {

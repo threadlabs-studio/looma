@@ -1,5 +1,17 @@
 <template component="ui-meter">
   <defs>
+    <prop name="variant" type="keyword" values="progress, distribution" default="progress"
+    >progress measures one value against max. distribution shows mutually exclusive parts of a whole as a full-width proportional bar; it uses parts rather than
+      value/max and is an image, not a progress reading.</prop>
+    <prop name="parts" type="list" default="[]">Categories in display order for distribution. Positive finite values determine each share without rounding; zero
+      and negative values draw nothing. Supply label and valueText to describe every category, and a visible text legend so colour is never the only
+      explanation.
+      <prop type="object">
+        <prop name="value" required type="number"></prop>
+        <prop name="color" required type="string"
+        >A CSS category colour, including a theme variable. This names category identity independently of status tones.</prop>
+      </prop>
+    </prop>
     <prop name="value" type="number" default="0"
     >How far along, from 0 to max. A value outside that range draws at the nearer end: below 0 is an empty track, above max a full bar.</prop>
     <prop name="max" type="number" default="1"
@@ -25,15 +37,26 @@
     <computed name="percent" from="{ true: $amount / $max * 100, false: 0 }[concat($max > 0)]"></computed>
   </defs>
   <span
-    role="meter"
-    aria-valuemin="0"
-    from:aria-valuemax="$max"
-    from:aria-valuenow="$amount"
-    from:aria-valuetext="{ true: $valueText, false: format($percent / 100, 'percent', { maximumFractionDigits: 0 }) }[concat($valueText != '')]"
-    from:aria-label="{ true: $label, false: null }[concat($label != '')]"
-    from:data-ui-meter-segments="{ true: $segments, false: null }[concat($segments > 1)]"
+    from:role="{ true: 'img', false: 'meter' }[concat($variant = 'distribution')]"
+    from:aria-valuemin="{ true: null, false: 0 }[concat($variant = 'distribution')]"
+    from:aria-valuemax="{ true: null, false: $max }[concat($variant = 'distribution')]"
+    from:aria-valuenow="{ true: null, false: $amount }[concat($variant = 'distribution')]"
+    from:aria-valuetext="{ true: null, false: { true: $valueText, false: format($percent / 100, 'percent', { maximumFractionDigits: 0 }) }[concat($valueText != '')] }[concat($variant = 'distribution')]"
+    from:aria-label="{ true: { true: concat($label, ': ', $valueText), false: $label }[concat($variant = 'distribution' and $valueText != '')], false: null }[concat($label != '')]"
+    from:data-ui-meter-segments="{ true: $segments, false: null }[concat($variant = 'progress' and $segments > 1)]"
   >
-    <span class="fill" style:inline-size="concat($percent, '%')"></span>
+    <span $if="$variant = 'progress'" class="fill" style:inline-size="concat($percent, '%')"></span>
+    <template $if="$variant = 'distribution'">
+      <template $each="part of $parts">
+        <span
+          $if="$part.value > 0 and $part.value - $part.value = 0"
+          class="part"
+          aria-hidden="true"
+          style:flex-grow="$part.value"
+          style:background-color="$part.color"
+        ></span>
+      </template>
+    </template>
   </span>
   <style>
     /* How far along something is: a track, filled from the start in the tone's colour. The track is a
@@ -156,6 +179,34 @@
 
     :host([size="sm"])[data-ui-meter-segments] {
       --_meter-gap: var(--ui-space-0-5);
+    }
+
+    /* A categorical distribution uses flex ratios, avoiding rounded percentages and retaining
+       identical geometry before hydration. It has no progress mask or growing-value animation. */
+    :host([variant="distribution"]) {
+      display: flex;
+      inline-size: 100%;
+      block-size: var(--ui-space-4);
+      gap: var(--ui-space-0-5);
+    }
+
+    :host([variant="distribution"])[size="sm"] {
+      block-size: var(--ui-space-2);
+    }
+
+    .part {
+      flex-basis: 0;
+      min-inline-size: 0;
+      block-size: 100%;
+    }
+
+    @media (forced-colors: active) {
+      .part {
+        forced-color-adjust: none;
+        background: CanvasText !important;
+        outline: var(--ui-border-width) solid Canvas;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
     }
 
     /* Forced colours drop backgrounds: draw the fill in the text colour inside the outlined track. */
