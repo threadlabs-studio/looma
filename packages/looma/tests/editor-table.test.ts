@@ -814,6 +814,16 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("removes hovered cell controls when deleting the table", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr></table><p>After</p>');
+    await cell(page, 0, 1).locator("p").click();
+    await cell(page, 0, 1).hover();
+    await page.getByRole("button", { name: "Cell actions", exact: true }).click();
+    await page.locator('[data-component="ui-editor-table-context-menu"]').getByRole("menuitem", { name: "Delete table", exact: true }).click();
+    await equals(() => prose(page).locator("table").count(), 0, "table deletion removes table");
+    await page.locator('[data-component="ui-editor-table-overlay"]').waitFor({ state: "detached" });
+    await page.close();
+  });
   it("keeps mobile table options open while their controls have focus", async () => {
     const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>', "sticky", false, { viewport: { width: 375, height: 900 } });
     await page.locator("#app").evaluate(element => { element.style.width = "100%"; });
