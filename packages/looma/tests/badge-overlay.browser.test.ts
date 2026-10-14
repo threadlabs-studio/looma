@@ -45,7 +45,9 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
       expect(label.width).toBeLessThanOrEqual(bounds.width - 2);
       expect(Math.abs(label.x + label.width / 2 - bounds.x - bounds.width / 2)).toBeLessThan(1);
       expect(Math.abs(label.y + label.height / 2 - bounds.y - bounds.height / 2)).toBeLessThan(1);
-      expect(style.borderTopColor).toBe("rgba(0, 0, 0, 0)");
+      ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = style.borderTopColor; ctx.fillRect(0, 0, 1, 1);
+      expect(ctx.getImageData(0, 0, 1, 1).data[3]).toBeCloseTo(51, 0);
+      expect(style.borderTopWidth).toBe("1px");
       expect(style.boxShadow).toBe("none");
       expect(count.getAttribute("aria-hidden")).toBe("true");
     }
