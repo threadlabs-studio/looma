@@ -10,7 +10,8 @@
     >Positions the description around its trigger. Start and end on top or bottom follow the writing direction.</prop>
     <prop name="trigger" type="keyword" values="hover, click, focus" default="hover"
     >How the trigger opens it. hover also opens on keyboard focus; click toggles it and suits a help button, where hovering a question mark says nothing; focus
-      opens only while the trigger holds focus.</prop>
+      opens only on keyboard-visible focus. Action activation dismisses hover/focus hints without removing focus; a fresh hover or keyboard focus can open them
+      again.</prop>
     <prop name="showDelay" type="number" default="500">Waits this many milliseconds before showing after pointer entry.</prop>
     <prop name="hideDelay" type="number" default="100">Waits this many milliseconds before hiding after pointer exit.</prop>
     <prop name="inverse" type="boolean" default="false">Use the high-contrast inverse surface (dark on light themes, light on dark themes).</prop>

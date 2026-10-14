@@ -14,6 +14,10 @@
 
 ## v0.26.25
 
+- Icon Button adds an anticipatory neutral rounded-bar guide and keeps pressed feedback from replacing positioning transforms.
+- Hover/focus action tooltips dismiss on activation and persist only for keyboard-visible focus; click-trigger help toggletips retain their behavior.
+
+
 - Link fields apply valid destination, text, and new-tab changes directly while preserving input focus. The popup has no footer buttons; Enter, Escape, or an outside click closes it, and nearby link actions retain Open and Remove.
 
 ## v0.26.24
