@@ -74,3 +74,6 @@ apps/docs/static/preview-runtime/
 
 # Browser verification output.
 /test-results/
+
+# Screenshots written by package tests.
+/.context/
