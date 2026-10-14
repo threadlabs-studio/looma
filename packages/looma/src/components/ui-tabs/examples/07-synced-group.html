@@ -1,0 +1,14 @@
+<!--
+title: Synced group
+description: Tabs in the same group select the same label together, and remember the choice for the next visit.
+-->
+<ui-stack gap="s">
+  <ui-tabs label="Install" group="package-manager">
+    <section id="install-pnpm" aria-label="pnpm"><code>pnpm add @threadlabs/looma</code></section>
+    <section id="install-npm" aria-label="npm"><code>npm install @threadlabs/looma</code></section>
+  </ui-tabs>
+  <ui-tabs label="Run" group="package-manager">
+    <section id="run-pnpm" aria-label="pnpm"><code>pnpm dev</code></section>
+    <section id="run-npm" aria-label="npm"><code>npm run dev</code></section>
+  </ui-tabs>
+</ui-stack>
