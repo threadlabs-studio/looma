@@ -457,6 +457,11 @@
           "id": "07-directory-search",
           "title": "Descriptions and tags",
           "behavior": false
+        },
+        {
+          "id": "08-discard-unfinished-query",
+          "title": "Discard unfinished search",
+          "behavior": false
         }
       ]
     },
