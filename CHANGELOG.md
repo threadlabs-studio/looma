@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.18
+
+- Menus support fixed icon columns that align labels across icon-bearing and text-only rows, including grouped items and links. Menu items accept decorative icons in a named slot and a danger tone for destructive actions.
+
 ## v0.26.17
 
 - Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
