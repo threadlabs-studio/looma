@@ -1,4 +1,5 @@
 import { backgrounds } from "../shared/editor.js";
+import { createAnchoredSurface } from "../shared/overlay.js";
 
 const overflowSections = [
   ["Structure", [["add-row-before", "Add row above", "panel-top"], ["add-column-before", "Add column left", "panel-left"], ["toggle-header-row", "Header row", "rows"], ["toggle-header-column", "Header column", "columns"], ["move-row-up", "Move row up", "rows"], ["move-row-down", "Move row down", "rows"], ["move-column-left", "Move column left", "columns"], ["move-column-right", "Move column right", "columns"]]],
@@ -9,10 +10,19 @@ const overflowSections = [
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
 function connect(host) {
   const element = host.element;
+  let surface = null;
+  let surfaceMenu = null;
+  let positionFrame = null;
   const positionMenu = () => {
+    if (!host.state.overflowOpen) return;
     const button = element.querySelector(".more");
     const menu = element.querySelector(".menu");
     if (!button || !menu) return;
+    if (surfaceMenu !== menu) {
+      surface?.destroy();
+      surfaceMenu = menu;
+      surface = createAnchoredSurface(menu, { anchor: button, placement: "bottom-end", gap: 8, viewportGap: 12 });
+    }
     const rect = button.getBoundingClientRect();
     const viewport = window.visualViewport;
     const top = viewport?.offsetTop ?? 0;
@@ -20,8 +30,11 @@ function connect(host) {
     const above = rect.top - top - 20;
     const below = bottom - rect.bottom - 20;
     menu.style.maxHeight = `${Math.max(80, Math.floor(Math.max(above, below)))}px`;
-    menu.style.top = below >= above ? "calc(100% + var(--ui-space-2))" : "auto";
-    menu.style.bottom = below >= above ? "auto" : "calc(100% + var(--ui-space-2))";
+    surface.show();
+  };
+  const schedulePosition = () => {
+    if (positionFrame !== null) cancelAnimationFrame(positionFrame);
+    positionFrame = requestAnimationFrame(() => { positionFrame = null; positionMenu(); });
   };
   const stop = host.effect(() => {
     const enabled = new Set(Array.isArray(host.props.actions.value) ? host.props.actions.value : []);
@@ -45,12 +58,19 @@ function connect(host) {
     host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;
     if (!host.props.open.value || !host.state.hasOverflow) host.state.overflowOpen = false;
   });
+  const stopMenu = host.effect(() => {
+    if (host.state.overflowOpen) schedulePosition();
+    else {
+      surface?.destroy();
+      surface = null;
+      surfaceMenu = null;
+    }
+  });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
     if (!action) return;
     if (action === "toggle-overflow") {
       host.state.overflowOpen = !host.state.overflowOpen;
-      if (host.state.overflowOpen) requestAnimationFrame(positionMenu);
       return;
     }
     host.state.overflowOpen = false;
@@ -74,6 +94,9 @@ function connect(host) {
   window.visualViewport?.addEventListener("resize", positionMenu);
   return () => {
     stop();
+    stopMenu();
+    surface?.destroy();
+    if (positionFrame !== null) cancelAnimationFrame(positionFrame);
     element.removeEventListener("click", onClick);
     document.removeEventListener("pointerdown", onOutside, true);
     document.removeEventListener("keydown", onKeydown, true);
