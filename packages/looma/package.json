@@ -57,7 +57,12 @@
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
     "./theme-dark.css": "./theme-dark.css",
-    "./theme-high-contrast.css": "./theme-high-contrast.css"
+    "./theme-high-contrast.css": "./theme-high-contrast.css",
+    "./vue/editor/compact": {
+      "types": "./vue/editor/compact/index.d.ts",
+      "import": "./vue/editor/compact/index.js",
+      "default": "./vue/editor/compact/index.js"
+    }
   },
   "files": [
     "dist/",

@@ -457,6 +457,11 @@
           "id": "07-directory-search",
           "title": "Descriptions and tags",
           "behavior": false
+        },
+        {
+          "id": "08-discard-unfinished-query",
+          "title": "Discard unfinished search",
+          "behavior": false
         }
       ]
     },
@@ -1186,6 +1191,11 @@
           "id": "07-small",
           "title": "Small menu",
           "behavior": false
+        },
+        {
+          "id": "08-icon-columns",
+          "title": "Aligned icon columns",
+          "behavior": false
         }
       ]
     },
@@ -1264,6 +1274,11 @@
         {
           "id": "05-steps",
           "title": "Steps",
+          "behavior": false
+        },
+        {
+          "id": "06-distribution",
+          "title": "Distribution",
           "behavior": false
         }
       ]

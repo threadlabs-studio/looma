@@ -79,7 +79,7 @@ const rows = (page: Page) => table(page).locator("tr");
 const cell = (page: Page, row: number, col: number) => rows(page).nth(row).locator("th, td").nth(col);
 const tableToolbar = (page: Page) => page.getByRole("toolbar", { name: "Table actions" });
 const tableMenu = (page: Page) => page.getByRole("menu", { name: "More table actions" });
-const linkForm = (page: Page) => page.locator(".looma-editor__link-form");
+const linkForm = (page: Page) => page.getByRole("form", { name: "Edit link", exact: true });
 
 async function insertTableFromSlashMenu(page: Page): Promise<void> {
   await prose(page).click();
@@ -201,7 +201,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox").press("ArrowDown");
     await page.keyboard.press("Enter");
     await form.getByRole("textbox", { name: "Text", exact: true }).fill("Guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Guide" }).getAttribute("href"), "/records/one", "slash uses the same host picker");
     await prose(page).getByRole("link", { name: "Guide" }).click();
     await page.getByRole("group", { name: "Link actions" }).waitFor();
@@ -211,12 +211,12 @@ describe("LoomaEditor links", () => {
     await page.keyboard.type(" /link");
     await page.getByRole("option", { name: /Link Link to a destination or URL/i }).waitFor();
     await page.keyboard.press("Enter");
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     assert.equal(await prose(page).locator("a").count(), 1, "cancel inserts no second link");
     await page.close();
   });
 
-  it("uses one standard form hierarchy with flat results and a primary save action", async () => {
+  it("uses one standard form hierarchy with flat results and direct field changes", async () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
@@ -225,12 +225,12 @@ describe("LoomaEditor links", () => {
     await form.getByRole("heading", { name: "Add link" }).waitFor({ timeout: 1000 });
     await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
     await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 2, "results use flat component rows");
-    assert.match(await form.getByRole("button", { name: "Save link" }).getAttribute("data-ui-button-state") ?? "", /variant=solid/);
+    assert.equal(await form.getByRole("button", { name: /Save link|Cancel|Remove link/ }).count(), 0, "fields need no footer confirmation");
     assert.equal(await form.getByRole("searchbox").getAttribute("placeholder"), "Search pages or paste a URL…");
     assert.equal(await form.getByRole("tab").count(), 0, "one field replaces destination modes");
     assert.equal(await form.getByRole("searchbox").evaluate(element => getComputedStyle(element).outlineStyle), "none", "input group owns one focus treatment");
     await page.screenshot({ animations: "disabled", path: join(root, ".build", "link-picker-desktop.png") });
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     assert.equal(await prose(page).locator("a").count(), 0, "cancel keeps content unchanged");
     await form.waitFor({ state: "hidden" });
     await page.close();
@@ -258,7 +258,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox", { name: "Link destination" }).fill("More");
     await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 5, "results appear");
     assert.equal(await trigger.count(), 1, "the field keeps its mobile anchor mounted");
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     await page.close();
   });
 
@@ -290,7 +290,7 @@ describe("LoomaEditor links", () => {
       await page.mouse.wheel(0, 300);
       await until(() => results.evaluate(element => element.scrollTop), value => value > 0, "last result remains reachable by scrolling");
       await rows.last().click();
-      await form.getByRole("button", { name: "Save link" }).click();
+      await form.locator("input").first().press("Enter");
       await equals(() => prose(page).getByRole("link").getAttribute("href"), "/records/more-4", "scrolled result can be selected");
       await page.close();
     }
@@ -342,14 +342,14 @@ describe("LoomaEditor links", () => {
     await toolbar.getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.test/path?q=one#part");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "/path?q=one#part", "site link becomes relative");
     await form.waitFor({ state: "hidden" });
     await toolbar.waitFor({ state: "hidden" });
     assert.equal(await prose(page).textContent(), "Hello", "selection text is preserved");
     await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
     await toolbar.getByRole("button", { name: "Link" }).click();
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     await form.waitFor({ state: "hidden" });
     await toolbar.waitFor({ state: "hidden" });
     await page.close();
@@ -367,7 +367,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox", { name: "Link destination" }).press("ArrowDown");
     assert.equal(await results.first().evaluate(element => document.activeElement === element), true);
     await results.nth(1).click();
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     const link = prose(page).getByRole("link", { name: "Hello" });
     await equals(() => link.getAttribute("href"), "/records/two", "host destination is saved");
     assert.equal(await link.getAttribute("target"), "_self");
@@ -392,11 +392,11 @@ describe("LoomaEditor links", () => {
     await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("/guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await form.getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.com/guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).locator("a").getAttribute("href"), "https://example.com/guide", "external URL stays absolute");
     await page.close();
   });
@@ -415,7 +415,7 @@ describe("LoomaEditor links", () => {
     await destination.fill("Guide");
     await equals(() => form.getByLabel("Destination search results").getByRole("button").count(), 2, "replacing URL restores search");
     await destination.fill("mailto:hello@example.com");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "mailto:hello@example.com", "pasted destination is saved without a mode switch");
     await page.close();
   });
@@ -446,7 +446,7 @@ describe("LoomaEditor links", () => {
     await prose(page).getByRole("link", { name: "Read" }).click();
     await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("searchbox", { name: "Link destination" }).fill("/after?q=one#part");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Read" }).getAttribute("href"), "/after?q=one#part", "editing a relative destination does not turn it into a search query");
     await page.close();
   });
@@ -461,7 +461,7 @@ describe("LoomaEditor links", () => {
     assert.match(await actions.textContent() ?? "", /\/guide/);
     await actions.getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");
     await prose(page).locator("p").click({ position: { x: 2, y: 8 } });
     await equals(() => actions.count(), 0, "link actions close outside the link");
@@ -531,26 +531,33 @@ describe("LoomaEditor links", () => {
     await linkButton.click();
     assert.equal(await linkForm(page).getByRole("textbox", { name: "Text" }).count(), 0, "selected text does not need a text field");
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("javascript:alert(1)");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await linkForm(page).getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com/page");
-    assert.equal(await linkForm(page).getByRole("link", { name: "Preview link" }).getAttribute("rel"), "noopener noreferrer");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    assert.equal(await linkForm(page).getByRole("link", { name: "Open link" }).count(), 0, "navigation belongs in nearby link actions");
+    await linkForm(page).locator("input").first().press("Enter");
     const link = prose(page).locator("a");
     await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
     assert.equal(await link.textContent(), "Hello");
     await link.click();
-    await linkButton.click();
+    await page.getByRole("button", { name: "Edit link", exact: true }).click();
+    await equals(() => linkForm(page).count(), 1, "only one link form is presented");
     assert.equal(await linkForm(page).getByRole("textbox", { name: "URL" }).inputValue(), "https://example.com/page");
+    await equals(() => linkForm(page).getByRole("textbox", { name: "URL" }).evaluate(element => element === document.activeElement), true, "Edit focuses the visible destination field");
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      await page.locator("#app").evaluate((element, width) => { (element as HTMLElement).style.width = `${Math.min(width, 720)}px`; }, width);
+      await mkdir(join(root, "../../.context"), { recursive: true });
+      await page.screenshot({ animations: "disabled", path: join(root, "../../.context", `link-direct-${width}.png`) });
+    }
     await linkForm(page).getByRole("checkbox", { name: "Open in new tab" }).uncheck();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/changed");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/changed", "existing link URL changes");
     assert.equal(await link.getAttribute("target"), "_self");
     await link.click();
-    await linkButton.click();
-    await linkForm(page).getByRole("button", { name: "Remove link" }).click();
+    await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Remove link" }).click();
     await equals(() => prose(page).locator("a").count(), 0, "link mark is removed");
     assert.equal(await prose(page).locator("p").textContent(), "Hello");
     await page.close();
@@ -562,8 +569,11 @@ describe("LoomaEditor links", () => {
     await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
     await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read more");
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
-    await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted");
+    await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted without a save action");
+    await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read this");
+    assert.equal(await prose(page).locator("a").count(), 1, "typing text updates the inserted link rather than duplicating it");
+    await equals(() => prose(page).locator("a").textContent(), "Read this", "link text updates directly");
+    await linkForm(page).locator("input").first().press("Escape");
     await page.close();
   });
 });
@@ -821,6 +831,73 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("removes hovered cell controls when deleting the table", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr></table><p>After</p>');
+    await cell(page, 0, 1).locator("p").click();
+    await cell(page, 0, 1).hover();
+    await page.getByRole("button", { name: "Cell actions", exact: true }).click();
+    await page.locator('[data-component="ui-editor-table-context-menu"]').getByRole("menuitem", { name: "Delete table", exact: true }).click();
+    await equals(() => prose(page).locator("table").count(), 0, "table deletion removes table");
+    await page.locator('[data-component="ui-editor-table-overlay"]').waitFor({ state: "detached" });
+    await page.close();
+  });
+  it("keeps mobile table options open while their controls have focus", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>', "sticky", false, { viewport: { width: 375, height: 900 } });
+    await page.locator("#app").evaluate(element => { element.style.width = "100%"; });
+    await cell(page, 1, 1).locator("p").click();
+    await openTableMenu(page);
+    await tableMenu(page).getByRole("menuitem", { name: "Delete row", exact: true }).click();
+    await equals(() => rows(page).count(), 1, "mobile row deletion remains usable");
+    await page.close();
+  });
+  it("accepts empty native overlay geometry and hovered actions without controller errors", async () => {
+    const path = await bundle("native-table-overlay", 'import "@threadlabs/looma";');
+    const geometry = { rowBoundaries: [0, 40, 80], columnBoundaries: [0, 80, 160], activeCell: null, hoveredCell: null };
+    const activeCell = { left: 0, top: 0, width: 80, height: 40, rowIndex: 0, columnIndex: 0 };
+    const hoveredCell = { ...activeCell, left: 80, top: 40, rowIndex: 1, columnIndex: 1 };
+    const page = await open(path, [geometry, { ...geometry, activeCell }, { ...geometry, activeCell, hoveredCell }]
+      .map((value, index) => `<ui-editor-table-overlay id="overlay-${index}" open geometry='${JSON.stringify(value)}'></ui-editor-table-overlay>`).join(""), [join(root, "tokens.css")]);
+    const menu = (index: number) => page.locator(`#overlay-${index}`).getByRole("button", { name: "Cell actions", exact: true });
+    assert.equal(await menu(0).count(), 0);
+    assert.equal(await menu(1).getAttribute("data-row-index"), "0");
+    assert.equal(await menu(2).getAttribute("data-row-index"), "1");
+    assert.equal(await menu(2).getAttribute("data-column-index"), "1");
+    await page.close();
+  });
+  it("keeps cell menus live after row deletion and tracks focus and scrolling", async () => {
+    const page = await openEditor('<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>');
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.locator("#app").evaluate(element => { element.style.marginTop = "250px"; });
+    await cell(page, 0, 0).click();
+    await cell(page, 1, 1).hover();
+    const trigger = page.getByRole("button", { name: "Cell actions", exact: true });
+    await equals(() => trigger.getAttribute("data-row-index"), "1", "menu follows hover");
+    await equals(() => trigger.getAttribute("data-column-index"), "1", "menu follows hovered column");
+    await trigger.click();
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    await context.getByRole("menuitem", { name: "Delete row", exact: true }).click();
+    await equals(() => rows(page).count(), 1, "the hovered row was deleted");
+    await cell(page, 0, 0).locator("p").click({ position: { x: 2, y: 2 } });
+    await equals(() => page.evaluate(() => (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor.isActive("table")), true, "click selects the remaining table");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor.isFocused), true, "Tab stays in the table after deletion");
+    await page.locator("#outside").hover();
+    await equals(() => trigger.getAttribute("data-column-index"), "1", "menu follows keyboard focus");
+    const assertAnchor = async () => {
+      const tableBox = await table(page).boundingBox(), toolbarBox = await tableToolbar(page).boundingBox();
+      assert.ok(tableBox && toolbarBox && Math.abs(toolbarBox.y + 52 - tableBox.y) < 1, "toolbar remains beside its table");
+    };
+    await assertAnchor();
+    await page.evaluate(() => { document.body.style.minHeight = "1800px"; window.scrollTo(0, 100); });
+    await page.waitForTimeout(100);
+    await assertAnchor();
+    await prose(page).locator(":scope > p").last().click();
+    await tableToolbar(page).waitFor({ state: "hidden" });
+    assert.equal(await trigger.count(), 0, "cell menu closes after leaving table");
+    assert.deepEqual(errors, [], "no controller errors strand editor or surrounding controls");
+    await page.close();
+  });
   it("keeps table options reachable and dismissible in a short viewport", async () => {
     const page = await openEditor();
     await page.setViewportSize({ width: 800, height: 420 });
@@ -1139,6 +1216,54 @@ describe("LoomaEditor tables", () => {
     await menu.waitFor();
     await menu.getByRole("menuitem", { name: /add column right/i }).click();
     await equals(() => rows(page).nth(0).locator("th, td").count(), 4, "column added");
+    await page.close();
+  });
+
+  it.each([720, 375])("reflects saved cell backgrounds in both menus at %spx", async (width) => {
+    const page = await openEditor('<table><tr><th>Header</th><th>Other</th></tr><tr><td>Target</td><td>Neighbour</td></tr></table>');
+    await page.setViewportSize({ width, height: 812 });
+    await page.locator("#app").evaluate((element, width) => { element.style.width = `${width - 32}px`; }, width);
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    const target = cell(page, 1, 0);
+    const menu = width > 767 ? context : tableMenu(page);
+    const openCellMenu = async (selected: Locator) => {
+      if (width > 767) await selected.click({ button: "right" });
+      else {
+        await selected.click();
+        await page.getByRole("toolbar", { name: "Table editing" }).getByRole("button", { name: "Table options" }).click();
+      }
+    };
+    for (const label of ["Gray", "Yellow", "Blue", "Green", "Red"]) {
+      await openCellMenu(target);
+      await menu.getByRole("menuitemradio", { name: label, exact: true }).click();
+      // A real HTML round trip reproduces the browser's hex-to-RGB parsing.
+      await page.evaluate(() => {
+        const editor = (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor;
+        editor.commands.setContent(editor.getHTML());
+      });
+      await cell(page, 1, 1).click();
+      if (width > 767) {
+        await target.hover();
+        await page.locator('[data-component="ui-editor-table-overlay"]').getByRole("button", { name: "Cell actions" }).click();
+      } else await openCellMenu(target);
+      await equals(() => menu.getByRole("menuitemradio", { name: label, exact: true }).getAttribute("aria-checked"), "true", `${label} stays selected after HTML reload`);
+      assert.equal(await menu.locator('[role="menuitemradio"][aria-checked="true"]').count(), 1);
+      await page.keyboard.press("Escape");
+      await target.click();
+      if (width <= 767) {
+        const dock = page.getByRole("toolbar", { name: "Table editing" });
+        await dock.getByRole("button", { name: "Table options" }).click();
+      } else await openTableMenu(page);
+      await equals(() => tableMenu(page).getByRole("menuitemradio", { name: label, exact: true }).getAttribute("aria-checked"), "true", `${label} is selected in table options`);
+      await page.keyboard.press("Escape");
+    }
+    await openCellMenu(cell(page, 0, 0));
+    await equals(() => menu.getByRole("menuitemradio", { name: "Default", exact: true }).getAttribute("aria-checked"), "true", "unformatted header keeps its default styling");
+    await page.keyboard.press("Escape");
+    await openCellMenu(target);
+    await menu.getByRole("menuitemradio", { name: "Default", exact: true }).click();
+    await openCellMenu(target);
+    await equals(() => menu.getByRole("menuitemradio", { name: "Default", exact: true }).getAttribute("aria-checked"), "true", "clearing a background restores Default");
     await page.close();
   });
 

@@ -128,7 +128,7 @@ function connect(host) {
       rowOffset: `${hovered.top + hovered.height / 2}px`,
       columnOffset: `${hovered.left + hovered.width / 2}px`,
     };
-    const active = host.props.geometry.value?.activeCell ?? null;
+    const active = hovered ?? host.props.geometry.value?.activeCell ?? null;
     host.state.active = active && { ...active, menuLeft: `${active.left + active.width - 30}px`, menuTop: `${active.top + 6}px` };
     queueMicrotask(proximity.refresh);
   });

@@ -34,6 +34,12 @@ formatting commands, selection and focus, and every editor control. See
 
 ## Toolbar
 
+Markdown typing conversions are separate undo steps. Undo restores the complete
+literal source; Redo reapplies its formatting. Escape immediately after a
+conversion also restores the literal source when no menu is open. Typing or
+moving the caret ends that Escape cancellation opportunity. Open menus retain
+their usual Escape dismissal.
+
 The toolbar is always one row, in four groups. When it is wider than the space it has, the row scrolls sideways instead of wrapping, and each edge that hides controls fades into the toolbar's colour:
 
 - **Text:** Bold, Italic, Underline, Strike, Highlight, Inline code, Link.
@@ -108,14 +114,18 @@ Token colors use the theme's semantic text colors and can be overridden with
 
 ### Links
 
-Select text and choose **Link** to add one. On desktop, placing the caret in an existing link shows
-nearby actions to open, edit, or remove it. The mobile toolbar's **Link** button also edits the
-link at the caret.
+Select text and choose **Link** to add one. Click or tap an existing link to place the caret and
+show nearby **Open link**, Edit, and Remove actions above it. Press Escape to dismiss the bar.
+Hold Command on macOS or Control on other computers while hovering over a link to see a pointer
+cursor, then click to open its destination in a new tab. Ordinary clicks keep editing.
+The mobile toolbar's **Link** button also edits the link at the caret.
 With no selection, the form also asks for link text. It accepts `http:`, `https:`, `mailto:`,
 `tel:`, and relative URLs beginning with `/`, `#`, or `?`; other schemes are rejected before the
-document changes. A preview opens separately with `noopener noreferrer`. The **Open in new tab**
-choice controls the saved link's `target` and `rel` attributes. The editor restores its selection
-when the form saves, so moving focus to the form does not change the text being linked.
+document changes. The **Open link** action opens separately with `noopener noreferrer`. The **Open in new tab**
+choice updates the link's `target` and `rel` attributes directly. Valid destination and text
+changes apply immediately without moving focus from the field. There is no Save or Cancel footer;
+press Enter or Escape, or click outside, to close the popup. Incomplete or invalid URL entry leaves
+the last valid link intact. Open and Remove stay in the nearby link actions.
 
 The form follows the same theme layers as the rest of Looma: its surface, border, radius and shadow
 read inherited `--ui-overlay-*` values; its input radius reads `--ui-field-radius`; its invalid
@@ -175,3 +185,26 @@ The line sits outside the content box, so a consumer that sets
 `--ui-editor-content-padding-inline` to `0` must leave it room on its own wrapper. The marker comes
 from the `LoomaActiveBlock` extension in `@threadlabs/looma/editor/extensions`, which adds the
 `looma-active-block` class to the block and nothing else.
+
+
+## Passage actions and compact formatting
+
+`compactToolbar` is opt-in. On desktop it keeps Bold, Italic and Link beside
+Format, which exposes the existing complete formatting inventory. The narrow
+editing dock retains its formatting controls.
+
+`selectionActions` accepts `{ id, label }` commands owned by the application.
+They appear only for a nonempty text selection, before formatting in the narrow
+dock. Read-only selections expose the actions without exposing edit controls.
+`selectionAction` emits `{ id, from, to, text, before, after }`, captured before
+the host moves focus. These actions never mutate the document. The host owns
+permissions, durable annotation identity, panels and return navigation; positions
+are from the current editor snapshot, not a lasting anchor.
+
+`rangeActions` accepts `{ id, label, from, to }` actions for a collapsed text
+caret. Clicking inside a matching range opens the contextual toolbar, including
+in read-only documents; narrow viewports use the existing editing dock. Actions
+with the same ID share one button. `rangeAction` emits `{ id, ranges }`, with
+unique matching `{ from, to }` pairs captured before focus moves. Invalid or
+out-of-document ranges are ignored. The host recalculates these ephemeral
+positions after content changes and owns annotation persistence and paint.

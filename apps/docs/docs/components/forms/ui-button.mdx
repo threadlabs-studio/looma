@@ -15,11 +15,26 @@ spinner, exposes `aria-disabled` and `aria-busy`, and blocks clicks and form sub
 prop when the action finishes. This also works with `as="a"`: the loading link keeps its focus
 position but cannot navigate.
 
+Put a non-interactive count in the `badge` slot of a boxed Button sized `sm` or larger. The slot keeps a 24px Badge inside
+the standard control height, so it aligns with an ordinary Button and a matching IconButton. Use
+`shape="circle" size="sm"` for compact counts through `99+`, and `variant="inverse"` with the filled
+button's tone. Name the full count on the button and hide a redundant count from assistive technology.
+Large content can still grow the button. Existing default-slot content keeps its spacing.
+
+```vue
+<Button size="sm" variant="solid" aria-label="Submit 120 items">
+  Submit
+  <template #badge><Badge shape="circle" size="sm" variant="inverse" tone="accent" aria-hidden="true">99+</Badge></template>
+</Button>
+```
+
 ## CardButton variant
 
 Use `variant="card"` for one whole-card action. It reuses Button's `tone`, loading, disabled,
 link and form behavior. Its uniform border and equal inline padding use the standard Button
 palette and spacing; there is no emphasized side edge.
+With `tone="neutral"`, the card uses the standard decorative neutral border while ordinary outline
+actions retain their tone-colored edge.
 
 Put arbitrary decorative content in the `icon` slot. Icon and main content align at the top;
 the grid row centers within spare height so single-line labels look vertically centered, and
@@ -37,6 +52,13 @@ Set `--ui-accent` or `--ui-danger` on the theme root to change the action palett
 `--ui-action-radius` on a section to change Button and Icon Button corners together. Set
 `--ui-button-radius` on one Button for an exception. The [theming guide](/tokens) explains the global,
 group, and component levels.
+
+Boxed Button and IconButton actions have a flat face, one fine top/leading highlight and bottom/trailing
+lowlight, and a single ambient shadow. Their default does not stack a face gradient or another inset bevel.
+Joined actions show the trailing lowlight immediately before the next action's leading highlight.
+Set inherited `--ui-action-edge` to replace those inset edges, or `--ui-action-shadow` to replace the
+whole resting shadow for both components. Component shadow hooks still take precedence. Ghost and
+link actions stay flat; focus, pressed and disabled treatments retain their usual meaning.
 
 A label wraps as its container's text does. To keep one on a single line, such as in a narrow table
 cell, set `--ui-button-white-space: nowrap` on that button through a class of your own. It takes

@@ -566,7 +566,7 @@ describe("editor extension contract", () => {
       editor.commands.setTextSelection(5);
       editor.commands.insertContent(" ==new=");
       const { from } = editor.state.selection;
-      editor.view.someProp("handleTextInput", (handle) => handle(editor.view, from, from, "=", () => editor.state.tr));
+      editor.view.someProp("handleTextInput", (handle) => handle(editor.view, from, from, "=", () => editor.state.tr.insertText("=", from, from)));
     };
     const pasted = (editor: Editor) => () => {
       editor.commands.setTextSelection(5);

@@ -22,6 +22,11 @@ field and focus ring around the input and its affixes.
 
 Use `multiline` to put a Textarea and its action inside one frame. The action sits below the text at the inline end. The textarea keeps its label, form behavior and sizing; the group shows focus, invalid and disabled states.
 
+Set `variant="subtle"` for a quiet composer with the standard decorative border and muted surface.
+The Textarea shares this surface without adding an inner border. Put an IconButton in the `action`
+slot to keep a compact send or stop action at the bottom end; the default `actionPosition="below"`
+keeps it clear of the text and native resize grip. Omit `variant` for the existing outline field.
+
 Set `actionPosition="top-end"` to put the action inside the textarea at its upper inline end. The group reserves text padding for the actual action width, including a changing label or pending indicator. The native lower resize grip stays clear. Omit the option to retain the below-text placement.
 
 ```vue

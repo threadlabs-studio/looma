@@ -80,21 +80,24 @@
       background: var(--ui-surface-raised);
     }
 
-    :host:where(:has(.title a[href])):hover {
-      background: var(--ui-selection-surface);
+    :host:where(:has(.title a[href])):hover,
+    :host([highlighted]),
+    :host([current]) {
+      background: var(--_ui-selection-context-surface, var(--ui-selection-surface));
+      box-shadow: inset 0 0 0 var(--ui-border-width) var(--_ui-selection-context-border, var(--ui-selection-border));
     }
 
     :host([variant="card"]):where(:has(.title a[href])):hover {
       border-color: var(--ui-border-strong);
     }
 
-    :host([highlighted]) {
-      background: var(--ui-selection-surface);
+    :host([current]) {
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
     }
 
-    :host([current]) {
-      background: var(--ui-selection-surface);
-      color: var(--ui-selection-text);
+    /* Framed cards already have their own edge; the stronger focus ring stays separate. */
+    :host([variant="card"]) {
+      box-shadow: none;
     }
 
     :host:has(.title a[href]:focus-visible) {
@@ -115,7 +118,7 @@
     }
 
     :host([current]) .leading {
-      color: var(--ui-selection-text);
+      color: var(--_ui-selection-context-text, var(--ui-selection-text));
     }
 
     /* An explicitly independent leading control sits above the stretched row link. */

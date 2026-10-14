@@ -6,6 +6,16 @@ export const backgrounds = [
   ["background-green", "Green", "#dcfce7"], ["background-red", "Red", "#fee2e2"],
 ];
 
+// HTML parsing serializes hex colors as RGB. Compare browser-normalized CSS
+// colors without changing the document value or treating invalid CSS as Default.
+export function normalizeCellBackground(value, ownerDocument) {
+  const color = String(value ?? "").trim();
+  if (!color) return "";
+  const style = ownerDocument.createElement("span").style;
+  style.backgroundColor = color;
+  return style.backgroundColor || color;
+}
+
 // Looma's icon set as plain data, generated from LOOMA_ICONS (see shared/icons.js).
 export { icons } from "./icons.js";
 

@@ -22,6 +22,50 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor managed suggestion menus", () => {
+  it("moves cell actions with hover and keyboard focus and dismisses table controls outside the table", async () => {
+    Object.defineProperty(window, "innerWidth", { value: 1280, configurable: true });
+    const host = document.createElement("div");
+    host.style.marginLeft = "48px";
+    host.style.width = "240px";
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const app = createApp({ render: () => h(LoomaEditor, {
+      onReady: (instance: Editor) => { editor = instance; },
+    }) });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+    editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: false }).run();
+    editor!.commands.insertContentAt(editor!.state.doc.content.size, { type: "paragraph", content: [{ type: "text", text: "After table" }] });
+    await flushBrowser();
+    const cells = Array.from(host.querySelectorAll<HTMLTableCellElement>(".ProseMirror td"));
+    const menu = () => host.querySelector<HTMLElement>('[data-action="open-cell-menu"]');
+    await userEvent.click(cells[0]!);
+    await flushBrowser();
+    expect(menu()?.dataset.columnIndex).toBe("0");
+    await userEvent.hover(cells[3]!);
+    await flushBrowser();
+    expect(menu()?.dataset.rowIndex).toBe("1");
+    expect(menu()?.dataset.columnIndex).toBe("1");
+    await userEvent.click(cells[0]!);
+    await userEvent.keyboard("{Tab}");
+    await userEvent.hover(host);
+    await flushBrowser();
+    expect(menu()?.dataset.rowIndex).toBe("0");
+    expect(menu()?.dataset.columnIndex).toBe("1");
+    await userEvent.click(menu()!);
+    await flushBrowser();
+    const contextMenu = host.querySelector<HTMLElement>('[data-component~="ui-editor-table-context-menu"]')!;
+    expect(contextMenu).toBeTruthy();
+    await userEvent.click(contextMenu.querySelector<HTMLElement>('[data-action="delete-row"]')!);
+    await flushBrowser();
+    expect(host.querySelectorAll(".ProseMirror tr")).toHaveLength(1);
+    expect(menu()?.dataset.rowIndex).toBe("0");
+    editor!.commands.setTextSelection(editor!.state.doc.content.size - 1);
+    await flushBrowser();
+    expect(host.querySelector('[data-component~="ui-editor-table-toolbar"]')).toBeNull();
+    expect(menu()).toBeNull();
+  });
   it("projects native suggestion rectangles through the managed component boundary", async () => {
     const originalViewport = { width: window.innerWidth, height: window.innerHeight };
     await page.viewport(1280, 800);
