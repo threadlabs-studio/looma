@@ -61,6 +61,10 @@
     >Commits a highlighted authored suggestion on forward Tab, then lets focus advance normally. In multiple mode a selected suggestion is retained without
       duplication or removal. Shift+Tab does not commit, and Tab never chooses the create offer.</prop>
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
+    <prop name="clearQueryOnBlur" type="boolean" default="false"
+    >In multiple mode, clears unfinished search text when focus leaves the whole combobox, preserving selected items. A controlled query reports query-change
+      with an empty query; the consumer must reflect it back. Does not choose or create an option. The default preserves unfinished text. Single mode keeps
+      its existing selection and free-text resolution.</prop>
     <prop name="allowCreate" type="boolean" default="false"
     >Offers the current query as a new option, reported as create-item. When nothing else matches, the offer is highlighted, so Enter creates it; with nothing
       highlighted, Enter in multiple mode commits the typed text as a token separator does.</prop>
