@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.22
+
+- Hold Command on macOS or Control elsewhere over editor links for a pointer cursor and click to open a new tab. Clicking a link normally reveals compact Open, Edit, and Remove actions above it. Link forms separate link utilities from aligned Cancel and Save actions.
+
 ## v0.26.21
 
 - Cell background menus recognize saved preset colors in both hex and RGB form, keeping the current color selected after an HTML round trip.
