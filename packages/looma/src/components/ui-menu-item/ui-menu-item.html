@@ -10,6 +10,7 @@
     <prop name="type" type="keyword" values="action, checkbox, radio" default="action"
     >An action closes its menu; a checkbox toggles, and a radio chooses one item within its nearest Menu Group. Checkable items keep the menu open.</prop>
     <prop name="checked" type="boolean" default="false">Initial or externally controlled checked state of a checkbox or radio item.</prop>
+    <prop name="tone" type="keyword" values="neutral, danger" default="neutral">Danger identifies a destructive action without changing its behavior.</prop>
     <state type="boolean" name="internalChecked" value="false"></state>
     <event name="change" type="object">
       <prop name="checked" required type="boolean"></prop>
@@ -27,6 +28,7 @@
       from:data-value="$value"
       from:href="{ true: null, false: $href }[concat($disabled)]"
     >
+      <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
     </a>
@@ -41,6 +43,7 @@
       <span class="indicator" aria-hidden="true">
         <ui-icon $if="($type = 'checkbox' or $type = 'radio') and $internalChecked" name="check"></ui-icon>
       </span>
+      <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
     </div>
@@ -89,6 +92,29 @@
       cursor: pointer;
       outline: none;
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    /* A named icon has a fixed column; an icon-enabled menu reserves it on every row. */
+    .icon {
+      display: var(--_ui-default-menu-icon-display, none);
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      inline-size: var(--ui-icon-size-sm);
+      block-size: var(--ui-icon-size-sm);
+    }
+
+    .icon:not(:empty) {
+      display: inline-flex;
+    }
+
+    .icon :slotted(svg) {
+      inline-size: 100%;
+      block-size: 100%;
+    }
+
+    :host([tone="danger"]) {
+      color: var(--ui-danger);
     }
 
     .label {
