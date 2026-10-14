@@ -28,6 +28,18 @@ Large content can still grow the button. Existing default-slot content keeps its
 </Button>
 ```
 
+## Value-picker field variant
+
+Use `variant="field"` to open a custom value picker. It shares Select's subtle
+outline, neutral text, surface and slight resting lift, regardless of action
+tone. Use `aria-expanded` to expose an open picker; that state presses the
+trigger inward. Keyboard focus retains its halo and disabled controls lose
+their lift. Use Select for a native list of plain options.
+
+Match the adjacent Input's size: `sm` with `sm`, `md` with `md`. Single-line
+fields and their triggers share the same outer height. Checkboxes, multiline
+fields and content that intentionally expands have their own geometry.
+
 ## CardButton variant
 
 Use `variant="card"` for one whole-card action. It reuses Button's `tone`, loading, disabled,

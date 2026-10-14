@@ -10,6 +10,11 @@ Select control that lowers directly to a native `<select>`; author `<option>` ch
 
 <ComponentExamplesApiTabs component="ui-select" />
 
+Select shares Input's subtle outline and size height. Its resting shadow lifts
+it slightly; text inputs use a slight inset shadow. Small controls share one
+height and medium controls share another, including under touch. Multiline
+fields, checkboxes and other distinct control shapes have their own geometry.
+
 ## Styling hooks
 
 A select follows the global control tokens and the inherited `--ui-field-radius` and
@@ -22,7 +27,7 @@ on it through a class of your own. They match Input's and do not inherit:
 | `--ui-select-surface` | the fill |
 | `--ui-select-inline-size` | the width (`100%`, the container's) |
 | `--ui-select-radius` | the corner radius |
-| `--ui-select-shadow`, `--ui-select-focus-shadow` | the inset shadow at rest and the focus ring |
+| `--ui-select-shadow`, `--ui-select-focus-shadow` | the raised shadow at rest and the focus ring |
 | `--ui-select-invalid-border`, `--ui-select-invalid-focus-shadow` | the border and focus ring of an invalid select |
 
 ```css
