@@ -8,7 +8,6 @@
     "build": "storybook build",
     "build:visual": "pnpm --filter \"@threadlabs/looma-storybook^...\" run build && pnpm generate:api && storybook build",
     "generate:api": "pnpm --dir ../.. generate:api",
-    "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "visual:test": "node ./scripts/run-storywright-docker.mjs test",
     "visual:update": "node ./scripts/run-storywright-docker.mjs update",
     "visual:report": "storywright report --open",
