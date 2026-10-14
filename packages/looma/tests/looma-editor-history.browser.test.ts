@@ -39,7 +39,7 @@ async function codeLanguageInput(host: HTMLElement) {
   return input;
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; width?: number; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(options.width ?? 1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
@@ -717,4 +717,91 @@ describe("LoomaEditor history (real browser)", () => {
     await highlightShortcut(disabled.editor);
     expect(JSON.stringify(disabled.editor.getJSON())).not.toContain("highlight");
   });
+});
+
+for (const platform of ["MacIntel", "Win32"]) {
+  it(`opens links with the platform navigation modifier (${platform})`, async () => {
+    vi.spyOn(navigator, "platform", "get").mockReturnValue(platform);
+    vi.spyOn(navigator as Navigator & { userAgentData: { platform: string } }, "userAgentData", "get").mockReturnValue({ platform });
+    const { editor } = await mountEditor();
+    editor.commands.setContent('<p><a href="/linked-page" target="_self"><strong>Linked page</strong></a></p>');
+    await flushBrowser();
+    const link = editor.view.dom.querySelector<HTMLAnchorElement>("a")!;
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const before = editor.getJSON();
+    await userEvent.hover(link);
+    expect(getComputedStyle(link).cursor).not.toBe("pointer");
+    await userEvent.click(link);
+    expect(open).not.toHaveBeenCalled();
+    const modifier = platform === "MacIntel" ? "Meta" : "Control";
+    await userEvent.keyboard(`{${modifier}>}`);
+    await vi.waitFor(() => expect(getComputedStyle(link).cursor).toBe("pointer"));
+    if (platform === "Win32" && /Mac/.test(navigator.userAgent)) {
+      // macOS turns native Control-click into a context-menu gesture.
+      link.querySelector("strong")!.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true }));
+    } else await userEvent.click(link.querySelector("strong")!);
+    expect(open).toHaveBeenCalledExactlyOnceWith("/linked-page", "_blank", "noopener,noreferrer");
+    expect(editor.getJSON()).toEqual(before);
+    await userEvent.keyboard(`{/${modifier}}`);
+    expect(getComputedStyle(link).cursor).not.toBe("pointer");
+    await userEvent.keyboard(`{${modifier}>}`);
+    window.dispatchEvent(new Event("blur"));
+    expect(getComputedStyle(link).cursor).not.toBe("pointer");
+    await userEvent.keyboard(`{/${modifier}}`);
+  });
+}
+
+for (const width of [1280, 375]) {
+  it(`keeps link utilities separate from right-aligned save actions (${width}px)`, async () => {
+    await page.viewport(width, 812);
+    const { editor, host } = await mountEditor({ toolbarMode: "sticky", width });
+    host.style.width = `${Math.min(width, 600)}px`;
+    editor.commands.setContent('<p><a href="https://example.com">Linked page</a></p>');
+    editor.commands.focus();
+    editor.commands.setTextSelection({ from: 1, to: 12 });
+    await flushBrowser();
+    const toolbar = width === 375 ? ".looma-editor__mobile-toolbar-shell" : ".looma-editor__toolbar";
+    const trigger = host.querySelector<HTMLElement>(`${toolbar} [aria-label="Link"]`)
+      ?? host.querySelector<HTMLElement>('[aria-label="Link"]')!;
+    await userEvent.click(trigger);
+    await flushBrowser();
+    const form = document.querySelector<HTMLFormElement>('[aria-label="Edit link"]')!;
+    expect(form).toBeTruthy();
+    const buttons = [...form.querySelectorAll<HTMLElement>("button, a")];
+    const action = (label: string) => buttons.find(button => button.textContent?.trim() === label)!;
+    const remove = action("Remove link"), open = action("Open link"), cancel = action("Cancel"), save = action("Save link");
+    expect(open).toBeTruthy();
+    expect(form.textContent).toContain("Open in new tab");
+    const removeBox = remove.getBoundingClientRect(), openBox = open.getBoundingClientRect();
+    const cancelBox = cancel.getBoundingClientRect(), saveBox = save.getBoundingClientRect();
+    expect(Math.abs((removeBox.top + removeBox.bottom) / 2 - (openBox.top + openBox.bottom) / 2)).toBeLessThan(2);
+    expect(Math.abs((cancelBox.top + cancelBox.bottom) / 2 - (saveBox.top + saveBox.bottom) / 2)).toBeLessThan(2);
+    expect(cancelBox.top).toBeGreaterThanOrEqual(Math.max(removeBox.bottom, openBox.bottom));
+    expect(saveBox.left).toBeGreaterThan(cancelBox.right);
+    expect(saveBox.right).toBeLessThanOrEqual(form.getBoundingClientRect().right + 1);
+  });
+}
+
+it.each([1280, 375])("shows a compact Open link bar above a clicked link and dismisses it with Escape (%ipx)", async (width) => {
+  await page.viewport(width, 812);
+  const { editor, host } = await mountEditor({ toolbarMode: "contextual", width });
+  host.style.marginTop = "180px";
+  editor.commands.setContent('<p><a href="/linked-page">Linked page</a> plain text</p>');
+  const link = editor.view.dom.querySelector<HTMLAnchorElement>("a")!;
+  await userEvent.click(link);
+  await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+  await expectFloatingToolbarHidden();
+  const open = page.getByRole("link", { name: "Open link", exact: true }).element();
+  expect(open.getAttribute("href")).toBe("/linked-page");
+  expect(open.getAttribute("target")).toBe("_blank");
+  expect(open.getBoundingClientRect().bottom).toBeLessThanOrEqual(link.getBoundingClientRect().top);
+  await userEvent.keyboard("{Escape}");
+  await expect.element(open).not.toBeVisible();
+  await userEvent.click(link);
+  await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+  const reopenedActions = page.getByRole("group", { name: "Link actions", exact: true }).element();
+  expect(reopenedActions.getBoundingClientRect().left).toBeGreaterThanOrEqual(0);
+  expect(reopenedActions.getBoundingClientRect().right).toBeLessThanOrEqual(width);
+  editor.commands.setTextSelection(editor.state.doc.content.size - 2);
+  await expect.element(reopenedActions).not.toBeVisible();
 });
