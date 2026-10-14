@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.5
+
+- Callout adds the tones `tip` and `important`, and `caution` as an alias of `danger`, so its tones match VitePress, Docusaurus and GitHub alerts: note, tip, info, important, warning and danger. Each new tone has its own Lucide icon and colour. A `heading` option adds a short heading above the message. Existing tones keep their look; `note` remains the muted `neutral` aside.
+- Tabs adds `group`: Tabs with the same group select the tab with the same label together across the page, and remember the choice in the browser for the next visit. A `value` the page sets wins over the remembered choice. Tabs without a group are unchanged.
+
 ## v0.27.3
 
 - Selects share text inputs' subtle field outline with a slightly raised resting shadow; text inputs and searchable fields retain their inset shadow. Matching single-line sizes now have the same height, including touch combobox affordances. These corrected defaults apply to existing fields without configuration; they keep selected values, events and keyboard behavior unchanged.

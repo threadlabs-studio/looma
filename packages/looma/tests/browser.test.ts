@@ -1150,6 +1150,69 @@ describe("Intrinsic layout limits", () => {
   });
 });
 
+describe("Shared block vocabulary", () => {
+  it("draws every callout tone with its own icon and an optional heading in HTML and Vue", async () => {
+    const tones = ["note", "tip", "info", "important", "warning", "danger", "caution"];
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-callout-vocabulary`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Callout } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...${JSON.stringify(tones)}.map(tone => h(Callout, { id: tone, tone }, () => tone + " message")),
+          h(Callout, { id: "titled", tone: "tip", heading: "Before you start" }, () => "Body"),
+        ]) }).mount("#app");
+      `);
+      const body = adapter === "html" ? tones.map(tone => `<ui-callout id="${tone}" tone="${tone}">${tone} message</ui-callout>`).join("")
+        + `<ui-callout id="titled" tone="tip" heading="Before you start">Body</ui-callout>` : "";
+      const page = await open(path, `<div id="app">${body}</div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const look = (id: string) => page.locator(`#${id}`).evaluate(element => ({
+        icon: element.querySelector(".icon svg")?.innerHTML ?? "",
+        surface: getComputedStyle(element).backgroundColor,
+      }));
+      const looks = Object.fromEntries(await Promise.all(tones.map(async tone => [tone, await look(tone)])));
+      for (const tone of tones) assert.ok(looks[tone].icon, `${adapter}/${tone}: draws an icon`);
+      assert.deepEqual(looks.caution, looks.danger, `${adapter}: caution is an alias of danger`);
+      const distinct = ["note", "tip", "info", "important", "warning", "danger"];
+      assert.equal(new Set(distinct.map(tone => looks[tone].icon)).size, distinct.length, `${adapter}: each tone has its own icon`);
+      assert.equal(new Set(distinct.map(tone => looks[tone].surface)).size, distinct.length, `${adapter}: each tone has its own surface`);
+      assert.equal(await page.locator("#titled .heading").textContent(), "Before you start");
+      assert.equal(await page.locator("#info .heading").count(), 0, "no heading element without a heading");
+      await page.close();
+    }
+  });
+
+  it("syncs grouped tabs by label across the page and remembers the choice", async () => {
+    const path = await bundle("html-tabs-group", `
+      import "@threadlabs/looma";
+      window.selections = [];
+      document.addEventListener("select", (event) => window.selections.push([event.target.id, event.detail.value, event.detail.trigger]));
+    `);
+    const markup = (id: string, group: string) => `
+      <ui-tabs id="${id}" label="${id}" group="${group}">
+        <section id="${id}-pnpm" aria-label="pnpm">pnpm</section>
+        <section id="${id}-npm" aria-label="npm">npm</section>
+      </ui-tabs>`;
+    const html = `<!doctype html><html><body>${markup("install", "pm")}${markup("run", "pm")}${markup("other", "")}<script src="/bundle.js"></script></body></html>`;
+    const context = await browser.newContext();
+    await context.route("http://looma.test/**", route => route.request().url().endsWith("/bundle.js")
+      ? route.fulfill({ path, contentType: "text/javascript" })
+      : route.fulfill({ body: html, contentType: "text/html" }));
+    const page = await context.newPage();
+    await page.goto("http://looma.test/");
+    await page.waitForTimeout(50);
+    await page.locator("#install").getByRole("tab", { name: "npm", exact: true }).click();
+    assert.equal(await page.locator("#run").getByRole("tab", { name: "npm", exact: true }).getAttribute("aria-selected"), "true", "a grouped peer selects the same label");
+    assert.equal(await page.locator("#run-npm").isVisible(), true);
+    assert.equal(await page.locator("#other").getByRole("tab", { name: "pnpm", exact: true }).getAttribute("aria-selected"), "true", "ungrouped tabs keep their own selection");
+    assert.deepEqual(await page.evaluate(() => (window as any).selections), [["install", "install-npm", "pointer"], ["run", "run-npm", "programmatic"]]);
+    await page.reload();
+    await page.waitForTimeout(50);
+    for (const id of ["install", "run"]) assert.equal(await page.locator(`#${id}-npm`).isVisible(), true, `${id} restores the remembered choice`);
+    assert.equal(await page.locator("#other-pnpm").isVisible(), true);
+    await context.close();
+  });
+});
+
 describe("Tabs activation", () => {
   it("moves focus without selecting in manual mode and selects on Enter or Space", async () => {
     const path = await bundle("html-manual-tabs", `
