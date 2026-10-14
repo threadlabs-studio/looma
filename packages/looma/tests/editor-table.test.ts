@@ -528,7 +528,7 @@ describe("LoomaEditor links", () => {
     await linkForm(page).getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com/page");
-    assert.equal(await linkForm(page).getByRole("link", { name: "Preview link" }).getAttribute("rel"), "noopener noreferrer");
+    assert.equal(await linkForm(page).getByRole("link", { name: "Open link" }).getAttribute("rel"), "noopener noreferrer");
     await linkForm(page).getByRole("button", { name: "Save link" }).click();
     const link = prose(page).locator("a");
     await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
