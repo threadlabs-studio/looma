@@ -1,4 +1,4 @@
-import { backgrounds } from "../shared/editor.js";
+import { backgrounds, normalizeCellBackground } from "../shared/editor.js";
 import { createAnchoredSurface } from "../shared/overlay.js";
 
 const overflowSections = [
@@ -45,9 +45,9 @@ function connect(host) {
     host.state.structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label, icon]) => ({ action, label, icon }));
-    const background = String(host.props.cellBackground.value ?? "");
+    const background = normalizeCellBackground(host.props.cellBackground.value, host.element.ownerDocument);
     host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
-      .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
+      .map(([action, label, color]) => ({ action, label, color, selected: normalizeCellBackground(color, host.element.ownerDocument) === background }));
     host.state.sections = overflowSections
       .map(([heading, items]) => ({
         heading,

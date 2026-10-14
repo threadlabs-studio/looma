@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.20
+
+- Cell background menus recognize saved preset colors in both hex and RGB form, keeping the current color selected after an HTML round trip.
+
 ## v0.26.19
 
 - Table cell actions follow hover and keyboard focus and remain usable after deleting a row. Empty cell state no longer interrupts table controls.
