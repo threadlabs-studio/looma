@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.1
+
+- Badge adds an opt-in overlay treatment for counts on filled controls: inherited text on a faint tint, without a rim or shadow, with a smaller 20px circle at the small size. Existing badge recipes are unchanged.
+
 ## v0.27.0
 
 - **Breaking: authored toasts hide themselves when dismissed.** Previously a toast's close button, action, or `duration` only emitted `dismiss` and waited for the application to remove it, so a toast with no handler could not be closed and its duration did nothing visible. Dialog already closes itself and reports `close`; Toast now does the same: it sets the native `hidden` attribute, then emits the unchanged `dismiss` event. An opt-in option would leave the broken default in every app that never set it. Apps that remove the toast on `dismiss` keep working. To show a dismissed toast again, clear `hidden`, which also restarts its duration. A toast authored `hidden` waits to be shown before its duration starts. Toast Region ignores hidden toasts and closes once all of its toasts are hidden.
