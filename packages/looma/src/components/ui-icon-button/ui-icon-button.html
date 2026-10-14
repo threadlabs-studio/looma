@@ -23,6 +23,9 @@
     <prop name="anticipatory" type="boolean" default="false"
     >Keeps the button out of sight until it is wanted: at rest a fine pointer sees only a small guide dot, and the button appears on hover, on focus, or when
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
+    <prop name="guide" type="keyword" values="dot, bar" default="dot"
+    >The idle marker of an anticipatory button: dot for contextual actions, or a slim neutral rounded bar for a panel-edge control. The icon appears on hover or
+      keyboard focus; touch always shows the icon.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button
@@ -172,6 +175,13 @@
       pointer-events: none;
     }
 
+    :host([anticipatory][guide="bar"])::before {
+      inline-size: 2px;
+      block-size: 20px;
+      background: var(--ui-border-strong);
+      opacity: 1;
+    }
+
     :host([anticipatory]):disabled::before {
       opacity: 0;
     }
@@ -226,7 +236,7 @@
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-base) var(--ui-motion-ease),
-        transform var(--ui-motion-fast) var(--ui-motion-ease);
+        scale var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     @media (hover: none), (pointer: coarse) {
@@ -356,7 +366,7 @@
     }
 
     :host:active:enabled:not([aria-disabled="true"]) {
-      transform: scale(var(--ui-icon-button-active-scale, 0.96));
+      scale: var(--ui-icon-button-active-scale, 0.96);
     }
 
     :is(:host([loading]), :host([pending])) {

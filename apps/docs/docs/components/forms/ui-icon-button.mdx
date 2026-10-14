@@ -17,6 +17,13 @@ Outline and solid Icon Buttons use Button's fine raised edge recipe, including m
 right-to-left layouts. The inherited `--ui-action-edge` and `--ui-action-shadow` values theme both
 components together; instance shadow hooks take precedence. Ghost controls remain flat.
 
+## Quiet panel-edge controls
+
+Set `anticipatory guide="bar" tone="neutral"` on a ghost Icon Button to show a slim rounded bar
+at rest and its icon on hover or keyboard focus. The dot remains the default anticipatory guide.
+Touch devices always show the icon. Position the button using its surrounding layout; pressed
+feedback composes with positioning transforms instead of replacing them.
+
 ## Tones and toggle state
 
 Set `tone="accent"` for an accent-coloured action or `tone="neutral"` for a neutral one.
