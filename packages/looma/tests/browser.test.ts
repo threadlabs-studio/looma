@@ -267,7 +267,10 @@ describe("Pressed icon controls and circular marks", () => {
       await page.locator("#toggle").blur();
       assert.ok((await paint("#toggle")).shadow.includes("inset"));
       await page.locator("#toggle").focus();
-      assert.ok((await paint("#toggle")).shadow.includes("inset"), "focus keeps selected state");
+      assert.equal(await page.getByRole("tooltip").isVisible(), false, "mouse-origin focus does not revive an activated hint");
+      await page.locator("#neutral").focus();
+      await page.keyboard.press("Shift+Tab");
+      assert.ok((await paint("#toggle")).shadow.includes("inset"), "keyboard focus keeps selected state");
       await page.getByRole("tooltip").waitFor({ state: "visible" });
       await page.locator("#toggle").evaluate(element => {
         element.setAttribute("aria-pressed", "false");
