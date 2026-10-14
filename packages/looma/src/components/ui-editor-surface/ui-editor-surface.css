@@ -36,3 +36,12 @@
 .looma-editor .ProseMirror li > :is(ul, ol) {
   margin-block: var(--ui-space-1) 0;
 }
+
+/* A held navigation modifier makes links actionable without interrupting editing. */
+[data-component~="ui-editor-surface"] .ProseMirror[contenteditable="true"] a[href] {
+  cursor: text;
+}
+
+[data-component~="ui-editor-surface"] .ProseMirror[data-link-navigation] a[href] {
+  cursor: pointer;
+}
