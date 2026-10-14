@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.17
+
+- Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
+
 ## v0.26.16
 
 - Text supports opt-in font-edge trimming for compact headings and labels, so adjacent icons and surface padding can align without application styling overrides. Existing prose metrics stay unchanged.
@@ -13,8 +17,6 @@
 - Compact text badges have enough horizontal spacing to keep labels clear of their rounded edges. Ordinary badges and fixed circular or square marks retain their geometry.
 
 ## Unreleased
-
-- Meter can display mutually exclusive categories as one proportional distribution, with complete accessible descriptions and server-rendered geometry.
 
 - Compact fields reserve their initial editing height before mount, keeping surrounding scrolling layouts stable.
 
