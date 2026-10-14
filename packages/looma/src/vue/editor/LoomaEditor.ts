@@ -462,12 +462,14 @@ export const LoomaEditor = defineComponent({
     // These snapshots affect chrome only, never the document or undo history.
     let dismissedFormattingSelection: Selection | null = null;
     let heldFormattingSelection: TextSelection | null = null;
-    let formattingPopup: {
+    type EditorPopup = {
       show: () => void;
       hide: () => void;
       popper: HTMLElement;
       setProps: (props: { getReferenceClientRect: () => DOMRect }) => void;
-    } | null = null;
+    };
+    let formattingPopup: EditorPopup | null = null;
+    let linkPopup: EditorPopup | null = null;
     let heldPressTimer: ReturnType<typeof setTimeout> | undefined;
     let heldPress: { id: number; x: number; y: number } | null = null;
     const floatingFormattingMode = () => props.toolbarMode !== "sticky"
@@ -690,6 +692,32 @@ export const LoomaEditor = defineComponent({
       editable: props.editable,
       editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
         handleKeyDown: (_view, event) => onFormattingKeyDown(event),
+        handleDOMEvents: {
+          click: (view, event) => {
+            if (!(event.target instanceof Element) || event.button !== 0) return false;
+            const link = event.target.closest<HTMLAnchorElement>("a[href]");
+            if (!link || !view.dom.contains(link)) return false;
+            const href = validLinkHref(link.getAttribute("href") ?? "");
+            if (!href) return false;
+            if (isApplePlatform() ? event.metaKey : event.ctrlKey) {
+              event.preventDefault();
+              window.open(href, "_blank", "noopener,noreferrer");
+              return true;
+            }
+            dismissedFormattingSelection = null;
+            // Clicking the same caret does not dispatch a selection transaction.
+            requestAnimationFrame(() => {
+              if (view.isDestroyed) return;
+              editorStateVersion.value += 1;
+              const instance = editor.value;
+              if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && !linkOpen.value) {
+                linkPopup?.setProps({ getReferenceClientRect: () => link.getBoundingClientRect() });
+                linkPopup?.show();
+              }
+            });
+            return false;
+          },
+        },
       },
       onCreate: ({ editor: instance }) => {
         emit("ready", instance);
@@ -938,17 +966,15 @@ export const LoomaEditor = defineComponent({
           }) : null,
       linkError.value ? h(Text, { size: "sm", tone: "danger", role: "alert" }, () => linkError.value) : null,
       h(Separator),
-      h(Cluster, { gap: "xs", justify: "between" }, () => [
-        h(Cluster, { gap: "xs" }, () => [
-          linkSelection?.existing ? h(Button, { type: "button", variant: "ghost", tone: "danger", size: "sm", onClick: removeLink }, () => "Remove link") : null,
-          linkMode.value === "url" && validLinkHref(linkHref.value) ? h(Button, {
-            as: "a", variant: "link", size: "sm", href: validLinkHref(linkHref.value), target: "_blank", rel: "noopener noreferrer",
-          }, () => "Preview link") : null,
-        ]),
-        h(Cluster, { gap: "xs" }, () => [
-          h(Button, { type: "button", variant: "ghost", tone: "neutral", size: "sm", onClick: cancelLink }, () => "Cancel"),
-          h(Button, { type: "submit", variant: "solid", size: "sm" }, () => "Save link"),
-        ]),
+      h(Cluster, { gap: "xs", justify: "between", wrap: "nowrap" }, () => [
+        linkSelection?.existing ? h(Button, { type: "button", variant: "ghost", tone: "danger", size: "sm", onClick: removeLink }, () => "Remove link") : null,
+        validLinkHref(linkHref.value) ? h(Button, {
+          as: "a", variant: "outline", tone: "accent", size: "sm", href: validLinkHref(linkHref.value), target: "_blank", rel: "noopener noreferrer",
+        }, () => "Open link") : null,
+      ]),
+      h(Cluster, { gap: "xs", justify: "end", wrap: "nowrap" }, () => [
+        h(Button, { type: "button", variant: "outline", tone: "accent", size: "sm", onClick: cancelLink }, () => "Cancel"),
+        h(Button, { type: "submit", variant: "solid", size: "sm" }, () => "Save link"),
       ]),
     ])]);
     const renderLinkContext = (instance: Editor) => {
@@ -969,7 +995,7 @@ export const LoomaEditor = defineComponent({
         safeHref ? h(Button, {
           id: openId, as: "a", variant: "ghost", tone: "neutral", size: "sm",
           href: safeHref, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open link",
-        }, () => loomaIcon("external-link")) : null,
+        }, () => h(Cluster, { gap: "xs", wrap: "nowrap" }, () => [loomaIcon("external-link"), "Open link"])) : null,
         safeHref ? h(Tooltip, { for: openId }, () => "Open link") : null,
         h(IconButton, {
           id: editId, label: "Edit link", variant: "ghost", size: "sm",
@@ -1360,14 +1386,15 @@ export const LoomaEditor = defineComponent({
     };
     const onFormattingKeyDown = (event: KeyboardEvent) => {
       cancelHeldPress();
-      if (event.key !== "Escape" || !floatingFormattingMode() || !(event.target instanceof Node)
-        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))
-        || !(formatOpen.value || formattingPopup?.popper.style.visibility === "visible")) return false;
+      if (event.key !== "Escape" || !(event.target instanceof Node)
+        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target) || linkPopup?.popper.contains(event.target))
+        || !(formatOpen.value || formattingPopup?.popper.style.visibility === "visible" || linkPopup?.popper.style.visibility === "visible")) return false;
       const selection = editor.value?.state.selection;
       dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
       heldFormattingSelection = null;
       formatOpen.value = false;
       formattingPopup?.hide();
+      linkPopup?.hide();
       hideTool();
       return true;
     };
@@ -1466,7 +1493,18 @@ export const LoomaEditor = defineComponent({
       emit("imageRenditionError", { ...image, trigger: "programmatic" });
     };
 
+    const onLinkNavigationModifier = (event: KeyboardEvent | PointerEvent) => {
+      const dom = editor.value?.view.dom;
+      const active = isApplePlatform() ? event.metaKey : event.ctrlKey;
+      if (dom && dom.hasAttribute("data-link-navigation") !== active) dom.toggleAttribute("data-link-navigation", active);
+    };
+    const clearLinkNavigationModifier = () => editor.value?.view.dom.removeAttribute("data-link-navigation");
+
     onMounted(() => {
+      window.addEventListener("keydown", onLinkNavigationModifier);
+      window.addEventListener("keyup", onLinkNavigationModifier);
+      window.addEventListener("pointermove", onLinkNavigationModifier);
+      window.addEventListener("blur", clearLinkNavigationModifier);
       updateMobileViewport();
       window.addEventListener("resize", onViewportChange);
       window.addEventListener("scroll", onViewportChange, true);
@@ -1483,6 +1521,10 @@ export const LoomaEditor = defineComponent({
       root.value?.addEventListener("error", onImageError, true);
     });
     onBeforeUnmount(() => {
+      window.removeEventListener("keydown", onLinkNavigationModifier);
+      window.removeEventListener("keyup", onLinkNavigationModifier);
+      window.removeEventListener("pointermove", onLinkNavigationModifier);
+      window.removeEventListener("blur", clearLinkNavigationModifier);
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("scroll", onViewportChange, true);
       window.visualViewport?.removeEventListener("resize", onViewportChange);
@@ -1980,26 +2022,33 @@ export const LoomaEditor = defineComponent({
             }, { default: () => props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
-                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value
+                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value && formattingSelectionActive(instance)
                     ? renderLinkContextCard(instance)
                     : null,
                 ])
               : renderToolbar(instance, true, props.toolbarMode === "popover") })
           : null,
-        instance && props.editable && !mobile.value && props.toolbarMode !== "contextual"
+        instance && props.editable
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-link-context-menu",
+              updateDelay: 0,
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                from === to && menuEditor.isActive("link") && !linkOpen.value,
+                from === to && menuEditor.isActive("link") && !linkOpen.value
+                && !dismissedFormattingSelection?.eq(menuEditor.state.selection)
+                && Boolean(menuEditor.isFocused || linkContextEditing.value || linkPopup?.popper.contains(document.activeElement))
+                && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(menuEditor)),
               tippyOptions: {
+                onCreate: (popup) => { linkPopup = popup; },
+                onDestroy: () => { linkPopup = null; },
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
                 onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
                 duration: 100,
                 maxWidth: Math.min(480, window.innerWidth - 24),
-                placement: "bottom",
+                placement: "top",
               },
-            }, { default: () => renderLinkContextCard(instance) })
+            }, { default: () => props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
+              ? null : renderLinkContextCard(instance) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
