@@ -79,7 +79,7 @@ const rows = (page: Page) => table(page).locator("tr");
 const cell = (page: Page, row: number, col: number) => rows(page).nth(row).locator("th, td").nth(col);
 const tableToolbar = (page: Page) => page.getByRole("toolbar", { name: "Table actions" });
 const tableMenu = (page: Page) => page.getByRole("menu", { name: "More table actions" });
-const linkForm = (page: Page) => page.locator(".looma-editor__link-form");
+const linkForm = (page: Page) => page.getByRole("form", { name: "Edit link", exact: true });
 
 async function insertTableFromSlashMenu(page: Page): Promise<void> {
   await prose(page).click();
@@ -528,21 +528,23 @@ describe("LoomaEditor links", () => {
     await linkForm(page).getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com/page");
-    assert.equal(await linkForm(page).getByRole("link", { name: "Preview link" }).getAttribute("rel"), "noopener noreferrer");
+    assert.equal(await linkForm(page).getByRole("link", { name: "Open link" }).getAttribute("rel"), "noopener noreferrer");
     await linkForm(page).getByRole("button", { name: "Save link" }).click();
     const link = prose(page).locator("a");
     await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
     assert.equal(await link.textContent(), "Hello");
     await link.click();
-    await linkButton.click();
+    await page.getByRole("button", { name: "Edit link", exact: true }).click();
+    await equals(() => linkForm(page).count(), 1, "only one link form is presented");
     assert.equal(await linkForm(page).getByRole("textbox", { name: "URL" }).inputValue(), "https://example.com/page");
+    await equals(() => linkForm(page).getByRole("textbox", { name: "URL" }).evaluate(element => element === document.activeElement), true, "Edit focuses the visible destination field");
     await linkForm(page).getByRole("checkbox", { name: "Open in new tab" }).uncheck();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/changed");
     await linkForm(page).getByRole("button", { name: "Save link" }).click();
     await equals(() => link.getAttribute("href"), "/changed", "existing link URL changes");
     assert.equal(await link.getAttribute("target"), "_self");
     await link.click();
-    await linkButton.click();
+    await page.getByRole("button", { name: "Edit link", exact: true }).click();
     await linkForm(page).getByRole("button", { name: "Remove link" }).click();
     await equals(() => prose(page).locator("a").count(), 0, "link mark is removed");
     assert.equal(await prose(page).locator("p").textContent(), "Hello");

@@ -834,9 +834,16 @@ export const LoomaEditor = defineComponent({
           }
         }).catch(() => {});
       }
-      void nextTick(() => (linkMode.value === "url"
-        ? linkDestinationInput()
-        : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus());
+      void nextTick(() => {
+        if (context) {
+          const popup = props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
+            ? formattingPopup : linkPopup;
+          popup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, instance.state.selection.from, instance.state.selection.to) });
+        }
+        (linkMode.value === "url"
+          ? linkDestinationInput()
+          : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
+      });
     };
     const saveLink = () => {
       const instance = editor.value;
@@ -1988,6 +1995,8 @@ export const LoomaEditor = defineComponent({
           placement: "top",
           inverse: true,
         }, () => "Drag to resize column") : null,
+        // Tippy moves each menu element; its Vue sibling anchor must stay mounted.
+        h(Stack, { key: "looma-formatting-popup-host", gap: "none" }, () => [
         instance && (props.editable || props.selectionActions.length || props.rangeActions.length) && !mobile.value
           && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
@@ -2028,7 +2037,9 @@ export const LoomaEditor = defineComponent({
                     : null,
                 ])
               : renderToolbar(instance, true, props.toolbarMode === "popover") })
-          : null,
+          : null
+        ]),
+        h(Stack, { key: "looma-link-popup-host", gap: "none" }, () => [
         instance && props.editable
           ? h(BubbleMenu, {
               editor: instance,
@@ -2050,7 +2061,8 @@ export const LoomaEditor = defineComponent({
               },
             }, { default: () => props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
               ? null : renderLinkContextCard(instance) })
-          : null,
+          : null
+        ]),
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
               class: "looma-editor__formatting-popover",
@@ -2213,7 +2225,7 @@ export const LoomaEditor = defineComponent({
               editor.value?.commands.setTextSelection(current.to);
             }
           },
-        }, renderLinkForm),
+        }, () => linkOpen.value ? renderLinkForm() : null),
         props.editable && props.compactToolbar && !mobile.value ? h(Popover, {
           class: "looma-editor__compact-formatting", for: formatAnchorId,
           open: formatOpen.value, placement: "bottom-start",
