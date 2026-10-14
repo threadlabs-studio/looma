@@ -201,7 +201,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox").press("ArrowDown");
     await page.keyboard.press("Enter");
     await form.getByRole("textbox", { name: "Text", exact: true }).fill("Guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Guide" }).getAttribute("href"), "/records/one", "slash uses the same host picker");
     await prose(page).getByRole("link", { name: "Guide" }).click();
     await page.getByRole("group", { name: "Link actions" }).waitFor();
@@ -211,12 +211,12 @@ describe("LoomaEditor links", () => {
     await page.keyboard.type(" /link");
     await page.getByRole("option", { name: /Link Link to a destination or URL/i }).waitFor();
     await page.keyboard.press("Enter");
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     assert.equal(await prose(page).locator("a").count(), 1, "cancel inserts no second link");
     await page.close();
   });
 
-  it("uses one standard form hierarchy with flat results and a primary save action", async () => {
+  it("uses one standard form hierarchy with flat results and direct field changes", async () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
@@ -225,12 +225,12 @@ describe("LoomaEditor links", () => {
     await form.getByRole("heading", { name: "Add link" }).waitFor({ timeout: 1000 });
     await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
     await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 2, "results use flat component rows");
-    assert.match(await form.getByRole("button", { name: "Save link" }).getAttribute("data-ui-button-state") ?? "", /variant=solid/);
+    assert.equal(await form.getByRole("button", { name: /Save link|Cancel|Remove link/ }).count(), 0, "fields need no footer confirmation");
     assert.equal(await form.getByRole("searchbox").getAttribute("placeholder"), "Search pages or paste a URL…");
     assert.equal(await form.getByRole("tab").count(), 0, "one field replaces destination modes");
     assert.equal(await form.getByRole("searchbox").evaluate(element => getComputedStyle(element).outlineStyle), "none", "input group owns one focus treatment");
     await page.screenshot({ animations: "disabled", path: join(root, ".build", "link-picker-desktop.png") });
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     assert.equal(await prose(page).locator("a").count(), 0, "cancel keeps content unchanged");
     await form.waitFor({ state: "hidden" });
     await page.close();
@@ -251,7 +251,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox", { name: "Link destination" }).fill("More");
     await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 5, "results appear");
     assert.equal(await trigger.count(), 1, "the field keeps its mobile anchor mounted");
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     await page.close();
   });
 
@@ -283,7 +283,7 @@ describe("LoomaEditor links", () => {
       await page.mouse.wheel(0, 300);
       await until(() => results.evaluate(element => element.scrollTop), value => value > 0, "last result remains reachable by scrolling");
       await rows.last().click();
-      await form.getByRole("button", { name: "Save link" }).click();
+      await form.locator("input").first().press("Enter");
       await equals(() => prose(page).getByRole("link").getAttribute("href"), "/records/more-4", "scrolled result can be selected");
       await page.close();
     }
@@ -335,14 +335,14 @@ describe("LoomaEditor links", () => {
     await toolbar.getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.test/path?q=one#part");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "/path?q=one#part", "site link becomes relative");
     await form.waitFor({ state: "hidden" });
     await toolbar.waitFor({ state: "hidden" });
     assert.equal(await prose(page).textContent(), "Hello", "selection text is preserved");
     await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
     await toolbar.getByRole("button", { name: "Link" }).click();
-    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await form.locator("input").first().press("Escape");
     await form.waitFor({ state: "hidden" });
     await toolbar.waitFor({ state: "hidden" });
     await page.close();
@@ -360,7 +360,7 @@ describe("LoomaEditor links", () => {
     await form.getByRole("searchbox", { name: "Link destination" }).press("ArrowDown");
     assert.equal(await results.first().evaluate(element => document.activeElement === element), true);
     await results.nth(1).click();
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     const link = prose(page).getByRole("link", { name: "Hello" });
     await equals(() => link.getAttribute("href"), "/records/two", "host destination is saved");
     assert.equal(await link.getAttribute("target"), "_self");
@@ -385,11 +385,11 @@ describe("LoomaEditor links", () => {
     await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("/guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await form.getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.com/guide");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).locator("a").getAttribute("href"), "https://example.com/guide", "external URL stays absolute");
     await page.close();
   });
@@ -408,7 +408,7 @@ describe("LoomaEditor links", () => {
     await destination.fill("Guide");
     await equals(() => form.getByLabel("Destination search results").getByRole("button").count(), 2, "replacing URL restores search");
     await destination.fill("mailto:hello@example.com");
-    await form.getByRole("button", { name: "Save link" }).click();
+    await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "mailto:hello@example.com", "pasted destination is saved without a mode switch");
     await page.close();
   });
@@ -439,7 +439,7 @@ describe("LoomaEditor links", () => {
     await prose(page).getByRole("link", { name: "Read" }).click();
     await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("searchbox", { name: "Link destination" }).fill("/after?q=one#part");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Read" }).getAttribute("href"), "/after?q=one#part", "editing a relative destination does not turn it into a search query");
     await page.close();
   });
@@ -454,7 +454,7 @@ describe("LoomaEditor links", () => {
     assert.match(await actions.textContent() ?? "", /\/guide/);
     await actions.getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");
     await prose(page).locator("p").click({ position: { x: 2, y: 8 } });
     await equals(() => actions.count(), 0, "link actions close outside the link");
@@ -524,12 +524,12 @@ describe("LoomaEditor links", () => {
     await linkButton.click();
     assert.equal(await linkForm(page).getByRole("textbox", { name: "Text" }).count(), 0, "selected text does not need a text field");
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("javascript:alert(1)");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await linkForm(page).getByRole("alert").waitFor();
     assert.equal(await prose(page).locator("a").count(), 0);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com/page");
-    assert.equal(await linkForm(page).getByRole("link", { name: "Open link" }).getAttribute("rel"), "noopener noreferrer");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    assert.equal(await linkForm(page).getByRole("link", { name: "Open link" }).count(), 0, "navigation belongs in nearby link actions");
+    await linkForm(page).locator("input").first().press("Enter");
     const link = prose(page).locator("a");
     await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
     assert.equal(await link.textContent(), "Hello");
@@ -538,14 +538,19 @@ describe("LoomaEditor links", () => {
     await equals(() => linkForm(page).count(), 1, "only one link form is presented");
     assert.equal(await linkForm(page).getByRole("textbox", { name: "URL" }).inputValue(), "https://example.com/page");
     await equals(() => linkForm(page).getByRole("textbox", { name: "URL" }).evaluate(element => element === document.activeElement), true, "Edit focuses the visible destination field");
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      await page.locator("#app").evaluate((element, width) => { (element as HTMLElement).style.width = `${Math.min(width, 720)}px`; }, width);
+      await mkdir(join(root, "../../.context"), { recursive: true });
+      await page.screenshot({ animations: "disabled", path: join(root, "../../.context", `link-direct-${width}.png`) });
+    }
     await linkForm(page).getByRole("checkbox", { name: "Open in new tab" }).uncheck();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/changed");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/changed", "existing link URL changes");
     assert.equal(await link.getAttribute("target"), "_self");
     await link.click();
-    await page.getByRole("button", { name: "Edit link", exact: true }).click();
-    await linkForm(page).getByRole("button", { name: "Remove link" }).click();
+    await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Remove link" }).click();
     await equals(() => prose(page).locator("a").count(), 0, "link mark is removed");
     assert.equal(await prose(page).locator("p").textContent(), "Hello");
     await page.close();
@@ -557,8 +562,11 @@ describe("LoomaEditor links", () => {
     await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
     await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read more");
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com");
-    await linkForm(page).getByRole("button", { name: "Save link" }).click();
-    await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted");
+    await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted without a save action");
+    await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read this");
+    assert.equal(await prose(page).locator("a").count(), 1, "typing text updates the inserted link rather than duplicating it");
+    await equals(() => prose(page).locator("a").textContent(), "Read this", "link text updates directly");
+    await linkForm(page).locator("input").first().press("Escape");
     await page.close();
   });
 });
