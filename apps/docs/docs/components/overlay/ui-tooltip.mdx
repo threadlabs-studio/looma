@@ -12,6 +12,11 @@ centered `top` position by default; `placement` also accepts the other three sid
 change its 10px trigger gap. After a tooltip appears, moving to another tooltip shows it immediately
 while the first is visible and for a short time after it closes.
 
+Hover/focus tooltips dismiss when their action is activated, including Enter and Space. Clicking
+keeps the action focused without retaining the hint. Only keyboard-visible focus keeps a hint open
+after pointer exit; a fresh hover or keyboard focus shows it again. `trigger="click"` help toggletips
+still toggle on activation.
+
 Put a keyboard shortcut in the `shortcut` slot, such as `<kbd slot="shortcut">⌘K</kbd>`. It follows
 the label after a thin divider, in smaller, quieter text, as a Menu Item shows one. It is a display
 hint and binds no key, so write the keys as the reader's platform does: ⌘K on Apple devices, Ctrl+K
