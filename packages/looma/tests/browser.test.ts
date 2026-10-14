@@ -6292,6 +6292,45 @@ describe("Vue editor components", () => {
     await page.close();
   });
 
+  it.each(["HTML", "Vue"])("matches equivalent cell backgrounds without selecting custom colors in %s", async (adapter) => {
+    const actions = ["background-none", "background-gray", "background-yellow"];
+    const path = await bundle(`cell-background-${adapter.toLowerCase()}`, adapter === "HTML" ? `
+      import "@threadlabs/looma";
+      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      window.setBackground = value => {
+        for (const id of ["context", "toolbar"]) updateComponentProps(document.getElementById(id), { cellBackground: value });
+      };
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { EditorTableContextMenu, EditorTableToolbar } from "@threadlabs/looma/vue";
+      const background = ref("");
+      window.setBackground = value => { background.value = value; };
+      createApp({ render: () => h("div", [
+        h(EditorTableContextMenu, { id: "context", open: true, actions: ${JSON.stringify(actions)}, cellBackground: background.value }),
+        h(EditorTableToolbar, { id: "toolbar", open: true, actions: ${JSON.stringify(actions)}, cellBackground: background.value }),
+      ]) }).mount("#app");
+    `);
+    const body = adapter === "HTML" ? `<ui-editor-table-context-menu id="context" open actions='${JSON.stringify(actions)}'></ui-editor-table-context-menu>
+      <ui-editor-table-toolbar id="toolbar" open actions='${JSON.stringify(actions)}'></ui-editor-table-toolbar>` : '<div id="app"></div>';
+    const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    // Keep the independent fixtures apart so neither menu covers the other.
+    await page.locator("#context").evaluate(element => { (element as HTMLElement).style.left = "500px"; });
+    await page.locator("#toolbar").getByRole("button", { name: "Table options" }).click();
+    for (const [color, expected] of [["rgb(243, 244, 246)", "Gray"], [" #F3F4F6 ", "Gray"], ["rgba(243, 244, 246, 1)", "Gray"],
+      ["rgba(243, 244, 246, 0.5)", null], ["#123456", null], ["not-a-color", null], ["", "Default"]] as const) {
+      await page.evaluate(value => (window as unknown as { setBackground(value: string): void }).setBackground(value), color);
+      for (const id of ["context", "toolbar"]) {
+        const selected = page.locator(`#${id} [role="menuitemradio"][aria-checked="true"]`);
+        await page.waitForFunction(({ id, expected }) => {
+          const items = document.querySelectorAll(`#${id} [role="menuitemradio"][aria-checked="true"]`);
+          return expected === null ? items.length === 0 : items.length === 1 && items[0]?.textContent?.trim() === expected;
+        }, { id, expected });
+        assert.equal(await selected.count(), expected === null ? 0 : 1, `${adapter} ${id} reflects ${color}`);
+      }
+    }
+    await page.close();
+  });
+
   it("inserts from one roving table-picker tab stop and offers 44px touch cells", async () => {
     const path = await bundle("html-table-picker-keyboard", `
       import "@threadlabs/looma";
