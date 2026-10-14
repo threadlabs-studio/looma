@@ -70,8 +70,8 @@
       color: var(--ui-text-primary);
       color-scheme: light dark;
       font: inherit;
-      line-height: var(--ui-line-height-md);
-      box-shadow: var(--ui-select-shadow, var(--ui-control-inset));
+      line-height: var(--ui-line-height-tight);
+      box-shadow: var(--ui-select-shadow, var(--ui-shadow-sm));
       transition:
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
@@ -99,7 +99,7 @@
     :host:focus-visible {
       border-color: var(--ui-select-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
       outline: none;
-      box-shadow: var(--ui-select-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+      box-shadow: var(--ui-select-focus-shadow, var(--ui-shadow-sm), var(--ui-control-focus-halo-shadow));
     }
 
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
@@ -111,7 +111,7 @@
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
       box-shadow: var(
         --ui-select-invalid-focus-shadow,
-        var(--ui-control-inset),
+        var(--ui-shadow-sm),
         0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(
           in srgb,
           var(--ui-select-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%,
@@ -147,6 +147,10 @@
     /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
+      :host {
+        min-block-size: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
+      }
+
       :host([size="sm"]) {
         min-block-size: var(--ui-control-min-block-size);
         font-size: inherit;

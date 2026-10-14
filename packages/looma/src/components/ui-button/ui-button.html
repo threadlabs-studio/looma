@@ -2,10 +2,11 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-button" controller="./ui-button.js">
   <defs>
-    <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link, card" default="outline"
+    <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link, card, field" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
       hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it. card uses the
-      same tone on a full-width action with an icon slot, wrapping content, and a centered action slot.</prop>
+      same tone on a full-width action with an icon slot, wrapping content, and a centered action slot. field opens a custom value picker: it shares Select's
+      quiet outline, neutral text and slightly raised surface, independently of action tone.</prop>
     <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
     >Height, padding, and type size. xs is 1.5rem with the smallest text, for a control inside a line of small text; sm is the small control height (2rem by
       default) with tighter padding and smaller text, md is the standard control height (2.5rem), and lg is taller (3rem) with roomier padding. Under touch, sm
@@ -414,6 +415,33 @@
       --_hue-active: color-mix(in srgb, var(--ui-info) 75%, #000);
       --_hue-text: color-mix(in srgb, var(--ui-info) 85%, #000);
       --_on-hue: var(--ui-surface);
+    }
+
+    /* A value picker is a field, with Select's quiet edge and resting lift. */
+    :host([variant="field"]) {
+      --_ui-field-shadow: var(--ui-shadow-sm);
+      border-color: var(--ui-button-border, var(--ui-control-border, var(--ui-border-strong)));
+      border-radius: var(--ui-button-radius, var(--ui-field-radius, var(--ui-radius-md)));
+      background-color: var(--ui-button-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
+      color: var(--ui-button-text, var(--ui-text-primary));
+      font-weight: var(--ui-font-normal);
+      box-shadow: var(--ui-button-shadow, var(--_ui-field-shadow));
+    }
+
+    :host([variant="field"]):hover:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--ui-control-border-hover, var(--ui-text-secondary)));
+      background-color: var(--ui-button-hover-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
+    }
+
+    :host([variant="field"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
+      --_ui-field-shadow: var(--ui-pressed);
+    }
+
+    :host([variant="field"]):focus-visible {
+      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      box-shadow:
+        var(--ui-button-shadow, var(--_ui-field-shadow)),
+        var(--ui-control-focus-halo-shadow);
     }
 
     :host([variant="ghost"]) {
