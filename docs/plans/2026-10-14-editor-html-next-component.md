@@ -146,9 +146,9 @@ the generated component in a compatibility layer or ships as a breaking minor (d
 ## 3. Expected HTML Next gaps
 
 Each gap names the proposal (P), live runtime (R), assembled outputs (A), or converter (C) part
-it touches, and the concrete editor need. Findings become `nextwebwg/html-next` issues or PRs with
-regression tests, or `nextwebwg/specs` proposal changes; the HTMLKit/Markupress session receives
-each one.
+it touches, and the concrete editor need. The HTML Next side of each gap (issues or PRs with
+regression tests in `nextwebwg/html-next`, proposal changes in `nextwebwg/specs`) is driven
+separately from this plan; Looma supplies repros on request.
 
 ### 1. Imperative third-party DOM inside a component (P, R, C)
 
@@ -304,7 +304,7 @@ changes unless a step says otherwise.
 
 | # | Step | Ships | Depends on |
 | --- | --- | --- | --- |
-| 0 | Bring Looma to current HTML Next: land #324 once the Vue `:host` defect is fixed in HTML Next, then move to the latest release | build on current HTML Next | HTML Next fix |
+| 0 | Bring Looma to current HTML Next (in progress separately: Looma moves directly to `1.0.0-alpha.48`) | build on current HTML Next | — |
 | 1 | This plan | review | — |
 | 2 | Move framework-neutral helpers out of `LoomaEditor.ts` and `src/vue/editor` into `src/editor`: link and shortcut helpers, table and anchor geometry, `sameDocument`, `image-delivery.ts`, `code-language-catalog.ts` and the grammar loader; unit tests for each | smaller Vue file, neutral modules | — |
 | 3 | `createEditorSession()` in `src/editor/session`: vanilla `@tiptap/core` `Editor`, mount and remount, content sync with echo guard, commands, snapshot and `subscribe()`; LoomaEditor replaces `useEditor`/`EditorContent` with it | session API, unit and browser tests | 2 |
@@ -371,9 +371,12 @@ the browser suites gain a mount switch.
 - **D5. React and Svelte.** Publish them from Looma (new exports and tests), or document
   consumer-side generation with `@nextwebwg/html-next-unplugin`?
 - **D6. Compact editor.** Move `LoomaCompactEditor` in the same program, or later?
-- **D7. Shared block vocabulary.** Markupress's plan also asks for callout tones, a `ui-callout`
-  title slot, and Markdown import and export for callouts and expands. Schedule it before, with,
-  or after step 8?
+
+### Related work in progress
+
+The shared block vocabulary that Markupress's plan asks for is in progress separately and does not
+depend on step 8: `ui-callout` tones and title, `ui-tabs` group sync, the editor's callout
+rendering `ui-callout`, and Markdown import and export. This plan does not schedule it.
 
 ### Risks
 
