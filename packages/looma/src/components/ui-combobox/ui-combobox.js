@@ -471,6 +471,7 @@ function connect(host) {
   const onFocusout = (event) => {
     if (event.relatedTarget instanceof Node && element.contains(event.relatedTarget)) return;
     close();
+    if (host.props.multiple.value && host.props.clearQueryOnBlur.value && host.state.raw) setMultiQuery("", "pointer");
     host.state.validation = { ...host.state.validation, touched: true };
     resolveTyped("pointer");
     if (!host.props.multiple.value && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");

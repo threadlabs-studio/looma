@@ -8464,6 +8464,70 @@ describe("App styling hooks", () => {
 });
 
 describe("Combobox completion", () => {
+  it("optionally clears unfinished multiple queries on blur in HTML and controlled Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-combobox-query-blur`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Combobox } from "@threadlabs/looma/vue";
+        const query = ref("");
+        createApp({ render: () => h(Combobox, { id: "choices", label: "Teams", multiple: true,
+          clearQueryOnBlur: true, openOnFocus: true, disclosure: true, autoHighlight: "single", selectOnTab: true,
+          query: query.value, "onUpdate:query": value => query.value = value,
+          selectedValues: ["docs"] }, () => [h("option", { value: "docs" }, "Docs"), h("option", { value: "design" }, "Design")]) }).mount("#app");`);
+      const page = await open(path, `<button id="before">Before</button>` + (adapter === "html" ? `<ui-combobox id="choices" label="Teams" multiple clear-query-on-blur open-on-focus disclosure auto-highlight="single" select-on-tab selected-values='["docs"]'><option value="docs">Docs</option><option value="design">Design</option></ui-combobox>` : `<div id="app"></div>`) + `<button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        const input = page.locator('#choices input[role="combobox"]');
+        await input.focus();
+        await page.waitForSelector('#choices [role="option"]');
+        for (const exit of ["Tab", "Shift+Tab", "pointer", "Escape"]) {
+          await input.fill("D");
+          if (exit === "pointer") await page.locator("#after").click();
+          else if (exit === "Escape") { await input.press("Escape"); await page.locator("#after").click(); }
+          else await input.press(exit);
+          await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#choices input')?.value === "");
+          assert.equal(await page.locator('#choices .item').count(), 1, "blur keeps the chosen item");
+        }
+        await input.fill("D");
+        await page.locator('#choices [data-combobox-action="disclosure"]').focus();
+        assert.equal(await input.inputValue(), "D", "focus inside the control keeps unfinished text");
+        await page.locator("#after").click();
+        await input.fill("Unknown");
+        await input.press("Enter");
+        assert.equal(await page.locator('#choices .item').count(), 1, "strict mode cannot create an option");
+        await page.locator("#after").click();
+        await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#choices input')?.value === "");
+        await input.fill("Docs");
+        await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
+        await input.press("Tab");
+        assert.equal(await page.locator('#choices .item').count(), 1, "Tab keeps an already selected match");
+        assert.equal(await input.inputValue(), "");
+      } finally { await page.close(); }
+    }
+  });
+
+  it("preserves unfinished multiple queries by default and keeps creation opt-in", async () => {
+    const path = await bundle("html-combobox-preserve-query", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="choices" label="Teams" multiple><option value="docs">Docs</option></ui-combobox><ui-combobox id="create" label="Create teams" multiple allow-create clear-query-on-blur></ui-combobox><button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css")]);
+    try {
+      const input = page.locator('#choices input[role="combobox"]');
+      await input.fill("Unfinished"); await page.locator("#after").click();
+      assert.equal(await input.inputValue(), "Unfinished");
+      const create = page.locator('#create input[role="combobox"]');
+      await page.evaluate(() => {
+        document.getElementById("create")!.addEventListener("create-item", event => {
+          document.getElementById("after")!.textContent = (event as CustomEvent).detail.query;
+        });
+      });
+      await create.fill("New team");
+      await page.waitForSelector('#create [role="option"]');
+      await create.press("Enter");
+      assert.equal(await page.locator('#after').textContent(), "New team");
+      await create.fill("Unfinished"); await page.locator("#after").click();
+      await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#create input')?.value === "");
+      assert.equal(await page.locator('#after').textContent(), "New team", "blur never creates unfinished text");
+    } finally { await page.close(); }
+  });
+
   const check = async (page: Page) => {
     const input = page.locator('#choices input[role="combobox"]');
     await input.fill("Des");
