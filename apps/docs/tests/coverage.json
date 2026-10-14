@@ -315,6 +315,11 @@
           "id": "02-tone-values",
           "title": "Tone values",
           "behavior": false
+        },
+        {
+          "id": "03-heading",
+          "title": "Heading",
+          "behavior": false
         }
       ]
     },
@@ -1754,6 +1759,11 @@
         {
           "id": "06-authored-tab-labels",
           "title": "Rich tab labels",
+          "behavior": false
+        },
+        {
+          "id": "07-synced-group",
+          "title": "Synced group",
           "behavior": false
         }
       ]

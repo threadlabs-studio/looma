@@ -18,5 +18,10 @@ Looma adds the tab role, selection state, keyboard behavior, and panel labelling
 `disabled` button is skipped during arrow navigation. Keep the panel's `aria-label` as a text
 fallback and name the tab list with `label`.
 
+Give several Tabs the same `group` when they offer the same choice, such as a package manager in
+each install step. Choosing a tab selects the tab with the same label in every Tabs of that group on
+the page, and the browser remembers the choice for the next visit. A `value` the page sets itself
+wins over the remembered choice.
+
 
 <ComponentExamplesApiTabs component="ui-tabs" />

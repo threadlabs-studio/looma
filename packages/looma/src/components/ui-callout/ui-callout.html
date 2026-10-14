@@ -1,8 +1,11 @@
 <template component="ui-callout">
   <defs>
-    <prop name="tone" type="keyword" values="info, neutral, note, warning, success, danger" default="info"
-    >Which kind of message the callout carries, shown by its icon and colour: info (the default) for information, neutral for a muted aside, warning for a
-      caution, success for a confirmation, and danger for a harmful consequence. note remains as an alias for neutral.</prop>
+    <prop name="tone" type="keyword" values="info, neutral, note, tip, important, warning, caution, success, danger" default="info"
+    >Which kind of message the callout carries, shown by its icon and colour: info (the default) for information, note or neutral for a muted aside, tip for
+      advice, important for something the reader must not miss, warning for a caution, danger (or its alias caution) for a harmful consequence, and success for
+      a confirmation. These are the tones of VitePress, Docusaurus and GitHub alerts.</prop>
+    <prop name="heading" type="string" default=""
+    >A short heading above the message, such as "Before you upgrade". Optional; without it the message stands alone.</prop>
   </defs>
   <div role="note">
     <span class="icon" aria-hidden="true">
@@ -24,6 +27,16 @@
         <path d="M13 2v7h7"></path>
         <path d="m9.5 17.5 4-4 2 2-4 4H9.5v-2Z"></path>
       </svg>
+      <svg $if="$tone = 'tip'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+        <path d="M9 18h6"></path>
+        <path d="M10 22h4"></path>
+      </svg>
+      <svg $if="$tone = 'important'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path>
+        <path d="M12 15h.01"></path>
+        <path d="M12 7v4"></path>
+      </svg>
       <svg $if="$tone = 'warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
         <path d="M12 9v4"></path>
@@ -33,13 +46,24 @@
         <circle cx="12" cy="12" r="10"></circle>
         <path d="m9 12 2 2 4-4"></path>
       </svg>
-      <svg $if="$tone = 'danger'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        $if="$tone = 'danger' or $tone = 'caution'"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <circle cx="12" cy="12" r="10"></circle>
         <path d="m15 9-6 6"></path>
         <path d="m9 9 6 6"></path>
       </svg>
     </span>
-    <div class="content"><slot></slot></div>
+    <div class="content">
+      <strong class="heading" $if="$heading">{$heading}</strong>
+      <slot></slot>
+    </div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
@@ -147,6 +171,11 @@
       min-inline-size: 0;
     }
 
+    .heading {
+      display: block;
+      font-weight: var(--ui-font-semibold);
+    }
+
     :host([tone="neutral"]), :host([tone="note"]) {
       --_ui-selection-context-surface: initial;
       --_ui-selection-context-border: initial;
@@ -154,6 +183,18 @@
       --_callout-surface: var(--ui-surface-muted);
       --_callout-border: var(--ui-border-strong);
       --_callout-icon: var(--ui-text-secondary);
+    }
+
+    :host([tone="tip"]) {
+      --_callout-surface: var(--ui-success-soft);
+      --_callout-border: var(--ui-success-solid);
+      --_callout-icon: var(--ui-success-solid);
+    }
+
+    :host([tone="important"]) {
+      --_callout-surface: var(--ui-accent-soft);
+      --_callout-border: var(--ui-accent-solid);
+      --_callout-icon: var(--ui-accent-solid);
     }
 
     :host([tone="warning"]) {
@@ -168,7 +209,7 @@
       --_callout-icon: var(--ui-success-solid);
     }
 
-    :host([tone="danger"]) {
+    :host([tone="danger"]), :host([tone="caution"]) {
       --_callout-surface: var(--ui-danger-soft);
       --_callout-border: var(--ui-danger-solid);
       --_callout-icon: var(--ui-danger-solid);
