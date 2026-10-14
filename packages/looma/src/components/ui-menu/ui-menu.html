@@ -2,6 +2,7 @@
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="icons" type="boolean" default="false">Reserves a fixed icon column in every item, including items without an icon. Supply item icons through their icon slot.</prop>
     <prop name="size" type="keyword" values="sm, md" default="md"
     >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, a small check, and a narrower minimum width. md is the
       standard size.</prop>
@@ -77,6 +78,10 @@
       gap: 0;
     }
 
+    :host([icons]) {
+      --_ui-default-menu-icon-display: inline-flex;
+    }
+
     :host {
       --_ui-menu-surface: var(--ui-menu-surface);
       --_ui-menu-border: var(--ui-menu-border);
@@ -89,6 +94,7 @@
       --_ui-default-menu-item-radius: initial;
       --_ui-default-menu-item-min-block-size: initial;
       --_ui-default-menu-indicator-size: initial;
+      --_ui-default-menu-icon-display: none;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
