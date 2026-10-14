@@ -15,11 +15,12 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     const host = document.createElement("div"); document.body.append(host);
-    app = createApp({ render: () => h("div", [1, 12, 99, 120].map(count => h(Button, {
-      variant: "solid", tone: "accent", size: "sm", "aria-label": `Submit ${count} items`,
+    app = createApp({ render: () => h("div", ["default", "violet"].flatMap(control => [1, 12, 99, 120].map(count => h(Button, {
+      variant: "solid", tone: "accent", size: "sm", "aria-label": `Submit ${count} items`, "data-control": control,
+      ...(control === "violet" ? { style: "--ui-accent: rgb(109, 74, 255); --ui-on-accent: white" } : {}),
     }, { default: () => "Submit", badge: () => h(Badge, {
       variant: "overlay", shape: "circle", size: "sm", "aria-hidden": true,
-    }, () => count > 99 ? "99+" : String(count)) }))) });
+    }, () => count > 99 ? "99+" : String(count)) })))) });
     app.mount(host); await nextTick();
     const canvas = document.createElement("canvas"); canvas.width = 1; canvas.height = 1;
     const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
@@ -35,6 +36,7 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
       const style = getComputedStyle(count), parentStyle = getComputedStyle(button);
       const bounds = count.getBoundingClientRect(), label = count.querySelector(".label")!.getBoundingClientRect();
       expect(style.color).toBe(parentStyle.color);
+      if (button.dataset.control === "violet") expect(parentStyle.backgroundColor).toBe("rgb(109, 74, 255)");
       const ink = luminance(paint(style.color)), surface = luminance(paint(parentStyle.backgroundColor, style.backgroundColor));
       expect((Math.max(ink, surface) + 0.05) / (Math.min(ink, surface) + 0.05)).toBeGreaterThanOrEqual(4.5);
       const control = luminance(paint(parentStyle.backgroundColor));

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.2
+
+- Overlay badge counts use a quieter fill, keeping contrasting white text legible on saturated purple controls.
+
 ## v0.27.1
 
 - Badge adds an opt-in overlay treatment for counts on filled controls: inherited text on a faint tint, without a rim or shadow, with a smaller 20px circle at the small size. Existing badge recipes are unchanged.
