@@ -44,6 +44,14 @@ describe("Icon Button and circular Badge before upgrade", () => {
     expect(html).not.toMatch(/<button[^>]*\sdisabled(?:[= >])/);
   });
 
+  it("renders an opt-in overlay count without changing the default badge", async () => {
+    const html = await render(h(Badge, { variant: "overlay", shape: "circle", size: "sm", "aria-hidden": true }, () => "12"));
+    expect(html).toMatch(/data-ui-badge-state="[^"]*variant=overlay/);
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toMatch(/class="label"[^>]*>.*12/s);
+    expect(await render(h(Badge, null, () => "Ready"))).toMatch(/data-ui-badge-state="[^"]*variant=subtle/);
+  });
+
   it("renders the circular glyph and its name without hiding the visible content", async () => {
     const html = await render(h(Badge, { shape: "circle", size: "xs", "aria-label": "Category A" }, () => "A"));
     expect(html).toContain('data-shape="circle"');
