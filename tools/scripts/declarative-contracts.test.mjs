@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { readRepositoryProjectionTags } from "./component-api-generator.mjs";
 
 import {
   parseDeclarativeContract,
@@ -145,7 +144,8 @@ test("redundant layout aliases stay compatible without remaining public componen
     new URL("../data/component-release-classification.json", import.meta.url),
     "utf8",
   )).tags;
-  const { navigationTags } = await readRepositoryProjectionTags();
+  const navigationTags = Object.keys(classifications)
+    .filter((tag) => classifications[tag].status === "published" && !classifications[tag].navigationParent);
 
   assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "padding", "paddingEnd", "wrap"]);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
