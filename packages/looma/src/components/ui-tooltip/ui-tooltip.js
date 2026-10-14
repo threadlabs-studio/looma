@@ -28,6 +28,7 @@ function connect(host) {
   const overlayId = element.id || `ui-tooltip-${Math.random().toString(36).slice(2, 11)}`;
   if (!element.id) element.id = overlayId;
   let focused = false;
+  let pointerFocused = false;
   let trigger = null;
   let surface = null;
   let showTimer = null;
@@ -71,6 +72,8 @@ function connect(host) {
     }, Math.max(0, Number(host.props.hideDelay.value ?? 100)));
   };
   const onFocusin = () => {
+    // A pointer click may focus the action, but only visible keyboard focus keeps its hint open.
+    if (pointerFocused || !trigger?.matches(":focus-visible")) return;
     focused = true;
     clearTimers();
     setOpen(true, "keyboard");
@@ -78,6 +81,7 @@ function connect(host) {
   const onFocusout = (event) => {
     if (event.relatedTarget && element.contains(event.relatedTarget)) return;
     focused = false;
+    pointerFocused = false;
     clearTimers();
     setOpen(false, "keyboard");
   };
@@ -88,6 +92,8 @@ function connect(host) {
     else trigger.removeAttribute("aria-describedby");
     trigger.removeEventListener("keydown", onKeydown);
     trigger.removeEventListener("click", onClick);
+    trigger.removeEventListener("click", onActivate);
+    trigger.removeEventListener("pointerdown", onPointerDown);
     trigger.removeAttribute("aria-expanded");
     trigger.removeEventListener("pointerenter", onEnter);
     trigger.removeEventListener("pointerleave", onLeave);
@@ -97,6 +103,18 @@ function connect(host) {
   const onClick = () => {
     clearTimers();
     setOpen(!host.state.internalOpen, "pointer");
+  };
+  const onPointerDown = () => {
+    pointerFocused = true;
+    focused = false;
+    clearTimers();
+    setOpen(false, "pointer");
+  };
+  const onActivate = (event) => {
+    // Action hints are spent once the action runs; the next hover or keyboard focus opens anew.
+    clearTimers();
+    focused = false;
+    setOpen(false, event.detail === 0 ? "keyboard" : "pointer");
   };
   const attach = () => {
     if (!trigger) return;
@@ -111,6 +129,8 @@ function connect(host) {
       trigger.setAttribute("aria-expanded", String(Boolean(host.state.internalOpen)));
       return;
     }
+    trigger.addEventListener("pointerdown", onPointerDown);
+    trigger.addEventListener("click", onActivate);
     if (how === "hover") {
       trigger.addEventListener("pointerenter", onEnter);
       trigger.addEventListener("pointerleave", onLeave);
