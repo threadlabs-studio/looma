@@ -380,7 +380,8 @@ describe("LoomaEditor history (real browser)", () => {
     });
     await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
     await expect.element(page.getByRole("form", { name: "Edit link" })).toBeVisible();
-    await userEvent.click(page.getByRole("button", { name: "Cancel", exact: true }));
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(editor.view.dom.querySelector<HTMLAnchorElement>("a")!);
     await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
     expect(editor.isActive("link")).toBe(true);
   });
@@ -752,33 +753,45 @@ for (const platform of ["MacIntel", "Win32"]) {
 }
 
 for (const width of [1280, 375]) {
-  it(`keeps link utilities separate from right-aligned save actions (${width}px)`, async () => {
+  it(`applies link fields directly with no footer actions (${width}px)`, async () => {
     await page.viewport(width, 812);
     const { editor, host } = await mountEditor({ toolbarMode: "sticky", width });
     host.style.width = `${Math.min(width, 600)}px`;
-    editor.commands.setContent('<p><a href="https://example.com">Linked page</a></p>');
-    editor.commands.focus();
-    editor.commands.setTextSelection({ from: 1, to: 12 });
+    editor.commands.setContent('<p><a href="https://example.com" target="_blank">Linked page</a></p><p>Outside link</p>');
+    const outside = document.createElement("button");
+    outside.textContent = "Outside popup";
+    outside.style.cssText = "position:fixed;bottom:8px;right:8px";
+    host.append(outside);
+    const link = () => editor.view.dom.querySelector<HTMLAnchorElement>("a")!;
+    await userEvent.click(link());
+    await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
+    const form = page.getByRole("form", { name: "Edit link" });
+    expect([...form.element().querySelectorAll("button, a")]).toHaveLength(0);
+    await userEvent.fill(form.getByRole("textbox", { name: "URL" }), "/changed");
+    expect(link().getAttribute("href")).toBe("/changed");
+    await expect.element(form.getByRole("textbox", { name: "URL" })).toHaveFocus();
+    await userEvent.click(form.getByRole("checkbox", { name: "Open in new tab" }));
+    expect(link().getAttribute("target")).toBe("_self");
+    expect(link().getAttribute("rel")).toBeNull();
+    await expect.element(form).toBeVisible();
+    await userEvent.fill(form.getByRole("textbox", { name: "URL" }), "javascript:alert(1)");
+    expect(link().getAttribute("href")).toBe("/changed");
+    await userEvent.keyboard("{Escape}");
+    await vi.waitFor(() => expect(document.querySelector('[aria-label="Edit link"]')).toBeNull());
+    await userEvent.click(link());
+    await expect.element(page.getByRole("link", { name: "Open link", exact: true })).toBeVisible();
+    await expect.element(page.getByRole("button", { name: "Remove link", exact: true })).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
+    await expect.element(form.getByRole("textbox", { name: "URL" })).toHaveValue("/changed");
+    await userEvent.fill(form.getByRole("textbox", { name: "URL" }), "/second");
+    await userEvent.click(outside);
+    await vi.waitFor(() => expect(document.querySelector('[aria-label="Edit link"]')).toBeNull());
+    expect(link().getAttribute("href")).toBe("/second");
+    editor.commands.focus(3);
     await flushBrowser();
-    const toolbar = width === 375 ? ".looma-editor__mobile-toolbar-shell" : ".looma-editor__toolbar";
-    const trigger = host.querySelector<HTMLElement>(`${toolbar} [aria-label="Link"]`)
-      ?? host.querySelector<HTMLElement>('[aria-label="Link"]')!;
-    await userEvent.click(trigger);
-    await flushBrowser();
-    const form = document.querySelector<HTMLFormElement>('[aria-label="Edit link"]')!;
-    expect(form).toBeTruthy();
-    const buttons = [...form.querySelectorAll<HTMLElement>("button, a")];
-    const action = (label: string) => buttons.find(button => button.textContent?.trim() === label)!;
-    const remove = action("Remove link"), open = action("Open link"), cancel = action("Cancel"), save = action("Save link");
-    expect(open).toBeTruthy();
-    expect(form.textContent).toContain("Open in new tab");
-    const removeBox = remove.getBoundingClientRect(), openBox = open.getBoundingClientRect();
-    const cancelBox = cancel.getBoundingClientRect(), saveBox = save.getBoundingClientRect();
-    expect(Math.abs((removeBox.top + removeBox.bottom) / 2 - (openBox.top + openBox.bottom) / 2)).toBeLessThan(2);
-    expect(Math.abs((cancelBox.top + cancelBox.bottom) / 2 - (saveBox.top + saveBox.bottom) / 2)).toBeLessThan(2);
-    expect(cancelBox.top).toBeGreaterThanOrEqual(Math.max(removeBox.bottom, openBox.bottom));
-    expect(saveBox.left).toBeGreaterThan(cancelBox.right);
-    expect(saveBox.right).toBeLessThanOrEqual(form.getBoundingClientRect().right + 1);
+    expect({ focused: editor.isFocused, empty: editor.state.selection.empty, link: editor.isActive("link") }).toEqual({ focused: true, empty: true, link: true });
+    await userEvent.click(page.getByRole("button", { name: "Remove link", exact: true }));
+    expect(editor.view.dom.querySelector("a")).toBeNull();
   });
 }
 
