@@ -98,6 +98,10 @@
     }
 
     @media (pointer: coarse) {
+      :host {
+        min-block-size: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
+      }
+
       :host:has(.field [data-ui-input-state~="size=sm"]) {
         min-block-size: var(--ui-control-min-block-size);
       }

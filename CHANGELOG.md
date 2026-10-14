@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.3
+
+- Selects share text inputs' subtle field outline with a slightly raised resting shadow; text inputs and searchable fields retain their inset shadow. Matching single-line sizes now have the same height, including touch combobox affordances. These corrected defaults apply to existing fields without configuration; they keep selected values, events and keyboard behavior unchanged.
+- Button adds `variant="field"` for custom value pickers, using Select's neutral field edge and lift independently of action tone. Existing action variants are unchanged.
+
 ## v0.27.2
 
 - Overlay badge counts use a quieter fill, keeping contrasting white text legible on saturated purple controls.
