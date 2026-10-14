@@ -1196,7 +1196,7 @@ export const LoomaEditor = defineComponent({
 
     const updateTableUi = () => {
       const instance = editor.value;
-      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value]
+      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value, mobileToolbarShell.value]
         .some((shell) => shell?.contains(document.activeElement));
       if (
         !instance
@@ -1267,7 +1267,7 @@ export const LoomaEditor = defineComponent({
       queueMicrotask(updateTableUi);
       updateCodeUi();
       setTimeout(() => {
-        if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
+        if (!tableInteractionActive && !editor.value?.isFocused && !mobileToolbarShell.value?.contains(document.activeElement)) editorFocused.value = false;
         if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.popper.contains(document.activeElement)) {
           heldFormattingSelection = null;
         }
