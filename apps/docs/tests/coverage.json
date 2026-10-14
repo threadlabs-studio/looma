@@ -292,6 +292,11 @@
           "id": "10-card",
           "title": "card action",
           "behavior": false
+        },
+        {
+          "id": "11-field",
+          "title": "Value picker",
+          "behavior": false
         }
       ]
     },
