@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.21
+
+- Multiple comboboxes can opt into clearing unfinished search text when focus leaves the control, without changing selected items, option creation, or the default query-preservation behavior.
+
 ## v0.26.20
 
 - Deleting a table dismisses its cell controls immediately, including controls opened by hovering a cell.
