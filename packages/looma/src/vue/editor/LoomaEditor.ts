@@ -1988,6 +1988,8 @@ export const LoomaEditor = defineComponent({
           placement: "top",
           inverse: true,
         }, () => "Drag to resize column") : null,
+        // Tippy moves each menu element; its Vue sibling anchor must stay mounted.
+        h(Stack, { key: "looma-formatting-popup-host", gap: "none" }, () => [
         instance && (props.editable || props.selectionActions.length || props.rangeActions.length) && !mobile.value
           && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
@@ -2028,7 +2030,9 @@ export const LoomaEditor = defineComponent({
                     : null,
                 ])
               : renderToolbar(instance, true, props.toolbarMode === "popover") })
-          : null,
+          : null
+        ]),
+        h(Stack, { key: "looma-link-popup-host", gap: "none" }, () => [
         instance && props.editable
           ? h(BubbleMenu, {
               editor: instance,
@@ -2050,7 +2054,8 @@ export const LoomaEditor = defineComponent({
               },
             }, { default: () => props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
               ? null : renderLinkContextCard(instance) })
-          : null,
+          : null
+        ]),
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
               class: "looma-editor__formatting-popover",
