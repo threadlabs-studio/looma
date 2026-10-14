@@ -63,8 +63,8 @@
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
     <prop name="clearQueryOnBlur" type="boolean" default="false"
     >In multiple mode, clears unfinished search text when focus leaves the whole combobox, preserving selected items. A controlled query reports query-change
-      with an empty query; the consumer must reflect it back. Does not choose or create an option. The default preserves unfinished text. Single mode keeps
-      its existing selection and free-text resolution.</prop>
+      with an empty query; the consumer must reflect it back. Does not choose or create an option. The default preserves unfinished text. Single mode keeps its
+      existing selection and free-text resolution.</prop>
     <prop name="allowCreate" type="boolean" default="false"
     >Offers the current query as a new option, reported as create-item. When nothing else matches, the offer is highlighted, so Enter creates it; with nothing
       highlighted, Enter in multiple mode commits the typed text as a token separator does.</prop>
@@ -609,6 +609,7 @@
       --_ui-combobox-popup-radius: var(--ui-combobox-popup-radius);
       --_ui-combobox-popup-shadow: var(--ui-combobox-popup-shadow);
 
+      --_row: var(--ui-control-size-md);
       display: grid;
       gap: var(--ui-space-1);
       min-inline-size: 0;
@@ -630,6 +631,8 @@
     }
 
     .field {
+      box-sizing: border-box;
+      min-block-size: var(--_row);
       flex: 1 1 auto;
       display: flex;
       min-inline-size: 0;
@@ -696,14 +699,14 @@
       appearance: none;
       width: 100%;
       min-inline-size: 0;
-      min-block-size: calc(var(--ui-control-size-md) - 2px);
+      min-block-size: calc(var(--_row) - 2 * var(--ui-border-width));
       box-sizing: border-box;
       border: 0;
       border-radius: inherit;
       background: transparent;
       color: inherit;
       font: inherit;
-      line-height: var(--ui-line-height-md);
+      line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       margin: 0;
       outline: none;
@@ -712,12 +715,13 @@
       --_row: var(--ui-control-size-sm);
     }
     :host([size="sm"]) input {
-      min-block-size: calc(var(--_row) - 2px);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
+    :host([size="lg"]) {
+      --_row: var(--ui-control-size-lg);
+    }
     :host([size="lg"]) input {
-      min-block-size: calc(var(--ui-control-size-lg) - 2px);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
     }
@@ -823,9 +827,12 @@
       white-space: nowrap;
     }
     @media (pointer: coarse) {
+      :host {
+        --_row: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
+      }
       button {
         min-inline-size: 2.75rem;
-        min-block-size: 2.75rem;
+        min-block-size: calc(var(--_row) - 2 * var(--ui-border-width));
       }
       /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
          body-size text: below 16px, iOS zooms the page into the focused field. */
@@ -849,7 +856,7 @@
        while the clear and disclosure controls remain fixed at the end of the field. */
     :host([multiple]) .field {
       align-items: center;
-      min-block-size: var(--_ui-combobox-item-min-block-size, 2.5rem);
+      min-block-size: var(--_ui-combobox-item-min-block-size, var(--_row));
       padding: var(--ui-space-1);
     }
     :host([multiple]) .entry {

@@ -4133,6 +4133,63 @@ describe("Button touch target", () => {
 });
 
 describe("Form control sizes", () => {
+  for (const adapter of ["html", "vue"] as const) {
+    it(`shares field edges and size heights with raised selects and inset text in ${adapter}`, async () => {
+      const path = await bundle(`${adapter}-field-surfaces`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Button, Input, Select, InputGroup, Combobox } from "@threadlabs/looma/vue";
+        const size = window.fieldSize;
+        createApp({ render: () => h("div", { id: "fields", style: "display:grid;gap:16px;width:240px;font-family:var(--ui-font-sans)" }, [
+          h(Input, { id: "text", size, value: "Text input", "aria-label": "Name" }),
+          h(Select, { id: "choice", size, "aria-label": "Category" }, () => h("option", "General")),
+          h(Button, { id: "picker", size, variant: "field", "aria-expanded": false }, () => "Choose color"),
+          h(InputGroup, { id: "group" }, () => h(Input, { size, value: "Grouped input", "aria-label": "Address" })),
+          h(Combobox, { id: "combo", size, label: "Owner", labelVisibility: "sr-only", placeholder: "Search owner", disclosure: true }, () => h("option", { value: "ada" }, "Ada")),
+        ]) }).mount("#app");
+      `);
+      for (const touch of [false, true]) for (const size of ["sm", "md", "lg"]) {
+        const markup = `
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <div id="fields" style="display:grid;gap:16px;width:240px;font-family:var(--ui-font-sans)">
+            <ui-input id="text" value="Text input" aria-label="Name"></ui-input>
+            <ui-select id="choice" aria-label="Category"><option>General</option></ui-select>
+            <ui-button id="picker" variant="field" aria-expanded="false">Choose color</ui-button>
+            <ui-input-group id="group"><ui-input value="Grouped input" aria-label="Address"></ui-input></ui-input-group>
+            <ui-combobox id="combo" placeholder="Search owner" label="Owner" label-visibility="sr-only" disclosure><option value="ada">Ada</option></ui-combobox>
+          </div>`.replace(/<ui-(input|select|button|combobox) /g, `<ui-$1 size="${size}" `);
+        const page = await open(path, adapter === "html" ? markup : '<meta name="viewport" content="width=device-width,initial-scale=1"><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], {
+          viewport: { width: touch ? 375 : 1024, height: 800 }, hasTouch: touch, isMobile: touch, reducedMotion: "reduce",
+        }, page => page.evaluate(size => { (window as unknown as { fieldSize: string }).fieldSize = size; }, size));
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          const looks = await page.evaluate(() => ["#text", "#choice", "#picker", "#group", "#combo .field"].map(selector => {
+            const element = document.querySelector(selector)!;
+            const style = getComputedStyle(element);
+            return { height: element.getBoundingClientRect().height, border: style.borderTopColor, shadow: style.boxShadow };
+          }));
+          const expected = size === "lg" ? 48 : touch ? 44 : size === "sm" ? 32 : 40;
+          for (const look of looks) assert.equal(look.height, expected, `${adapter}/${theme}/${size}/${touch}: ${JSON.stringify(looks)}`);
+          for (const look of looks) assert.equal(look.border, looks[0].border, "all fields share their quiet outline");
+          assert.match(looks[0].shadow, /inset/, "text input is slightly inset");
+          assert.match(looks[3].shadow, /inset/, "grouped text stays inset");
+          assert.match(looks[4].shadow, /inset/, "searchable text stays inset");
+          for (const look of [looks[1], looks[2]]) {
+            assert.notEqual(look.shadow, "none", "selects have a slight resting lift");
+            assert.doesNotMatch(look.shadow, /inset/, "selects are raised, not inset");
+          }
+          if (adapter === "html" && size === "md") await page.locator("#fields").screenshot({ path: join(root, ".build", `field-surfaces-${theme}-${touch ? 375 : 1024}.png`) });
+          await page.locator("#picker").focus();
+          assert.notEqual(await page.locator("#picker").evaluate(element => getComputedStyle(element).boxShadow), looks[2].shadow, "keyboard focus adds a visible halo");
+          await page.locator("#picker").evaluate(element => element.setAttribute("aria-expanded", "true"));
+          assert.match(await page.locator("#picker").evaluate(element => getComputedStyle(element).boxShadow), /inset/, "an open picker presses inward");
+          await page.locator("#picker").evaluate(element => { element.setAttribute("aria-expanded", "false"); element.setAttribute("disabled", ""); });
+          assert.equal(await page.locator("#picker").evaluate(element => getComputedStyle(element).boxShadow), "none", "disabled pickers lose their lift");
+          await page.locator("#picker").evaluate(element => { element.removeAttribute("disabled"); (element as HTMLElement).blur(); });
+        }
+        await page.close();
+      }
+    });
+  }
   const sizedRow = (size: "sm" | "lg") => `<div style="display: flex; align-items: flex-start; gap: 8px; inline-size: 1400px">
     <ui-input id="input" size="${size}" aria-label="Search"></ui-input>
     <ui-select id="select" size="${size}" aria-label="Status"><option>Open</option></ui-select>
@@ -4200,8 +4257,8 @@ describe("Form control sizes", () => {
     await page.waitForSelector('#switch[data-component~="ui-switch"]');
     assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), true);
     const sizes = await measure(page);
-    // The combobox's clear and disclosure buttons are 44px themselves, inside its 1px border.
-    assert.deepEqual(sizes.heights, { input: 44, select: 44, combobox: 46, multiple: 44, button: 44, checkbox: 44, radio: 44, switch: 44 });
+    // Affordances fit inside the shared 44px outer frame.
+    assert.deepEqual(sizes.heights, { input: 44, select: 44, combobox: 44, multiple: 44, button: 44, checkbox: 44, radio: 44, switch: 44 });
     assert.deepEqual(sizes.labels, [0, 0, 0]);
     assert.equal(sizes.fontSize, "16px");
     await context.close();
