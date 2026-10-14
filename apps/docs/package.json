@@ -1,10 +1,10 @@
 {
   "name": "@threadlabs/looma-docs",
   "private": true,
-  "version": "0.26.0",
+  "version": "0.27.0",
   "scripts": {
-    "dev": "pnpm generate:api && docusaurus start --port 4173",
-    "build": "pnpm generate:api && BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
+    "dev": "pnpm generate:api && node build-preview.mjs && docusaurus start --port 4173",
+    "build": "pnpm generate:api && node build-preview.mjs && BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
     "generate:api": "pnpm --dir ../.. generate:api",
     "lint": "echo \"docs: lint not configured\"",
     "test": "echo \"docs: run test:parity and test:visual for browser checks\"",

@@ -4,13 +4,13 @@
     "impact": "serious",
     "targets": [
       [
-        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(38) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(40) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
       ],
       [
-        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(43) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(45) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
       ],
       [
-        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(50) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(52) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
       ],
       [
         ".language-vue > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"

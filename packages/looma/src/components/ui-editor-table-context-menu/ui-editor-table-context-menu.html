@@ -80,10 +80,16 @@
     </template>
   </div>
   <style>
+    :host[popover] {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+    }
+
     :host {
       /* The max-width is a promise about the menu's footprint, so it counts padding and border. */
       box-sizing: border-box;
-      min-width: 14rem;
+      min-width: min(14rem, calc(100vw - 24px));
       max-width: min(17rem, calc(100vw - 24px));
       max-height: min(28rem, calc(100vh - 24px));
       padding: var(--ui-space-2);
@@ -138,16 +144,22 @@
       color: var(--ui-danger);
     }
 
+    /* Swatches wrap like words: the row asks for the menu's full width, and a narrower menu fits fewer. */
     .swatches {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 3px;
     }
 
-    .swatch-button {
+    /* Three to a row at the menu's full width; 5rem keeps the longest label, "Default", whole. */
+    :host .swatch-button {
       display: inline-flex;
       align-items: center;
       gap: var(--ui-space-2);
+      flex: 1 0 5rem;
+      min-width: 5rem;
+      max-width: calc((100% - 6px) / 3);
+      padding-inline-end: var(--ui-space-1);
     }
 
     .swatch {
@@ -192,6 +204,11 @@
       height: 1px;
       background: var(--ui-border-divider);
       margin: var(--ui-space-1) 0;
+    }
+
+    /* Separators divide sections, so none sits above the first. */
+    .sep:first-child {
+      display: none;
     }
 
     :host[hidden] {
