@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.25
+
+- Link fields apply valid destination, text, and new-tab changes directly while preserving input focus. The popup has no footer buttons; Enter, Escape, or an outside click closes it, and nearby link actions retain Open and Remove.
+
 ## v0.26.24
 
 - Editor link actions and formatting tools remain stable when changing between desktop and phone layouts. Editing a link focuses one visible form and keeps its controls inside the viewport.
