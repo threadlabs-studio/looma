@@ -319,7 +319,7 @@
     /* A count can keep its containing control's contrasting ink instead of reversing it.
        The faint fill is painted over that control; no second rim or shadow competes with it. */
     :host([variant="overlay"]) {
-      --_badge-outline-surface: var(--ui-badge-surface, color-mix(in srgb, currentColor 10%, transparent));
+      --_badge-outline-surface: var(--ui-badge-surface, color-mix(in srgb, currentColor 6%, transparent));
       color: var(--ui-badge-text, inherit);
       border-color: var(--ui-badge-border, transparent);
       box-shadow: none;
