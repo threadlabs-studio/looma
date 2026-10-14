@@ -1,3 +1,5 @@
+import { observeOverlayViewport } from "../shared/overlay.js";
+
 function distance(point, rect) {
   const dx = Math.max(rect.left - point.x, 0, point.x - rect.right);
   const dy = Math.max(rect.top - point.y, 0, point.y - rect.bottom);
@@ -52,10 +54,7 @@ function connect(host) {
   const observer = new MutationObserver(invalidate);
   observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ui-affordance", "disabled", "aria-disabled"] });
   element.ownerDocument.addEventListener("pointermove", onPointermove, { passive: true });
-  owner.addEventListener("resize", invalidate, { passive: true });
-  owner.addEventListener("scroll", invalidate, { passive: true, capture: true });
-  owner.visualViewport?.addEventListener("resize", invalidate, { passive: true });
-  owner.visualViewport?.addEventListener("scroll", invalidate, { passive: true });
+  const stopViewport = observeOverlayViewport(element.ownerDocument, invalidate);
   const stop = host.effect(() => {
     const configured = Number(host.props.nearRadius.value ?? 16);
     nearRadius = Number.isFinite(configured) ? Math.max(0, configured) : 16;
@@ -64,12 +63,9 @@ function connect(host) {
   measure();
   return () => {
     stop();
+    stopViewport();
     observer.disconnect();
     element.ownerDocument.removeEventListener("pointermove", onPointermove);
-    owner.removeEventListener("resize", invalidate);
-    owner.removeEventListener("scroll", invalidate, true);
-    owner.visualViewport?.removeEventListener("resize", invalidate);
-    owner.visualViewport?.removeEventListener("scroll", invalidate);
     if (frame !== null) owner.cancelAnimationFrame(frame);
     clear();
   };

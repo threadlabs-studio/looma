@@ -1,4 +1,4 @@
-import { closeOverlay, openOverlay } from "../shared/overlay.js";
+import { closeDialog, closeOverlay, openOverlay, showDialog } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 /** Owns native dialog state while leaving query and result state to the application. */
@@ -18,9 +18,8 @@ function connect(host) {
     host.dispatch("close", { open: false, reason, trigger: how });
   };
   const closeNative = () => {
-    if (!dialog.open) return;
     suppressNativeClose = true;
-    dialog.close();
+    closeDialog(dialog);
     suppressNativeClose = false;
   };
   const stop = host.effect(() => {
@@ -32,8 +31,7 @@ function connect(host) {
     if (dialog.open && modal !== activeModal) closeNative();
     activeModal = modal;
     if (host.state.internalOpen && !dialog.open) {
-      if (modal) dialog.showModal();
-      else dialog.show();
+      showDialog(dialog, modal);
     }
     if (host.state.internalOpen) {
       openOverlay({ id: overlayId, modal, element: dialog, modalElement: dialog, dismissible: false, requestClose: () => {} });
