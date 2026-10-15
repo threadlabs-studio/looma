@@ -169,7 +169,9 @@ function facetReasons(ts, checker, symbol, declarations) {
       if (containsFunctionType(ts, declaration)) reasons.add("callback-bearing");
       for (const member of declaration.members ?? []) {
         const name = member.name?.getText().replace(/["']/g, "");
-        if (name && RESOURCE_METHODS.has(name)) reasons.add("resource-owning");
+        // Only a callable member releases something; an event map's `remove` key names an event.
+        const callable = checker.getTypeAtLocation(member).getCallSignatures().length > 0;
+        if (name && callable && RESOURCE_METHODS.has(name)) reasons.add("resource-owning");
         if (ts.isMethodSignature(member)) {
           for (const reason of functionLikeReasons(ts, checker, member)) reasons.add(reason);
         }

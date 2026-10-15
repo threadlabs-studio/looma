@@ -149,6 +149,12 @@
       "group": "forms",
       "description": "Reveal an editing control from an explicit presentation trigger."
     },
+    "ui-editor-block-actions": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The editor's block menu: insert a paragraph below, duplicate, or delete the block that holds the caret."
+    },
     "ui-editor-image-toolbar": {
       "status": "published",
       "package": "@threadlabs/looma",
@@ -160,6 +166,12 @@
       "package": "@threadlabs/looma",
       "group": "editor",
       "description": "Grid picker for table dimensions and optional header-row intent."
+    },
+    "ui-editor-link-card": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The actions bar for a link in the editor: its destination, Open link, Edit link, and Remove link."
     },
     "ui-editor-mention-menu": {
       "status": "published",
