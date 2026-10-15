@@ -69,15 +69,13 @@ import {
 import {
   createLoomaImageDeliveryController,
   imageDescriptorFromAttrs,
-  imageUploadContent,
-  normalizeImageDimension,
   type LoomaImageActivationDetail,
   type LoomaImageAttributeResolver,
-  type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
 import { runBlockAction } from "../../editor/block-actions";
+import { createImageUploads, type LoomaImageUploader, type LoomaImageUploads, type LoomaImageUploadsState } from "../../editor/image-uploads";
 import { createFormattingSelection, type LoomaFormattingSelection } from "../../editor/formatting-selection";
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
@@ -93,26 +91,7 @@ import { calloutNodeView } from "./callout";
 import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
 import { imageNodeView } from "./image";
 
-/**
- * Host upload result normalized into the editor's durable image descriptor.
- * `url` becomes the stored `src`; optional dimensions preserve layout before
- * the image loads and `responsive` opts into host-provided rendition policy.
- */
-export interface LoomaImageUploadResult extends Omit<LoomaImageDescriptor, "src"> {
-  url: string;
-}
-
-/**
- * Application-owned upload boundary used by paste, drop, and file selection.
- *
- * @ownership The application owns network requests, persistence, and returned
- * URLs. Looma owns only editor insertion after the promise fulfills.
- * @failure Rejection leaves the document unchanged and is surfaced through the
- * editor's `uploadError` event so the host chooses retry and user messaging.
- */
-export type LoomaImageUploader = (
-  file: File,
-) => Promise<string | LoomaImageUploadResult>;
+export type { LoomaImageUploader, LoomaImageUploadResult } from "../../editor/image-uploads";
 
 /**
  * Chooses whether formatting controls follow a selection, occupy persistent
@@ -382,8 +361,8 @@ export const LoomaEditor = defineComponent({
     const mobileToolbarShell = ref<HTMLElement | null>(null);
     const codeLanguageShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
-    const uploading = ref(false);
-    const failedUpload = ref<{ file: File } | null>(null);
+    let uploads: LoomaImageUploads | undefined;
+    const uploadState = shallowRef<LoomaImageUploadsState>({ uploading: false, failed: null });
     const tablePickerOpen = ref(false);
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
@@ -601,6 +580,9 @@ export const LoomaEditor = defineComponent({
       const engine = createLinkEditing({ editor: session.editor, search: () => props.linkSearch, resolve: () => props.linkResolve, baseUrl: () => props.linkBaseUrl });
       engine.subscribe(() => { linkState.value = engine.state; });
       linkEditing = engine;
+      const imageUploads = createImageUploads({ editor: session.editor, upload: () => props.uploadImage, onError: (error, file) => emit("uploadError", error, file) });
+      imageUploads.subscribe(() => { uploadState.value = imageUploads.state; });
+      uploads = imageUploads;
       const instance = session.editor;
       formatting = createFormattingSelection({
         editor: instance,
@@ -1258,35 +1240,11 @@ export const LoomaEditor = defineComponent({
       if (tablePointerFrame !== null) cancelAnimationFrame(tablePointerFrame);
     });
 
-    const insertImage = async (file: File) => {
-      if (!props.uploadImage || !editor.value) return;
-      uploading.value = true;
-      try {
-        const result = await props.uploadImage(file);
-        const image = typeof result === "string" ? { url: result } : result;
-        const width = normalizeImageDimension(image.width);
-        const height = normalizeImageDimension(image.height);
-        editor.value.chain().focus().insertContent(imageUploadContent({
-          src: image.url,
-          alt: image.alt ?? file.name,
-          ...(width ? { width } : {}),
-          ...(height ? { height } : {}),
-          ...(image.responsive === true ? { responsive: true } : {}),
-        })).run();
-        failedUpload.value = null;
-      } catch (error) {
-        failedUpload.value = { file };
-        emit("uploadError", error, file);
-      } finally {
-        uploading.value = false;
-      }
-    };
-
     const onFileChange = async (event: Event) => {
       const input = event.target as HTMLInputElement;
       const files = Array.from(input.files ?? []);
       input.value = "";
-      for (const file of files) await insertImage(file);
+      await uploads?.insert(files);
     };
 
     const onDrop = async (event: DragEvent) => {
@@ -1294,7 +1252,7 @@ export const LoomaEditor = defineComponent({
       dragOver.value = false;
       if (!props.editable) return;
       const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => file.type.startsWith("image/"));
-      for (const file of files) await insertImage(file);
+      await uploads?.insert(files);
     };
 
     const onContextMenu = (event: MouseEvent) => {
@@ -1572,7 +1530,7 @@ export const LoomaEditor = defineComponent({
           // The popover anchored here with `for` owns the toggle; toggling here too reopened and
           // closed it on the same click.
         }, () => loomaIcon("table")),
-        commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
+        commandButton(uploadState.value.uploading ? "Uploading image" : "Insert image", "image", false, uploadState.value.uploading || !props.uploadImage, () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run(), "Mod-z"),
         commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run(), isApplePlatform() ? "Mod-Shift-z" : "Mod-y"),
@@ -1780,7 +1738,7 @@ export const LoomaEditor = defineComponent({
           "aria-hidden": "true",
           onChange: onFileChange,
         }),
-        failedUpload.value
+        uploadState.value.failed
           ? h("div", {
               class: "looma-editor__upload-error",
               role: "alert",
@@ -1788,12 +1746,9 @@ export const LoomaEditor = defineComponent({
               h("span", "Couldn’t upload image."),
               h("button", {
                 type: "button",
-                disabled: uploading.value,
-                onClick: () => {
-                  const attempt = failedUpload.value;
-                  if (attempt) void insertImage(attempt.file);
-                },
-              }, uploading.value ? "Retrying…" : "Retry"),
+                disabled: uploadState.value.uploading,
+                onClick: () => { void uploads?.retry(); },
+              }, uploadState.value.uploading ? "Retrying…" : "Retry"),
             ])
           : null,
         dragOver.value
