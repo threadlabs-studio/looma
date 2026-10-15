@@ -703,6 +703,19 @@
       ]
     },
     {
+      "path": "components/ui-editor-code-language",
+      "title": "Code Language",
+      "source": "apps/docs/docs/editor/ui-editor-code-language.mdx",
+      "component": "ui-editor-code-language",
+      "examples": [
+        {
+          "id": "01-languages",
+          "title": "Languages",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-image-toolbar",
       "title": "Image Toolbar",
       "source": "apps/docs/docs/editor/ui-editor-image-toolbar.mdx",
