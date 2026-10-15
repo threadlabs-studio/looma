@@ -323,46 +323,6 @@
   inline-size: min(15rem, calc(100vw - 2rem));
 }
 
-.looma-editor__chip-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-3);
-}
-
-.looma-editor__chip-form input {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: var(--ui-control-min-block-size);
-  padding: var(--ui-space-2);
-  border: var(--ui-border-width) solid var(--ui-control-border);
-  border-radius: var(--ui-field-radius, var(--ui-radius-md));
-  background: var(--ui-control-surface);
-  color: var(--ui-text-primary);
-  font: inherit;
-}
-
-.looma-editor__chip-colors {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--ui-space-1);
-}
-
-.looma-editor__chip-color {
-  display: grid;
-  place-items: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  padding: 0;
-  border: var(--ui-border-width) solid var(--_chip-border);
-  border-radius: 50%;
-  background: var(--_chip-surface);
-  color: var(--_chip-text);
-  font: inherit;
-  font-size: var(--ui-font-size-xs);
-  cursor: pointer;
-}
-
-.looma-editor__chip-form :is(input, button):focus-visible,
 .looma-editor .ProseMirror [data-looma-chip]:focus-visible {
   outline: var(--ui-focus-width) solid var(--ui-focus-ring);
   outline-offset: var(--ui-focus-width);
@@ -451,8 +411,7 @@
   white-space: nowrap;
 }
 
-.looma-editor .ProseMirror [data-looma-chip],
-.looma-editor__chip-color {
+.looma-editor .ProseMirror [data-looma-chip] {
   --_chip-tone-surface: var(--ui-surface-subtle);
   --_chip-tone-text: var(--ui-text-secondary);
   --_chip-surface: var(--ui-editor-chip-surface, var(--_chip-tone-surface));
@@ -460,32 +419,27 @@
   --_chip-border: var(--ui-editor-chip-border, color-mix(in srgb, var(--_chip-surface) 75%, var(--_chip-text) 25%));
 }
 
-.looma-editor .ProseMirror [data-looma-chip][data-color="blue"],
-.looma-editor__chip-color[data-color="blue"] {
+.looma-editor .ProseMirror [data-looma-chip][data-color="blue"] {
   --_chip-tone-surface: var(--ui-info-soft);
   --_chip-tone-text: var(--ui-info-subtle-text);
 }
 
-.looma-editor .ProseMirror [data-looma-chip][data-color="green"],
-.looma-editor__chip-color[data-color="green"] {
+.looma-editor .ProseMirror [data-looma-chip][data-color="green"] {
   --_chip-tone-surface: var(--ui-success-soft);
   --_chip-tone-text: var(--ui-success-subtle-text);
 }
 
-.looma-editor .ProseMirror [data-looma-chip][data-color="yellow"],
-.looma-editor__chip-color[data-color="yellow"] {
+.looma-editor .ProseMirror [data-looma-chip][data-color="yellow"] {
   --_chip-tone-surface: var(--ui-warning-soft);
   --_chip-tone-text: var(--ui-warning-subtle-text);
 }
 
-.looma-editor .ProseMirror [data-looma-chip][data-color="red"],
-.looma-editor__chip-color[data-color="red"] {
+.looma-editor .ProseMirror [data-looma-chip][data-color="red"] {
   --_chip-tone-surface: var(--ui-danger-soft);
   --_chip-tone-text: var(--ui-danger-subtle-text);
 }
 
-.looma-editor .ProseMirror [data-looma-chip][data-color="purple"],
-.looma-editor__chip-color[data-color="purple"] {
+.looma-editor .ProseMirror [data-looma-chip][data-color="purple"] {
   --_chip-tone-surface: var(--ui-accent-soft);
   --_chip-tone-text: var(--ui-accent-subtle-text);
 }

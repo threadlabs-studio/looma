@@ -84,7 +84,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
     expect(input).toBeTruthy();
     expect(document.activeElement).toBe(input);
     await userEvent.type(input!, "90% confidence");
-    const blue = document.querySelector<HTMLButtonElement>('button[aria-label="Blue chip"]');
+    const blue = document.querySelector<HTMLInputElement>('input[type="radio"][aria-label="Blue"]');
     expect(blue).toBeTruthy();
     await userEvent.click(blue!);
     await flushBrowser();
@@ -104,7 +104,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
     await flushBrowser();
     expect(document.activeElement).toBe(input);
     expect(input?.value).toBe("90% confidence");
-    expect(blue?.getAttribute("aria-pressed")).toBe("true");
+    expect(blue?.checked).toBe(true);
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
   });
 });

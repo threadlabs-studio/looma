@@ -13,6 +13,7 @@ import type {
 
 export {
   EditorBlockActions,
+  EditorChipEditor,
   EditorCodeLanguage,
   EditorImageToolbar,
   EditorInsertTableGrid,
@@ -48,6 +49,9 @@ export interface VueEditorAdapterEventMap {
   save: Record<string, never>;
   dismiss: Record<string, never>;
   language: { value: string };
+  label: { label: string };
+  color: { color: "neutral" | "blue" | "green" | "yellow" | "red" | "purple" };
+  done: Record<string, never>;
   "add-row-before": { boundaryIndex: number };
   "add-row-after": { boundaryIndex: number };
   "add-column-before": { boundaryIndex: number };
@@ -76,4 +80,5 @@ export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorLinkForm: "ui-editor-link-form",
   EditorBlockActions: "ui-editor-block-actions",
   EditorCodeLanguage: "ui-editor-code-language",
+  EditorChipEditor: "ui-editor-chip-editor",
 } as const;
