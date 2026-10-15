@@ -1,0 +1,20 @@
+<link rel="component" href="../ui-menu/ui-menu.html">
+<link rel="component" href="../ui-menu-item/ui-menu-item.html">
+<template component="ui-editor-block-actions" controller="./ui-editor-block-actions.js">
+  <defs>
+    <prop name="for" type="string" default="">The id of the button that opens the menu and anchors it.</prop>
+    <prop name="placement" type="keyword" values="bottom-start, top-start" default="bottom-start"
+    >Where the menu opens beside its button; top-start suits a toolbar docked at the bottom of the screen.</prop>
+    <event name="action" type="object">
+      <prop name="action" required type="keyword" values="insert-below, duplicate, delete"></prop>
+      Requests an action on the block that holds the caret.
+    </event>
+  </defs>
+  <div>
+    <ui-menu from:for="$for" from:placement="$placement" aria-label="Block actions">
+      <ui-menu-item value="insert-below">Insert paragraph below</ui-menu-item>
+      <ui-menu-item value="duplicate">Duplicate block</ui-menu-item>
+      <ui-menu-item value="delete">Delete block</ui-menu-item>
+    </ui-menu>
+  </div>
+</template>

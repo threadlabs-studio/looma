@@ -103,6 +103,10 @@ test("reports missing, tautological, facet, and unresolved-link failures", async
       "export function runWork(callback: () => void): void { callback(); }",
       "/** Resolves a known value through {@link MissingContract}. */",
       "export function linked(value: string): string { return value; }",
+      "/** A connection the caller ends. */",
+      "export interface Connection { close(): void }",
+      "/** Event details by event name. */",
+      "export interface EventDetails { remove: { id: string }; close: Record<string, never> }",
       "",
     ].join("\n"),
   });
@@ -117,6 +121,8 @@ test("reports missing, tautological, facet, and unresolved-link failures", async
   assert.deepEqual(symbols["packages/public/src/index.ts#formatValue"].issues, ["tautological-summary"]);
   assert.deepEqual(symbols["packages/public/src/index.ts#runWork"].issues, ["missing-facet"]);
   assert.deepEqual(symbols["packages/public/src/index.ts#linked"].issues, ["unresolved-link"]);
+  assert.deepEqual(symbols["packages/public/src/index.ts#Connection"].issues, ["missing-facet"]);
+  assert.deepEqual(symbols["packages/public/src/index.ts#EventDetails"].issues, [], "a data member named like a release method owns nothing");
 });
 
 test("the baseline ratchets old gaps but rejects new or regressed gaps", () => {

@@ -39,7 +39,7 @@
           data-image-placement="block"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'block')]"
           from:aria-pressed="concat($placement = 'block')"
-        ><ui-icon name="panel-top" size="sm"></ui-icon></ui-icon-button>
+        ><ui-icon name="panel-top"></ui-icon></ui-icon-button>
         <ui-icon-button
           from:id="concat($base, '-center')"
           label="Center image"
@@ -47,7 +47,7 @@
           data-image-placement="center"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'center')]"
           from:aria-pressed="concat($placement = 'center')"
-        ><ui-icon name="align-center" size="sm"></ui-icon></ui-icon-button>
+        ><ui-icon name="align-center"></ui-icon></ui-icon-button>
         <ui-icon-button
           from:id="concat($base, '-wrap-left')"
           label="Wrap text to the right"
@@ -55,7 +55,7 @@
           data-image-placement="wrap-left"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-left')]"
           from:aria-pressed="concat($placement = 'wrap-left')"
-        ><ui-icon name="panel-left" size="sm"></ui-icon></ui-icon-button>
+        ><ui-icon name="panel-left"></ui-icon></ui-icon-button>
         <ui-icon-button
           from:id="concat($base, '-wrap-right')"
           label="Wrap text to the left"
@@ -63,11 +63,10 @@
           data-image-placement="wrap-right"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-right')]"
           from:aria-pressed="concat($placement = 'wrap-right')"
-        ><ui-icon name="panel-right" size="sm"></ui-icon></ui-icon-button>
-        <ui-icon-button from:id="$base" label="Image description" size="sm" variant="ghost"><ui-icon name="file-text" size="sm"></ui-icon></ui-icon-button>
+        ><ui-icon name="panel-right"></ui-icon></ui-icon-button>
+        <ui-icon-button from:id="$base" label="Image description" size="sm" variant="ghost"><ui-icon name="file-text"></ui-icon></ui-icon-button>
         <ui-icon-button from:id="concat($base, '-delete')" label="Delete image" size="sm" variant="ghost" data-image-action="delete"><ui-icon
             name="trash"
-            size="sm"
           ></ui-icon></ui-icon-button>
       </ui-editor-toolbar>
       <ui-tooltip from:for="concat($base, '-block')">Image in line</ui-tooltip>
