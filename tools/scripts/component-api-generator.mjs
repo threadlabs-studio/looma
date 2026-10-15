@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -78,9 +78,8 @@ function pushSetDifference(errors, label, expected, actual) {
 export function validateComponentProjections({
   sourceTags,
   classifications,
+  groups,
   metadataTags,
-  documentationTags,
-  navigationTags,
   adapterTags,
   adapterMapTags = adapterTags,
 }) {
@@ -113,22 +112,30 @@ export function validateComponentProjections({
   const publishedTags = classificationTags.filter(
     (tag) => classificationStatus(classifications[tag]) === "published",
   );
-  const navigationTagsExpected = publishedTags.filter((tag) => (
-    typeof classifications[tag] !== "object" || !classifications[tag]?.navigationParent
-  ));
+  const groupIds = (groups ?? []).map(({ id }) => id);
+  const duplicateGroups = duplicates(groupIds);
+  if (duplicateGroups.length > 0) errors.push(`duplicate groups: ${duplicateGroups.join(", ")}`);
+  const groupSet = new Set(groupIds);
+  // A navigated component names its group; a part is listed under its navigated parent instead.
   for (const tag of publishedTags) {
-    const parent = typeof classifications[tag] === "object" ? classifications[tag]?.navigationParent : undefined;
-    if (!parent) continue;
+    const value = typeof classifications[tag] === "object" ? classifications[tag] : {};
+    if (typeof value.description !== "string" || value.description.trim() === "") {
+      errors.push(`published tag without a description: ${tag}`);
+    }
+    const parent = value.navigationParent;
+    if (!parent) {
+      if (!groupSet.has(value.group)) errors.push(`navigated tag without a known group: ${tag}`);
+      continue;
+    }
+    if (value.group !== undefined) errors.push(`part ${tag} takes its group from ${parent}; remove its group`);
     if (classificationStatus(classifications[parent]) !== "published") {
       errors.push(`navigation parent for ${tag} is not published: ${parent}`);
-    } else if (!navigationTags.includes(parent)) {
+    } else if (classifications[parent]?.navigationParent) {
       errors.push(`navigation parent for ${tag} is not navigated: ${parent}`);
     }
   }
 
   pushSetDifference(errors, "metadata", publishedTags, metadataTags);
-  pushSetDifference(errors, "documentation", publishedTags, documentationTags);
-  pushSetDifference(errors, "navigation", navigationTagsExpected, navigationTags);
   pushSetDifference(errors, "adapter map", publishedTags, adapterMapTags);
   pushSetDifference(errors, "adapter", publishedTags, adapterTags);
 
@@ -137,32 +144,11 @@ export function validateComponentProjections({
   }
 }
 
-/**
- * Component pages, by tag. Pages under docs/components/<group>/ and docs/editor/ are the navigation
- * (the sidebars are generated from those folders); part pages under docs/parts/ are not navigated.
- */
-async function readComponentPages() {
-  const docsRoot = path.join(repoRoot, "apps/docs/docs");
-  const entries = await readdir(docsRoot, { recursive: true, withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isFile() && /^ui-[a-z0-9-]+\.mdx$/.test(entry.name))
-    .map((entry) => {
-      const directory = path.relative(docsRoot, entry.parentPath);
-      return { tag: entry.name.replace(/\.mdx$/, ""), file: path.join(entry.parentPath, entry.name), navigated: directory !== "parts" };
-    });
-}
-
 export async function readRepositoryProjectionTags() {
-  const pages = await readComponentPages();
-  const documentationTags = pages.map(({ tag }) => tag);
-  const navigationTags = pages.filter(({ navigated }) => navigated).map(({ tag }) => tag);
-
   // Every component converts to Vue and is exported from @threadlabs/looma/vue.
   const componentTags = CONTRACT_GROUPS.flatMap(({ contracts }) => Object.keys(contracts));
 
   return {
-    documentationTags,
-    navigationTags,
     adapterMapTags: componentTags,
     adapterTags: componentTags,
   };
@@ -442,23 +428,6 @@ async function componentDesignTokens(tag, group, contract) {
   };
 }
 
-async function readComponentDocDescriptions() {
-  const descriptions = new Map();
-
-  for (const { tag, file } of await readComponentPages()) {
-    const content = await readFile(file, "utf8");
-    const lines = content.split("\n");
-    const titleIndex = lines.findIndex((line) => line.startsWith("# "));
-    if (titleIndex < 0) continue;
-    const description = lines.slice(titleIndex + 1)
-      .map((line) => line.trim())
-      .find((line) => line !== "" && !line.startsWith("import ") && !line.startsWith("## "));
-    descriptions.set(tag, description ?? "");
-  }
-
-  return descriptions;
-}
-
 function slotDescription(name) {
   if (name === "default") return "Default child content.";
   if (name.endsWith("-*")) return `Named content matching the ${name} slot pattern.`;
@@ -518,7 +487,7 @@ export async function generateComponentApiMetadata() {
     await readFile(path.join(repoRoot, RELEASE_CLASSIFICATION_PATH), "utf8"),
   );
   const classifications = classificationsDocument.tags ?? {};
-  const descriptions = await readComponentDocDescriptions();
+  const groups = classificationsDocument.groups ?? [];
   const componentEntries = CONTRACT_GROUPS.flatMap((group) =>
     Object.entries(group.contracts)
       .filter(([tag]) => classificationStatus(classifications[tag]) === "published")
@@ -528,10 +497,12 @@ export async function generateComponentApiMetadata() {
       tag,
       packageName,
       contract,
-      descriptions.get(tag) ?? "",
+      classifications[tag]?.description ?? "",
       await componentDesignTokens(tag, group, contract),
     ),
-    ...(typeof classifications[tag] === "object" && classifications[tag]?.navigationParent
+    // A part is listed under its navigated parent, in the parent's group.
+    group: classifications[tag]?.group ?? classifications[classifications[tag]?.navigationParent]?.group,
+    ...(classifications[tag]?.navigationParent
       ? { navigationParent: classifications[tag].navigationParent }
       : {}),
   })))).sort((left, right) => left.tag.localeCompare(right.tag));
@@ -553,13 +524,12 @@ export async function generateComponentApiMetadata() {
   validateComponentProjections({
     sourceTags: sourceComponents.map((component) => component.tag),
     classifications,
+    groups,
     metadataTags: components.map((component) => component.tag),
-    documentationTags: repositoryProjections.documentationTags,
-    navigationTags: repositoryProjections.navigationTags,
     // Every component is exported to Vue; only the published ones are documented as such.
     adapterMapTags: repositoryProjections.adapterMapTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
     adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
-  return { schemaVersion: 4, components };
+  return { schemaVersion: 5, groups, components };
 }
