@@ -1,11 +1,11 @@
 # Docs/API Sync Workflow
 
-The component API source of truth is each package's maintained `src/declarative/components/*.html`
-definition and adjacent controller. The API generator reads prop types and defaults, native roots,
-property-only structured inputs, events, slots, dependencies, and component CSS directly
-from those files. It reads only the intro line from each component MDX page for a human-readable
-description. Legacy classes and source decorators are not API inputs, and no migration converter
-runs during normal development.
+The component API source of truth is each component's definition in
+`packages/looma/src/components/<tag>/<tag>.html` and its adjacent controller. The API generator
+reads prop types and defaults, native roots, events, slots, and component CSS directly from those
+files. A component's description, its group, and whether it is a part listed under a parent come
+from `tools/data/component-release-classification.json`, so the metadata does not depend on how a
+documentation site lays out its pages.
 
 ## Option descriptions
 
@@ -18,22 +18,23 @@ roots with `$match`, so its `as` option is documented like any other prop.
 
 ## Commands
 
-- `pnpm generate:api` regenerates `generated/component-api.json` for the docs and Storybook consumers.
-- `pnpm check:docs-sync` fails if that generated public API output is stale.
-- `pnpm generate:docs` currently aliases API generation for docs consumers.
-- `pnpm --filter @threadlabs/looma-declarative-build registry` refreshes the shipping registries
-  without rewriting component definitions or framework adapters.
+- `pnpm generate:api` writes `generated/component-api.json`. The output is not committed: the docs
+  build and dev server and Storybook's visual build run it first; run it yourself before
+  `pnpm dev:storybook`.
+- `pnpm generate:docs` is an alias for `pnpm generate:api`.
+- `pnpm --filter @threadlabs/looma build` converts every definition to the published HTML and Vue
+  components on each build.
 
 ## Consumers
 
-- Docusaurus API tabs render from `generated/component-api.json` through reusable MDX components in `apps/docs/src/components`.
+- Docusaurus API tabs and the catalog render from `generated/component-api.json` through components in `apps/docs/src/components`.
 - Storybook stories use `createComponentArgTypes()` and `createComponentDocsParameters()` from `apps/storybook/stories/shared/componentApi.ts`.
 
 ## Updating Component APIs
 
-1. Update the package-owned declarative definition and controller directly.
-2. Regenerate metadata with `pnpm generate:api`.
-3. Run `pnpm check:docs-sync` and commit generated output.
-
-Vue adapters are regenerated only at an explicit release checkpoint after the
-declarative API has settled.
+1. Update the component's definition and controller directly.
+2. For a new or renamed component, add its entry to the classification: status, package,
+   description, and a group or a navigation parent.
+3. Run `node --test tools/scripts/*.test.mjs`. The generator rejects a published component without
+   a description or a known group, and a Docusaurus check confirms each page is filed in its
+   group's folder and opens with that description.
