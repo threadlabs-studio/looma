@@ -1,0 +1,17 @@
+<link rel="component" href="../ui-combobox/ui-combobox.html">
+<template component="ui-editor-code-language" controller="./ui-editor-code-language.js">
+  <defs>
+    <prop name="value" type="string" default="auto">The code block's language, or auto to detect it.</prop>
+    <prop name="languages" type="list(object({ value: string, label: string }))" default="[]"
+    >The languages to offer, in order, each with its label; the editor lists Auto first and marks a saved language it cannot highlight.</prop>
+    <event name="language" type="object">
+      <prop name="value" required type="string"></prop>
+      A language was chosen, or auto.
+    </event>
+  </defs>
+  <div>
+    <ui-combobox label="Code language" label-visibility="sr-only" size="sm" from:disclosure="true" filter="label" from:value="$value">
+      <option $each="language of $languages" $key="$language.value" from:value="$language.value">{$language.label}</option>
+    </ui-combobox>
+  </div>
+</template>

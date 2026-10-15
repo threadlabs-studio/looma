@@ -50,10 +50,11 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, Combobox, EditorSurface, IconButton, Popover, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorBlockActions,
+  EditorCodeLanguage,
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
@@ -1012,10 +1013,10 @@ export const LoomaEditor = defineComponent({
         ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
       ];
     });
-    const chooseCodeLanguage = (detail: { value: string | null; kind: string }) => {
+    const chooseCodeLanguage = (value: string) => {
       const instance = editor.value;
-      if (!instance || detail.kind !== "selection" || !detail.value) return;
-      const language = detail.value === "auto" ? null : detail.value;
+      if (!instance) return;
+      const language = value === "auto" ? null : value;
       if (language !== null && !codeLanguageNames.includes(language)) return;
       const node = instance.state.doc.nodeAt(codeUi.pos);
       if (node?.type.name !== "codeBlock") return;
@@ -1970,15 +1971,11 @@ export const LoomaEditor = defineComponent({
               class: "looma-editor__code-language",
               style: codeUi.style,
               onFocusout: () => updateCodeUi(),
-            }, [h(Combobox, {
-              label: "Code language",
-              labelVisibility: "sr-only",
-              size: "sm",
-              disclosure: true,
-              filter: "label",
+            }, [h(EditorCodeLanguage, {
               value: codeUi.language,
-              onValueChange: (event: CustomEvent<{ value: string | null; kind: string }>) => chooseCodeLanguage(event.detail),
-            }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
+              languages: codeLanguageOptions.value,
+              onLanguage: (event: CustomEvent<{ value: string }>) => chooseCodeLanguage(event.detail.value),
+            })])
           : null,
         instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty || activeRangeActions(instance).length > 0) && mobile.value && (editorFocused.value || linkOpen.value || !props.editable)
           ? h("div", {
