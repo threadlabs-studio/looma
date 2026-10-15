@@ -2,7 +2,7 @@
 
 ## v0.28.6
 
-- Looma builds with `@nextwebwg/html-next` 1.0.0-alpha.51 (from alpha.35). In the Vue adapters, a component root carries its tag as a class (`class="ui-button"`) where it carried `data-component="ui-button"`; both are compiler markers, not part of Looma's API, so code should keep finding parts by role, refs, and native elements.
+- Looma builds with `@nextwebwg/html-next` 1.0.0-alpha.51 (from alpha.35). LoomaEditor's document canvas keeps its minimum height, padding and link styling in Vue, and an expanding collapsible section still waits for its panel's animation, now that the editor finds its surface and disclosure by either component marker. In the Vue adapters, a component root carries its tag as a class (`class="ui-button"`) where it carried `data-component="ui-button"`; both are compiler markers, not part of Looma's API, so code should keep finding parts by role, refs, and native elements.
 
 ## v0.28.5
 

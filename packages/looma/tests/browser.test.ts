@@ -2855,7 +2855,7 @@ describe("Vue components", () => {
 
     const button = page.locator("#save");
     assert.equal(await button.evaluate((element) => element.localName), "button");
-    assert.equal(await button.getAttribute("class"), "consumer");
+    assert.equal(await button.evaluate((element) => element.classList.contains("consumer")), true);
     assert.equal(await button.evaluate((element) => element.matches(':is([data-component~="ui-button"], .ui-button)')), true);
     // The state's tokens, not their order: the order follows how the adapter applied them.
     assert.deepEqual(
