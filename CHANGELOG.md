@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.8
+
+- Code Language (`ui-editor-code-language`) is the code block's language picker as an HTML Next component, in HTML and Vue (`EditorCodeLanguage`): a compact combobox of the languages the editor can highlight, with Auto first, that reports `language` when one is chosen. LoomaEditor uses it in place of its own combobox; the picker looks and behaves as before.
+
 ## v0.28.7
 
 - Link Form (`ui-editor-link-form`) is the editor's link form as an HTML Next component, in HTML and Vue (`EditorLinkForm`): the destination field with its search results or Open in new tab, and a Text field for a new link. The editor passes its state in and applies each change the form reports (`destination`, `text`, `new-tab`, `choose`, `clear`, `save`, `dismiss`). LoomaEditor uses it in place of its own render code; the form looks and behaves as before.
