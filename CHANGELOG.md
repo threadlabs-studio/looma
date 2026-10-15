@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.17
+
+- Looma builds with HTML Next 1.0.0-alpha.52, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.52`. Component styles read state with `:host(:state(name))`. Rendered components record each prop as `data-<tag>-prop-<name>` rather than `data-<prop>`, and Vue components carry HTML Next's `data-hn` scoping stamps beside Vue's own. Code that read a component root's `data-<prop>` attribute, such as `data-tone` on a button, reads `data-ui-button-prop-tone` instead.
+
 ## v0.28.16
 
 - LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
