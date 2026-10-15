@@ -720,7 +720,7 @@ describe("Anchored overlay placement", () => {
     // selection restore, which can put back the caret it last read and drop the selection.
     await page.waitForFunction(() => "fixtureEditor" in window);
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
-    await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
+    await page.waitForFunction(() => document.querySelector(".looma-editor__floating-shell:popover-open")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
   });

@@ -47,9 +47,10 @@ test("editor guide demonstrates both toolbar placements and mentions", async ({ 
   await demo.evaluate((element) => { element.style.overflow = "clip"; });
   await editor.locator("p").first().click();
   await editor.press("Shift+ArrowRight");
-  const selectionToolbar = page.locator("[data-tippy-root]:visible").filter({ has: page.getByRole("button", { name: "Bold" }) });
+  const selectionToolbar = page.locator(".looma-editor__floating-shell:visible").filter({ has: page.getByRole("button", { name: "Bold" }) });
   await expect(selectionToolbar).toBeVisible();
-  expect(await selectionToolbar.evaluate((element) => element.parentElement === document.body)).toBe(true);
+  // The top layer keeps the toolbar clear of the clipped demo.
+  expect(await selectionToolbar.evaluate((element) => element.matches(":popover-open"))).toBe(true);
   await editor.click();
   await editor.press("End");
   await editor.pressSequentially(" @Ada");
