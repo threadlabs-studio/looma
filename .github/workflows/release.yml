@@ -140,7 +140,8 @@ jobs:
     if: needs.prepare.outputs.releasing == 'true'
     needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    # Two minutes of runner work (setup, upload, registry checks) plus the npm wait's own ten.
+    timeout-minutes: 12
     environment: npm-release
     permissions:
       contents: read
@@ -183,6 +184,14 @@ jobs:
         env:
           LOOMA_RELEASE_PUBLISH: approved
         run: node tools/scripts/publish-release.mjs --execute
+
+      # npm's processing, not runner work, so the 15-minute budget excludes it by this step name
+      # (release-qualification-policy.test.mjs). Measured after upload: p50 129s, p90 250s, max
+      # 311s. If it times out, re-run this job: the upload is skipped because npm has the version,
+      # the wait resumes, and record then tags the release.
+      - name: Wait for npm to serve the release
+        timeout-minutes: 10
+        run: node tools/scripts/publish-release.mjs --wait
 
       - name: Verify public metadata, integrity, latest tag, and provenance
         run: pnpm release:verify-registry
