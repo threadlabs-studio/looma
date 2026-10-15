@@ -690,6 +690,19 @@
       ]
     },
     {
+      "path": "components/ui-editor-block-actions",
+      "title": "Block Actions",
+      "source": "apps/docs/docs/editor/ui-editor-block-actions.mdx",
+      "component": "ui-editor-block-actions",
+      "examples": [
+        {
+          "id": "01-menu",
+          "title": "Block actions",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-image-toolbar",
       "title": "Image Toolbar",
       "source": "apps/docs/docs/editor/ui-editor-image-toolbar.mdx",
@@ -721,6 +734,29 @@
         {
           "id": "02-max-rows-6-max-cols-6-and-header-row",
           "title": "max-rows=\"6\", max-cols=\"6\", and header-row",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-link-card",
+      "title": "Link Card",
+      "source": "apps/docs/docs/editor/ui-editor-link-card.mdx",
+      "component": "ui-editor-link-card",
+      "examples": [
+        {
+          "id": "01-address",
+          "title": "Address",
+          "behavior": false
+        },
+        {
+          "id": "02-resolved",
+          "title": "Resolved destination",
+          "behavior": false
+        },
+        {
+          "id": "03-without-open-link",
+          "title": "Without Open link",
           "behavior": false
         }
       ]

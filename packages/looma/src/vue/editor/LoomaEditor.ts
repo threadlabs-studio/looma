@@ -50,11 +50,13 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, Checkbox, Cluster, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Checkbox, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
+  EditorBlockActions,
   EditorImageToolbar,
   EditorInsertTableGrid,
+  EditorLinkCard,
   EditorMentionMenu,
   EditorSlashMenu,
   EditorSlashMenuGroup,
@@ -340,7 +342,6 @@ export const LoomaEditor = defineComponent({
     const fileInput = ref<HTMLInputElement | null>(null);
     const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    let blockActionTarget: { position: number; node: Editor["state"]["doc"]["firstChild"] } | null = null;
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const linkPopoverAnchorId = ref(linkAnchorId);
     const linkDestinationInput = () => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-destination]");
@@ -885,60 +886,31 @@ export const LoomaEditor = defineComponent({
           }) : null,
       linkError.value ? h(Text, { size: "sm", tone: "danger", role: "alert" }, () => linkError.value) : null,
     ])]);
-    const renderLinkContext = (instance: Editor) => {
-      if (linkContextEditing.value) return renderLinkForm();
+    const renderLinkContextCard = (instance: Editor) => {
+      if (linkContextEditing.value) return h(Card, { variant: "elevated", padding: "sm", size: "sm", class: "looma-editor__link-context" }, () => [renderLinkForm()]);
       const rawHref = instance.getAttributes("link").href;
       const href = typeof rawHref === "string" ? rawHref : "";
-      const safeHref = validLinkHref(href);
-      const editId = `${toolbarScope}-link-edit`;
-      const removeId = `${toolbarScope}-link-remove`;
-      const openId = `${toolbarScope}-link-open`;
       const target = linkContextTarget.value;
-      return h(Cluster, { gap: "xs", wrap: "nowrap", role: "group", "aria-label": "Link actions" }, () => [
-        loomaIcon(target ? "file-text" : "link"),
-        h(Stack, { gap: "none", title: href, "aria-label": `${target ? props.linkTargetLabel : "URL"}: ${target?.label ?? href}` }, () => [
-          h(Text, { as: "strong", size: "sm", weight: "medium", font: "sans", wrap: "anywhere" }, () => target?.label ?? href),
-          target?.detail ? h(Text, { as: "small", size: "xs", tone: "secondary", font: "sans" }, () => target.detail) : null,
-        ]),
-        safeHref ? h(Button, {
-          id: openId, as: "a", variant: "ghost", tone: "neutral", size: "sm",
-          href: safeHref, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open link",
-        }, () => h(Cluster, { gap: "xs", wrap: "nowrap" }, () => [loomaIcon("external-link"), "Open link"])) : null,
-        safeHref ? h(Tooltip, { for: openId }, () => "Open link") : null,
-        h(IconButton, {
-          id: editId, label: "Edit link", variant: "ghost", size: "sm",
-          onPointerdown: (event: PointerEvent) => event.preventDefault(),
-          onClick: () => openLinkEditor(true),
-        }, () => loomaIcon("pencil")),
-        h(Tooltip, { for: editId }, () => "Edit link"),
-        h(IconButton, {
-          id: removeId, label: "Remove link", variant: "ghost", size: "sm",
-          onPointerdown: (event: PointerEvent) => event.preventDefault(),
-          onClick: removeCurrentLink,
-        }, () => loomaIcon("unlink")),
-        h(Tooltip, { for: removeId }, () => "Remove link"),
-      ]);
+      return h(EditorLinkCard, {
+        class: "looma-editor__link-context",
+        href,
+        openHref: validLinkHref(href) ?? "",
+        label: target?.label ?? "",
+        detail: target?.detail ?? "",
+        targetLabel: props.linkTargetLabel,
+        onEdit: () => openLinkEditor(true),
+        onRemove: removeCurrentLink,
+      });
     };
 
-    const renderLinkContextCard = (instance: Editor) => h(Card, {
-      variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
-      class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
-    }, () => [renderLinkContext(instance)]);
-
-    const captureBlockAction = () => {
-      const instance = editor.value;
-      const head = instance?.state.selection.$head;
-      const position = head && head.depth > 0 ? head.before(1) : null;
-      blockActionTarget = position === null ? null : { position, node: instance?.state.doc.nodeAt(position) ?? null };
-    };
     const runBlockAction = (value: string) => {
       const instance = editor.value;
-      const target = blockActionTarget;
-      if (!instance || !target || !props.editable) return;
+      const head = instance?.state.selection.$head;
+      if (!instance || !head || head.depth === 0 || !props.editable) return;
       const { state } = instance;
-      const { position } = target;
+      const position = head.before(1);
       const block = state.doc.nodeAt(position);
-      if (!block || block !== target.node) return;
+      if (!block) return;
       const end = position + block.nodeSize;
       const transaction = state.tr;
       let focusAt = end + 1;
@@ -2167,16 +2139,11 @@ export const LoomaEditor = defineComponent({
           onOpen: () => { formatOpen.value = true; },
           onClose: () => { formatOpen.value = false; },
         }, () => instance ? renderToolbar(instance, true, false, true) : null) : null,
-        h(Menu, {
+        h(EditorBlockActions, {
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
-          onOpen: captureBlockAction,
-          onSelect: (event: CustomEvent<{ value: string }>) => runBlockAction(event.detail.value),
-        }, () => [
-          h(MenuItem, { value: "insert-below" }, () => "Insert paragraph below"),
-          h(MenuItem, { value: "duplicate" }, () => "Duplicate block"),
-          h(MenuItem, { value: "delete" }, () => "Delete block"),
-        ]),
+          onAction: (event: CustomEvent<{ action: string }>) => runBlockAction(event.detail.action),
+        }),
         h(Popover, {
           class: "looma-editor__table-picker-popover",
           open: tablePickerOpen.value,
