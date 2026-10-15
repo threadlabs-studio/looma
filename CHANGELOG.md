@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.6
+
+- Looma builds with `@nextwebwg/html-next` 1.0.0-alpha.51 (from alpha.35). In the Vue adapters, a component root carries its tag as a class (`class="ui-button"`) where it carried `data-component="ui-button"`; both are compiler markers, not part of Looma's API, so code should keep finding parts by role, refs, and native elements.
+
 ## v0.28.5
 
 - Image Toolbar (`ui-editor-image-toolbar`) is the editor's image actions bar as an HTML Next component, in HTML and Vue (`EditorImageToolbar`): four placement commands, a description form, and delete, each reported as a request (`placement`, `describe`, `delete`) for the editor to apply. LoomaEditor uses it in place of its Vue-only image controls; the bar, its tooltips, and the description form are unchanged.
