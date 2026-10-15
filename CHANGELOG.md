@@ -1,8 +1,12 @@
 # Changelog
 
+## v0.28.18
+
+- With HTML Next 1.0.0-alpha.52, Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
+
 ## v0.28.17
 
-- Looma builds with HTML Next 1.0.0-alpha.52, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.52`. Component styles read state with `:host(:state(name))`. Rendered components record each prop as `data-<tag>-prop-<name>` rather than `data-<prop>`, and Vue components carry HTML Next's `data-hn` scoping stamps beside Vue's own. Code that read a component root's `data-<prop>` attribute, such as `data-tone` on a button, reads `data-ui-button-prop-tone` instead.
+- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer, which records a component's explicit props on its root as `data-<tag>-prop-<name>`, such as `data-ui-button-prop-tone`, in place of `data-<name>`, and marks converted Vue roots with `data-hn`. These are compiler markers, not Looma's API; a compact read-only LoomaEditor excerpt keeps its trimmed first and last margins by reading the new density record.
 
 ## v0.28.16
 
@@ -10,6 +14,7 @@
 
 ## v0.28.15
 
+- LoomaEditor adds `resolveImageSource` for browser-only master URLs, including legacy images without responsive metadata. Responsive renditions use the resolved master and fall back to it on failure, while saved JSON/HTML and image events keep their durable source. JSON documents apply delivery settings before the initial image request, and changing editability no longer emits a redundant document update.
 - Swatch (`ui-swatch`) is a new form primitive: a round colour dot in the six chip tones (neutral, blue, green, yellow, red and purple) that is a native radio named by its tone. Inside a `ui-radio-group`, the group names the swatches, checks the one matching its value, moves between them with the arrow keys, and reports the choice. The checked and focused swatches show a ring at the focus width.
 - Radio Group adds `label-visibility`: `sr-only` hides the legend visually and keeps it as the group's accessible name, for a row of choices whose purpose is already clear, such as colour swatches.
 - Chip Editor (`ui-editor-chip-editor`) is the editor's chip editor as an HTML Next component, in HTML and Vue (`EditorChipEditor`): a field for the chip's text and a radio group of swatches for its colour, reporting `label`, `color`, and `done`. LoomaEditor uses it in place of its own form. The colours are now radios named by their tone ("Blue") in a group named Chip color for screen readers, rather than buttons named "Blue chip". A colour chosen with the pointer returns focus to the text, and the arrow keys move between colours.

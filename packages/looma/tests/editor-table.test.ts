@@ -115,6 +115,9 @@ beforeAll(async () => {
       window.fixtureSetEditable = value => { editable.value = value; };
       window.fixtureActivations = [];
       window.fixtureRenditionErrors = [];
+      window.fixtureDocumentUpdates = 0;
+      const sourceResolver = ref(inventory === "source" ? image => image.src.replace("https://example.test/image.svg", "https://example.test/master.svg") : undefined);
+      window.fixtureSetImageSource = resolver => { sourceResolver.value = resolver; };
       const toolbarOpen = ref(false);
       const slashMode = ref(inventory);
       const emptyCommands = [];
@@ -138,6 +141,10 @@ beforeAll(async () => {
             onImageActivate: value => window.fixtureActivations.push(value),
             onImageRenditionError: value => window.fixtureRenditionErrors.push(value),
             resolveImageAttributes: inventory === "rendition" ? () => ({ src: "https://example.test/rendition.svg", srcset: "https://example.test/rendition.svg 2x", sizes: "320px", decoding: "async" }) : undefined,
+            ...(inventory === "source" ? {
+              resolveImageSource: sourceResolver.value,
+              resolveImageAttributes: image => ({ src: image.src + "?rendition", srcset: image.src + "?rendition 2x" }),
+            } : {}),
             slashCommands: slashMode.value === "extend" ? extend : slashMode.value === "replace" ? hostCommands : slashMode.value === "empty" ? emptyCommands : undefined,
             onReady: (editor) => { window.fixtureEditor = editor; },
             linkSearch: links ? async (query) => targets.filter(target => target.label.toLowerCase().includes(query.toLowerCase())) : undefined,
@@ -148,7 +155,7 @@ beforeAll(async () => {
             toolbarTriggerId: mode === "popover" ? "format-trigger" : undefined,
             toolbarOpen: toolbarOpen.value,
             "onUpdate:toolbarOpen": (value) => { toolbarOpen.value = value; },
-            "onUpdate:modelValue": (value) => { content.value = value; },
+            "onUpdate:modelValue": (value) => { content.value = value; window.fixtureDocumentUpdates += 1; },
           }),
         ],
       }).mount("#app");
@@ -1339,6 +1346,75 @@ describe("atomic editor blocks", () => {
 
 
 describe("image controls", () => {
+  it.each(["json", "html"])("resolves legacy masters and responsive fallback without changing durable identity from %s", async (format) => {
+    const page = await open(editorBundle, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const protocol = await page.context().newCDPSession(page);
+    await protocol.send("Network.enable");
+    const originalSourceInitiators: unknown[] = [];
+    protocol.on("Network.requestWillBeSent", event => {
+      if (event.request.url === "https://example.test/image.svg") originalSourceInitiators.push(event.initiator);
+    });
+    const requests: string[] = [];
+    await page.route("https://example.test/**", async route => {
+      requests.push(route.request().url());
+      if (route.request().url().includes("image.svg") || route.request().url().includes("rendition")) return route.abort();
+      await route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160"><rect width="320" height="160" fill="purple"/></svg>' });
+    });
+    await page.evaluate((format) => (window as unknown as { mountEditor(content: string | import("@tiptap/core").JSONContent, mode: string, links: boolean, inventory: string): void }).mountEditor(
+      format === "html" ? '<img src="https://example.test/image.svg" alt="Legacy"><img src="https://example.test/image.svg" alt="Responsive" width="320" height="160" data-looma-responsive>' : {
+        type: "doc", content: [
+          { type: "image", attrs: { src: "https://example.test/image.svg", alt: "Legacy" } },
+          { type: "image", attrs: { src: "https://example.test/image.svg", alt: "Responsive", width: 320, height: 160, responsive: true } },
+        ],
+      }, "sticky", false, "source"), format);
+    const images = prose(page).locator("img");
+    await equals(() => images.first().getAttribute("src"), "https://example.test/master.svg", "legacy master resolution");
+    await equals(() => images.last().getAttribute("src"), "https://example.test/master.svg", "failed rendition resolves to master");
+    await equals(() => images.evaluateAll(nodes => nodes.every(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)), true, "both images render with source denied");
+    if (format === "json") assert.equal(requests.some(url => url.includes("image.svg")), false, `rendering JSON never requests durable source: ${JSON.stringify(originalSourceInitiators)}`);
+    const state = () => page.evaluate(() => {
+      const fixture = window as unknown as { fixtureEditor: import("@tiptap/core").Editor; fixtureDocumentUpdates: number; fixtureRenditionErrors: unknown[] };
+      return { json: fixture.fixtureEditor.getJSON(), html: fixture.fixtureEditor.getHTML(), updates: fixture.fixtureDocumentUpdates, errors: fixture.fixtureRenditionErrors };
+    });
+    const original = await state();
+    assert.equal(original.updates, 0);
+    assert.deepEqual(original.errors, [{ src: "https://example.test/image.svg", alt: "Responsive", width: 320, height: 160, responsive: true, trigger: "programmatic" }]);
+    assert.doesNotMatch(original.html, /master|rendition|srcset/);
+    await page.evaluate(() => {
+      const fixture = window as unknown as { fixtureSetEditable(value: boolean): void; fixtureSetImageSource(resolver: (image: { src: string }) => string): void };
+      fixture.fixtureSetEditable(false);
+      fixture.fixtureSetImageSource(image => image.src.replace("image.svg", "other-master.svg"));
+    });
+    await equals(() => images.first().getAttribute("src"), "https://example.test/other-master.svg", "updated source resolver refreshes legacy image");
+    await equals(() => images.last().getAttribute("src"), "https://example.test/other-master.svg", "updated source resolver refreshes failed rendition");
+    await images.first().press("Enter");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { fixtureActivations: unknown[] }).fixtureActivations), [{ src: "https://example.test/image.svg", alt: "Legacy", trigger: "keyboard" }]);
+    const refreshed = await state();
+    assert.deepEqual(refreshed.json, original.json);
+    assert.equal(refreshed.html, original.html);
+    assert.equal(refreshed.updates, 0);
+    await mkdir(join(root, "../../.context"), { recursive: true });
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      await page.screenshot({ path: join(root, `../../.context/image-delivery-${format}-${width}.png`) });
+      assert.ok(await images.first().evaluate(element => element.getBoundingClientRect().right <= window.innerWidth));
+    }
+    for (const failure of ["empty", "undefined", "throw"]) {
+      await page.evaluate(failure => {
+        const fixture = window as unknown as { fixtureSetImageSource(resolver: () => string | undefined): void };
+        fixture.fixtureSetImageSource(() => {
+          if (failure === "throw") throw Error("Synthetic source policy failure");
+          return failure === "empty" ? "" : undefined;
+        });
+      }, failure);
+      await equals(() => images.first().getAttribute("src"), "https://example.test/image.svg", `${failure} keeps durable source`);
+      const failed = await state();
+      assert.deepEqual(failed.json, original.json);
+      assert.equal(failed.updates, 0);
+    }
+    await page.close();
+  });
+
   it("uses one placement bar and a secondary description, preserving reader activation", async () => {
     const page = await openEditor('<p>Before</p><img src="https://example.test/image.svg" width="320" height="160" alt="Example"><p>After</p>');
     const image = prose(page).locator("img");

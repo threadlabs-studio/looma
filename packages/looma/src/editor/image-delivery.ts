@@ -31,11 +31,20 @@ export interface LoomaImageRenditionAttributes {
 }
 
 /**
+ * Host policy for resolving a browser-only master URL from durable image data.
+ * @ownership The host validates and authorizes the URL; Looma never persists it.
+ * @failure Empty results, `undefined` and exceptions keep the durable source.
+ */
+export type LoomaImageSourceResolver = (image: LoomaImageDescriptor) => string | undefined;
+
+/**
  * Host policy for deriving transient browser-delivery attributes.
  *
  * @ownership The application owns the resolver and any URL/signing policy it
  * consults; Looma reads its result without persisting it into editor JSON.
- * @failure Throwing or returning `undefined` falls back to the durable source
+ * @contract The descriptor's source is the resolved master URL when a source
+ * resolver is supplied. Image events and serialized content retain durable data.
+ * @failure Throwing or returning `undefined` falls back to the resolved master
  * instead of interrupting rendering or mutating the document.
  */
 export type LoomaImageAttributeResolver = (
@@ -62,6 +71,7 @@ export interface LoomaImageRenditionErrorDetail extends LoomaImageDescriptor {
 }
 
 interface LoomaImageDeliveryExtensionOptions {
+  resolveSource?: () => LoomaImageSourceResolver | undefined;
   resolveAttributes: () => LoomaImageAttributeResolver | undefined;
   isEditable: () => boolean;
 }
@@ -87,21 +97,25 @@ export function imageDescriptorFromAttrs(attrs: Record<string, unknown>): LoomaI
 }
 
 function transientAttributes(
+  resolveSource: LoomaImageSourceResolver | undefined,
   resolver: LoomaImageAttributeResolver | undefined,
   image: LoomaImageDescriptor,
   editable: boolean,
 ): Record<string, string> {
+  let masterSource = image.src;
+  try { masterSource = optionalString(resolveSource?.({ ...image })) ?? masterSource; }
+  catch { /* Host source failures retain the durable URL. */ }
   const attributes: Record<string, string> = {
     ...(editable ? {} : { "aria-label": image.alt ? `Open image: ${image.alt}` : "Open image", role: "button" }),
     "data-looma-image": "",
-    src: image.src,
+    src: masterSource,
     tabindex: editable ? "-1" : "0",
   };
   if (!image.responsive || !resolver) return attributes;
 
   let rendition: LoomaImageRenditionAttributes | undefined;
   try {
-    rendition = resolver(image);
+    rendition = resolver({ ...image, src: masterSource });
   } catch {
     return attributes;
   }
@@ -122,12 +136,13 @@ function transientAttributes(
   if (["auto", "high", "low"].includes(rendition.fetchPriority ?? "")) {
     attributes.fetchpriority = rendition.fetchPriority!;
   }
-  if ((src && src !== image.src) || srcset) attributes["data-looma-rendition"] = "true";
+  if ((src && src !== masterSource) || srcset) attributes["data-looma-rendition"] = "true";
   return attributes;
 }
 
 function createDecorations(
   doc: Parameters<typeof DecorationSet.create>[0],
+  resolveSource: LoomaImageSourceResolver | undefined,
   resolver: LoomaImageAttributeResolver | undefined,
   failedRenditions: Set<string>,
   editable: boolean,
@@ -143,7 +158,7 @@ function createDecorations(
       position,
       position + node.nodeSize,
       {},
-      { loomaImageAttributes: transientAttributes(failedRenditions.has(image.src) ? undefined : resolver, image, editable) },
+      { loomaImageAttributes: transientAttributes(resolveSource, failedRenditions.has(image.src) ? undefined : resolver, image, editable) },
     ));
   });
   for (const src of failedRenditions) {
@@ -197,6 +212,7 @@ export function createLoomaImageDeliveryController(
         state: {
           init: (_, state) => createDecorations(
             state.doc,
+            options.resolveSource?.(),
             options.resolveAttributes(),
             failedRenditions,
             options.isEditable(),
@@ -207,6 +223,7 @@ export function createLoomaImageDeliveryController(
             }
             return createDecorations(
               transaction.doc,
+              options.resolveSource?.(),
               options.resolveAttributes(),
               failedRenditions,
               options.isEditable(),

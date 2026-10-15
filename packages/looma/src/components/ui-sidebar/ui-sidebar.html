@@ -126,7 +126,7 @@
     :host(:state(internalCollapsed)):not([popover]) .content {
       transform: translateX(-100%);
     }
-    :host([side="end"]):host(:state(internalCollapsed)):not([popover]) .content {
+    :host([side="end"]:state(internalCollapsed)):not([popover]) .content {
       transform: translateX(100%);
     }
 
