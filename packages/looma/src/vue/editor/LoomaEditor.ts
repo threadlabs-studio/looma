@@ -41,7 +41,6 @@ import {
   type LoomaCodeLanguages,
   LOOMA_CHIP_COLORS,
   normalizeLoomaChipColor,
-  siteRelativeHref,
   type LoomaChipColor,
   type SlashMenuAnchorRect,
   type TableOverlayGeometry,
@@ -80,6 +79,7 @@ import {
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
 import { validLinkHref } from "../../editor/content";
+import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkResolve, type LoomaLinkSearch } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
@@ -138,27 +138,7 @@ export interface LoomaEditorSelectionActionDetail { id: string; from: number; to
  */
 export type LoomaEditorSlashCommands = LoomaSlashCommand[] | ((defaults: LoomaSlashCommand[]) => LoomaSlashCommand[]);
 
-/** A destination supplied by the host application, such as a page or record. */
-export interface LoomaLinkTarget {
-  id: string;
-  label: string;
-  detail?: string;
-  href: string;
-}
-
-/**
- * Finds host records for a link without teaching the editor how they are stored.
- * @ownership The host checks access and returns durable, openable href values.
- * @failure A rejection leaves the existing document untouched and shows a retryable search error.
- */
-export type LoomaLinkSearch = (query: string) => Promise<LoomaLinkTarget[]>;
-
-/**
- * Describes a saved host link so a renamed record can show its current label.
- * @ownership The host resolves identity and access; Looma keeps the saved href as is.
- * @failure A rejection leaves the original href visible and editable.
- */
-export type LoomaLinkResolve = (href: string) => Promise<LoomaLinkTarget | null>;
+export type { LoomaLinkResolve, LoomaLinkSearch, LoomaLinkTarget } from "../../editor/link-editing";
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 let editorInstanceSequence = 0;
@@ -352,28 +332,13 @@ export const LoomaEditor = defineComponent({
       const element = (instance as { $el?: unknown } | null)?.$el;
       linkFormRoot.value = element instanceof HTMLElement ? element : null;
     };
-    const linkOpen = ref(false);
-    const linkContextEditing = ref(false);
-    const linkHref = ref("");
-    const linkText = ref("");
-    const linkTextEditable = ref(false);
-    const linkNewTab = ref(true);
-    const linkError = ref("");
-    const linkMode = ref<"target" | "url">("url");
-    const linkQuery = ref("");
-    const linkResults = ref<LoomaLinkTarget[]>([]);
-    const linkSearching = ref(false);
-    const linkSelectedTarget = ref<LoomaLinkTarget | null>(null);
-    const linkContextTarget = ref<LoomaLinkTarget | null>(null);
-    const linkTargetCache = new Map<string, LoomaLinkTarget | null>();
-    let linkSearchSequence = 0;
-    let linkResolveSequence = 0;
+    let linkEditing: LoomaLinkEditing | undefined;
+    const linkState = shallowRef(LOOMA_LINK_EDITING_IDLE);
     const chipAnchorId = `looma-editor-chip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const chipInput = ref<HTMLInputElement | null>(null);
     const chipOpen = ref(false);
     const chipLabel = ref("");
     const chipColor = ref<LoomaChipColor>("neutral");
-    let linkSelection: { from: number; to: number; existing: boolean } | null = null;
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -426,7 +391,7 @@ export const LoomaEditor = defineComponent({
     let heldPress: { id: number; x: number; y: number; time: number } | null = null;
     const floatingFormattingMode = () => props.toolbarMode !== "sticky"
       && !(props.toolbarMode === "popover" && props.toolbarOpen) && !mobile.value;
-    const formattingPickerOpen = () => linkOpen.value || tablePickerOpen.value || formatOpen.value;
+    const formattingPickerOpen = () => linkState.value.surface === "popover" || tablePickerOpen.value || formatOpen.value;
     const cancelHeldPress = () => {
       clearTimeout(heldPressTimer);
       heldPressTimer = undefined;
@@ -607,7 +572,7 @@ export const LoomaEditor = defineComponent({
                 if (view.isDestroyed) return;
                 editorStateVersion.value += 1;
                 const instance = editor.value;
-                if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && !linkOpen.value) {
+                if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && linkState.value.surface !== "popover") {
                   linkPopup?.setAnchor(() => link.getBoundingClientRect());
                   linkPopup?.show();
                 }
@@ -631,9 +596,6 @@ export const LoomaEditor = defineComponent({
             if (!heldFormattingSelection?.eq(selection)) heldFormattingSelection = null;
             if (!formattingSelectionActive(instance)) formattingPopup?.hide();
           }
-          if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
-            linkContextEditing.value = false;
-          }
         },
         onUpdate: ({ editor: instance }) => {
           const value = instance.getJSON();
@@ -643,6 +605,9 @@ export const LoomaEditor = defineComponent({
       }, VueEditor);
       session.subscribe(() => { editorStateVersion.value += 1; });
       editor.value = session.editor;
+      const engine = createLinkEditing({ editor: session.editor, search: () => props.linkSearch, resolve: () => props.linkResolve, baseUrl: () => props.linkBaseUrl });
+      engine.subscribe(() => { linkState.value = engine.state; });
+      linkEditing = engine;
     });
     // The render function's document element; the session moves the editor's view into it.
     const attachDocument = (element: unknown) => {
@@ -652,57 +617,9 @@ export const LoomaEditor = defineComponent({
       // Leave a static copy in place so the document stays visible while the component leaves.
       const element = session?.editor.options.element;
       element?.parentNode?.replaceChild(element.cloneNode(true), element);
+      linkEditing?.destroy();
       session?.destroy();
     });
-
-    watch(() => {
-      editorStateVersion.value;
-      return editor.value?.isActive("link") ? editor.value.getAttributes("link").href as string : null;
-    }, async (href) => {
-      const sequence = ++linkResolveSequence;
-      linkContextTarget.value = null;
-      if (!href || !props.linkResolve) return;
-      if (linkTargetCache.has(href)) {
-        linkContextTarget.value = linkTargetCache.get(href) ?? null;
-        return;
-      }
-      try {
-        const target = await props.linkResolve(href);
-        linkTargetCache.set(href, target);
-        if (sequence === linkResolveSequence) linkContextTarget.value = target;
-      } catch {
-        // A failed lookup leaves the original destination visible and editable.
-      }
-    });
-
-    watch([linkQuery, linkMode, linkOpen, linkContextEditing], async ([query, mode, open, contextEditing]) => {
-      const sequence = ++linkSearchSequence;
-      linkResults.value = [];
-      linkSearching.value = false;
-      if (!props.linkSearch || mode !== "target" || (!open && !contextEditing)
-        || query.trim().length < 2 || (linkSelectedTarget.value && query === linkSelectedTarget.value.label)) return;
-      linkSearching.value = true;
-      try {
-        const results = await props.linkSearch(query.trim());
-        if (sequence === linkSearchSequence) linkResults.value = results.filter(target => validLinkHref(target.href));
-      } catch {
-        if (sequence === linkSearchSequence) linkError.value = "Search is unavailable. Try again.";
-      } finally {
-        if (sequence === linkSearchSequence) linkSearching.value = false;
-      }
-    });
-
-    const selectLinkTarget = (target: LoomaLinkTarget) => {
-      linkSelectedTarget.value = target;
-      linkTargetCache.set(target.href, target);
-      linkHref.value = target.href;
-      linkQuery.value = target.label;
-      linkResults.value = [];
-      linkNewTab.value = false;
-      linkError.value = "";
-      if (linkTextEditable.value && !linkText.value.trim()) linkText.value = target.label;
-      applyLink();
-    };
 
     const openLinkEditor = (context = false) => {
       const instance = editor.value;
@@ -714,143 +631,63 @@ export const LoomaEditor = defineComponent({
       linkPressedSelection = null;
       const from = selection?.from ?? current.from;
       const to = selection?.to ?? current.to;
-      const empty = from === to;
-      const existing = instance.isActive("link");
-      linkSelection = { from, to, existing };
-      linkTextEditable.value = empty && !existing;
-      const attrs = existing ? instance.getAttributes("link") : {};
-      linkHref.value = typeof attrs.href === "string" ? attrs.href : "";
-      linkNewTab.value = attrs.target !== "_self";
-      linkText.value = empty && !existing ? "" : instance.state.doc.textBetween(from, to);
-      linkError.value = "";
-      linkSelectedTarget.value = linkTargetCache.get(linkHref.value) ?? null;
-      linkMode.value = props.linkSearch && (!existing || linkSelectedTarget.value) ? "target" : "url";
-      linkQuery.value = linkSelectedTarget.value?.label ?? linkHref.value;
-      linkContextEditing.value = context;
-      linkOpen.value = !context;
-      if (existing && props.linkResolve && !linkTargetCache.has(linkHref.value)) {
-        const href = linkHref.value;
-        void props.linkResolve(href).then((target) => {
-          linkTargetCache.set(href, target);
-          if (linkHref.value === href && target) {
-            linkSelectedTarget.value = target;
-            linkMode.value = "target";
-            linkQuery.value = target.label;
-          }
-        }).catch(() => {});
-      }
+      linkEditing?.open(from, to, context ? "context" : "popover");
       void nextTick(() => {
         if (context) {
           const popup = props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
             ? formattingPopup : linkPopup;
           popup?.setAnchor(() => posToDOMRect(instance.view, instance.state.selection.from, instance.state.selection.to));
         }
-        (linkMode.value === "url"
+        (linkState.value.mode === "url"
           ? linkDestinationInput()
           : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
       });
     };
-    const applyLink = (reportError = false) => {
-      const instance = editor.value;
-      const selection = linkSelection;
-      if (!instance || !selection) return false;
-      const href = linkMode.value === "target" ? validLinkHref(linkSelectedTarget.value?.href ?? "") : validLinkHref(linkHref.value);
-      if (!href) {
-        if (reportError) linkError.value = linkMode.value === "target" ? "Choose a destination from the results." : "Enter an http, https, mailto, tel, or relative URL.";
-        return false;
-      }
-      if (linkMode.value === "url" && props.linkSearch && !selection.existing && !/^(https?:|mailto:|tel:)/i.test(href)) {
-        if (reportError) linkError.value = "Enter a full website, email, or phone URL, or choose a destination.";
-        return false;
-      }
-      const destination = props.linkBaseUrl ? siteRelativeHref(href, props.linkBaseUrl) : href;
-      const attrs = { href: destination, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
-      // Update the captured range without taking focus from the field being edited.
-      const current = instance.state.selection;
-      const chain = instance.chain().setTextSelection({ from: selection.from, to: selection.to });
-      if (linkTextEditable.value) {
-        const text = linkText.value.trim();
-        if (!text) { if (reportError) linkError.value = "Enter link text."; return false; }
-        linkSelection = { from: selection.from, to: selection.from + text.length, existing: true };
-        chain.insertContent({ type: "text", text, marks: [{ type: "link", attrs }] }).setTextSelection(selection.from).run();
-      } else {
-        if (selection.existing && selection.from === selection.to) chain.extendMarkRange("link");
-        chain.setLink(attrs).setTextSelection({ from: current.from, to: current.to }).run();
-        selection.existing = true;
-      }
-      linkError.value = "";
-      return true;
-    };
-    const removeCurrentLink = () => {
-      const instance = editor.value;
-      if (!instance?.isActive("link")) return;
-      instance.chain().focus().extendMarkRange("link").unsetLink().run();
-      linkContextEditing.value = false;
-    };
     const dismissLink = (restoreFocus = true) => {
-      linkOpen.value = false;
-      linkContextEditing.value = false;
-      const selection = linkSelection;
-      if (restoreFocus && selection) editor.value?.chain().focus().setTextSelection(selection.to).run();
+      linkEditing?.close();
+      const range = linkState.value.range;
+      if (restoreFocus && range) editor.value?.chain().focus().setTextSelection(range.to).run();
       dismissedFormattingSelection = editor.value?.state.selection ?? null;
       // The held gesture that opened the editor has ended; a later click at this caret shows the link card.
       heldFormattingSelection = null;
       linkPopup?.hide();
       formattingPopup?.hide();
     };
-    const linkStatus = () => {
-      if (linkSearching.value) return "Searching…";
-      if (linkSelectedTarget.value) return "";
-      if (linkQuery.value.trim().length < 2) return "Type at least two letters to search.";
-      return linkResults.value.length || linkError.value ? "" : "No results found.";
-    };
     const renderLinkForm = () => {
-      const shown = linkSelectedTarget.value ? [linkSelectedTarget.value] : linkResults.value;
+      const state = linkState.value;
+      const shown = state.selected ? [state.selected] : state.results;
       return h(EditorLinkForm, {
         ref: setLinkFormRoot,
         class: "looma-editor__link-form",
-        existing: Boolean(linkSelection?.existing),
+        existing: Boolean(state.range?.existing),
         searchable: Boolean(props.linkSearch),
-        mode: linkMode.value,
-        value: props.linkSearch ? linkQuery.value : linkHref.value,
+        mode: state.mode,
+        value: props.linkSearch ? state.query : state.href,
         placeholder: props.linkSearch ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com",
-        newTab: linkNewTab.value,
-        textEditable: linkTextEditable.value,
-        text: linkText.value,
-        error: linkError.value,
-        status: linkStatus(),
+        newTab: state.newTab,
+        textEditable: state.textEditable,
+        text: state.text,
+        error: state.error,
+        status: linkFormStatus(state),
         results: shown.map(({ id, label, detail }) => (detail ? { id, label, detail } : { id, label })),
-        selected: linkSelectedTarget.value?.id ?? "",
-        onDestination: (event: CustomEvent<{ value: string }>) => {
-          const { value } = event.detail;
-          if (props.linkSearch) {
-            linkQuery.value = value;
-            linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim())
-              || (linkSelection?.existing && /^(\/|\.\.?\/|#|\?)/.test(value.trim())) ? "url" : "target";
-            linkSelectedTarget.value = null;
-          }
-          linkHref.value = value;
-          linkError.value = "";
-          applyLink();
-        },
-        onClear: () => {
-          linkQuery.value = ""; linkHref.value = ""; linkMode.value = "target"; linkSelectedTarget.value = null; linkError.value = "";
-        },
+        selected: state.selected?.id ?? "",
+        onDestination: (event: CustomEvent<{ value: string }>) => linkEditing?.setDestination(event.detail.value),
+        onClear: () => linkEditing?.clear(),
         onChoose: (event: CustomEvent<{ id: string }>) => {
           const target = shown.find(({ id }) => id === event.detail.id);
-          if (target) selectLinkTarget(target);
+          if (target) linkEditing?.choose(target);
         },
-        onNewTab: (event: CustomEvent<{ newTab: boolean }>) => { linkNewTab.value = event.detail.newTab; applyLink(); },
-        onText: (event: CustomEvent<{ text: string }>) => { linkText.value = event.detail.text; linkError.value = ""; applyLink(); },
-        onSave: () => { if (applyLink(true)) dismissLink(); },
+        onNewTab: (event: CustomEvent<{ newTab: boolean }>) => linkEditing?.setNewTab(event.detail.newTab),
+        onText: (event: CustomEvent<{ text: string }>) => linkEditing?.setText(event.detail.text),
+        onSave: () => { if (linkEditing?.apply(true)) dismissLink(); },
         onDismiss: () => dismissLink(),
       });
     };
     const renderLinkContextCard = (instance: Editor) => {
-      if (linkContextEditing.value) return h(Card, { variant: "elevated", padding: "sm", size: "sm", class: "looma-editor__link-context" }, () => [renderLinkForm()]);
+      if (linkState.value.surface === "context") return h(Card, { variant: "elevated", padding: "sm", size: "sm", class: "looma-editor__link-context" }, () => [renderLinkForm()]);
       const rawHref = instance.getAttributes("link").href;
       const href = typeof rawHref === "string" ? rawHref : "";
-      const target = linkContextTarget.value;
+      const target = linkState.value.current;
       return h(EditorLinkCard, {
         class: "looma-editor__link-context",
         href,
@@ -859,7 +696,7 @@ export const LoomaEditor = defineComponent({
         detail: target?.detail ?? "",
         targetLabel: props.linkTargetLabel,
         onEdit: () => openLinkEditor(true),
-        onRemove: removeCurrentLink,
+        onRemove: () => linkEditing?.remove(),
       });
     };
 
@@ -907,8 +744,8 @@ export const LoomaEditor = defineComponent({
       });
       if (!editable) chipOpen.value = false;
     });
-    watch([linkOpen, tablePickerOpen, formatOpen], ([link, table, format]) => {
-      if (link || table || format || !floatingFormattingMode() || editor.value?.isFocused
+    watch([() => linkState.value.surface === "popover", tablePickerOpen, formatOpen], ([linking, table, format]) => {
+      if (linking || table || format || !floatingFormattingMode() || editor.value?.isFocused
         || formattingPopup?.element.contains(document.activeElement)) return;
       heldFormattingSelection = null;
       formattingPopup?.hide();
@@ -1181,7 +1018,7 @@ export const LoomaEditor = defineComponent({
       const inElement = (element: HTMLElement | null) => Boolean(
         element && (path.includes(element) || (event.target instanceof Node && element.contains(event.target)))
       );
-      if ((linkOpen.value || linkContextEditing.value) && !inElement(linkFormRoot.value)) dismissLink(false);
+      if (linkState.value.surface !== "none" && !inElement(linkFormRoot.value)) dismissLink(false);
       const inTableUi = inElement(tableToolbarShell.value)
         || inElement(tableOverlayShell.value)
         || inElement(tableMenuShell.value)
@@ -1260,7 +1097,7 @@ export const LoomaEditor = defineComponent({
       shouldShow: ({ editor: menuEditor }) =>
         (props.toolbarMode !== "popover" || !props.toolbarOpen)
         && !slash.active && !mention.active
-        && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.element.contains(document.activeElement) || linkContextEditing.value || formattingPickerOpen())
+        && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.element.contains(document.activeElement) || linkState.value.surface === "context" || formattingPickerOpen())
         && formattingSelectionActive(menuEditor),
       boundary: () => props.toolbarMode === "contextual" ? root.value : null,
       related: editorRoot,
@@ -1274,9 +1111,9 @@ export const LoomaEditor = defineComponent({
       element,
       pluginKey: "looma-link-context-menu",
       shouldShow: ({ editor: menuEditor, from, to }) =>
-        from === to && menuEditor.isActive("link") && !linkOpen.value
+        from === to && menuEditor.isActive("link") && linkState.value.surface !== "popover"
         && !dismissedFormattingSelection?.eq(menuEditor.state.selection)
-        && Boolean(menuEditor.isFocused || linkContextEditing.value || linkPopup?.element.contains(document.activeElement))
+        && Boolean(menuEditor.isFocused || linkState.value.surface === "context" || linkPopup?.element.contains(document.activeElement))
         && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(menuEditor)),
       maxWidth: () => Math.min(480, window.innerWidth - 24),
       related: editorRoot,
@@ -1754,7 +1591,7 @@ export const LoomaEditor = defineComponent({
           label: "Link",
           size: "sm",
           variant: "ghost",
-          "aria-expanded": linkOpen.value ? "true" : "false",
+          "aria-expanded": linkState.value.surface === "popover" ? "true" : "false",
           "aria-pressed": instance.isActive("link") ? "true" : "false",
           "data-active": instance.isActive("link") ? "true" : "false",
           onPointerenter: () => showTool(linkTriggerId, "Link", false),
@@ -1922,7 +1759,7 @@ export const LoomaEditor = defineComponent({
             }, [props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
-                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value && formattingSelectionActive(instance)
+                  (linkState.value.surface === "context" || instance.state.selection.empty && instance.isActive("link")) && linkState.value.surface !== "popover" && formattingSelectionActive(instance)
                     ? renderLinkContextCard(instance)
                     : null,
                 ])
@@ -1977,7 +1814,7 @@ export const LoomaEditor = defineComponent({
               onLanguage: (event: CustomEvent<{ value: string }>) => chooseCodeLanguage(event.detail.value),
             })])
           : null,
-        instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty || activeRangeActions(instance).length > 0) && mobile.value && (editorFocused.value || linkOpen.value || !props.editable)
+        instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty || activeRangeActions(instance).length > 0) && mobile.value && (editorFocused.value || linkState.value.surface === "popover" || !props.editable)
           ? h("div", {
               key: "looma-mobile-toolbar-shell",
               ref: mobileToolbarRef,
@@ -2077,18 +1914,20 @@ export const LoomaEditor = defineComponent({
         h(Popover, {
           class: "looma-editor__link-popover",
           size: "sm",
-          open: linkOpen.value,
+          open: linkState.value.surface === "popover",
           for: linkPopoverAnchorId.value,
           placement: mobile.value ? "top-start" : "bottom-start",
           onOpen: () => openLinkEditor(),
           onClose: () => {
-            linkOpen.value = false; linkPressedSelection = null;
+            if (linkState.value.surface === "popover") linkEditing?.close();
+            linkPressedSelection = null;
             const current = editor.value?.state.selection;
-            if (current && !current.empty && linkSelection && current.from === linkSelection.from && current.to === linkSelection.to) {
+            const range = linkState.value.range;
+            if (current && !current.empty && range && current.from === range.from && current.to === range.to) {
               editor.value?.commands.setTextSelection(current.to);
             }
           },
-        }, () => linkOpen.value ? renderLinkForm() : null),
+        }, () => linkState.value.surface === "popover" ? renderLinkForm() : null),
         props.editable && props.compactToolbar && !mobile.value ? h(Popover, {
           class: "looma-editor__compact-formatting", for: formatAnchorId,
           open: formatOpen.value, placement: "bottom-start",
