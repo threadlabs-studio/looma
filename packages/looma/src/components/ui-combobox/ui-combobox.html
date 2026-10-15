@@ -761,7 +761,7 @@
     .field:has(input:disabled) {
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
     }
-    :host-state([validationStatus="error"]) .field,
+    :host(:state(validationStatus=error)) .field,
     :host([invalid]) .field {
       border-color: var(--_ui-combobox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid, var(--ui-accent-active))));
     }

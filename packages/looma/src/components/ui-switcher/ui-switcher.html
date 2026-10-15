@@ -45,7 +45,7 @@
       flex-basis: calc((var(--_ui-switcher-threshold, 30rem) - 100%) * 999);
     }
 
-    :host-state([overLimit]) > :slotted(*) {
+    :host(:state(overLimit)) > :slotted(*) {
       flex-basis: 100%;
     }
 
