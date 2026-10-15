@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -135,6 +135,28 @@ test("public examples do not require implementation hooks", async () => {
     [],
     "component examples should compose Looma controls instead of browser-default controls",
   );
+});
+
+// The docs examples module applies each bind at load; one bad bind fails every component page's build.
+test("every bound example attribute is valid JSON on an element with an id", async () => {
+  const components = new URL("../../packages/looma/src/components/", import.meta.url);
+  const problems = [];
+  for (const tag of await readdir(components)) {
+    const directory = new URL(`${tag}/examples/`, components);
+    const names = await readdir(directory).catch(() => []);
+    for (const name of names.filter((file) => file.endsWith(".html"))) {
+      const source = await readFile(new URL(name, directory), "utf8");
+      const spec = /^\s*bind:\s*(.+)$/m.exec(source)?.[1] ?? "";
+      for (const pair of spec.split(/\s+/).filter(Boolean)) {
+        const [attribute, variable] = pair.split("=");
+        const element = new RegExp(`<[^>]*\\s${attribute}='([^']*)'[^>]*>`).exec(source);
+        let json = Boolean(element);
+        try { JSON.parse(element?.[1].replaceAll("&#39;", "'").replaceAll("&quot;", '"').replaceAll("&amp;", "&") ?? ""); } catch { json = false; }
+        if (!variable || !element || !/\sid="[^"]+"/.test(element[0]) || !json) problems.push(`${tag}/examples/${name}: bind "${pair}"`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
 });
 
 test("redundant layout aliases stay compatible without remaining public components", async () => {
