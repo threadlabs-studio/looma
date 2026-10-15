@@ -137,10 +137,10 @@
       background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
     }
 
-    :host-state([internalEdit]) .preview {
+    :host(:state(internalEdit)) .preview {
       visibility: hidden;
     }
-    :host-state([internalEdit]) .input {
+    :host(:state(internalEdit)) .input {
       visibility: visible;
     }
 
@@ -148,7 +148,7 @@
       display: none;
       gap: var(--ui-space-1);
     }
-    :host-state([internalEdit]) .actions {
+    :host(:state(internalEdit)) .actions {
       display: inline-flex;
     }
 
