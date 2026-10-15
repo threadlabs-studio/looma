@@ -151,7 +151,9 @@
     },
     "ui-editor-image-toolbar": {
       "status": "published",
-      "package": "@threadlabs/looma"
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "Contextual actions for a selected image: four placement commands, a description form, and delete."
     },
     "ui-editor-insert-table-grid": {
       "status": "published",
