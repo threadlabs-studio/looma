@@ -87,6 +87,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-editor-image-toolbar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-editor-insert-table-grid": {
       "status": "published",
       "package": "@threadlabs/looma"

@@ -12,6 +12,7 @@ import type {
 } from "@threadlabs/looma/editor";
 
 export {
+  EditorImageToolbar,
   EditorInsertTableGrid,
   EditorMentionMenu,
   EditorMentionMenuItem,
@@ -30,6 +31,9 @@ export interface VueEditorAdapterEventMap {
   select: MentionMenuSelectEventDetail | SlashMenuSelectEventDetail;
   action: TableContextMenuActionEventDetail;
   insert: InsertTableEventDetail;
+  placement: { placement: "block" | "center" | "wrap-left" | "wrap-right" };
+  describe: { alt: string };
+  delete: Record<string, never>;
   "add-row-before": { boundaryIndex: number };
   "add-row-after": { boundaryIndex: number };
   "add-column-before": { boundaryIndex: number };
@@ -53,4 +57,5 @@ export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorTableToolbar: "ui-editor-table-toolbar",
   EditorInsertTableGrid: "ui-editor-insert-table-grid",
   EditorTableOverlay: "ui-editor-table-overlay",
+  EditorImageToolbar: "ui-editor-image-toolbar",
 } as const;
