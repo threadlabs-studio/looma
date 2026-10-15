@@ -42,13 +42,16 @@ async function assertPackagesAbsent(directory, packages, consumerLabel) {
   }
 }
 
-async function verifyMinimalConsumer(directory, tarball) {
+async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
   await mkdir(directory, { recursive: true });
   await writeJson(path.join(directory, "package.json"), {
     name: "looma-minimal-consumer",
     private: true,
     type: "module",
-    dependencies: { "@threadlabs/looma": `file:${tarball}` },
+    dependencies: {
+      "@threadlabs/looma": `file:${tarball}`,
+      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
+    },
   });
   // Without a document (SSR), the registration entry loads and registers nothing.
   await writeFile(
@@ -102,6 +105,7 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
     type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
+      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
       vue: facadeManifest.peerDependencies.vue,
     },
   });
@@ -231,7 +235,7 @@ async function main() {
     const tarball = path.join(packDirectory, tarballs[0]);
     const facadeManifest = JSON.parse(await readFile(path.join(facadeRoot, "package.json"), "utf8"));
 
-    await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball);
+    await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball, facadeManifest);
     await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
     await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
     await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
