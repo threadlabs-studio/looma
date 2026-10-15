@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -33,7 +33,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 78);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 79);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
@@ -137,6 +137,28 @@ test("public examples do not require implementation hooks", async () => {
   );
 });
 
+// The docs examples module applies each bind at load; one bad bind fails every component page's build.
+test("every bound example attribute is valid JSON on an element with an id", async () => {
+  const components = new URL("../../packages/looma/src/components/", import.meta.url);
+  const problems = [];
+  for (const tag of await readdir(components)) {
+    const directory = new URL(`${tag}/examples/`, components);
+    const names = await readdir(directory).catch(() => []);
+    for (const name of names.filter((file) => file.endsWith(".html"))) {
+      const source = await readFile(new URL(name, directory), "utf8");
+      const spec = /^\s*bind:\s*(.+)$/m.exec(source)?.[1] ?? "";
+      for (const pair of spec.split(/\s+/).filter(Boolean)) {
+        const [attribute, variable] = pair.split("=");
+        const element = new RegExp(`<[^>]*\\s${attribute}='([^']*)'[^>]*>`).exec(source);
+        let json = Boolean(element);
+        try { JSON.parse(element?.[1].replaceAll("&#39;", "'").replaceAll("&quot;", '"').replaceAll("&amp;", "&") ?? ""); } catch { json = false; }
+        if (!variable || !element || !/\sid="[^"]+"/.test(element[0]) || !json) problems.push(`${tag}/examples/${name}: bind "${pair}"`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
+});
+
 test("redundant layout aliases stay compatible without remaining public components", async () => {
   const groups = await readDeclarativeContractGroups();
   const [layout] = groups;
@@ -235,7 +257,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "delete", "describe", "edit", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "select", "select-column", "select-row"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "choose", "clear", "delete", "describe", "destination", "dismiss", "edit", "highlight", "insert", "new-tab", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "save", "select", "select-column", "select-row", "text"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

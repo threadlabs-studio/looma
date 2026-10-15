@@ -1,0 +1,16 @@
+---
+slug: /components/ui-editor-link-form
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Link Form
+
+The editor's form for adding or editing a link: a destination field, its search results or Open in new tab, and the link's text when there is none yet.
+The editor owns the link and passes the form's state in; the form reports each change
+(`destination`, `text`, `new-tab`, `choose`, `clear`) for the editor to apply as the reader types.
+Enter in a field reports `save` and Escape reports `dismiss`. A searchable field lists `results`
+under a `status` line, and the arrow keys move from the field through the results. An `error`
+shows as an alert under the fields.
+
+<ComponentExamplesApiTabs component="ui-editor-link-form" />
