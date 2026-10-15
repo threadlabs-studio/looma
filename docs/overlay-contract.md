@@ -57,7 +57,9 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
 - No per-component ad hoc positioners.
 
 `ui-menu`, `ui-context-menu`, `ui-popover`, and `ui-tooltip` all use
-`createAnchoredSurface`. Popover API moves their floating surface into the top
+`createAnchoredSurface`, as do LoomaEditor's formatting toolbar, link card, and image actions,
+anchored to the selection (the formatting toolbar also keeps inside the editor through
+`boundary` in `contextual` mode) and registered on the shared overlay stack. Popover API moves their floating surface into the top
 layer so a scrolling or clipping ancestor cannot hide it. CSS Anchor
 Positioning is the native placement path when its resolved rectangle stays
 inside the visual viewport. If neither native placement fits, the controller

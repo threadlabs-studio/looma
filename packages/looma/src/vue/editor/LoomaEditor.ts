@@ -1,8 +1,8 @@
 import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
 import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
-import { BubbleMenu, Editor as VueEditor } from "@tiptap/vue-3";
-import { announceOverlayOpen, createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
+import { Editor as VueEditor } from "@tiptap/vue-3";
+import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { AllSelection, NodeSelection, TextSelection, type Selection } from "@tiptap/pm/state";
 import {
@@ -76,6 +76,7 @@ import {
 import { createCodeHighlighting } from "../../editor/code-highlighting";
 import { validLinkHref } from "../../editor/content";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
+import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
 import { formatEditorShortcut, isApplePlatform } from "../../editor/shortcuts";
 import { tableOfContentsNodeView } from "./table-of-contents";
@@ -410,14 +411,9 @@ export const LoomaEditor = defineComponent({
     // These snapshots affect chrome only, never the document or undo history.
     let dismissedFormattingSelection: Selection | null = null;
     let heldFormattingSelection: TextSelection | null = null;
-    type EditorPopup = {
-      show: () => void;
-      hide: () => void;
-      popper: HTMLElement;
-      setProps: (props: { getReferenceClientRect: () => DOMRect }) => void;
-    };
-    let formattingPopup: EditorPopup | null = null;
-    let linkPopup: EditorPopup | null = null;
+    let formattingPopup: SelectionSurface | null = null;
+    let linkPopup: SelectionSurface | null = null;
+    let imagePopup: SelectionSurface | null = null;
     let heldPressTimer: ReturnType<typeof setTimeout> | undefined;
     let heldPress: { id: number; x: number; y: number; time: number } | null = null;
     const floatingFormattingMode = () => props.toolbarMode !== "sticky"
@@ -604,7 +600,7 @@ export const LoomaEditor = defineComponent({
                 editorStateVersion.value += 1;
                 const instance = editor.value;
                 if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && !linkOpen.value) {
-                  linkPopup?.setProps({ getReferenceClientRect: () => link.getBoundingClientRect() });
+                  linkPopup?.setAnchor(() => link.getBoundingClientRect());
                   linkPopup?.show();
                 }
               });
@@ -746,7 +742,7 @@ export const LoomaEditor = defineComponent({
         if (context) {
           const popup = props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
             ? formattingPopup : linkPopup;
-          popup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, instance.state.selection.from, instance.state.selection.to) });
+          popup?.setAnchor(() => posToDOMRect(instance.view, instance.state.selection.from, instance.state.selection.to));
         }
         (linkMode.value === "url"
           ? linkDestinationInput()
@@ -796,6 +792,8 @@ export const LoomaEditor = defineComponent({
       const selection = linkSelection;
       if (restoreFocus && selection) editor.value?.chain().focus().setTextSelection(selection.to).run();
       dismissedFormattingSelection = editor.value?.state.selection ?? null;
+      // The held gesture that opened the editor has ended; a later click at this caret shows the link card.
+      heldFormattingSelection = null;
       linkPopup?.hide();
       formattingPopup?.hide();
     };
@@ -978,7 +976,7 @@ export const LoomaEditor = defineComponent({
     });
     watch([linkOpen, tablePickerOpen, formatOpen], ([link, table, format]) => {
       if (link || table || format || !floatingFormattingMode() || editor.value?.isFocused
-        || formattingPopup?.popper.contains(document.activeElement)) return;
+        || formattingPopup?.element.contains(document.activeElement)) return;
       heldFormattingSelection = null;
       formattingPopup?.hide();
     });
@@ -1173,7 +1171,7 @@ export const LoomaEditor = defineComponent({
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused && !mobileToolbarShell.value?.contains(document.activeElement)) editorFocused.value = false;
-        if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.popper.contains(document.activeElement)) {
+        if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.element.contains(document.activeElement)) {
           heldFormattingSelection = null;
         }
       }, 0);
@@ -1235,31 +1233,6 @@ export const LoomaEditor = defineComponent({
     const tableToolbarRef = popupRef(tableToolbarShell);
     const codeLanguageRef = popupRef(codeLanguageShell, true);
     const mobileToolbarRef = popupRef(mobileToolbarShell, true);
-    const tippyPresentations = new WeakMap<HTMLElement, ReturnType<typeof createViewportSurface>>();
-    const floatingTippyOptions = (placement: "top" | "bottom", boundary: HTMLElement | null = null) => ({
-      appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
-      popperOptions: { strategy: "fixed" as const, modifiers: [
-        { name: "eventListeners", enabled: false },
-        ...(boundary ? [
-          { name: "flip", options: { boundary } },
-          { name: "preventOverflow", options: { boundary, altAxis: true } },
-        ] : []),
-      ] },
-      onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
-      onMount: (instance: { popper: HTMLElement; popperInstance: { update(): unknown } | null }) => {
-        let presentation = tippyPresentations.get(instance.popper);
-        if (!presentation) {
-          presentation = createViewportSurface(instance.popper, { bare: true, position: () => { void instance.popperInstance?.update(); } });
-          tippyPresentations.set(instance.popper, presentation);
-        }
-        presentation.show();
-      },
-      onHidden: (instance: { popper: HTMLElement }) => tippyPresentations.get(instance.popper)?.hide(),
-      onDestroy: (instance: { popper: HTMLElement }) => tippyPresentations.get(instance.popper)?.destroy(),
-      duration: 100,
-      placement,
-    });
-
     const onDocumentPointerDown = (event: PointerEvent) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
       const inElement = (element: HTMLElement | null) => Boolean(
@@ -1296,7 +1269,7 @@ export const LoomaEditor = defineComponent({
           || slash.active || mention.active || !(selection instanceof TextSelection)) return;
         dismissedFormattingSelection = null;
         heldFormattingSelection = selection;
-        formattingPopup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, selection.from, selection.to) });
+        formattingPopup?.setAnchor(() => posToDOMRect(instance.view, selection.from, selection.to));
         formattingPopup?.show();
       }, 500);
     };
@@ -1310,8 +1283,13 @@ export const LoomaEditor = defineComponent({
     const onFormattingKeyDown = (event: KeyboardEvent) => {
       cancelHeldPress();
       if (event.key !== "Escape" || !(event.target instanceof Node)
-        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target) || linkPopup?.popper.contains(event.target))
-        || !(formatOpen.value || formattingPopup?.popper.style.visibility === "visible" || linkPopup?.popper.style.visibility === "visible")) return false;
+        || !(root.value?.contains(event.target) || formattingPopup?.element.contains(event.target) || linkPopup?.element.contains(event.target))
+        || !(formatOpen.value || formattingPopup?.isOpen() || linkPopup?.isOpen())) return false;
+      dismissFormatting();
+      return true;
+    };
+    // Escape keeps the selection and hides its tools until the reader selects again.
+    const dismissFormatting = () => {
       const selection = editor.value?.state.selection;
       dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
       heldFormattingSelection = null;
@@ -1319,8 +1297,63 @@ export const LoomaEditor = defineComponent({
       formattingPopup?.hide();
       linkPopup?.hide();
       hideTool();
-      return true;
     };
+    // Each selection surface is rendered in its own host element and registered with the editor while mounted.
+    const surfaceRef = (assign: (surface: SelectionSurface | null) => void, options: (element: HTMLElement, instance: VueEditor) => SelectionSurfaceOptions) => {
+      let current: SelectionSurface | null = null;
+      return (node: unknown) => {
+        const element = node instanceof HTMLElement ? node : null;
+        if (current?.element === element) return;
+        current?.destroy();
+        current = element && editor.value ? createSelectionSurface(options(element, editor.value)) : null;
+        assign(current);
+      };
+    };
+    const editorRoot = () => root.value ? [root.value] : [];
+    const formattingSurfaceRef = surfaceRef((surface) => { formattingPopup = surface; }, (element, instance) => ({
+      editor: instance,
+      element,
+      pluginKey: "looma-text-formatting-menu",
+      shouldShow: ({ editor: menuEditor }) =>
+        (props.toolbarMode !== "popover" || !props.toolbarOpen)
+        && !slash.active && !mention.active
+        && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.element.contains(document.activeElement) || linkContextEditing.value || formattingPickerOpen())
+        && formattingSelectionActive(menuEditor),
+      boundary: () => props.toolbarMode === "contextual" ? root.value : null,
+      related: editorRoot,
+      // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
+      onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingSelectionActive(instance)
+        ? false : undefined,
+      onDismiss: (reason) => reason === "escape" ? dismissFormatting() : formattingPopup?.hide(),
+    }));
+    const linkSurfaceRef = surfaceRef((surface) => { linkPopup = surface; }, (element, instance) => ({
+      editor: instance,
+      element,
+      pluginKey: "looma-link-context-menu",
+      shouldShow: ({ editor: menuEditor, from, to }) =>
+        from === to && menuEditor.isActive("link") && !linkOpen.value
+        && !dismissedFormattingSelection?.eq(menuEditor.state.selection)
+        && Boolean(menuEditor.isFocused || linkContextEditing.value || linkPopup?.element.contains(document.activeElement))
+        && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(menuEditor)),
+      maxWidth: () => Math.min(480, window.innerWidth - 24),
+      related: editorRoot,
+      onDismiss: (reason) => reason === "escape" ? dismissFormatting() : linkPopup?.hide(),
+    }));
+    const imageSurfaceRef = surfaceRef((surface) => { imagePopup = surface; }, (element, instance) => ({
+      editor: instance,
+      element,
+      pluginKey: "looma-image-actions",
+      updateDelay: 250,
+      shouldShow: ({ editor: menuEditor }) => menuEditor.isEditable
+        && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
+      anchor: () => {
+        const dom = instance.view.nodeDOM(instance.state.selection.from);
+        return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
+      },
+      maxWidth: () => window.innerWidth - 24,
+      related: editorRoot,
+      onDismiss: () => imagePopup?.hide(),
+    }));
 
     const onResizePointerDown = (event: PointerEvent) => {
       tableResizeActive = event.target instanceof HTMLElement
@@ -1904,65 +1937,29 @@ export const LoomaEditor = defineComponent({
           placement: "top",
           inverse: true,
         }, () => "Drag to resize column") : null,
-        // Tippy moves each menu element; its Vue sibling anchor must stay mounted.
-        h(Stack, { key: "looma-formatting-popup-host", gap: "none" }, () => [
         instance && (props.editable || props.selectionActions.length || props.rangeActions.length) && !mobile.value
           && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
-          ? h(BubbleMenu, {
-              editor: instance,
-              pluginKey: "looma-text-formatting-menu",
-              updateDelay: 0,
-              shouldShow: ({ editor: menuEditor }: { editor: Editor }) =>
-                (props.toolbarMode !== "popover" || !props.toolbarOpen)
-                && !slash.active && !mention.active
-                && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.popper.contains(document.activeElement) || linkContextEditing.value || formattingPickerOpen())
-                && formattingSelectionActive(menuEditor),
-              tippyOptions: {
-                ...floatingTippyOptions("top", props.toolbarMode === "contextual" ? root.value : null),
-                maxWidth: "none",
-                onCreate: (popup) => { formattingPopup = popup; },
-                onDestroy: (popup) => {
-                  formattingPopup = null;
-                  tippyPresentations.get(popup.popper)?.destroy();
-                },
-                // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
-                onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingSelectionActive(instance)
-                  ? false : undefined,
-              },
-            }, { default: () => props.toolbarMode === "contextual"
+          ? h("div", { key: "looma-formatting-host" }, [h("div", {
+              ref: formattingSurfaceRef,
+              class: "looma-editor__floating-shell looma-editor__formatting-shell",
+              hidden: true,
+            }, [props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
                   (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value && formattingSelectionActive(instance)
                     ? renderLinkContextCard(instance)
                     : null,
                 ])
-              : renderToolbar(instance, true, props.toolbarMode === "popover") })
-          : null
-        ]),
-        h(Stack, { key: "looma-link-popup-host", gap: "none" }, () => [
+              : renderToolbar(instance, true, props.toolbarMode === "popover")])])
+          : null,
         instance && props.editable
-          ? h(BubbleMenu, {
-              editor: instance,
-              pluginKey: "looma-link-context-menu",
-              updateDelay: 0,
-              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                from === to && menuEditor.isActive("link") && !linkOpen.value
-                && !dismissedFormattingSelection?.eq(menuEditor.state.selection)
-                && Boolean(menuEditor.isFocused || linkContextEditing.value || linkPopup?.popper.contains(document.activeElement))
-                && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(menuEditor)),
-              tippyOptions: {
-                ...floatingTippyOptions("top"),
-                maxWidth: Math.min(480, window.innerWidth - 24),
-                onCreate: (popup) => { linkPopup = popup; },
-                onDestroy: (popup) => {
-                  linkPopup = null;
-                  tippyPresentations.get(popup.popper)?.destroy();
-                },
-              },
-            }, { default: () => props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
-              ? null : renderLinkContextCard(instance) })
-          : null
-        ]),
+          ? h("div", { key: "looma-link-host" }, [h("div", {
+              ref: linkSurfaceRef,
+              class: "looma-editor__floating-shell looma-editor__link-shell",
+              hidden: true,
+            }, [props.toolbarMode === "contextual" && floatingFormattingMode() && formattingSelectionActive(instance)
+              ? null : renderLinkContextCard(instance)])])
+          : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
               class: "looma-editor__formatting-popover",
@@ -1984,20 +1981,12 @@ export const LoomaEditor = defineComponent({
             }, [renderToolbar(instance, false)])
           : null,
         instance && props.editable
-          ? h(BubbleMenu, {
-              editor: instance,
-              pluginKey: "looma-image-actions",
-              shouldShow: ({ editor: menuEditor }: { editor: Editor }) => menuEditor.isEditable
-                && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
-              tippyOptions: {
-                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
-                placement: "top", duration: 100, maxWidth: window.innerWidth - 24,
-                getReferenceClientRect: () => {
-                  const dom = instance.view.nodeDOM(instance.state.selection.from);
-                  return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
-                },
-              },
-            }, { default: () => h(ImageControls, { editor: instance }) }) : null,
+          ? h("div", { key: "looma-image-host" }, [h("div", {
+              ref: imageSurfaceRef,
+              class: "looma-editor__floating-shell looma-editor__image-shell",
+              hidden: true,
+            }, [h(ImageControls, { editor: instance })])])
+          : null,
         instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h("div", { ref: attachDocument })) : null,
         codeUi.open
           ? h("div", {

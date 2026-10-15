@@ -235,8 +235,22 @@ export function writtenPlace(surface, ownedStyles = []) {
   return { rect, floating };
 }
 
-function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface)) {
-  const bounds = viewport(surface.ownerDocument.defaultView);
+// The visible part of a boundary element, or the visual viewport when there is none or it is off screen.
+function containment(surface, boundary) {
+  const visible = viewport(surface.ownerDocument.defaultView);
+  const element = typeof boundary === "function" ? boundary() : boundary;
+  if (!element) return visible;
+  const box = element.getBoundingClientRect();
+  const left = Math.max(visible.left, box.left);
+  const top = Math.max(visible.top, box.top);
+  const right = Math.min(visible.right, box.right);
+  const bottom = Math.min(visible.bottom, box.bottom);
+  if (right <= left || bottom <= top) return visible;
+  return { left, top, right, bottom, width: right - left, height: bottom - top };
+}
+
+function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface), boundary = null) {
+  const bounds = containment(surface, boundary);
   const [preferred, align = "center"] = placement.split("-");
   const side = ["top", "bottom", "left", "right"].includes(preferred) ? preferred : "bottom";
   const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" }[side];
@@ -271,9 +285,12 @@ function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceR
   surface.style.bottom = "auto";
 }
 
-/** Applies the shared flip/shift policy to a live element or consumer-supplied virtual rectangle. */
+/**
+ * Applies the shared flip/shift policy to a live element or consumer-supplied virtual rectangle.
+ * `boundary` (an element, or a function returning one) narrows the room to its visible part.
+ */
 export function positionAnchoredSurface(surface, rect, options = {}) {
-  fallbackPosition(surface, rect, options.placement ?? "bottom-start", options.gap ?? 4, options.viewportGap ?? 8);
+  fallbackPosition(surface, rect, options.placement ?? "bottom-start", options.gap ?? 4, options.viewportGap ?? 8, undefined, options.boundary);
 }
 
 /**
@@ -379,6 +396,7 @@ export function createAnchoredSurface(surface, options = {}) {
   let placement = options.placement ?? "bottom-start";
   const gap = () => Math.max(0, Number(typeof options.gap === "function" ? options.gap() : options.gap ?? 4) || 0);
   const viewportGap = Math.max(0, options.viewportGap ?? 8);
+  const boundary = options.boundary ?? null;
   let anchor = options.anchor ?? null;
   let point = null;
   let open = false;
@@ -402,17 +420,22 @@ export function createAnchoredSurface(surface, options = {}) {
     // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
     if (!point && typeof anchor !== "function" && (anchor.isConnected === false || rect.width === 0 && rect.height === 0
       || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible")) {
-      if (lastAnchorRect) positionAnchoredSurface(surface, lastAnchorRect, { placement, gap: gap(), viewportGap });
+      if (lastAnchorRect) positionAnchoredSurface(surface, lastAnchorRect, { placement, gap: gap(), viewportGap, boundary });
       else hide(surface);
       return;
     }
     lastAnchorRect = { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     show(surface);
-    positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap });
+    if (options.maxWidth !== undefined) {
+      const maxWidth = typeof options.maxWidth === "function" ? options.maxWidth() : options.maxWidth;
+      surface.style.maxWidth = maxWidth === null ? "" : `${maxWidth}px`;
+    }
+    positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap, boundary });
   };
   surface.style.position = "fixed";
   surface.style.margin = "0";
-  const presentation = createViewportSurface(surface, { position });
+  // `bare` resets the browser's popover chrome on a surface that has none of its own.
+  const presentation = createViewportSurface(surface, { position, bare: options.bare });
   // Resize and scroll events do not report an ancestor's transition or layout shift.
   // While visible, sample the live anchor and only re-position when its bounds change.
   const trackAnchor = () => {
