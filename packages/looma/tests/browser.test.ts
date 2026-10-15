@@ -1238,7 +1238,7 @@ describe("Editor callouts", () => {
       return { surface: css.backgroundColor, border: css.borderTopColor, radius: css.borderTopLeftRadius, heading: element.querySelector(".heading")?.textContent ?? "" };
     });
     assert.deepEqual(await look(callouts.first()), await look(page.locator("#reference")), "an editor callout looks like a page callout");
-    assert.equal(await callouts.nth(1).getAttribute("data-tone"), "warning");
+    assert.equal(await callouts.nth(1).getAttribute("data-ui-callout-prop-tone"), "warning");
     const rhythm = await page.evaluate(() => {
       const [first, second] = [...document.querySelectorAll(".ProseMirror [data-looma-callout]")].map(element => element.getBoundingClientRect());
       return { gap: second.top - first.bottom, last: getComputedStyle(document.querySelector("[data-looma-callout-body] > :last-child")!).marginBottom };
@@ -6774,7 +6774,7 @@ describe("Image toolbar", () => {
       assert.equal(await form.getByLabel("Alt text").inputValue(), "Lake");
       await form.getByLabel("Alt text").fill("Draft");
       if (target === "vue") {
-        // Another image cancels the draft. The DOM runtime ignores attribute changes after lowering (HTML Next gap 3), so
+        // Another image cancels the draft. The DOM runtime still ignores attribute changes after lowering on alpha.52 (HTML Next gap 3), so
         // only the Vue page can change target here.
         await page.evaluate(() => (window as unknown as { fixtureSetTarget(value: string): void }).fixtureSetTarget("two"));
         await form.waitFor({ state: "hidden" });
@@ -9710,7 +9710,7 @@ describe("Image surface", () => {
     const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
     assert.match(html, /^<figure class="ui-image"/);
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
-    assert.match(html, /class="handles" hidden/);
+    assert.match(html, /class="handles"[^>]*\shidden/);
   });
 });
 
