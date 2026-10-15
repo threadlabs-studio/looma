@@ -1233,6 +1233,16 @@ export const LoomaEditor = defineComponent({
     const tableToolbarRef = popupRef(tableToolbarShell);
     const codeLanguageRef = popupRef(codeLanguageShell, true);
     const mobileToolbarRef = popupRef(mobileToolbarShell, true);
+    // Presented shells carry keys: the root's children are diffed by key, and an unkeyed shell could
+    // otherwise take over a sibling's element, and with it that sibling's presentation.
+    // The table overlay enters the top layer once, as the editor mounts, so every editor surface shown
+    // after it, the table toolbar and context menu included, stays above its handles. It then opens and
+    // closes with `hidden`, which keeps that place in the top layer.
+    const presentTableOverlay = popupRef(tableOverlayShell);
+    const tableOverlayRef = (node: unknown) => {
+      presentTableOverlay(node);
+      if (node instanceof HTMLElement) node.hidden = !tableUi.overlayOpen;
+    };
     const onDocumentPointerDown = (event: PointerEvent) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
       const inElement = (element: HTMLElement | null) => Boolean(
@@ -1990,6 +2000,7 @@ export const LoomaEditor = defineComponent({
         instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h("div", { ref: attachDocument })) : null,
         codeUi.open
           ? h("div", {
+              key: "looma-code-language-shell",
               ref: codeLanguageRef,
               class: "looma-editor__code-language",
               style: codeUi.style,
@@ -2006,6 +2017,7 @@ export const LoomaEditor = defineComponent({
           : null,
         instance && (props.editable || props.selectionActions.length && !instance.state.selection.empty || activeRangeActions(instance).length > 0) && mobile.value && (editorFocused.value || linkOpen.value || !props.editable)
           ? h("div", {
+              key: "looma-mobile-toolbar-shell",
               ref: mobileToolbarRef,
               class: "looma-editor__mobile-toolbar-shell",
               "data-mode": mobileToolbarMode.value,
@@ -2180,19 +2192,22 @@ export const LoomaEditor = defineComponent({
           : null,
         tableUi.toolbarOpen
           ? h("div", {
+              key: "looma-table-toolbar-shell",
               ref: tableToolbarRef,
               class: "looma-editor__table-toolbar-shell",
               style: tableUi.toolbarStyle,
             }, [h(EditorTableToolbar, tableProps)])
           : null,
-        tableUi.overlayOpen
+        instance && props.editable && !mobile.value
           ? h("div", {
-              ref: tableOverlayShell,
+              key: "looma-table-overlay-shell",
+              ref: tableOverlayRef,
               class: "looma-editor__table-overlay-shell",
               style: tableUi.overlayStyle,
+              hidden: !tableUi.overlayOpen,
               onMousedown: onTableOverlayMouseDown,
               onPointerleave: onTableOverlayPointerLeave,
-            }, [h(EditorTableOverlay, {
+            }, [tableUi.overlayOpen ? h(EditorTableOverlay, {
               open: true,
               geometry: tableUi.geometry,
               onAddRowBefore: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-row-before", boundaryIndex: event.detail.boundaryIndex }),
@@ -2206,10 +2221,11 @@ export const LoomaEditor = defineComponent({
               onOpenCellMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-cell-menu", ...event.detail }),
               onOpenRowMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-row-menu", ...event.detail }),
               onOpenColumnMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-column-menu", ...event.detail }),
-            })])
+            }) : null])
           : null,
         tableUi.menuOpen
           ? h("div", {
+              key: "looma-table-menu-shell",
               ref: tableMenuShell,
               class: "looma-editor__table-menu-shell",
             }, [h(EditorTableContextMenu, { ...tableProps, scope: tableUi.menuScope, style: tableUi.menuStyle })])
