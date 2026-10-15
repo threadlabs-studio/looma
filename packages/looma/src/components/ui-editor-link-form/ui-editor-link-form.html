@@ -24,6 +24,7 @@
     <prop name="error" type="string" default="">A problem to show under the fields, announced as an alert.</prop>
     <prop name="status" type="string" default=""
     >A line above the results, such as Searching… or No results found., announced politely. Shown only for a search.</prop>
+    <!-- default="[]": without it the generated Vue v-for receives null (HTML Next item 7; revisit after alpha.51). -->
     <prop name="results" type="list(object({ id: string, label: string, detail?: string }))" default="[]">The destinations a search found.</prop>
     <prop name="selected" type="string" default="">The id of the chosen result, which shows a check.</prop>
     <state name="base" type="string" value="ui-editor-link-form"></state>
@@ -94,6 +95,7 @@
             from:data-link-id="$result.id"
           >
             <ui-icon slot="leading" name="file-text"></ui-icon>
+            <!-- from:truncate="true": a bare boolean converts to truncate="" in Vue (HTML Next gap 2; revisit after alpha.51). -->
             <ui-text slot="title" as="strong" size="sm" weight="medium" from:truncate="true" from:title="$result.label">{$result.label}</ui-text>
             <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" from:truncate="true" from:title="$result.detail"
             >{$result.detail}</ui-text>
