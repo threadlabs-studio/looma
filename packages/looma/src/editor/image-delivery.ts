@@ -2,8 +2,8 @@ import { Extension, type Editor, type JSONContent } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
-import { normalizeImageDimension } from "../../editor/extensions/image";
-export { normalizeImageDimension } from "../../editor/extensions/image";
+import { normalizeImageDimension } from "./extensions/image";
+export { normalizeImageDimension } from "./extensions/image";
 /** What caused an overlay to open or close. */
 type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
 
