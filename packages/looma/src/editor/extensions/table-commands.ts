@@ -17,7 +17,8 @@ import {
   type TableRect,
 } from "@tiptap/pm/tables";
 import type { TableContextMenuActionEventDetail } from "../table-context-menu";
-import type { TableOverlayActionEventDetail } from "../table-overlay";
+import { resolveTableCellAt, type TableOverlayActionEventDetail } from "../table-overlay";
+import { selectedTableCellElement, selectedTableElement } from "../selection-geometry";
 import {
   getActiveTableCellAlignment,
   getActiveTableCellBackground,
@@ -610,4 +611,32 @@ export function handleTableOverlayAction(
   editor.view.dispatch(transaction);
   editor.commands.focus();
   return true;
+}
+
+/**
+ * Moves the caret to the cell an overlay action names when the action comes from a table other
+ * than the selected one, so table commands act on that table. A cell menu also selects its cell,
+ * unless that cell is already part of the selection.
+ */
+export function focusTableOverlayTarget(editor: Editor, table: HTMLTableElement, detail: TableOverlayActionEventDetail): void {
+  const target = "rowIndex" in detail
+    ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex)
+    : "fromIndex" in detail
+      ? resolveTableCellAt(table, detail.action === "reorder-row" ? detail.fromIndex : 0, detail.action === "reorder-column" ? detail.fromIndex : 0)
+      : resolveTableCellAt(
+          table,
+          detail.action.startsWith("add-row") ? Math.max(0, detail.boundaryIndex - 1) : 0,
+          detail.action.startsWith("add-column") ? Math.max(0, detail.boundaryIndex - 1) : 0,
+        );
+  if (target && selectedTableElement(editor) !== table) {
+    editor.chain().focus().setTextSelection(editor.view.posAtDOM(target, 0) + 1).run();
+  }
+  if (detail.action !== "open-cell-menu") return;
+  const selected = selectedTableCellElement(editor);
+  const cell = resolveTableCellAt(table, detail.rowIndex, detail.columnIndex) ?? selected;
+  if (cell && selected !== cell && !cell.classList.contains("selectedCell")) {
+    editor.chain().focus().setTextSelection(editor.view.posAtDOM(cell, 0) + 1).run();
+  } else {
+    editor.commands.focus();
+  }
 }

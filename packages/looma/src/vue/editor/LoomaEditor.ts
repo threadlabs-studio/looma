@@ -32,7 +32,6 @@ import {
   handleTableOverlayAction,
   measureTableOverlayGeometry,
   normalizeActiveTableColumnWidths,
-  resolveTableCellAt,
   type LoomaSlashMenuSnapshot,
   type LoomaSlashCommand,
   type LoomaMentionItem,
@@ -78,6 +77,8 @@ import {
   type LoomaImageRenditionErrorDetail,
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
+import { runBlockAction } from "../../editor/block-actions";
+import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
 import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkResolve, type LoomaLinkSearch } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
@@ -698,35 +699,6 @@ export const LoomaEditor = defineComponent({
         onEdit: () => openLinkEditor(true),
         onRemove: () => linkEditing?.remove(),
       });
-    };
-
-    const runBlockAction = (value: string) => {
-      const instance = editor.value;
-      const head = instance?.state.selection.$head;
-      if (!instance || !head || head.depth === 0 || !props.editable) return;
-      const { state } = instance;
-      const position = head.before(1);
-      const block = state.doc.nodeAt(position);
-      if (!block) return;
-      const end = position + block.nodeSize;
-      const transaction = state.tr;
-      let focusAt = end + 1;
-      if (value === "insert-below") {
-        transaction.insert(end, state.schema.nodes.paragraph.create());
-      } else if (value === "duplicate") {
-        transaction.insert(end, block);
-      } else if (value === "delete") {
-        if (state.doc.childCount === 1) {
-          transaction.replaceWith(position, end, state.schema.nodes.paragraph.create());
-          focusAt = 1;
-        } else {
-          transaction.delete(position, end);
-          focusAt = Math.min(position + 1, transaction.doc.content.size);
-        }
-      } else return;
-      transaction.setSelection(TextSelection.near(transaction.doc.resolve(Math.min(focusAt, transaction.doc.content.size))));
-      instance.view.dispatch(transaction);
-      instance.commands.focus();
     };
 
     watch([() => props.slashCommands, () => props.uploadImage], () => {
@@ -1377,28 +1349,8 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       const table = overlayTableElement ?? selectedTableElement(instance);
       if (!table) return;
-      const targetCell = "rowIndex" in detail
-        ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex)
-        : "fromIndex" in detail
-          ? resolveTableCellAt(table, detail.action === "reorder-row" ? detail.fromIndex : 0, detail.action === "reorder-column" ? detail.fromIndex : 0)
-        : resolveTableCellAt(
-            table,
-            detail.action.startsWith("add-row") ? Math.max(0, detail.boundaryIndex - 1) : 0,
-            detail.action.startsWith("add-column") ? Math.max(0, detail.boundaryIndex - 1) : 0,
-          );
-      if (targetCell && selectedTableElement(instance) !== table) {
-        instance.chain().focus().setTextSelection(instance.view.posAtDOM(targetCell, 0) + 1).run();
-      }
+      focusTableOverlayTarget(instance, table, detail);
       if (detail.action === "open-cell-menu") {
-        const selectedCell = selectedTableCellElement(instance);
-        const cell = table
-          ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex) ?? selectedCell
-          : selectedCell;
-        if (cell && selectedCell !== cell && !cell.classList.contains("selectedCell")) {
-          instance.chain().focus().setTextSelection(instance.view.posAtDOM(cell, 0) + 1).run();
-        } else {
-          instance.commands.focus();
-        }
         updateTableUi();
         tableUi.menuScope = "cell";
         tableUi.menuStyle = {
@@ -1937,7 +1889,7 @@ export const LoomaEditor = defineComponent({
         h(EditorBlockActions, {
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
-          onAction: (event: CustomEvent<{ action: string }>) => runBlockAction(event.detail.action),
+          onAction: (event: CustomEvent<{ action: string }>) => { if (props.editable && editor.value) runBlockAction(editor.value, event.detail.action); },
         }),
         h(Popover, {
           class: "looma-editor__table-picker-popover",
