@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.3
+
+- LoomaEditor's formatting toolbar, link card, and image actions use Looma's overlay layer instead of tippy.js: they open in the top layer beside the selection, follow it through scrolling and layout changes, stay inside the editor in `contextual` mode, and take part in the shared Escape and outside-press order with Looma's popovers and dialogs. Image actions now also open in the top layer. After the link editor closes, clicking the same link shows its link card.
+
 ## v0.28.2
 
 - LoomaEditor creates its Tiptap editor through a framework-neutral editor session, which owns the editor's lifecycle, moves its view into the document element, and applies `modelValue` with the reader's selection kept. LoomaEditor's behavior and public API stay the same; `ready` and the exposed `editor` remain `@tiptap/vue-3`'s reactive `Editor`.
