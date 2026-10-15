@@ -6964,6 +6964,93 @@ describe("Code language", () => {
   }
 });
 
+describe("Swatch", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`is a radio named by its tone, chosen through its group, with a ring when checked (${target})`, async () => {
+      const tones = ["neutral", "blue", "purple"];
+      const path = target === "html"
+        ? await bundle("html-swatch", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            document.querySelector("#colors").addEventListener("select", (event) => window.fixtureEvents.push(event.detail.value));
+          `)
+        : await bundle("vue-swatch", `
+            import { createApp, h } from "vue";
+            import { RadioGroup, Swatch } from "@threadlabs/looma/vue";
+            window.fixtureEvents = [];
+            createApp({ render: () => h(RadioGroup, { id: "colors", label: "Color", value: "blue", onSelect: (event) => window.fixtureEvents.push(event.detail.value) },
+              () => ${JSON.stringify(tones)}.map((tone) => h(Swatch, { tone }))) }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-radio-group id="colors" label="Color" value="blue">${tones.map((tone) => `<ui-swatch tone="${tone}"></ui-swatch>`).join("")}</ui-radio-group>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const group = page.getByRole("radiogroup", { name: "Color" });
+      await group.waitFor();
+      assert.deepEqual(await group.getByRole("radio").evaluateAll((radios) => radios.map((radio) => [radio.getAttribute("aria-label"), (radio as HTMLInputElement).value])),
+        [["Neutral", "neutral"], ["Blue", "blue"], ["Purple", "purple"]]);
+      const blue = group.getByRole("radio", { name: "Blue" });
+      assert.equal(await blue.isChecked(), true);
+      const ring = await blue.evaluate((radio) => [getComputedStyle(radio).outlineStyle, getComputedStyle(radio).outlineWidth, getComputedStyle(radio).borderRadius]);
+      assert.deepEqual(ring, ["solid", "2px", "50%"]);
+      assert.notEqual(await group.getByRole("radio", { name: "Purple" }).evaluate((radio) => getComputedStyle(radio).backgroundColor),
+        await blue.evaluate((radio) => getComputedStyle(radio).backgroundColor), "each tone has its own colour");
+      await blue.focus();
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await group.getByRole("radio", { name: "Purple" }).isChecked(), true);
+      await group.getByRole("radio", { name: "Neutral" }).click();
+      assert.deepEqual(await page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents), ["purple", "neutral"]);
+      await page.close();
+    });
+  }
+});
+
+describe("Chip editor", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`reports text, colour, and done, and keeps the arrow keys among the swatches (${target})`, async () => {
+      const path = target === "html"
+        ? await bundle("html-chip-editor", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            const editor = document.querySelector("#chip");
+            for (const name of ["label", "color", "done"]) editor.addEventListener(name, (event) => window.fixtureEvents.push([name, event.detail]));
+          `)
+        : await bundle("vue-chip-editor", `
+            import { createApp, h } from "vue";
+            import { EditorChipEditor } from "@threadlabs/looma/vue/editor";
+            window.fixtureEvents = [];
+            const record = (name) => (event) => window.fixtureEvents.push([name, event.detail]);
+            createApp({ render: () => h(EditorChipEditor, { id: "chip", label: "Draft", color: "blue", onLabel: record("label"), onColor: record("color"), onDone: record("done") }) }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-editor-chip-editor id="chip" label="Draft" color="blue"></ui-editor-chip-editor>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
+      const dialog = page.getByRole("dialog", { name: "Edit chip" });
+      const text = dialog.getByRole("textbox", { name: "Chip text" });
+      await text.waitFor();
+      assert.equal(await text.inputValue(), "Draft");
+      assert.equal(await dialog.getByRole("radio", { name: "Blue" }).isChecked(), true);
+      // The group keeps its name for screen readers while its legend is hidden.
+      assert.equal(await dialog.getByRole("radiogroup", { name: "Chip color" }).locator("legend").evaluate((legend) => legend.getBoundingClientRect().width), 1);
+      await text.fill("Done");
+      await text.evaluate((input) => (input as HTMLInputElement).select());
+      await dialog.getByRole("radio", { name: "Green" }).click();
+      assert.equal(await text.evaluate((input) => input === document.activeElement), true, "a pointer choice returns to the text");
+      await dialog.getByRole("radio", { name: "Green" }).focus();
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await dialog.getByRole("radio", { name: "Yellow" }).evaluate((radio) => radio === document.activeElement), true, "the arrow keys stay among the swatches");
+      await text.press("Enter");
+      assert.deepEqual(await events(), [
+        ["label", { label: "Done" }],
+        ["color", { color: "green" }],
+        ["color", { color: "yellow" }],
+        ["done", {}],
+      ]);
+      await page.close();
+    });
+  }
+});
+
 describe("Vue editor components", () => {
   it("filters authored Slash groups and reports the command value", async () => {
     const path = await bundle("html-authored-slash-menu", `
@@ -8173,6 +8260,7 @@ describe("Form participation", () => {
       <ui-radio-group name="off-group" value="a" label="Off" disabled><ui-radio value="a">A</ui-radio></ui-radio-group>
       <ui-radio id="free" name="plan" value="free">Free</ui-radio>
       <ui-radio name="plan" value="pro" checked>Pro</ui-radio>
+      <ui-radio-group id="color" name="color" value="blue" label="Color"><ui-swatch tone="neutral"></ui-swatch><ui-swatch tone="blue"></ui-swatch></ui-radio-group>
       <ui-combobox id="fruit" name="fruit" label="Fruit">${fruit}</ui-combobox>
       <ui-combobox id="tags" name="tags" label="Tags" multiple>${tags}</ui-combobox>
       <ui-combobox id="city" name="city" label="City" allow-free-text></ui-combobox>
@@ -8187,7 +8275,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { Checkbox, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -8213,6 +8301,7 @@ describe("Form participation", () => {
           h(RadioGroup, { name: "off-group", value: "a", label: "Off", disabled: true }, () => [h(Radio, { value: "a" }, text("A"))]),
           h(Radio, { id: "free", name: "plan", value: "free" }, text("Free")),
           h(Radio, { name: "plan", value: "pro", checked: true }, text("Pro")),
+          h(RadioGroup, { id: "color", name: "color", value: "blue", label: "Color" }, () => [h(Swatch, { tone: "neutral" }), h(Swatch, { tone: "blue" })]),
           h(Combobox, { id: "fruit", name: "fruit", label: "Fruit" }, fruit),
           h(Combobox, { id: "tags", name: "tags", label: "Tags", multiple: true }, tags),
           h(Combobox, { id: "city", name: "city", label: "City", allowFreeText: true }),
@@ -8232,11 +8321,11 @@ describe("Form participation", () => {
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
     ["title", "Draft"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
-    ["fruit", ""], ["city", ""], ["country", "no"],
+    ["color", "blue"], ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
     ["title", "Final"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
-    ["plan", "free"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
+    ["plan", "free"], ["color", "neutral"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
     Array.from(new FormData(element as HTMLFormElement), ([name, value]) => [name, String(value)]));
@@ -8270,6 +8359,7 @@ describe("Form participation", () => {
     await page.locator("#alerts input").check();
     await page.locator('#size input[value="s"]').check();
     await page.locator("#free input").check();
+    await page.locator('#color input[value="neutral"]').check();
     await pick(page, "fruit", "Pear");
     await page.locator("#note .preview").click();
     await pick(page, "tags", "Alpha");

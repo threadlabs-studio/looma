@@ -1,0 +1,32 @@
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-input/ui-input.html">
+<link rel="component" href="../ui-radio-group/ui-radio-group.html">
+<link rel="component" href="../ui-swatch/ui-swatch.html">
+<template component="ui-editor-chip-editor" controller="./ui-editor-chip-editor.js">
+  <defs>
+    <prop name="label" type="string" default="">The chip's text, shown in the field as the reader edits it.</prop>
+    <prop name="color" type="keyword" values="neutral, blue, green, yellow, red, purple" default="neutral">The chip's colour, checked among the swatches.</prop>
+    <event name="label" type="object">
+      <prop name="label" required type="string"></prop>
+      The chip's text changed.
+    </event>
+    <event name="color" type="object">
+      <prop name="color" required type="keyword" values="neutral, blue, green, yellow, red, purple"></prop>
+      A colour was chosen.
+    </event>
+    <event name="done" type="object">Enter or Escape was pressed in the text field, to close the editor and return to the chip.</event>
+  </defs>
+  <div role="dialog" aria-label="Edit chip">
+    <ui-stack gap="s">
+      <ui-input data-chip-label size="sm" placeholder="Set a label" aria-label="Chip text" from:value="$label"></ui-input>
+      <ui-radio-group label="Chip color" label-visibility="sr-only" from:value="$color">
+        <ui-swatch tone="neutral"></ui-swatch>
+        <ui-swatch tone="blue"></ui-swatch>
+        <ui-swatch tone="green"></ui-swatch>
+        <ui-swatch tone="yellow"></ui-swatch>
+        <ui-swatch tone="red"></ui-swatch>
+        <ui-swatch tone="purple"></ui-swatch>
+      </ui-radio-group>
+    </ui-stack>
+  </div>
+</template>

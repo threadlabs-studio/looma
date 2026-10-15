@@ -789,7 +789,7 @@ describe("LoomaEditor automatic table of contents", () => {
     await page.keyboard.press("Enter");
     const input = page.getByRole("textbox", { name: "Chip text" });
     await input.fill("In progress");
-    await page.getByRole("button", { name: "Blue chip", exact: true }).click();
+    await page.getByRole("radio", { name: "Blue", exact: true }).click();
     await equals(() => prose(page).locator("[data-looma-chip]").getAttribute("data-label"), "In progress", "status uses existing chip content");
     assert.equal(await prose(page).locator("[data-looma-chip]").getAttribute("data-color"), "blue");
     await page.close();

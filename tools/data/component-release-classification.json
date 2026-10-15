@@ -155,6 +155,12 @@
       "group": "editor",
       "description": "The editor's block menu: insert a paragraph below, duplicate, or delete the block that holds the caret."
     },
+    "ui-editor-chip-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The editor's chip editor: a field for the chip's text and swatches for its colour."
+    },
     "ui-editor-code-language": {
       "status": "published",
       "package": "@threadlabs/looma",
@@ -424,6 +430,12 @@
       "package": "@threadlabs/looma",
       "group": "display",
       "description": "The one way a view says it is loading (`kind=\"loading\"`, with a spinner), has nothing yet (`kind=\"empty\"`, the default), or failed (`kind=\"error\"`, in the danger tone and announced at once), with an optional next step in the `action` slot. `layout=\"panel\"` sets it on a dashed surface for an empty area in a page; `layout=\"fill\"` centres it in all the space, for a whole view."
+    },
+    "ui-swatch": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "forms",
+      "description": "A round colour dot that is a native radio, named by its tone, for choosing a colour inside a radio group."
     },
     "ui-switch": {
       "status": "published",
