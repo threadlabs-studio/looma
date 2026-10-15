@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.4
+
+- LoomaEditor's table row and column handles open in the top layer, beneath the table toolbar, the table context menu, and the editor's other floating tools, so no clipping or stacking context around the editor hides them and they never cover those controls.
+
 ## v0.28.3
 
 - LoomaEditor's formatting toolbar, link card, and image actions use Looma's overlay layer instead of tippy.js: they open in the top layer beside the selection, follow it through scrolling and layout changes, stay inside the editor in `contextual` mode, and take part in the shared Escape and outside-press order with Looma's popovers and dialogs. Image actions now also open in the top layer. After the link editor closes, clicking the same link shows its link card.
