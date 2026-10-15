@@ -762,6 +762,29 @@
       ]
     },
     {
+      "path": "components/ui-editor-link-form",
+      "title": "Link Form",
+      "source": "apps/docs/docs/editor/ui-editor-link-form.mdx",
+      "component": "ui-editor-link-form",
+      "examples": [
+        {
+          "id": "01-address",
+          "title": "Address",
+          "behavior": false
+        },
+        {
+          "id": "02-search",
+          "title": "Search results",
+          "behavior": false
+        },
+        {
+          "id": "03-new-link-text",
+          "title": "New link with text",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-mention-menu",
       "title": "Mention Menu",
       "source": "apps/docs/docs/editor/ui-editor-mention-menu.mdx",
