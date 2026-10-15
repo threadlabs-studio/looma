@@ -145,7 +145,7 @@
     .indicator {
       transition: transform var(--ui-motion-feedback) var(--ui-motion-feedback-ease);
     }
-    :host-state([internalOpen]) .indicator {
+    :host(:state(internalOpen)) .indicator {
       transform: rotate(180deg);
     }
 
@@ -169,10 +169,10 @@
       padding-inline: var(--ui-space-3);
     }
 
-    :host-state([internalOpen]) .panel {
+    :host(:state(internalOpen)) .panel {
       grid-template-rows: 1fr;
     }
-    :host-state([internalOpen]) .panel-inner {
+    :host(:state(internalOpen)) .panel-inner {
       padding-block: 0 var(--ui-space-3);
     }
 
@@ -187,7 +187,7 @@
       border-block-end: 0;
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
-    :host([fill]):host-state([internalOpen]) {
+    :host([fill]:state(internalOpen)) {
       flex-grow: 1;
     }
     :host([fill]) .heading {
