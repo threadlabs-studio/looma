@@ -34,6 +34,11 @@ test("release publishes to latest after CI passes on main", () => {
   assert.match(publishJob, /publish-release\.mjs --execute/);
   assert.match(publishJob, /pnpm release:verify-registry/);
   assert.match(publishJob, /pnpm release:verify-public-consumer/);
+  // Upload, then npm's availability wait as its own step, then the registry checks; record
+  // tags only after the whole job, so only a verified publish is tagged.
+  const order = ["publish-release.mjs --execute", "publish-release.mjs --wait", "pnpm release:verify-registry"]
+    .map((command) => publishJob.indexOf(command));
+  assert.ok(order[0] >= 0 && order[0] < order[1] && order[1] < order[2], "wait between upload and registry checks");
   assert.doesNotMatch(workflow, /candidate/i);
 });
 

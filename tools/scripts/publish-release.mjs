@@ -16,7 +16,9 @@ import {
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
 const registry = "https://registry.npmjs.org/";
-const registryScanAttempts = 121;
+// npm's availability wait after an upload measured p50 129s, p90 250s, max 311s. 49 lookups 10s
+// apart give up after about 9 minutes, inside the workflow's 10-minute bound for this step.
+const registryScanAttempts = 49;
 const registryScanIntervalMs = 10_000;
 
 function run(command, args, { allowFailure = false, stdio = "pipe" } = {}) {
@@ -115,12 +117,17 @@ export async function waitForRegistryIntegrity({
   }
   const timeoutMinutes = Math.ceil(((attempts - 1) * intervalMs) / 60_000);
   throw new Error(
-    `${name}@${version} did not become available after npm scanning (${timeoutMinutes} minutes)`
+    `${name}@${version} did not become available after npm scanning (${timeoutMinutes} minutes). ` +
+      "If it was uploaded, re-run the publish job: it skips the upload because npm has the version, " +
+      "waits again, and then the release is tagged."
   );
 }
 
 async function main() {
+  // --execute uploads what npm lacks; --wait uploads nothing and waits until npm serves every
+  // package. The workflow runs them as separate steps so the wait has its own timeout.
   const execute = process.argv.includes("--execute");
+  const wait = process.argv.includes("--wait");
   const tag = distTag(RELEASE_VERSION);
   const manifestArgument = argumentValue(
     "--manifest",
@@ -186,17 +193,19 @@ async function main() {
       continue;
     }
 
+    if (wait) {
+      pendingIntegrityChecks.push({
+        name: releasePackage.name,
+        version: releasePackage.version,
+        expectedIntegrity: digests.integrity
+      });
+      continue;
+    }
+
     if (publication.status === "pending") {
       process.stdout.write(
         `${releasePackage.name}@${releasePackage.version} is awaiting npm publish-time scanning; skipping upload\n`
       );
-      if (execute) {
-        pendingIntegrityChecks.push({
-          name: releasePackage.name,
-          version: releasePackage.version,
-          expectedIntegrity: digests.integrity
-        });
-      }
       continue;
     }
 
@@ -220,11 +229,6 @@ async function main() {
       ],
       { stdio: "inherit" }
     );
-    pendingIntegrityChecks.push({
-      name: releasePackage.name,
-      version: releasePackage.version,
-      expectedIntegrity: digests.integrity
-    });
   }
 
   await Promise.all(pendingIntegrityChecks.map((releasePackage) =>
@@ -235,6 +239,10 @@ async function main() {
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
 if (invokedPath === fileURLToPath(import.meta.url)) {
   main().catch((error) => {
+    // An annotation puts the failure, and any recovery step it names, on the run summary.
+    if (process.env.GITHUB_ACTIONS) {
+      process.stdout.write(`::error::${error instanceof Error ? error.message : error}\n`);
+    }
     process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
     process.exitCode = 1;
   });
