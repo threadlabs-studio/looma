@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.7
+
+- Link Form (`ui-editor-link-form`) is the editor's link form as an HTML Next component, in HTML and Vue (`EditorLinkForm`): the destination field with its search results or Open in new tab, and a Text field for a new link. The editor passes its state in and applies each change the form reports (`destination`, `text`, `new-tab`, `choose`, `clear`, `save`, `dismiss`). LoomaEditor uses it in place of its own render code; the form looks and behaves as before.
+
 ## v0.28.6
 
 - Link Card (`ui-editor-link-card`) and Block Actions (`ui-editor-block-actions`) are editor parts as HTML Next components, in HTML and Vue (`EditorLinkCard`, `EditorBlockActions`). Link Card shows a link's destination with Open link, Edit link, and Remove link, and reports `edit` and `remove`. Open link opens `open-href`, which the editor sets only for an http, https, mailto, tel, or relative address. Block Actions is the block menu (insert a paragraph below, duplicate, delete) and reports `action`. LoomaEditor uses both in place of its own render code; they look and behave as before, except that a block action now applies to the block holding the caret when it is chosen.
