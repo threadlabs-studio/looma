@@ -1,0 +1,69 @@
+<template component="ui-swatch">
+  <defs>
+    <prop name="tone" type="keyword" values="neutral, blue, green, yellow, red, purple" default="neutral"
+    >The swatch's colour, on the same tokens as editor chips. It is also the radio's value and, by name, its label.</prop>
+    <computed name="toneName" from="{ neutral: 'Neutral', blue: 'Blue', green: 'Green', yellow: 'Yellow', red: 'Red', purple: 'Purple' }[$tone]"></computed>
+  </defs>
+  <input type="radio" from:value="$tone" from:aria-label="$toneName">
+  <style>
+    @property --ui-swatch-size {
+      syntax: "*";
+      inherits: false;
+    }
+
+    /* A native radio drawn as a round dot. Inside a ui-radio-group the group names it, applies its
+       value, and moves between swatches with the arrow keys. */
+    :host {
+      --_surface: var(--ui-surface-subtle);
+      --_text: var(--ui-text-secondary);
+
+      appearance: none;
+      box-sizing: border-box;
+      flex: 0 0 auto;
+      inline-size: var(--ui-swatch-size, 1.65rem);
+      block-size: var(--ui-swatch-size, 1.65rem);
+      margin: 0;
+      border: var(--ui-border-width) solid color-mix(in srgb, var(--_surface) 75%, var(--_text) 25%);
+      border-radius: 50%;
+      background: var(--_surface);
+      cursor: pointer;
+    }
+
+    :host([tone="blue"]) {
+      --_surface: var(--ui-info-soft);
+      --_text: var(--ui-info-subtle-text);
+    }
+
+    :host([tone="green"]) {
+      --_surface: var(--ui-success-soft);
+      --_text: var(--ui-success-subtle-text);
+    }
+
+    :host([tone="yellow"]) {
+      --_surface: var(--ui-warning-soft);
+      --_text: var(--ui-warning-subtle-text);
+    }
+
+    :host([tone="red"]) {
+      --_surface: var(--ui-danger-soft);
+      --_text: var(--ui-danger-subtle-text);
+    }
+
+    :host([tone="purple"]) {
+      --_surface: var(--ui-accent-soft);
+      --_text: var(--ui-accent-subtle-text);
+    }
+
+    /* The chosen swatch and the focused one share one ring at the focus width (2px by default), in
+       the tone or the focus colour. */
+    :host(:checked) {
+      outline: var(--ui-focus-width) solid var(--_text);
+      outline-offset: var(--ui-focus-width);
+    }
+
+    :host(:focus-visible) {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-focus-width);
+    }
+  </style>
+</template>
