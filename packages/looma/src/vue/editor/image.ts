@@ -21,7 +21,7 @@ export const imageNodeView: NodeViewRenderer = ({ editor, node, getPos, decorati
     const attrs = current.value.attrs;
     const transient = Object.assign({}, ...delivery.value.map(decoration => decoration.spec.loomaImageAttributes ?? {}));
     return h(Image, {
-      src: attrs.src, alt: attrs.alt ?? "", width: attrs.width, height: attrs.height,
+      src: transient.src ?? attrs.src, alt: attrs.alt ?? "", width: attrs.width, height: attrs.height,
       placement: normalizeImagePlacement(attrs.placement), selected: editable.value && selected.value,
       resizable: editable.value, contenteditable: "false", "data-looma-image-node": "",
       onClick: (event: MouseEvent) => {
