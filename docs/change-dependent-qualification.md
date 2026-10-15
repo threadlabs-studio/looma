@@ -3,9 +3,10 @@
 Routine fixes target five minutes of CI elapsed time. Automatic qualification runs
 in parallel and has a ten-minute execution ceiling; release preparation,
 publication, and tagging have another five minutes. The longest configured path
-from checks through publication is fifteen minutes. Queue delays, runner provisioning,
-workflow handoff delays, and protected-environment approvals are outside these
-execution limits. Hosted timing must be confirmed after rollout.
+of runner work from checks through publication is fifteen minutes. Queue delays, runner
+provisioning, workflow handoff delays, protected-environment approvals, and npm's
+availability wait after the upload are outside these execution limits. Hosted timing
+must be confirmed after rollout.
 
 ## Automatic checks
 
@@ -26,9 +27,13 @@ Formatting, comment documentation checks, Storybook builds, documentation browse
 parity, full screenshot/axe sweeps, Firefox and WebKit are outside automatic release
 qualification. Package packing builds only the published package.
 
-Release preparation and publication each have two-minute timeouts; recording the
-tag has one minute. Docs deployment runs beside publication with a five-minute
-timeout. Trusted publishing, exact release-byte identity, packed consumers, public
+Release preparation and publication each have two minutes of runner work; recording
+the tag has one minute. Between upload and the registry checks, publication waits for
+npm to serve the version in its own step with a ten-minute timeout (measured maximum
+311 seconds), so its job timeout is twelve minutes. If that wait times out, re-run the
+publish job: it skips the upload because npm has the version, waits again, and the
+tag is recorded after it succeeds. Docs deployment runs beside publication with a
+five-minute timeout. Trusted publishing, exact release-byte identity, packed consumers, public
 registry integrity/provenance and the public-registry consumer remain required.
 
 ## Selection and priority
