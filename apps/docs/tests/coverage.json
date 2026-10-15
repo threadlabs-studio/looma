@@ -690,6 +690,24 @@
       ]
     },
     {
+      "path": "components/ui-editor-image-toolbar",
+      "title": "Image Toolbar",
+      "source": "apps/docs/docs/editor/ui-editor-image-toolbar.mdx",
+      "component": "ui-editor-image-toolbar",
+      "examples": [
+        {
+          "id": "01-placement",
+          "title": "Placement",
+          "behavior": false
+        },
+        {
+          "id": "02-wrapped",
+          "title": "Wrapped image",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-insert-table-grid",
       "title": "Insert Table Grid",
       "source": "apps/docs/docs/editor/ui-editor-insert-table-grid.mdx",
