@@ -231,6 +231,20 @@ Provide `uploadImage` to enable image insertion from a file, paste, or drop. It 
 and returns a URL or an object with a URL, alt text, and optional dimensions. A rejected upload
 leaves the document unchanged and emits `uploadError`, so the app can show recovery UI.
 `resolveImageAttributes` can supply responsive image attributes when rendering saved content.
+`resolveImageSource` can resolve a browser-only master URL for every image,
+including images without responsive metadata. It receives the durable image
+descriptor and returns a URL or `undefined`. Empty results and exceptions use the
+stored source. Responsive attributes are resolved from this master; if a rendition
+fails, the editor keeps the resolved master. Neither callback changes the stored
+document or the durable descriptors in image events. Replacing the source resolver
+refreshes delivery without emitting a document update. The application owns URL
+validation, authorization and signing; these synchronous callbacks do not fetch or
+persist credentials on behalf of the application.
+
+Pass document JSON when loading must avoid contacting the stored image host.
+HTML input first passes through the browser's HTML parser, which may request
+image URLs before the editor can apply its delivery policy. Exported HTML keeps
+the durable URLs.
 
 Click or tap an editable image to select the entire node and show one **Image actions** bar.
 Choose in-line block placement, centering, or text wrapping on either side directly in the bar.
@@ -276,7 +290,7 @@ leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
 | `linkBaseUrl` | None | Make newly inserted same-origin web links relative |
 | `linkSearch`, `linkResolve`, `linkTargetLabel` | None, none, `Item` | Search app destinations and describe existing identity links |
-| `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
+| `uploadImage`, `resolveImageSource`, `resolveImageAttributes` | None | Image delivery and rendering |
 
 `update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
 `popover` toolbar opening and closing; `ready` exposes the underlying Tiptap
