@@ -2042,6 +2042,13 @@
       "examples": []
     },
     {
+      "path": "shared-blocks",
+      "title": "Shared blocks",
+      "source": "apps/docs/docs/shared-blocks.md",
+      "component": null,
+      "examples": []
+    },
+    {
       "path": "tokens",
       "title": "Tokens",
       "source": "apps/docs/docs/tokens.md",

@@ -85,6 +85,8 @@ export interface DefaultEditorExtensionsOptions {
   tableOfContentsNodeView?: NodeViewRenderer;
   /** Optional section settings; the shared schema owns summary and body content. */
   expandNodeView?: NodeViewRenderer;
+  /** Renders callouts while editing; saved HTML stays `<ui-callout>` either way. */
+  calloutNodeView?: NodeViewRenderer;
 }
 
 const LoomaCodeBlock = CodeBlockLowlight.extend({
@@ -165,6 +167,7 @@ export function getDefaultEditorExtensions(
     codeBlockNodeView,
     tableOfContentsNodeView,
     expandNodeView,
+    calloutNodeView,
   } = options;
 
   const image = LoomaImage.configure({ inline: imageInline });
@@ -185,7 +188,7 @@ export function getDefaultEditorExtensions(
     TaskList,
     TaskItem.configure({ nested: false }),
     Blockquote,
-    LoomaCallout,
+    calloutNodeView ? LoomaCallout.extend({ addNodeView: () => calloutNodeView }) : LoomaCallout,
     LoomaChip,
     LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),

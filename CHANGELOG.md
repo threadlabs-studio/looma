@@ -1,8 +1,16 @@
 # Changelog
 
-## v0.27.6
+## v0.28.1
 
 - LoomaEditor's link, shortcut, selection-geometry, image-delivery and code-highlighting helpers move from the Vue editor into Looma's framework-neutral editor modules, the first step toward LoomaEditor as an HTML Next component (`docs/plans/2026-10-14-editor-html-next-component.md`). LoomaEditor's behavior and public API stay the same.
+
+## v0.28.0
+
+- **Breaking: LoomaEditor saves callouts as Callout.** The callout node used to render and save its own `<aside data-looma-callout data-tone>`, styled by a copy of Callout's rules in the editor stylesheet. Callouts therefore looked different in the editor than in pages, and saved HTML matched neither Callout nor the Markdown that Markupress renders. The owner direction is one block vocabulary across components, the editor and Markdown. A saved `aside` keeps those two shapes apart, so an additive option cannot fix it. The node now saves `<ui-callout tone heading>`, and the Vue editor draws it with Callout itself; the separate editor styling is removed. Content saved as `<aside data-looma-callout>` still loads and is saved as Callout from then on. To migrate, register Looma's components wherever saved editor HTML is shown, and update code that queries or sanitizes `aside[data-looma-callout]` or `data-tone` to use `ui-callout` and `tone`.
+- Editor callouts take every shared tone: note, tip, info, important, warning and danger. `caution` loads as `danger` and `neutral` as `note`. Each tone has a slash command; **Tip**, **Important** and **Danger** are new. The `caution` search alias moves from Warning to Danger, matching Callout. Callouts keep an optional `heading`.
+- Editor Markdown works in both directions. Pasted Markdown now reads `::: tone Title` … `:::` callouts, GitHub `> [!NOTE]` alerts and `::: details Summary` sections. `loomaMarkdownToHtml` renders the same Markdown for `setContent`, and `loomaMarkdownFromDoc` writes a document as Markdown in that syntax.
+- A new Shared blocks page documents the vocabulary that Markupress implements: syntax, component and editor node.
+- Icons add `lightbulb` and `message-square-warning`.
 
 ## v0.27.5
 

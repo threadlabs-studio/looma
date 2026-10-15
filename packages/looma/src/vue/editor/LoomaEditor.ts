@@ -79,6 +79,7 @@ import { formatEditorShortcut, isApplePlatform } from "../../editor/shortcuts";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
 import { dividerNodeView } from "./divider";
+import { calloutNodeView } from "./callout";
 import { ImageControls } from "./image-controls";
 import { imageNodeView } from "./image";
 
@@ -579,6 +580,7 @@ export const LoomaEditor = defineComponent({
           tableOfContentsNodeView,
           expandNodeView,
           dividerNodeView,
+          calloutNodeView,
           imageNodeView,
         }),
         imageDelivery.extension,
