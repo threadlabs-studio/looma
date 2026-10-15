@@ -10,12 +10,12 @@ import {
   validateComponentProjections
 } from "./component-api-generator.mjs";
 
+const published = (fields = {}) => ({ status: "published", group: "forms", description: "Runs an action.", ...fields });
 const completeFixture = {
   sourceTags: ["ui-button"],
-  classifications: { "ui-button": "published" },
+  classifications: { "ui-button": published() },
+  groups: [{ id: "forms", label: "Forms" }],
   metadataTags: ["ui-button"],
-  documentationTags: ["ui-button"],
-  navigationTags: ["ui-button"],
   adapterTags: ["ui-button"]
 };
 
@@ -43,8 +43,8 @@ test("names every missing projection for a newly published source tag", () => {
       }),
     (error) => {
       assert.match(error.message, /metadata missing published tags: ui-new-primitive/);
-      assert.match(error.message, /documentation missing published tags: ui-new-primitive/);
-      assert.match(error.message, /navigation missing published tags: ui-new-primitive/);
+      assert.match(error.message, /published tag without a description: ui-new-primitive/);
+      assert.match(error.message, /navigated tag without a known group: ui-new-primitive/);
       assert.match(error.message, /adapter missing published tags: ui-new-primitive/);
       return true;
     }
@@ -70,14 +70,50 @@ test("accepts a published compound part through its explicit navigated parent", 
   assert.doesNotThrow(() => validateComponentProjections({
     sourceTags: ["ui-menu", "ui-menu-item"],
     classifications: {
-      "ui-menu": "published",
-      "ui-menu-item": { status: "published", navigationParent: "ui-menu" }
+      "ui-menu": published({ group: "overlay" }),
+      "ui-menu-item": { status: "published", navigationParent: "ui-menu", description: "One menu choice." }
     },
+    groups: [{ id: "overlay", label: "Overlay" }],
     metadataTags: ["ui-menu", "ui-menu-item"],
-    documentationTags: ["ui-menu", "ui-menu-item"],
-    navigationTags: ["ui-menu"],
     adapterTags: ["ui-menu", "ui-menu-item"]
   }));
+});
+
+test("rejects a group the metadata does not declare, and a part that names its own group", () => {
+  assert.throws(
+    () => validateComponentProjections({
+      ...completeFixture,
+      sourceTags: ["ui-button", "ui-button-part"],
+      classifications: {
+        "ui-button": published({ group: "inputs" }),
+        "ui-button-part": published({ navigationParent: "ui-button" })
+      },
+      metadataTags: ["ui-button", "ui-button-part"],
+      adapterTags: ["ui-button", "ui-button-part"]
+    }),
+    (error) => {
+      assert.match(error.message, /navigated tag without a known group: ui-button\b/);
+      assert.match(error.message, /part ui-button-part takes its group from ui-button/);
+      return true;
+    }
+  );
+});
+
+test("rejects a part whose parent is itself a part", () => {
+  assert.throws(
+    () => validateComponentProjections({
+      ...completeFixture,
+      sourceTags: ["ui-button", "ui-part", "ui-subpart"],
+      classifications: {
+        "ui-button": published(),
+        "ui-part": { status: "published", navigationParent: "ui-button", description: "A part." },
+        "ui-subpart": { status: "published", navigationParent: "ui-part", description: "A nested part." }
+      },
+      metadataTags: ["ui-button", "ui-part", "ui-subpart"],
+      adapterTags: ["ui-button", "ui-part", "ui-subpart"]
+    }),
+    /navigation parent for ui-subpart is not navigated: ui-part/
+  );
 });
 
 test("requires a UX justification for every default-true boolean", () => {
@@ -102,8 +138,6 @@ test("requires a UX justification for every default-true boolean", () => {
 test("discovers projections from their authoritative shared sources", async () => {
   const projections = await readRepositoryProjectionTags();
 
-  assert.ok(projections.navigationTags.includes("ui-button"));
-  assert.ok(projections.navigationTags.includes("ui-editor-table-overlay"));
   assert.ok(projections.adapterMapTags.includes("ui-editor-toolbar"));
   assert.ok(projections.adapterTags.includes("ui-editor-table-overlay"));
 });
@@ -178,7 +212,12 @@ test("generates public API metadata from declarative contracts", async () => {
   const input = metadata.components.find(({ tag }) => tag === "ui-input");
   const menuItem = metadata.components.find(({ tag }) => tag === "ui-menu-item");
 
-  assert.equal(metadata.schemaVersion, 4);
+  assert.equal(metadata.schemaVersion, 5);
+  assert.deepEqual(metadata.groups.map(({ id }) => id), ["layout", "overlay", "forms", "display", "editor"]);
+  assert.equal(stack.group, "layout");
+  assert.equal(tableOverlay.group, "editor");
+  assert.equal(menuItem.group, "overlay", "a part is listed in its parent's group");
+  assert.equal(menuItem.description, "Use an item inside a Menu or Context Menu.");
   assert.equal(
     metadata.components.some(({ tag }) => tag === "ui-chip"),
     false,

@@ -21,8 +21,8 @@ async function flushBrowser() {
 
 async function expectFloatingToolbarHidden() {
   await vi.waitFor(() => {
-    const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
-    expect(popup?.style.visibility).not.toBe("visible");
+    const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>(".looma-editor__floating-shell");
+    expect(popup?.matches(":popover-open") ?? false).toBe(false);
   });
 }
 
@@ -280,8 +280,8 @@ describe("LoomaEditor history (real browser)", () => {
     const option = page.getByRole("option", { name: kind === "slash" ? /chip/i : /Ada Lovelace/ });
     await expect.element(option).toBeVisible();
     await vi.waitFor(() => {
-      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
-      expect(popup?.style.visibility).not.toBe("visible");
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>(".looma-editor__floating-shell");
+      expect(popup?.matches(":popover-open") ?? false).toBe(false);
     });
     await userEvent.click(option);
     if (kind === "slash") {
@@ -329,9 +329,32 @@ describe("LoomaEditor history (real browser)", () => {
     await userEvent.click(page.getByRole("button", { name: "Document details", exact: true }));
     expect(detailsClicked.value).toBe(true);
     await vi.waitFor(() => {
-      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
-      expect(popup?.style.visibility).not.toBe("visible");
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>(".looma-editor__floating-shell");
+      expect(popup?.matches(":popover-open") ?? false).toBe(false);
     });
+  });
+
+  it("shows the link card when the same link caret is clicked after its editor closes", async () => {
+    await page.viewport(768, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.setContent('<p><a href="https://example.com">Select</a> some text</p>');
+    editor.commands.focus();
+    editor.commands.setTextSelection(3);
+    await flushBrowser();
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true, pointerId: 2, pointerType: "mouse", button: 0, isPrimary: true,
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 2 }));
+    await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
+    await expect.element(page.getByRole("form", { name: "Edit link" })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await flushBrowser();
+    const caret = editor.state.selection.from;
+    // A click on the caret the editor already holds dispatches no selection transaction.
+    editor.view.dom.querySelector("a")!.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0 }));
+    await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+    expect(editor.state.selection.from).toBe(caret);
   });
 
   it("offers full contextual commands on selection and held press at a link caret", async () => {
@@ -368,7 +391,7 @@ describe("LoomaEditor history (real browser)", () => {
     await new Promise((resolve) => setTimeout(resolve, 550));
     await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
     editor.view.dom.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 2 }));
-    expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__link-context')?.closest('.looma-editor__floating-shell')).toBeTruthy();
     expect(document.querySelector('[aria-label="Open link"]')?.getAttribute("href")).toBe("https://example.com");
     expect(document.querySelector('[aria-label="Edit link"]')).toBeTruthy();
     expect(document.querySelector('[aria-label="Remove link"]')).toBeTruthy();

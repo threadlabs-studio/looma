@@ -1106,6 +1106,33 @@ describe("LoomaEditor tables", () => {
     await page.close();
   });
 
+  it("keeps the table overlay in the top layer beneath the table toolbar and context menu", async () => {
+    const page = await openEditor("<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>");
+    await cell(page, 0, 0).click();
+    await tableToolbar(page).waitFor();
+    const shell = page.locator(".looma-editor__table-overlay-shell");
+    assert.deepEqual(await shell.evaluate((element) => ({ topLayer: element.matches(":popover-open"), hidden: element.hidden })),
+      { topLayer: true, hidden: false });
+    await cell(page, 1, 1).hover();
+    const handle = page.locator('[data-component="ui-editor-table-overlay"]').getByRole("button", { name: "Row actions" });
+    await handle.waitFor();
+    // Move a surface over the handle; the point must reach the surface, never the overlay.
+    const above = (surface: string) => handle.evaluate((element, surface) => {
+      const box = element.getBoundingClientRect();
+      const x = box.left + box.width / 2;
+      const y = box.top + box.height / 2;
+      const target = document.querySelector<HTMLElement>(surface)!;
+      Object.assign(target.style, { left: `${x - 8}px`, top: `${y - 8}px`, translate: "none" });
+      return target.contains(document.elementFromPoint(x, y));
+    }, surface);
+    assert.equal(await above(".looma-editor__table-toolbar-shell"), true, "the table toolbar stays above the overlay");
+    await cell(page, 1, 1).click({ button: "right" });
+    await page.locator('[data-component="ui-editor-table-context-menu"]').waitFor();
+    await handle.waitFor();
+    assert.equal(await above('[data-component="ui-editor-table-context-menu"]'), true, "the context menu stays above the overlay");
+    await page.close();
+  });
+
   it("opens row and column menus from their overlay handles", async () => {
     const page = await openEditor();
     await insertTableFromSlashMenu(page);

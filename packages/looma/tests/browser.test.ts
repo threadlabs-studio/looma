@@ -720,7 +720,7 @@ describe("Anchored overlay placement", () => {
     // selection restore, which can put back the caret it last read and drop the selection.
     await page.waitForFunction(() => "fixtureEditor" in window);
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
-    await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
+    await page.waitForFunction(() => document.querySelector(".looma-editor__floating-shell:popover-open")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
   });
@@ -6726,6 +6726,65 @@ describe("Density", () => {
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--ui-space-2").trim()), "0.5rem");
     await page.close();
   });
+});
+
+describe("Image toolbar", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`requests placement, description, and deletion, and cancels a description draft (${target})`, async () => {
+      const path = target === "html"
+        ? await bundle("html-image-toolbar", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            const bar = document.querySelector("#bar");
+            for (const name of ["placement", "describe", "delete"]) bar.addEventListener(name, (event) => window.fixtureEvents.push([name, event.detail]));
+          `)
+        : await bundle("vue-image-toolbar", `
+            import { createApp, h, ref } from "vue";
+            import { EditorImageToolbar } from "@threadlabs/looma/vue/editor";
+            window.fixtureEvents = [];
+            const target = ref("one");
+            window.fixtureSetTarget = (value) => { target.value = value; };
+            const record = (name) => (event) => window.fixtureEvents.push([name, event.detail]);
+            createApp({ render: () => h(EditorImageToolbar, {
+              placement: "center", alt: "Lake", target: target.value,
+              onPlacement: record("placement"), onDescribe: record("describe"), onDelete: record("delete"),
+            }) }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-editor-image-toolbar id="bar" placement="center" alt="Lake" target="one"></ui-editor-image-toolbar>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
+      const actions = page.getByRole("toolbar", { name: "Image actions" });
+      await actions.waitFor();
+      assert.equal(await actions.getByRole("button", { name: "Center image", exact: true }).getAttribute("aria-pressed"), "true");
+      await actions.getByRole("button", { name: "Wrap text to the right", exact: true }).click();
+      await actions.getByRole("button", { name: "Delete image", exact: true }).click();
+      assert.deepEqual(await events(), [["placement", { placement: "wrap-left" }], ["delete", {}]]);
+
+      const form = page.getByRole("form", { name: "Image description" });
+      await actions.getByRole("button", { name: "Image description", exact: true }).click();
+      assert.equal(await form.getByLabel("Alt text").inputValue(), "Lake");
+      await form.getByLabel("Alt text").fill("Calm lake");
+      await form.getByRole("button", { name: "Save", exact: true }).click();
+      await form.waitFor({ state: "hidden" });
+      assert.deepEqual((await events()).at(-1), ["describe", { alt: "Calm lake" }]);
+
+      // The consumer kept "Lake", so the next draft starts there.
+      await actions.getByRole("button", { name: "Image description", exact: true }).click();
+      assert.equal(await form.getByLabel("Alt text").inputValue(), "Lake");
+      await form.getByLabel("Alt text").fill("Draft");
+      if (target === "vue") {
+        // Another image cancels the draft. (The HTML page has no consumer that updates props after upgrade.)
+        await page.evaluate(() => (window as unknown as { fixtureSetTarget(value: string): void }).fixtureSetTarget("two"));
+        await form.waitFor({ state: "hidden" });
+      } else {
+        await form.getByRole("button", { name: "Cancel", exact: true }).click();
+        await form.waitFor({ state: "hidden" });
+      }
+      assert.equal((await events()).length, 3, "a cancelled draft requests nothing");
+      await page.close();
+    });
+  }
 });
 
 describe("Vue editor components", () => {

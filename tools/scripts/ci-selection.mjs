@@ -7,7 +7,8 @@ export const vitestArguments = (file, names, report) => ["--filter", "@threadlab
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const componentOf = (file) => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//.exec(file)?.[1];
 const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|packages\/looma\/(?:build\.mjs|package\.json|tsconfig[^/]*|src\/(?:tokens\/|env\.d\.ts))|tools\/(?:tsconfig\/|style-source-allowlist\.json|scripts\/style-source-policy\.mjs))/.test(file);
-const buildTool = (file) => /^tools\/(?:style-source-allowlist\.json|scripts\/style-source-policy\.mjs)$/.test(file);
+// The catalog generator rewrites a checked-in source file; that file's change selects its tests.
+const buildTool = (file) => /^tools\/(?:style-source-allowlist\.json|scripts\/(?:style-source-policy|generate-code-language-catalog)\.mjs)$/.test(file);
 const docsTool = (file) => /^tools\/scripts\/(?:generate-component-api|component-api-generator|docs-coverage)\.mjs$/.test(file);
 const releaseTool = (file) => /^tools\/scripts\/(?:verify-packages|verify-facade-consumer|release-config|create-release-manifest|managed-process)\.mjs$/.test(file);
 const ciRecipe = (file) => /^\.github\/workflows\/(?:ci|docs-parity)\.yml$|^tools\/scripts\/ci-(?:selection|qualification)\.mjs$/.test(file);

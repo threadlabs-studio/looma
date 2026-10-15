@@ -23,4 +23,4 @@ export type {
   LoomaImageDescriptor,
   LoomaImageRenditionErrorDetail,
   LoomaImageRenditionAttributes,
-} from "./image-delivery";
+} from "../../editor/image-delivery";
