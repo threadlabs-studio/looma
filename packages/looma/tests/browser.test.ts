@@ -6930,6 +6930,39 @@ describe("Link form", () => {
   }
 });
 
+describe("Code language", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`lists the languages and reports a chosen one (${target})`, async () => {
+      const languages = [{ value: "auto", label: "Auto" }, { value: "css", label: "CSS" }, { value: "javascript", label: "JAVASCRIPT" }];
+      const path = target === "html"
+        ? await bundle("html-code-language", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            document.querySelector("#picker").addEventListener("language", (event) => window.fixtureEvents.push(event.detail));
+          `)
+        : await bundle("vue-code-language", `
+            import { createApp, h } from "vue";
+            import { EditorCodeLanguage } from "@threadlabs/looma/vue/editor";
+            window.fixtureEvents = [];
+            createApp({ render: () => h(EditorCodeLanguage, {
+              value: "javascript", languages: ${JSON.stringify(languages)}, onLanguage: (event) => window.fixtureEvents.push(event.detail),
+            }) }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-editor-code-language id="picker" value="javascript" languages='${JSON.stringify(languages)}'></ui-editor-code-language>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const input = page.getByRole("combobox", { name: "Code language" });
+      await input.waitFor();
+      assert.equal(await input.inputValue(), "JAVASCRIPT");
+      await input.fill("cs");
+      assert.deepEqual(await page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents), [], "typing a filter chooses nothing");
+      await page.getByRole("option", { name: "CSS", exact: true }).click();
+      assert.deepEqual(await page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents), [{ value: "css" }]);
+      await page.close();
+    });
+  }
+});
+
 describe("Vue editor components", () => {
   it("filters authored Slash groups and reports the command value", async () => {
     const path = await bundle("html-authored-slash-menu", `
