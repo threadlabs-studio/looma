@@ -3,6 +3,7 @@
 ## v0.28.10
 
 - Link Card (`ui-editor-link-card`) and Block Actions (`ui-editor-block-actions`) are editor parts as HTML Next components, in HTML and Vue (`EditorLinkCard`, `EditorBlockActions`). Link Card shows a link's destination with Open link, Edit link, and Remove link, and reports `edit` and `remove`. Open link opens `open-href`, which the editor sets only for an http, https, mailto, tel, or relative address. Block Actions is the block menu (insert a paragraph below, duplicate, delete) and reports `action`. LoomaEditor uses both in place of its own render code; they look and behave as before, except that a block action now applies to the block holding the caret when it is chosen.
+
 ## v0.28.9
 
 - Looma builds with HTML Next 1.0.0-alpha.51. Its Vue components mark their root with the component's tag as a class (`class="ui-button"`) rather than `data-component`, and scope their styles with native `@scope`; both markers are rendering details, not API, as the Tokens guide says. The editor surface, collapsible editor sections, and a mention row's slotted avatar match either marker. Vue `:host` rules have the live runtime's specificity, so a class an app or LoomaEditor sets on a component root overrides them as in HTML, and `:host` rules under an ancestor selector, such as compact controls on touch, match the component root. Expression arithmetic is decimal (`0.1 + 0.2` is `0.3`). Conditional content (`$if`, `$match`) keeps its elements, focus, and typed text when its decision does not change, and bindings write only changed values.
