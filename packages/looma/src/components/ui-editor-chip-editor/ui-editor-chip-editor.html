@@ -19,7 +19,7 @@
   <div role="dialog" aria-label="Edit chip">
     <ui-stack gap="s">
       <ui-input data-chip-label size="sm" placeholder="Set a label" aria-label="Chip text" from:value="$label"></ui-input>
-      <ui-radio-group label="Chip color" from:value="$color">
+      <ui-radio-group label="Chip color" label-visibility="sr-only" from:value="$color">
         <ui-swatch tone="neutral"></ui-swatch>
         <ui-swatch tone="blue"></ui-swatch>
         <ui-swatch tone="green"></ui-swatch>
