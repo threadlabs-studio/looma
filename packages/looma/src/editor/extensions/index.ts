@@ -37,6 +37,7 @@ export {
   type LoomaCodeLanguages,
 } from "./preset";
 export { LoomaSmartPaste } from "./smart-paste";
+export { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "./markdown";
 export {
   getActiveTableUiState,
   handleTableAction,
