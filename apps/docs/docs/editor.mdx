@@ -69,6 +69,12 @@ inline label without splitting the paragraph; `/status` is an alias for the same
 its text and tone in the popover, then click the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
 `[ ]` for a checklist, and `---` for a divider.
 
+Callouts have one command per tone: **Info**, **Note**, **Tip**, **Important**, **Warning** and
+**Danger**. Each wraps the current block in a callout drawn by the Callout component, and choosing
+another tone inside a callout changes its tone. The editor saves callouts as `<ui-callout>`, so
+they look the same in any page that uses Looma. Content saved earlier as
+`<aside data-looma-callout>` still loads. See [Shared blocks](/shared-blocks).
+
 Block actions can insert a paragraph after the current block, duplicate it, or delete it.
 
 ### Host commands
@@ -129,10 +135,9 @@ with `insertLoomaExpand({ summary: "Details", open: false })`, leave with `exitL
 and supply `expandNodeView` to customize presentation. The default headless view uses native
 details. Plain text includes summaries and all bodies, even while collapsed.
 
-For Markdown, retain the semantic HTML details block when the target supports embedded HTML,
-or render the summary followed by its fully expanded body. Search and change-review projections
-must traverse the body rather than omit collapsed content. Qualify these paths before storing
-the new node in host documents.
+In Markdown, a section is `::: details Summary` … `:::`, with ` {open}` after the summary when it
+starts expanded; see [Shared blocks](/shared-blocks). Search and change-review projections
+must traverse the body rather than omit collapsed content.
 
 ## Automatic table of contents
 
@@ -182,8 +187,14 @@ code block and continue typing inside it.
 ## Pasting documents
 
 Pasting formatted HTML keeps its headings and inline formatting, even when the clipboard's plain
-text resembles Markdown. Looma also turns Markdown or HTML copied as source into editable blocks.
-Pasting inside a code block stays literal.
+text resembles Markdown. Looma also turns Markdown or HTML copied as source into editable blocks,
+including `:::` callouts and sections and GitHub `> [!NOTE]` alerts. Pasting inside a code block
+stays literal.
+
+To load or save Markdown, `loomaMarkdownToHtml(markdown)` renders HTML for `setContent`, and
+`loomaMarkdownFromDoc(editor.state.doc)` writes the document as Markdown in the same syntax. Both
+come from `@threadlabs/looma/editor/extensions`. Content Markdown has no syntax for, such as
+tables, task lists and images, is written as its saved HTML.
 
 ## Mentions
 

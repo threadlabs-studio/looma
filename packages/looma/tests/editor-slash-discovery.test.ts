@@ -17,7 +17,7 @@ afterEach(() => editors.splice(0).forEach(editor => editor.destroy()));
 describe("slash discovery", () => {
   it("ranks exact aliases before substrings and callouts before the legacy quote alias", () => {
     const commands = getDefaultSlashCommands();
-    expect(filterLoomaSlashCommands(commands, "callout").map(item => item.title)).toEqual(["Info", "Note", "Warning", "Blockquote"]);
+    expect(filterLoomaSlashCommands(commands, "callout").map(item => item.title)).toEqual(["Info", "Note", "Tip", "Important", "Warning", "Danger", "Blockquote"]);
     expect(filterLoomaSlashCommands(commands, "toc")[0]?.id).toBe("table-of-contents");
     expect(filterLoomaSlashCommands(commands, "status").map(item => item.title)).toEqual(["Chip"]);
     const exact: LoomaSlashCommand = { title: "Host", id: "table", description: "", keywords: [], icon: "table", command: vi.fn() };

@@ -19,6 +19,8 @@ import {
   LoomaChip,
   LoomaTable,
   LoomaTableKit,
+  loomaMarkdownFromDoc,
+  loomaMarkdownToHtml,
   setActiveTableCellBackground,
   type LoomaMentionItem,
 } from "../src/editor/extensions";
@@ -151,6 +153,62 @@ describe("editor extension contract", () => {
     expect(editor.getText()).toContain("First");
     editor.destroy();
     element.remove();
+  });
+
+  it("pastes the shared block vocabulary's Markdown as callouts and expand sections", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, [
+      "::: tip Before you start", "Install **first**.", ":::", "",
+      "> [!CAUTION]", "> Deletes data.", "",
+      "> [!IMPORTANT] not an alert", "", "> A quote.", "",
+      ":::: details More {open}", "::: warning", "Nested.", ":::", "::::",
+    ].join("\n"));
+
+    const nodes = editor.getJSON().content ?? [];
+    expect(nodes.map(node => node.type)).toEqual(["loomaCallout", "loomaCallout", "blockquote", "blockquote", "loomaExpand"]);
+    expect(nodes[0]).toMatchObject({ attrs: { tone: "tip", heading: "Before you start" }, content: [{ type: "paragraph" }] });
+    expect(nodes[0].content?.[0]?.content?.[1]).toMatchObject({ text: "first", marks: [{ type: "bold" }] });
+    expect(nodes[1]).toMatchObject({ attrs: { tone: "danger", heading: "" }, content: [{ type: "paragraph", content: [{ text: "Deletes data." }] }] });
+    expect(nodes[4]).toMatchObject({ attrs: { summary: "More", open: true }, content: [{ type: "loomaCallout", attrs: { tone: "warning" } }] });
+    editor.destroy();
+    element.remove();
+  });
+
+  it("parses Callout, aliases and the older aside, and saves Callout", () => {
+    const editor = new Editor({
+      extensions: getDefaultEditorExtensions(),
+      content: '<ui-callout tone="caution" heading="Stop"><p>A</p></ui-callout><ui-callout tone="neutral"><p>B</p></ui-callout>'
+        + '<aside data-looma-callout data-tone="info"><p>C</p></aside><ui-callout tone="mystery"><p>D</p></ui-callout>',
+    });
+    expect(editor.getJSON().content?.map(node => node.attrs)).toEqual([
+      { tone: "danger", heading: "Stop" }, { tone: "note", heading: "" }, { tone: "info", heading: "" }, { tone: "note", heading: "" },
+    ]);
+    expect(editor.getHTML()).toBe('<ui-callout tone="danger" heading="Stop"><p>A</p></ui-callout><ui-callout tone="note"><p>B</p></ui-callout>'
+      + '<ui-callout tone="info"><p>C</p></ui-callout><ui-callout tone="note"><p>D</p></ui-callout>');
+    editor.destroy();
+  });
+
+  it("exports callouts and expand sections as the shared Markdown and reads them back", () => {
+    const editor = new Editor({
+      extensions: getDefaultEditorExtensions(),
+      content: '<h2>Setup</h2><ui-callout tone="tip" heading="Before you start"><p>Install <strong>first</strong>.</p></ui-callout>'
+        + '<details data-looma-expand open><summary>More</summary><div data-looma-expand-body><ui-callout tone="warning"><p>Nested.</p></ui-callout></div></details>'
+        + '<ul><li><p>One</p></li></ul><pre><code class="language-ts">const a = 1;</code></pre>',
+    });
+    const markdown = loomaMarkdownFromDoc(editor.state.doc);
+    expect(markdown).toBe([
+      "## Setup", "", "::: tip Before you start", "Install **first**.", "", ":::", "",
+      ":::: details More {open}", "::: warning", "Nested.", "", ":::", "", "::::", "",
+      "* One", "", "```ts", "const a = 1;", "```",
+    ].join("\n"));
+    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
+    expect(reloaded.getJSON()).toEqual(editor.getJSON());
+    editor.destroy();
+    reloaded.destroy();
   });
 
   it("keeps Markdown frontmatter as source metadata and parses the document after it", () => {
@@ -639,12 +697,15 @@ describe("editor extension contract", () => {
     expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
       .toContain("loomaCallout");
     expect(getDefaultSlashCommands().map((command) => command.title))
-      .toEqual(expect.arrayContaining(["Info", "Note", "Warning"]));
+      .toEqual(expect.arrayContaining(["Info", "Note", "Tip", "Important", "Warning", "Danger"]));
 
     for (const [title, tone] of [
       ["Info", "info"],
       ["Note", "note"],
+      ["Tip", "tip"],
+      ["Important", "important"],
       ["Warning", "warning"],
+      ["Danger", "danger"],
     ] as const) {
       const editor = new Editor({
         extensions: [Document, Paragraph, Text, LoomaCallout],
@@ -659,8 +720,7 @@ describe("editor extension contract", () => {
         attrs: { tone },
         content: [{ type: "paragraph" }],
       });
-      expect(editor.getHTML()).toContain('data-looma-callout=""');
-      expect(editor.getHTML()).toContain(`data-tone="${tone}"`);
+      expect(editor.getHTML()).toContain(`<ui-callout tone="${tone}">`);
       expect(editor.getHTML()).not.toContain("aria-label");
       editor.destroy();
     }
@@ -792,9 +852,7 @@ describe("editor extension contract", () => {
       type: "doc",
       content: [{ type: "loomaCallout", attrs: { tone: "warning" } }],
     });
-    expect(editor.getHTML()).toContain('data-looma-callout=""');
-    expect(editor.getHTML()).toContain('data-tone="warning"');
-    expect(editor.getHTML()).toContain('<p>Review this.</p>');
+    expect(editor.getHTML()).toBe('<ui-callout tone="warning"><p>Review this.</p></ui-callout>');
 
     expect(editor.commands.setLoomaCallout("note")).toBe(true);
     expect(editor.getJSON().content?.[0]).toMatchObject({
@@ -804,16 +862,19 @@ describe("editor extension contract", () => {
     editor.destroy();
   });
 
-  it("offers Info, Note, and Warning slash commands that insert callout nodes", () => {
+  it("offers a slash command per callout tone that inserts callout nodes", () => {
     const commands = getDefaultSlashCommands();
-    expect(commands.filter(command => ["Info", "Note", "Warning"].includes(command.title)))
+    expect(commands.filter(command => command.group === "Callouts"))
       .toMatchObject([
         { title: "Info", icon: "info" },
         { title: "Note", icon: "notebook-pen" },
+        { title: "Tip", icon: "lightbulb" },
+        { title: "Important", icon: "message-square-warning" },
         { title: "Warning", icon: "triangle-alert" },
+        { title: "Danger", icon: "circle-x" },
       ]);
 
-    for (const [title, tone] of [["Info", "info"], ["Note", "note"], ["Warning", "warning"]] as const) {
+    for (const [title, tone] of [["Info", "info"], ["Note", "note"], ["Tip", "tip"], ["Important", "important"], ["Warning", "warning"], ["Danger", "danger"]] as const) {
       const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: "<p>/</p>" });
       const command = commands.find(candidate => candidate.title === title)!;
       command.command({ editor, range: { from: 1, to: 2 } });
