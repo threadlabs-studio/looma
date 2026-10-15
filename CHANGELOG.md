@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.17
+
+- LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
+
 ## v0.28.16
 
 - LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
