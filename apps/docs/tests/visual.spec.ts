@@ -150,7 +150,7 @@ for (const theme of ["light", "dark"] as const) {
           await expect(toolbar.getByRole("button", { name: "Bold", exact: true })).toBeVisible();
           expect((await toolbar.boundingBox())!.y).toBeGreaterThan(viewport.height / 2);
         } else {
-          await expect(page.locator("[data-tippy-root]:visible").filter({ has: page.getByRole("button", { name: "Bold", exact: true }) })).toBeVisible();
+          await expect(page.locator(".looma-editor__floating-shell:visible").filter({ has: page.getByRole("button", { name: "Bold", exact: true }) })).toBeVisible();
         }
         await screenshot(page, `${viewport.name}-${theme}/states/editor-selection-toolbar.png`);
         await editor.click();

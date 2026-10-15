@@ -39,6 +39,8 @@ test("edited assertions select their case and edited helpers own their enclosing
   assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[6, 6]] }).packageTests[file], ["chips native chips"]);
   assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[5, 5]] }).packageTests[file], ["chips native chips", "chips Vue chips"]);
   assert.throws(() => selectChecks({ ...files, "tools/scripts/new-executable.mjs": "doWork()" }, ["tools/scripts/new-executable.mjs"]), /Unmapped executable/);
+  const generator = "tools/scripts/generate-code-language-catalog.mjs";
+  assert.doesNotThrow(() => selectChecks({ ...files, [generator]: "writeFile()" }, [generator]));
 });
 
 test("added suite boundaries and trailing blank lines own their cases without promoting unrelated tests", () => {

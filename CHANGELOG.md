@@ -1,8 +1,24 @@
 # Changelog
 
+## v0.28.5
+
+- Image Toolbar (`ui-editor-image-toolbar`) is the editor's image actions bar as an HTML Next component, in HTML and Vue (`EditorImageToolbar`): four placement commands, a description form, and delete, each reported as a request (`placement`, `describe`, `delete`) for the editor to apply. LoomaEditor uses it in place of its Vue-only image controls; the bar, its tooltips, and the description form are unchanged.
+
 ## v0.28.4
 
-- Looma builds with HTML Next 1.0.0-alpha.50. Its Vue components mark their root with the component's tag as a class (`class="ui-button"`) rather than `data-component`, and scope their styles with native `@scope`; both markers are rendering details, not API, as the Tokens guide says. The editor surface, collapsible editor sections, and a mention row's slotted avatar match either marker. Vue `:host` rules under an ancestor selector, such as compact controls on touch, match the component root. Expression arithmetic is decimal (`0.1 + 0.2` is `0.3`). Conditional content (`$if`, `$match`) keeps its elements, focus, and typed text when its decision does not change, and bindings write only changed values.
+- LoomaEditor's table row and column handles open in the top layer, beneath the table toolbar, the table context menu, and the editor's other floating tools, so no clipping or stacking context around the editor hides them and they never cover those controls.
+
+## v0.28.3
+
+- LoomaEditor's formatting toolbar, link card, and image actions use Looma's overlay layer instead of tippy.js: they open in the top layer beside the selection, follow it through scrolling and layout changes, stay inside the editor in `contextual` mode, and take part in the shared Escape and outside-press order with Looma's popovers and dialogs. Image actions now also open in the top layer. After the link editor closes, clicking the same link shows its link card.
+
+## v0.28.2
+
+- LoomaEditor creates its Tiptap editor through a framework-neutral editor session, which owns the editor's lifecycle, moves its view into the document element, and applies `modelValue` with the reader's selection kept. LoomaEditor's behavior and public API stay the same; `ready` and the exposed `editor` remain `@tiptap/vue-3`'s reactive `Editor`.
+
+## v0.28.1
+
+- LoomaEditor's link, shortcut, selection-geometry, image-delivery and code-highlighting helpers move from the Vue editor into Looma's framework-neutral editor modules, the first step toward LoomaEditor as an HTML Next component (`docs/plans/2026-10-14-editor-html-next-component.md`). LoomaEditor's behavior and public API stay the same.
 
 ## v0.28.0
 

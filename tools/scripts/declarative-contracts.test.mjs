@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { readRepositoryProjectionTags } from "./component-api-generator.mjs";
 
 import {
   parseDeclarativeContract,
@@ -34,7 +33,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 75);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 76);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
@@ -145,7 +144,8 @@ test("redundant layout aliases stay compatible without remaining public componen
     new URL("../data/component-release-classification.json", import.meta.url),
     "utf8",
   )).tags;
-  const { navigationTags } = await readRepositoryProjectionTags();
+  const navigationTags = Object.keys(classifications)
+    .filter((tag) => classifications[tag].status === "published" && !classifications[tag].navigationParent);
 
   assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "padding", "paddingEnd", "wrap"]);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
@@ -235,7 +235,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "reorder-column", "reorder-row", "select", "select-column", "select-row"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "delete", "describe", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "reorder-column", "reorder-row", "select", "select-column", "select-row"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

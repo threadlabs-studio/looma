@@ -142,6 +142,13 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+Component descriptions now come from the component metadata instead of each
+page's first line. Twenty-four of those lines were the start of a wrapped
+paragraph, so their API tabs and catalog cards showed a sentence cut short; they
+now show the page's complete first sentence. The references for those 24 API
+tabs, the catalog, its search state, and the Docs/API Sync page record that. The
+pages' other content is unchanged.
+
 The 0.27.0 reference refresh records floating surfaces in the browser's top layer
 and the component corrections released with them. Static, always-open popup
 examples (Menu, Menu Item, Menu Group, the editor menus, Search Shell, and Table
