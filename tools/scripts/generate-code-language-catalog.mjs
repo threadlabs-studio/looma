@@ -29,4 +29,4 @@ const source = [
   "] as const satisfies readonly (keyof typeof codeLanguageCatalog)[];",
   "",
 ].join("\n");
-await writeFile(resolve(root, "packages/looma/src/vue/editor/code-language-catalog.ts"), source);
+await writeFile(resolve(root, "packages/looma/src/editor/code-language-catalog.ts"), source);

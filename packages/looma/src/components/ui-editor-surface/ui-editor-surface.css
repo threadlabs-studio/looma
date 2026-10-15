@@ -28,6 +28,14 @@
   margin-block-end: 0;
 }
 
+/* A callout keeps the document's block rhythm around it; its last block adds no gap inside it. */
+.looma-editor .ProseMirror [data-looma-callout] {
+  margin-block: var(--ui-space-4);
+}
+.looma-editor .ProseMirror [data-looma-callout-body] > :last-child {
+  margin-block-end: 0;
+}
+
 /* A list ending a cell needs no document-level gap before the cell's padding. */
 .looma-editor .ProseMirror :is(th, td) > :is(ul, ol):not(:has(~ :not(.column-resize-handle))) {
   margin-block-end: 0;

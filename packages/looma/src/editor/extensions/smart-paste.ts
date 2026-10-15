@@ -2,17 +2,11 @@ import { Extension } from "@tiptap/core";
 import { DOMParser as ProseMirrorDOMParser, type Schema, Slice } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
-import MarkdownIt from "markdown-it";
+import { loomaMarkdown as markdown } from "./markdown";
 
 const HTML_DOCUMENT_PATTERN = /<!doctype\s+html\b|<(?:html|body)\b[^>]*>/i;
 const HTML_PAIRED_TAG_PATTERN = /<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tfoot|tr|th|td|figure|figcaption|article|section|header|footer|main|div|span|strong|em|b|i|a|code|pre)\b[^>]*>[\s\S]*?<\/\1\s*>/i;
 const HTML_VOID_TAG_PATTERN = /<(?:img|hr|br)\b[^>]*\/?\s*>/i;
-
-const markdown = new MarkdownIt({
-  html: true,
-  linkify: false,
-  typographer: false,
-});
 
 function selectionIsInsideCodeBlock(parentTypeName: string): boolean {
   return parentTypeName === "codeBlock";
@@ -39,7 +33,7 @@ function looksLikeMarkdown(value: string): boolean {
     if (token.type === "heading_open") {
       return Boolean(tokens[index + 1]?.content.trim());
     }
-    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open"].includes(token.type)) {
+    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open", "looma_container_open"].includes(token.type)) {
       return true;
     }
     return token.type === "inline" && Boolean(token.children?.some((child) =>
@@ -94,6 +88,9 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "template"],
     FORBID_ATTR: ["style"],
+    // The shared block vocabulary's callout, as Markdown `:::` containers and alerts render it.
+    ADD_TAGS: ["ui-callout"],
+    ADD_ATTR: ["tone", "heading"],
     RETURN_DOM_FRAGMENT: true,
   }));
   if (!container.textContent?.trim() && !container.querySelector("img, hr")) return Slice.empty;

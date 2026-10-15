@@ -720,7 +720,7 @@ describe("Anchored overlay placement", () => {
     // selection restore, which can put back the caret it last read and drop the selection.
     await page.waitForFunction(() => "fixtureEditor" in window);
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
-    await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
+    await page.waitForFunction(() => document.querySelector(".looma-editor__floating-shell:popover-open")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
   });
@@ -1210,6 +1210,46 @@ describe("Shared block vocabulary", () => {
     for (const id of ["install", "run"]) assert.equal(await page.locator(`#${id}-npm`).isVisible(), true, `${id} restores the remembered choice`);
     assert.equal(await page.locator("#other-pnpm").isVisible(), true);
     await context.close();
+  });
+});
+
+describe("Editor callouts", () => {
+  it("draws editor callouts, older asides included, with Callout and saves them as Callout", async () => {
+    const path = await bundle("vue-editor-callout", `
+      import { createApp, h } from "vue";
+      import { Callout } from "@threadlabs/looma/vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      window.saved = [];
+      createApp({ render: () => h("div", [
+        h(Callout, { id: "reference", tone: "tip", heading: "Before you start" }, () => "Reference"),
+        h(LoomaEditor, {
+          label: "Writing",
+          modelValue: '<ui-callout tone="tip" heading="Before you start"><p>Install first.</p></ui-callout><aside data-looma-callout data-tone="warning"><p>Older.</p></aside>',
+          onReady: (editor) => { window.fixtureEditor = editor; },
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")]);
+    await page.waitForFunction(() => "fixtureEditor" in window);
+    const callouts = page.locator(".ProseMirror [data-component='ui-callout']");
+    assert.equal(await callouts.count(), 2, "both callouts draw as Callout");
+    const look = (locator: ReturnType<Page["locator"]>) => locator.evaluate(element => {
+      const css = getComputedStyle(element);
+      return { surface: css.backgroundColor, border: css.borderTopColor, radius: css.borderTopLeftRadius, heading: element.querySelector(".heading")?.textContent ?? "" };
+    });
+    assert.deepEqual(await look(callouts.first()), await look(page.locator("#reference")), "an editor callout looks like a page callout");
+    assert.equal(await callouts.nth(1).getAttribute("data-tone"), "warning");
+    const rhythm = await page.evaluate(() => {
+      const [first, second] = [...document.querySelectorAll(".ProseMirror [data-looma-callout]")].map(element => element.getBoundingClientRect());
+      return { gap: second.top - first.bottom, last: getComputedStyle(document.querySelector("[data-looma-callout-body] > :last-child")!).marginBottom };
+    });
+    assert.ok(rhythm.gap >= 12, `callouts keep the document's block gap (${rhythm.gap})`);
+    assert.equal(rhythm.last, "0px", "a callout's last block adds no gap inside it");
+    await callouts.first().locator("p").click();
+    await page.keyboard.type(" Now");
+    assert.equal(await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.getHTML()),
+      '<ui-callout tone="tip" heading="Before you start"><p>Install first. Now</p></ui-callout><ui-callout tone="warning"><p>Older.</p></ui-callout>');
+    await page.close();
   });
 });
 
@@ -5211,16 +5251,16 @@ describe("Shared visual geometry", () => {
         <ui-list><ui-list-item id="list-row" current><a href="#guide">Guide</a></ui-list-item></ui-list>
         <ui-search-result-row id="search-row" selected><span slot="title">Guide</span></ui-search-result-row>
         <ui-listbox id="choices"><option selected>Guide</option><option>Notes</option></ui-listbox>
-        <div class="looma-editor"><div class="ProseMirror"><blockquote id="quote">Quote</blockquote><aside id="editor-callout" data-looma-callout data-tone="info">Note</aside></div></div>
+        <div class="looma-editor"><div class="ProseMirror"><blockquote id="quote">Quote</blockquote></div></div>
       </div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const css = (selector: string, property: string) => page.locator(selector).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
-    for (const selector of ["#action", "#field", "#card", "#callout", "#editor-callout"]) {
+    for (const selector of ["#action", "#field", "#card", "#callout"]) {
       assert.equal(await css(selector, "border-top-width"), "3px", `${selector} follows ordinary border width`);
     }
     assert.equal(await css("#divider", "border-top-width"), "3px");
     assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
     assert.equal(await css("#callout", "border-inline-start-width"), "3px", "rounded Callout uses ordinary border width on every edge");
-    for (const selector of ["#card", "#editor-callout", "#quote"]) {
+    for (const selector of ["#card", "#quote"]) {
       assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
     }
     assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");
