@@ -1,10 +1,10 @@
 import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
 import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
-import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
+import { BubbleMenu, Editor as VueEditor } from "@tiptap/vue-3";
 import { announceOverlayOpen, createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
-import { AllSelection, NodeSelection, TextSelection, type Selection, type SelectionBookmark } from "@tiptap/pm/state";
+import { AllSelection, NodeSelection, TextSelection, type Selection } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -14,6 +14,7 @@ import {
   onMounted,
   reactive,
   ref,
+  shallowRef,
   useId,
   watch,
   type CSSProperties,
@@ -73,8 +74,9 @@ import {
   type LoomaImageRenditionErrorDetail,
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
-import { sameDocument, validLinkHref } from "../../editor/content";
+import { validLinkHref } from "../../editor/content";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
+import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
 import { formatEditorShortcut, isApplePlatform } from "../../editor/shortcuts";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
@@ -545,22 +547,11 @@ export const LoomaEditor = defineComponent({
       resolveAttributes: () => props.resolveImageAttributes,
       isEditable: () => props.editable,
     });
-    let lastFocusedSelection: {
-      bookmark: SelectionBookmark;
-      from: number;
-      to: number;
-      text: boolean;
-    } | null = null;
+    let lastFocusedSelection: LoomaSelectionSnapshot | null = null;
     let linkPressedSelection: { from: number; to: number } | null = null;
     const rememberSelection = (instance: Editor) => {
       if (!instance.isFocused) return;
-      const selection = instance.view.state.selection;
-      lastFocusedSelection = {
-        bookmark: selection.getBookmark(),
-        from: selection.from,
-        to: selection.to,
-        text: selection instanceof TextSelection,
-      };
+      lastFocusedSelection = selectionSnapshot(instance.view.state.selection);
     };
 
     const authorHighlight = !props.disableHighlight;
@@ -568,81 +559,96 @@ export const LoomaEditor = defineComponent({
     const codeLanguageNames = codeHighlighting.languageNames;
     const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", grammarVersion: 0, style: {} as CSSProperties });
     const loadForCodeBlock = codeHighlighting.loadForCodeBlock;
-    const editor = useEditor({
-      extensions: [
-        ...getDefaultEditorExtensions({
-          placeholder: props.placeholder,
-          linkBaseUrl: props.linkBaseUrl,
-          mention: mentionExtension ?? false,
-          disableHighlight: props.disableHighlight,
-          codeLanguages: props.codeLanguages ?? undefined,
-          codeLowlight: codeHighlighting.lowlight,
-          tableOfContentsNodeView,
-          expandNodeView,
-          dividerNodeView,
-          calloutNodeView,
-          imageNodeView,
-        }),
-        imageDelivery.extension,
-        slashExtension,
-        ...props.extensions,
-      ],
-      content: props.modelValue,
-      editable: props.editable,
-      editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
-        handleKeyDown: (_view, event) => onFormattingKeyDown(event),
-        handleDOMEvents: {
-          click: (view, event) => {
-            if (!(event.target instanceof Element) || event.button !== 0) return false;
-            const link = event.target.closest<HTMLAnchorElement>("a[href]");
-            if (!link || !view.dom.contains(link)) return false;
-            const href = validLinkHref(link.getAttribute("href") ?? "");
-            if (!href) return false;
-            if (isApplePlatform() ? event.metaKey : event.ctrlKey) {
-              event.preventDefault();
-              window.open(href, "_blank", "noopener,noreferrer");
-              return true;
-            }
-            dismissedFormattingSelection = null;
-            // Clicking the same caret does not dispatch a selection transaction.
-            requestAnimationFrame(() => {
-              if (view.isDestroyed) return;
-              editorStateVersion.value += 1;
-              const instance = editor.value;
-              if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && !linkOpen.value) {
-                linkPopup?.setProps({ getReferenceClientRect: () => link.getBoundingClientRect() });
-                linkPopup?.show();
+    const editor = shallowRef<VueEditor>();
+    let session: LoomaEditorSession<VueEditor> | undefined;
+    onMounted(() => {
+      session = createEditorSession({
+        extensions: [
+          ...getDefaultEditorExtensions({
+            placeholder: props.placeholder,
+            linkBaseUrl: props.linkBaseUrl,
+            mention: mentionExtension ?? false,
+            disableHighlight: props.disableHighlight,
+            codeLanguages: props.codeLanguages ?? undefined,
+            codeLowlight: codeHighlighting.lowlight,
+            tableOfContentsNodeView,
+            expandNodeView,
+            dividerNodeView,
+            calloutNodeView,
+            imageNodeView,
+          }),
+          imageDelivery.extension,
+          slashExtension,
+          ...props.extensions,
+        ],
+        content: props.modelValue,
+        editable: props.editable,
+        editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
+          handleKeyDown: (_view, event) => onFormattingKeyDown(event),
+          handleDOMEvents: {
+            click: (view, event) => {
+              if (!(event.target instanceof Element) || event.button !== 0) return false;
+              const link = event.target.closest<HTMLAnchorElement>("a[href]");
+              if (!link || !view.dom.contains(link)) return false;
+              const href = validLinkHref(link.getAttribute("href") ?? "");
+              if (!href) return false;
+              if (isApplePlatform() ? event.metaKey : event.ctrlKey) {
+                event.preventDefault();
+                window.open(href, "_blank", "noopener,noreferrer");
+                return true;
               }
-            });
-            return false;
+              dismissedFormattingSelection = null;
+              // Clicking the same caret does not dispatch a selection transaction.
+              requestAnimationFrame(() => {
+                if (view.isDestroyed) return;
+                editorStateVersion.value += 1;
+                const instance = editor.value;
+                if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && !linkOpen.value) {
+                  linkPopup?.setProps({ getReferenceClientRect: () => link.getBoundingClientRect() });
+                  linkPopup?.show();
+                }
+              });
+              return false;
+            },
           },
         },
-      },
-      onCreate: ({ editor: instance }) => {
-        emit("ready", instance);
-        instance.state.doc.descendants((node) => {
-          if (node.type.name === "codeBlock") loadForCodeBlock(instance, node.attrs.language, node.textContent);
-        });
-      },
-      onFocus: ({ editor: instance }) => rememberSelection(instance),
-      onSelectionUpdate: ({ editor: instance }) => {
-        rememberSelection(instance);
-        if (floatingFormattingMode()) {
-          const selection = instance.state.selection;
-          if (!dismissedFormattingSelection?.eq(selection)) dismissedFormattingSelection = null;
-          if (!heldFormattingSelection?.eq(selection)) heldFormattingSelection = null;
-          if (!formattingSelectionActive(instance)) formattingPopup?.hide();
-        }
-        if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
-          linkContextEditing.value = false;
-        }
-      },
-      onTransaction: () => { editorStateVersion.value += 1; },
-      onUpdate: ({ editor: instance }) => {
-        const value = instance.getJSON();
-        emit("update:modelValue", value);
-        emit("update", value);
-      },
+        onCreate: ({ editor: instance }) => {
+          emit("ready", instance);
+          instance.state.doc.descendants((node) => {
+            if (node.type.name === "codeBlock") loadForCodeBlock(instance, node.attrs.language, node.textContent);
+          });
+        },
+        onFocus: ({ editor: instance }) => rememberSelection(instance),
+        onSelectionUpdate: ({ editor: instance }) => {
+          rememberSelection(instance);
+          if (floatingFormattingMode()) {
+            const selection = instance.state.selection;
+            if (!dismissedFormattingSelection?.eq(selection)) dismissedFormattingSelection = null;
+            if (!heldFormattingSelection?.eq(selection)) heldFormattingSelection = null;
+            if (!formattingSelectionActive(instance)) formattingPopup?.hide();
+          }
+          if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
+            linkContextEditing.value = false;
+          }
+        },
+        onUpdate: ({ editor: instance }) => {
+          const value = instance.getJSON();
+          emit("update:modelValue", value);
+          emit("update", value);
+        },
+      }, VueEditor);
+      session.subscribe(() => { editorStateVersion.value += 1; });
+      editor.value = session.editor;
+    });
+    // The render function's document element; the session moves the editor's view into it.
+    const attachDocument = (element: unknown) => {
+      if (element instanceof HTMLElement) session?.attach(element);
+    };
+    onBeforeUnmount(() => {
+      // Leave a static copy in place so the document stays visible while the component leaves.
+      const element = session?.editor.options.element;
+      element?.parentNode?.replaceChild(element.cloneNode(true), element);
+      session?.destroy();
     });
 
     watch(() => {
@@ -992,40 +998,9 @@ export const LoomaEditor = defineComponent({
     });
     watch(() => props.modelValue, (value) => {
       const instance = editor.value;
-      if (!instance || sameDocument(instance.getJSON(), value)) return;
+      if (!instance || !session) return;
       const wasFocused = instance.isFocused;
-      const previousSelection = lastFocusedSelection ?? {
-        bookmark: instance.view.state.selection.getBookmark(),
-        from: instance.view.state.selection.from,
-        to: instance.view.state.selection.to,
-        text: instance.view.state.selection instanceof TextSelection,
-      };
-      if (!wasFocused) {
-        instance.commands.setContent(value, false);
-        return;
-      }
-
-      // Set the document and restored selection in one transaction. A separate
-      // selection transaction is too late: replacing the document maps the DOM
-      // caret to the end before ProseMirror reconciles focus.
-      instance.chain().setContent(value, false).command(({ tr }) => {
-        try {
-          tr.setSelection(previousSelection.text
-            ? TextSelection.create(tr.doc, previousSelection.from, previousSelection.to)
-            : previousSelection.bookmark.resolve(tr.doc));
-        } catch {
-          // A genuine remote replacement can make the old selection invalid.
-          // Preserve the closest valid text range instead of Tiptap's default
-          // behavior of moving the caret to the document end.
-          const max = tr.doc.content.size;
-          const from = Math.max(1, Math.min(previousSelection.from, max));
-          const to = Math.max(from, Math.min(previousSelection.to, max));
-          tr.setSelection(TextSelection.create(tr.doc, from, to));
-        }
-        return true;
-      }).run();
-      instance.view.focus();
-      rememberSelection(instance);
+      if (session.setContent(value, lastFocusedSelection) && wasFocused) rememberSelection(instance);
     }, { deep: true });
 
     const closeTableUi = () => {
@@ -2023,7 +1998,7 @@ export const LoomaEditor = defineComponent({
                 },
               },
             }, { default: () => h(ImageControls, { editor: instance }) }) : null,
-        instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h(EditorContent, { editor: instance })) : null,
+        instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h("div", { ref: attachDocument })) : null,
         codeUi.open
           ? h("div", {
               ref: codeLanguageRef,
