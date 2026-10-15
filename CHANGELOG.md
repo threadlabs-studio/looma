@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.9
+
+- LoomaEditor's link editing moves into a framework-neutral link editing module: the link form's state, writing the link as the reader types, validation, the host's search and resolve calls, and the resolved target of the link at the caret. LoomaEditor keeps only presentation and focus. Its behavior and public API stay the same; `LoomaLinkTarget`, `LoomaLinkSearch`, and `LoomaLinkResolve` are still exported from `@threadlabs/looma/vue/editor`.
+
 ## v0.28.8
 
 - Code Language (`ui-editor-code-language`) is the code block's language picker as an HTML Next component, in HTML and Vue (`EditorCodeLanguage`): a compact combobox of the languages the editor can highlight, with Auto first, that reports `language` when one is chosen. LoomaEditor uses it in place of its own combobox; the picker looks and behaves as before.
