@@ -53,7 +53,7 @@ it('permits read-only selection actions without exposing formatting', async () =
 it('puts selection actions in the existing narrow editing dock', async () => {
   await mount(true, 375);
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__mobile-toolbar-shell [aria-label="Annotate"]')).toBeTruthy());
-  expect(document.querySelector('[data-tippy-root]')).toBeNull();
+  expect(document.querySelector('.looma-editor__floating-shell:popover-open')).toBeNull();
 });
 it('dismisses the expanded Format inventory on Escape and permits a fresh selection gesture', async () => {
   const { editor } = await mount();
