@@ -37,8 +37,9 @@ Never claim a check passed unless it was run.
 
 CI prioritizes affected package tests in parallel: routine fixes target five
 minutes, and the configured qualification/publication path is capped at fifteen
-execution minutes. Chromium is the automatic browser engine; exhaustive docs,
-visual and cross-browser sweeps require explicit extended verification. Unknown
+minutes of runner work; npm's availability wait after upload has its own bound.
+Chromium is the automatic browser engine; exhaustive docs, visual and
+cross-browser sweeps require explicit extended verification. Unknown
 executable inputs need an owner mapping. See
 `docs/change-dependent-qualification.md` for selection, deferred cases and limits.
 
