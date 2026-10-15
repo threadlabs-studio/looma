@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.2
+
+- LoomaEditor creates its Tiptap editor through a framework-neutral editor session, which owns the editor's lifecycle, moves its view into the document element, and applies `modelValue` with the reader's selection kept. LoomaEditor's behavior and public API stay the same; `ready` and the exposed `editor` remain `@tiptap/vue-3`'s reactive `Editor`.
+
 ## v0.28.1
 
 - LoomaEditor's link, shortcut, selection-geometry, image-delivery and code-highlighting helpers move from the Vue editor into Looma's framework-neutral editor modules, the first step toward LoomaEditor as an HTML Next component (`docs/plans/2026-10-14-editor-html-next-component.md`). LoomaEditor's behavior and public API stay the same.
