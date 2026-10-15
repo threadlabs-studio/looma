@@ -1,0 +1,118 @@
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-form-field/ui-form-field.html">
+<link rel="component" href="../ui-input/ui-input.html">
+<link rel="component" href="../ui-input-group/ui-input-group.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-scroll-area/ui-scroll-area.html">
+<link rel="component" href="../ui-search-result-row/ui-search-result-row.html">
+<link rel="component" href="../ui-checkbox/ui-checkbox.html">
+<template component="ui-editor-link-form" controller="./ui-editor-link-form.js">
+  <defs>
+    <prop name="existing" type="boolean" default="false">Whether the link already exists, so the heading reads Edit link rather than Add link.</prop>
+    <prop name="searchable" type="boolean" default="false"
+    >Whether the destination field searches for a destination as well as taking an address. A searchable field has a search icon and a Clear search
+      button.</prop>
+    <prop name="mode" type="keyword" values="url, target" default="url"
+    >What the destination field holds: an address, which offers Open in new tab, or a search, which lists results.</prop>
+    <prop name="value" type="string" default="">The destination field's text: the address, or the search.</prop>
+    <prop name="placeholder" type="string" default="https://example.com">The destination field's placeholder.</prop>
+    <prop name="newTab" type="boolean" default="false">Whether Open in new tab is checked.</prop>
+    <prop name="textEditable" type="boolean" default="false">Shows a Text field, for a link added where no text is selected.</prop>
+    <prop name="text" type="string" default="">The Text field's value.</prop>
+    <prop name="error" type="string" default="">A problem to show under the fields, announced as an alert.</prop>
+    <prop name="status" type="string" default=""
+    >A line above the results, such as Searching… or No results found., announced politely. Shown only for a search.</prop>
+    <!-- default="[]": without it the generated Vue v-for receives null (HTML Next item 7; html-next #236 treats a missing list as empty for the next alpha). -->
+    <prop name="results" type="list(object({ id: string, label: string, detail?: string }))" default="[]">The destinations a search found.</prop>
+    <prop name="selected" type="string" default="">The id of the chosen result, which shows a check.</prop>
+    <state name="base" type="string" value="ui-editor-link-form"></state>
+    <computed name="heading" from="{ true: 'Edit link', false: 'Add link' }[concat($existing)]"></computed>
+    <computed name="fieldLabel" from="{ true: 'Link destination', false: 'URL' }[concat($searchable)]"></computed>
+    <event name="destination" type="object">
+      <prop name="value" required type="string"></prop>
+      The destination field changed.
+    </event>
+    <event name="text" type="object">
+      <prop name="text" required type="string"></prop>
+      The Text field changed.
+    </event>
+    <event name="new-tab" type="object">
+      <prop name="newTab" required type="boolean"></prop>
+      Open in new tab changed.
+    </event>
+    <event name="choose" type="object">
+      <prop name="id" required type="string"></prop>
+      A result was chosen.
+    </event>
+    <event name="clear" type="object">Clear search was pressed.</event>
+    <event name="save" type="object">Enter was pressed in a field, to keep the link and close the form.</event>
+    <event name="dismiss" type="object">Escape was pressed, to close the form.</event>
+  </defs>
+  <form aria-label="Edit link">
+    <ui-stack gap="s">
+      <ui-text as="h3" size="sm" weight="semibold">{$heading}</ui-text>
+      <ui-stack gap="s">
+        <ui-form-field from:invalid="$error != ''">
+          <label slot="label" from:for="concat($base, '-destination')">{$fieldLabel}</label>
+          <ui-input-group $if="$searchable" prefix-kind="icon">
+            <ui-icon slot="prefix" from:name="{ true: 'search', false: 'link' }[concat($mode = 'target')]"></ui-icon>
+            <ui-input
+              data-link-destination
+              data-link-search
+              from:id="concat($base, '-destination')"
+              type="text"
+              role="searchbox"
+              autocomplete="off"
+              from:placeholder="$placeholder"
+              from:value="$value"
+            ></ui-input>
+            <ui-icon-button $if="$value != ''" slot="action" label="Clear search" variant="ghost" size="sm" data-link-clear><ui-icon
+                name="x"
+              ></ui-icon></ui-icon-button>
+          </ui-input-group>
+          <template $if="not $searchable">
+            <ui-input
+              data-link-destination
+              from:id="concat($base, '-destination')"
+              type="text"
+              inputmode="url"
+              size="sm"
+              from:placeholder="$placeholder"
+              from:value="$value"
+            ></ui-input>
+          </template>
+        </ui-form-field>
+        <ui-scroll-area $if="$mode = 'target'" size="sm" aria-label="Destination search results">
+          <ui-text $if="$status != ''" size="sm" tone="secondary" role="status">{$status}</ui-text>
+          <ui-search-result-row
+            $each="result of $results"
+            $key="$result.id"
+            density="compact"
+            from:selected="$result.id = $selected"
+            data-link-result
+            from:data-link-id="$result.id"
+          >
+            <ui-icon slot="leading" name="file-text"></ui-icon>
+            <!-- from:truncate="true": a bare boolean converts to truncate="" in Vue (HTML Next gap 2, fixed by html-next #236 for the next alpha). -->
+            <ui-text slot="title" as="strong" size="sm" weight="medium" from:truncate="true" from:title="$result.label">{$result.label}</ui-text>
+            <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" from:truncate="true" from:title="$result.detail"
+            >{$result.detail}</ui-text>
+            <ui-icon $if="$result.id = $selected" slot="trailing" name="check"></ui-icon>
+          </ui-search-result-row>
+        </ui-scroll-area>
+        <template $if="$mode = 'url'">
+          <ui-checkbox size="sm" from:checked="$newTab" data-link-new-tab>Open in new tab</ui-checkbox>
+        </template>
+      </ui-stack>
+      <template $if="$textEditable">
+        <ui-form-field>
+          <label slot="label" from:for="concat($base, '-text')">Text</label>
+          <ui-input data-link-text from:id="concat($base, '-text')" size="sm" from:value="$text"></ui-input>
+        </ui-form-field>
+      </template>
+      <ui-text $if="$error != ''" size="sm" tone="danger" role="alert">{$error}</ui-text>
+    </ui-stack>
+  </form>
+</template>

@@ -16,6 +16,7 @@ export {
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
+  EditorLinkForm,
   EditorMentionMenu,
   EditorMentionMenuItem,
   EditorSlashMenu,
@@ -38,6 +39,13 @@ export interface VueEditorAdapterEventMap {
   delete: Record<string, never>;
   edit: Record<string, never>;
   remove: Record<string, never>;
+  destination: { value: string };
+  text: { text: string };
+  "new-tab": { newTab: boolean };
+  choose: { id: string };
+  clear: Record<string, never>;
+  save: Record<string, never>;
+  dismiss: Record<string, never>;
   "add-row-before": { boundaryIndex: number };
   "add-row-after": { boundaryIndex: number };
   "add-column-before": { boundaryIndex: number };
@@ -63,5 +71,6 @@ export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorTableOverlay: "ui-editor-table-overlay",
   EditorImageToolbar: "ui-editor-image-toolbar",
   EditorLinkCard: "ui-editor-link-card",
+  EditorLinkForm: "ui-editor-link-form",
   EditorBlockActions: "ui-editor-block-actions",
 } as const;

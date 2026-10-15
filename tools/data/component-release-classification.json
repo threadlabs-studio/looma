@@ -173,6 +173,12 @@
       "group": "editor",
       "description": "The actions bar for a link in the editor: its destination, Open link, Edit link, and Remove link."
     },
+    "ui-editor-link-form": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The editor's form for adding or editing a link: a destination field, its search results or Open in new tab, and the link's text when there is none yet."
+    },
     "ui-editor-mention-menu": {
       "status": "published",
       "package": "@threadlabs/looma",
