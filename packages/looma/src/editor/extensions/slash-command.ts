@@ -98,17 +98,38 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
   },
   {
     title: "Note",
-    description: "Highlighted note",
+    description: "Muted aside",
     tone: "note",
     icon: "notebook-pen",
-    keywords: ["note", "callout", "panel"],
+    keywords: ["note", "aside", "callout", "panel"],
+  },
+  {
+    title: "Tip",
+    description: "Helpful advice",
+    tone: "tip",
+    icon: "lightbulb",
+    keywords: ["tip", "hint", "advice", "callout", "panel"],
+  },
+  {
+    title: "Important",
+    description: "Must-read information",
+    tone: "important",
+    icon: "message-square-warning",
+    keywords: ["important", "key", "callout", "panel"],
   },
   {
     title: "Warning",
-    description: "Important warning",
+    description: "Proceed with care",
     tone: "warning",
     icon: "triangle-alert",
-    keywords: ["warning", "caution", "alert", "callout", "panel"],
+    keywords: ["warning", "alert", "callout", "panel"],
+  },
+  {
+    title: "Danger",
+    description: "Harmful consequence",
+    tone: "danger",
+    icon: "circle-x",
+    keywords: ["danger", "caution", "error", "callout", "panel"],
   },
 ];
 
@@ -288,6 +309,8 @@ export function getDefaultSlashCommands(
 
 function canRunDefaultCommand(title: string, { editor, range }: LoomaSlashCommandContext): boolean {
   const chain = editor.can().chain().deleteRange(range);
+  const callout = CALLOUT_COMMANDS.find(command => command.title === title);
+  if (callout) return chain.setLoomaCallout(callout.tone).run();
   switch (title) {
     case "Text": return editor.isActive("paragraph") || chain.setParagraph().run();
     case "Heading 1": return editor.isActive("heading", { level: 1 }) || chain.setHeading({ level: 1 }).run();
@@ -297,9 +320,6 @@ function canRunDefaultCommand(title: string, { editor, range }: LoomaSlashComman
     case "Numbered list": return chain.toggleOrderedList().run();
     case "Checklist": return chain.toggleTaskList().run();
     case "Blockquote": return chain.toggleBlockquote().run();
-    case "Info": return chain.setLoomaCallout("info").run();
-    case "Note": return chain.setLoomaCallout("note").run();
-    case "Warning": return chain.setLoomaCallout("warning").run();
     case "Chip": return chain.insertLoomaChip({ label: "" }).run();
     case "Inline code": return chain.toggleCode().run();
     case "Code block": return chain.toggleCodeBlock().run();
