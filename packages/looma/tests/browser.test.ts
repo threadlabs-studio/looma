@@ -6774,7 +6774,8 @@ describe("Image toolbar", () => {
       assert.equal(await form.getByLabel("Alt text").inputValue(), "Lake");
       await form.getByLabel("Alt text").fill("Draft");
       if (target === "vue") {
-        // Another image cancels the draft. (The HTML page has no consumer that updates props after upgrade.)
+        // Another image cancels the draft. The DOM runtime ignores attribute changes after lowering (HTML Next gap 3), so
+        // only the Vue page can change target here.
         await page.evaluate(() => (window as unknown as { fixtureSetTarget(value: string): void }).fixtureSetTarget("two"));
         await form.waitFor({ state: "hidden" });
       } else {
