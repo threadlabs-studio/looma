@@ -38,7 +38,6 @@ import {
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
   type LoomaCodeLanguages,
-  LOOMA_CHIP_COLORS,
   normalizeLoomaChipColor,
   type LoomaChipColor,
   type SlashMenuAnchorRect,
@@ -52,6 +51,7 @@ import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, Tex
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorBlockActions,
+  EditorChipEditor,
   EditorCodeLanguage,
   EditorImageToolbar,
   EditorInsertTableGrid,
@@ -336,7 +336,12 @@ export const LoomaEditor = defineComponent({
     let linkEditing: LoomaLinkEditing | undefined;
     const linkState = shallowRef(LOOMA_LINK_EDITING_IDLE);
     const chipAnchorId = `looma-editor-chip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const chipInput = ref<HTMLInputElement | null>(null);
+    const chipEditorRoot = ref<HTMLElement | null>(null);
+    const setChipEditorRoot = (instance: unknown) => {
+      const element = (instance as { $el?: unknown } | null)?.$el;
+      chipEditorRoot.value = element instanceof HTMLElement ? element : null;
+    };
+    const chipInput = () => chipEditorRoot.value?.querySelector<HTMLInputElement>("[data-chip-label]");
     const chipOpen = ref(false);
     const chipLabel = ref("");
     const chipColor = ref<LoomaChipColor>("neutral");
@@ -470,7 +475,7 @@ export const LoomaEditor = defineComponent({
       chipLabel.value = String(node.attrs.label ?? "");
       chipColor.value = normalizeLoomaChipColor(node.attrs.color);
       chipOpen.value = true;
-      void nextTick(() => chipInput.value?.focus());
+      void nextTick(() => chipInput()?.focus());
     };
     const changeChip = (changes: { label?: string; color?: LoomaChipColor }) => {
       const instance = editor.value;
@@ -1830,39 +1835,20 @@ export const LoomaEditor = defineComponent({
           for: chipAnchorId,
           placement: "bottom-start",
           onClose: () => { chipOpen.value = false; },
-        }, () => h("div", { class: "looma-editor__chip-form", role: "dialog", "aria-label": "Edit chip" }, [
-          h("input", {
-            ref: chipInput,
-            type: "text",
-            value: chipLabel.value,
-            placeholder: "Set a label",
-            "aria-label": "Chip text",
-            onInput: (event: Event) => {
-              chipLabel.value = (event.target as HTMLInputElement).value;
-              changeChip({ label: chipLabel.value });
-            },
-            onKeydown: (event: KeyboardEvent) => {
-              if (event.key === "Enter" || event.key === "Escape") {
-                event.preventDefault();
-                closeChip(true);
-              }
-            },
-          }),
-          h("div", { class: "looma-editor__chip-colors", role: "group", "aria-label": "Chip color" },
-            LOOMA_CHIP_COLORS.map((color) => h("button", {
-              type: "button",
-              class: "looma-editor__chip-color",
-              "data-color": color,
-              "aria-label": `${color[0].toUpperCase()}${color.slice(1)} chip`,
-              "aria-pressed": chipColor.value === color,
-              onClick: () => {
-                if (chipColor.value === color) { chipInput.value?.focus(); return; }
-                chipColor.value = color;
-                changeChip({ color });
-                chipInput.value?.focus();
-              },
-            }, chipColor.value === color ? "✓" : ""))),
-        ])),
+        }, () => h(EditorChipEditor, {
+          ref: setChipEditorRoot,
+          label: chipLabel.value,
+          color: chipColor.value,
+          onLabel: (event: CustomEvent<{ label: string }>) => {
+            chipLabel.value = event.detail.label;
+            changeChip({ label: chipLabel.value });
+          },
+          onColor: (event: CustomEvent<{ color: LoomaChipColor }>) => {
+            chipColor.value = event.detail.color;
+            changeChip({ color: event.detail.color });
+          },
+          onDone: () => closeChip(true),
+        })),
         h(Popover, {
           class: "looma-editor__link-popover",
           size: "sm",
