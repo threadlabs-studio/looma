@@ -20,6 +20,7 @@ export type {
   LoomaImageActivationDetail,
   LoomaImageActivationTrigger,
   LoomaImageAttributeResolver,
+  LoomaImageSourceResolver,
   LoomaImageDescriptor,
   LoomaImageRenditionErrorDetail,
   LoomaImageRenditionAttributes,

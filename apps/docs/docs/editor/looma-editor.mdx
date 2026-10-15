@@ -27,6 +27,7 @@ formatting commands, selection and focus, and every editor control. See
 | `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Search host destinations for links and describe a saved destination from its `href`. |
 | `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
+| `resolveImageSource` | none | Resolves a browser-only master URL for every image; stored content and event identities retain their original source. |
 | `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
 | `toolbarTriggerId` | `""` | In `popover` mode, the ID of the button that toggles the toolbar and anchors it. |
 | `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Bind it with `v-model:toolbar-open`. |
