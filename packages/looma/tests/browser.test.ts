@@ -7030,6 +7030,8 @@ describe("Chip editor", () => {
       await text.waitFor();
       assert.equal(await text.inputValue(), "Draft");
       assert.equal(await dialog.getByRole("radio", { name: "Blue" }).isChecked(), true);
+      // The group keeps its name for screen readers while its legend is hidden.
+      assert.equal(await dialog.getByRole("radiogroup", { name: "Chip color" }).locator("legend").evaluate((legend) => legend.getBoundingClientRect().width), 1);
       await text.fill("Done");
       await text.evaluate((input) => (input as HTMLInputElement).select());
       await dialog.getByRole("radio", { name: "Green" }).click();

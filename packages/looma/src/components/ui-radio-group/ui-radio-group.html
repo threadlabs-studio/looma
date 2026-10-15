@@ -8,6 +8,9 @@
       the radios together, so set it when the choice submits with a form.</prop>
     <prop name="label" type="string" default="Options"
     >The group's legend, shown above the radios and announced as the group's name. Phrase it as the question the radios answer.</prop>
+    <prop name="labelVisibility" type="keyword" values="visible, sr-only" default="visible"
+    >visible shows the legend; sr-only hides it visually but keeps it as the group's accessible name. Use sr-only only when the surrounding layout already makes
+      the choice clear, as with a row of colour swatches.</prop>
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >horizontal lays the radios out in a row; vertical stacks them in a column. The arrow keys move between radios either way.</prop>
     <prop name="disabled" type="boolean" default="false"
@@ -31,7 +34,7 @@
     </event>
   </defs>
   <fieldset role="radiogroup" from:aria-required="$required" from:aria-invalid="$invalid" from:disabled="$disabled">
-    <legend>{$label}</legend>
+    <legend class:sr-only="$labelVisibility = 'sr-only'">{$label}</legend>
     <slot></slot>
   </fieldset>
   <style>
@@ -62,6 +65,15 @@
 
     legend + * {
       clear: both;
+    }
+
+    legend.sr-only {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     :host([invalid]) legend {

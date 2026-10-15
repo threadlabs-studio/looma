@@ -703,6 +703,19 @@
       ]
     },
     {
+      "path": "components/ui-editor-chip-editor",
+      "title": "Chip Editor",
+      "source": "apps/docs/docs/editor/ui-editor-chip-editor.mdx",
+      "component": "ui-editor-chip-editor",
+      "examples": [
+        {
+          "id": "01-chip",
+          "title": "Chip",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-code-language",
       "title": "Code Language",
       "source": "apps/docs/docs/editor/ui-editor-code-language.mdx",
@@ -1727,6 +1740,19 @@
         {
           "id": "02-panel",
           "title": "Panel",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-swatch",
+      "title": "Swatch",
+      "source": "apps/docs/docs/components/forms/ui-swatch.mdx",
+      "component": "ui-swatch",
+      "examples": [
+        {
+          "id": "01-tones",
+          "title": "Tones",
           "behavior": false
         }
       ]
