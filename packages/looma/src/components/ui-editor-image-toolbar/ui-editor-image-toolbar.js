@@ -4,7 +4,8 @@ function connect(host) {
   const element = host.element;
   if (host.state.base === "ui-editor-image-toolbar") host.state.base = `ui-editor-image-toolbar-${Math.random().toString(36).slice(2, 11)}`;
   let target = null;
-  // Marked by attribute: the converted Vue component's host.refs has no entry for a nested component.
+  // Marked by attribute: the converted Vue component's host.refs has no entry for a nested component
+  // (HTML Next gap 1, fixed by html-next #236 for the next alpha).
   const isDescription = (event) => event.target.hasAttribute?.("data-image-description") && element.contains(event.target);
   const onClick = (event) => {
     const control = event.target.closest?.("[data-image-placement], [data-image-action]");
