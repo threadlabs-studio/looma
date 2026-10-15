@@ -9,7 +9,8 @@ describe("CardButton before upgrade", () => {
       default: () => "Read changes", icon: () => h("span", "Custom icon and divider"),
     }) }));
     expect(html.match(/<button\b/g)).toHaveLength(1);
-    expect(html).toContain('data-component="ui-button"');
+    // Converted Vue marks a component root with its tag as a class, not `data-component`.
+    expect(html).toMatch(/<button class="ui-button"/);
     expect(html).toMatch(/data-ui-button-state="[^"]*variant=card/);
     expect(html).toMatch(/data-ui-button-state="[^"]*tone=accent/);
     expect(html).toContain('aria-controls="details"');
