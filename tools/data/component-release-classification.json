@@ -155,6 +155,12 @@
       "group": "editor",
       "description": "The editor's block menu: insert a paragraph below, duplicate, or delete the block that holds the caret."
     },
+    "ui-editor-code-language": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The code block's language picker: a compact combobox of the languages the editor can highlight, with Auto first."
+    },
     "ui-editor-image-toolbar": {
       "status": "published",
       "package": "@threadlabs/looma",

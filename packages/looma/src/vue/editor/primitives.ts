@@ -13,6 +13,7 @@ import type {
 
 export {
   EditorBlockActions,
+  EditorCodeLanguage,
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
@@ -46,6 +47,7 @@ export interface VueEditorAdapterEventMap {
   clear: Record<string, never>;
   save: Record<string, never>;
   dismiss: Record<string, never>;
+  language: { value: string };
   "add-row-before": { boundaryIndex: number };
   "add-row-after": { boundaryIndex: number };
   "add-column-before": { boundaryIndex: number };
@@ -73,4 +75,5 @@ export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorLinkCard: "ui-editor-link-card",
   EditorLinkForm: "ui-editor-link-form",
   EditorBlockActions: "ui-editor-block-actions",
+  EditorCodeLanguage: "ui-editor-code-language",
 } as const;
