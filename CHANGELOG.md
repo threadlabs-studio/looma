@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.17
+
+- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer. Looma's rendered markup and appearance are unchanged.
+
 ## v0.28.16
 
 - LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
