@@ -99,7 +99,8 @@ type ImageDetail = {
 
 - `imageActivate` uses `pointer` or `keyboard` and lets a host open its viewer.
 - `imageRenditionError` uses `programmatic` after Looma removes transient
-  rendition attributes and restores the stored source.
+  rendition attributes and restores the resolved master (the stored source when
+  `resolveImageSource` is omitted).
 
 Neither event includes provider-specific URLs beyond the stored `src`.
 
