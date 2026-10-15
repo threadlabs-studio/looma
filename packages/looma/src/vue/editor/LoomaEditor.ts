@@ -4,7 +4,6 @@ import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
 import { announceOverlayOpen, createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
-import { createLowlight } from "lowlight";
 import { AllSelection, NodeSelection, TextSelection, type Selection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
@@ -72,30 +71,17 @@ import {
   type LoomaImageAttributeResolver,
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
-} from "./image-delivery";
-import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
+} from "../../editor/image-delivery";
+import { createCodeHighlighting } from "../../editor/code-highlighting";
+import { sameDocument, validLinkHref } from "../../editor/content";
+import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
+import { formatEditorShortcut, isApplePlatform } from "../../editor/shortcuts";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
 import { dividerNodeView } from "./divider";
 import { calloutNodeView } from "./callout";
 import { ImageControls } from "./image-controls";
 import { imageNodeView } from "./image";
-
-/**
- * Shows a key binding in ProseMirror notation ("Mod-Shift-8") the way the reader's platform writes
- * it: modifier symbols in Apple's order on Apple devices (⇧⌘8), and Ctrl+Shift+8 elsewhere.
- */
-function formatEditorShortcut(keys: string, apple: boolean): string {
-  const parts = keys.split("-");
-  const key = (parts.pop() ?? "").toUpperCase();
-  const has = (name: string) => parts.includes(name);
-  if (apple) return `${has("Ctrl") ? "⌃" : ""}${has("Alt") ? "⌥" : ""}${has("Shift") ? "⇧" : ""}${has("Mod") ? "⌘" : ""}${key}`;
-  return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key].filter(Boolean).join("+");
-}
-
-// Client Hints report "macOS" in a secure context; navigator.platform reports "MacIntel" or "iPhone".
-const isApplePlatform = () => typeof navigator !== "undefined"
-  && /mac|iphone|ipad|ipod/i.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -187,36 +173,6 @@ const EMPTY_CAPABILITIES: TableActionCapabilities = {
   canSplitCell: false,
 };
 
-function sameDocument(left: JSONContent, right: JSONContent): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function validLinkHref(value: string): string | null {
-  const href = value.trim();
-  if (!href || /[\u0000-\u001f\u007f]/.test(href)) return null;
-  if (/^(\/|#|\?)/.test(href)) return href;
-  try {
-    const url = new URL(href);
-    return ["http:", "https:", "mailto:", "tel:"].includes(url.protocol) ? href : null;
-  } catch {
-    return null;
-  }
-}
-
-function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null {
-  if (!rect) return null;
-  return {
-    left: rect.left,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    x: rect.x,
-    y: rect.y,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
 function slashMenuRows(items: LoomaSlashCommand[]) {
   const groups: Array<{ label?: string; rows: VNode[] }> = [];
   for (const [index, item] of items.entries()) {
@@ -228,18 +184,6 @@ function slashMenuRows(items: LoomaSlashCommand[]) {
   }
   return groups.flatMap(({ label, rows }, index) => label
     ? [h(EditorSlashMenuGroup, { key: `${label}-${index}`, label }, () => rows)] : rows);
-}
-
-function selectedTableElement(editor: Editor): HTMLTableElement | null {
-  const { node } = editor.view.domAtPos(editor.state.selection.from);
-  const element = node instanceof HTMLElement ? node : node.parentElement;
-  return element?.closest("table") as HTMLTableElement | null;
-}
-
-function selectedTableCellElement(editor: Editor): HTMLTableCellElement | null {
-  const { node } = editor.view.domAtPos(editor.state.selection.from);
-  const element = node instanceof HTMLElement ? node : node.parentElement;
-  return element?.closest("td, th") as HTMLTableCellElement | null;
 }
 
 function loomaIcon(name: LoomaIconName) {
@@ -620,58 +564,10 @@ export const LoomaEditor = defineComponent({
     };
 
     const authorHighlight = !props.disableHighlight;
-    const codeLowlight = createLowlight(props.codeLanguages ?? undefined);
-    const codeHighlightLowlight = props.codeLanguages === null
-      ? {
-          ...codeLowlight,
-          highlightAuto: (value: string) => codeLowlight.highlightAuto(value, { subset: [...autoCodeLanguageNames] }),
-        }
-      : codeLowlight;
-    const codeLanguageNames = props.codeLanguages === null
-      ? [
-          ...autoCodeLanguageNames,
-          ...Object.keys(codeLanguageCatalog).filter((name) =>
-            !autoCodeLanguageNames.includes(name as typeof autoCodeLanguageNames[number])
-          ).sort(),
-        ]
-      : Object.keys(props.codeLanguages).sort();
+    const codeHighlighting = createCodeHighlighting(props.codeLanguages, () => { codeUi.grammarVersion += 1; });
+    const codeLanguageNames = codeHighlighting.languageNames;
     const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", grammarVersion: 0, style: {} as CSSProperties });
-    const grammarLoads = new Map<string, Promise<void>>();
-    let catalogLoad: Promise<void> | undefined;
-    const refreshCodeHighlights = (instance: Editor) => {
-      if (instance.isDestroyed) return;
-      codeUi.grammarVersion += 1;
-      // Tiptap refreshes lowlight decorations only after a document change.
-      const tr = instance.state.tr;
-      instance.state.doc.descendants((node, pos) => {
-        if (node.type.name === "codeBlock") tr.setNodeMarkup(pos, undefined, node.attrs);
-      });
-      if (tr.docChanged) instance.view.dispatch(tr.setMeta("addToHistory", false));
-    };
-    const loadGrammar = (name: keyof typeof codeLanguageCatalog) => {
-      const existing = grammarLoads.get(name);
-      if (existing) return existing;
-      const pending = codeLanguageCatalog[name]().then((grammar) => {
-        codeLowlight.register({ [name]: grammar });
-      }).catch((error: unknown) => {
-        grammarLoads.delete(name);
-        throw error;
-      });
-      grammarLoads.set(name, pending);
-      return pending;
-    };
-    const loadForCodeBlock = (instance: Editor, language: unknown, value: string) => {
-      if (props.codeLanguages !== null || instance.isDestroyed) return;
-      if (typeof language === "string" && Object.hasOwn(codeLanguageCatalog, language)) {
-        if (codeLowlight.registered(language) || grammarLoads.has(language)) return;
-        void loadGrammar(language as keyof typeof codeLanguageCatalog)
-          .then(() => refreshCodeHighlights(instance)).catch(() => {});
-      } else if (!language && value.trim()) {
-        catalogLoad ??= Promise.all(autoCodeLanguageNames.map((name) =>
-          loadGrammar(name)
-        )).then(() => refreshCodeHighlights(instance)).catch(() => { catalogLoad = undefined; });
-      }
-    };
+    const loadForCodeBlock = codeHighlighting.loadForCodeBlock;
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
@@ -680,7 +576,7 @@ export const LoomaEditor = defineComponent({
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages ?? undefined,
-          codeLowlight: codeHighlightLowlight,
+          codeLowlight: codeHighlighting.lowlight,
           tableOfContentsNodeView,
           expandNodeView,
           dividerNodeView,
@@ -1202,7 +1098,7 @@ export const LoomaEditor = defineComponent({
     const codeLanguageOptions = computed(() => {
       // The lowlight registry is mutable rather than reactive; this version tracks async imports.
       void codeUi.grammarVersion;
-      const detected = codeUi.open && codeUi.text.trim() ? codeHighlightLowlight.highlightAuto(codeUi.text).data?.language : null;
+      const detected = codeUi.open && codeUi.text.trim() ? codeHighlighting.lowlight.highlightAuto(codeUi.text).data?.language : null;
       return [
         { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
         ...(codeUi.language !== "auto" && !codeLanguageNames.includes(codeUi.language)
@@ -2290,7 +2186,7 @@ export const LoomaEditor = defineComponent({
               open: true,
               query: slash.query,
               selectedIndex: slash.selectedIndex,
-              anchorRect: managedMenuAnchorRect(slash.rect),
+              anchorRect: menuAnchorRect(slash.rect),
               onHighlight: (event: CustomEvent<{ index: number }>) => { slash.highlight?.(event.detail.index); },
               onSelect: (event: CustomEvent<{ index: number }>) => {
                 slash.select?.(event.detail.index);
@@ -2307,7 +2203,7 @@ export const LoomaEditor = defineComponent({
               query: mention.query,
               items: mention.items,
               selectedIndex: mention.selectedIndex,
-              anchorRect: managedMenuAnchorRect(mention.rect),
+              anchorRect: menuAnchorRect(mention.rect),
               loading: mention.loading,
               onHighlight: (event: CustomEvent<{ index: number }>) => {
                 mention.selectedIndex = event.detail.index;
