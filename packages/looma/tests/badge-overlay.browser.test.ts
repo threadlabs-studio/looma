@@ -31,7 +31,7 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
     };
     const luminance = (rgb: number[]) => rgb.map(c => c / 255).map(c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
       .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i]!, 0);
-    for (const count of host.querySelectorAll('[data-component="ui-badge"]')) {
+    for (const count of host.querySelectorAll(':is([data-component~="ui-badge"], .ui-badge)')) {
       const button = count.closest("button")!;
       const style = getComputedStyle(count), parentStyle = getComputedStyle(button);
       const bounds = count.getBoundingClientRect(), label = count.querySelector(".label")!.getBoundingClientRect();
