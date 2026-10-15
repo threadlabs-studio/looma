@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.10
+
+- LoomaEditor's block actions and table overlay targeting move into framework-neutral editor modules: `runBlockAction` inserts a paragraph below, duplicates, or deletes the block holding the caret, and overlay actions first put the caret in the table and cell they name. LoomaEditor's behavior and public API stay the same.
+
 ## v0.28.9
 
 - LoomaEditor's link editing moves into a framework-neutral link editing module: the link form's state, writing the link as the reader types, validation, the host's search and resolve calls, and the resolved target of the link at the caret. LoomaEditor keeps only presentation and focus. Its behavior and public API stay the same; `LoomaLinkTarget`, `LoomaLinkSearch`, and `LoomaLinkResolve` are still exported from `@threadlabs/looma/vue/editor`.
