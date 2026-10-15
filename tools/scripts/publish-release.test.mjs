@@ -77,6 +77,6 @@ test("reports npm scanning when a published version never becomes visible", asyn
       lookup: () => null,
       delay: async () => {}
     }),
-    /did not become available after npm scanning/
+    /did not become available after npm scanning.*re-run the publish job: it skips the upload/
   );
 });
