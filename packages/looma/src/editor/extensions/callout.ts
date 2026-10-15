@@ -1,10 +1,16 @@
-import { mergeAttributes, Node } from "@tiptap/core";
+import { Node } from "@tiptap/core";
 
-/** Canonical tone values that may be persisted in a Looma callout node. */
-export const LOOMA_CALLOUT_TONES = ["info", "note", "warning"] as const;
+/**
+ * Canonical tone values that may be persisted in a Looma callout node: the shared block
+ * vocabulary of Callout, Markdown `:::` containers and GitHub alerts.
+ */
+export const LOOMA_CALLOUT_TONES = ["note", "tip", "info", "important", "warning", "danger"] as const;
 
 /** A serialized callout tone; unsupported input is normalized to `note`. */
 export type LoomaCalloutTone = (typeof LOOMA_CALLOUT_TONES)[number];
+
+// Callout's aliases: caution is danger, and neutral is the same muted aside as note.
+const TONE_ALIASES: Record<string, LoomaCalloutTone> = { caution: "danger", neutral: "note" };
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -15,18 +21,19 @@ declare module "@tiptap/core" {
   }
 }
 
-function normalizeCalloutTone(value: unknown): LoomaCalloutTone {
-  return typeof value === "string"
-    && LOOMA_CALLOUT_TONES.includes(value as LoomaCalloutTone)
-    ? value as LoomaCalloutTone
-    : "note";
+/** Maps a tone name, alias, or unknown value onto a persisted tone. */
+export function normalizeLoomaCalloutTone(value: unknown): LoomaCalloutTone {
+  if (typeof value !== "string") return "note";
+  const tone = value.toLowerCase();
+  return LOOMA_CALLOUT_TONES.includes(tone as LoomaCalloutTone) ? tone as LoomaCalloutTone : TONE_ALIASES[tone] ?? "note";
 }
 
 /**
- * A durable, themeable block container for informational editor content.
+ * A durable block container for informational editor content, saved as Looma's Callout.
  *
- * @invariant Parsed and rendered `data-tone` values always belong to
- * `LOOMA_CALLOUT_TONES`; missing or unknown values round-trip as `note`.
+ * @invariant Rendered `tone` values always belong to `LOOMA_CALLOUT_TONES`; missing or
+ * unknown values round-trip as `note`. Content saved as the older
+ * `aside[data-looma-callout][data-tone]` still parses.
  */
 export const LoomaCallout = Node.create({
   name: "loomaCallout",
@@ -38,32 +45,29 @@ export const LoomaCallout = Node.create({
     return {
       tone: {
         default: "note",
-        parseHTML: (element) => normalizeCalloutTone(element.getAttribute("data-tone")),
-        renderHTML: (attributes) => ({
-          "data-tone": normalizeCalloutTone(attributes.tone),
-        }),
+        parseHTML: (element) => normalizeLoomaCalloutTone(element.getAttribute("tone") ?? element.getAttribute("data-tone")),
+        renderHTML: (attributes) => ({ tone: normalizeLoomaCalloutTone(attributes.tone) }),
+      },
+      heading: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("heading") ?? "",
+        renderHTML: (attributes) => (attributes.heading ? { heading: String(attributes.heading) } : {}),
       },
     };
   },
 
   parseHTML() {
-    return [{ tag: 'aside[data-looma-callout]' }];
+    return [{ tag: "ui-callout" }, { tag: "aside[data-looma-callout]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "aside",
-      mergeAttributes(HTMLAttributes, {
-        "data-looma-callout": "",
-      }),
-      0,
-    ];
+    return ["ui-callout", HTMLAttributes, 0];
   },
 
   addCommands() {
     return {
       setLoomaCallout: (tone = "note") => ({ state, commands }) => {
-        const normalizedTone = normalizeCalloutTone(tone);
+        const normalizedTone = normalizeLoomaCalloutTone(tone);
         for (let depth = state.selection.$from.depth; depth > 0; depth -= 1) {
           if (state.selection.$from.node(depth).type.name === this.name) {
             return commands.updateAttributes(this.name, { tone: normalizedTone });
