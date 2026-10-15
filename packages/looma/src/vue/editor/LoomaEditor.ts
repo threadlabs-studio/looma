@@ -50,13 +50,14 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, Checkbox, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Combobox, EditorSurface, IconButton, Popover, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorBlockActions,
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
+  EditorLinkForm,
   EditorMentionMenu,
   EditorSlashMenu,
   EditorSlashMenuGroup,
@@ -345,7 +346,11 @@ export const LoomaEditor = defineComponent({
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const linkPopoverAnchorId = ref(linkAnchorId);
     const linkDestinationInput = () => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-destination]");
-    const linkFormRoot = ref<HTMLFormElement | null>(null);
+    const linkFormRoot = ref<HTMLElement | null>(null);
+    const setLinkFormRoot = (instance: unknown) => {
+      const element = (instance as { $el?: unknown } | null)?.$el;
+      linkFormRoot.value = element instanceof HTMLElement ? element : null;
+    };
     const linkOpen = ref(false);
     const linkContextEditing = ref(false);
     const linkHref = ref("");
@@ -697,13 +702,6 @@ export const LoomaEditor = defineComponent({
       if (linkTextEditable.value && !linkText.value.trim()) linkText.value = target.label;
       applyLink();
     };
-    const moveLinkResultFocus = (event: KeyboardEvent, offset: number) => {
-      const buttons = [...(linkFormRoot.value?.querySelectorAll<HTMLButtonElement>("[data-link-result]") ?? [])];
-      const at = buttons.indexOf(event.target as HTMLButtonElement);
-      const next = buttons[at + offset];
-      if (next) { event.preventDefault(); next.focus(); }
-      else if (offset < 0) { event.preventDefault(); linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus(); }
-    };
 
     const openLinkEditor = (context = false) => {
       const instance = editor.value;
@@ -799,93 +797,54 @@ export const LoomaEditor = defineComponent({
       linkPopup?.hide();
       formattingPopup?.hide();
     };
-    const renderLinkDestination = (mode: "target" | "url") => [
-      h(FormField, { invalid: Boolean(linkError.value) }, {
-        label: () => h("label", props.linkSearch ? "Link destination" : "URL"),
-        default: () => {
-          const input = h(Input, {
-            "data-link-destination": "",
-            ...(props.linkSearch ? { "data-link-search": "", type: "text", role: "searchbox", autocomplete: "off", placeholder: `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` } : { type: "text", inputmode: "url", placeholder: "https://example.com" }),
-            size: props.linkSearch ? "md" : "sm",
-            value: props.linkSearch ? linkQuery.value : linkHref.value,
-            onInput: (event: Event) => {
-              const value = (event.target as HTMLInputElement).value;
-              if (props.linkSearch) {
-                linkQuery.value = value;
-                linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim())
-                  || (linkSelection?.existing && /^(\/|\.\.?\/|#|\?)/.test(value.trim())) ? "url" : "target";
-                linkSelectedTarget.value = null;
-              }
-              linkHref.value = value;
-              linkError.value = "";
-              applyLink();
-            },
-            onKeydown: (event: KeyboardEvent) => {
-              if (mode === "target" && event.key === "ArrowDown") moveLinkResultFocus(event, 1);
-            },
-          });
-          return props.linkSearch ? h(InputGroup, { prefixKind: "icon" }, {
-            prefix: () => loomaIcon(mode === "target" ? "search" : "link"),
-            default: () => input,
-            action: () => linkQuery.value ? h(IconButton, {
-              label: "Clear search", variant: "ghost", size: "sm", onClick: () => {
-                linkQuery.value = ""; linkHref.value = ""; linkMode.value = "target"; linkSelectedTarget.value = null; linkError.value = "";
-                void nextTick(() => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus());
-              },
-            }, () => loomaIcon("x")) : null,
-          }) : input;
+    const linkStatus = () => {
+      if (linkSearching.value) return "Searching…";
+      if (linkSelectedTarget.value) return "";
+      if (linkQuery.value.trim().length < 2) return "Type at least two letters to search.";
+      return linkResults.value.length || linkError.value ? "" : "No results found.";
+    };
+    const renderLinkForm = () => {
+      const shown = linkSelectedTarget.value ? [linkSelectedTarget.value] : linkResults.value;
+      return h(EditorLinkForm, {
+        ref: setLinkFormRoot,
+        class: "looma-editor__link-form",
+        existing: Boolean(linkSelection?.existing),
+        searchable: Boolean(props.linkSearch),
+        mode: linkMode.value,
+        value: props.linkSearch ? linkQuery.value : linkHref.value,
+        placeholder: props.linkSearch ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com",
+        newTab: linkNewTab.value,
+        textEditable: linkTextEditable.value,
+        text: linkText.value,
+        error: linkError.value,
+        status: linkStatus(),
+        results: shown.map(({ id, label, detail }) => (detail ? { id, label, detail } : { id, label })),
+        selected: linkSelectedTarget.value?.id ?? "",
+        onDestination: (event: CustomEvent<{ value: string }>) => {
+          const { value } = event.detail;
+          if (props.linkSearch) {
+            linkQuery.value = value;
+            linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim())
+              || (linkSelection?.existing && /^(\/|\.\.?\/|#|\?)/.test(value.trim())) ? "url" : "target";
+            linkSelectedTarget.value = null;
+          }
+          linkHref.value = value;
+          linkError.value = "";
+          applyLink();
         },
-      }),
-      mode === "target"
-        ? h(ScrollArea, { size: "sm", "aria-label": "Destination search results" }, () => [
-            linkSearching.value ? h(Text, { size: "sm", tone: "secondary", role: "status" }, () => "Searching…") : null,
-            !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length < 2
-              ? h(Text, { size: "sm", tone: "secondary" }, () => "Type at least two letters to search.") : null,
-            !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length >= 2 && !linkResults.value.length && !linkError.value
-              ? h(Text, { size: "sm", tone: "secondary" }, () => "No results found.") : null,
-            ...(linkSelectedTarget.value ? [linkSelectedTarget.value] : linkResults.value).map((target) => h(SearchResultRow, {
-              key: target.id, density: "compact",
-              selected: target.id === linkSelectedTarget.value?.id,
-              "data-link-result": "",
-              onClick: () => selectLinkTarget(target),
-              onKeydown: (event: KeyboardEvent) => {
-                if (event.key === "ArrowDown") moveLinkResultFocus(event, 1);
-                if (event.key === "ArrowUp") moveLinkResultFocus(event, -1);
-              },
-            }, {
-              leading: () => loomaIcon("file-text"),
-              title: () => h(Text, { as: "strong", size: "sm", weight: "medium", truncate: true, title: target.label }, () => target.label),
-              meta: () => target.detail ? h(Text, { as: "span", size: "xs", tone: "secondary", truncate: true, title: target.detail }, () => target.detail) : null,
-              trailing: () => target.id === linkSelectedTarget.value?.id ? loomaIcon("check") : null,
-            })),
-          ])
-        : h(Checkbox, {
-            size: "sm", checked: linkNewTab.value,
-            onChange: (event: CustomEvent<{ checked: boolean }>) => { linkNewTab.value = event.detail.checked; applyLink(); },
-          }, () => "Open in new tab"),
-    ];
-    const renderLinkForm = () => h("form", {
-      ref: linkFormRoot,
-      class: "looma-editor__link-form",
-      "aria-label": "Edit link",
-      onSubmit: (event: Event) => { event.preventDefault(); if (applyLink(true)) dismissLink(); },
-      onKeydown: (event: KeyboardEvent) => {
-        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismissLink(); }
-        else if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
-          event.preventDefault(); event.stopPropagation();
-          if (applyLink(true)) dismissLink();
-        }
-      },
-    }, [h(Stack, { gap: "s" }, () => [
-      h(Text, { as: "h3", size: "sm", weight: "semibold" }, () => linkSelection?.existing ? "Edit link" : "Add link"),
-      h(Stack, { gap: "s" }, () => renderLinkDestination(linkMode.value)),
-      linkTextEditable.value
-        ? h(FormField, {}, {
-            label: () => h("label", "Text"),
-            default: () => h(Input, { size: "sm", value: linkText.value, onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; applyLink(); } }),
-          }) : null,
-      linkError.value ? h(Text, { size: "sm", tone: "danger", role: "alert" }, () => linkError.value) : null,
-    ])]);
+        onClear: () => {
+          linkQuery.value = ""; linkHref.value = ""; linkMode.value = "target"; linkSelectedTarget.value = null; linkError.value = "";
+        },
+        onChoose: (event: CustomEvent<{ id: string }>) => {
+          const target = shown.find(({ id }) => id === event.detail.id);
+          if (target) selectLinkTarget(target);
+        },
+        onNewTab: (event: CustomEvent<{ newTab: boolean }>) => { linkNewTab.value = event.detail.newTab; applyLink(); },
+        onText: (event: CustomEvent<{ text: string }>) => { linkText.value = event.detail.text; linkError.value = ""; applyLink(); },
+        onSave: () => { if (applyLink(true)) dismissLink(); },
+        onDismiss: () => dismissLink(),
+      });
+    };
     const renderLinkContextCard = (instance: Editor) => {
       if (linkContextEditing.value) return h(Card, { variant: "elevated", padding: "sm", size: "sm", class: "looma-editor__link-context" }, () => [renderLinkForm()]);
       const rawHref = instance.getAttributes("link").href;
