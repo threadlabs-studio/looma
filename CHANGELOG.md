@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.16
+
+- LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
+
 ## v0.28.15
 
 - Swatch (`ui-swatch`) is a new form primitive: a round colour dot in the six chip tones (neutral, blue, green, yellow, red and purple) that is a native radio named by its tone. Inside a `ui-radio-group`, the group names the swatches, checks the one matching its value, moves between them with the arrow keys, and reports the choice. The checked and focused swatches show a ring at the focus width.
