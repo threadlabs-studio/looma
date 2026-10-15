@@ -1,0 +1,57 @@
+<link rel="component" href="../ui-card/ui-card.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-button/ui-button.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-tooltip/ui-tooltip.html">
+<template component="ui-editor-link-card" controller="./ui-editor-link-card.js">
+  <defs>
+    <prop name="href" type="string" default="">The link's destination, shown when there is no label.</prop>
+    <prop name="openHref" type="string" default=""
+    >The address Open link opens in a new tab; without it the card offers no Open link. The editor passes the destination only when it is an http, https,
+      mailto, tel, or relative address.</prop>
+    <prop name="label" type="string" default="">The resolved destination's name, such as a page title, shown in place of the address.</prop>
+    <prop name="detail" type="string" default="">A second line under the label, such as where the destination lives.</prop>
+    <prop name="targetLabel" type="string" default="Item">What a resolved destination is called, as in "Page: Guide" for a screen reader.</prop>
+    <state name="base" type="string" value="ui-editor-link-card"></state>
+    <computed name="resolved" from="$label != ''"></computed>
+    <computed name="shown" from="{ true: $label, false: $href }[concat($resolved)]"></computed>
+    <event name="edit" type="object">Requests the link editor for this link.</event>
+    <event name="remove" type="object">Requests removing this link.</event>
+  </defs>
+  <div>
+    <ui-card variant="elevated" padding="xs" size="content">
+      <ui-cluster gap="xs" wrap="nowrap" role="group" aria-label="Link actions">
+        <ui-icon from:name="{ true: 'file-text', false: 'link' }[concat($resolved)]"></ui-icon>
+        <ui-stack gap="none" from:title="$href" from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)">
+          <ui-text as="strong" size="sm" weight="medium" font="sans" wrap="anywhere">{$shown}</ui-text>
+          <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans">{$detail}</ui-text>
+        </ui-stack>
+        <template $if="$openHref != ''">
+          <ui-button
+            from:id="concat($base, '-open')"
+            as="a"
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+            from:href="$openHref"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open link"
+          ><ui-cluster gap="xs" wrap="nowrap"><ui-icon name="external-link"></ui-icon>Open link</ui-cluster></ui-button>
+          <ui-tooltip from:for="concat($base, '-open')">Open link</ui-tooltip>
+        </template>
+        <ui-icon-button from:id="concat($base, '-edit')" label="Edit link" variant="ghost" size="sm" data-link-action="edit"><ui-icon
+            name="pencil"
+          ></ui-icon></ui-icon-button>
+        <ui-tooltip from:for="concat($base, '-edit')">Edit link</ui-tooltip>
+        <ui-icon-button from:id="concat($base, '-remove')" label="Remove link" variant="ghost" size="sm" data-link-action="remove"><ui-icon
+            name="unlink"
+          ></ui-icon></ui-icon-button>
+        <ui-tooltip from:for="concat($base, '-remove')">Remove link</ui-tooltip>
+      </ui-cluster>
+    </ui-card>
+  </div>
+</template>

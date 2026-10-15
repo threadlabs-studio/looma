@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.6
+
+- Link Card (`ui-editor-link-card`) and Block Actions (`ui-editor-block-actions`) are editor parts as HTML Next components, in HTML and Vue (`EditorLinkCard`, `EditorBlockActions`). Link Card shows a link's destination with Open link, Edit link, and Remove link, and reports `edit` and `remove`. Open link opens `open-href`, which the editor sets only for an http, https, mailto, tel, or relative address. Block Actions is the block menu (insert a paragraph below, duplicate, delete) and reports `action`. LoomaEditor uses both in place of its own render code; they look and behave as before, except that a block action now applies to the block holding the caret when it is chosen.
+
 ## v0.28.5
 
 - Image Toolbar (`ui-editor-image-toolbar`) is the editor's image actions bar as an HTML Next component, in HTML and Vue (`EditorImageToolbar`): four placement commands, a description form, and delete, each reported as a request (`placement`, `describe`, `delete`) for the editor to apply. LoomaEditor uses it in place of its Vue-only image controls; the bar, its tooltips, and the description form are unchanged.

@@ -6787,6 +6787,80 @@ describe("Image toolbar", () => {
   }
 });
 
+describe("Link card", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`shows the destination, offers Open link only with an address to open, and requests edit and removal (${target})`, async () => {
+      const path = target === "html"
+        ? await bundle("html-link-card", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            for (const card of document.querySelectorAll("#resolved, #unsafe")) {
+              for (const name of ["edit", "remove"]) card.addEventListener(name, (event) => window.fixtureEvents.push([card.id, name, event.detail]));
+            }
+          `)
+        : await bundle("vue-link-card", `
+            import { createApp, h } from "vue";
+            import { EditorLinkCard } from "@threadlabs/looma/vue/editor";
+            window.fixtureEvents = [];
+            const record = (id, name) => (event) => window.fixtureEvents.push([id, name, event.detail]);
+            createApp({ render: () => [
+              h(EditorLinkCard, { id: "resolved", href: "https://example.com/guide", openHref: "https://example.com/guide", label: "Guide", detail: "Personal / Guides", targetLabel: "Page", onEdit: record("resolved", "edit"), onRemove: record("resolved", "remove") }),
+              h(EditorLinkCard, { id: "unsafe", href: "ftp://files.example.com/archive", onEdit: record("unsafe", "edit"), onRemove: record("unsafe", "remove") }),
+            ] }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-editor-link-card id="resolved" href="https://example.com/guide" open-href="https://example.com/guide" label="Guide" detail="Personal / Guides" target-label="Page"></ui-editor-link-card>
+           <ui-editor-link-card id="unsafe" href="ftp://files.example.com/archive"></ui-editor-link-card>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
+      const resolved = page.locator("#resolved").getByRole("group", { name: "Link actions", exact: true });
+      const unsafe = page.locator("#unsafe").getByRole("group", { name: "Link actions", exact: true });
+      await resolved.waitFor();
+      assert.equal((await resolved.getByLabel("Page: Guide").innerText()).replace(/\s+/g, " ").trim(), "Guide Personal / Guides");
+      assert.equal(await resolved.getByRole("link", { name: "Open link", exact: true }).getAttribute("href"), "https://example.com/guide");
+      assert.equal(await unsafe.getByLabel("URL: ftp://files.example.com/archive").count(), 1);
+      assert.equal(await unsafe.getByRole("link", { name: "Open link" }).count(), 0, "no open-href, no Open link");
+      await resolved.getByRole("button", { name: "Edit link", exact: true }).click();
+      await unsafe.getByRole("button", { name: "Remove link", exact: true }).click();
+      assert.deepEqual(await events(), [["resolved", "edit", {}], ["unsafe", "remove", {}]]);
+      await page.close();
+    });
+  }
+});
+
+describe("Block actions", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`requests the chosen block action (${target})`, async () => {
+      const path = target === "html"
+        ? await bundle("html-block-actions", `
+            import "@threadlabs/looma";
+            window.fixtureEvents = [];
+            const menu = document.querySelector("#actions");
+            menu.addEventListener("action", (event) => window.fixtureEvents.push(["action", event.detail]));
+          `)
+        : await bundle("vue-block-actions", `
+            import { createApp, h } from "vue";
+            import { IconButton } from "@threadlabs/looma/vue";
+            import { EditorBlockActions } from "@threadlabs/looma/vue/editor";
+            window.fixtureEvents = [];
+            const record = (name) => (event) => window.fixtureEvents.push([name, event.detail]);
+            createApp({ render: () => [
+              h(IconButton, { id: "trigger", label: "Block actions" }, () => "…"),
+              h(EditorBlockActions, { for: "trigger", onAction: record("action") }),
+            ] }).mount("#app");
+          `);
+      const page = await open(path, target === "html"
+        ? `<ui-icon-button id="trigger" label="Block actions">…</ui-icon-button><ui-editor-block-actions id="actions" for="trigger"></ui-editor-block-actions>`
+        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: [string, unknown][] }).fixtureEvents);
+      await page.getByRole("button", { name: "Block actions", exact: true }).click();
+      await page.getByRole("menuitem", { name: "Duplicate block", exact: true }).click();
+      assert.deepEqual(await events(), [["action", { action: "duplicate" }]]);
+      await page.close();
+    });
+  }
+});
+
 describe("Vue editor components", () => {
   it("filters authored Slash groups and reports the command value", async () => {
     const path = await bundle("html-authored-slash-menu", `
