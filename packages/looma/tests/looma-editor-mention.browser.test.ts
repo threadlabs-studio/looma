@@ -55,7 +55,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     expect(menu()?.dataset.columnIndex).toBe("1");
     await userEvent.click(menu()!);
     await flushBrowser();
-    const contextMenu = host.querySelector<HTMLElement>('[data-component~="ui-editor-table-context-menu"]')!;
+    const contextMenu = host.querySelector<HTMLElement>(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)')!;
     expect(contextMenu).toBeTruthy();
     await userEvent.click(contextMenu.querySelector<HTMLElement>('[data-action="delete-row"]')!);
     await flushBrowser();
@@ -63,7 +63,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     expect(menu()?.dataset.rowIndex).toBe("0");
     editor!.commands.setTextSelection(editor!.state.doc.content.size - 1);
     await flushBrowser();
-    expect(host.querySelector('[data-component~="ui-editor-table-toolbar"]')).toBeNull();
+    expect(host.querySelector(':is([data-component~="ui-editor-table-toolbar"], .ui-editor-table-toolbar)')).toBeNull();
     expect(menu()).toBeNull();
   });
   it("projects native suggestion rectangles through the managed component boundary", async () => {
@@ -103,7 +103,7 @@ describe("LoomaEditor managed suggestion menus", () => {
 
       await vi.waitFor(() => {
         const menu = host.querySelector<HTMLElement>(
-          '[data-component~="ui-editor-mention-menu"]',
+          ':is([data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu)',
         );
         expect(menu?.textContent).toContain("Ada Lovelace");
         // The menu is placed at the caret's rectangle.
@@ -111,7 +111,7 @@ describe("LoomaEditor managed suggestion menus", () => {
         expect(Number.parseFloat(menu?.style.top ?? "")).toBeGreaterThan(0);
         expect(Number.parseFloat(menu?.style.left ?? "")).toBeGreaterThanOrEqual(0);
       });
-      const menu = document.querySelector<HTMLElement>('[data-component~="ui-editor-mention-menu"]')!;
+      const menu = document.querySelector<HTMLElement>(':is([data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu)')!;
       expect(menu.matches(":popover-open")).toBe(true);
       const before = menu.getBoundingClientRect().top;
       scroller.scrollTop = 40;
@@ -146,7 +146,7 @@ describe("LoomaEditor managed suggestion menus", () => {
 
       await vi.waitFor(() => {
         const menu = host.querySelector<HTMLElement>(
-          '[data-component~="ui-editor-slash-menu"]',
+          ':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)',
         );
         expect(menu?.textContent).toContain("Table");
         // Each item shows a title, a description, and an icon.
@@ -184,7 +184,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     await userEvent.click(table.querySelector<HTMLElement>("th, td")!);
     await flushBrowser();
     const handle = host.querySelector<HTMLElement>(
-      '[data-component~="ui-editor-table-overlay"] [data-action="add-row-after"][data-boundary-index="1"]',
+      ':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay) [data-action="add-row-after"][data-boundary-index="1"]',
     )!;
     expect(handle).toBeTruthy();
 
