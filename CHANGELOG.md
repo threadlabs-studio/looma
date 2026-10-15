@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.4
+
+- Looma builds with HTML Next 1.0.0-alpha.50. Its Vue components mark their root with the component's tag as a class (`class="ui-button"`) rather than `data-component`, and scope their styles with native `@scope`; both markers are rendering details, not API, as the Tokens guide says. The editor surface, collapsible editor sections, and a mention row's slotted avatar match either marker. Vue `:host` rules under an ancestor selector, such as compact controls on touch, match the component root. Expression arithmetic is decimal (`0.1 + 0.2` is `0.3`). Conditional content (`$if`, `$match`) keeps its elements, focus, and typed text when its decision does not change, and bindings write only changed values.
+
 ## v0.28.0
 
 - **Breaking: LoomaEditor saves callouts as Callout.** The callout node used to render and save its own `<aside data-looma-callout data-tone>`, styled by a copy of Callout's rules in the editor stylesheet. Callouts therefore looked different in the editor than in pages, and saved HTML matched neither Callout nor the Markdown that Markupress renders. The owner direction is one block vocabulary across components, the editor and Markdown. A saved `aside` keeps those two shapes apart, so an additive option cannot fix it. The node now saves `<ui-callout tone heading>`, and the Vue editor draws it with Callout itself; the separate editor styling is removed. Content saved as `<aside data-looma-callout>` still loads and is saved as Callout from then on. To migrate, register Looma's components wherever saved editor HTML is shown, and update code that queries or sanitizes `aside[data-looma-callout]` or `data-tone` to use `ui-callout` and `tone`.

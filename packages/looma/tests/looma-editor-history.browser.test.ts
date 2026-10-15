@@ -679,7 +679,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.chain().focus("start").insertContent("Undo me").run();
     await flushBrowser();
     const undo = toolbar!.querySelector<HTMLButtonElement>(
-      '[data-component~="ui-icon-button"][aria-label="Undo"]',
+      ':is([data-component~="ui-icon-button"], .ui-icon-button)[aria-label="Undo"]',
     )!;
     expect(editor.can().undo()).toBe(true);
     expect(undo.disabled).toBe(false);
@@ -689,7 +689,7 @@ describe("LoomaEditor history (real browser)", () => {
     expect(editor.getText()).toBe("");
 
     const redo = toolbar!.querySelector<HTMLButtonElement>(
-      '[data-component~="ui-icon-button"][aria-label="Redo"]',
+      ':is([data-component~="ui-icon-button"], .ui-icon-button)[aria-label="Redo"]',
     )!;
     expect(editor.can().redo()).toBe(true);
     expect(redo.disabled).toBe(false);
