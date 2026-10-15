@@ -225,7 +225,19 @@ test("automatic checks and publication fit a 15-minute parallel critical path", 
   const ciLimits = minutes(ci);
   const gate = ciLimits.at(-1);
   const qualification = Math.max(...ciLimits.slice(0, -1)) + gate;
-  assert.ok(qualification + minutes(release).reduce((a, b) => a + b, 0) <= 15);
+  // Release runner work is every job timeout minus npm's availability wait, which is npm's
+  // processing after the upload and has its own step timeout. It is the only step-level timeout,
+  // so nothing else can leave the budget.
+  const jobMinutes = source => [...source.matchAll(/^    timeout-minutes: (\d+)$/gm)].map(match => Number(match[1]));
+  const stepMinutes = [...release.matchAll(/^ {8,}timeout-minutes: (\d+)$/gm)];
+  const npmWait = release.match(
+    /\n      - name: Wait for npm to serve the release\n        timeout-minutes: (\d+)\n        run: node tools\/scripts\/publish-release\.mjs --wait\n/
+  );
+  assert.ok(npmWait, "npm's availability wait must be its own step with its own timeout");
+  assert.equal(stepMinutes.length, 1, "only the npm wait may carry a step timeout");
+  assert.ok(Number(npmWait[1]) <= 10);
+  const runnerWork = jobMinutes(release).reduce((a, b) => a + b, 0) - Number(npmWait[1]);
+  assert.ok(qualification + runnerWork <= 15);
   assert.ok(qualification + Math.max(...minutes(docs)) <= 15);
   assert.ok(Math.max(...minutes(parity)) <= 15);
   assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
