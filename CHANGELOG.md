@@ -2,7 +2,7 @@
 
 ## v0.28.17
 
-- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer. Looma's rendered markup and appearance are unchanged.
+- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer, which records a component's explicit props on its root as `data-<tag>-prop-<name>`, such as `data-ui-button-prop-tone`, in place of `data-<name>`, and marks converted Vue roots with `data-hn`. These are compiler markers, not Looma's API; a compact read-only LoomaEditor excerpt keeps its trimmed first and last margins by reading the new density record.
 
 ## v0.28.16
 

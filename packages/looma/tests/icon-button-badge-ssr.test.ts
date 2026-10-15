@@ -25,14 +25,14 @@ describe("Icon Button and circular Badge before upgrade", () => {
     expect(html).toMatch(/<button\b/);
     expect(html).toContain('aria-label="Notifications"');
     expect(html).toContain('aria-pressed="true"');
-    expect(html).toContain('data-tone="accent"');
+    expect(html).toContain('data-ui-icon-button-prop-tone="accent"');
     expect(html).not.toContain('disabled=""');
   });
 
   it("leaves the existing variant defaults intact when tone is omitted", async () => {
     const html = await render(h(IconButton, { label: "Add", variant: "solid" }));
-    expect(html).toContain('data-variant="solid"');
-    expect(html).not.toContain('data-tone=');
+    expect(html).toContain('data-ui-icon-button-prop-variant="solid"');
+    expect(html).not.toContain('data-ui-icon-button-prop-tone=');
     expect(html).not.toContain('aria-pressed=');
   });
 
@@ -54,8 +54,8 @@ describe("Icon Button and circular Badge before upgrade", () => {
 
   it("renders the circular glyph and its name without hiding the visible content", async () => {
     const html = await render(h(Badge, { shape: "circle", size: "xs", "aria-label": "Category A" }, () => "A"));
-    expect(html).toContain('data-shape="circle"');
-    expect(html).toContain('data-size="xs"');
+    expect(html).toContain('data-ui-badge-prop-shape="circle"');
+    expect(html).toContain('data-ui-badge-prop-size="xs"');
     expect(html).toContain('aria-label="Category A"');
     expect(html).toMatch(/class="label"[^>]*>.*A/s);
     expect(await render(h(Badge, null, () => "Ready"))).toMatch(/data-ui-badge-state="[^"]*shape=pill/);

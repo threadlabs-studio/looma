@@ -1238,7 +1238,7 @@ describe("Editor callouts", () => {
       return { surface: css.backgroundColor, border: css.borderTopColor, radius: css.borderTopLeftRadius, heading: element.querySelector(".heading")?.textContent ?? "" };
     });
     assert.deepEqual(await look(callouts.first()), await look(page.locator("#reference")), "an editor callout looks like a page callout");
-    assert.equal(await callouts.nth(1).getAttribute("data-tone"), "warning");
+    assert.equal(await callouts.nth(1).getAttribute("data-ui-callout-prop-tone"), "warning");
     const rhythm = await page.evaluate(() => {
       const [first, second] = [...document.querySelectorAll(".ProseMirror [data-looma-callout]")].map(element => element.getBoundingClientRect());
       return { gap: second.top - first.bottom, last: getComputedStyle(document.querySelector("[data-looma-callout-body] > :last-child")!).marginBottom };
@@ -9710,7 +9710,7 @@ describe("Image surface", () => {
     const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
     assert.match(html, /^<figure class="ui-image"/);
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
-    assert.match(html, /class="handles" hidden/);
+    assert.match(html, /class="handles"[^>]*\bhidden\b/);
   });
 });
 
