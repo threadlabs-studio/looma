@@ -31,6 +31,8 @@
   </defs>
   <div>
     <ui-text as="div" font="sans">
+      <!-- from:floating="true": a bare boolean converts to floating="" in Vue (HTML Next gap 2). data-image-*: the root reflects
+        props as data-<prop>, so data-placement would collide (gap 4). html-next #236 fixes both for the next alpha. -->
       <ui-editor-toolbar from:floating="true" aria-label="Image actions">
         <ui-icon-button
           from:id="concat($base, '-block')"

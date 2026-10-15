@@ -209,7 +209,7 @@ export const interactionCases: {
       const trigger = scenario.getByRole("button", { name: "Toggle sidebar", exact: true });
       const link = scenario.getByRole("link", { name: "Inbox", exact: true });
       if (page.viewportSize()!.width < 768) {
-        await expect(scenario.locator('[data-component~="ui-sidebar"]')).toHaveAttribute("popover", "auto");
+        await expect(scenario.locator(':is([data-component~="ui-sidebar"], .ui-sidebar)')).toHaveAttribute("popover", "auto");
         await expect(link).not.toBeVisible();
         await trigger.click();
         await expect(link).toBeVisible();
