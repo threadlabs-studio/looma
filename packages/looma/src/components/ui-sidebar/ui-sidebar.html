@@ -116,17 +116,17 @@
     }
 
     /* Collapsed while docked. */
-    :host-state([internalCollapsed]):not([popover]) {
+    :host(:state(internalCollapsed)):not([popover]) {
       inline-size: var(--ui-sidebar-collapsed-width, 0px);
       visibility: hidden;
     }
-    :host-state([resizing]) {
+    :host(:state(resizing)) {
       transition: none;
     }
-    :host-state([internalCollapsed]):not([popover]) .content {
+    :host(:state(internalCollapsed)):not([popover]) .content {
       transform: translateX(-100%);
     }
-    :host([side="end"]):host-state([internalCollapsed]):not([popover]) .content {
+    :host([side="end"]):host(:state(internalCollapsed)):not([popover]) .content {
       transform: translateX(100%);
     }
 

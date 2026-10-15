@@ -24,8 +24,7 @@
     <prop name="error" type="string" default="">A problem to show under the fields, announced as an alert.</prop>
     <prop name="status" type="string" default=""
     >A line above the results, such as Searching… or No results found., announced politely. Shown only for a search.</prop>
-    <!-- default="[]": without it the generated Vue v-for receives null (HTML Next item 7; html-next #236 treats a missing list as empty for the next alpha). -->
-    <prop name="results" type="list(object({ id: string, label: string, detail?: string }))" default="[]">The destinations a search found.</prop>
+    <prop name="results" type="list(object({ id: string, label: string, detail?: string }))">The destinations a search found.</prop>
     <prop name="selected" type="string" default="">The id of the chosen result, which shows a check.</prop>
     <state name="base" type="string" value="ui-editor-link-form"></state>
     <computed name="heading" from="{ true: 'Edit link', false: 'Add link' }[concat($existing)]"></computed>
@@ -95,7 +94,7 @@
             from:data-link-id="$result.id"
           >
             <ui-icon slot="leading" name="file-text"></ui-icon>
-            <!-- from:truncate="true": a bare boolean converts to truncate="" in Vue (HTML Next gap 2, fixed by html-next #236 for the next alpha). -->
+            <!-- from:truncate="true": alpha.52's Vue output still writes a bare boolean as truncate="" (HTML Next gap 2). -->
             <ui-text slot="title" as="strong" size="sm" weight="medium" from:truncate="true" from:title="$result.label">{$result.label}</ui-text>
             <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" from:truncate="true" from:title="$result.detail"
             >{$result.detail}</ui-text>

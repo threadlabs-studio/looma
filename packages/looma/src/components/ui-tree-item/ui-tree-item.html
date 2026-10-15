@@ -567,7 +567,7 @@
       opacity: 1;
     }
 
-    :host-state([isContainer]) > .row > .drag-handle {
+    :host(:state(isContainer)) > .row > .drag-handle {
       inset-inline-start: calc(-1 * var(--_tree-disclosure-size) - 2px);
     }
 
@@ -635,7 +635,7 @@
     }
 
     html[data-ui-input-modality="touch"] :host .drag-handle,
-    html[data-ui-input-modality="touch"] :host-state([isContainer]) > .row > .drag-handle {
+    html[data-ui-input-modality="touch"] :host(:state(isContainer)) > .row > .drag-handle {
       position: relative;
       grid-column: 1;
       grid-row: 1;
