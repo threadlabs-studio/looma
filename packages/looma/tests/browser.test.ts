@@ -9710,7 +9710,7 @@ describe("Image surface", () => {
     const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
     assert.match(html, /^<figure class="ui-image"/);
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
-    assert.match(html, /class="handles"[^>]*\shidden/);
+    assert.match(html, /class="handles"[^>]*\bhidden\b/);
   });
 });
 

@@ -49,7 +49,7 @@ reconnecting reinstalls listeners and observers. Controllers communicate through
 native events and commands rather than generated methods on component elements.
 
 Component styles read resolved props with `:host([prop])` and mutable or computed
-state with `:host(:state(state))`.
+state with `:host(:state(name))`.
 
 ## Module Formats
 

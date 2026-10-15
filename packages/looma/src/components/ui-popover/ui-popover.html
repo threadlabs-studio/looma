@@ -93,7 +93,7 @@
       box-shadow: var(--_ui-popover-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
     }
 
-    :host:not(:host(:state(internalOpen))) {
+    :host(:not(:state(internalOpen))) {
       display: none;
     }
 
