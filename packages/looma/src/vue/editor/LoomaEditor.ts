@@ -53,6 +53,7 @@ import {
 import { Button, Card, Checkbox, Cluster, Combobox, EditorSurface, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
+  EditorImageToolbar,
   EditorInsertTableGrid,
   EditorMentionMenu,
   EditorSlashMenu,
@@ -83,7 +84,7 @@ import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
 import { dividerNodeView } from "./divider";
 import { calloutNodeView } from "./callout";
-import { ImageControls } from "./image-controls";
+import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
 import { imageNodeView } from "./image";
 
 /**
@@ -1349,6 +1350,39 @@ export const LoomaEditor = defineComponent({
       related: editorRoot,
       onDismiss: (reason) => reason === "escape" ? dismissFormatting() : linkPopup?.hide(),
     }));
+    // The image toolbar's target names the selected image node, so a description draft opened for one
+    // image is cancelled, never applied, once the selection or that image changes.
+    const imageTargets = new WeakMap<object, string>();
+    let imageTargetSequence = 0;
+    const selectedImage = (instance: Editor) => instance.state.selection instanceof NodeSelection
+      && instance.state.selection.node.type.name === "image" ? instance.state.selection : null;
+    const updateSelectedImage = (instance: Editor, attrs: Record<string, unknown>) => {
+      const selection = selectedImage(instance);
+      if (!selection || !instance.isEditable) return;
+      instance.view.dispatch(instance.state.tr.setNodeMarkup(selection.from, undefined, { ...selection.node.attrs, ...attrs }));
+      instance.view.focus();
+    };
+    const renderImageToolbar = (instance: Editor) => {
+      const node = selectedImage(instance)?.node;
+      let target = "";
+      if (node) {
+        target = imageTargets.get(node) ?? `image-${++imageTargetSequence}`;
+        imageTargets.set(node, target);
+      }
+      return h(EditorImageToolbar, {
+        placement: normalizeImagePlacement(node?.attrs.placement),
+        alt: node?.attrs.alt ?? "",
+        target,
+        onPlacement: (event: CustomEvent<{ placement: LoomaImagePlacement }>) => updateSelectedImage(instance, {
+          placement: event.detail.placement,
+          ...(event.detail.placement.startsWith("wrap-") ? { width: null, height: null } : {}),
+        }),
+        onDescribe: (event: CustomEvent<{ alt: string }>) => updateSelectedImage(instance, { alt: event.detail.alt }),
+        onDelete: () => {
+          if (selectedImage(instance) && instance.isEditable) instance.chain().focus().deleteSelection().run();
+        },
+      });
+    };
     const imageSurfaceRef = surfaceRef((surface) => { imagePopup = surface; }, (element, instance) => ({
       editor: instance,
       element,
@@ -1995,7 +2029,7 @@ export const LoomaEditor = defineComponent({
               ref: imageSurfaceRef,
               class: "looma-editor__floating-shell looma-editor__image-shell",
               hidden: true,
-            }, [h(ImageControls, { editor: instance })])])
+            }, [renderImageToolbar(instance)])])
           : null,
         instance ? h(EditorSurface, { density: props.editable ? "comfortable" : props.contentDensity }, () => h("div", { ref: attachDocument })) : null,
         codeUi.open

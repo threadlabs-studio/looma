@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.5
+
+- Image Toolbar (`ui-editor-image-toolbar`) is the editor's image actions bar as an HTML Next component, in HTML and Vue (`EditorImageToolbar`): four placement commands, a description form, and delete, each reported as a request (`placement`, `describe`, `delete`) for the editor to apply. LoomaEditor uses it in place of its Vue-only image controls; the bar, its tooltips, and the description form are unchanged.
+
 ## v0.28.4
 
 - LoomaEditor's table row and column handles open in the top layer, beneath the table toolbar, the table context menu, and the editor's other floating tools, so no clipping or stacking context around the editor hides them and they never cover those controls.

@@ -1,0 +1,96 @@
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-editor-toolbar/ui-editor-toolbar.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-tooltip/ui-tooltip.html">
+<link rel="component" href="../ui-popover/ui-popover.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-form-field/ui-form-field.html">
+<link rel="component" href="../ui-input/ui-input.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<link rel="component" href="../ui-button/ui-button.html">
+<template component="ui-editor-image-toolbar" controller="./ui-editor-image-toolbar.js">
+  <defs>
+    <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right" default="block"
+    >How the selected image sits in the text; its command shows as pressed.</prop>
+    <prop name="alt" type="string" default="">The selected image's description, which the description form starts from.</prop>
+    <prop name="target" type="string" default=""
+    >Identifies the image the toolbar acts on. When it changes, an open description draft is cancelled rather than applied to another image.</prop>
+    <state name="base" type="string" value="ui-editor-image-toolbar"></state>
+    <state name="describing" type="boolean" value="false"></state>
+    <state name="draft" type="string" value=""></state>
+    <event name="placement" type="object">
+      <prop name="placement" required type="keyword" values="block, center, wrap-left, wrap-right"></prop>
+      Requests a placement for the selected image.
+    </event>
+    <event name="describe" type="object">
+      <prop name="alt" required type="string"></prop>
+      Requests the saved description for the image the form was opened for.
+    </event>
+    <event name="delete" type="object">Requests deleting the selected image.</event>
+  </defs>
+  <div>
+    <ui-text as="div" font="sans">
+      <ui-editor-toolbar from:floating="true" aria-label="Image actions">
+        <ui-icon-button
+          from:id="concat($base, '-block')"
+          label="Image in line"
+          size="sm"
+          data-image-placement="block"
+          from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'block')]"
+          from:aria-pressed="concat($placement = 'block')"
+        ><ui-icon name="panel-top" size="sm"></ui-icon></ui-icon-button>
+        <ui-icon-button
+          from:id="concat($base, '-center')"
+          label="Center image"
+          size="sm"
+          data-image-placement="center"
+          from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'center')]"
+          from:aria-pressed="concat($placement = 'center')"
+        ><ui-icon name="align-center" size="sm"></ui-icon></ui-icon-button>
+        <ui-icon-button
+          from:id="concat($base, '-wrap-left')"
+          label="Wrap text to the right"
+          size="sm"
+          data-image-placement="wrap-left"
+          from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-left')]"
+          from:aria-pressed="concat($placement = 'wrap-left')"
+        ><ui-icon name="panel-left" size="sm"></ui-icon></ui-icon-button>
+        <ui-icon-button
+          from:id="concat($base, '-wrap-right')"
+          label="Wrap text to the left"
+          size="sm"
+          data-image-placement="wrap-right"
+          from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-right')]"
+          from:aria-pressed="concat($placement = 'wrap-right')"
+        ><ui-icon name="panel-right" size="sm"></ui-icon></ui-icon-button>
+        <ui-icon-button from:id="$base" label="Image description" size="sm" variant="ghost"><ui-icon name="file-text" size="sm"></ui-icon></ui-icon-button>
+        <ui-icon-button from:id="concat($base, '-delete')" label="Delete image" size="sm" variant="ghost" data-image-action="delete"><ui-icon
+            name="trash"
+            size="sm"
+          ></ui-icon></ui-icon-button>
+      </ui-editor-toolbar>
+      <ui-tooltip from:for="concat($base, '-block')">Image in line</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-center')">Center image</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-wrap-left')">Wrap text to the right</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
+      <ui-tooltip from:for="$base">Image description</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-delete')">Delete image</ui-tooltip>
+      <ui-popover data-image-description from:for="$base" from:open="$describing" size="sm" aria-label="Image description">
+        <form aria-label="Image description">
+          <ui-stack gap="s">
+            <ui-form-field>
+              <label slot="label" from:for="concat($base, '-alt')">Alt text</label>
+              <ui-input data-image-alt from:id="concat($base, '-alt')" size="sm" from:value="$draft"></ui-input>
+            </ui-form-field>
+            <ui-text size="xs" tone="secondary">Describe the image for people using a screen reader.</ui-text>
+            <ui-cluster justify="end" gap="xs">
+              <ui-button type="button" variant="ghost" tone="neutral" size="sm" data-image-action="cancel">Cancel</ui-button>
+              <ui-button type="submit" variant="solid" size="sm">Save</ui-button>
+            </ui-cluster>
+          </ui-stack>
+        </form>
+      </ui-popover>
+    </ui-text>
+  </div>
+</template>
