@@ -20,6 +20,13 @@ export default defineConfig({
       "tests/looma-editor-task-items.browser.test.ts",
       "tests/mention-typing.browser.test.ts",
     ],
-    browser: { enabled: true, provider: "playwright", headless: true, instances: [{ browser: "chromium" }] },
+    browser: {
+      enabled: true,
+      provider: "playwright",
+      headless: true,
+      instances: [{ browser: "chromium" }],
+      // Failure screenshots are evidence for one run, kept out of the tests folder and out of Git.
+      screenshotDirectory: "test-results/browser",
+    },
   },
 });
