@@ -1,0 +1,2 @@
+- [x] Read the changelog
+- [ ] Run the migration

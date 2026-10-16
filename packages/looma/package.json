@@ -50,6 +50,21 @@
       "import": "./editor/extensions/index.js",
       "default": "./editor/extensions/index.js"
     },
+    "./markdown": {
+      "types": "./markdown/index.d.ts",
+      "import": "./markdown/index.js",
+      "default": "./markdown/index.js"
+    },
+    "./markdown/markdown-it": {
+      "types": "./markdown/markdown-it.d.ts",
+      "import": "./markdown/markdown-it.js",
+      "default": "./markdown/markdown-it.js"
+    },
+    "./markdown/fixtures": {
+      "types": "./markdown/fixtures.d.ts",
+      "import": "./markdown/fixtures.js",
+      "default": "./markdown/fixtures.js"
+    },
     "./vue/*": "./vue/*",
     "./vanilla": "./vanilla/index.js",
     "./vanilla/*": "./vanilla/*",
@@ -68,6 +83,7 @@
     "dist/",
     "vue/",
     "editor/",
+    "markdown/",
     "vanilla/",
     "components/",
     "styles/",

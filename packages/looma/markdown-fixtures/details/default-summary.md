@@ -1,0 +1,3 @@
+::: details
+Hidden until opened.
+:::
