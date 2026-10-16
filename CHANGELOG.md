@@ -2,6 +2,7 @@
 
 ## Next release
 
+- LoomaEditor names each task item's checkbox by the item's text, so a screen reader announces the task instead of an unnamed checkbox. In the editor the checkbox follows the text as it is edited, and an empty item's checkbox is named "Task"; in saved HTML the checkbox carries the text as `aria-label`. The saved structure is unchanged, so earlier content reads as before.
 - Looma builds with HTML Next 1.0.0-alpha.53, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.53`.
 - Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
 
