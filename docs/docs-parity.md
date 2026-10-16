@@ -122,7 +122,9 @@ it does not inherit them from a surrounding checkout. The two older docs suites
 still have unchecked TypeScript annotations and are exercised as browser tests.
 
 The visual wrapper uses the digest-pinned Playwright 1.60.0 Linux ARM64 image, with
-container-only dependency volumes. CI uses GitHub’s `ubuntu-24.04-arm` runner
+container-only dependency volumes. Its containers and volumes, and the Storybook visual runner's, carry the
+`com.threadlabs.tool=looma` label; `pnpm docker:clean` removes the stopped containers and unused volumes
+with that label and nothing else. CI uses GitHub’s `ubuntu-24.04-arm` runner
 ([runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)). Tests replay the site's real Google Fonts
 stylesheet and font binaries from `tests/fixtures/fonts`, with upstream sources
 and OFL licenses. They wait for preview loading, scroll the lazy catalog into
