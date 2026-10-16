@@ -67,4 +67,22 @@ describe("LoomaEditor node views", () => {
     const divider = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-separator"]')!;
     await vi.waitFor(() => expect(state(divider).split(" ")).not.toContain("selectable"));
   });
+
+  it("draws a callout with Callout, follows tone and heading changes, and disconnects it once the node is removed", async () => {
+    const { host, editor } = await mountEditor('<ui-callout tone="tip" heading="Before"><p>Body</p></ui-callout><p>After</p>');
+    const callout = host.querySelector<HTMLElement>('.ProseMirror [data-looma-callout] [data-component~="ui-callout"]')!;
+    expect(callout.querySelector("[data-looma-callout-body] p")?.textContent).toBe("Body");
+    expect(callout.getAttribute("data-ui-callout-prop-tone")).toBe("tip");
+    expect(callout.querySelector(".heading")?.textContent).toBe("Before");
+    editor.chain().setTextSelection(2).updateAttributes("loomaCallout", { tone: "warning", heading: "" }).run();
+    await vi.waitFor(() => expect(callout.getAttribute("data-ui-callout-prop-tone")).toBe("warning"));
+    expect(callout.querySelector(".heading")?.textContent ?? "").toBe("");
+    editor.commands.setContent("<p>Gone</p>");
+    await flushBrowser();
+    expect(callout.isConnected).toBe(false);
+    // The prop record is written at once; rendering the heading waits for a connection that never comes.
+    updateComponentProps(callout, { heading: "Late" });
+    await flushBrowser();
+    expect(callout.querySelector(".heading")?.textContent ?? "").toBe("");
+  });
 });
