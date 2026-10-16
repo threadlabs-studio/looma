@@ -31,6 +31,7 @@
     "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
     "dev:docs": "pnpm --filter @threadlabs/looma-docs dev",
     "dev:storybook": "pnpm --filter @threadlabs/looma-storybook dev",
+    "docker:clean": "docker container prune --force --filter label=com.threadlabs.tool=looma && docker volume prune --all --force --filter label=com.threadlabs.tool=looma",
     "format": "dprint fmt",
     "format:check": "dprint check",
     "generate:api": "node ./tools/scripts/generate-component-api.mjs",
