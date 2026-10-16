@@ -4,7 +4,7 @@ import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "
 import { Editor as VueEditor } from "@tiptap/vue-3";
 import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
-import { AllSelection, NodeSelection, TextSelection } from "@tiptap/pm/state";
+import { NodeSelection } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -82,6 +82,16 @@ import { createFormattingSelection, type LoomaFormattingSelection } from "../../
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
 import { createChipEditing, LOOMA_CHIP_EDITING_IDLE, type LoomaChipEditing } from "../../editor/chip-editing";
+import {
+  groupRangeActions,
+  rangeActionsAtCaret,
+  selectionActionDetail,
+  selectsPassage,
+  type LoomaEditorRangeAction,
+  type LoomaEditorRangeActionDetail,
+  type LoomaEditorSelectionAction,
+  type LoomaEditorSelectionActionDetail,
+} from "../../editor/host-actions";
 import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
@@ -106,14 +116,12 @@ export type { LoomaRequestInit, LoomaResponder } from "../../editor/requests";
  */
 export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
 
-/** Host-owned non-mutating commands for the selected passage. */
-export interface LoomaEditorSelectionAction { id: string; label: string; }
-/** Host action available at a collapsed caret inside an ephemeral editor range. */
-export interface LoomaEditorRangeAction extends LoomaEditorSelectionAction { from: number; to: number; }
-/** Matching ranges are grouped into one control for each action ID. */
-export interface LoomaEditorRangeActionDetail { id: string; ranges: { from: number; to: number }[]; }
-/** Exact editor range captured before focus leaves for a host action. */
-export interface LoomaEditorSelectionActionDetail { id: string; from: number; to: number; text: string; before: string; after: string; }
+export type {
+  LoomaEditorRangeAction,
+  LoomaEditorRangeActionDetail,
+  LoomaEditorSelectionAction,
+  LoomaEditorSelectionActionDetail,
+} from "../../editor/host-actions";
 
 
 export type { LoomaLinkTarget } from "../../editor/link-editing";
@@ -442,13 +450,7 @@ export const LoomaEditor = defineComponent({
     const floatingFormattingMode = () => props.toolbarMode !== "sticky"
       && !(props.toolbarMode === "popover" && props.toolbarOpen) && !mobile.value;
     const formattingPickerOpen = () => linkState.value.surface === "popover" || tablePickerOpen.value || formatOpen.value;
-    const activeRangeActions = (instance: Editor) => {
-      const selection = instance.state.selection;
-      if (!(selection instanceof TextSelection) || !selection.empty) return [];
-      return props.rangeActions.filter(action => Number.isSafeInteger(action.from) && Number.isSafeInteger(action.to)
-        && action.from >= 0 && action.to > action.from && action.to <= instance.state.doc.content.size
-        && action.from <= selection.from && selection.from <= action.to);
-    };
+    const activeRangeActions = (instance: Editor) => rangeActionsAtCaret(instance.state, props.rangeActions);
     const formattingActive = () => formatting?.active() ?? false;
 
     const editorStateVersion = ref(0);
@@ -1602,38 +1604,26 @@ export const LoomaEditor = defineComponent({
       }, () => loomaIcon(icon));
     };
 
-    const renderRangeActions = (instance: Editor) => {
-      const groups = new Map<string, { label: string; ranges: Map<string, { from: number; to: number }> }>();
-      for (const action of activeRangeActions(instance)) {
-        const group = groups.get(action.id) ?? { label: action.label, ranges: new Map() };
-        group.ranges.set(`${action.from}:${action.to}`, { from: action.from, to: action.to });
-        groups.set(action.id, group);
-      }
-      return [...groups].map(([id, group]) => h(Button, {
-        key: id, "aria-label": group.label, type: "button", variant: "ghost", tone: "neutral", size: "sm",
-        onPointerdown: (event: PointerEvent) => event.preventDefault(),
-        onClick: () => {
-          emit("rangeAction", { id, ranges: [...group.ranges.values()] });
-          formattingPopup?.hide();
-        },
-      }, () => group.label));
-    };
+    const renderRangeActions = (instance: Editor) => groupRangeActions(activeRangeActions(instance)).map(({ id, label, detail }) => h(Button, {
+      key: id, "aria-label": label, type: "button", variant: "ghost", tone: "neutral", size: "sm",
+      onPointerdown: (event: PointerEvent) => event.preventDefault(),
+      onClick: () => {
+        emit("rangeAction", detail);
+        formattingPopup?.hide();
+      },
+    }, () => label));
 
     const renderSelectionActions = (instance: Editor) => {
-      const selection = instance.state.selection;
-      if (selection.empty) return renderRangeActions(instance);
-      if (!(selection instanceof TextSelection || selection instanceof AllSelection)) return [];
+      if (instance.state.selection.empty) return renderRangeActions(instance);
+      if (!selectsPassage(instance.state)) return [];
       return props.selectionActions.map(action => h(Button, {
         key: action.id, "aria-label": action.label,
         type: "button", variant: "ghost", tone: "neutral", size: "sm",
         onPointerdown: (event: PointerEvent) => event.preventDefault(),
         onClick: () => {
-          const { from, to } = instance.state.selection;
-          if (from === to) return;
-          const doc = instance.state.doc;
-          emit("selectionAction", { id: action.id, from, to, text: doc.textBetween(from, to, "\n"),
-            before: doc.textBetween(Math.max(0, from - 48), from, "\n"),
-            after: doc.textBetween(to, Math.min(doc.content.size, to + 48), "\n") });
+          const detail = selectionActionDetail(instance.state, action.id);
+          if (!detail) return;
+          emit("selectionAction", detail);
           formattingPopup?.hide();
         },
       }, () => action.label));
