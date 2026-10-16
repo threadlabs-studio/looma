@@ -202,15 +202,45 @@ export function parseLoomaFenceInfo(info: string): LoomaFenceInfo {
   };
 }
 
+// A YAML mapping's first entry: a plain or quoted key at the start of a line, then a colon that
+// ends the line or is followed by a space, whatever value comes after it or on the lines below.
+const MAPPING_KEY = /^(?:[^\s#:'"\-?,[\]{}&*!|>%@`][^:\n]*?|"[^"\n]*"|'[^'\n]*')[ \t]*:(?:[ \t]|$)/;
+
+const NOTATION = /[ \t]*(?:\/\/|#|--|<!--|\{?\/\*)[ \t]*\[!code highlight(?::(\d+))?\][ \t]*(?:-->|\*\/\}?)?[ \t]*$/;
+
+/**
+ * Applies code notation: a line ending in a `[!code highlight]` comment is highlighted and loses
+ * the comment, `[!code highlight:3]` covers three lines, and a marker alone on its line is removed
+ * with the line and applies to the lines after it.
+ * @contract Returns the code a reader sees and its highlighted line numbers, from 1, ascending.
+ * ponytail: matched on source lines, so a string that ends in the marker counts too.
+ */
+export function applyLoomaCodeNotation(code: string): { code: string; lines: number[] } {
+  const kept: string[] = [];
+  const lines = new Set<number>();
+  for (const line of code.split("\n")) {
+    const match = NOTATION.exec(line);
+    if (!match) { kept.push(line); continue; }
+    const rest = line.slice(0, match.index);
+    const own = rest.trim() !== "";
+    if (own) kept.push(rest);
+    for (let count = 0; count < Number(match[1] ?? 1); count++) lines.add(kept.length + (own ? 0 : 1) + count);
+  }
+  return { code: kept.join("\n"), lines: [...lines].sort((a, b) => a - b) };
+}
+
 /**
  * Splits YAML front matter from the start of a document.
- * @contract Front matter opens with a `---` line at the very start, holds at least one `key: value`
- * line, and closes at a `---` or `...` line. `source` is the block as written, delimiters included.
+ * @contract Front matter opens with a `---` line at the very start and closes at a `---` or `...`
+ * line, and what lies between is a YAML mapping: its first line that is not blank or a comment
+ * starts with a key, whose value may be a scalar, a list or a mapping. `source` is the block as
+ * written, delimiters included.
  * @failure Returns null when the document has none.
  */
 export function splitLoomaFrontmatter(document: string): { source: string; yaml: string; body: string } | null {
   const match = /^---[ \t]*\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/.exec(document.slice(0, 8_192));
-  if (!match || !/^[A-Za-z][\w-]*:[ \t]*\S/m.test(match[1])) return null;
+  const first = match?.[1].split(/\r?\n/).find(line => line.trim() && !line.trimStart().startsWith("#"));
+  if (!match || !first || !MAPPING_KEY.test(first)) return null;
   return { source: match[0].trimEnd(), yaml: match[1], body: document.slice(match[0].length) };
 }
 
