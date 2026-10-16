@@ -71,6 +71,7 @@ import {
   imageDescriptorFromAttrs,
   type LoomaImageActivationDetail,
   type LoomaImageAttributeResolver,
+  type LoomaImageSourceResolver,
   type LoomaImageRenditionErrorDetail,
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
@@ -252,6 +253,10 @@ export const LoomaEditor = defineComponent({
     },
     resolveImageAttributes: {
       type: Function as PropType<LoomaImageAttributeResolver | undefined>,
+      default: undefined,
+    },
+    resolveImageSource: {
+      type: Function as PropType<LoomaImageSourceResolver | undefined>,
       default: undefined,
     },
     toolbarMode: {
@@ -486,6 +491,7 @@ export const LoomaEditor = defineComponent({
       },
     });
     const imageDelivery = createLoomaImageDeliveryController({
+      resolveSource: () => props.resolveImageSource,
       resolveAttributes: () => props.resolveImageAttributes,
       isEditable: () => props.editable,
     });
@@ -525,7 +531,11 @@ export const LoomaEditor = defineComponent({
         ],
         content: props.modelValue,
         editable: props.editable,
-        editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
+        editorProps: {
+          // Tiptap creates its first view before installing plugins/node views.
+          // Keep images inert until the delivery decorations are available.
+          nodeViews: { image: () => ({ dom: document.createElement("span") }) },
+          attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label },
           handleKeyDown: (_view, event) => onFormattingKeyDown(event),
           handleDOMEvents: {
             click: (view, event) => {
@@ -575,6 +585,9 @@ export const LoomaEditor = defineComponent({
           emit("update", value);
         },
       }, VueEditor);
+      // Later setOptions calls must keep the installed node views, not the
+      // constructor-only placeholder that prevented the initial source request.
+      delete session.editor.options.editorProps.nodeViews;
       session.subscribe(() => { editorStateVersion.value += 1; });
       editor.value = session.editor;
       const engine = createLinkEditing({ editor: session.editor, search: () => props.linkSearch, resolve: () => props.linkResolve, baseUrl: () => props.linkBaseUrl });
@@ -692,7 +705,7 @@ export const LoomaEditor = defineComponent({
     watch(() => props.editable, (editable) => {
       formatting?.press.cancel();
       formatting?.release();
-      editor.value?.setEditable(editable);
+      editor.value?.setEditable(editable, false);
       if (!editable) formattingPopup?.hide();
       if (editor.value) imageDelivery.reset(editor.value);
       root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
@@ -716,7 +729,7 @@ export const LoomaEditor = defineComponent({
         editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
       });
     });
-    watch(() => props.resolveImageAttributes, () => {
+    watch([() => props.resolveImageAttributes, () => props.resolveImageSource], () => {
       const instance = editor.value;
       if (instance) imageDelivery.reset(instance);
     });

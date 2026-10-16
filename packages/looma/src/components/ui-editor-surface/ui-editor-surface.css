@@ -19,8 +19,8 @@
 }
 
 
-:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
-:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }
+:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
+:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }
 
 /* List items own their small inter-item gap; paragraphs must not add another one. */
 .looma-editor .ProseMirror li > p:last-of-type,
