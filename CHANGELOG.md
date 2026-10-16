@@ -2,6 +2,7 @@
 
 ## Next release
 
+- LoomaEditor's toolbar tooltip moves into a framework-neutral module: the first button waits 400 ms, moving along the row while it shows is immediate, and keyboard focus shows it at once. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's editing dock for narrow screens moves into a framework-neutral module: the 767px width it starts at, its place against the bottom of the visual viewport above an on-screen keyboard, and whether it shows formatting or table controls. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's passage and range actions move into a framework-neutral module: the range actions at the caret, grouped by ID, and the selected passage with its context. `LoomaEditorSelectionAction` and the other action types are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's chip editor moves into a framework-neutral module: it opens on one chip and writes each label and tone change to that chip, and closes when the chip is gone. LoomaEditor's behavior and public API stay the same.
