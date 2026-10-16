@@ -17,7 +17,7 @@ await assertStyleSources();
 
 const root = dirname(fileURLToPath(import.meta.url));
 const assembled = join(root, ".build");
-const outputs = ["dist", "vue", "vanilla", "components", "styles", "editor"];
+const outputs = ["dist", "vue", "vanilla", "components", "styles", "editor", "markdown"];
 
 await Promise.all([assembled, ...outputs.map((name) => join(root, name))].map((path) => rm(path, { recursive: true, force: true })));
 
@@ -136,13 +136,34 @@ await build({
     rollupOptions: { external: isDependency, output: { entryFileNames: "[name].js", chunkFileNames: "chunks/[name].js" } },
   },
 });
+// Looma Markdown: its rules, the markdown-it plugin, and the fixtures, whose files are bundled as strings.
+await build({
+  configFile: false,
+  logLevel: "warn",
+  root,
+  build: {
+    outDir: join(root, "markdown"),
+    emptyOutDir: false,
+    minify: false,
+    lib: {
+      entry: {
+        index: join(root, "src/markdown/index.ts"),
+        "markdown-it": join(root, "src/markdown/markdown-it.ts"),
+        fixtures: join(root, "src/markdown/fixtures.ts"),
+      },
+      formats: ["es"],
+    },
+    rollupOptions: { external: isDependency, output: { entryFileNames: "[name].js", chunkFileNames: "chunks/[name].js" } },
+  },
+});
 // Declarations for the hand-written TypeScript; @threadlabs/looma/vue resolves to the declarations
 // built above.
 execFileSync(join(root, "node_modules/.bin/vue-tsc"), ["-p", join(root, "tsconfig.json")], { stdio: "inherit" });
 await cp(join(assembled, "types-src/editor"), join(root, "editor"), { recursive: true });
 await cp(join(assembled, "types-src/vue/editor"), join(root, "vue/editor"), { recursive: true });
+await cp(join(assembled, "types-src/markdown"), join(root, "markdown"), { recursive: true });
 // Node-resolved consumers need explicit extensions in declaration imports.
-for (const directory of ["editor", "vue/editor"]) {
+for (const directory of ["editor", "vue/editor", "markdown"]) {
   for (const file of await readdir(join(root, directory), { recursive: true })) {
     if (!file.endsWith(".d.ts")) continue;
     const path = join(root, directory, file);

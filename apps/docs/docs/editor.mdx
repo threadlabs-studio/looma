@@ -191,10 +191,10 @@ text resembles Markdown. Looma also turns Markdown or HTML copied as source into
 including `:::` callouts and sections and GitHub `> [!NOTE]` alerts. Pasting inside a code block
 stays literal.
 
-To load or save Markdown, `loomaMarkdownToHtml(markdown)` renders HTML for `setContent`, and
-`loomaMarkdownFromDoc(editor.state.doc)` writes the document as Markdown in the same syntax. Both
-come from `@threadlabs/looma/editor/extensions`. Content Markdown has no syntax for, such as
-tables, task lists and images, is written as its saved HTML.
+To load or save [Looma Markdown](/looma-markdown), `loomaMarkdownToHtml(markdown)` renders HTML
+for `setContent`, and `loomaMarkdownFromDoc(editor.state.doc)` writes the document as Looma
+Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads every form on that
+page that its document holds; the page's Support table lists what it writes as HTML.
 
 ## Mentions
 
