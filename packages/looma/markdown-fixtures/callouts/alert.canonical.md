@@ -1,0 +1,3 @@
+::: warning
+Deletes data.
+:::

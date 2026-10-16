@@ -195,15 +195,16 @@ describe("editor extension contract", () => {
   it("exports callouts and expand sections as the shared Markdown and reads them back", () => {
     const editor = new Editor({
       extensions: getDefaultEditorExtensions(),
-      content: '<h2>Setup</h2><ui-callout tone="tip" heading="Before you start"><p>Install <strong>first</strong>.</p></ui-callout>'
+      // Reading Markdown gives every heading its anchor.
+      content: '<h2 id="setup">Setup</h2><ui-callout tone="tip" heading="Before you start"><p>Install <strong>first</strong>.</p></ui-callout>'
         + '<details data-looma-expand open><summary>More</summary><div data-looma-expand-body><ui-callout tone="warning"><p>Nested.</p></ui-callout></div></details>'
         + '<ul><li><p>One</p></li></ul><pre><code class="language-ts">const a = 1;</code></pre>',
     });
     const markdown = loomaMarkdownFromDoc(editor.state.doc);
     expect(markdown).toBe([
-      "## Setup", "", "::: tip Before you start", "Install **first**.", "", ":::", "",
-      ":::: details More {open}", "::: warning", "Nested.", "", ":::", "", "::::", "",
-      "* One", "", "```ts", "const a = 1;", "```",
+      "## Setup", "", "::: tip Before you start", "Install **first**.", ":::", "",
+      ":::: details More {open}", "::: warning", "Nested.", ":::", "::::", "",
+      "- One", "", "```ts", "const a = 1;", "```",
     ].join("\n"));
     const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
     expect(reloaded.getJSON()).toEqual(editor.getJSON());
