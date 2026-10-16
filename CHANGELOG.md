@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## v0.28.18
 
 - Looma Markdown's canonical HTML shows code as readers see it: a `[!code highlight]` comment is removed from the code, as the spec says. `applyLoomaCodeNotation` in `@threadlabs/looma/markdown` returns the code and the lines it highlights. `createLoomaMarkdownIt` and `loomaMarkdown` take `{ codeNotation: "keep" }` for an editor, and LoomaEditor uses it, so it still edits and writes the comment as source.
 - A task list item's checkbox now has an accessible name: its checkbox and text share one label, `<li data-type="taskItem" data-checked="true"><label><input type="checkbox" disabled checked> Text</label></li>`. Every fixture's canonical HTML is checked with axe in Chromium.
