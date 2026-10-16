@@ -98,11 +98,17 @@ scheme or `www.`. A bare domain such as `example.com` stays text.
 ```
 
 `#` to `######` make headings 1 to 6. Every heading has an anchor. A trailing `{#id}` sets it;
-otherwise the anchor is the heading's text in lowercase, with accents removed and each run of
-other characters replaced by a hyphen, so "Über `code` & more" is `uber-code-more`. A repeated
-anchor takes the first free suffix: `install-1`, then `install-2`. A custom ID is reserved for its
-heading, so a generated anchor never takes it, and a writer writes `{#id}` only for an ID that
-differs from the one the text derives.
+otherwise the anchor derives from the heading's text:
+
+1. The text is normalized to NFC and lowercased.
+2. Letters, numbers and combining marks stay, in any script.
+3. Every other run of characters becomes one hyphen, and hyphens at either end are trimmed.
+
+So "Über `code` & more" is `über-code-more`, and "設定 と 使い方" is `設定-と-使い方`. Text with no
+letters or numbers, such as a heading of only emoji, has the anchor `heading`. A repeated anchor
+takes the first free suffix: `setup-1`, then `setup-2`. A custom ID is reserved for its heading,
+so a generated anchor never takes it, and a writer writes `{#id}` only for an ID that differs from
+the one the text derives.
 
 ## Lists and task lists
 
@@ -363,7 +369,7 @@ for (const fixture of LOOMA_MARKDOWN_FIXTURES) {
 | Text and line breaks | `text` | Yes | Yes | Yes |
 | Autolinks | `autolinks` | Yes | Yes | As `<url>` and links |
 | Headings | `headings` | Levels 1–6 | Levels 1–3 | Levels 1–3 |
-| Heading anchors | `heading-ids` | Yes; "Über" is `u-ber` | Yes | Generated anchors only |
+| Heading anchors | `heading-ids` | Splits accented letters: "Über" is `u-ber` | Yes | Generated anchors only |
 | Lists, quotes and rules | `lists` | Yes | Yes | Yes |
 | Task lists | `task-lists` | Yes | Yes | As HTML |
 | Code blocks | `code-blocks` | Yes | Yes | Yes |

@@ -51,8 +51,11 @@ describe("Looma Markdown rules", () => {
   });
 
   it("derives heading anchors with suffixes, reserving custom IDs", () => {
-    expect(loomaHeadingSlug("Über `code` & more")).toBe("uber-code-more");
+    expect(loomaHeadingSlug("Über `code` & more")).toBe("über-code-more");
+    expect(loomaHeadingSlug("U\u0308ber")).toBe("über");
+    expect(loomaHeadingSlug("設定 と 使い方")).toBe("設定-と-使い方");
     expect(loomaHeadingSlug("!!!")).toBe("heading");
+    expect(loomaHeadingSlug("🚀 🎉")).toBe("heading");
     expect(assignLoomaHeadingIds([{ text: "Setup" }, { text: "Install", id: "setup" }, { text: "Setup" }, { text: "Other", id: "setup" }]))
       .toEqual(["setup-1", "setup", "setup-2", "setup-3"]);
   });
