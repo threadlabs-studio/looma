@@ -6,6 +6,17 @@ import type * as Preset from "@docusaurus/preset-classic";
 // The released package version, shown in the navbar.
 const loomaVersion = (JSON.parse(readFileSync(path.join(__dirname, "../../package.json"), "utf8")) as { version: string }).version;
 
+// Looma Markdown escapes a code marker shown as text, `[\!code highlight]`. This site applies no
+// code notation, so it only drops the escape's backslash and shows the marker as Looma does.
+type CodeNode = { type: string; value?: string; children?: CodeNode[] };
+const literalCodeNotation = () => (tree: CodeNode) => {
+  const visit = (node: CodeNode): void => {
+    if (node.type === "code" && node.value) node.value = node.value.replace(/\[\\(\\*!code highlight)/g, "[$1");
+    node.children?.forEach(visit);
+  };
+  visit(tree);
+};
+
 const config: Config = {
   title: "Looma",
   tagline: "Declarative components, woven into the web platform",
@@ -52,7 +63,8 @@ const config: Config = {
       {
         docs: {
           routeBasePath: "/",
-          sidebarPath: "./sidebars.ts"
+          sidebarPath: "./sidebars.ts",
+          remarkPlugins: [literalCodeNotation]
         },
         blog: false,
         pages: false,
