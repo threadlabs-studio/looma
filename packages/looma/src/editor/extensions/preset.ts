@@ -17,7 +17,6 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
 import Blockquote from "@tiptap/extension-blockquote";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import HardBreak from "@tiptap/extension-hard-break";
@@ -41,6 +40,7 @@ import { LoomaExpand } from "./expand";
 import { LoomaFigcaption, LoomaFigure } from "./figure";
 import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
+import { LoomaTaskItem } from "./task-item";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
 import { createSiteRelativeLinks } from "./relative-links";
@@ -200,7 +200,7 @@ export function getDefaultEditorExtensions(
     OrderedList,
     ListItem,
     TaskList,
-    TaskItem.configure({ nested: false }),
+    LoomaTaskItem.configure({ nested: false }),
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => calloutNodeView }) : LoomaCallout,
     LoomaChip,
