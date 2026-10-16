@@ -22,7 +22,7 @@ const TAB_LABEL = /^==[ \t]+(\S.*?)[ \t]*$/;
 const OPEN_FLAG = /[ \t]*\{open\}$/;
 const ALERT = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\n|$)/i;
 const LEAF = /^::([A-Za-z][\w-]*)(\{.*\})?[ \t]*$/;
-const TASK = /^\[([ xX])\][ \t]+/;
+const TASK = /^\[([ xX])\](?:[ \t]+|$)/;
 const TOC_FORMATS = new Set(["plain", "bulleted", "numbered"]);
 const PLACEMENTS = new Set(["block", "center", "wrap-left", "wrap-right"]);
 
