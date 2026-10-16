@@ -73,6 +73,8 @@ describe("Looma Markdown rules", () => {
     expect(applyLoomaCodeNotation("a\nb // [!code highlight]\n# [!code highlight:2]\nc\nd <!-- [!code highlight] -->"))
       .toEqual({ code: "a\nb\nc\nd", lines: [2, 3, 4] });
     expect(applyLoomaCodeNotation("plain")).toEqual({ code: "plain", lines: [] });
+    expect(applyLoomaCodeNotation("a // [\\!code highlight]\nb // [\\\\!code highlight:2]\n[\\!other]"))
+      .toEqual({ code: "a // [!code highlight]\nb // [\\!code highlight:2]\n[\\!other]", lines: [] });
   });
 
   it("recognizes front matter whose values are scalars, lists or mappings", () => {
