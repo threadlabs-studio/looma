@@ -3,8 +3,8 @@ import { DOMSerializer, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { assignLoomaHeadingIds, formatLoomaAttributes, LOOMA_CONTAINER_NAMES, loomaCodeFence, loomaContainerMarker, normalizeLoomaChipTone, parseLoomaFenceInfo } from "../../markdown";
 import { createLoomaMarkdownIt } from "../../markdown/markdown-it";
 
-/** The markdown-it instance LoomaEditor reads Looma Markdown with. */
-export const loomaMarkdown = createLoomaMarkdownIt();
+/** The markdown-it instance LoomaEditor reads Looma Markdown with; code keeps its notation as source. */
+export const loomaMarkdown = createLoomaMarkdownIt({ codeNotation: "keep" });
 
 /**
  * Renders Looma Markdown as the HTML the editor parses.

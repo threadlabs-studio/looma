@@ -12,6 +12,7 @@ export default defineConfig({
       "tests/looma-editor-active-block.browser.test.ts",
       "tests/looma-editor-history.browser.test.ts",
       "tests/looma-editor-markdown.browser.test.ts",
+      "tests/markdown-accessibility.browser.test.ts",
       "tests/looma-editor-mention.browser.test.ts",
       "tests/looma-editor-chip.browser.test.ts",
       "tests/looma-editor-table-layout.browser.test.ts",
