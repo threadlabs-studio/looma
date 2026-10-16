@@ -98,7 +98,8 @@ import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaL
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
-import { formatEditorShortcut, isApplePlatform } from "../../editor/shortcuts";
+import { isApplePlatform } from "../../editor/shortcuts";
+import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
 import { dividerNodeView } from "./divider";
@@ -405,33 +406,13 @@ export const LoomaEditor = defineComponent({
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const tooltipFor = ref("");
-    const tooltipLabel = ref("");
-    const tooltipShortcut = ref("");
-    const tooltipOpen = ref(false);
+    const toolbarTooltip = createToolbarTooltip((state) => { tooltip.value = state; });
+    const tooltip = shallowRef(toolbarTooltip.state);
     const resizeHintFor = ref("");
     let resizeHintSequence = 0;
-    let tooltipTimer = 0;
-    const clearTooltipTimer = () => {
-      if (tooltipTimer) window.clearTimeout(tooltipTimer);
-      tooltipTimer = 0;
-    };
-    const showTool = (id: string, label: string, immediate: boolean, shortcut = "") => {
-      clearTooltipTimer();
-      tooltipFor.value = id;
-      tooltipLabel.value = label;
-      tooltipShortcut.value = shortcut ? formatEditorShortcut(shortcut, isApplePlatform()) : "";
-      if (immediate || tooltipOpen.value) {
-        tooltipOpen.value = true;
-        return;
-      }
-      tooltipTimer = window.setTimeout(() => { tooltipOpen.value = true; }, 400);
-    };
-    const hideTool = () => {
-      clearTooltipTimer();
-      tooltipOpen.value = false;
-    };
-    onBeforeUnmount(clearTooltipTimer);
+    const showTool = toolbarTooltip.show;
+    const hideTool = toolbarTooltip.hide;
+    onBeforeUnmount(toolbarTooltip.destroy);
     const tableToolbarShell = ref<HTMLElement | null>(null);
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
@@ -1713,13 +1694,13 @@ export const LoomaEditor = defineComponent({
         ...(mobile.value ? [...actions, ...buttons] : [...buttons, ...actions]),
         h(Tooltip, {
           class: "looma-editor__toolbar-tip",
-          for: tooltipFor.value,
-          open: tooltipOpen.value,
+          for: tooltip.value.for,
+          open: tooltip.value.open,
           placement: floating ? "top" : "bottom",
           trigger: "focus",
         }, {
-          default: () => tooltipLabel.value,
-          shortcut: () => (tooltipShortcut.value ? h("kbd", tooltipShortcut.value) : null),
+          default: () => tooltip.value.label,
+          shortcut: () => (tooltip.value.shortcut ? h("kbd", tooltip.value.shortcut) : null),
         }),
       ]);
     };
