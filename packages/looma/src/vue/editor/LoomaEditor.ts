@@ -105,7 +105,7 @@ import { expandNodeView } from "../../editor/node-views/expand";
 import { dividerNodeView } from "../../editor/node-views/divider";
 import { calloutNodeView } from "../../editor/node-views/callout";
 import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
-import { imageNodeView } from "./image";
+import { imageNodeView } from "../../editor/node-views/image";
 
 export type { LoomaImageUploadDetail } from "../../editor/image-uploads";
 export type { LoomaRequestInit, LoomaResponder } from "../../editor/requests";
