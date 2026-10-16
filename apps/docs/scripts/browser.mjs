@@ -20,11 +20,13 @@ const workspaces = ["packages", "apps", "tools"].flatMap((group) => readdirSync(
   .filter((entry) => entry.isDirectory()).map((entry) => `${group}/${entry.name}`));
 // Anonymous node_modules volumes hide the host's macOS installs and are deleted by --rm; only the
 // content-addressed pnpm store persists, shared by every checkout, so runs leave nothing behind.
-const mounts = ["", ...workspaces].flatMap((dir) => ["--volume", `/work/${dir ? `${dir}/` : ""}node_modules`]);
-mounts.push("--volume", "looma-docs-parity-pnpm-store:/pnpm/store");
+// Everything carries the Looma label, so `pnpm docker:clean` can remove what an interrupted run left.
+const label = "com.threadlabs.tool=looma";
+const mounts = ["", ...workspaces].flatMap((dir) => ["--mount", `type=volume,dst=/work/${dir ? `${dir}/` : ""}node_modules,volume-label=${label}`]);
+mounts.push("--mount", `type=volume,src=looma-docs-parity-pnpm-store,dst=/pnpm/store,volume-label=${label}`);
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const command = `corepack enable && corepack pnpm install --frozen-lockfile --store-dir /pnpm/store && corepack pnpm --filter @threadlabs/looma-docs exec playwright ${args.map(quote).join(" ")}`;
-const result = spawnSync("docker", ["run", "--rm", "--init", "--ipc=host", "--platform", "linux/arm64", "--workdir", "/work", "--volume", `${root}:/work`, ...mounts,
+const result = spawnSync("docker", ["run", "--rm", "--label", label, "--init", "--ipc=host", "--platform", "linux/arm64", "--workdir", "/work", "--volume", `${root}:/work`, ...mounts,
   ...(process.env.LOOMA_DOCS_TEST_URL ? ["--env", "LOOMA_DOCS_TEST_URL"] : []),
   "--env", "LOOMA_DOCS_CANONICAL=1", "--env", `LOOMA_DOCS_REPORT=${mode}`, "--env", "CI=1", image, "bash", "-lc", command], { cwd: root, stdio: "inherit" });
 if (result.error) throw result.error;
