@@ -106,4 +106,18 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(disclosure.textContent).toBe(summary);
   });
+
+  it("keeps a section's open state its own when a section nested in its body toggles", async () => {
+    const nested = '<details data-looma-expand><summary>Inner</summary><div data-looma-expand-body><p>Inner body</p></div></details>';
+    const { host, editor } = await mountEditor(`<details data-looma-expand open><summary>Outer</summary><div data-looma-expand-body>${nested}</div></details><p>After</p>`);
+    editor.setEditable(false);
+    await flushBrowser();
+    const [outer, inner] = [...host.querySelectorAll<HTMLElement>('.ProseMirror [data-component~="ui-disclosure"]')];
+    expect(outer!.contains(inner!)).toBe(true);
+    const outerOpen = () => outer!.getAttribute("data-ui-disclosure-prop-open");
+    const before = outerOpen();
+    inner!.dispatchEvent(new CustomEvent("close", { bubbles: true, detail: { open: false, reason: "action", trigger: "pointer" } }));
+    await flushBrowser();
+    expect(outerOpen()).toBe(before);
+  });
 });

@@ -38,8 +38,9 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
     expanded = open;
     updateComponentProps(disclosure, { summary: current.attrs.summary, open });
   };
-  disclosure.addEventListener("open", () => setExpanded(true));
-  disclosure.addEventListener("close", () => setExpanded(false));
+  // A section nested in this one's body bubbles its own open and close through this Disclosure.
+  disclosure.addEventListener("open", (event) => { if (event.target === disclosure) setExpanded(true); });
+  disclosure.addEventListener("close", (event) => { if (event.target === disclosure) setExpanded(false); });
 
   const summary: HTMLElement = createUiInput({ size: "sm", value: draft.summary, attributes: { id: `${id}-summary` } });
   summary.addEventListener("input", () => {
@@ -66,14 +67,15 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
     ] }))],
   });
   const setSettingsOpen = (open: boolean) => updateComponentProps(popover, { open });
-  popover.addEventListener("open", () => {
+  popover.addEventListener("open", (event) => {
+    if (event.target !== popover) return;
     draft.summary = String(current.attrs.summary);
     draft.open = Boolean(current.attrs.open);
     updateComponentProps(summary, { value: draft.summary });
     updateComponentProps(initiallyExpanded, { checked: draft.open });
     setSettingsOpen(true);
   });
-  popover.addEventListener("close", () => setSettingsOpen(false));
+  popover.addEventListener("close", (event) => { if (event.target === popover) setSettingsOpen(false); });
   cancel.addEventListener("click", () => setSettingsOpen(false));
   save.addEventListener("click", () => {
     const position = getPos();
