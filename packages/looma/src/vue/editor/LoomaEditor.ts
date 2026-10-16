@@ -3,7 +3,6 @@ import "./looma-editor.css";
 import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { Editor as VueEditor } from "@tiptap/vue-3";
 import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
-import { closeHistory } from "@tiptap/pm/history";
 import { NodeSelection } from "@tiptap/pm/state";
 import {
   computed,
@@ -100,6 +99,7 @@ import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOpt
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
 import { isApplePlatform } from "../../editor/shortcuts";
 import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
+import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "../../editor/code-language-picker";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
 import { dividerNodeView } from "./divider";
@@ -923,16 +923,12 @@ export const LoomaEditor = defineComponent({
     let codeBlurTimer: ReturnType<typeof setTimeout> | undefined;
     const updateCodeUi = (focusSettled = false) => {
       const instance = editor.value?.isDestroyed ? undefined : editor.value;
-      const selection = instance?.state.selection;
-      const block = selection?.$from.parent;
-      const dom = instance && block?.type.name === "codeBlock" && selection!.$from.sameParent(selection!.$to)
-        ? instance.view.nodeDOM(selection!.$from.before())
-        : null;
-      if (!instance || !props.editable || !codeLanguageNames.length || !(dom instanceof HTMLElement)) {
+      const block = instance ? codeBlockAtSelection(instance) : null;
+      if (!instance || !props.editable || !codeLanguageNames.length || !block) {
         codeUi.open = false;
         return;
       }
-      loadForCodeBlock(instance, block!.attrs.language, block!.textContent);
+      loadForCodeBlock(instance, block.language === "auto" ? null : block.language, block.text);
       if (!instance.isFocused && !codeLanguageShell.value?.contains(document.activeElement)) {
         // The editor blurs before focus lands; the picker stays if that focus lands in it.
         clearTimeout(codeBlurTimer);
@@ -940,41 +936,20 @@ export const LoomaEditor = defineComponent({
         else codeUi.open = false;
         return;
       }
-      const rect = dom.getBoundingClientRect();
-      const above = rect.top > 76;
       codeUi.open = true;
-      codeUi.pos = selection!.$from.before();
-      codeUi.language = typeof block!.attrs.language === "string" && block!.attrs.language ? block!.attrs.language : "auto";
-      codeUi.text = block!.textContent;
-      codeUi.style = {
-        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,
-        left: `${rect.left + rect.width / 2}px`,
-        transform: `translate(-50%, ${above ? "-100%" : "0"})`,
-      };
+      codeUi.pos = block.pos;
+      codeUi.language = block.language;
+      codeUi.text = block.text;
+      codeUi.style = codeLanguagePickerPlacement(block.element.getBoundingClientRect());
     };
     const codeLanguageOptions = computed(() => {
       // The lowlight registry is mutable rather than reactive; this version tracks async imports.
       void codeUi.grammarVersion;
       const detected = codeUi.open && codeUi.text.trim() ? codeHighlighting.lowlight.highlightAuto(codeUi.text).data?.language : null;
-      return [
-        { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
-        ...(codeUi.language !== "auto" && !codeLanguageNames.includes(codeUi.language)
-          ? [{ value: codeUi.language, label: `${codeUi.language.toUpperCase()} (unavailable)` }]
-          : []),
-        ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
-      ];
+      return codeLanguageChoices(codeUi.language, typeof detected === "string" ? detected : null, codeLanguageNames);
     });
     const chooseCodeLanguage = (value: string) => {
-      const instance = editor.value;
-      if (!instance) return;
-      const language = value === "auto" ? null : value;
-      if (language !== null && !codeLanguageNames.includes(language)) return;
-      const node = instance.state.doc.nodeAt(codeUi.pos);
-      if (node?.type.name !== "codeBlock") return;
-      // Each choice is its own undo step, separate from typing around it.
-      instance.view.dispatch(closeHistory(instance.state.tr));
-      instance.view.dispatch(instance.state.tr.setNodeMarkup(codeUi.pos, undefined, { ...node.attrs, language }));
-      instance.view.dispatch(closeHistory(instance.state.tr));
+      if (editor.value) setCodeBlockLanguage(editor.value, codeUi.pos, value, codeLanguageNames);
     };
     const onCodeTransaction = () => updateCodeUi();
     watch(() => props.editable, () => nextTick(onCodeTransaction));
