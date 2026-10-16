@@ -84,7 +84,8 @@ jobs:
           echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           # Committed inside this runner only, so packing sees a clean tree and records this commit
           # as its source. It never reaches main, which only takes pull requests: publish and record
-          # rebuild the identical commit from the same source.
+          # rebuild the identical commit from the same source. The commit also names CHANGELOG.md's
+          # `## Next release` heading `## vX.Y.Z`, so the tag's CHANGELOG says what shipped in it.
           echo "release_commit=$(node tools/scripts/release-commit.mjs "$VERSION")" >> "$GITHUB_OUTPUT"
 
       - name: Use trusted-publishing-capable npm CLI
@@ -122,6 +123,9 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.prepare.outputs.release_sha }}
+          # Tags: the release commit's CHANGELOG reads the previous release's (release-commit.mjs).
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Record the release as a tag
         env:
@@ -151,6 +155,9 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.prepare.outputs.release_sha }}
+          # Tags: the release commit's CHANGELOG reads the previous release's (release-commit.mjs).
+          fetch-depth: 0
+          filter: blob:none
           persist-credentials: false
 
       - name: Setup pnpm
