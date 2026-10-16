@@ -120,10 +120,12 @@ function editedCases(source, hunks) {
 
 /** Select Looma-owned behavior. Unknown executable inputs still need an explicit mapping. */
 export function selectChecks(files, changes, hunks = {}) {
-  const modules = affectedModules(files, changes);
+  // Looma Markdown's fixtures load by glob, so a fixture change reaches tests through their loader.
+  const modules = affectedModules(files, changes.map(file => /^packages\/looma\/markdown-fixtures\//.test(file) ? "packages/looma/src/markdown/fixtures.ts" : file));
   const runtimeModules = modules.filter(file => !file.includes("/examples/"));
   const componentChanges = [...new Set(runtimeModules.map(componentOf).filter(Boolean))];
-  const editor = runtimeModules.some(file => /^packages\/looma\/src\/(?:editor|vue\/editor)\//.test(file));
+  // The editor reads and writes Markdown through the markdown entry, so its rules select editor checks.
+  const editor = runtimeModules.some(file => /^packages\/looma\/src\/(?:editor|vue\/editor|markdown)\//.test(file));
   const unknownShared = changes.some(file => file.startsWith("packages/looma/src/components/shared/") && !runtimeModules.some(componentOf));
   const full = changes.some(globalInput) || changes.some(ciRecipe) || unknownShared || changes.some(file => /^packages\/looma\/src\/vue\/(?!editor\/)/.test(file));
   const components = affectedComponents(files, [...componentChanges, ...(editor ? Object.keys(files).map(componentOf).filter(tag => tag?.startsWith("ui-editor-")) : [])]);
@@ -131,7 +133,7 @@ export function selectChecks(files, changes, hunks = {}) {
   const browserConfig = changes.includes("packages/looma/vitest.browser.config.ts");
   const packageTests = {}, scripts = new Set();
   for (const file of changes) {
-    if (componentOf(file) || globalInput(file) || /^packages\/looma\/(?:src\/(?:editor|vue)\/|src\/components\/shared\/|tests\/|vitest)/.test(file)) continue;
+    if (componentOf(file) || globalInput(file) || /^packages\/looma\/(?:src\/(?:editor|vue|markdown)\/|markdown-fixtures\/|src\/components\/shared\/|tests\/|vitest)/.test(file)) continue;
     if (/^tools\/scripts\//.test(file)) {
       let owned = false;
       if (file.endsWith(".test.mjs") && files[file]) { scripts.add(file); owned = true; }
@@ -143,7 +145,7 @@ export function selectChecks(files, changes, hunks = {}) {
       if (files[file] && !owned && !docsTool(file) && !releaseTool(file) && !buildTool(file)) throw new Error(`Unmapped executable script: ${file}`);
       continue;
     }
-    if (/^apps\/|^(?:CHANGELOG\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/README\.md)/.test(file)) continue;
+    if (/^apps\/|^(?:CHANGELOG\.md|CONCEPTS\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/README\.md)/.test(file)) continue;
     throw new Error(`Unmapped qualification input: ${file}`);
   }
   for (const [file, source] of Object.entries(files)) {

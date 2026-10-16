@@ -1,16 +1,17 @@
 import { Node } from "@tiptap/core";
+import { LOOMA_CHIP_TONES, normalizeLoomaChipTone, type LoomaChipTone } from "../../markdown";
 
-/** The six palette values a chip may persist; other values fall back to neutral. */
-export const LOOMA_CHIP_COLORS = ["neutral", "blue", "green", "yellow", "red", "purple"] as const;
+/** The six palette values a chip may persist, Looma Markdown's chip tones; other values fall back to neutral. */
+export const LOOMA_CHIP_COLORS = LOOMA_CHIP_TONES;
 
 /** A persisted chip color shared by the headless extension and its editor UI. */
-export type LoomaChipColor = typeof LOOMA_CHIP_COLORS[number];
+export type LoomaChipColor = LoomaChipTone;
 
 const CHIP_PLACEHOLDER = "Set a label";
 
 /** Keep imported or programmatic colors within the supported palette. */
 export function normalizeLoomaChipColor(value: unknown): LoomaChipColor {
-  return LOOMA_CHIP_COLORS.includes(value as LoomaChipColor) ? value as LoomaChipColor : "neutral";
+  return normalizeLoomaChipTone(value);
 }
 
 declare module "@tiptap/core" {

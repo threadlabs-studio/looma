@@ -28,15 +28,23 @@ describe("automatic table of contents", () => {
     expect(new Set(entries.map(entry => entry.id)).size).toBe(3);
     expect(entries.every(entry => entry.id)).toBe(true);
     editor.commands.setContent(`${toc}<h1 id="shared">First</h1><h2 id="shared">Second</h2>`);
-    expect(getTableOfContentsEntries(editor.state.doc).map(entry => entry.id)).toEqual(["shared", "looma-heading-1"]);
+    expect(getTableOfContentsEntries(editor.state.doc).map(entry => entry.id)).toEqual(["shared", "shared-1"]);
+  });
+
+  it("derives anchors from heading text, and keeps custom and earlier looma-heading anchors", async () => {
+    const editor = mount(`${toc}<h2>Getting started</h2><h2 id="intro">Overview</h2><h2 id="looma-heading-3">Über uns</h2>`);
+    await vi.waitFor(() => expect(getTableOfContentsEntries(editor.state.doc)[0]?.id).toBeTruthy());
+    expect(getTableOfContentsEntries(editor.state.doc).map(entry => entry.id)).toEqual(["getting-started", "intro", "looma-heading-3"]);
   });
 
   it("updates entries after heading text/level edits, removal, and undo", async () => {
     const editor = mount(`${toc}<h1>Before</h1><h2>Child</h2>`);
     await vi.waitFor(() => expect(getTableOfContentsEntries(editor.state.doc)[0]?.id).toBeTruthy());
     const before = getTableOfContentsEntries(editor.state.doc)[0];
+    expect(before.id).toBe("before");
     editor.commands.insertContentAt({ from: before.position + 1, to: before.position + 7 }, "After");
-    expect(getTableOfContentsEntries(editor.state.doc)[0]).toMatchObject({ id: before.id, text: "After" });
+    // An anchor derived from the text follows the text.
+    expect(getTableOfContentsEntries(editor.state.doc)[0]).toMatchObject({ id: "after", text: "After" });
     expect(editor.view.dom.querySelector("nav")?.textContent).toContain("After");
     const child = getTableOfContentsEntries(editor.state.doc)[1];
     editor.chain().setTextSelection(child.position + 1).setParagraph().run();

@@ -27,6 +27,23 @@ test("a primitive selects transitive consumers and only related cases in a share
   assert.deepEqual(plan.packageTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
 });
 
+test("Looma Markdown's rules and fixtures select the editor and the tests that load them", () => {
+  const graph = { ...files,
+    "packages/looma/src/markdown/index.ts": "export const rule = 1;",
+    "packages/looma/src/markdown/fixtures.ts": 'const files = import.meta.glob("../../markdown-fixtures/*/*.md");',
+    "packages/looma/tests/markdown-conformance.test.ts": 'import { LOOMA_MARKDOWN_FIXTURES } from "../src/markdown/fixtures"; it("renders fixtures", () => {});',
+    "packages/looma/tests/editor-markdown-fixtures.test.ts": 'it("round-trips", () => {});',
+    "CONCEPTS.md": "# Concepts",
+  };
+  for (const changed of ["packages/looma/markdown-fixtures/text/marks.md", "packages/looma/src/markdown/index.ts"]) {
+    const plan = selectChecks(graph, [changed]);
+    assert.equal(plan.editor, true, changed);
+    assert.ok(plan.packageTests["packages/looma/tests/editor-markdown-fixtures.test.ts"], changed);
+  }
+  assert.ok(selectChecks(graph, ["packages/looma/markdown-fixtures/text/marks.md"]).packageTests["packages/looma/tests/markdown-conformance.test.ts"]);
+  assert.equal(selectChecks(graph, ["CONCEPTS.md"]).full, false);
+});
+
 test("test-only revisions select regressions without repacking or building docs", () => {
   const plan = automaticChecks(files, ["packages/looma/tests/browser.test.ts"]);
   assert.equal(plan.packageConsumer, false);

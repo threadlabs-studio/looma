@@ -21,6 +21,8 @@ export {
 } from "./callout";
 export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./expand";
+export { LoomaFigcaption, LoomaFigure } from "./figure";
+export { LoomaTab, LoomaTabs } from "./tabs";
 export {
   LoomaTableOfContents,
   getTableOfContentsEntries,

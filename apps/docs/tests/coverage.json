@@ -2144,6 +2144,13 @@
       "examples": []
     },
     {
+      "path": "looma-markdown",
+      "title": "Looma Markdown",
+      "source": "apps/docs/docs/looma-markdown.md",
+      "component": null,
+      "examples": []
+    },
+    {
       "path": "overlay-contract",
       "title": "Overlay Contract",
       "source": "apps/docs/docs/overlay-contract.md",
@@ -2154,13 +2161,6 @@
       "path": "release-1-support",
       "title": "Release 1 Support and Limitations",
       "source": "apps/docs/docs/release-1-support.md",
-      "component": null,
-      "examples": []
-    },
-    {
-      "path": "shared-blocks",
-      "title": "Shared blocks",
-      "source": "apps/docs/docs/shared-blocks.md",
       "component": null,
       "examples": []
     },

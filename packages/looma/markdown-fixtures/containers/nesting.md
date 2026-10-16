@@ -1,0 +1,5 @@
+::: details More
+::: warning
+Nested.
+:::
+:::

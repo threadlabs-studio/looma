@@ -1,16 +1,8 @@
 import { Node } from "@tiptap/core";
+import { LOOMA_CALLOUT_TONES, normalizeLoomaCalloutTone, type LoomaCalloutTone } from "../../markdown";
 
-/**
- * Canonical tone values that may be persisted in a Looma callout node: the shared block
- * vocabulary of Callout, Markdown `:::` containers and GitHub alerts.
- */
-export const LOOMA_CALLOUT_TONES = ["note", "tip", "info", "important", "warning", "danger"] as const;
-
-/** A serialized callout tone; unsupported input is normalized to `note`. */
-export type LoomaCalloutTone = (typeof LOOMA_CALLOUT_TONES)[number];
-
-// Callout's aliases: caution is danger, and neutral is the same muted aside as note.
-const TONE_ALIASES: Record<string, LoomaCalloutTone> = { caution: "danger", neutral: "note" };
+// The tones are Looma Markdown's vocabulary; the editor re-exports them.
+export { LOOMA_CALLOUT_TONES, normalizeLoomaCalloutTone, type LoomaCalloutTone };
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -19,13 +11,6 @@ declare module "@tiptap/core" {
       setLoomaCallout: (tone?: LoomaCalloutTone) => ReturnType;
     };
   }
-}
-
-/** Maps a tone name, alias, or unknown value onto a persisted tone. */
-export function normalizeLoomaCalloutTone(value: unknown): LoomaCalloutTone {
-  if (typeof value !== "string") return "note";
-  const tone = value.toLowerCase();
-  return LOOMA_CALLOUT_TONES.includes(tone as LoomaCalloutTone) ? tone as LoomaCalloutTone : TONE_ALIASES[tone] ?? "note";
 }
 
 /**
