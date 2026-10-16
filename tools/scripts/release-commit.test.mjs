@@ -9,8 +9,9 @@ import { VERSIONED_MANIFESTS } from "./release-version.mjs";
 
 const git = (cwd, ...args) => execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
 
-async function sourceRepository(version) {
+async function sourceRepository(version, changelog) {
   const root = await mkdtemp(path.join(tmpdir(), "looma-release-source-"));
+  if (changelog) await writeFile(path.join(root, "CHANGELOG.md"), changelog);
   for (const manifest of VERSIONED_MANIFESTS) {
     await mkdir(path.dirname(path.join(root, manifest)), { recursive: true });
     await writeFile(path.join(root, manifest), `{\n  "name": "x",\n  "version": "${version}"\n}\n`);
@@ -68,5 +69,25 @@ test("refuses to release a commit other than the one that was packed", async () 
     );
   } finally {
     await Promise.all([source, runner].map((dir) => rm(dir, { recursive: true, force: true })));
+  }
+});
+
+test("the release commit names the CHANGELOG's Next release heading", async () => {
+  const commit = ["-c", "user.name=someone", "-c", "user.email=someone@example.com", "-c", "commit.gpgsign=false"];
+  const source = await sourceRepository("0.7.2", "# Changelog\n\n## v0.7.2\n\n- Shipped.\n");
+  git(source, ...commit, "tag", "-a", "v0.7.2", "-m", "Release v0.7.2");
+  // main still has the shipped entry under Next release, beside a new one.
+  await writeFile(path.join(source, "CHANGELOG.md"), "# Changelog\n\n## Next release\n\n- New.\n- Shipped.\n");
+  git(source, ...commit, "commit", "-qam", "next");
+  const [prepare, publish] = [await cloneOf(source), await cloneOf(source)];
+  try {
+    const packed = await createReleaseCommit("0.7.3", { root: prepare });
+    assert.equal(await createReleaseCommit("0.7.3", { root: publish, expected: packed }), packed);
+    assert.equal(
+      await readFile(path.join(publish, "CHANGELOG.md"), "utf8"),
+      "# Changelog\n\n## v0.7.3\n\n- New.\n\n## v0.7.2\n\n- Shipped.\n"
+    );
+  } finally {
+    await Promise.all([source, prepare, publish].map((dir) => rm(dir, { recursive: true, force: true })));
   }
 });
