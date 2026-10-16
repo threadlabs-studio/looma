@@ -774,7 +774,7 @@ describe("LoomaEditor automatic table of contents", () => {
         editor.setEditable(false);
       });
       await equals(() => nav.getByRole("button", { name: "Table of contents settings" }).count(), 0, "readers see no settings control");
-      await equals(() => nav.getByRole("link").first().textContent(), "Updated", "heading edits update entries");
+      await equals(() => nav.getByRole("link").first().innerText(), "Updated", "heading edits update entries");
       if (width === 1280) {
         await nav.getByRole("link").first().focus();
         await page.keyboard.press("Enter");
