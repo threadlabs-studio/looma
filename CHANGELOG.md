@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Looma Markdown's canonical HTML shows code as readers see it: a `[!code highlight]` comment is removed from the code, as the spec says. `applyLoomaCodeNotation` in `@threadlabs/looma/markdown` returns the code and the lines it highlights. `createLoomaMarkdownIt` and `loomaMarkdown` take `{ codeNotation: "keep" }` for an editor, and LoomaEditor uses it, so it still edits and writes the comment as source.
+- A task list item's checkbox now has an accessible name: its checkbox and text share one label, `<li data-type="taskItem" data-checked="true"><label><input type="checkbox" disabled checked> Text</label></li>`. Every fixture's canonical HTML is checked with axe in Chromium.
+- `splitLoomaFrontmatter` recognizes front matter whose values are lists or mappings, such as `aliases:` followed by list items, where it used to need a `key: value` line. Any YAML mapping between the `---` lines counts.
+
 ## v0.28.17
 
 - `loomaMarkdownFromDoc` writes every form of Looma Markdown, so a document read from Markdown writes back as the same Markdown. Chips and mentions are directives (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`), the table of contents is `::toc{…}`, task lists are GFM `- [x]` items, and an image is `![alt](src "title")` with braces for its size and placement. Code keeps its fence line (title, highlighted lines, line numbers). A table that fits GFM is a GFM table and any other is clean HTML. A heading carries `{#id}` only when its ID differs from the one its text derives. Text that would read as a Looma block or a heading's braces is escaped. Front matter is the host's page metadata and is not written.
