@@ -1,12 +1,14 @@
 # Changelog
 
-## v0.28.19
+## Next release
+
+## v0.28.17
 
 - `loomaMarkdownFromDoc` writes every form of Looma Markdown, so a document read from Markdown writes back as the same Markdown. Chips and mentions are directives (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`), the table of contents is `::toc{…}`, task lists are GFM `- [x]` items, and an image is `![alt](src "title")` with braces for its size and placement. Code keeps its fence line (title, highlighted lines, line numbers). A table that fits GFM is a GFM table and any other is clean HTML. A heading carries `{#id}` only when its ID differs from the one its text derives. Text that would read as a Looma block or a heading's braces is escaped. Front matter is the host's page metadata and is not written.
 - LoomaEditor holds headings 1 to 6 and keeps a code block's fence line in a new `meta` attribute, saved as `data-meta` on its `code`. Figures (`LoomaFigure` and `LoomaFigcaption`, saved as `<figure>` and written as `::: figure Caption`) and tabs (`LoomaTabs` and `LoomaTab`, saved as `<ui-tabs>` and written as `::: tabs` or `::: code-group`) are new nodes in the default preset. While editing, tabs show their panels one after another under their labels. A figure needs block images, so the preset leaves it out when `imageInline` is set.
 - New heading IDs follow Looma Markdown's anchor rule: a heading gets the ID its text derives (`getting-started`) in place of a numbered `looma-heading-N`, and a derived ID follows the text when it changes. A custom ID stays with its heading through renames and moves, and so does every ID saved before this release, including `looma-heading-N`, so existing links keep working; Markdown writes those as `{#id}`.
 
-## v0.28.18
+## v0.28.16
 
 - Looma Markdown is the named Markdown standard that Markupress renders and LoomaEditor reads and writes: CommonMark and GFM, Looma's `:::` blocks, and a Markdown form for everything the editor makes. Its page in the docs replaces Shared blocks. Colons name a Looma element and their number gives its scope (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`, `::toc{depth=2}`, `::: figure Caption`), and braces after a heading, image or directive hold its attributes (`{#id}`, `{width=640 placement=wrap-left}`).
 - `@threadlabs/looma/markdown` is a new entry point with Looma Markdown's vocabulary and pure rules: tones (`LOOMA_MEANING_TONES` shared by Callout and Badge, `LOOMA_BADGE_TONES`, `LOOMA_CALLOUT_TONES`, and the hues `LOOMA_CHIP_TONES` that chips and Swatch take), container names, brace attributes, the heading anchor rule (NFC and lowercase, keeping letters, numbers and combining marks in any script), fence info, front matter and writer markers. `@threadlabs/looma/markdown/markdown-it` is the reference implementation (`createLoomaMarkdownIt`, and `loomaMarkdown` as a plugin), and `@threadlabs/looma/markdown/fixtures` is the conformance suite with `normalizeLoomaHtml`.
@@ -14,42 +16,45 @@
 - `loomaMarkdownFromDoc` writes bullet items with `-` and closes a container on the line after its content.
 - LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
 
-## v0.28.17
-
-- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer, which records a component's explicit props on its root as `data-<tag>-prop-<name>`, such as `data-ui-button-prop-tone`, in place of `data-<name>`, and marks converted Vue roots with `data-hn`. These are compiler markers, not Looma's API; a compact read-only LoomaEditor excerpt keeps its trimmed first and last margins by reading the new density record.
-
-## v0.28.16
-
-- LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
-
 ## v0.28.15
 
 - LoomaEditor adds `resolveImageSource` for browser-only master URLs, including legacy images without responsive metadata. Responsive renditions use the resolved master and fall back to it on failure, while saved JSON/HTML and image events keep their durable source. JSON documents apply delivery settings before the initial image request, and changing editability no longer emits a redundant document update.
+
+## v0.28.14
+
+- Component styles select their own state with `:host(:state(name))`, the form HTML Next 1.0.0-alpha.52 adopts from the Styling chapter in place of `:host-state([name])`, which it now reports as an error. Prop and state tests share one `:host()`, as in `:host([fill]:state(internalOpen))`. Looma builds with HTML Next 1.0.0-alpha.52 as its peer, which records a component's explicit props on its root as `data-<tag>-prop-<name>`, such as `data-ui-button-prop-tone`, in place of `data-<name>`, and marks converted Vue roots with `data-hn`. These are compiler markers, not Looma's API; a compact read-only LoomaEditor excerpt keeps its trimmed first and last margins by reading the new density record.
+
+## v0.28.13
+
+- LoomaEditor's choice of when its floating formatting tools show moves into a framework-neutral module: a text selection shows them, a press held still for half a second on the text shows them at its caret, and Escape hides them for that selection until the reader selects again. LoomaEditor keeps the tools' surface and its document listeners. Its behavior and public API stay the same.
+
+## v0.28.12
+
 - Swatch (`ui-swatch`) is a new form primitive: a round colour dot in the six chip tones (neutral, blue, green, yellow, red and purple) that is a native radio named by its tone. Inside a `ui-radio-group`, the group names the swatches, checks the one matching its value, moves between them with the arrow keys, and reports the choice. The checked and focused swatches show a ring at the focus width.
 - Radio Group adds `label-visibility`: `sr-only` hides the legend visually and keeps it as the group's accessible name, for a row of choices whose purpose is already clear, such as colour swatches.
 - Chip Editor (`ui-editor-chip-editor`) is the editor's chip editor as an HTML Next component, in HTML and Vue (`EditorChipEditor`): a field for the chip's text and a radio group of swatches for its colour, reporting `label`, `color`, and `done`. LoomaEditor uses it in place of its own form. The colours are now radios named by their tone ("Blue") in a group named Chip color for screen readers, rather than buttons named "Blue chip". A colour chosen with the pointer returns focus to the text, and the arrow keys move between colours.
 
-## v0.28.14
+## v0.28.11
 
 - LoomaEditor's block actions and table overlay targeting move into framework-neutral editor modules: `runBlockAction` inserts a paragraph below, duplicates, or deletes the block holding the caret, and overlay actions first put the caret in the table and cell they name. LoomaEditor's behavior and public API stay the same.
 
-## v0.28.13
+## v0.28.10
 
 - LoomaEditor's link editing moves into a framework-neutral link editing module: the link form's state, writing the link as the reader types, validation, the host's search and resolve calls, and the resolved target of the link at the caret. LoomaEditor keeps only presentation and focus. Its behavior and public API stay the same; `LoomaLinkTarget`, `LoomaLinkSearch`, and `LoomaLinkResolve` are still exported from `@threadlabs/looma/vue/editor`.
 
-## v0.28.12
+## v0.28.9
 
 - Code Language (`ui-editor-code-language`) is the code block's language picker as an HTML Next component, in HTML and Vue (`EditorCodeLanguage`): a compact combobox of the languages the editor can highlight, with Auto first, that reports `language` when one is chosen. LoomaEditor uses it in place of its own combobox; the picker looks and behaves as before.
 
-## v0.28.11
+## v0.28.8
 
 - Link Form (`ui-editor-link-form`) is the editor's link form as an HTML Next component, in HTML and Vue (`EditorLinkForm`): the destination field with its search results or Open in new tab, and a Text field for a new link. The editor passes its state in and applies each change the form reports (`destination`, `text`, `new-tab`, `choose`, `clear`, `save`, `dismiss`). LoomaEditor uses it in place of its own render code; the form looks and behaves as before.
 
-## v0.28.10
+## v0.28.7
 
 - Link Card (`ui-editor-link-card`) and Block Actions (`ui-editor-block-actions`) are editor parts as HTML Next components, in HTML and Vue (`EditorLinkCard`, `EditorBlockActions`). Link Card shows a link's destination with Open link, Edit link, and Remove link, and reports `edit` and `remove`. Open link opens `open-href`, which the editor sets only for an http, https, mailto, tel, or relative address. Block Actions is the block menu (insert a paragraph below, duplicate, delete) and reports `action`. LoomaEditor uses both in place of its own render code; they look and behave as before, except that a block action now applies to the block holding the caret when it is chosen.
 
-## v0.28.9
+## v0.28.6
 
 - Looma builds with HTML Next 1.0.0-alpha.51. Its Vue components mark their root with the component's tag as a class (`class="ui-button"`) rather than `data-component`, and scope their styles with native `@scope`; both markers are rendering details, not API, as the Tokens guide says. The editor surface, collapsible editor sections, and a mention row's slotted avatar match either marker. Vue `:host` rules have the live runtime's specificity, so a class an app or LoomaEditor sets on a component root overrides them as in HTML, and `:host` rules under an ancestor selector, such as compact controls on touch, match the component root. Expression arithmetic is decimal (`0.1 + 0.2` is `0.3`). Conditional content (`$if`, `$match`) keeps its elements, focus, and typed text when its decision does not change, and bindings write only changed values.
 - `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.51`, so an app that also uses HTML Next installs one copy, shared with Looma. Looma's registration entry and its Vue and plain DOM components import HTML Next's runtime, and the code they ship is generated by this version; HTML Next alphas may break generated components in any release, so the range is exact until HTML Next 1.0. Apps that install with peer auto-installation (npm 7+, pnpm's default) need no change; otherwise add `@nextwebwg/html-next@1.0.0-alpha.51`.
