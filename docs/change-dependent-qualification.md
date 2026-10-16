@@ -15,7 +15,7 @@ must be confirmed after rollout.
 | `quality` | Selected tooling tests, package build and affected unit/SSR tests | 9 minutes |
 | `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 9 minutes |
 | `release-package` | Package-only build, tarball integrity, packed consumer matrix | 4 minutes |
-| `docs-parity` | Docs build, test typecheck and route/example coverage when docs inputs change | 9 minutes |
+| `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 9 minutes |
 | `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
 
 The first four jobs run independently. `quality`, `release-package`, `verify`, and
@@ -75,7 +75,8 @@ One engine is sufficient for routine qualification. Firefox/WebKit remain useful
 for platform-specific CSS, focus, selection and editing changes; run them explicitly
 when a change needs that evidence. The manual **Extended verification** workflow
 runs the complete package suite and documentation behavior in Chromium, Firefox
-and WebKit, followed by canonical visual comparisons. It has no push, PR or schedule
+and WebKit, the Markupress site's text and JavaScript-off checks against the Docusaurus
+pages, and canonical visual comparisons. It has no push, PR or schedule
 trigger and does not block routine publication.
 
 Local commands remain available:

@@ -1,6 +1,6 @@
 import { expect, test as base } from "@playwright/test";
 import path from "node:path";
-import type { Page, Request } from "@playwright/test";
+import type { Locator, Page, Request } from "@playwright/test";
 import fontSources from "./fixtures/fonts/sources.json";
 
 const pendingAssets = new WeakMap<Page, Set<Request>>();
@@ -89,7 +89,8 @@ async function paint(page: Page): Promise<void> {
 }
 
 /** Capture a deliberate pointer/scroll state while preserving focus, selections, and open overlays. */
-export async function screenshot(page: Page, name: string, fullPage = false, maxDiffPixels = 0): Promise<void> {
+export async function screenshot(target: Page | Locator, name: string, fullPage = false, maxDiffPixels = 0): Promise<void> {
+  const page = "page" in target ? target.page() : target;
   await page.mouse.move(0, 0);
   if (fullPage) {
     // Lazy previews and fonts can move headings after Docusaurus highlights the TOC.
@@ -113,7 +114,7 @@ export async function screenshot(page: Page, name: string, fullPage = false, max
     // Compare the settled static guide's first capture: repeated live-page capture can remount its TOC.
     await expect(await page.screenshot({ fullPage, animations: "disabled", caret: "hide" })).toMatchSnapshot(name, { maxDiffPixels });
   } else {
-    await expect(page).toHaveScreenshot(name, { fullPage, maxDiffPixels, timeout: 15_000 });
+    await expect(target).toHaveScreenshot(name, { ...(target === page ? { fullPage } : {}), maxDiffPixels, timeout: 15_000 });
   }
 }
 
