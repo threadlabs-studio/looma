@@ -92,6 +92,7 @@ import {
   type LoomaEditorSelectionAction,
   type LoomaEditorSelectionActionDetail,
 } from "../../editor/host-actions";
+import { createMobileDock, mobileDockPlacement, usesMobileDock } from "../../editor/mobile-dock";
 import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
@@ -440,7 +441,7 @@ export const LoomaEditor = defineComponent({
     const uploadState = shallowRef<LoomaImageUploadsState>({ uploading: false, progress: null, failed: null });
     const tablePickerOpen = ref(false);
     const mobileToolbarStyle = ref<CSSProperties>({});
-    const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
+    const mobile = ref(typeof window !== "undefined" && usesMobileDock(window.innerWidth));
     const editorFocused = ref(false);
     // Which selection the floating tools belong to; chrome only, never the document or undo history.
     let formatting: LoomaFormattingSelection | undefined;
@@ -455,10 +456,10 @@ export const LoomaEditor = defineComponent({
 
     const editorStateVersion = ref(0);
     const mobileToolbarMode = ref<"formatting" | "table">("formatting");
+    const mobileDock = createMobileDock((mode) => { mobileToolbarMode.value = mode; });
     let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null;
     let tableResizeActive = false;
     let tableInteractionActive = false;
-    let mobileTableControlsDismissed = false;
     let hoveredTableCell: HTMLTableCellElement | null = null;
     let overlayTableElement: HTMLTableElement | null = null;
     let tablePointerFrame: number | null = null;
@@ -922,25 +923,19 @@ export const LoomaEditor = defineComponent({
       tableUi.geometry = null;
       tableUi.capabilities = { ...EMPTY_CAPABILITIES };
       overlayTableElement = null;
-      mobileTableControlsDismissed = false;
-      mobileToolbarMode.value = "formatting";
+      mobileDock.tableInactive();
     };
 
     const updateMobileViewport = () => {
-      mobile.value = window.innerWidth <= 767;
+      mobile.value = usesMobileDock(window.innerWidth);
       if (!mobile.value) {
         mobileToolbarStyle.value = {};
         return;
       }
 
       nextTick(() => {
-        const viewport = getVisualViewportRect(window);
-        const toolbarHeight = mobileToolbarShell.value?.getBoundingClientRect().height || 56;
-        mobileToolbarStyle.value = {
-          left: `${viewport.left}px`,
-          top: `${Math.max(viewport.top, viewport.bottom - toolbarHeight)}px`,
-          width: `${viewport.width}px`,
-        };
+        const placement = mobileDockPlacement(getVisualViewportRect(window), mobileToolbarShell.value?.getBoundingClientRect().height || 56);
+        mobileToolbarStyle.value = { left: `${placement.left}px`, top: `${placement.top}px`, width: `${placement.width}px` };
       });
     };
 
@@ -1030,7 +1025,7 @@ export const LoomaEditor = defineComponent({
       const selectedTableIsActive = state.active && selectedTable === table;
       overlayTableElement = table;
 
-      if (selectedTableIsActive && !mobileTableControlsDismissed) mobileToolbarMode.value = "table";
+      if (selectedTableIsActive) mobileDock.tableActive();
 
       const rect = table.getBoundingClientRect();
       const maxToolbarWidth = Math.min(420, window.innerWidth - 24);
@@ -1889,8 +1884,7 @@ export const LoomaEditor = defineComponent({
                     type: "button",
                     "aria-label": "Formatting tools",
                     onClick: () => {
-                      mobileTableControlsDismissed = true;
-                      mobileToolbarMode.value = "formatting";
+                      mobileDock.showFormatting();
                       editor.value?.commands.focus();
                       nextTick(updateMobileViewport);
                     },
