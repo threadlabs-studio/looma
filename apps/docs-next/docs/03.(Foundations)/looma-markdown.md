@@ -164,8 +164,8 @@ an HTML comment or a block comment. `[!code highlight:3]` covers three lines; al
 line, the marker is removed with its line and applies to the lines after it. LoomaEditor edits
 the source, so it keeps the comment and writes it back.
 
-To show a marker as text, put a backslash between `[` and `!`, as `\:::` and `\{#id}` escape
-elsewhere. The escaped marker highlights nothing and shows with one backslash fewer, so this
+To show a marker as text, put a backslash between `[` and `!`, as a backslash escapes `\:::` and
+a heading's braces elsewhere. The escaped marker highlights nothing and shows with one backslash fewer, so this
 example's source reads `[\!code highlight]`:
 
 ```text
