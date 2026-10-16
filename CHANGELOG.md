@@ -2,6 +2,7 @@
 
 ## Next release
 
+- LoomaEditor composes the table of contents and its settings from List, Button, Text, Icon Button, Tooltip, Popover, Form Field and Menu through their Vanilla factories in place of a Vue app per table: entries rebuild only when the headings or the format change, the dropdowns edit a draft that Save writes and Cancel drops, readers see only the entries, and the components disconnect when the table is deleted. LoomaEditor's behavior and public API stay the same.
 - Looma builds with HTML Next 1.0.0-alpha.56, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.56`. No Looma component declares head content in its carrier, so the release's head-declaration rule (HS002) needs no change, and component rendering is unchanged.
 - LoomaEditor composes collapsible sections from Disclosure, Icon Button, Tooltip, Popover, Input, Checkbox and Button through their Vanilla factories in place of a Vue app per section: ProseMirror's content sits in Disclosure's slot, the settings popover saves the summary and whether the section starts expanded, readers see only the disclosure, and the components disconnect when the section is deleted. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor draws callouts with Callout's Vanilla factory in place of a Vue app per callout: ProseMirror's content sits in Callout's slot, tone and heading follow the node, and Callout disconnects when the callout is deleted. LoomaEditor's behavior and public API stay the same.
