@@ -9,15 +9,11 @@ const whitespace = {
   reason: "HTML Next drops whitespace-only text between elements, so `<strong>a</strong> <code>b</code>` reads \"ab\"",
   normalize: (text) => text.replace(/\s/g, ""),
 };
-const notation = {
-  reason: "Looma Markdown has no literal form of a code notation marker: every fence strips `// [!code highlight]`",
-  normalize: (text) => text.replace(" // [!code highlight]", ""),
-};
 const pages = [
   { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"]] },
   ...["release-1-support", "architecture", "conventions", "tokens", "overlay-contract", "adapter-parity", "docs-api-sync"]
     .map((page) => ({ docusaurus: `${page}/`, markupress: `${page}/`, views: [[]] })),
-  { docusaurus: "looma-markdown/", markupress: "looma-markdown/", views: [[]], defects: { "": [notation, whitespace] } },
+  { docusaurus: "looma-markdown/", markupress: "looma-markdown/", views: [[]], defects: { "": [whitespace] } },
   { docusaurus: "component-library-audit/", markupress: "component-library-audit/", views: [[]], defects: { "": [whitespace] } },
   { docusaurus: "components/ui-stack/", markupress: "components/layout/ui-stack/", views: [[], ["API"], ["Vue"]], defects: { API: [whitespace] } },
 ];
