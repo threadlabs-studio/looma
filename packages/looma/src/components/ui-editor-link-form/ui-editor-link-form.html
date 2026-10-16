@@ -94,7 +94,7 @@
             from:data-link-id="$result.id"
           >
             <ui-icon slot="leading" name="file-text"></ui-icon>
-            <!-- from:truncate="true": alpha.52's Vue output still writes a bare boolean as truncate="" (HTML Next gap 2). -->
+            <!-- from:truncate="true": alpha.53's Vue output still writes a bare boolean as truncate="" (HTML Next gap 2). -->
             <ui-text slot="title" as="strong" size="sm" weight="medium" from:truncate="true" from:title="$result.label">{$result.label}</ui-text>
             <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" from:truncate="true" from:title="$result.detail"
             >{$result.detail}</ui-text>

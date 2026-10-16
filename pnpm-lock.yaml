@@ -137,8 +137,8 @@ importers:
         version: 14.3.1
     devDependencies:
       '@nextwebwg/html-next':
-        specifier: 1.0.0-alpha.52
-        version: 1.0.0-alpha.52
+        specifier: 1.0.0-alpha.53
+        version: 1.0.0-alpha.53
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -2139,8 +2139,8 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
-  '@nextwebwg/html-next@1.0.0-alpha.52':
-    resolution: {integrity: sha512-ESHkoJeviCcBMlrVOk1GvwRnVnV/FDVSNVJqgmFJjoQiWQaXLa0DjeHW7bAUAirv40xuK4knqL/MUzXCF3bNwA==}
+  '@nextwebwg/html-next@1.0.0-alpha.53':
+    resolution: {integrity: sha512-pd4+AY8Nsa6RG9URXTsXAPalc1ibxD2pcDvKmAU9ABldb9C7q+FNFps/FMXuNeB4e1euBZLvCIeI/K+Xg+A7aQ==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
@@ -10578,7 +10578,7 @@ snapshots:
       '@types/react': 19.2.14
       react: 19.2.4
 
-  '@nextwebwg/html-next@1.0.0-alpha.52':
+  '@nextwebwg/html-next@1.0.0-alpha.53':
     dependencies:
       '@dprint/formatter': 0.6.0
       '@dprint/typescript': 0.96.1

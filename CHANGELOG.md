@@ -2,7 +2,8 @@
 
 ## v0.28.18
 
-- With HTML Next 1.0.0-alpha.52, Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
+- Looma builds with HTML Next 1.0.0-alpha.53, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.53`.
+- Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
 
 ## v0.28.17
 
