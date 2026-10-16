@@ -6774,8 +6774,8 @@ describe("Image toolbar", () => {
       assert.equal(await form.getByLabel("Alt text").inputValue(), "Lake");
       await form.getByLabel("Alt text").fill("Draft");
       if (target === "vue") {
-        // Another image cancels the draft. The DOM runtime still ignores attribute changes after lowering on alpha.53 (HTML Next gap 3), so
-        // only the Vue page can change target here.
+        // Another image cancels the draft. Vue changes the target through its framework prop; on the DOM page a literal attribute
+        // sets only the prop's initial value, as the proposal says, so that page cancels instead.
         await page.evaluate(() => (window as unknown as { fixtureSetTarget(value: string): void }).fixtureSetTarget("two"));
         await form.waitFor({ state: "hidden" });
       } else {
