@@ -70,7 +70,8 @@ In Markdown, a callout's tone is its container name and a chip's tone is its `to
 - Raw HTML is part of the document. A renderer passes it through; LoomaEditor keeps the HTML its
   schema knows.
 - Front matter is a YAML mapping at the very start of the file, opened by a `---` line and closed
-  by a `---` or `...` line. It is page metadata and renders nothing. Markupress reads its fields
+  by a `---` or `...` line. Its first line that is not blank or a comment starts with a key, and
+  each value may be a scalar, a list or a mapping. It is page metadata and renders nothing. Markupress reads its fields
   (title, description, sidebar label and position, layout, outline range, head and edit link) and
   rejects unknown ones. LoomaEditor edits content, so it leaves front matter to its host: it writes
   none, and it keeps pasted front matter as a YAML code block.
@@ -122,7 +123,14 @@ the one the text derives.
 ```
 
 An ordered list keeps its start number. A bullet list whose every item starts with `[ ]` or `[x]`
-is a task list. In any other list, the brackets are text.
+is a task list. In any other list, the brackets are text. Each item's checkbox and text share one
+label, so the checkbox is named by its item:
+
+```html
+<li data-type="taskItem" data-checked="true"><label><input type="checkbox" disabled checked> Read the changelog</label></li>
+```
+
+In an item of several paragraphs, the label holds the first paragraph's text.
 
 ## Code blocks
 
@@ -146,10 +154,11 @@ The fence's info string is a language and then any of:
 
 The language is the first word, up to a space, `{` or `:`, so `ts{1}` and `ts:line-numbers` also
 name `ts`. Everything after the language is the code block's meta, kept as written. A line that
-ends with a `[!code highlight]` comment is highlighted and the comment is removed when the page
-renders. The comment can be `//`, `#`, `--`, an HTML comment or a block comment.
-`[!code highlight:3]` covers three lines; alone on its own line, the marker applies to the lines
-after it.
+ends with a `[!code highlight]` comment is highlighted, and the comment is removed from the code
+readers see, so the canonical HTML holds the code without it. The comment can be `//`, `#`, `--`,
+an HTML comment or a block comment. `[!code highlight:3]` covers three lines; alone on its own
+line, the marker is removed with its line and applies to the lines after it. LoomaEditor edits
+the source, so it keeps the comment and writes it back.
 
 ```text
 const port = 8080; // [!code highlight]
@@ -339,12 +348,14 @@ anywhere, including during server rendering:
 | `parseLoomaAttributes`, `readLoomaAttributes`, `formatLoomaAttributes` | Brace attributes. |
 | `loomaHeadingSlug`, `assignLoomaHeadingIds` | The heading anchor rule. |
 | `parseLoomaFenceInfo` | A fence's language, title, highlighted lines and line numbers. |
+| `applyLoomaCodeNotation` | Code without its `[!code highlight]` comments, and the lines they highlight. |
 | `splitLoomaFrontmatter` | Front matter and the body after it. |
 | `loomaContainerMarker`, `loomaCodeFence` | The colons and backticks a writer uses. |
 
 `@threadlabs/looma/markdown/markdown-it` is the reference implementation:
 `createLoomaMarkdownIt()` returns a markdown-it instance that renders the canonical HTML, and
-`loomaMarkdown` is the same rules as a plugin for an instance of your own.
+`loomaMarkdown` is the same rules as a plugin for an instance of your own. Both take
+`{ codeNotation: "keep" }` for an editor, which keeps `[!code highlight]` comments in the code.
 
 `@threadlabs/looma/markdown/fixtures` is the conformance suite. `LOOMA_MARKDOWN_FIXTURES` holds
 one case per file set: Markdown in, the canonical HTML out, and the Markdown a writer produces.
