@@ -15,7 +15,7 @@ const sidebars: SidebarsConfig = {
         "overlay-contract",
         "adapter-parity",
         "docs-api-sync",
-        "shared-blocks",
+        "looma-markdown",
         "component-library-audit"
       ]
     }

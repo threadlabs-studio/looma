@@ -73,7 +73,7 @@ Callouts have one command per tone: **Info**, **Note**, **Tip**, **Important**, 
 **Danger**. Each wraps the current block in a callout drawn by the Callout component, and choosing
 another tone inside a callout changes its tone. The editor saves callouts as `<ui-callout>`, so
 they look the same in any page that uses Looma. Content saved earlier as
-`<aside data-looma-callout>` still loads. See [Shared blocks](/shared-blocks).
+`<aside data-looma-callout>` still loads. See [Looma Markdown](/looma-markdown).
 
 Block actions can insert a paragraph after the current block, duplicate it, or delete it.
 
@@ -136,7 +136,7 @@ and supply `expandNodeView` to customize presentation. The default headless view
 details. Plain text includes summaries and all bodies, even while collapsed.
 
 In Markdown, a section is `::: details Summary` … `:::`, with ` {open}` after the summary when it
-starts expanded; see [Shared blocks](/shared-blocks). Search and change-review projections
+starts expanded; see [Looma Markdown](/looma-markdown). Search and change-review projections
 must traverse the body rather than omit collapsed content.
 
 ## Automatic table of contents
@@ -191,10 +191,10 @@ text resembles Markdown. Looma also turns Markdown or HTML copied as source into
 including `:::` callouts and sections and GitHub `> [!NOTE]` alerts. Pasting inside a code block
 stays literal.
 
-To load or save Markdown, `loomaMarkdownToHtml(markdown)` renders HTML for `setContent`, and
-`loomaMarkdownFromDoc(editor.state.doc)` writes the document as Markdown in the same syntax. Both
-come from `@threadlabs/looma/editor/extensions`. Content Markdown has no syntax for, such as
-tables, task lists and images, is written as its saved HTML.
+To load or save [Looma Markdown](/looma-markdown), `loomaMarkdownToHtml(markdown)` renders HTML
+for `setContent`, and `loomaMarkdownFromDoc(editor.state.doc)` writes the document as Looma
+Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads every form on that
+page that its document holds; the page's Support table lists what it writes as HTML.
 
 ## Mentions
 
