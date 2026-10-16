@@ -36,10 +36,10 @@ browser run checks the inventory after building; it never updates it.
 
 | Surface | Assertions | Visual reference |
 | --- | --- | --- |
-| Every documentation route | Heading, internal routes and local heading links, page errors, same-origin asset failures | Full page at 1280×900 and 375×812, light and dark |
-| Every authored example | Title, live stage, nonempty code, HTML Next/Vue lens, Examples/API navigation | Included in each full-page baseline, plus API and Vue views for every component page |
-| Shared shell | Sidebar categories, mobile navigation, heading deep links, reload and history, theme/framework persistence | Shell on every route; open mobile navigation |
-| Code controls | Copy requests the displayed snippet, mobile wrapping preserves it, existing overflow and authored-code assertions | Code panes in each example and Vue view |
+| Every documentation route | Heading, internal routes and local heading links, page errors, same-origin asset failures | Guide pages: full page at 1280×900 and 375×812, light and dark, with the shared shell hidden |
+| Every authored example | Title, live stage, nonempty code, HTML Next/Vue lens, Examples/API navigation | The example's live stage, one image per viewport and theme |
+| Shared shell | Sidebar categories, mobile navigation, heading deep links, reload and history, theme/framework persistence | Home page with the shell; open mobile navigation |
+| Code controls | Copy requests the displayed snippet, mobile wrapping preserves it, existing overflow and authored-code assertions | Code panes on guide pages |
 | Catalog | Existing count/category/query assertions, keyboard search, empty results | Complete catalog, filtered results, empty state |
 | Native fields and selection | Keyboard checkbox/switch, radio exclusivity, required validation, text/textarea editing, native select, editable commit/cancel, listbox and combobox selection | Authored disabled/invalid/readonly states; changed field and selection states |
 | Overlays and navigation components | Context menu, checkable menu, dialog close/focus, popover, toggletip dismissal, toast commands, docked/mobile sidebar, disclosure groups, tabs and tree keyboard actions | Authored states and the resulting states in `interaction-cases.ts` |
@@ -48,8 +48,8 @@ browser run checks the inventory after building; it never updates it.
 
 `page-parity.spec.ts` applies content/link assertions to every inventory entry,
 and `visual.spec.ts` derives its route and image matrix from the same entries.
-The 71 component-page entries also receive example-by-example checks and full
-API/Vue views. `reader-journeys.spec.ts` covers the shared shell and code controls;
+The component-page entries also receive example-by-example checks and one image
+per example stage. `reader-journeys.spec.ts` covers the shared shell and code controls;
 `interaction-cases.ts` names the additional component/state pairs used by
 `component-interactions.spec.ts` and visual checks. `release-docs.spec.ts` and
 `interactive-guides.spec.ts` retain the existing focused assertions, including
@@ -199,26 +199,26 @@ TOC classes, or the zero-pixel comparison.
 
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
-intact. Screenshots disable animations and hide the
-caret without hiding content. Visual pages hide the navbar version label
-(`.looma-version`) from first paint through an adopted stylesheet, because the
-label changes with every release rather than with the page under review. The
-adopted stylesheet leaves page markup unchanged. Keep the Playwright version, image digest, font
-fixtures, and baseline review together when changing the rendering environment.
-The four desktop Table HTML/Vue captures have additional `--github-actions.png`
-references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
-GitHub runs and their retries produced identical sticky-header glyph pixels that
-differ from local container captures. All four full-page variants were reviewed;
-layout, content, API views, and accessibility assertions remain shared. Each
-variant still allows zero changed pixels. This records an observed environment
-difference, not a proven hardware cause or a browser correction. Playwright
-[documents rendering variation across environments, including hardware](https://playwright.dev/docs/test-snapshots).
-Review those four references from GitHub's uploaded actual images when that
-rendering environment changes; local updates continue to use the local references.
+intact. Screenshots disable animations and hide the caret without hiding content.
 
-Vue-code views reload the persisted lens before capture, matching the initial
-HTML view's fresh paint. API/Examples transitions and lens persistence still
-receive separate behavior assertions.
+Each image covers only what its test reviews, so a change touches only the
+references it actually affects. Component pages capture each example's live stage,
+not the page around it: the prose, code panes, and API and Vue-code views are
+text, checked by the parity and reader tests. Captures hide the navbar items,
+sidebar, previous/next links, footer, and navbar version label
+(`.looma-version`) from first paint through an adopted stylesheet, because those
+change when a page is added or a release ships, not with the page under review.
+Hiding keeps their layout space, and the adopted stylesheet leaves page markup
+unchanged. Tests tagged `@chrome` (the home page and open mobile navigation)
+review the shell itself. Full-page captures previously repeated the shell and
+every example on every route, so one navbar or sidebar change rewrote several
+hundred references and the repository history grew by gigabytes of images.
+
+Keep the Playwright version, image digest, font fixtures, and baseline review
+together when changing the rendering environment. Playwright
+[documents rendering variation across environments, including hardware](https://playwright.dev/docs/test-snapshots);
+if GitHub's runner renders an example differently from the local container,
+review GitHub's uploaded actual image rather than raising the pixel allowance.
 
 To review intentional changes, update only the affected cases:
 
