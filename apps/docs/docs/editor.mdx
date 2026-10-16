@@ -150,9 +150,11 @@ is plain formatting through H3. With no headings, the block explains how to popu
 Read-only editors show the same navigation without settings. Activating an entry scrolls to and
 focuses its heading without opening link editing.
 
-The `loomaTableOfContents` node stores only `{ format, depth }`. Heading IDs are assigned when a
-TOC is present and retained across renames and moves; duplicate IDs are repaired. Both the node
-and heading IDs round-trip through editor JSON and HTML. `editor.getHTML()` includes the current
+The `loomaTableOfContents` node stores only `{ format, depth }`. When a TOC is present, every
+heading has an ID on [Looma Markdown's anchor rule](/looma-markdown#headings): an ID derived from
+the heading's text follows the text as it changes, a custom ID stays with its heading through
+renames and moves, and duplicate IDs are repaired. Both the node and heading IDs round-trip through
+editor JSON, HTML and Markdown. `editor.getHTML()` includes the current
 entries as a named navigation landmark with real links.
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
@@ -193,8 +195,10 @@ stays literal.
 
 To load or save [Looma Markdown](/looma-markdown), `loomaMarkdownToHtml(markdown)` renders HTML
 for `setContent`, and `loomaMarkdownFromDoc(editor.state.doc)` writes the document as Looma
-Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads every form on that
-page that its document holds; the page's Support table lists what it writes as HTML.
+Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads and writes every
+form on that page, including figures with captions and tabs, which it keeps whole and shows panel
+by panel while editing. A table that fits GFM is written as one, and any other as HTML. Front
+matter is the host's page metadata, so the editor leaves it out of what it writes.
 
 ## Mentions
 

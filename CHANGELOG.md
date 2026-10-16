@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.28.19
+
+- `loomaMarkdownFromDoc` writes every form of Looma Markdown, so a document read from Markdown writes back as the same Markdown. Chips and mentions are directives (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`), the table of contents is `::toc{…}`, task lists are GFM `- [x]` items, and an image is `![alt](src "title")` with braces for its size and placement. Code keeps its fence line (title, highlighted lines, line numbers). A table that fits GFM is a GFM table and any other is clean HTML. A heading carries `{#id}` only when its ID differs from the one its text derives. Text that would read as a Looma block or a heading's braces is escaped. Front matter is the host's page metadata and is not written.
+- LoomaEditor holds headings 1 to 6 and keeps a code block's fence line in a new `meta` attribute, saved as `data-meta` on its `code`. Figures (`LoomaFigure` and `LoomaFigcaption`, saved as `<figure>` and written as `::: figure Caption`) and tabs (`LoomaTabs` and `LoomaTab`, saved as `<ui-tabs>` and written as `::: tabs` or `::: code-group`) are new nodes in the default preset. While editing, tabs show their panels one after another under their labels. A figure needs block images, so the preset leaves it out when `imageInline` is set.
+- New heading IDs follow Looma Markdown's anchor rule: a heading gets the ID its text derives (`getting-started`) in place of a numbered `looma-heading-N`, and a derived ID follows the text when it changes. A custom ID stays with its heading through renames and moves, and so does every ID saved before this release, including `looma-heading-N`, so existing links keep working; Markdown writes those as `{#id}`.
+
 ## v0.28.18
 
 - Looma Markdown is the named Markdown standard that Markupress renders and LoomaEditor reads and writes: CommonMark and GFM, Looma's `:::` blocks, and a Markdown form for everything the editor makes. Its page in the docs replaces Shared blocks. Colons name a Looma element and their number gives its scope (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`, `::toc{depth=2}`, `::: figure Caption`), and braces after a heading, image or directive hold its attributes (`{#id}`, `{width=640 placement=wrap-left}`).

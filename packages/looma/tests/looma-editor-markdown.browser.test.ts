@@ -1,6 +1,8 @@
 import type { Editor, JSONContent } from "@tiptap/core";
+import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
+import { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "../src/editor/extensions";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
 import "../tokens.css";
@@ -71,5 +73,35 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
       attrs: { summary: "More" },
       content: [{ type: "loomaCallout", attrs: { tone: "warning" } }, { type: "codeBlock", content: [{ text: ":::" }] }],
     });
+  });
+
+  it("edits tabs panel by panel and a figure's caption in place, then writes them back", async () => {
+    const { editor, host } = await mountEditor();
+    const fence = "```";
+    const markdown = [
+      "::: tabs install", "== npm", `${fence}sh`, "npm install @threadlabs/looma", fence, "== pnpm", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "",
+      "::: figure The build", "![Pipeline](/pipeline.svg){width=320}", ":::",
+    ].join("\n");
+    editor.commands.setContent(loomaMarkdownToHtml(markdown));
+    await flushBrowser();
+
+    // Editing draws plain panels under their labels rather than the Tabs component.
+    expect(host.querySelector(".ProseMirror ui-tabs")).toBeNull();
+    const labels = [...host.querySelectorAll<HTMLElement>(".ProseMirror [data-looma-tabs] [data-looma-tab-label]")];
+    expect(labels.map(label => [label.textContent, label.isContentEditable])).toEqual([["npm", false], ["pnpm", false]]);
+    expect([...host.querySelectorAll(".ProseMirror [data-looma-tabs] pre")].map(pre => pre.textContent)).toEqual([
+      "npm install @threadlabs/looma", "pnpm add @threadlabs/looma",
+    ]);
+
+    const caption = host.querySelector<HTMLElement>(".ProseMirror figure figcaption")!;
+    expect(host.querySelector(".ProseMirror figure img")).toBeTruthy();
+    let end = 0;
+    editor.state.doc.descendants((node, position) => { if (node.type.name === "loomaFigcaption") end = position + node.nodeSize - 1; });
+    editor.chain().focus().setTextSelection(end).run();
+    await flushBrowser();
+    await userEvent.keyboard(" pipeline");
+    await flushBrowser();
+    expect(caption.textContent).toBe("The build pipeline");
+    expect(loomaMarkdownFromDoc(editor.state.doc)).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
   });
 });
