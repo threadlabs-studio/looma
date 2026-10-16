@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import {
+  applyLoomaCodeNotation,
   assignLoomaHeadingIds,
   formatLoomaAttributes,
   loomaCodeFence,
@@ -66,6 +67,26 @@ describe("Looma Markdown rules", () => {
     });
     expect(parseLoomaFenceInfo("ts{2}:no-line-numbers")).toEqual({ language: "ts", meta: "{2}:no-line-numbers", lines: [2], lineNumbers: false });
     expect(parseLoomaFenceInfo('title="notes.txt"')).toEqual({ meta: 'title="notes.txt"', title: "notes.txt", lines: [] });
+  });
+
+  it("applies code notation", () => {
+    expect(applyLoomaCodeNotation("a\nb // [!code highlight]\n# [!code highlight:2]\nc\nd <!-- [!code highlight] -->"))
+      .toEqual({ code: "a\nb\nc\nd", lines: [2, 3, 4] });
+    expect(applyLoomaCodeNotation("plain")).toEqual({ code: "plain", lines: [] });
+  });
+
+  it("recognizes front matter whose values are scalars, lists or mappings", () => {
+    for (const yaml of ["title: A", "aliases:\n  - /old/", "head:\n  meta:\n    robots: noindex", "# comment\n\"quoted key\": 1", "key:"]) {
+      expect(splitLoomaFrontmatter(`---\n${yaml}\n---\nBody`)?.yaml, yaml).toBe(yaml);
+    }
+    for (const text of ["A short note.", "- item", "https://example.com", "  indented: value"]) {
+      expect(splitLoomaFrontmatter(`---\n${text}\n---\nBody`), text).toBeNull();
+    }
+  });
+
+  it("keeps code notation as source when an editor asks", () => {
+    expect(createLoomaMarkdownIt({ codeNotation: "keep" }).render("```ts\nx; // [!code highlight]\n```\n"))
+      .toBe('<pre><code class="language-ts">x; // [!code highlight]</code></pre>\n');
   });
 
   it("splits front matter and sizes markers", () => {
