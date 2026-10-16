@@ -4,7 +4,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { applyVersion, isGreater, nextPatch, resolveNextVersion, VERSIONED_MANIFESTS } from "./release-version.mjs";
+import {
+  applyVersion,
+  isGreater,
+  nextPatch,
+  resolveNextVersion,
+  stampChangelog,
+  VERSIONED_MANIFESTS
+} from "./release-version.mjs";
 
 test("a changed package releases the next patch without anyone bumping it", () => {
   assert.deepEqual(
@@ -76,4 +83,41 @@ test("the repository's manifests are the ones the release applies to", async () 
     const source = await readFile(new URL(manifest, root), "utf8");
     assert.match(source, /"version":\s*"\d+\.\d+\.\d+"/, manifest);
   }
+});
+
+const changelog = (...sections) => `# Changelog\n\n${sections.join("\n")}`;
+
+test("a release names the Next release heading with the version it publishes", () => {
+  const source = changelog("## Next release\n\n- New thing.\n  Continued.\n", "## v0.6.3\n\n- Old thing.\n");
+  assert.equal(
+    stampChangelog(source, { version: "0.6.4", released: source }),
+    changelog("## v0.6.4\n\n- New thing.\n  Continued.\n", "## v0.6.3\n\n- Old thing.\n")
+  );
+});
+
+test("entries an earlier release shipped keep that release's version", () => {
+  // main never receives a release commit, so v0.6.4's entry is still under Next release there.
+  const main = changelog("## Next release\n\n- Second.\n- First.\n", "## v0.6.3\n\n- Old thing.\n");
+  const released = changelog("## v0.6.4\n\n- First.\n", "## v0.6.3\n\n- Old thing.\n");
+  const filed = "## v0.6.4\n\n- First.\n\n## v0.6.3\n\n- Old thing.\n";
+  assert.equal(
+    stampChangelog(main, { version: "0.6.5", released }),
+    changelog("## v0.6.5\n\n- Second.\n", filed)
+  );
+  // Without a version only shipped entries move, which is how main catches up.
+  assert.equal(stampChangelog(main, { released }), changelog("## Next release\n\n- Second.\n", filed));
+  assert.equal(
+    stampChangelog(changelog("## Next release\n\n- First.\n"), { released }),
+    changelog("## Next release\n", "## v0.6.4\n\n- First.\n")
+  );
+});
+
+test("a CHANGELOG without a Next release heading is left as it is", () => {
+  const source = changelog("## v0.6.3\n\n- Old thing.\n");
+  assert.equal(stampChangelog(source, { version: "0.6.4", released: source }), source);
+});
+
+test("the repository's CHANGELOG keeps its pending entries under Next release", async () => {
+  const source = await readFile(new URL("../../CHANGELOG.md", import.meta.url), "utf8");
+  assert.match(source, /^# Changelog\n\n## Next release\n/);
 });
