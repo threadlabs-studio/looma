@@ -7,8 +7,8 @@ sidebar_label: Turnkey editor
 # Turnkey editor
 
 `LoomaEditor` (from `@threadlabs/looma/vue/editor`) is a complete rich-text editor built from the
-editor components in this section. The application passes content, editability, and upload or
-mention callbacks, and persists the document the editor emits; Looma owns the extensions,
+editor components in this section. The application passes content and editability, answers the
+editor's [requests](#requests) for uploads, mentions, and links, and persists the document the editor emits; Looma owns the extensions,
 formatting commands, selection and focus, and every editor control. See
 [Getting started](/getting-started) for installation and a first example.
 
@@ -21,17 +21,140 @@ formatting commands, selection and focus, and every editor control. See
 | `contentDensity` | `comfortable` | `compact` fits a read-only excerpt to its content without outer padding. Editable documents retain the standard canvas. |
 | `placeholder` | `Type “/” for commands, or start writing…` | Shown in an empty document. |
 | `label` | `Document` | The editing surface's accessible name. |
-| `extensions` | `[]` | Extra Tiptap extensions, added after Looma's own. |
+| `extensions` | none | Answers [`extensions`](#extensions): extra Tiptap extensions, added after Looma's own. |
+| `slashCommands` | none | Answers [`slash-commands`](#slash-commands): the slash menu's commands, given the defaults. |
 | `codeLanguages` | built-in catalog | Override the built-in code language list with application-owned grammars. Pass `{}` to disable syntax highlighting. |
-| `mentionItems`, `mentionProvider`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, or a function that searches. |
-| `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Search host destinations for links and describe a saved destination from its `href`. |
-| `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
+| `mentionItems`, `mentionQuery`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, and the answer to [`mention-query`](#mention-query) that searches. |
+| `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Answer [`link-search`](#link-search) and [`link-resolve`](#link-resolve): search host destinations for links and describe a saved destination from its `href`. |
+| `imageUpload` | none | Answers [`image-upload`](#image-upload): uploads a chosen, pasted, or dropped image and returns the image to insert. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
 | `resolveImageSource` | none | Resolves a browser-only master URL for every image; stored content and event identities retain their original source. |
 | `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
 | `toolbarTriggerId` | `""` | In `popover` mode, the ID of the button that toggles the toolbar and anchors it. |
 | `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Bind it with `v-model:toolbar-open`. |
 | `disableHighlight` | `false` | Authors can't highlight text. Highlights already in the document still show; see [Reserving highlight](#reserving-highlight). |
+
+## Requests
+
+The editor asks the application for what only the application knows: its uploads, its people, its
+pages, and its own Tiptap extensions. Each of these is an
+[HTML Next request](https://nextwebwg.org/declarative-components/javascript#requests). Answer it
+with a function prop, which receives the request's detail and `{ signal, progress }` and returns the
+answer, `null` for none, or a promise of either:
+
+```vue
+<LoomaEditor :mention-query="({ query, limit }, { signal }) => searchPeople(query, limit, signal)" />
+```
+
+The same request also arrives as an event: a `RequestEvent` that bubbles from the editor and is
+answered with `event.respondWith(answer)`. Listen with Vue's event form, on an ancestor, or on the
+document, where HTML Next's `respond()` helper adds the listener and announces it. The nearest
+responder answers: the function prop first, then the event form, then ancestors, then the document.
+An application can set a default for every editor on `document` and override it for one editor.
+
+```ts
+import { respond } from "@nextwebwg/html-next";
+
+const stop = respond(document, "image-upload", async ({ file }, { signal, progress }) => ({
+  src: await upload(file, { signal, onProgress: progress }),
+}));
+```
+
+`signal` aborts when the answer is no longer needed: the author typed another character, canceled
+an upload, or the editor unmounted. Insert image and link search appear once the editor knows a
+responder: its function prop, its event form, or a responder that announced itself after the editor
+mounted, as `respond()` does. A responder registered before the editor mounted is found the first
+time it answers a pasted or dropped image.
+
+| Request | Function prop | Detail | Answer | Asked |
+|---|---|---|---|---|
+| `extensions` | `extensions` | `null` | Tiptap extensions | when the editor mounts, and again when a responder first appears |
+| `slash-commands` | `slashCommands` | `{ defaults }` | slash commands | when the editor mounts, when the prop changes, and when image uploads become available |
+| `mention-query` | `mentionQuery` | `{ query, limit }` | mention items | as the author types after `@` |
+| `link-search` | `linkSearch` | `{ query }` | link targets | as the author types in the link field |
+| `link-resolve` | `linkResolve` | `{ href }` | a link target | when a saved link shows its card |
+| `image-upload` | `imageUpload` | `{ file }` | `{ src, alt?, width?, height?, responsive? }` | for each chosen, pasted, or dropped image |
+
+### extensions
+
+The answer's Tiptap extensions are added after Looma's own. When the answer arrives after the editor
+was built, for example from a lazily imported module or a responder that appears later, the editor
+rebuilds with them and keeps its document. A document nobody has edited yet is read again from
+`modelValue`, so nodes and marks the new extensions define are kept.
+
+```ts
+import type { LoomaEditorExtensions } from "@threadlabs/looma/vue/editor";
+
+const extensions: LoomaEditorExtensions = async () => [(await import("./footnote")).Footnote];
+```
+
+### slash-commands
+
+The detail carries the editor's default commands. Return them changed or extended; `null` keeps the
+defaults and an empty array offers no commands. See [Host commands](/editor#host-commands).
+
+```ts
+import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
+
+const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => defaults.filter(({ id }) => id !== "table");
+```
+
+### mention-query
+
+Answer with at most `limit` people for `query`. `null` falls back to `mentionItems`, and a rejection
+shows an empty menu. Each new character aborts the previous query's `signal`.
+
+```ts
+import type { LoomaMentionQuery } from "@threadlabs/looma/vue/editor";
+
+const mentionQuery: LoomaMentionQuery = async ({ query, limit }, { signal }) =>
+  (await fetch(`/api/people?q=${encodeURIComponent(query)}&limit=${limit}`, { signal })).json();
+```
+
+### link-search
+
+Answer with destinations matching `query`, each with `id`, `label`, `href`, and optional `detail`.
+With a responder the link field searches; without one it asks for a URL. A rejection shows a
+retryable search error.
+
+```ts
+import type { LoomaLinkSearch } from "@threadlabs/looma/vue/editor";
+
+const linkSearch: LoomaLinkSearch = async ({ query }, { signal }) =>
+  (await fetch(`/api/pages?q=${encodeURIComponent(query)}`, { signal })).json();
+```
+
+### link-resolve
+
+Answer with the current destination for a saved `href`, or `null`, so a renamed page shows its new
+name in the link card. The saved `href` never changes.
+
+```ts
+import type { LoomaLinkResolve } from "@threadlabs/looma/vue/editor";
+
+const linkResolve: LoomaLinkResolve = ({ href }) => pagesByHref.get(href) ?? null;
+```
+
+### image-upload
+
+Upload `file` and answer with the image to insert; `null` inserts nothing. The editor shows the
+upload's progress from `progress(loaded, total)` with a **Cancel** button, which aborts `signal`. A
+rejection leaves the document unchanged, shows **Retry**, and emits `uploadError`; a canceled upload
+reports nothing.
+
+```ts
+import type { LoomaImageUploader } from "@threadlabs/looma/vue/editor";
+
+const imageUpload: LoomaImageUploader = ({ file }, { signal, progress }) => new Promise((resolve, reject) => {
+  const request = new XMLHttpRequest();
+  request.open("POST", "/api/images");
+  request.upload.onprogress = (event) => progress(event.loaded, event.total);
+  request.onload = () => resolve({ src: JSON.parse(request.responseText).url, alt: file.name });
+  request.onerror = () => reject(new Error("Upload failed"));
+  signal.addEventListener("abort", () => request.abort());
+  request.send(file);
+});
+```
 
 ## Toolbar
 

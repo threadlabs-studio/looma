@@ -15,14 +15,14 @@ export interface LoomaLinkTarget {
  * @ownership The host checks access and returns durable, openable href values.
  * @failure A rejection leaves the existing document untouched and shows a retryable search error.
  */
-export type LoomaLinkSearch = (query: string) => Promise<LoomaLinkTarget[]>;
+export type LinkSearch = (query: string) => Promise<LoomaLinkTarget[]>;
 
 /**
  * Describes a saved host link so a renamed record can show its current label.
  * @ownership The host resolves identity and access; Looma keeps the saved href as is.
  * @failure A rejection leaves the original href visible and editable.
  */
-export type LoomaLinkResolve = (href: string) => Promise<LoomaLinkTarget | null>;
+export type LinkResolve = (href: string) => Promise<LoomaLinkTarget | null>;
 
 /** The link form's state and the resolved target of the link at the caret. */
 export interface LoomaLinkEditingState {
@@ -47,8 +47,8 @@ export interface LoomaLinkEditingState {
 export interface LoomaLinkEditingOptions {
   editor: Editor;
   /** Read on each use, so a host can change them while the editor runs. */
-  search: () => LoomaLinkSearch | null | undefined;
-  resolve: () => LoomaLinkResolve | null | undefined;
+  search: () => LinkSearch | null | undefined;
+  resolve: () => LinkResolve | null | undefined;
   baseUrl: () => string;
 }
 

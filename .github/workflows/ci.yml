@@ -83,7 +83,7 @@ jobs:
           name: browser-failures
           path: |
             apps/docs/test-results/
-            packages/looma/tests/__screenshots__/
+            packages/looma/test-results/browser/
           if-no-files-found: ignore
 
   release-package:
