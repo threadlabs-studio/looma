@@ -63,13 +63,17 @@ const sharedControllers = {
 };
 // The editor's own Tiptap extensions are bundled; the host provides Tiptap's core, ProseMirror, and
 // the Vue integration.
-const isDependency = (id) => id === "vue" || id === "lowlight" || id === "markdown-it" || id.startsWith("@threadlabs/looma/") ||
+// The Vue output bundles the Vanilla factories its editor node views use, so their styles join
+// vue.css and the editor imports in Node without a stylesheet import; HTML Next stays a peer.
+const isDependency = (id) => id === "vue" || id === "lowlight" || id === "markdown-it" || id.startsWith("@nextwebwg/html-next")
+  || (id.startsWith("@threadlabs/looma/") && !id.startsWith("@threadlabs/looma/vanilla/")) ||
   /^@tiptap\/(core|pm|vue-3)(\/|$)/.test(id) || id.startsWith("lucide");
 await build({
   configFile: false,
   logLevel: "warn",
   root: assembled,
   plugins: [sharedControllers, vue()],
+  resolve: { alias: { "@threadlabs/looma/vanilla": join(root, "vanilla") } },
   build: {
     outDir: join(root, "vue"),
     emptyOutDir: false,
