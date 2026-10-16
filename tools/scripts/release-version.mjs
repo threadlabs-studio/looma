@@ -72,6 +72,69 @@ export async function applyVersion(version, { root = repoRoot } = {}) {
   return written;
 }
 
+/** The CHANGELOG heading pull requests add their entries under; a release names it. */
+export const NEXT_RELEASE = "## Next release";
+
+/** `## ` sections, each with the lines up to the next one; `lines` before the first is the preamble. */
+function sections(text) {
+  const parsed = [{ heading: null, lines: [] }];
+  for (const line of text.split("\n")) {
+    if (line.startsWith("## ")) parsed.push({ heading: line, lines: [] });
+    else parsed.at(-1).lines.push(line);
+  }
+  return parsed;
+}
+
+/** An entry is a top-level `- ` bullet with its continuation lines. */
+function entries(lines) {
+  const found = [];
+  let open = false;
+  for (const line of lines) {
+    if (line.trim() === "") open = false;
+    else if (open && !line.startsWith("- ")) found[found.length - 1] += `\n${line}`;
+    else {
+      found.push(line);
+      open = true;
+    }
+  }
+  return found;
+}
+
+const body = (list) => (list.length ? ["", ...list.flatMap((entry) => entry.split("\n")), ""] : [""]);
+
+/**
+ * @contract Names the `## Next release` entries `## v<version>`. main never receives a release
+ * commit, so an entry an earlier release shipped can still sit under Next release there; `released`
+ * (the previous release's CHANGELOG) files each such entry under the version that shipped it. With
+ * no version, only shipped entries move, which is how main catches up.
+ * @invariant Every entry is kept; a source without the Next release heading is returned unchanged.
+ */
+export function stampChangelog(source, { version, released = "" } = {}) {
+  const parsed = sections(source);
+  const next = parsed.find((section) => section.heading === NEXT_RELEASE);
+  if (!next) return source;
+  const shipped = new Map();
+  for (const section of sections(released)) {
+    if (section.heading?.startsWith("## v")) for (const entry of entries(section.lines)) shipped.set(entry, section.heading);
+  }
+  const pending = [];
+  const filed = new Map();
+  for (const entry of entries(next.lines)) {
+    const heading = shipped.get(entry);
+    if (heading) filed.set(heading, [...(filed.get(heading) ?? []), entry]);
+    else pending.push(entry);
+  }
+  next.lines = body(pending);
+  if (version) next.heading = `## v${parseVersion(version).join(".")}`;
+  let at = parsed.indexOf(next) + 1;
+  for (const [heading, list] of filed) {
+    const existing = parsed.find((section) => section.heading === heading);
+    if (existing) existing.lines = body([...list, ...entries(existing.lines)]);
+    else parsed.splice(at++, 0, { heading, lines: body(list) });
+  }
+  return parsed.flatMap((section) => (section.heading ? [section.heading, ...section.lines] : section.lines)).join("\n");
+}
+
 async function main() {
   const [command, value] = process.argv.slice(2);
   if (command === "--apply") {
