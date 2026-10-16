@@ -60,7 +60,7 @@ Contextual formatting hides while slash-command or mention suggestions are activ
 ## Slash commands and blocks
 
 Type `/` for headings, callouts, lists, a quote, code, a divider, a table, or a collapsible
-section. Image appears when `uploadImage` is supplied. Keep typing to narrow the grouped menu;
+section. Image appears when the editor has an [image uploader](/editor/looma-editor#image-upload). Keep typing to narrow the grouped menu;
 use arrow keys and Enter to choose. Exact names and aliases rank ahead of partial matches;
 `/callout` puts callouts before the quote alias. An unmatched query shows **No commands found**
 and remains in the document until you edit it or choose a command. Escape dismisses suggestions.
@@ -79,13 +79,14 @@ Block actions can insert a paragraph after the current block, duplicate it, or d
 
 ### Host commands
 
-Pass `slashCommands` to customize the existing extension. An array replaces the inventory,
-including an empty array. A function receives fresh defaults and returns the inventory to use:
+Pass `slashCommands` to answer the editor's [`slash-commands`](/editor/looma-editor#slash-commands)
+request. It receives fresh defaults and returns the inventory to use; an empty array offers no
+commands and `null` keeps the defaults:
 
 ```ts
 import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
 
-const slashCommands: LoomaEditorSlashCommands = defaults => [
+const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => [
   ...defaults,
   {
     id: "host-reference",
@@ -105,8 +106,9 @@ Use a unique `id` for each command, especially when titles repeat. `group` is op
 existing headless command objects keep working. Each command owns removal of the supplied
 range. Supply a pure `isAvailable({ editor, range })` predicate to omit a command when a host
 capability or editing context is unavailable; Looma checks it again before execution.
-Changing the inventory reference dismisses the open menu and keeps the typed query intact.
-Use a new array/function when changing the inventory rather than mutating it in place.
+A new function whose answer is a different inventory dismisses the open menu and keeps the typed
+query intact; one that answers the same commands leaves the menu open, so an inline function is safe.
+Return new arrays rather than mutating one in place.
 
 Headless consumers use `createLoomaSlashCommandExtension({ commands, onStateChange })` and
 `filterLoomaSlashCommands`. Menu snapshots supply `select(index)` and `highlight(index)`;
@@ -202,8 +204,9 @@ matter is the host's page metadata, so the editor leaves it out of what it write
 
 ## Mentions
 
-Pass `mentionItems` for a short known list, as in the playground, or `mentionProvider` for a
-directory search. Each item needs a stable `id` and visible `label`; `detail` and `initials` are
+Pass `mentionItems` for a short known list, as in the playground, or answer the
+[`mention-query`](/editor/looma-editor#mention-query) request with `mentionQuery` for a directory
+search. Each item needs a stable `id` and visible `label`; `detail` and `initials` are
 optional display hints. `mentionLimit` defaults to 8. The editor stores the ID and label in the
 document, while the application owns directory lookup and identity.
 
@@ -231,9 +234,11 @@ wire a separate table menu.
 
 ## Images and links
 
-Provide `uploadImage` to enable image insertion from a file, paste, or drop. It receives a `File`
-and returns a URL or an object with a URL, alt text, and optional dimensions. A rejected upload
-leaves the document unchanged and emits `uploadError`, so the app can show recovery UI.
+Answer the [`image-upload`](/editor/looma-editor#image-upload) request with `imageUpload` to
+enable image insertion from a file, paste, or drop. It receives `{ file }` and returns the image to
+insert: `src`, optional alt text and dimensions, or `null` for none. While it runs the editor shows
+its progress with a **Cancel** button. A rejected upload leaves the document unchanged and emits
+`uploadError`, so the app can show recovery UI.
 `resolveImageAttributes` can supply responsive image attributes when rendering saved content.
 `resolveImageSource` can resolve a browser-only master URL for every image,
 including images without responsive metadata. It receives the durable image
@@ -273,9 +278,9 @@ HTML. Headless hosts can supply `imageNodeView` and `dividerNodeView` for custom
 
 Select text and choose **Link**, type `/link`, or put the caret in a link to edit or remove it. The editor
 accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `/`, `#`, or `?`.
-Pass `linkSearch(query)` to offer a single field that searches destinations or accepts a pasted full URL. Return items
+Answer [`link-search`](/editor/looma-editor#link-search) with `linkSearch({ query })` to offer a single field that searches destinations or accepts a pasted full URL. Return items
 with `id`, `label`, `href`, and optional `detail`; the host owns access checks and durable URLs.
-Pass `linkResolve(href)` to show a saved destination's current name and context when its link is
+Answer [`link-resolve`](/editor/looma-editor#link-resolve) with `linkResolve({ href })` to show a saved destination's current name and context when its link is
 selected. Set `linkTargetLabel` to name that kind of destination in the picker. A failed lookup
 leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `https://docs.example.test`) to make newly inserted same-origin web links site-relative, including pasted HTML and URL paste over selected text. Paths, queries, and fragments are preserved; other origins and already relative destinations are unchanged. Link is also available in the text-selection toolbar.
 
@@ -287,14 +292,15 @@ leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `
 | `editable` | `true` | Allow editing or show the document read only |
 | `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
 | `label` | `Document` | Accessible name for the editing surface |
-| `extensions` | `[]` | Additional Tiptap extensions |
+| `extensions` | None | Answers `extensions`: additional Tiptap extensions |
+| `slashCommands` | None | Answers `slash-commands`: the slash menu's commands, given the defaults |
 | `toolbarMode` | `bubble` | `bubble`, `sticky`, `popover`, or `contextual` toolbar placement |
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
-| `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
+| `mentionItems`, `mentionQuery`, `mentionLimit` | Empty, none, 8 | Fixed mention candidates, and the answer to `mention-query` |
 | `linkBaseUrl` | None | Make newly inserted same-origin web links relative |
-| `linkSearch`, `linkResolve`, `linkTargetLabel` | None, none, `Item` | Search app destinations and describe existing identity links |
-| `uploadImage`, `resolveImageSource`, `resolveImageAttributes` | None | Image delivery and rendering |
+| `linkSearch`, `linkResolve`, `linkTargetLabel` | None, none, `Item` | Answer `link-search` and `link-resolve`: search app destinations and describe existing identity links |
+| `imageUpload`, `resolveImageSource`, `resolveImageAttributes` | None | Answer `image-upload`; image delivery and rendering |
 
 `update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
 `popover` toolbar opening and closing; `ready` exposes the underlying Tiptap
