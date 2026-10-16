@@ -2,7 +2,7 @@
 <template component="ui-editor-code-language" controller="./ui-editor-code-language.js">
   <defs>
     <prop name="value" type="string" default="auto">The code block's language, or auto to detect it.</prop>
-    <prop name="languages" type="list(object({ value: string, label: string }))" default="[]"
+    <prop name="languages" type="list(object({ value: string, label: string }))"
     >The languages to offer, in order, each with its label; the editor lists Auto first and marks a saved language it cannot highlight.</prop>
     <event name="language" type="object">
       <prop name="value" required type="string"></prop>
