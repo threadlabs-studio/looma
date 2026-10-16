@@ -1,6 +1,5 @@
 import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,9 +18,10 @@ if (process.env.LOOMA_DOCS_CANONICAL === "1") {
 }
 const workspaces = ["packages", "apps", "tools"].flatMap((group) => readdirSync(path.join(root, group), { withFileTypes: true })
   .filter((entry) => entry.isDirectory()).map((entry) => `${group}/${entry.name}`));
-const checkout = createHash("sha256").update(`${root}:linux-arm64`).digest("hex").slice(0, 8);
-const mounts = ["", ...workspaces].flatMap((dir) => ["--volume", `looma-docs-parity-${checkout}-${dir.replaceAll("/", "-") || "root"}-modules:/work/${dir ? `${dir}/` : ""}node_modules`]);
-mounts.push("--volume", `looma-docs-parity-${checkout}-store:/pnpm/store`);
+// Anonymous node_modules volumes hide the host's macOS installs and are deleted by --rm; only the
+// content-addressed pnpm store persists, shared by every checkout, so runs leave nothing behind.
+const mounts = ["", ...workspaces].flatMap((dir) => ["--volume", `/work/${dir ? `${dir}/` : ""}node_modules`]);
+mounts.push("--volume", "looma-docs-parity-pnpm-store:/pnpm/store");
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const command = `corepack enable && corepack pnpm install --frozen-lockfile --store-dir /pnpm/store && corepack pnpm --filter @threadlabs/looma-docs exec playwright ${args.map(quote).join(" ")}`;
 const result = spawnSync("docker", ["run", "--rm", "--init", "--ipc=host", "--platform", "linux/arm64", "--workdir", "/work", "--volume", `${root}:/work`, ...mounts,

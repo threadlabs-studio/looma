@@ -208,10 +208,15 @@ const MAPPING_KEY = /^(?:[^\s#:'"\-?,[\]{}&*!|>%@`][^:\n]*?|"[^"\n]*"|'[^'\n]*')
 
 const NOTATION = /[ \t]*(?:\/\/|#|--|<!--|\{?\/\*)[ \t]*\[!code highlight(?::(\d+))?\][ \t]*(?:-->|\*\/\}?)?[ \t]*$/;
 
+// An escaped marker, `[\!code highlight]`: a backslash between `[` and `!`.
+const ESCAPED_NOTATION = /\[\\(\\*!code highlight)/g;
+
 /**
  * Applies code notation: a line ending in a `[!code highlight]` comment is highlighted and loses
  * the comment, `[!code highlight:3]` covers three lines, and a marker alone on its line is removed
- * with the line and applies to the lines after it.
+ * with the line and applies to the lines after it. A backslash between `[` and `!` escapes a
+ * marker, `[\!code highlight]`, which then shows as text with one backslash fewer and highlights
+ * nothing.
  * @contract Returns the code a reader sees and its highlighted line numbers, from 1, ascending.
  * ponytail: matched on source lines, so a string that ends in the marker counts too.
  */
@@ -226,7 +231,7 @@ export function applyLoomaCodeNotation(code: string): { code: string; lines: num
     if (own) kept.push(rest);
     for (let count = 0; count < Number(match[1] ?? 1); count++) lines.add(kept.length + (own ? 0 : 1) + count);
   }
-  return { code: kept.join("\n"), lines: [...lines].sort((a, b) => a - b) };
+  return { code: kept.join("\n").replace(ESCAPED_NOTATION, "[$1"), lines: [...lines].sort((a, b) => a - b) };
 }
 
 /**
