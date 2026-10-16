@@ -96,24 +96,30 @@ For a complete Vue editor, pass content and host integration callbacks to Looma:
 import { ref } from "vue";
 import {
   LoomaEditor,
-  type LoomaMentionProvider,
+  type LoomaImageUploader,
+  type LoomaMentionQuery,
 } from "@threadlabs/looma/vue/editor";
 
 const content = ref({ type: "doc", content: [] });
-const findPeople: LoomaMentionProvider = async (query, { limit }) => {
+const findPeople: LoomaMentionQuery = async ({ query, limit }, { signal }) => {
   const response = await fetch(
     `/api/people?q=${encodeURIComponent(query)}&limit=${limit}`,
+    { signal },
   );
   return (await response.json()).people;
 };
+const uploadImage: LoomaImageUploader = async ({ file }, { signal }) => ({
+  src: await upload(file, { signal }),
+  alt: file.name,
+});
 </script>
 
 <template>
   <LoomaEditor
     v-model="content"
-    :mention-provider="findPeople"
+    :mention-query="findPeople"
     :mention-limit="8"
-    :upload-image="async file => ({ url: await upload(file), alt: file.name })"
+    :image-upload="uploadImage"
   />
 </template>
 ```
