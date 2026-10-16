@@ -72,7 +72,8 @@ In Markdown, a callout's tone is its container name and a chip's tone is its `to
 - Front matter is a YAML mapping at the very start of the file, opened by a `---` line and closed
   by a `---` or `...` line. It is page metadata and renders nothing. Markupress reads its fields
   (title, description, sidebar label and position, layout, outline range, head and edit link) and
-  rejects unknown ones. LoomaEditor keeps pasted front matter as a YAML code block.
+  rejects unknown ones. LoomaEditor edits content, so it leaves front matter to its host: it writes
+  none, and it keeps pasted front matter as a YAML code block.
 
 ## Text
 
@@ -368,21 +369,21 @@ for (const fixture of LOOMA_MARKDOWN_FIXTURES) {
 | --- | --- | --- | --- | --- |
 | Text and line breaks | `text` | Yes | Yes | Yes |
 | Autolinks | `autolinks` | Yes | Yes | As `<url>` and links |
-| Headings | `headings` | Levels 1–6 | Levels 1–3 | Levels 1–3 |
-| Heading anchors | `heading-ids` | Splits accented letters: "Über" is `u-ber` | Yes | Generated anchors only |
+| Headings | `headings` | Yes | Yes | Yes |
+| Heading anchors | `heading-ids` | Splits accented letters: "Über" is `u-ber` | Yes | Yes |
 | Lists, quotes and rules | `lists` | Yes | Yes | Yes |
-| Task lists | `task-lists` | Yes | Yes | As HTML |
+| Task lists | `task-lists` | Yes | Yes | Yes |
 | Code blocks | `code-blocks` | Yes | Yes | Yes |
-| Code meta | `code-meta` | Yes | Language only | Language only |
-| Tables | `tables` | Yes | Yes | As HTML |
-| Images | `images` | Yes | Yes | As HTML |
-| Image size and placement | `image-attributes` | — | Yes | As HTML |
-| Figures | `figures` | — | Image and caption text | Image and caption text |
+| Code meta | `code-meta` | Yes | Yes | Yes |
+| Tables | `tables` | Yes | Yes | Yes |
+| Images | `images` | Yes | Yes | Yes |
+| Image size and placement | `image-attributes` | — | Yes | Yes |
+| Figures | `figures` | — | Yes | Yes |
 | Callouts and alerts | `callouts` | Yes | Yes | Yes |
 | Details | `details` | Yes | Yes | Yes |
-| Tabs and code groups | `tabs` | Yes | Panel content | Panel content |
+| Tabs and code groups | `tabs` | Yes | Yes | Yes |
 | Containers | `containers` | Closes by colon count | Yes | Yes |
-| Chips | `chips` | — | Yes | As HTML |
-| Mentions | `mentions` | — | Yes | As HTML |
-| Table of contents | `toc` | — | Yes | As HTML |
-| Front matter | `front-matter` | Page metadata | On paste, as a YAML code block | — |
+| Chips | `chips` | — | Yes | Yes |
+| Mentions | `mentions` | — | Yes | Yes |
+| Table of contents | `toc` | — | Yes | Yes |
+| Front matter | `front-matter` | Page metadata | On paste, as a YAML code block | Left to the host |

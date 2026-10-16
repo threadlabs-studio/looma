@@ -118,13 +118,15 @@ export function parseLoomaAttributes(source: string): LoomaAttributes | null {
 /**
  * Writes attributes as a brace list, `id` first as `#id`, then the rest in order.
  * @contract `true` writes a bare key; values are quoted only when they need it. `false`, null and
- * undefined values are left out, and an empty set writes an empty string.
+ * undefined values are left out, and an empty set writes an empty string. An ID that `#` cannot
+ * carry, or any ID when `hashId` is false, is written `id=…`.
  */
-export function formatLoomaAttributes(attributes: Readonly<Record<string, string | number | boolean | null | undefined>>): string {
+export function formatLoomaAttributes(attributes: Readonly<Record<string, string | number | boolean | null | undefined>>, { hashId = true } = {}): string {
   const items: string[] = [];
   const { id, ...rest } = attributes;
-  if (typeof id === "string" && id) items.push(`#${id}`);
-  for (const [key, value] of Object.entries(rest)) {
+  const hashed = hashId && typeof id === "string" && /^[\w-]+$/.test(id);
+  if (hashed) items.push(`#${id}`);
+  for (const [key, value] of Object.entries(hashed ? rest : attributes)) {
     if (value === true) items.push(key);
     else if (value === false || value === null || value === undefined) continue;
     else {
