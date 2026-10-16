@@ -1,6 +1,7 @@
 import { Extension, Node, type NodeViewRenderer } from "@tiptap/core";
 import { DOMSerializer, type DOMOutputSpec, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, type EditorState } from "@tiptap/pm/state";
+import { assignLoomaHeadingIds, loomaHeadingSlug } from "../../markdown";
 import { revealLoomaExpandAt } from "./expand";
 
 /** Formatting affects presentation only; heading order remains document order. */
@@ -15,7 +16,7 @@ export interface LoomaTableOfContentsConfig {
 /**
  * One current heading for navigation or host projections.
  * @lifecycle Positions belong to the supplied document; recompute after edits.
- * IDs stay with headings across renames and moves once a TOC assigns anchors.
+ * An ID derived from a heading's text follows the text; a custom ID stays with its heading.
  */
 export interface LoomaTableOfContentsEntry {
   id: string;
@@ -69,26 +70,40 @@ export function tableOfContentsTree(entries: LoomaTableOfContentsEntry[]): Branc
   return roots;
 }
 
-function anchorTransaction(state: EditorState) {
+const derivedFrom = (id: string, text: string) => {
+  const slug = loomaHeadingSlug(text);
+  return id === slug || (id.startsWith(`${slug}-`) && /^\d+$/.test(id.slice(slug.length + 1)));
+};
+
+/**
+ * Keeps heading anchors on Looma Markdown's rule. An anchor derived from its heading's text
+ * (as it read before this change) follows the text; any other, including `looma-heading-N` anchors
+ * saved before this rule, is a custom anchor and stays, so links to it keep working. With
+ * a table of contents every heading gets an anchor; without one, only headings that have one.
+ */
+function anchorTransaction(state: EditorState, previous?: ProseMirrorNode) {
   let hasToc = false;
   const headings: { node: ProseMirrorNode; position: number }[] = [];
   state.doc.descendants((node, position) => {
     if (node.type.name === "loomaTableOfContents") hasToc = true;
     if (node.type.name === "heading") headings.push({ node, position });
   });
-  if (!hasToc) return null;
-  const reserved = new Set(headings.map(({ node }) => String(node.attrs.id ?? "")).filter(Boolean));
-  const used = new Set<string>();
+  if (!headings.length) return null;
+  const before = new Map<string, string>();
+  previous?.descendants(node => {
+    if (node.type.name === "heading" && typeof node.attrs.id === "string") before.set(node.attrs.id, node.textContent.trim());
+  });
+  const custom = (node: ProseMirrorNode) => {
+    const id = node.attrs.id;
+    if (typeof id !== "string" || !id || /\s/.test(id)) return undefined;
+    return derivedFrom(id, before.get(id) ?? node.textContent.trim()) ? undefined : id;
+  };
+  const ids = assignLoomaHeadingIds(headings.map(({ node }) => ({ text: node.textContent.trim(), id: custom(node) })));
   const transaction = state.tr;
-  let sequence = 1;
-  for (const { node, position } of headings) {
-    let id = typeof node.attrs.id === "string" ? node.attrs.id : "";
-    if (!id || /\s/.test(id) || used.has(id)) {
-      do { id = `looma-heading-${sequence++}`; } while (reserved.has(id) || used.has(id));
-      transaction.setNodeMarkup(position, undefined, { ...node.attrs, id });
-    }
-    used.add(id);
-  }
+  headings.forEach(({ node, position }, index) => {
+    if (node.attrs.id === ids[index] || (!hasToc && !node.attrs.id)) return;
+    transaction.setNodeMarkup(position, undefined, { ...node.attrs, id: ids[index] });
+  });
   return transaction.docChanged ? transaction : null;
 }
 
@@ -103,8 +118,8 @@ const LoomaHeadingAnchors = Extension.create({
   },
   addProseMirrorPlugins() {
     return [new Plugin({
-      appendTransaction: (transactions, _oldState, state) => transactions.some(transaction => transaction.docChanged)
-        ? anchorTransaction(state) : null,
+      appendTransaction: (transactions, oldState, state) => transactions.some(transaction => transaction.docChanged)
+        ? anchorTransaction(state, oldState.doc) : null,
     })];
   },
 });

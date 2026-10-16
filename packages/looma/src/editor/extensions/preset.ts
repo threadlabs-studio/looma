@@ -38,6 +38,8 @@ import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
 import { LoomaExpand } from "./expand";
+import { LoomaFigcaption, LoomaFigure } from "./figure";
+import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
@@ -90,12 +92,24 @@ export interface DefaultEditorExtensionsOptions {
 }
 
 const LoomaCodeBlock = CodeBlockLowlight.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      // The fence line after its language (title, highlighted lines, line numbers), kept as written.
+      meta: {
+        default: null,
+        parseHTML: element => element.querySelector("code")?.getAttribute("data-meta") || element.getAttribute("data-meta") || null,
+        renderHTML: () => ({}),
+      },
+    };
+  },
   renderHTML({ node, HTMLAttributes }) {
     return [
       "pre",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { spellcheck: "false" }),
       ["code", {
         class: node.attrs.language ? `${this.options.languageClassPrefix}${node.attrs.language}` : null,
+        "data-meta": node.attrs.meta || null,
         spellcheck: "false",
       }, 0],
     ];
@@ -181,7 +195,7 @@ export function getDefaultEditorExtensions(
     Italic,
     Strike,
     Underline,
-    Heading.configure({ levels: [1, 2, 3] }),
+    Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     BulletList,
     OrderedList,
     ListItem,
@@ -190,6 +204,10 @@ export function getDefaultEditorExtensions(
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => calloutNodeView }) : LoomaCallout,
     LoomaChip,
+    LoomaTabs,
+    LoomaTab,
+    // A figure holds a block image, so it exists only when images are blocks.
+    ...(imageInline ? [] : [LoomaFigure, LoomaFigcaption]),
     LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
     dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
