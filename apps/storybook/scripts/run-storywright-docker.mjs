@@ -27,6 +27,10 @@ const image = process.env.STORYWRIGHT_DOCKER_IMAGE
   ?? 'mcr.microsoft.com/playwright:v1.60.0-noble@sha256:83192064c7510f7ee73dd63dc5f22a5e01a92c81a2e6a9c715d9e3fe55471fd9'
 const platform = process.env.STORYWRIGHT_DOCKER_PLATFORM ?? 'linux/amd64'
 const volumePrefix = process.env.STORYWRIGHT_DOCKER_VOLUME_PREFIX ?? 'looma-storywright'
+// Containers and volumes carry the Looma label, so `pnpm docker:clean` can remove
+// them, including volumes left by an overridden prefix or a removed workspace.
+const label = 'com.threadlabs.tool=looma'
+const volume = (name, target) => ['--mount', `type=volume,src=${name},dst=${target},volume-label=${label}`]
 const hostUid = process.getuid?.()
 const hostGid = process.getgid?.()
 const appDirFromRepo = relative(repoRoot, appRoot)
@@ -164,6 +168,8 @@ function restoreWorkspaceOwnership(dockerEnv) {
   const result = spawnSync('docker', [
     'run',
     '--rm',
+    '--label',
+    label,
     '--platform',
     platform,
     '--workdir',
@@ -216,6 +222,8 @@ const command = buildCommand(appDirFromRepo)
 const dockerArgs = [
   'run',
   '--rm',
+  '--label',
+  label,
   '--init',
   '--ipc=host',
   '--platform',
@@ -224,14 +232,10 @@ const dockerArgs = [
   '/work',
   '--volume',
   `${repoRoot}:/work`,
-  '--volume',
-  `${volumePrefix}-root-node-modules:/work/node_modules`,
-  ...workspaceDirs.flatMap((dir) => [
-    '--volume',
-    `${volumePrefix}-${dir.replaceAll('/', '-')}-node-modules:/work/${dir}/node_modules`,
-  ]),
-  '--volume',
-  `${volumePrefix}-pnpm-store:/pnpm/store`,
+  ...volume(`${volumePrefix}-root-node-modules`, '/work/node_modules'),
+  ...workspaceDirs.flatMap((dir) =>
+    volume(`${volumePrefix}-${dir.replaceAll('/', '-')}-node-modules`, `/work/${dir}/node_modules`)),
+  ...volume(`${volumePrefix}-pnpm-store`, '/pnpm/store'),
   '--env',
   'CI=1',
   '--env',

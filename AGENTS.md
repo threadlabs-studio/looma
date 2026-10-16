@@ -31,6 +31,7 @@ pnpm generate:api   # regenerate component API metadata after contract changes
 pnpm check:code-documentation
 pnpm dev:docs
 pnpm dev:storybook
+pnpm docker:clean    # remove stopped Looma containers and unused Looma volumes
 ```
 
 Run the narrowest relevant check while iterating and report exactly what ran.
