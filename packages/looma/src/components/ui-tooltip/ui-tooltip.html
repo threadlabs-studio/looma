@@ -34,7 +34,7 @@
     </event>
   </defs>
   <span role="tooltip" from:hidden="not $internalOpen"><div class="surface">
-      <slot></slot>
+      <span class="label"><slot></slot></span>
       <span class="shortcut"><slot name="shortcut"></slot></span>
     </div></span>
   <style>
@@ -113,9 +113,13 @@
         overlay var(--ui-motion-fast) allow-discrete;
     }
 
+    /* The label and the shortcut sit side by side, a gap apart, with the label wrapping on its own. */
     .surface {
       --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-strong)));
       position: relative;
+      display: flex;
+      align-items: baseline;
+      gap: var(--ui-space-2);
       box-sizing: border-box;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
       border: var(--ui-border-width) solid var(--_tooltip-line);
@@ -134,7 +138,6 @@
     .shortcut {
       display: inline-flex;
       align-items: center;
-      margin-inline-start: var(--ui-space-2);
       padding-inline-start: var(--ui-space-2);
       border-inline-start: 1px solid color-mix(in oklab, currentColor 28%, transparent);
       color: color-mix(in oklab, currentColor 72%, transparent);

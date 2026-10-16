@@ -112,7 +112,7 @@
     "lucide": "~0.554.0"
   },
   "peerDependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.53",
+    "@nextwebwg/html-next": "1.0.0-alpha.54",
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
@@ -133,7 +133,7 @@
     }
   },
   "devDependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.53",
+    "@nextwebwg/html-next": "1.0.0-alpha.54",
     "@vitejs/plugin-vue": "^6.0.9",
     "vite": "^8.3.0",
     "vue": "^3.5.43",

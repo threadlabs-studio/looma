@@ -834,7 +834,7 @@ describe("Tooltip shortcut", () => {
       const kbd = tip.querySelector("kbd")!;
       const shortcut = kbd.closest(".shortcut")!;
       const label = document.createRange();
-      label.selectNodeContents(document.createTreeWalker(surface, NodeFilter.SHOW_TEXT).nextNode()!);
+      label.selectNodeContents(surface.querySelector(".label")!);
       const style = getComputedStyle(shortcut);
       const empty = document.querySelector("#without .shortcut");
       return {
@@ -842,7 +842,7 @@ describe("Tooltip shortcut", () => {
         sameLine: Math.abs((kbd.getBoundingClientRect().top + kbd.getBoundingClientRect().bottom) / 2 - (label.getBoundingClientRect().top + label.getBoundingClientRect().bottom) / 2) < 3,
         divider: style.borderInlineStartWidth,
         smaller: Number.parseFloat(style.fontSize) < Number.parseFloat(getComputedStyle(surface).fontSize),
-        text: tip.textContent?.trim(),
+        text: tip.textContent?.replace(/\s+/g, ""),
         emptyHidden: !empty || getComputedStyle(empty).display === "none",
       };
     });
@@ -2892,7 +2892,7 @@ describe("Vue components", () => {
     await page.locator("#fruit input").click();
     await page.locator("#fruit input").fill("pe");
     const options = page.locator('#fruit [role="option"]');
-    assert.deepEqual(await options.allTextContents(), ["Pear"]);
+    assert.deepEqual(await options.allInnerTexts(), ["Pear"]);
     await options.first().click();
     assert.equal(await page.locator("#fruit input").inputValue(), "Pear");
     await page.close();
@@ -6442,7 +6442,7 @@ describe("Combobox with multiple", () => {
     await page.waitForTimeout(300);
     assert.deepEqual(await page.evaluate(() => (window as unknown as { errors: string[] }).errors), []);
     assert.deepEqual(await page.evaluate(() => (window as unknown as { created: string[] }).created), ["Foo"]);
-    assert.deepEqual(await page.locator("#tags .item").allTextContents(), ["Foo"]);
+    assert.deepEqual(await page.locator("#tags .item").allInnerTexts(), ["Foo"]);
     assert.equal(await input.inputValue(), "");
     await page.close();
   });
@@ -6485,7 +6485,7 @@ describe("Combobox with multiple", () => {
     assert.deepEqual(await page.evaluate(() => (window as unknown as { created: string[] }).created), ["Foo"]);
 
     // Once the consumer adds it, it is checked in the list without another keystroke.
-    const foo = page.locator('#tags [role="option"]', { hasText: /^Foo$/ });
+    const foo = page.locator('#tags [role="option"]', { hasText: /^\s*Foo\s*$/ });
     await foo.waitFor();
     await page.waitForFunction(() => [...document.querySelectorAll('#tags [role="option"]')]
       .some((option) => option.textContent?.trim() === "Foo" && option.getAttribute("aria-selected") === "true"), null, { timeout: 2000 });
@@ -6517,7 +6517,7 @@ describe("Combobox with multiple", () => {
     await page.locator("#free input").fill("Al");
     await page.locator('#free [role="option"]').first().click();
     await page.waitForFunction(() => document.querySelectorAll("#free .item").length === 1);
-    assert.equal(await page.locator("#free .item").first().textContent(), "Alpha");
+    assert.equal(await page.locator("#free .item").first().innerText(), "Alpha");
 
     // Controlled: the consumer's list wins.
     await page.evaluate(() => {
@@ -7179,7 +7179,7 @@ describe("Vue editor components", () => {
     await toolbar.locator('[data-action="toggle-overflow"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 1);
     await page.waitForFunction(() => document.querySelector("#toolbar .menu")?.matches(":popover-open"));
-    assert.deepEqual(await toolbar.locator('.menu [role="menuitem"]').allTextContents(), ["Delete table"]);
+    assert.deepEqual(await toolbar.locator('.menu [role="menuitem"]').allInnerTexts(), ["Delete table"]);
     await toolbar.locator('[data-action="delete-table"]').click();
     assert.equal(await toolbar.locator(".menu").count(), 0);
 
@@ -7689,7 +7689,7 @@ describe("Controlled strict Combobox search", () => {
     await input.fill("pea");
     assert.equal(await input.inputValue(), "pea", "a search draft stays visible while the selection is controlled");
     assert.equal(await page.locator('#fruit input[type="hidden"][name="fruit"]').inputValue(), "apple", "searching keeps the committed form value");
-    assert.deepEqual(await page.locator('#fruit [role="option"]').allTextContents(), ["Pear"]);
+    assert.deepEqual(await page.locator('#fruit [role="option"]').allInnerTexts(), ["Pear"]);
     assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: { kind: string }[] }).changes.map(({ kind }) => kind)), [], "typing does not clear the committed value");
     await input.fill("zz");
     assert.equal(await input.inputValue(), "zz");
@@ -7834,7 +7834,7 @@ describe("Combobox selectedValues", () => {
     await page.locator('#teams [role="option"]').filter({ hasText: "Design" }).click();
     await settle();
     assert.deepEqual(await chips("teams"), labelled("Docs", "Design"));
-    assert.deepEqual(await page.locator('#teams [role="option"][aria-selected="true"]').allTextContents(), ["Design", "Docs"]);
+    assert.deepEqual(await page.locator('#teams [role="option"][aria-selected="true"]').allInnerTexts(), ["Design", "Docs"]);
     await page.keyboard.press("Backspace");
     await settle();
     assert.deepEqual(await chips("teams"), labelled("Docs"));
@@ -8040,7 +8040,7 @@ describe("Listbox choice rows", () => {
     assert.equal(await listbox.locator("select.fallback").isVisible(), false);
     assert.equal(await listbox.locator("select.fallback").isDisabled(), true);
     assert.equal(await listbox.locator('[role="option"]').count(), 3);
-    assert.deepEqual((await listbox.locator('[role="option"][aria-selected="true"]').allTextContents()).map((label) => label.toLowerCase()), ["north", "west"]);
+    assert.deepEqual((await listbox.locator('[role="option"][aria-selected="true"]').allInnerTexts()).map((label) => label.toLowerCase()), ["north", "west"]);
     assert.equal(await listbox.locator('[role="option"]').first().evaluate((element) => getComputedStyle(element, "::before").content), '""');
     const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) =>
       Array.from(new FormData(form).getAll("regions"), String));
@@ -9440,7 +9440,7 @@ describe("Combobox completion", () => {
     const input = page.locator('#choices input[role="combobox"]');
     await input.fill("Des");
     await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
-    assert.equal(await page.locator('#choices [role="option"].active').textContent(), "Design");
+    assert.equal(await page.locator('#choices [role="option"].active').innerText(), "Design");
     await input.press("Tab");
     assert.equal(await page.locator('#choices .item').count(), 1);
     assert.equal(await input.inputValue(), "");

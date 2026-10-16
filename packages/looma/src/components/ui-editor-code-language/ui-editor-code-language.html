@@ -10,7 +10,7 @@
     </event>
   </defs>
   <div>
-    <ui-combobox label="Code language" label-visibility="sr-only" size="sm" from:disclosure="true" filter="label" from:value="$value">
+    <ui-combobox label="Code language" label-visibility="sr-only" size="sm" disclosure filter="label" from:value="$value">
       <option $each="language of $languages" $key="$language.value" from:value="$language.value">{$language.label}</option>
     </ui-combobox>
   </div>
