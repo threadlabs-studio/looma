@@ -1,19 +1,47 @@
 # Changelog
 
-## Next release
+## v0.29.5
 
 - Looma builds with HTML Next 1.0.0-alpha.55, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.55`. LoomaEditor asks its requests with `RequestEvent.request` and shows Insert image and link search whenever `RequestEvent.hasResponder` sees a responder on its path, including one registered with `RequestEvent.respond()` before the editor mounted, without waiting for a first upload. A responder added with a plain `addEventListener` still answers but is not seen. HTML Next's `respond()` is now `RequestEvent.respond()`.
+
+## v0.29.4
+
 - LoomaEditor's editing dock for narrow screens moves into a framework-neutral module: the 767px width it starts at, its place against the bottom of the visual viewport above an on-screen keyboard, and whether it shows formatting or table controls. LoomaEditor's behavior and public API stay the same.
+
+## v0.29.3
+
 - LoomaEditor's passage and range actions move into a framework-neutral module: the range actions at the caret, grouped by ID, and the selected passage with its context. `LoomaEditorSelectionAction` and the other action types are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
+
+## v0.29.2
+
 - LoomaEditor's chip editor moves into a framework-neutral module: it opens on one chip and writes each label and tone change to that chip, and closes when the chip is gone. LoomaEditor's behavior and public API stay the same.
+
+## v0.29.1
+
 - Looma builds with HTML Next 1.0.0-alpha.54, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.54`. HTML Next now keeps whitespace between inline elements as a space, as HTML does. Tooltip places its label and shortcut side by side in a row with a gap, so the space between them adds nothing; a long label wraps beside the shortcut. Image Toolbar, Link Form, and Code Language pass their nested components' boolean props as plain attributes again, since the Vue output now types them.
+
+## v0.29.0
+
 - **Breaking: LoomaEditor asks for uploads, mentions, links, slash commands, and extensions as [HTML Next requests](https://nextwebwg.org/declarative-components/javascript#requests).** Its callbacks each had their own shape (`uploadImage(file)`, `mentionProvider(query, { limit })`, `linkSearch(query)`, `linkResolve(href)`, `slashCommands(defaults)` or an array, and `extensions` as an array). None could be canceled or report progress, and only the component's parent could answer them. HTML Next defines one contract for a component that asks its consumer, which the editor generated from HTML Next will use. An additive option would leave two shapes for every callback. Every one is now a function prop `(detail, { signal, progress }) => answer`, whose answer is the value, `null` for none, or a promise of either: `extensions` (`null`, Tiptap extensions), `slashCommands` (`{ defaults }`, commands), `mentionQuery` (`{ query, limit }`, mention items), `linkSearch` (`{ query }`, link targets), `linkResolve` (`{ href }`, a link target), and `imageUpload` (`{ file }`, `{ src, alt?, width?, height?, responsive? }`). The same requests bubble from the editor as `RequestEvent`s, answered with `respondWith` from Vue's event form (`@image-upload`), an ancestor, or the document with HTML Next's `respond()`. The function prop answers first. `signal` aborts when the author types another character, cancels an upload, or the editor unmounts. Image uploads show their progress with a Cancel button. An `extensions` answer that arrives after the editor is built rebuilds it and keeps the document. To migrate, rename `uploadImage` to `imageUpload` and return `{ src }` where it returned a URL or `{ url }`; rename `mentionProvider` to `mentionQuery` and read `{ query, limit }` from its first argument; read `{ query }` in `linkSearch` and `{ href }` in `linkResolve`; read `{ defaults }` in `slashCommands` and pass an array as `() => commands`; and pass `extensions` as `() => extensions`. The types are `LoomaImageUploader`, `LoomaMentionQuery`, `LoomaLinkSearch`, `LoomaLinkResolve`, `LoomaEditorSlashCommands`, and `LoomaEditorExtensions`, each a `LoomaResponder` of its detail and answer; `LoomaImageUploadResult` is replaced by `LoomaImageDescriptor`. `createLoomaMentionExtension` and its `LoomaMentionProvider` are unchanged.
+
+## v0.28.21
+
 - LoomaEditor names each task item's checkbox by the item's text, so a screen reader announces the task instead of an unnamed checkbox. In the editor the checkbox follows the text as it is edited, and an empty item's checkbox is named "Task"; in saved HTML the checkbox carries the text as `aria-label`. The saved structure is unchanged, so earlier content reads as before.
+
+## v0.28.20
+
 - Looma builds with HTML Next 1.0.0-alpha.53, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.53`.
 - Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
+
+## v0.28.22
+
 - LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
 
+## v0.28.19
+
 - A code marker can be shown as text: a backslash between `[` and `!`, `[\!code highlight]`, escapes it, so it highlights nothing and shows as `[!code highlight]`, with each further backslash shown as one. `applyLoomaCodeNotation` and the markdown-it plugin apply the escape, LoomaEditor keeps it as source and writes it back, and the Looma Markdown page's own example of the marker uses it.
+
+## v0.28.18
 
 - Looma Markdown's canonical HTML shows code as readers see it: a `[!code highlight]` comment is removed from the code, as the spec says. `applyLoomaCodeNotation` in `@threadlabs/looma/markdown` returns the code and the lines it highlights. `createLoomaMarkdownIt` and `loomaMarkdown` take `{ codeNotation: "keep" }` for an editor, and LoomaEditor uses it, so it still edits and writes the comment as source.
 - A task list item's checkbox now has an accessible name: its checkbox and text share one label, `<li data-type="taskItem" data-checked="true"><label><input type="checkbox" disabled checked> Text</label></li>`. Every fixture's canonical HTML is checked with axe in Chromium.
