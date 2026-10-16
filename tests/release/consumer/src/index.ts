@@ -6,6 +6,7 @@ import {
   EditorToolbar,
   getDefaultEditorExtensions,
   type LoomaImageAttributeResolver,
+  type LoomaImageSourceResolver,
   type SlashMenuItem,
 } from "@threadlabs/looma/vue/editor";
 import { createSSRApp, h } from "vue";
@@ -17,12 +18,14 @@ const slashItems: SlashMenuItem[] = [
 const resolveImageAttributes: LoomaImageAttributeResolver = (image) => image.responsive
   ? { src: image.src, loading: "lazy", decoding: "async" }
   : undefined;
+const resolveImageSource: LoomaImageSourceResolver = image => image.src;
 
 const extensions = getDefaultEditorExtensions();
 if (
   extensions.length === 0
   || slashItems.length === 0
   || typeof resolveImageAttributes !== "function"
+  || typeof resolveImageSource !== "function"
   || definitions.length === 0
 ) {
   throw new Error("package exports were not consumable");

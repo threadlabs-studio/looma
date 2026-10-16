@@ -8,7 +8,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 const componentsRoot = path.join(repoRoot, "packages/looma/src/components");
 
 // Markers the compiler and the adapters write for their own use: which component a root is, and the
-// state attribute :host-state() reads. They are implementation details, and they differ by adapter.
+// state attribute :host() prop and :state() tests read. They are implementation details, and they differ by adapter.
 const IMPLEMENTATION_DETAILS = /data-component|data-ui-[a-z-]+-state|data-slotted/;
 
 /**
