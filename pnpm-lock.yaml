@@ -2158,6 +2158,11 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
+  '@nextwebwg/html-next@1.0.0-alpha.52':
+    resolution: {integrity: sha512-ESHkoJeviCcBMlrVOk1GvwRnVnV/FDVSNVJqgmFJjoQiWQaXLa0DjeHW7bAUAirv40xuK4knqL/MUzXCF3bNwA==}
+    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
+    hasBin: true
+
   '@nextwebwg/html-next@1.0.0-alpha.53':
     resolution: {integrity: sha512-pd4+AY8Nsa6RG9URXTsXAPalc1ibxD2pcDvKmAU9ABldb9C7q+FNFps/FMXuNeB4e1euBZLvCIeI/K+Xg+A7aQ==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
@@ -10811,6 +10816,21 @@ snapshots:
       '@types/mdx': 2.0.13
       '@types/react': 19.2.14
       react: 19.2.4
+
+  '@nextwebwg/html-next@1.0.0-alpha.52':
+    dependencies:
+      '@dprint/formatter': 0.6.0
+      '@dprint/typescript': 0.96.1
+      '@formatjs/intl-durationformat': 0.11.1
+      dprint-plugin-malva: 0.16.0
+      dprint-plugin-markup: 0.27.5
+      jsdom: 30.1.2
+      parse5: 8.0.1
+      postcss: 8.5.30
+      typescript-compiler: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - canvas
 
   '@nextwebwg/html-next@1.0.0-alpha.53':
     dependencies:
