@@ -1,0 +1,7 @@
+---
+aliases:
+  - /old/
+  - /older/
+---
+
+# Notes
