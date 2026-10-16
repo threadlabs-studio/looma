@@ -135,9 +135,13 @@ export function formatLoomaAttributes(attributes: Readonly<Record<string, string
   return items.length ? `{${items.join(" ")}}` : "";
 }
 
-/** The anchor a heading's text derives: lowercase letters without accents, with each run of other characters a hyphen. */
+/**
+ * The anchor a heading's text derives: NFC, lowercase, keeping letters, numbers and combining
+ * marks, with every other run of characters one hyphen.
+ * @failure Text with no letters or numbers, such as only emoji, derives `heading`.
+ */
 export function loomaHeadingSlug(text: string): string {
-  return text.normalize("NFKD").replace(/\p{M}+/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "heading";
+  return text.normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, "-").replace(/^-+|-+$/g, "") || "heading";
 }
 
 /**
