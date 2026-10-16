@@ -38,7 +38,6 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaCodeLanguages,
-  normalizeLoomaChipColor,
   type LoomaChipColor,
   type SlashMenuAnchorRect,
   type TableOverlayGeometry,
@@ -82,6 +81,7 @@ import { askRequest, onResponderAnnounced, respondWithFunction, type LoomaReques
 import { createFormattingSelection, type LoomaFormattingSelection } from "../../editor/formatting-selection";
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
+import { createChipEditing, LOOMA_CHIP_EDITING_IDLE, type LoomaChipEditing } from "../../editor/chip-editing";
 import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
@@ -390,9 +390,8 @@ export const LoomaEditor = defineComponent({
       chipEditorRoot.value = element instanceof HTMLElement ? element : null;
     };
     const chipInput = () => chipEditorRoot.value?.querySelector<HTMLInputElement>("[data-chip-label]");
-    const chipOpen = ref(false);
-    const chipLabel = ref("");
-    const chipColor = ref<LoomaChipColor>("neutral");
+    let chipEditing: LoomaChipEditing | undefined;
+    const chipState = shallowRef(LOOMA_CHIP_EDITING_IDLE);
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -500,30 +499,17 @@ export const LoomaEditor = defineComponent({
       capabilities: { ...EMPTY_CAPABILITIES },
     });
 
-    const openChipEditor = (instance: Editor, position: number) => {
-      if (!props.editable) return;
-      const node = instance.state.doc.nodeAt(position);
-      const element = instance.view.nodeDOM(position);
-      if (node?.type.name !== "loomaChip" || !(element instanceof HTMLElement)) return;
+    // The popover anchors to the edited chip, which carries the anchor ID while it is edited.
+    const openChipEditor = (_instance: Editor, position: number) => {
+      if (!chipEditing?.open(position)) return;
       root.value?.querySelector(`#${chipAnchorId}`)?.removeAttribute("id");
-      element.id = chipAnchorId;
-      chipLabel.value = String(node.attrs.label ?? "");
-      chipColor.value = normalizeLoomaChipColor(node.attrs.color);
-      chipOpen.value = true;
+      chipEditing.element!.id = chipAnchorId;
       void nextTick(() => chipInput()?.focus());
     };
-    const changeChip = (changes: { label?: string; color?: LoomaChipColor }) => {
-      const instance = editor.value;
-      const element = root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`);
-      if (!instance || !element) { chipOpen.value = false; return; }
-      const position = instance.view.posAtDOM(element, 0);
-      const node = instance.state.doc.nodeAt(position);
-      if (node?.type.name !== "loomaChip") { chipOpen.value = false; return; }
-      instance.view.dispatch(instance.state.tr.setNodeMarkup(position, undefined, { ...node.attrs, ...changes }));
-    };
     const closeChip = (focusChip = false) => {
-      chipOpen.value = false;
-      if (focusChip) root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`)?.focus();
+      const element = chipEditing?.element;
+      chipEditing?.close();
+      if (focusChip) element?.focus();
     };
     // Requests: a function prop answers on the root ahead of the Vue event form there; otherwise the
     // request bubbles on to the root's ancestors and the document.
@@ -731,6 +717,9 @@ export const LoomaEditor = defineComponent({
       });
       engine.subscribe(() => { linkState.value = engine.state; });
       linkEditing = engine;
+      const chips = createChipEditing({ editor: session.editor, isEditable: () => props.editable });
+      chips.subscribe(() => { chipState.value = chips.state; });
+      chipEditing = chips;
       const imageUploads = createImageUploads({
         editor: session.editor,
         // Paste and drop ask even without a known responder, and a first answer makes uploads available.
@@ -764,6 +753,7 @@ export const LoomaEditor = defineComponent({
       const previous = session!;
       const content = edited ? previous.editor.getJSON() : props.modelValue;
       linkEditing?.destroy();
+      chipEditing?.close();
       formatting?.destroy();
       uploads?.cancel();
       previous.destroy();
@@ -889,7 +879,7 @@ export const LoomaEditor = defineComponent({
       root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
         chip.setAttribute("aria-disabled", String(!editable));
       });
-      if (!editable) chipOpen.value = false;
+      if (!editable) chipEditing?.close();
     });
     watch([() => linkState.value.surface === "popover", tablePickerOpen, formatOpen], ([linking, table, format]) => {
       if (linking || table || format || !floatingFormattingMode() || editor.value?.isFocused
@@ -1956,22 +1946,16 @@ export const LoomaEditor = defineComponent({
           : null,
         h(Popover, {
           class: "looma-editor__chip-popover",
-          open: chipOpen.value,
+          open: chipState.value.open,
           for: chipAnchorId,
           placement: "bottom-start",
-          onClose: () => { chipOpen.value = false; },
+          onClose: () => chipEditing?.close(),
         }, () => h(EditorChipEditor, {
           ref: setChipEditorRoot,
-          label: chipLabel.value,
-          color: chipColor.value,
-          onLabel: (event: CustomEvent<{ label: string }>) => {
-            chipLabel.value = event.detail.label;
-            changeChip({ label: chipLabel.value });
-          },
-          onColor: (event: CustomEvent<{ color: LoomaChipColor }>) => {
-            chipColor.value = event.detail.color;
-            changeChip({ color: event.detail.color });
-          },
+          label: chipState.value.label,
+          color: chipState.value.color,
+          onLabel: (event: CustomEvent<{ label: string }>) => chipEditing?.setLabel(event.detail.label),
+          onColor: (event: CustomEvent<{ color: LoomaChipColor }>) => chipEditing?.setColor(event.detail.color),
           onDone: () => closeChip(true),
         })),
         h(Popover, {
