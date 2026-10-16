@@ -220,6 +220,7 @@ export function automaticChecks(files, changes, hunks = {}) {
   }
   const packageConsumer = selection.source || changes.some(releaseTool) || changes.some(file => file.startsWith("tests/release/"));
   // Only documentation changes build the docs in PRs. Package behavior is tested at its owner.
-  const docsBuild = selection.full || changes.some(file => file.startsWith("apps/docs/") || file.includes("/examples/") || docsTool(file));
+  // apps/docs-next is compared with apps/docs, so a change to either builds both.
+  const docsBuild = selection.full || changes.some(file => /^apps\/docs(?:-next)?\//.test(file) || file.includes("/examples/") || docsTool(file));
   return { ...selection, nativeTests, browserTests, deferred, packageConsumer, docsBuild, browserInstances: instances };
 }

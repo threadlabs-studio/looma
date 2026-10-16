@@ -9,7 +9,8 @@ This file is the canonical guidance for AI coding agents in this repository.
   (`@threadlabs/looma`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.
-- `apps/docs` (Docusaurus) and `apps/storybook` are private workspaces.
+- `apps/docs` (Docusaurus), `apps/docs-next` (its Markupress migration, previewed at
+  `/looma-next/`) and `apps/storybook` are private workspaces.
 - Architecture: `docs/architecture.md`. Naming, events, slots, and SSR rules:
   `docs/conventions.md` and `docs/event-schema.md`. Support promises:
   `docs/release-support-matrix.md`. Comments: `docs/code-documentation-policy.md`.

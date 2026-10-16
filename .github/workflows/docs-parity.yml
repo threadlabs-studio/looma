@@ -42,3 +42,11 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Run docs checks
         run: node tools/scripts/ci-qualification.mjs run docs
+      # A preview of the Markupress site at /looma-next/; docs.yml deploys only Docusaurus.
+      - name: Upload the Markupress site
+        if: steps.select.outputs.docs == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-next-site
+          path: apps/docs-next/site/
+          if-no-files-found: error

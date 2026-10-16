@@ -1,0 +1,8 @@
+{
+  "title": "Looma",
+  "base": "/looma-next/",
+  "nav": [
+    { "label": "Get started", "href": "/getting-started/" },
+    { "label": "GitHub", "href": "https://github.com/threadlabs-studio/looma" }
+  ]
+}

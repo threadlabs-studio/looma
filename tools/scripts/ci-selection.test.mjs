@@ -44,6 +44,10 @@ test("Looma Markdown's rules and fixtures select the editor and the tests that l
   assert.equal(selectChecks(graph, ["CONCEPTS.md"]).full, false);
 });
 
+test("either documentation site builds both docs sites, which are compared", () => {
+  for (const file of ["apps/docs/docs/tokens.md", "apps/docs-next/docs/tokens.md"]) assert.equal(automaticChecks(files, [file]).docsBuild, true, file);
+});
+
 test("test-only revisions select regressions without repacking or building docs", () => {
   const plan = automaticChecks(files, ["packages/looma/tests/browser.test.ts"]);
   assert.equal(plan.packageConsumer, false);

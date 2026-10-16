@@ -116,6 +116,9 @@ async function main() {
     run(["--filter", "@threadlabs/looma-docs", "build"]);
     run(["--filter", "@threadlabs/looma-docs", "typecheck:tests"]);
     run(["--filter", "@threadlabs/looma-docs", "docs:coverage"]);
+    // The Markupress site (the migration's preview) builds, and its copied pages match apps/docs.
+    run(["--filter", "@threadlabs/looma-docs-next", "build"]);
+    run(["--filter", "@threadlabs/looma-docs-next", "test"]);
   } else throw new Error(`Unknown stage: ${stage}`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
