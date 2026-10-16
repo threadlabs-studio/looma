@@ -91,8 +91,8 @@ function parseHtmlSlice(schema: Schema, value: string, fromHtml = false): Slice 
     FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "template"],
     FORBID_ATTR: ["style"],
     // Looma Markdown's callout, as `:::` containers and alerts render it.
-    ADD_TAGS: ["ui-callout"],
-    ADD_ATTR: ["tone", "heading"],
+    ADD_TAGS: ["ui-callout", "ui-tabs"],
+    ADD_ATTR: ["tone", "heading", "group"],
     RETURN_DOM_FRAGMENT: true,
   }));
   if (!container.textContent?.trim() && !container.querySelector("img, hr")) return Slice.empty;

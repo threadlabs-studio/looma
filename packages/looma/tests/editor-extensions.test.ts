@@ -34,7 +34,7 @@ describe("editor extension contract", () => {
       extensions: getDefaultEditorExtensions(),
       content,
     });
-    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql", meta: null });
     expect(plainElement.querySelector(".hljs-keyword")).toBeNull();
 
     const highlightedElement = document.createElement("div");
@@ -49,7 +49,7 @@ describe("editor extension contract", () => {
     highlightedEditor.commands.setContent('<pre><code></code></pre>');
     highlightedEditor.commands.focus("start");
     pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
-    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null, meta: null });
     expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
 
     highlightedEditor.commands.setContent("<p></p>");

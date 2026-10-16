@@ -428,7 +428,7 @@ describe("LoomaEditor history (real browser)", () => {
     expect(html).toBeTruthy();
     await userEvent.click(html!);
     await flushBrowser();
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "html" });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "html", meta: null });
     await vi.waitFor(() => expect(lowlight.listLanguages()).toEqual(["html"]));
     editor.commands.setContent('<pre><code class="language-html">&lt;main class="card"&gt;Hello&lt;/main&gt;</code></pre>');
     await flushBrowser();
@@ -454,7 +454,7 @@ describe("LoomaEditor history (real browser)", () => {
     await userEvent.keyboard("{ArrowDown}{Enter}");
     await vi.waitFor(() => expect(lowlight.listLanguages()).toEqual(["dockerfile"]));
     expect(lowlight.highlightAuto("FROM node:20").data?.language).not.toBe("dockerfile");
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "dockerfile" });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "dockerfile", meta: null });
     editor.commands.setContent('<pre><code class="language-dockerfile">FROM node:20</code></pre>');
     await flushBrowser();
     expect(host.querySelector("pre .hljs-keyword")?.textContent).toBe("FROM");
@@ -491,7 +491,7 @@ describe("LoomaEditor history (real browser)", () => {
     }));
     await flushBrowser();
 
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null, meta: null });
     const keyword = host.querySelector<HTMLElement>("pre .hljs-keyword");
     const code = host.querySelector<HTMLElement>("pre code");
     expect(keyword?.textContent).toBe("SELECT");
@@ -524,7 +524,7 @@ describe("LoomaEditor history (real browser)", () => {
     await flushBrowser();
 
     const saved = editor.getJSON();
-    expect(saved.content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(saved.content?.[0]?.attrs).toEqual({ language: "sql", meta: null });
     expect(saved.content?.[0]?.content?.[0]?.text).toBe("SELECT id, name FROM users WHERE active = true;");
     expect(host.querySelector('pre .hljs-keyword')?.textContent).toBe("SELECT");
 
@@ -537,13 +537,13 @@ describe("LoomaEditor history (real browser)", () => {
     expect(auto).toBeTruthy();
     await userEvent.click(auto!);
     await flushBrowser();
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null, meta: null });
     editor.commands.undo();
     await flushBrowser();
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql", meta: null });
     editor.commands.redo();
     await flushBrowser();
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null, meta: null });
 
     editor.commands.setContent(saved);
     editor.commands.focus("start");
@@ -554,7 +554,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.focus("start");
     await flushBrowser();
     expect(host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')?.value).toBe("RUST (unavailable)");
-    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "rust" });
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "rust", meta: null });
   });
 
   it("floats the code language picker above the code block holding the cursor", async () => {
