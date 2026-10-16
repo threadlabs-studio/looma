@@ -42,7 +42,6 @@ import {
   type TableOverlayGeometry,
   type TableCellAlignment,
   type TableCellBackground,
-  type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
 import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, StatusMessage, Text, Tooltip } from "@threadlabs/looma/vue";
@@ -92,6 +91,7 @@ import {
   type LoomaEditorSelectionAction,
   type LoomaEditorSelectionActionDetail,
 } from "../../editor/host-actions";
+import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement, tableToolbarPlacement } from "../../editor/table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "../../editor/mobile-dock";
 import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
@@ -195,24 +195,6 @@ const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 const uploadProgressText = (progress: LoomaImageUploadsState["progress"]) =>
   progress && progress.total > 0 ? `Uploading image… ${Math.round(Math.min(1, progress.loaded / progress.total) * 100)}%` : "Uploading image…";
 let editorInstanceSequence = 0;
-
-const EMPTY_CAPABILITIES: TableActionCapabilities = {
-  canToggleHeaderRow: false,
-  canToggleHeaderColumn: false,
-  canMoveRowUp: false,
-  canMoveRowDown: false,
-  canMoveColumnLeft: false,
-  canMoveColumnRight: false,
-  canAddRowBefore: false,
-  canAddRowAfter: false,
-  canAddColumnBefore: false,
-  canAddColumnAfter: false,
-  canDeleteRow: false,
-  canDeleteColumn: false,
-  canDeleteTable: false,
-  canMergeCells: false,
-  canSplitCell: false,
-};
 
 function slashMenuRows(items: LoomaSlashCommand[]) {
   const groups: Array<{ label?: string; rows: VNode[] }> = [];
@@ -481,7 +463,7 @@ export const LoomaEditor = defineComponent({
       toolbarStyle: {} as CSSProperties,
       overlayStyle: {} as CSSProperties,
       menuStyle: {} as CSSProperties,
-      capabilities: { ...EMPTY_CAPABILITIES },
+      capabilities: LOOMA_TABLE_CONTROLS_CLOSED.capabilities,
     });
 
     // The popover anchors to the edited chip, which carries the anchor ID while it is edited.
@@ -892,16 +874,10 @@ export const LoomaEditor = defineComponent({
     }, { deep: true });
 
     const closeTableUi = () => {
-      tableUi.toolbarOpen = false;
-      tableUi.overlayOpen = false;
+      Object.assign(tableUi, LOOMA_TABLE_CONTROLS_CLOSED);
       tableUi.menuOpen = false;
       tableUi.menuScope = "cell";
-      tableUi.alignment = "left";
-      tableUi.background = null;
-      tableUi.headerRow = false;
-      tableUi.headerColumn = false;
       tableUi.geometry = null;
-      tableUi.capabilities = { ...EMPTY_CAPABILITIES };
       overlayTableElement = null;
       mobileDock.tableInactive();
     };
@@ -983,18 +959,7 @@ export const LoomaEditor = defineComponent({
       if (selectedTableIsActive) mobileDock.tableActive();
 
       const rect = table.getBoundingClientRect();
-      const maxToolbarWidth = Math.min(420, window.innerWidth - 24);
-      const toolbarLeft = Math.min(
-        Math.max(12, rect.left + (rect.width - maxToolbarWidth) / 2),
-        Math.max(12, window.innerWidth - maxToolbarWidth - 12),
-      );
-      tableUi.toolbarOpen = selectedTableIsActive && state.showToolbar && !mobile.value;
-      tableUi.overlayOpen = !mobile.value;
-      tableUi.alignment = selectedTableIsActive ? state.cellAlignment : "left";
-      tableUi.background = selectedTableIsActive ? state.cellBackground : null;
-      tableUi.headerRow = selectedTableIsActive && state.headerRow;
-      tableUi.headerColumn = selectedTableIsActive && state.headerColumn;
-      tableUi.capabilities = selectedTableIsActive ? state.capabilities : { ...EMPTY_CAPABILITIES };
+      Object.assign(tableUi, tableControls(state, selectedTableIsActive, mobile.value));
       const selectedCell = selectedTableIsActive ? selectedTableCellElement(instance) : null;
       const geometry = measureTableOverlayGeometry(
         table,
@@ -1004,17 +969,8 @@ export const LoomaEditor = defineComponent({
       tableUi.rows = Math.max(0, geometry.rowBoundaries.length - 1);
       tableUi.cols = Math.max(0, geometry.columnBoundaries.length - 1);
       tableUi.geometry = geometry;
-      tableUi.toolbarStyle = {
-        top: `${rect.top > 76 ? rect.top - 52 : rect.bottom + 12}px`,
-        left: `${toolbarLeft}px`,
-        maxWidth: `${maxToolbarWidth}px`,
-      };
-      tableUi.overlayStyle = {
-        top: `${rect.top}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-      };
+      tableUi.toolbarStyle = tableToolbarPlacement(rect, window.innerWidth);
+      tableUi.overlayStyle = tableOverlayPlacement(rect);
     };
 
     const onEditorFocus = () => {

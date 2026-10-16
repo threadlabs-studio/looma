@@ -81,7 +81,7 @@ export interface ActiveTableUiState {
   capabilities: TableActionCapabilities;
 }
 
-const NO_TABLE_CAPABILITIES: TableActionCapabilities = {
+export const NO_TABLE_CAPABILITIES: TableActionCapabilities = {
   canToggleHeaderRow: false,
   canToggleHeaderColumn: false,
   canMoveRowUp: false,
