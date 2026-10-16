@@ -2,6 +2,7 @@
 
 ## Next release
 
+- LoomaEditor's code language picker moves into a framework-neutral module: the code block holding the selection, the choices with Auto naming the detected language and an unavailable saved language kept, the picker's place above or below the block, and saving a choice as its own undo step. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's toolbar tooltip moves into a framework-neutral module: the first button waits 400 ms, moving along the row while it shows is immediate, and keyboard focus shows it at once. LoomaEditor's behavior and public API stay the same.
 - Looma builds with HTML Next 1.0.0-alpha.55, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.55`. LoomaEditor asks its requests with `RequestEvent.request` and shows Insert image and link search whenever `RequestEvent.hasResponder` sees a responder on its path, including one registered with `RequestEvent.respond()` before the editor mounted, without waiting for a first upload. A responder added with a plain `addEventListener` still answers but is not seen. HTML Next's `respond()` is now `RequestEvent.respond()`.
 - LoomaEditor's editing dock for narrow screens moves into a framework-neutral module: the 767px width it starts at, its place against the bottom of the visual viewport above an on-screen keyboard, and whether it shows formatting or table controls. LoomaEditor's behavior and public API stay the same.
