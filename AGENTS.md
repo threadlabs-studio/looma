@@ -125,9 +125,9 @@ Every app using Looma pays for a changed API, so the bar is high.
   never write a version heading for it. The release commit names that heading
   `## vX.Y.Z` for the version it publishes (`tools/scripts/release-commit.mjs`),
   and a merge that releases nothing leaves its entry for the next release. main
-  never receives that commit, so before adding an entry run `git fetch --tags`
-  and `node tools/scripts/release-commit.mjs --changelog`, which files entries
-  that have shipped under the version that shipped them.
+  never receives that commit, so shipped entries can linger under Next release
+  there; the next release files them under their versions. Optionally, to tidy
+  main, run `git fetch --tags` and `node tools/scripts/release-commit.mjs --changelog`.
 - Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
 - Looma is pre-1.0: breaking changes bump the minor version.
 
