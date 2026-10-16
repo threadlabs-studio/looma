@@ -4,13 +4,13 @@
     "impact": "serious",
     "targets": [
       [
-        "table:nth-child(13)"
+        "table:nth-child(17)"
       ],
       [
         "table:nth-child(7)"
       ],
       [
-        "table:nth-child(71)"
+        "table:nth-child(75)"
       ]
     ]
   }

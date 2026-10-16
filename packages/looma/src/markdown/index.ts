@@ -6,7 +6,19 @@
  * `@threadlabs/looma/markdown/fixtures`.
  */
 
-/** Callout tones a document stores, in the order the editor offers them. */
+// `tone` names one of two kinds of value. Callouts and badges take meanings, which share the core
+// below; chips and swatches take hues.
+
+/** The meanings Callout and Badge share. Callout adds `note`, `tip` and `important`; Badge adds `accent`. */
+export const LOOMA_MEANING_TONES = ["neutral", "info", "success", "warning", "danger"] as const;
+
+/** Badge's tones: the shared meanings and `accent`. */
+export const LOOMA_BADGE_TONES = ["neutral", "accent", "info", "success", "warning", "danger"] as const;
+
+/**
+ * Callout tones a document stores, in the order the editor offers them. The Callout component also
+ * takes `neutral` and `success`, which Markdown and the editor store as `note`.
+ */
 export const LOOMA_CALLOUT_TONES = ["note", "tip", "info", "important", "warning", "danger"] as const;
 
 /** A stored callout tone. */
@@ -25,7 +37,7 @@ export function normalizeLoomaCalloutTone(value: unknown): LoomaCalloutTone {
   return LOOMA_CALLOUT_TONES.includes(tone as LoomaCalloutTone) ? tone as LoomaCalloutTone : LOOMA_CALLOUT_TONE_ALIASES[tone] ?? "note";
 }
 
-/** Chip tones, written `:chip[Label]{tone=green}`. */
+/** The hues chips and swatches take as their tone, written `:chip[Label]{tone=green}`. */
 export const LOOMA_CHIP_TONES = ["neutral", "blue", "green", "yellow", "red", "purple"] as const;
 
 /** A stored chip tone. */
