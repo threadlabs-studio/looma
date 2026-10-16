@@ -2,6 +2,7 @@
 
 ## Next release
 
+- LoomaEditor draws document dividers with Separator's Vanilla factory in place of a Vue app per divider: the editor creates the `<hr>`, sets its `selectable` and `selected` props as the selection and editability change, and Separator disconnects when the divider is deleted. The Vue output keeps HTML Next as an external peer import instead of bundling part of it, and carries the factory's styles in `vue.css`. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's table controls move into a framework-neutral module: which of the toolbar and overlay a table shows, the selection's formatting and actions only in its own table, and where the toolbar and overlay sit. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's code language picker moves into a framework-neutral module: the code block holding the selection, the choices with Auto naming the detected language and an unavailable saved language kept, the picker's place above or below the block, and saving a choice as its own undo step. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor's toolbar tooltip moves into a framework-neutral module: the first button waits 400 ms, moving along the row while it shows is immediate, and keyboard focus shows it at once. LoomaEditor's behavior and public API stay the same.
