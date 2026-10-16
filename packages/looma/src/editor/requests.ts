@@ -24,7 +24,8 @@ export interface LoomaRequestOptions {
   progress?: (loaded: number, total: number) => void;
 }
 
-// HTML Next exports the event but not its asker, so the asker reads the answer as it is given.
+// HTML Next exports the event but not its asker (requests gap: no public ask helper, before the
+// owner's requests follow-up), so this asker reads the answer as it is given.
 class AskedRequest extends RequestEvent<unknown, unknown> {
   answered = false;
   answer: unknown;

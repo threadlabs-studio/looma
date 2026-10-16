@@ -528,7 +528,9 @@ export const LoomaEditor = defineComponent({
     // Requests: a function prop answers on the root ahead of the Vue event form there; otherwise the
     // request bubbles on to the root's ancestors and the document.
     const found = reactive(new Set<EditorRequest>());
-    /** Whether `name` has a responder the editor knows of: its prop, its Vue listener, or one announced or seen answering. */
+    // Whether `name` has a responder the editor knows of: its prop, its Vue listener, or one announced or seen answering.
+    // HTML Next has no way to learn of a responder before asking (requests gap, before the owner's requests follow-up), so a
+    // responder registered before mount enables Insert image and link search only once it answers or announces itself.
     const answers = (name: EditorRequest) => {
       const prop = EDITOR_REQUESTS[name];
       return typeof props[prop] === "function" || attrs[`on${prop[0]!.toUpperCase()}${prop.slice(1)}`] != null || found.has(name);
