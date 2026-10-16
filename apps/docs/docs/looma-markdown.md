@@ -49,6 +49,19 @@ because text follows it. A `]` or `\` in a label is escaped with a backslash.
 bare key is a flag. Items are separated by spaces. Braces go after a heading, an image or a
 directive, and `{open}` goes after a details summary. A list that is not well formed stays text.
 
+## Tones
+
+`tone` names one of two kinds of value. On Callout and Badge it is a meaning, and on chips and
+Swatch it is a hue.
+
+| Component | Tones |
+| --- | --- |
+| Callout | The shared meanings `neutral`, `info`, `success`, `warning` and `danger`, plus `note`, `tip` and `important`. `caution` is an alias of `danger`. |
+| Badge | The shared meanings, plus `accent`. |
+| Chip and Swatch | The hues `neutral`, `blue`, `green`, `yellow`, `red` and `purple`. |
+
+In Markdown, a callout's tone is its container name and a chip's tone is its `tone` attribute.
+
 ## Base
 
 - The base is [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) with the
@@ -315,7 +328,7 @@ anywhere, including during server rendering:
 
 | Export | Use |
 | --- | --- |
-| `LOOMA_CALLOUT_TONES`, `normalizeLoomaCalloutTone`, `LOOMA_CHIP_TONES`, `LOOMA_CONTAINER_NAMES` | The vocabulary. |
+| `LOOMA_MEANING_TONES`, `LOOMA_BADGE_TONES`, `LOOMA_CALLOUT_TONES`, `normalizeLoomaCalloutTone`, `LOOMA_CHIP_TONES`, `normalizeLoomaChipTone`, `LOOMA_CONTAINER_NAMES` | The vocabulary. |
 | `parseLoomaAttributes`, `readLoomaAttributes`, `formatLoomaAttributes` | Brace attributes. |
 | `loomaHeadingSlug`, `assignLoomaHeadingIds` | The heading anchor rule. |
 | `parseLoomaFenceInfo` | A fence's language, title, highlighted lines and line numbers. |
