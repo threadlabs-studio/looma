@@ -10,7 +10,7 @@
         "table:nth-child(7)"
       ],
       [
-        "table:nth-child(79)"
+        "table:nth-child(80)"
       ]
     ]
   }

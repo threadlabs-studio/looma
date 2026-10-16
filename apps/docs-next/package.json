@@ -1,0 +1,23 @@
+{
+  "name": "@threadlabs/looma-docs-next",
+  "private": true,
+  "version": "0.28.0",
+  "type": "module",
+  "scripts": {
+    "dev": "markupress dev",
+    "build": "markupress build",
+    "preview": "markupress preview",
+    "lint": "echo \"docs-next: lint not configured\"",
+    "test": "node scripts/check-copies.mjs",
+    "test:parity": "playwright test",
+    "typecheck": "echo \"docs-next: typecheck not configured\""
+  },
+  "dependencies": {
+    "@nextwebwg/html-next": "1.0.0-alpha.52",
+    "@threadlabs/looma": "workspace:*",
+    "markupress": "^0.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "~1.60.0"
+  }
+}
