@@ -2,6 +2,8 @@
 
 ## Next release
 
+- LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
+
 ## v0.28.17
 
 - `loomaMarkdownFromDoc` writes every form of Looma Markdown, so a document read from Markdown writes back as the same Markdown. Chips and mentions are directives (`:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}`), the table of contents is `::toc{…}`, task lists are GFM `- [x]` items, and an image is `![alt](src "title")` with braces for its size and placement. Code keeps its fence line (title, highlighted lines, line numbers). A table that fits GFM is a GFM table and any other is clean HTML. A heading carries `{#id}` only when its ID differs from the one its text derives. Text that would read as a Looma block or a heading's braces is escaped. Front matter is the host's page metadata and is not written.
@@ -14,7 +16,6 @@
 - `@threadlabs/looma/markdown` is a new entry point with Looma Markdown's vocabulary and pure rules: tones (`LOOMA_MEANING_TONES` shared by Callout and Badge, `LOOMA_BADGE_TONES`, `LOOMA_CALLOUT_TONES`, and the hues `LOOMA_CHIP_TONES` that chips and Swatch take), container names, brace attributes, the heading anchor rule (NFC and lowercase, keeping letters, numbers and combining marks in any script), fence info, front matter and writer markers. `@threadlabs/looma/markdown/markdown-it` is the reference implementation (`createLoomaMarkdownIt`, and `loomaMarkdown` as a plugin), and `@threadlabs/looma/markdown/fixtures` is the conformance suite with `normalizeLoomaHtml`.
 - LoomaEditor reads Looma Markdown through that implementation. It now reads chips, mentions, the table of contents, task lists, image size and placement, GFM autolinks, and an image alone in its paragraph as a block image without an empty paragraph before it. Every heading read from Markdown gets its anchor. A closing `:::` closes the innermost container, a `:::` line inside fenced code stays code, `::: tabs` and `::: code-group` keep their panels' content, and `{open}` is a flag only on `details`. Front matter renders nothing when loaded with `loomaMarkdownToHtml`; pasting still keeps it as a YAML code block.
 - `loomaMarkdownFromDoc` writes bullet items with `-` and closes a container on the line after its content.
-- LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
 
 ## v0.28.15
 
