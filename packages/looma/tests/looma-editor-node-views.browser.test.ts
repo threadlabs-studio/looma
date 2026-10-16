@@ -85,4 +85,25 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(callout.querySelector(".heading")?.textContent ?? "").toBe("");
   });
+
+  it("composes a section from Disclosure and its settings, hides the settings from readers, and disconnects them once removed", async () => {
+    const { host, editor } = await mountEditor('<details data-looma-expand data-summary="Details"><div data-looma-expand-body><p>Body</p></div></details><p>After</p>');
+    const section = host.querySelector<HTMLElement>(".ProseMirror [data-looma-expand]")!;
+    const disclosure = section.querySelector<HTMLElement>('[data-component~="ui-disclosure"]')!;
+    const settings = section.querySelector<HTMLElement>('[data-component~="ui-icon-button"]')!;
+    expect(disclosure.querySelector("[data-looma-expand-body] p")?.textContent).toBe("Body");
+    expect(disclosure.textContent).toContain("Details");
+    expect(settings.closest<HTMLElement>("[hidden]")).toBeNull();
+    editor.setEditable(false);
+    await flushBrowser();
+    expect(settings.closest<HTMLElement>("[hidden]")).not.toBeNull();
+    editor.setEditable(true);
+    editor.commands.setContent("<p>Gone</p>");
+    await flushBrowser();
+    expect(disclosure.isConnected).toBe(false);
+    const summary = disclosure.textContent;
+    updateComponentProps(disclosure, { summary: "Late" });
+    await flushBrowser();
+    expect(disclosure.textContent).toBe(summary);
+  });
 });
