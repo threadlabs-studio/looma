@@ -4,15 +4,13 @@ function connect(host) {
   const element = host.element;
   if (host.state.base === "ui-editor-image-toolbar") host.state.base = `ui-editor-image-toolbar-${Math.random().toString(36).slice(2, 11)}`;
   let target = null;
-  // Marked by attribute: the converted Vue component's host.refs has no entry for a nested component
-  // (HTML Next gap 1, fixed by html-next #236 for the next alpha).
-  const isDescription = (event) => event.target.hasAttribute?.("data-image-description") && element.contains(event.target);
+  const isDescription = (event) => event.target === host.refs.description;
   const onClick = (event) => {
-    const control = event.target.closest?.("[data-image-placement], [data-image-action]");
+    const control = event.target.closest?.("[data-placement], [data-action]");
     if (!control || !element.contains(control)) return;
-    if (control.dataset.imagePlacement) host.dispatch("placement", { placement: control.dataset.imagePlacement });
-    else if (control.dataset.imageAction === "delete") host.dispatch("delete", {});
-    else if (control.dataset.imageAction === "cancel") host.state.describing = false;
+    if (control.dataset.placement) host.dispatch("placement", { placement: control.dataset.placement });
+    else if (control.dataset.action === "delete") host.dispatch("delete", {});
+    else if (control.dataset.action === "cancel") host.state.describing = false;
   };
   const onOpen = (event) => {
     if (!isDescription(event)) return;
@@ -24,7 +22,7 @@ function connect(host) {
     if (isDescription(event)) host.state.describing = false;
   };
   const onInput = (event) => {
-    if (event.target.hasAttribute?.("data-image-alt")) host.state.draft = event.target.value;
+    if (event.target === host.refs.alt) host.state.draft = event.target.value;
   };
   const onSubmit = (event) => {
     event.preventDefault();

@@ -2,7 +2,11 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.53, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.53`.
+- Image Toolbar finds its description popover and field through refs, its controls use `data-placement` and `data-action` again, and Link Form and Code Language read a missing results or languages list as empty without a default. Their behavior and API stay the same.
 - LoomaEditor's image uploads move into a framework-neutral module: each file goes to the host's `uploadImage` in turn, the image it returns is inserted at the selection, and a failed upload leaves the document unchanged and keeps the file for Retry. `LoomaImageUploader` and `LoomaImageUploadResult` are still exported from `@threadlabs/looma/vue/editor`. LoomaEditor's behavior and public API stay the same.
+
+- A code marker can be shown as text: a backslash between `[` and `!`, `[\!code highlight]`, escapes it, so it highlights nothing and shows as `[!code highlight]`, with each further backslash shown as one. `applyLoomaCodeNotation` and the markdown-it plugin apply the escape, LoomaEditor keeps it as source and writes it back, and the Looma Markdown page's own example of the marker uses it.
 
 - Looma Markdown's canonical HTML shows code as readers see it: a `[!code highlight]` comment is removed from the code, as the spec says. `applyLoomaCodeNotation` in `@threadlabs/looma/markdown` returns the code and the lines it highlights. `createLoomaMarkdownIt` and `loomaMarkdown` take `{ codeNotation: "keep" }` for an editor, and LoomaEditor uses it, so it still edits and writes the comment as source.
 - A task list item's checkbox now has an accessible name: its checkbox and text share one label, `<li data-type="taskItem" data-checked="true"><label><input type="checkbox" disabled checked> Text</label></li>`. Every fixture's canonical HTML is checked with axe in Chromium.

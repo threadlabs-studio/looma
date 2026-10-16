@@ -3,6 +3,9 @@ import coverage from "./coverage.json";
 import { interactionCases } from "./interaction-cases";
 import { accessibilityFindings } from "./accessibility";
 
+// The docs shell shared by every page: navbar items, sidebar, previous/next links, and footer.
+const sharedChrome = ".navbar__inner, .theme-doc-sidebar-container, .pagination-nav, .footer";
+
 test.beforeAll(() => {
   expect(process.platform, "Visual baselines require the pinned Linux image").toBe("linux");
   expect(process.arch).toBe("arm64");
@@ -13,43 +16,36 @@ for (const theme of ["light", "dark"] as const) {
   for (const viewport of [{ name: "desktop", width: 1280, height: 900 }, { name: "mobile", width: 375, height: 812 }]) {
     test.describe(`${viewport.name}-${theme}`, () => {
       test.use({ viewport, colorScheme: theme });
-      test.beforeEach(async ({ page }) => {
+      test.beforeEach(async ({ page }, testInfo) => {
         await page.addInitScript((theme) => localStorage.setItem("theme", theme), theme);
-        // The navbar version label changes with every release, not with the page under review.
-        // An adopted sheet hides it from first paint without adding nodes that page observers see.
-        await page.addInitScript(() => {
+        // The navbar version label changes with every release, and the shared navigation changes whenever a
+        // page is added; neither belongs to the page under review. Only @chrome captures review the shell.
+        // An adopted sheet hides them from first paint without adding nodes that page observers see.
+        const hidden = testInfo.tags.includes("@chrome") ? ".looma-version" : `.looma-version, ${sharedChrome}`;
+        await page.addInitScript((hidden) => {
           const sheet = new CSSStyleSheet();
-          sheet.replaceSync(".looma-version { visibility: hidden !important; }");
+          sheet.replaceSync(`${hidden} { visibility: hidden !important; }`);
           document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
-        });
+        }, hidden);
       });
       for (const doc of coverage.pages) {
-        test(`${doc.path}: reviewed page and examples`, async ({ page }) => {
+        test(`${doc.path}: reviewed page and examples`, { tag: doc.path === "./" ? "@chrome" : [] }, async ({ page }) => {
           await page.goto(doc.path, { waitUntil: "domcontentloaded" });
           await ready(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
           const name = `${viewport.name}-${theme}/${doc.path === "./" ? "home" : doc.path.replaceAll("/", "--")}`;
-          // Desktop Table HTML/Vue captures have stable, reviewed GitHub-hosted rasterization variants.
-          // Keep both rendering environments at zero changed pixels instead of increasing tolerance.
-          const githubTable = process.env.GITHUB_ACTIONS === "true" && viewport.name === "desktop" && doc.path === "components/ui-table";
-          const pageImage = githubTable ? `${name}--github-actions` : name;
-          await screenshot(page, `${pageImage}.png`, true);
           expect(JSON.stringify(await accessibilityFindings(page), null, 2)).toMatchSnapshot(`${name}--accessibility.txt`);
-          if (doc.component) {
-            await page.getByRole("tab", { name: "API", exact: true }).click();
-            await ready(page);
-            await screenshot(page, `${name}--api.png`, true);
-            await page.getByRole("tab", { name: "Examples", exact: true }).click();
-            await page.getByRole("button", { name: "Vue", exact: true }).first().click();
-            // Capture the persisted lens from a fresh page, matching the initial HTML view's paint.
-            // Reused previews after API/Examples had stable geometry but variable text rasterization.
-            await page.reload({ waitUntil: "domcontentloaded" });
-            await ready(page);
-            await expect(page.locator('.looma-mode-code[data-framework-mode="vue"]')).toHaveCount(doc.examples.length);
-            if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
-            const vueImage = githubTable ? `${name}--vue--github-actions` : `${name}--vue`;
-            await screenshot(page, `${vueImage}.png`, true);
+          if (!doc.component) {
+            await screenshot(page, `${name}.png`, true);
+            return;
+          }
+          // Each example is its own reference, so a component change touches only that component's images.
+          // The surrounding prose, code panes, and API/Vue views are text, covered by the parity and reader tests.
+          for (const example of doc.examples) {
+            const stage = page.locator(`[data-preview-example="${example.id}"] .looma-preview-scenario__stage`);
+            await stage.scrollIntoViewIfNeeded();
+            await screenshot(stage, `${name}/${example.id}.png`);
           }
         });
       }
@@ -160,7 +156,7 @@ for (const theme of ["light", "dark"] as const) {
         await screenshot(page, `${viewport.name}-${theme}/states/editor-mentions.png`);
       });
       if (viewport.name === "mobile") {
-        test("open mobile documentation navigation", async ({ page }) => {
+        test("open mobile documentation navigation", { tag: "@chrome" }, async ({ page }) => {
           await page.goto("components/ui-button/");
           await ready(page);
           const toggle = page.getByRole("button", { name: "Toggle navigation bar", exact: true });

@@ -31,14 +31,13 @@
   </defs>
   <div>
     <ui-text as="div" font="sans">
-      <!-- from:floating="true": a bare boolean converts to floating="" in Vue (HTML Next gap 2). data-image-*: the root reflects
-        props as data-<prop>, so data-placement would collide (gap 4). html-next #236 fixes both for the next alpha. -->
+      <!-- from:floating="true": alpha.53's Vue output still writes a bare boolean as floating="" (HTML Next gap 2). -->
       <ui-editor-toolbar from:floating="true" aria-label="Image actions">
         <ui-icon-button
           from:id="concat($base, '-block')"
           label="Image in line"
           size="sm"
-          data-image-placement="block"
+          data-placement="block"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'block')]"
           from:aria-pressed="concat($placement = 'block')"
         ><ui-icon name="panel-top"></ui-icon></ui-icon-button>
@@ -46,7 +45,7 @@
           from:id="concat($base, '-center')"
           label="Center image"
           size="sm"
-          data-image-placement="center"
+          data-placement="center"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'center')]"
           from:aria-pressed="concat($placement = 'center')"
         ><ui-icon name="align-center"></ui-icon></ui-icon-button>
@@ -54,7 +53,7 @@
           from:id="concat($base, '-wrap-left')"
           label="Wrap text to the right"
           size="sm"
-          data-image-placement="wrap-left"
+          data-placement="wrap-left"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-left')]"
           from:aria-pressed="concat($placement = 'wrap-left')"
         ><ui-icon name="panel-left"></ui-icon></ui-icon-button>
@@ -62,12 +61,12 @@
           from:id="concat($base, '-wrap-right')"
           label="Wrap text to the left"
           size="sm"
-          data-image-placement="wrap-right"
+          data-placement="wrap-right"
           from:variant="{ true: 'outline', false: 'ghost' }[concat($placement = 'wrap-right')]"
           from:aria-pressed="concat($placement = 'wrap-right')"
         ><ui-icon name="panel-right"></ui-icon></ui-icon-button>
         <ui-icon-button from:id="$base" label="Image description" size="sm" variant="ghost"><ui-icon name="file-text"></ui-icon></ui-icon-button>
-        <ui-icon-button from:id="concat($base, '-delete')" label="Delete image" size="sm" variant="ghost" data-image-action="delete"><ui-icon
+        <ui-icon-button from:id="concat($base, '-delete')" label="Delete image" size="sm" variant="ghost" data-action="delete"><ui-icon
             name="trash"
           ></ui-icon></ui-icon-button>
       </ui-editor-toolbar>
@@ -77,16 +76,16 @@
       <ui-tooltip from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
       <ui-tooltip from:for="$base">Image description</ui-tooltip>
       <ui-tooltip from:for="concat($base, '-delete')">Delete image</ui-tooltip>
-      <ui-popover data-image-description from:for="$base" from:open="$describing" size="sm" aria-label="Image description">
+      <ui-popover $ref="description" from:for="$base" from:open="$describing" size="sm" aria-label="Image description">
         <form aria-label="Image description">
           <ui-stack gap="s">
             <ui-form-field>
               <label slot="label" from:for="concat($base, '-alt')">Alt text</label>
-              <ui-input data-image-alt from:id="concat($base, '-alt')" size="sm" from:value="$draft"></ui-input>
+              <ui-input $ref="alt" from:id="concat($base, '-alt')" size="sm" from:value="$draft"></ui-input>
             </ui-form-field>
             <ui-text size="xs" tone="secondary">Describe the image for people using a screen reader.</ui-text>
             <ui-cluster justify="end" gap="xs">
-              <ui-button type="button" variant="ghost" tone="neutral" size="sm" data-image-action="cancel">Cancel</ui-button>
+              <ui-button type="button" variant="ghost" tone="neutral" size="sm" data-action="cancel">Cancel</ui-button>
               <ui-button type="submit" variant="solid" size="sm">Save</ui-button>
             </ui-cluster>
           </ui-stack>
