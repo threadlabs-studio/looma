@@ -4,7 +4,7 @@
     "impact": "moderate",
     "targets": [
       [
-        "form[data-existing=\"true\"]"
+        "form[data-ui-editor-link-form-prop-existing=\"true\"]"
       ]
     ]
   }

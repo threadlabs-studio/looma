@@ -4,7 +4,7 @@
     "impact": "moderate",
     "targets": [
       [
-        "div[data-item-width=\"sm\"]"
+        "div[data-ui-reel-prop-item-width=\"sm\"]"
       ]
     ]
   }
