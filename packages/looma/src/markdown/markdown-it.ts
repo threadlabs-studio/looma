@@ -4,6 +4,7 @@ import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import {
+  applyLoomaCodeNotation,
   assignLoomaHeadingIds,
   LOOMA_CONTAINER_NAMES,
   normalizeLoomaCalloutTone,
@@ -178,7 +179,7 @@ function taskLists(state: StateCore): void {
       inline.content = inline.content.replace(TASK, "");
       item.attrSet("data-type", "taskItem");
       item.attrSet("data-checked", String(checked));
-      item.meta = { checked };
+      inline.meta = { ...inline.meta, task: checked };
     }
   }
 }
@@ -219,6 +220,12 @@ function attributes(state: StateCore): void {
     const token = tokens[index];
     if (token.type !== "inline" || !token.children) continue;
     const children = token.children;
+    // A task item's checkbox and text share one label, which names the checkbox.
+    if (typeof token.meta?.task === "boolean") {
+      const html = (content: string) => Object.assign(new state.Token("html_inline", "", 0), { content });
+      children.unshift(html(`<label><input type="checkbox" disabled=""${token.meta.task ? ' checked=""' : ""}> `));
+      children.push(html("</label>"));
+    }
     // GFM autolinks need a scheme or `www.`; a bare domain stays text.
     for (let child = children.length - 3; child >= 0; child--) {
       const text = children[child + 1];
@@ -287,13 +294,22 @@ function tableOfContents(tokens: Token[], format: string, depth: number, escape:
     `<strong>Table of contents</strong>${roots.length ? render(roots) : ""}</nav>\n`;
 }
 
+/** How a Looma Markdown instance renders. */
+export interface LoomaMarkdownOptions {
+  /**
+   * `apply` (default) renders code as a reader sees it, without its `[!code highlight]` comments;
+   * `keep` keeps them in the code, for an editor that edits the source.
+   */
+  codeNotation?: "apply" | "keep";
+}
+
 /**
  * Adds Looma Markdown to a markdown-it instance: containers, alerts, task lists, the table of
  * contents, chips, mentions, brace attributes, heading anchors, code meta and front matter.
  * @contract Renders the canonical HTML, which is the HTML LoomaEditor saves. It is not sanitized.
  * Linkify and raw HTML are instance options; `createLoomaMarkdownIt` turns both on.
  */
-export function loomaMarkdown(md: MarkdownIt): void {
+export function loomaMarkdown(md: MarkdownIt, { codeNotation = "apply" }: LoomaMarkdownOptions = {}): void {
   const escape = md.utils.escapeHtml;
   md.block.ruler.before("table", "looma_frontmatter", frontmatter);
   md.block.ruler.before("fence", "looma_container", container, { alt: ["paragraph", "reference", "blockquote", "list"] });
@@ -337,17 +353,13 @@ export function loomaMarkdown(md: MarkdownIt): void {
     const id = String(attributes.id);
     return `<span data-type="mention" class="looma-mention" data-id="${escape(id)}" data-label="${escape(label || id)}">@${escape(label || id)}</span>`;
   };
-  const listItem = rules.list_item_open ?? ((tokens, index, options, _env, self) => self.renderToken(tokens, index, options));
-  rules.list_item_open = (tokens, index, options, env, self) => {
-    const html = listItem(tokens, index, options, env, self);
-    const task = tokens[index].meta as { checked?: boolean } | null;
-    return task && typeof task.checked === "boolean" ? `${html}<input type="checkbox" disabled=""${task.checked ? ' checked=""' : ""}>` : html;
-  };
-  // Code holds its lines without the newline that closes the last one.
+  // Code holds its lines without the newline that closes the last one, and shows its notation
+  // applied unless the instance edits source.
   const code = (content: string, info: string) => {
     const { language, meta } = parseLoomaFenceInfo(info);
+    const source = content.replace(/\n$/, "");
     return `<pre><code${language ? ` class="language-${escape(language)}"` : ""}${meta ? ` data-meta="${escape(meta)}"` : ""}>` +
-      `${escape(content.replace(/\n$/, ""))}</code></pre>\n`;
+      `${escape(codeNotation === "keep" ? source : applyLoomaCodeNotation(source).code)}</code></pre>\n`;
   };
   rules.fence = (tokens, index) => code(tokens[index].content, tokens[index].info);
   rules.code_block = (tokens, index) => code(tokens[index].content, "");
@@ -357,6 +369,6 @@ export function loomaMarkdown(md: MarkdownIt): void {
  * A markdown-it instance for Looma Markdown: raw HTML and GFM autolinks on, with `loomaMarkdown`.
  * @contract Each call returns a new instance that callers may extend.
  */
-export function createLoomaMarkdownIt(): MarkdownIt {
-  return new MarkdownIt({ html: true, linkify: true, typographer: false }).use(loomaMarkdown);
+export function createLoomaMarkdownIt(options: LoomaMarkdownOptions = {}): MarkdownIt {
+  return new MarkdownIt({ html: true, linkify: true, typographer: false }).use(loomaMarkdown, options);
 }
