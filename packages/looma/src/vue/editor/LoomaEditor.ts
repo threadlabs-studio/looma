@@ -77,7 +77,8 @@ import {
 import { createCodeHighlighting } from "../../editor/code-highlighting";
 import { runBlockAction } from "../../editor/block-actions";
 import { createImageUploads, type LoomaImageUploadDetail, type LoomaImageUploads, type LoomaImageUploadsState } from "../../editor/image-uploads";
-import { askRequest, onResponderAnnounced, respondWithFunction, type LoomaRequestOptions, type LoomaResponder } from "../../editor/requests";
+import { RequestEvent, type RequestOptions } from "@nextwebwg/html-next/runtime";
+import { onResponderAnnounced, respondWithFunction, type LoomaResponder } from "../../editor/requests";
 import { createFormattingSelection, type LoomaFormattingSelection } from "../../editor/formatting-selection";
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
@@ -515,19 +516,22 @@ export const LoomaEditor = defineComponent({
     };
     // Requests: a function prop answers on the root ahead of the Vue event form there; otherwise the
     // request bubbles on to the root's ancestors and the document.
-    const found = reactive(new Set<EditorRequest>());
-    // Whether `name` has a responder the editor knows of: its prop, its Vue listener, or one announced or seen answering.
-    // HTML Next has no way to learn of a responder before asking (requests gap, before the owner's requests follow-up), so a
-    // responder registered before mount enables Insert image and link search only once it answers or announces itself.
+    // Known responders are read again on each render, and an announcement re-renders.
+    const responderVersion = ref(0);
+    // Whether `name` has a responder: its prop, its Vue listener, or a known one on the root's path, from
+    // `RequestEvent.respond()`, a controller's `host.on`, or a framework prop. A plain `addEventListener` answers
+    // requests but is not known.
     const answers = (name: EditorRequest) => {
+      void responderVersion.value;
       const prop = EDITOR_REQUESTS[name];
-      return typeof props[prop] === "function" || attrs[`on${prop[0]!.toUpperCase()}${prop.slice(1)}`] != null || found.has(name);
+      return typeof props[prop] === "function" || attrs[`on${prop[0]!.toUpperCase()}${prop.slice(1)}`] != null
+        || (root.value !== null && RequestEvent.hasResponder(root.value, name));
     };
     const connection = new AbortController();
-    const ask = <Answer>(name: EditorRequest, detail: unknown, options: LoomaRequestOptions = {}) => {
-      if (!root.value || connection.signal.aborted) return null;
+    const ask = <Answer>(name: EditorRequest, detail: unknown, options: RequestOptions = {}): Promise<Answer | null> => {
+      if (!root.value || connection.signal.aborted) return Promise.resolve(null);
       const signal = options.signal ? AbortSignal.any([options.signal, connection.signal]) : connection.signal;
-      return askRequest<Answer>(root.value, name, detail, { ...options, signal });
+      return RequestEvent.request<Answer>(root.value, name, detail, { ...options, signal });
     };
     // A newer ask aborts the same request still pending, as the author's next keystroke replaces a query.
     const latest = new Map<EditorRequest, AbortController>();
@@ -537,13 +541,13 @@ export const LoomaEditor = defineComponent({
       latest.set(name, controller);
       return ask<Answer>(name, detail, { signal: controller.signal });
     };
-    // Applies the answer now or when it arrives. A failed ask is reported and applies null; a replaced one applies nothing.
+    // Applies the answer when it arrives. A failed ask is reported and applies null; a replaced one applies nothing.
     const askThen = <Answer>(name: EditorRequest, detail: unknown, apply: (answer: Answer | null) => void) => {
       const answer = askLatest<Answer>(name, detail);
-      if (!(answer instanceof Promise)) return apply(answer);
       const controller = latest.get(name);
-      answer.then(apply, (error: unknown) => {
-        if (controller !== latest.get(name) || connection.signal.aborted) return;
+      const current = () => controller === latest.get(name) && !connection.signal.aborted;
+      answer.then((value) => { if (current()) apply(value); }, (error: unknown) => {
+        if (!current()) return;
         reportError(error);
         apply(null);
       });
@@ -724,15 +728,8 @@ export const LoomaEditor = defineComponent({
       chipEditing = chips;
       const imageUploads = createImageUploads({
         editor: session.editor,
-        // Paste and drop ask even without a known responder, and a first answer makes uploads available.
-        upload: () => async (file, init) => {
-          const image = await ask<LoomaImageDescriptor>("image-upload", { file }, init);
-          if (image && !found.has("image-upload")) {
-            found.add("image-upload");
-            checkResponders();
-          }
-          return image;
-        },
+        // Paste and drop ask even without a known responder, so a plain listener still uploads them.
+        upload: () => (file, init) => ask<LoomaImageDescriptor>("image-upload", { file }, init),
         onError: (error, file) => emit("uploadError", error, file),
       });
       imageUploads.subscribe(() => { uploadState.value = imageUploads.state; });
@@ -772,9 +769,11 @@ export const LoomaEditor = defineComponent({
       }
       stopAnnouncements = onResponderAnnounced(element, (name) => {
         if (!(name in EDITOR_REQUESTS)) return;
-        found.add(name as EditorRequest);
+        responderVersion.value += 1;
         checkResponders();
       });
+      // The first render had no root to find known responders from.
+      responderVersion.value += 1;
       responders = new Set(EDITOR_REQUEST_NAMES.filter(answers));
       askExtensions();
       askSlashCommands();

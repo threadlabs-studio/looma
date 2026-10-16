@@ -48,23 +48,26 @@ answer, `null` for none, or a promise of either:
 
 The same request also arrives as an event: a `RequestEvent` that bubbles from the editor and is
 answered with `event.respondWith(answer)`. Listen with Vue's event form, on an ancestor, or on the
-document, where HTML Next's `respond()` helper adds the listener and announces it. The nearest
+document, where HTML Next's `RequestEvent.respond()` adds the listener and announces it. The nearest
 responder answers: the function prop first, then the event form, then ancestors, then the document.
 An application can set a default for every editor on `document` and override it for one editor.
 
 ```ts
-import { respond } from "@nextwebwg/html-next";
+import { RequestEvent } from "@nextwebwg/html-next";
 
+const { respond } = RequestEvent;
 const stop = respond(document, "image-upload", async ({ file }, { signal, progress }) => ({
   src: await upload(file, { signal, onProgress: progress }),
 }));
 ```
 
 `signal` aborts when the answer is no longer needed: the author typed another character, canceled
-an upload, or the editor unmounted. Insert image and link search appear once the editor knows a
-responder: its function prop, its event form, or a responder that announced itself after the editor
-mounted, as `respond()` does. A responder registered before the editor mounted is found the first
-time it answers a pasted or dropped image.
+an upload, or the editor unmounted. Insert image and link search appear while the editor can see a
+responder: its function prop, its event form, or one registered on an ancestor or the document with
+`RequestEvent.respond()`, a component controller's `host.on`, or a framework component's function
+prop, whether it arrived before or after the editor mounted. A plain `addEventListener` still answers
+requests, including pasted and dropped images, but the editor cannot see it, so Insert image and
+link search stay off for it; register with `RequestEvent.respond()` instead.
 
 Each request's function prop is its name in camelCase: `image-upload` is `imageUpload`.
 

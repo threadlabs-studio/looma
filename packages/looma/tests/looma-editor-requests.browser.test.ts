@@ -1,11 +1,12 @@
 import { Mark, type Editor, type JSONContent } from "@tiptap/core";
-import { respond, type RequestEvent } from "@nextwebwg/html-next/runtime";
+import { RequestEvent } from "@nextwebwg/html-next/runtime";
 import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
 
+const { respond } = RequestEvent;
 const apps: App[] = [];
 const cleanups: Array<() => void> = [];
 
@@ -92,6 +93,27 @@ describe("LoomaEditor requests", () => {
     expect(ready[0]!.isDestroyed).toBe(true);
     expect(ready[1]!.getHTML()).toContain('<span data-spoiler="">Hidden</span>');
     vi.restoreAllMocks();
+  });
+
+  it("offers Insert image for a responder known before mount, and a plain listener still answers without being known", async () => {
+    cleanups.push(respond(document, "image-upload", ({ file }: { file: File }) => ({ src: `https://known.example.com/${file.name}` })));
+    const first = await mountEditor({});
+    await expect.element(insertImage()).toBeEnabled();
+    first.ready.at(-1)!.commands.focus();
+    chooseImage(first.host, "known.png");
+    await vi.waitFor(() => expect(JSON.stringify(first.ready.at(-1)!.getJSON())).toContain("https://known.example.com/known.png"));
+    cleanups.splice(0).forEach((cleanup) => cleanup());
+    for (const app of apps.splice(0)) app.unmount();
+    document.body.innerHTML = "";
+
+    const plain = (event: Event) => (event as RequestEvent<{ file: File }, unknown>).respondWith({ src: "https://plain.example.com/p.png" });
+    document.addEventListener("image-upload", plain);
+    cleanups.push(() => document.removeEventListener("image-upload", plain));
+    const second = await mountEditor({});
+    await expect.element(insertImage()).toBeDisabled();
+    second.ready.at(-1)!.commands.focus();
+    chooseImage(second.host, "p.png");
+    await vi.waitFor(() => expect(JSON.stringify(second.ready.at(-1)!.getJSON())).toContain("https://plain.example.com/p.png"));
   });
 
   it("asks mention-query with the query and limit, replaces older queries, and falls back to mentionItems on null", async () => {
