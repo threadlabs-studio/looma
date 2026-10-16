@@ -2,29 +2,30 @@ import type { Editor } from "@tiptap/core";
 import { normalizeImageDimension } from "./extensions/image";
 import { imageUploadContent, type LoomaImageDescriptor } from "./image-delivery";
 
-/**
- * Host upload result normalized into the editor's durable image descriptor.
- * `url` becomes the stored `src`; optional dimensions preserve layout before
- * the image loads and `responsive` opts into host-provided rendition policy.
- */
-export interface LoomaImageUploadResult extends Omit<LoomaImageDescriptor, "src"> {
-  url: string;
+/** What an image upload request's detail carries: the file to upload. */
+export interface LoomaImageUploadDetail {
+  file: File;
 }
 
 /**
- * Application-owned upload boundary used by paste, drop, and file selection.
+ * Uploads one image and answers with the image to insert, or `null` to insert nothing. Paste,
+ * drop, and file selection all upload through it.
  *
- * @ownership The application owns network requests, persistence, and returned
- * URLs. Looma owns only editor insertion after the promise fulfills.
- * @failure Rejection leaves the document unchanged and is surfaced through the
- * editor's `uploadError` event so the host chooses retry and user messaging.
+ * @ownership The application owns network requests, persistence, and the returned `src`. Looma
+ * owns only inserting the image once the answer arrives.
+ * @failure A rejection leaves the document unchanged and is reported through the editor's
+ * `uploadError` event, so the host chooses retry and user messaging. An aborted `signal` means the
+ * author canceled the upload; its rejection is not reported.
  */
-export type LoomaImageUploader = (
+export type LoomaImageUpload = (
   file: File,
-) => Promise<string | LoomaImageUploadResult>;
+  init: { readonly signal: AbortSignal; readonly progress: (loaded: number, total: number) => void },
+) => LoomaImageDescriptor | null | PromiseLike<LoomaImageDescriptor | null>;
 
 export interface LoomaImageUploadsState {
   readonly uploading: boolean;
+  /** The current upload's progress as its uploader reports it, or null before it reports any. */
+  readonly progress: { readonly loaded: number; readonly total: number } | null;
   /** The file whose upload failed last, which `retry()` sends again. */
   readonly failed: File | null;
 }
@@ -32,7 +33,7 @@ export interface LoomaImageUploadsState {
 export interface LoomaImageUploadsOptions {
   editor: Editor;
   /** Read on each upload, so a host can change it while the editor runs. */
-  upload: () => LoomaImageUploader | null | undefined;
+  upload: () => LoomaImageUpload | null | undefined;
   onError: (error: unknown, file: File) => void;
 }
 
@@ -43,7 +44,7 @@ export interface LoomaImageUploadsOptions {
  * @ownership The host owns the upload and its URL; this owns the uploading state, the failed file,
  * and inserting the result.
  * @failure A rejected upload leaves the document unchanged, records the file for `retry()`, and is
- * reported through `onError`.
+ * reported through `onError`. A canceled upload leaves the document unchanged and reports nothing.
  */
 export interface LoomaImageUploads {
   readonly state: LoomaImageUploadsState;
@@ -53,41 +54,57 @@ export interface LoomaImageUploads {
   insert(files: Iterable<File>): Promise<void>;
   /** Sends the failed file again. */
   retry(): Promise<void>;
+  /** Aborts the uploads in progress and the files still waiting their turn. */
+  cancel(): void;
 }
 
 export function createImageUploads(options: LoomaImageUploadsOptions): LoomaImageUploads {
   const { editor } = options;
   const listeners = new Set<() => void>();
-  let state: LoomaImageUploadsState = { uploading: false, failed: null };
+  const batches = new Set<AbortController>();
+  let state: LoomaImageUploadsState = { uploading: false, progress: null, failed: null };
   const set = (patch: Partial<LoomaImageUploadsState>) => {
     state = { ...state, ...patch };
     listeners.forEach((listener) => listener());
   };
 
-  const insertOne = async (file: File) => {
+  const insertOne = async (file: File, signal: AbortSignal) => {
     const upload = options.upload();
-    if (!upload || editor.isDestroyed) return;
-    set({ uploading: true });
+    if (!upload || editor.isDestroyed || signal.aborted) return;
+    set({ uploading: true, progress: null });
     try {
-      const result = await upload(file);
-      const image = typeof result === "string" ? { url: result } : result;
-      const width = normalizeImageDimension(image.width);
-      const height = normalizeImageDimension(image.height);
-      if (!editor.isDestroyed) {
+      const image = await upload(file, {
+        signal,
+        progress: (loaded, total) => { if (!signal.aborted) set({ progress: { loaded, total } }); },
+      });
+      if (image && !signal.aborted && !editor.isDestroyed) {
+        const width = normalizeImageDimension(image.width);
+        const height = normalizeImageDimension(image.height);
         editor.chain().focus().insertContent(imageUploadContent({
-          src: image.url,
+          src: image.src,
           alt: image.alt ?? file.name,
           ...(width ? { width } : {}),
           ...(height ? { height } : {}),
           ...(image.responsive === true ? { responsive: true } : {}),
         })).run();
       }
-      set({ failed: null });
+      if (!signal.aborted) set({ failed: null });
     } catch (error) {
+      if (signal.aborted) return;
       set({ failed: file });
       options.onError(error, file);
     } finally {
-      set({ uploading: false });
+      set({ uploading: false, progress: null });
+    }
+  };
+
+  const run = async (files: Iterable<File>) => {
+    const batch = new AbortController();
+    batches.add(batch);
+    try {
+      for (const file of files) await insertOne(file, batch.signal);
+    } finally {
+      batches.delete(batch);
     }
   };
 
@@ -97,11 +114,12 @@ export function createImageUploads(options: LoomaImageUploadsOptions): LoomaImag
       listeners.add(listener);
       return () => { listeners.delete(listener); };
     },
-    async insert(files) {
-      for (const file of files) await insertOne(file);
-    },
+    insert: run,
     async retry() {
-      if (state.failed) await insertOne(state.failed);
+      if (state.failed) await run([state.failed]);
+    },
+    cancel() {
+      batches.forEach((batch) => batch.abort(new DOMException("The upload was canceled.", "AbortError")));
     },
   };
 }

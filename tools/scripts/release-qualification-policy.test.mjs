@@ -126,7 +126,7 @@ test("every Vitest browser test is included by its package browser config", asyn
     const browserTests = entries
       .filter((entry) =>
         !entry.includes("node_modules/")
-        && !entry.includes("__screenshots__/")
+        && !entry.includes("test-results/")
         && /\.browser\.(?:test|spec)\.ts$/.test(entry)
       )
       .sort();

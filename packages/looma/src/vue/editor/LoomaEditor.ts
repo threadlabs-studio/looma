@@ -12,6 +12,7 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
+  onUpdated,
   reactive,
   ref,
   shallowRef,
@@ -36,7 +37,6 @@ import {
   type LoomaSlashCommand,
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
-  type LoomaMentionProvider,
   type LoomaCodeLanguages,
   normalizeLoomaChipColor,
   type LoomaChipColor,
@@ -47,7 +47,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, StatusMessage, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorBlockActions,
@@ -71,16 +71,18 @@ import {
   imageDescriptorFromAttrs,
   type LoomaImageActivationDetail,
   type LoomaImageAttributeResolver,
+  type LoomaImageDescriptor,
   type LoomaImageSourceResolver,
   type LoomaImageRenditionErrorDetail,
 } from "../../editor/image-delivery";
 import { createCodeHighlighting } from "../../editor/code-highlighting";
 import { runBlockAction } from "../../editor/block-actions";
-import { createImageUploads, type LoomaImageUploader, type LoomaImageUploads, type LoomaImageUploadsState } from "../../editor/image-uploads";
+import { createImageUploads, type LoomaImageUploadDetail, type LoomaImageUploads, type LoomaImageUploadsState } from "../../editor/image-uploads";
+import { askRequest, onResponderAnnounced, respondWithFunction, type LoomaRequestOptions, type LoomaResponder } from "../../editor/requests";
 import { createFormattingSelection, type LoomaFormattingSelection } from "../../editor/formatting-selection";
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
-import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkResolve, type LoomaLinkSearch } from "../../editor/link-editing";
+import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
@@ -92,7 +94,8 @@ import { calloutNodeView } from "./callout";
 import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
 import { imageNodeView } from "./image";
 
-export type { LoomaImageUploader, LoomaImageUploadResult } from "../../editor/image-uploads";
+export type { LoomaImageUploadDetail } from "../../editor/image-uploads";
+export type { LoomaRequestInit, LoomaResponder } from "../../editor/requests";
 
 /**
  * Chooses whether formatting controls follow a selection, occupy persistent
@@ -113,16 +116,73 @@ export interface LoomaEditorRangeActionDetail { id: string; ranges: { from: numb
 export interface LoomaEditorSelectionActionDetail { id: string; from: number; to: number; text: string; before: string; after: string; }
 
 
-/**
- * Replace the slash inventory, or return retained defaults plus host commands.
- * @ownership The host owns its command objects and mutations; Looma supplies
- * fresh defaults and invokes this factory when the inventory prop changes.
- */
-export type LoomaEditorSlashCommands = LoomaSlashCommand[] | ((defaults: LoomaSlashCommand[]) => LoomaSlashCommand[]);
+export type { LoomaLinkTarget } from "../../editor/link-editing";
 
-export type { LoomaLinkResolve, LoomaLinkSearch, LoomaLinkTarget } from "../../editor/link-editing";
+/** The `slash-commands` request's detail: this editor's default commands. */
+export interface LoomaSlashCommandsDetail { defaults: LoomaSlashCommand[]; }
+/** The `link-search` request's detail: what the author typed in the link field. */
+export interface LoomaLinkSearchDetail { query: string; }
+/** The `link-resolve` request's detail: a saved link's `href`. */
+export interface LoomaLinkResolveDetail { href: string; }
+/** The `mention-query` request's detail: what the author typed after `@`, and how many results show. */
+export interface LoomaMentionQueryDetail { query: string; limit: number; }
+
+/**
+ * Answers `extensions` with Tiptap extensions added after Looma's.
+ * @lifecycle The editor asks when it mounts and again when a responder first appears, then rebuilds
+ * with the answer and keeps its document.
+ */
+export type LoomaEditorExtensions = LoomaResponder<null, AnyExtension[]>;
+/**
+ * Answers `slash-commands` with the commands the slash menu offers: the defaults, changed or
+ * extended. `null` keeps the defaults; an empty array offers none.
+ * @ownership The host owns its command objects and mutations; Looma asks again with fresh defaults
+ * when the prop changes or image uploads become available.
+ */
+export type LoomaEditorSlashCommands = LoomaResponder<LoomaSlashCommandsDetail, LoomaSlashCommand[]>;
+/**
+ * Answers `link-search` with host records for a link, without teaching the editor how they are stored.
+ * @ownership The host checks access and returns durable, openable `href` values.
+ * @failure A rejection leaves the document untouched and shows a retryable search error.
+ */
+export type LoomaLinkSearch = LoomaResponder<LoomaLinkSearchDetail, LoomaLinkTarget[]>;
+/**
+ * Answers `link-resolve` with a saved link's current record, so a renamed record shows its new label.
+ * @ownership The host resolves identity and access; Looma keeps the saved href as is.
+ * @failure A rejection or `null` leaves the original href visible and editable.
+ */
+export type LoomaLinkResolve = LoomaResponder<LoomaLinkResolveDetail, LoomaLinkTarget>;
+/**
+ * Answers `mention-query` with people to suggest after `@`; `null` falls back to `mentionItems`.
+ * @ownership The host owns directory access; Looma filters the answer and clamps it to `limit`.
+ * @failure A rejection shows an empty menu.
+ */
+export type LoomaMentionQuery = LoomaResponder<LoomaMentionQueryDetail, LoomaMentionItem[]>;
+/**
+ * Answers `image-upload` with the image to insert for a pasted, dropped, or chosen file, or `null`
+ * to insert nothing. `progress(loaded, total)` drives the editor's progress status, and `signal`
+ * aborts when the author cancels.
+ * @ownership The application owns the upload and the returned `src`; Looma owns inserting it.
+ * @failure A rejection leaves the document unchanged and emits `uploadError`.
+ */
+export type LoomaImageUploader = LoomaResponder<LoomaImageUploadDetail, LoomaImageDescriptor>;
+
+// Each request the editor asks and its function prop (https://nextwebwg.org/declarative-components/javascript#requests).
+const EDITOR_REQUESTS = {
+  extensions: "extensions",
+  "slash-commands": "slashCommands",
+  "mention-query": "mentionQuery",
+  "link-search": "linkSearch",
+  "link-resolve": "linkResolve",
+  "image-upload": "imageUpload",
+} as const;
+type EditorRequest = keyof typeof EDITOR_REQUESTS;
+const EDITOR_REQUEST_NAMES = Object.keys(EDITOR_REQUESTS) as EditorRequest[];
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
+
+const uploadProgressText = (progress: LoomaImageUploadsState["progress"]) =>
+  progress && progress.total > 0 ? `Uploading image… ${Math.round(Math.min(1, progress.loaded / progress.total) * 100)}%` : "Uploading image…";
 let editorInstanceSequence = 0;
 
 const EMPTY_CAPABILITIES: TableActionCapabilities = {
@@ -206,13 +266,14 @@ export const LoomaEditor = defineComponent({
       type: String,
       default: "Document",
     },
+    /** Answers `extensions`: the application's Tiptap extensions, added after Looma's. */
     extensions: {
-      type: Array as PropType<AnyExtension[]>,
-      default: () => [],
+      type: Function as PropType<LoomaEditorExtensions | undefined>,
+      default: undefined,
     },
-    /** One inventory for the existing slash extension; an empty array intentionally supplies no commands. */
+    /** Answers `slash-commands`: the slash menu's commands, given the defaults. */
     slashCommands: {
-      type: [Array, Function] as PropType<LoomaEditorSlashCommands>,
+      type: Function as PropType<LoomaEditorSlashCommands | undefined>,
       default: undefined,
     },
     /** Override the lazy built-in catalog with application-owned code grammars. An empty object disables highlighting. */
@@ -224,8 +285,9 @@ export const LoomaEditor = defineComponent({
       type: Array as PropType<LoomaMentionItem[]>,
       default: () => [],
     },
-    mentionProvider: {
-      type: Function as PropType<LoomaMentionProvider | undefined>,
+    /** Answers `mention-query`: people to suggest for what the author typed after `@`. */
+    mentionQuery: {
+      type: Function as PropType<LoomaMentionQuery | undefined>,
       default: undefined,
     },
     mentionLimit: {
@@ -234,7 +296,7 @@ export const LoomaEditor = defineComponent({
     },
     /** Site origin for relative links. Applied to newly inserted links, including paste over selected text. */
     linkBaseUrl: { type: String, default: "" },
-    /** Host-owned search and identity lookup for links to application records. */
+    /** Answers `link-search` and `link-resolve`: host search and identity lookup for links to application records. */
     linkSearch: {
       type: Function as PropType<LoomaLinkSearch | undefined>,
       default: undefined,
@@ -247,7 +309,8 @@ export const LoomaEditor = defineComponent({
       type: String,
       default: "Item",
     },
-    uploadImage: {
+    /** Answers `image-upload`: uploads a pasted, dropped, or chosen image and returns the image to insert. */
+    imageUpload: {
       type: Function as PropType<LoomaImageUploader | undefined>,
       default: undefined,
     },
@@ -367,7 +430,7 @@ export const LoomaEditor = defineComponent({
     const codeLanguageShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
     let uploads: LoomaImageUploads | undefined;
-    const uploadState = shallowRef<LoomaImageUploadsState>({ uploading: false, failed: null });
+    const uploadState = shallowRef<LoomaImageUploadsState>({ uploading: false, progress: null, failed: null });
     const tablePickerOpen = ref(false);
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
@@ -462,12 +525,84 @@ export const LoomaEditor = defineComponent({
       chipOpen.value = false;
       if (focusChip) root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`)?.focus();
     };
-    const resolveSlashCommands = () => {
-      const defaults = getDefaultSlashCommands(props.uploadImage ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor());
-      return typeof props.slashCommands === "function" ? props.slashCommands(defaults) : props.slashCommands ?? defaults;
+    // Requests: a function prop answers on the root ahead of the Vue event form there; otherwise the
+    // request bubbles on to the root's ancestors and the document.
+    const found = reactive(new Set<EditorRequest>());
+    // Whether `name` has a responder the editor knows of: its prop, its Vue listener, or one announced or seen answering.
+    // HTML Next has no way to learn of a responder before asking (requests gap, before the owner's requests follow-up), so a
+    // responder registered before mount enables Insert image and link search only once it answers or announces itself.
+    const answers = (name: EditorRequest) => {
+      const prop = EDITOR_REQUESTS[name];
+      return typeof props[prop] === "function" || attrs[`on${prop[0]!.toUpperCase()}${prop.slice(1)}`] != null || found.has(name);
     };
+    const connection = new AbortController();
+    const ask = <Answer>(name: EditorRequest, detail: unknown, options: LoomaRequestOptions = {}) => {
+      if (!root.value || connection.signal.aborted) return null;
+      const signal = options.signal ? AbortSignal.any([options.signal, connection.signal]) : connection.signal;
+      return askRequest<Answer>(root.value, name, detail, { ...options, signal });
+    };
+    // A newer ask aborts the same request still pending, as the author's next keystroke replaces a query.
+    const latest = new Map<EditorRequest, AbortController>();
+    const askLatest = <Answer>(name: EditorRequest, detail: unknown) => {
+      latest.get(name)?.abort();
+      const controller = new AbortController();
+      latest.set(name, controller);
+      return ask<Answer>(name, detail, { signal: controller.signal });
+    };
+    // Applies the answer now or when it arrives. A failed ask is reported and applies null; a replaced one applies nothing.
+    const askThen = <Answer>(name: EditorRequest, detail: unknown, apply: (answer: Answer | null) => void) => {
+      const answer = askLatest<Answer>(name, detail);
+      if (!(answer instanceof Promise)) return apply(answer);
+      const controller = latest.get(name);
+      answer.then(apply, (error: unknown) => {
+        if (controller !== latest.get(name) || connection.signal.aborted) return;
+        reportError(error);
+        apply(null);
+      });
+    };
+    // The same defaults while image uploads stay available or unavailable, so an answer built from them compares equal.
+    let slashDefaults: { uploads: boolean; commands: LoomaSlashCommand[] } | undefined;
+    const defaultSlashCommands = () => {
+      const uploads = answers("image-upload");
+      if (slashDefaults?.uploads !== uploads) {
+        slashDefaults = { uploads, commands: getDefaultSlashCommands(uploads ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor()) };
+      }
+      return slashDefaults.commands;
+    };
+    const askSlashCommands = () => {
+      const defaults = defaultSlashCommands();
+      askThen<LoomaSlashCommand[]>("slash-commands", { defaults: [...defaults] }, (answer) => {
+        const commands = answer ?? defaults;
+        const current = slashExtension.options.commands;
+        // An inline function prop is new on every render; the same inventory leaves the open menu alone.
+        if (commands.length === current.length && commands.every((command, index) => command === current[index])) return;
+        slashExtension.options.commands = commands;
+        editor.value?.commands.dismissLoomaSlashMenu();
+      });
+    };
+    let consumerExtensions: AnyExtension[] = [];
+    const askExtensions = () => askThen<AnyExtension[]>("extensions", null, (extensions) => {
+      const changed = Boolean(extensions?.length || consumerExtensions.length);
+      consumerExtensions = extensions ?? [];
+      if (!session) build(props.modelValue);
+      else if (changed) rebuild();
+    });
+    // A late responder, by prop, Vue listener, or announcement, gets the requests asked once; a
+    // change in image uploads changes the default slash commands.
+    let responders = new Set<EditorRequest>();
+    const checkResponders = () => {
+      const current = new Set(EDITOR_REQUEST_NAMES.filter(answers));
+      const arrived = (name: EditorRequest) => current.has(name) && !responders.has(name);
+      const extensionsArrived = arrived("extensions");
+      const slashChanged = arrived("slash-commands") || current.has("image-upload") !== responders.has("image-upload");
+      responders = current;
+      if (extensionsArrived) askExtensions();
+      if (slashChanged) askSlashCommands();
+    };
+    onUpdated(checkResponders);
+    let stopAnnouncements: (() => void) | undefined;
     const slashExtension = createLoomaSlashCommandExtension({
-      commands: resolveSlashCommands(),
+      commands: defaultSlashCommands(),
       onOpenImagePicker: () => fileInput.value?.click(),
       onOpenChipEditor: openChipEditor,
       onOpenLinkEditor: () => openLinkEditor(),
@@ -476,16 +611,10 @@ export const LoomaEditor = defineComponent({
       },
     });
     const mentionMenuId = `looma-editor-mention-menu-${++editorInstanceSequence}`;
-    const hasConsumerMention = props.extensions.some((extension) => extension.name === "mention");
-    const mentionExtension = hasConsumerMention ? null : createLoomaMentionExtension({
+    const mentionExtension = createLoomaMentionExtension({
       limit: props.mentionLimit,
       menuId: mentionMenuId,
-      items: async (query, context) => {
-        if (props.mentionProvider) {
-          return await props.mentionProvider(query, context);
-        }
-        return props.mentionItems;
-      },
+      items: async (query, context) => (await askLatest<LoomaMentionItem[]>("mention-query", { query, limit: context.limit })) ?? props.mentionItems,
       onStateChange: (state) => {
         Object.assign(mention, state);
       },
@@ -509,13 +638,16 @@ export const LoomaEditor = defineComponent({
     const loadForCodeBlock = codeHighlighting.loadForCodeBlock;
     const editor = shallowRef<VueEditor>();
     let session: LoomaEditorSession<VueEditor> | undefined;
-    onMounted(() => {
+    let edited = false;
+    const build = (content: JSONContent) => {
+      edited = false;
+      const consumerMention = consumerExtensions.some((extension) => extension.name === "mention");
       session = createEditorSession({
         extensions: [
           ...getDefaultEditorExtensions({
             placeholder: props.placeholder,
             linkBaseUrl: props.linkBaseUrl,
-            mention: mentionExtension ?? false,
+            mention: consumerMention ? false : mentionExtension,
             disableHighlight: props.disableHighlight,
             codeLanguages: props.codeLanguages ?? undefined,
             codeLowlight: codeHighlighting.lowlight,
@@ -527,9 +659,9 @@ export const LoomaEditor = defineComponent({
           }),
           imageDelivery.extension,
           slashExtension,
-          ...props.extensions,
+          ...consumerExtensions,
         ],
-        content: props.modelValue,
+        content,
         editable: props.editable,
         editorProps: {
           // Tiptap creates its first view before installing plugins/node views.
@@ -580,6 +712,7 @@ export const LoomaEditor = defineComponent({
           }
         },
         onUpdate: ({ editor: instance }) => {
+          edited = true;
           const value = instance.getJSON();
           emit("update:modelValue", value);
           emit("update", value);
@@ -590,10 +723,27 @@ export const LoomaEditor = defineComponent({
       delete session.editor.options.editorProps.nodeViews;
       session.subscribe(() => { editorStateVersion.value += 1; });
       editor.value = session.editor;
-      const engine = createLinkEditing({ editor: session.editor, search: () => props.linkSearch, resolve: () => props.linkResolve, baseUrl: () => props.linkBaseUrl });
+      const engine = createLinkEditing({
+        editor: session.editor,
+        search: () => answers("link-search") ? async (query) => (await askLatest<LoomaLinkTarget[]>("link-search", { query })) ?? [] : null,
+        resolve: () => async (href) => await askLatest<LoomaLinkTarget>("link-resolve", { href }),
+        baseUrl: () => props.linkBaseUrl,
+      });
       engine.subscribe(() => { linkState.value = engine.state; });
       linkEditing = engine;
-      const imageUploads = createImageUploads({ editor: session.editor, upload: () => props.uploadImage, onError: (error, file) => emit("uploadError", error, file) });
+      const imageUploads = createImageUploads({
+        editor: session.editor,
+        // Paste and drop ask even without a known responder, and a first answer makes uploads available.
+        upload: () => async (file, init) => {
+          const image = await ask<LoomaImageDescriptor>("image-upload", { file }, init);
+          if (image && !found.has("image-upload")) {
+            found.add("image-upload");
+            checkResponders();
+          }
+          return image;
+        },
+        onError: (error, file) => emit("uploadError", error, file),
+      });
       imageUploads.subscribe(() => { uploadState.value = imageUploads.state; });
       uploads = imageUploads;
       const instance = session.editor;
@@ -607,6 +757,35 @@ export const LoomaEditor = defineComponent({
           formattingPopup?.show();
         },
       });
+    };
+    // A late extensions answer rebuilds the editor. An unedited document is parsed again from the
+    // host's content, so nodes the new extensions define are kept.
+    const rebuild = () => {
+      const previous = session!;
+      const content = edited ? previous.editor.getJSON() : props.modelValue;
+      linkEditing?.destroy();
+      formatting?.destroy();
+      uploads?.cancel();
+      previous.destroy();
+      build(content);
+    };
+    onMounted(() => {
+      const element = root.value!;
+      for (const name of EDITOR_REQUEST_NAMES) {
+        // Capture runs before the Vue event form's listener on the same root, so the function prop answers first.
+        element.addEventListener(name, (event) => {
+          const responder = props[EDITOR_REQUESTS[name]];
+          if (typeof responder === "function" && "respondWith" in event) respondWithFunction(event, responder as LoomaResponder<unknown, unknown>);
+        }, { capture: true });
+      }
+      stopAnnouncements = onResponderAnnounced(element, (name) => {
+        if (!(name in EDITOR_REQUESTS)) return;
+        found.add(name as EditorRequest);
+        checkResponders();
+      });
+      responders = new Set(EDITOR_REQUEST_NAMES.filter(answers));
+      askExtensions();
+      askSlashCommands();
     });
     // The render function's document element; the session moves the editor's view into it.
     const attachDocument = (element: unknown) => {
@@ -616,6 +795,8 @@ export const LoomaEditor = defineComponent({
       // Leave a static copy in place so the document stays visible while the component leaves.
       const element = session?.editor.options.element;
       element?.parentNode?.replaceChild(element.cloneNode(true), element);
+      connection.abort();
+      stopAnnouncements?.();
       linkEditing?.destroy();
       session?.destroy();
     });
@@ -658,10 +839,10 @@ export const LoomaEditor = defineComponent({
         ref: setLinkFormRoot,
         class: "looma-editor__link-form",
         existing: Boolean(state.range?.existing),
-        searchable: Boolean(props.linkSearch),
+        searchable: answers("link-search"),
         mode: state.mode,
-        value: props.linkSearch ? state.query : state.href,
-        placeholder: props.linkSearch ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com",
+        value: answers("link-search") ? state.query : state.href,
+        placeholder: answers("link-search") ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com",
         newTab: state.newTab,
         textEditable: state.textEditable,
         text: state.text,
@@ -698,10 +879,7 @@ export const LoomaEditor = defineComponent({
       });
     };
 
-    watch([() => props.slashCommands, () => props.uploadImage], () => {
-      slashExtension.options.commands = resolveSlashCommands();
-      editor.value?.commands.dismissLoomaSlashMenu();
-    });
+    watch(() => props.slashCommands, askSlashCommands);
     watch(() => props.editable, (editable) => {
       formatting?.press.cancel();
       formatting?.release();
@@ -1543,7 +1721,7 @@ export const LoomaEditor = defineComponent({
           // The popover anchored here with `for` owns the toggle; toggling here too reopened and
           // closed it on the same click.
         }, () => loomaIcon("table")),
-        commandButton(uploadState.value.uploading ? "Uploading image" : "Insert image", "image", false, uploadState.value.uploading || !props.uploadImage, () => fileInput.value?.click()),
+        commandButton(uploadState.value.uploading ? "Uploading image" : "Insert image", "image", false, uploadState.value.uploading || !answers("image-upload"), () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run(), "Mod-z"),
         commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run(), isApplePlatform() ? "Mod-Shift-z" : "Mod-y"),
@@ -1751,6 +1929,12 @@ export const LoomaEditor = defineComponent({
           "aria-hidden": "true",
           onChange: onFileChange,
         }),
+        uploadState.value.uploading
+          ? h(StatusMessage, { kind: "loading" }, {
+              default: () => uploadProgressText(uploadState.value.progress),
+              action: () => h(Button, { size: "sm", variant: "ghost", onClick: () => uploads?.cancel() }, () => "Cancel"),
+            })
+          : null,
         uploadState.value.failed
           ? h("div", {
               class: "looma-editor__upload-error",

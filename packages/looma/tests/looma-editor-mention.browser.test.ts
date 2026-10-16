@@ -82,13 +82,13 @@ describe("LoomaEditor managed suggestion menus", () => {
     window.addEventListener("error", onError);
 
     let editor: Editor | null = null;
-    const mentionProvider = vi.fn(async () => {
+    const mentionQuery = vi.fn(async () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 10));
       return [{ id: "ada", label: "Ada Lovelace", detail: "ada@example.com" }];
     });
     const app = createApp({
       render: () => h(LoomaEditor, {
-        mentionProvider,
+        mentionQuery,
         onReady: (instance: Editor) => { editor = instance; },
       }),
     });

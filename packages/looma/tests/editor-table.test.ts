@@ -126,7 +126,7 @@ beforeAll(async () => {
         id: "host-" + name, title: "Host content", description: name + " content", group: "Host content", icon: "tag", keywords: ["host", name],
         command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertContent(name.toUpperCase()).run(),
       }));
-      const extend = defaults => [...defaults, ...hostCommands];
+      const extend = ({ defaults }) => [...defaults, ...hostCommands];
       const targets = [
         { id: "one", label: "Guide", detail: "Team / Guides", href: "/records/one" },
         { id: "two", label: "Guide", detail: "Personal / Guides", href: "/records/two" },
@@ -145,10 +145,10 @@ beforeAll(async () => {
               resolveImageSource: sourceResolver.value,
               resolveImageAttributes: image => ({ src: image.src + "?rendition", srcset: image.src + "?rendition 2x" }),
             } : {}),
-            slashCommands: slashMode.value === "extend" ? extend : slashMode.value === "replace" ? hostCommands : slashMode.value === "empty" ? emptyCommands : undefined,
+            slashCommands: slashMode.value === "extend" ? extend : slashMode.value === "replace" ? () => hostCommands : slashMode.value === "empty" ? () => emptyCommands : undefined,
             onReady: (editor) => { window.fixtureEditor = editor; },
-            linkSearch: links ? async (query) => targets.filter(target => target.label.toLowerCase().includes(query.toLowerCase())) : undefined,
-            linkResolve: links ? async (href) => targets.find(target => target.href === href) ?? null : undefined,
+            linkSearch: links ? async ({ query }) => targets.filter(target => target.label.toLowerCase().includes(query.toLowerCase())) : undefined,
+            linkResolve: links ? async ({ href }) => targets.find(target => target.href === href) ?? null : undefined,
             linkTargetLabel: "Page",
             linkBaseUrl: links ? "https://example.test" : undefined,
             toolbarMode: mode,

@@ -16,6 +16,7 @@ apps/docs/.docusaurus/
 apps/docs/build/
 apps/docs/playwright-report/
 apps/docs/test-results/
+packages/looma/test-results/
 apps/storybook/storybook-static/
 apps/storybook/test-results/
 # Storywright: commit accepted baselines, ignore transient runs/reports
