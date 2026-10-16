@@ -14,6 +14,7 @@ export default defineConfig({
       "tests/looma-editor-markdown.browser.test.ts",
       "tests/markdown-accessibility.browser.test.ts",
       "tests/looma-editor-mention.browser.test.ts",
+      "tests/looma-editor-node-views.browser.test.ts",
       "tests/looma-editor-requests.browser.test.ts",
       "tests/looma-editor-chip.browser.test.ts",
       "tests/looma-editor-table-layout.browser.test.ts",

@@ -102,7 +102,7 @@ import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "../../editor/code-language-picker";
 import { tableOfContentsNodeView } from "./table-of-contents";
 import { expandNodeView } from "./expand";
-import { dividerNodeView } from "./divider";
+import { dividerNodeView } from "../../editor/node-views/divider";
 import { calloutNodeView } from "./callout";
 import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
 import { imageNodeView } from "./image";
