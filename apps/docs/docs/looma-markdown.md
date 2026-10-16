@@ -131,7 +131,7 @@ renders. The comment can be `//`, `#`, `--`, an HTML comment or a block comment.
 `[!code highlight:3]` covers three lines; alone on its own line, the marker applies to the lines
 after it.
 
-```ts
+```text
 const port = 8080; // [!code highlight]
 ```
 
@@ -199,7 +199,7 @@ Back up your data first.
 > Alerts take the tones NOTE, TIP, IMPORTANT, WARNING and CAUTION.
 ```
 
-| | |
+| Part | Form |
 | --- | --- |
 | Tones | `note`, `tip`, `info`, `important`, `warning`, `danger`. `caution` is an alias of `danger`. |
 | Component | `<ui-callout tone="tip" heading="Title">…</ui-callout>`. `heading` is optional. |
@@ -221,7 +221,7 @@ The build finished in 42 seconds.
 :::
 ```
 
-| | |
+| Part | Form |
 | --- | --- |
 | Component | `<ui-disclosure summary="Title">…</ui-disclosure>` |
 | Markdown | `::: details Title` … `:::`. Add ` {open}` after the title to start expanded. The title defaults to "Details". |
