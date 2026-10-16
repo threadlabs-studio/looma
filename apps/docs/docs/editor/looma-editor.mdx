@@ -66,19 +66,21 @@ responder: its function prop, its event form, or a responder that announced itse
 mounted, as `respond()` does. A responder registered before the editor mounted is found the first
 time it answers a pasted or dropped image.
 
-| Request | Function prop | Detail | Answer | Asked |
-|---|---|---|---|---|
-| `extensions` | `extensions` | `null` | Tiptap extensions | when the editor mounts, and again when a responder first appears |
-| `slash-commands` | `slashCommands` | `{ defaults }` | slash commands | when the editor mounts, when the prop changes, and when image uploads become available |
-| `mention-query` | `mentionQuery` | `{ query, limit }` | mention items | as the author types after `@` |
-| `link-search` | `linkSearch` | `{ query }` | link targets | as the author types in the link field |
-| `link-resolve` | `linkResolve` | `{ href }` | a link target | when a saved link shows its card |
-| `image-upload` | `imageUpload` | `{ file }` | `{ src, alt?, width?, height?, responsive? }` | for each chosen, pasted, or dropped image |
+Each request's function prop is its name in camelCase: `image-upload` is `imageUpload`.
+
+| Request | Detail | Answer |
+|---|---|---|
+| `extensions` | `null` | Tiptap extensions |
+| `slash-commands` | `{ defaults }` | slash commands |
+| `mention-query` | `{ query, limit }` | mention items |
+| `link-search` | `{ query }` | link targets |
+| `link-resolve` | `{ href }` | a link target |
+| `image-upload` | `{ file }` | an image to insert |
 
 ### extensions
 
-The answer's Tiptap extensions are added after Looma's own. When the answer arrives after the editor
-was built, for example from a lazily imported module or a responder that appears later, the editor
+The editor asks when it mounts, and again when a responder first appears. The answer's Tiptap
+extensions are added after Looma's own. When the answer arrives after the editor was built, for example from a lazily imported module or a responder that appears later, the editor
 rebuilds with them and keeps its document. A document nobody has edited yet is read again from
 `modelValue`, so nodes and marks the new extensions define are kept.
 
@@ -90,7 +92,8 @@ const extensions: LoomaEditorExtensions = async () => [(await import("./footnote
 
 ### slash-commands
 
-The detail carries the editor's default commands. Return them changed or extended; `null` keeps the
+The editor asks when it mounts, when the prop changes, and when image uploads become available. The
+detail carries the editor's default commands. Return them changed or extended; `null` keeps the
 defaults and an empty array offers no commands. See [Host commands](/editor#host-commands).
 
 ```ts
@@ -101,7 +104,7 @@ const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => defaults.filte
 
 ### mention-query
 
-Answer with at most `limit` people for `query`. `null` falls back to `mentionItems`, and a rejection
+The editor asks as the author types after `@`. Answer with at most `limit` people for `query`. `null` falls back to `mentionItems`, and a rejection
 shows an empty menu. Each new character aborts the previous query's `signal`.
 
 ```ts
@@ -113,7 +116,7 @@ const mentionQuery: LoomaMentionQuery = async ({ query, limit }, { signal }) =>
 
 ### link-search
 
-Answer with destinations matching `query`, each with `id`, `label`, `href`, and optional `detail`.
+The editor asks as the author types in the link field. Answer with destinations matching `query`, each with `id`, `label`, `href`, and optional `detail`.
 With a responder the link field searches; without one it asks for a URL. A rejection shows a
 retryable search error.
 
@@ -126,7 +129,7 @@ const linkSearch: LoomaLinkSearch = async ({ query }, { signal }) =>
 
 ### link-resolve
 
-Answer with the current destination for a saved `href`, or `null`, so a renamed page shows its new
+The editor asks when a saved link shows its card. Answer with the current destination for its `href`, or `null`, so a renamed page shows its new
 name in the link card. The saved `href` never changes.
 
 ```ts
@@ -137,7 +140,8 @@ const linkResolve: LoomaLinkResolve = ({ href }) => pagesByHref.get(href) ?? nul
 
 ### image-upload
 
-Upload `file` and answer with the image to insert; `null` inserts nothing. The editor shows the
+The editor asks for each chosen, pasted, or dropped image. Upload `file` and answer with the image to
+insert, `{ src, alt?, width?, height?, responsive? }`, or `null` to insert nothing. The editor shows the
 upload's progress from `progress(loaded, total)` with a **Cancel** button, which aborts `signal`. A
 rejection leaves the document unchanged, shows **Retry**, and emits `uploadError`; a canceled upload
 reports nothing.
