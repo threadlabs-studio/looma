@@ -2,6 +2,7 @@ import { Extension } from "@tiptap/core";
 import { DOMParser as ProseMirrorDOMParser, type Schema, Slice } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
+import { splitLoomaFrontmatter } from "../../markdown";
 import { loomaMarkdown as markdown } from "./markdown";
 
 const HTML_DOCUMENT_PATTERN = /<!doctype\s+html\b|<(?:html|body)\b[^>]*>/i;
@@ -33,11 +34,12 @@ function looksLikeMarkdown(value: string): boolean {
     if (token.type === "heading_open") {
       return Boolean(tokens[index + 1]?.content.trim());
     }
-    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open", "looma_container_open"].includes(token.type)) {
+    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open", "looma_container_open", "looma_toc"].includes(token.type)) {
       return true;
     }
+    // A bare URL is a link to Looma Markdown, but on its own it is not evidence of Markdown.
     return token.type === "inline" && Boolean(token.children?.some((child) =>
-      ["link_open", "image", "strong_open"].includes(child.type)));
+      (child.type === "link_open" && child.markup !== "linkify") || ["image", "strong_open", "looma_chip", "looma_mention"].includes(child.type)));
   });
 }
 
@@ -58,7 +60,7 @@ function hasRichClipboardStructure(value: string): boolean {
   return body.querySelectorAll("p").length > 1;
 }
 
-function parseHtmlSlice(schema: Schema, value: string): Slice | null {
+function parseHtmlSlice(schema: Schema, value: string, fromHtml = false): Slice | null {
   const parsed = new globalThis.DOMParser().parseFromString(value, "text/html");
   if (parsed.body.style.display === "none") return Slice.empty;
   for (const element of parsed.body.querySelectorAll<HTMLElement>("[style]")) {
@@ -76,9 +78,9 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
       wrapper.insertBefore(parsed.createTextNode(" "), next);
     }
   }
-  // Markdown and most HTML sources end code with the newline that closes its
-  // last line. Kept, it becomes an empty last line in the code block.
-  for (const pre of parsed.body.querySelectorAll("pre")) {
+  // Most HTML sources end code with the newline that closes its last line. Kept,
+  // it becomes an empty last line in the code block. Looma Markdown renders code without it.
+  for (const pre of fromHtml ? parsed.body.querySelectorAll("pre") : []) {
     let last: Node = pre;
     while (last.lastChild) last = last.lastChild;
     if (last.nodeType === Node.TEXT_NODE) last.textContent = last.textContent?.replace(/\r?\n$/, "") ?? "";
@@ -88,9 +90,9 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "template"],
     FORBID_ATTR: ["style"],
-    // The shared block vocabulary's callout, as Markdown `:::` containers and alerts render it.
-    ADD_TAGS: ["ui-callout"],
-    ADD_ATTR: ["tone", "heading"],
+    // Looma Markdown's callout, as `:::` containers and alerts render it.
+    ADD_TAGS: ["ui-callout", "ui-tabs"],
+    ADD_ATTR: ["tone", "heading", "group"],
     RETURN_DOM_FRAGMENT: true,
   }));
   if (!container.textContent?.trim() && !container.querySelector("img, hr")) return Slice.empty;
@@ -99,26 +101,20 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   });
 }
 
-function markdownFrontmatter(value: string): { source: string; body: string } | null {
-  const match = /^---[ \t]*\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/.exec(value.slice(0, 8_192));
-  if (!match || !/^[A-Za-z][\w-]*:[ \t]*\S/m.test(match[1])) return null;
-  return { source: match[0].trimEnd(), body: value.slice(match[0].length) };
-}
-
 function escapeHtmlText(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function documentSlice(schema: Schema, plainText: string): Slice | null {
-  const frontmatter = markdownFrontmatter(plainText);
+  const frontmatter = splitLoomaFrontmatter(plainText);
   if (frontmatter || looksLikeMarkdown(plainText)) {
     return parseHtmlSlice(schema, frontmatter
       ? `<pre><code class="language-yaml">${escapeHtmlText(frontmatter.source)}</code></pre>${markdown.render(frontmatter.body)}`
       : markdown.render(plainText));
   }
   if (looksLikeDocumentHtml(plainText)) {
-    return parseHtmlSlice(schema, plainText);
+    return parseHtmlSlice(schema, plainText, true);
   }
   return null;
 }
