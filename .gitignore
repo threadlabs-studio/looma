@@ -9,6 +9,7 @@ dist/
 packages/looma/loader/
 packages/looma/layout/
 packages/looma/editor/
+packages/looma/markdown/
 packages/looma/vue/
 packages/looma/*.css
 apps/docs/.docusaurus/

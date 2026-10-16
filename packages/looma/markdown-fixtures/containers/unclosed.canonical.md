@@ -1,0 +1,3 @@
+::: note
+No closing line.
+:::

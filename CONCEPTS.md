@@ -7,6 +7,11 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 ### Anticipatory Affordance
 An interactive cue that progresses from a quiet guide through near and direct intent to an active state, while keeping only the visible control in the pointer hit-test region.
 
+## Content
+
+### Looma Markdown
+The Markdown that Markupress renders and LoomaEditor reads and writes: CommonMark and GFM, plus Looma's blocks. Colons name a Looma element and their number gives its scope (`:chip[…]`, `::toc`, `::: tip`); braces after an element hold its attributes. The rules, a markdown-it plugin and the conformance fixtures are `@threadlabs/looma/markdown`. *Avoid:* "shared block vocabulary" for the Markdown as a whole; the shared blocks are one part of it.
+
 ## Styling
 
 ### Theme Token

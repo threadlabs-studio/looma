@@ -34,7 +34,7 @@ describe("editor extension contract", () => {
       extensions: getDefaultEditorExtensions(),
       content,
     });
-    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql", meta: null });
     expect(plainElement.querySelector(".hljs-keyword")).toBeNull();
 
     const highlightedElement = document.createElement("div");
@@ -49,7 +49,7 @@ describe("editor extension contract", () => {
     highlightedEditor.commands.setContent('<pre><code></code></pre>');
     highlightedEditor.commands.focus("start");
     pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
-    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null, meta: null });
     expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
 
     highlightedEditor.commands.setContent("<p></p>");
@@ -195,15 +195,16 @@ describe("editor extension contract", () => {
   it("exports callouts and expand sections as the shared Markdown and reads them back", () => {
     const editor = new Editor({
       extensions: getDefaultEditorExtensions(),
-      content: '<h2>Setup</h2><ui-callout tone="tip" heading="Before you start"><p>Install <strong>first</strong>.</p></ui-callout>'
+      // Reading Markdown gives every heading its anchor.
+      content: '<h2 id="setup">Setup</h2><ui-callout tone="tip" heading="Before you start"><p>Install <strong>first</strong>.</p></ui-callout>'
         + '<details data-looma-expand open><summary>More</summary><div data-looma-expand-body><ui-callout tone="warning"><p>Nested.</p></ui-callout></div></details>'
         + '<ul><li><p>One</p></li></ul><pre><code class="language-ts">const a = 1;</code></pre>',
     });
     const markdown = loomaMarkdownFromDoc(editor.state.doc);
     expect(markdown).toBe([
-      "## Setup", "", "::: tip Before you start", "Install **first**.", "", ":::", "",
-      ":::: details More {open}", "::: warning", "Nested.", "", ":::", "", "::::", "",
-      "* One", "", "```ts", "const a = 1;", "```",
+      "## Setup", "", "::: tip Before you start", "Install **first**.", ":::", "",
+      ":::: details More {open}", "::: warning", "Nested.", ":::", "::::", "",
+      "- One", "", "```ts", "const a = 1;", "```",
     ].join("\n"));
     const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
     expect(reloaded.getJSON()).toEqual(editor.getJSON());
