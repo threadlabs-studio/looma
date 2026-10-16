@@ -39,7 +39,7 @@ async function codeLanguageInput(host: HTMLElement) {
   return input;
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; width?: number; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }>; uploadImage?: (file: File) => Promise<string>; onUploadError?: (error: unknown, file: File) => void } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; width?: number; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }>; imageUpload?: (detail: { file: File }) => Promise<{ src: string }>; onUploadError?: (error: unknown, file: File) => void } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(options.width ?? 1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
@@ -54,7 +54,7 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
       ...(options.mentionItems ? { mentionItems: options.mentionItems } : {}),
-      ...(options.uploadImage ? { uploadImage: options.uploadImage, onUploadError: options.onUploadError } : {}),
+      ...(options.imageUpload ? { imageUpload: options.imageUpload, onUploadError: options.onUploadError } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -874,9 +874,9 @@ it("inserts an uploaded image, and offers Retry after a failed upload", async ()
   let fail = true;
   const errors: string[] = [];
   const { editor, host } = await mountEditor({
-    uploadImage: async (file) => {
+    imageUpload: async ({ file }) => {
       if (fail) throw new Error("offline");
-      return `https://cdn.example.com/${file.name}`;
+      return { src: `https://cdn.example.com/${file.name}` };
     },
     onUploadError: (_error, file) => errors.push(file.name),
   });
