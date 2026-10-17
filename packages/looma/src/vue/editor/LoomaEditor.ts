@@ -101,7 +101,7 @@ import { isApplePlatform } from "../../editor/shortcuts";
 import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "../../editor/code-language-picker";
 import { tableOfContentsNodeView } from "./table-of-contents";
-import { expandNodeView } from "./expand";
+import { expandNodeView } from "../../editor/node-views/expand";
 import { dividerNodeView } from "../../editor/node-views/divider";
 import { calloutNodeView } from "../../editor/node-views/callout";
 import { normalizeImagePlacement, type LoomaImagePlacement } from "../../editor/extensions/image";
