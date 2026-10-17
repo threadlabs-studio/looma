@@ -143,4 +143,23 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(list.getAttribute("data-ui-list-state")).toBe(state);
   });
+
+  it("draws an image with Image, selects it on click, commits a resize as the node's size, and disconnects once removed", async () => {
+    const { host, editor } = await mountEditor('<p>Before</p><img src="https://example.test/image.svg" width="320" height="160" alt="Example"><p>After</p>');
+    const image = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-image"]')!;
+    const imageState = () => (image.getAttribute("data-ui-image-state") ?? "").split(" ");
+    expect(image.querySelector("img")?.getAttribute("alt")).toBe("Example");
+    await userEvent.click(image.querySelector("img")!);
+    await vi.waitFor(() => expect(imageState()).toContain("selected"));
+    expect(editor.state.selection).toBeInstanceOf(NodeSelection);
+    image.dispatchEvent(new CustomEvent("resize", { bubbles: true, detail: { width: 200, height: 100, phase: "commit", trigger: "pointer" } }));
+    await vi.waitFor(() => expect(JSON.stringify(editor.getJSON())).toContain('"width":200'));
+    editor.commands.setContent("<p>Gone</p>");
+    await flushBrowser();
+    expect(image.isConnected).toBe(false);
+    const before = image.getAttribute("data-ui-image-state");
+    updateComponentProps(image, { resizable: false, selected: false });
+    await flushBrowser();
+    expect(image.getAttribute("data-ui-image-state")).toBe(before);
+  });
 });
