@@ -100,7 +100,7 @@ import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type L
 import { isApplePlatform } from "../../editor/shortcuts";
 import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "../../editor/code-language-picker";
-import { tableOfContentsNodeView } from "./table-of-contents";
+import { tableOfContentsNodeView } from "../../editor/node-views/table-of-contents";
 import { expandNodeView } from "../../editor/node-views/expand";
 import { dividerNodeView } from "../../editor/node-views/divider";
 import { calloutNodeView } from "../../editor/node-views/callout";

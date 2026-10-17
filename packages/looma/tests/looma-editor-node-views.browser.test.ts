@@ -120,4 +120,27 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(outerOpen()).toBe(before);
   });
+
+  it("lists the headings in a table of contents, follows edits, hides settings from readers, and disconnects once removed", async () => {
+    const { host, editor } = await mountEditor("<nav data-looma-toc></nav><h1>Overview</h1><h2>Details</h2>");
+    const nav = host.querySelector<HTMLElement>(".ProseMirror nav[data-looma-toc]")!;
+    const links = () => [...nav.querySelectorAll("a")].map((link) => link.textContent?.trim());
+    expect(links()).toEqual(["Overview", "Details"]);
+    editor.commands.insertContentAt(editor.state.doc.content.size, "<h2>Later</h2>");
+    await vi.waitFor(() => expect(links()).toEqual(["Overview", "Details", "Later"]));
+    const settings = nav.querySelector<HTMLElement>('[data-component~="ui-icon-button"]')!;
+    expect(settings.hidden).toBe(false);
+    editor.setEditable(false);
+    await flushBrowser();
+    expect(settings.hidden).toBe(true);
+    const list = nav.querySelector<HTMLElement>('[data-component~="ui-list"]')!;
+    editor.setEditable(true);
+    editor.commands.setContent("<p>Gone</p>");
+    await flushBrowser();
+    expect(list.isConnected).toBe(false);
+    const state = list.getAttribute("data-ui-list-state");
+    updateComponentProps(list, { markers: "disc" });
+    await flushBrowser();
+    expect(list.getAttribute("data-ui-list-state")).toBe(state);
+  });
 });
