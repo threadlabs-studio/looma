@@ -153,8 +153,8 @@ importers:
         version: 14.3.1
     devDependencies:
       '@nextwebwg/html-next':
-        specifier: 1.0.0-alpha.55
-        version: 1.0.0-alpha.55
+        specifier: 1.0.0-alpha.56
+        version: 1.0.0-alpha.56
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -2163,8 +2163,8 @@ packages:
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
-  '@nextwebwg/html-next@1.0.0-alpha.55':
-    resolution: {integrity: sha512-681C35wo1E3z9sEc6ccmxtd+nE2gnT9vozD5ZeTBQdh4G2xZHEHGdDhP6EPrZ6CeVG7pU2eQRrK2F95n2yrGPg==}
+  '@nextwebwg/html-next@1.0.0-alpha.56':
+    resolution: {integrity: sha512-6lhTJ1VMZ3kq7shn5BZjzChnXyGyS2yiFOYi/Cu7+REKlI1gyqlE8bnll/imt3Wg4TV8JH9+dqKe1U25JDZiYQ==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
@@ -10832,7 +10832,7 @@ snapshots:
       - '@noble/hashes'
       - canvas
 
-  '@nextwebwg/html-next@1.0.0-alpha.55':
+  '@nextwebwg/html-next@1.0.0-alpha.56':
     dependencies:
       '@dprint/formatter': 0.6.0
       '@dprint/typescript': 0.96.1
