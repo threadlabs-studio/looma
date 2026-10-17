@@ -157,6 +157,26 @@ describe("Pressed icon controls and circular marks", () => {
     }
   });
 
+  it("opens a tooltip whose trigger already has keyboard focus when it attaches, in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-focused-trigger-tooltip`, adapter === "html" ? `import "@threadlabs/looma";
+        window.attach = () => document.body.insertAdjacentHTML("beforeend", '<ui-tooltip id="hint" for="action">Act now</ui-tooltip>');
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Tooltip } from "@threadlabs/looma/vue";
+        const shown = ref(false);
+        window.attach = () => { shown.value = true; };
+        createApp({ render: () => h("div", [h("button", { id: "action" }, "Act"), shown.value ? h(Tooltip, { id: "hint", for: "action" }, () => "Act now") : null]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<button id="action">Act</button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.keyboard.press("Tab");
+      assert.equal(await page.locator("#action").evaluate(element => element.matches(":focus-visible")), true);
+      await page.evaluate(() => (window as unknown as { attach: () => void }).attach());
+      await page.locator("#hint").waitFor({ state: "visible", timeout: 2_000 });
+      await page.close();
+    }
+  });
+
   it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
