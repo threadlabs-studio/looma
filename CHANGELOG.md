@@ -2,6 +2,7 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.56, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.56`. No Looma component declares head content in its carrier, so the release's head-declaration rule (HS002) needs no change, and component rendering is unchanged.
 - LoomaEditor composes collapsible sections from Disclosure, Icon Button, Tooltip, Popover, Input, Checkbox and Button through their Vanilla factories in place of a Vue app per section: ProseMirror's content sits in Disclosure's slot, the settings popover saves the summary and whether the section starts expanded, readers see only the disclosure, and the components disconnect when the section is deleted. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor draws callouts with Callout's Vanilla factory in place of a Vue app per callout: ProseMirror's content sits in Callout's slot, tone and heading follow the node, and Callout disconnects when the callout is deleted. LoomaEditor's behavior and public API stay the same.
 - LoomaEditor draws document dividers with Separator's Vanilla factory in place of a Vue app per divider: the editor creates the `<hr>`, sets its `selectable` and `selected` props as the selection and editability change, and Separator disconnects when the divider is deleted. The Vue output keeps HTML Next as an external peer import instead of bundling part of it, and carries the factory's styles in `vue.css`. LoomaEditor's behavior and public API stay the same.
