@@ -1,6 +1,10 @@
-import type { JSONContent } from "@tiptap/core";
+import type { Editor, JSONContent } from "@tiptap/core";
 import { parse, stringify, type Attributes, type ConversionOptions, type Document, type Node } from "expressmark";
 import { loomaHeadingSlug, LOOMA_CALLOUT_TONES, LOOMA_CHIP_TONES } from "../markdown";
+import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
+
+/** Conversion-time display snapshot, independent from the authored editor document. */
+export interface EditorMarkdownConversionOptions extends ConversionOptions { references?: LoomaReferenceMap }
 
 /**
  * A conversion cannot faithfully represent the named input at this document location.
@@ -105,7 +109,12 @@ function legacyCodePresentation(code: Node, path: string): Node {
 const REVERSE_MARKS = Object.fromEntries(Object.entries(MARKS).map(([left, right]) => [right, left]));
 
 interface Heading { text: string; id: string; level: number; node?: JSONContent }
-interface ProjectionContext { headings: Heading[]; headingIds: WeakMap<JSONContent, string> }
+interface ProjectionContext { headings: Heading[]; headingIds: WeakMap<JSONContent, string>; references: LoomaReferenceMap }
+const displayText = (node: JSONContent, references: LoomaReferenceMap): string => {
+  if (node.type === "loomaReference") return references[`link:${node.attrs?.id}`]?.label ?? string(node.attrs?.label, string(node.attrs?.id));
+  if (node.type === "mention") return `@${references[`mention:${node.attrs?.id}`]?.label ?? string(node.attrs?.label, string(node.attrs?.id))}`;
+  return node.text ?? (node.content ?? []).map(child => displayText(child, references)).join("");
+};
 
 function tocBody(headings: Heading[], depth: number, ordered: boolean): Node[] {
   const roots: Node[] = [];
@@ -126,7 +135,7 @@ function tocBody(headings: Heading[], depth: number, ordered: boolean): Node[] {
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
-  if (!["text", "mention", "loomaChip", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
+  if (!["text", "mention", "loomaReference", "loomaChip", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
   for (const mark of [...(node.marks ?? [])].reverse()) {
     const type = MARKS[mark.type];
     if (!type) fail(path, `mark ${mark.type}`);
@@ -151,6 +160,14 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
   const plain = (type: string, keys: string[] = [], extra: Partial<Node> = {}) => { fields(node, keys, path); return compact(type, children(), extra); };
   const block = (type: string, keys: string[] = [], extra: Partial<Node> = {}): Node => { fields(node, keys, path); return { type, ...extra, body: blocks() }; };
   switch (node.type) {
+    case "loomaReference": {
+      fields(node, ["id", "kind", "href", "label", "target"], path);
+      if (!attrs.id || attrs.kind !== "link") fail(path, "invalid link reference identity");
+      const display = context.references[`link:${attrs.id}`];
+      const href = display?.href ?? string(attrs.href);
+      safeNavigation(href, false, path);
+      return { type: "link", url: href, value: display?.label ?? string(attrs.label, string(attrs.id)), attributes: { ref: string(attrs.id), target: string(attrs.target, "_self"), rel: "noopener noreferrer" } };
+    }
     case "text": {
       fields(node, [], path);
       return { type: "text", value: node.text ?? "" };
@@ -184,7 +201,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     }
     case "mention":
       fields(node, ["id", "label"], path);
-      return { type: "inline", subType: "mention", value: string(attrs.label, string(attrs.id)), ...(attrs.id ? { ref: string(attrs.id) } : {}) };
+      return { type: "inline", subType: "mention", value: context.references[`mention:${attrs.id}`]?.label ?? string(attrs.label, string(attrs.id)), ...(attrs.id ? { ref: string(attrs.id) } : {}) };
     case "loomaChip":
       fields(node, ["label", "color"], path);
       return { type: "inline", subType: "chip", value: string(attrs.label), attributes: { tone: string(attrs.color, "neutral") } };
@@ -233,7 +250,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
  * Maps an editor's saved JSON to the independent Expressive Markdown AST without DOM access.
  * @contract Unsupported nodes, marks and durable attributes throw with their location; input is never mutated.
  */
-export function editorDocumentToExpressmark(document: JSONContent, options: ConversionOptions = {}): Document {
+export function editorDocumentToExpressmark(document: JSONContent, options: EditorMarkdownConversionOptions = {}): Document {
   if (document.type !== "doc") fail("document", "non-document root");
   fields(document, [], "document");
   const headings: Heading[] = [];
@@ -254,7 +271,7 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Conv
       const key = `link:${mark.attrs?.href}`; if (!urls.has(key)) { safeNavigation(mark.attrs?.href, false, "document"); urls.add(key); }
     }
     if (!insideToc && node.type === "loomaTableOfContents" && !node.content?.length) automaticToc = true;
-    if (!insideToc && node.type === "heading") headings.push({ node, text: (node.content ?? []).map(child => child.text ?? "").join(""), id: string(node.attrs?.id), level: Number(node.attrs?.level ?? 1) });
+    if (!insideToc && node.type === "heading") headings.push({ node, text: displayText(node, options.references ?? {}), id: string(node.attrs?.id), level: Number(node.attrs?.level ?? 1) });
     // Keep validating authored navigation content without treating its headings as sections.
     for (const child of node.content ?? []) visit(child, insideToc || node.type === "loomaTableOfContents");
   };
@@ -276,7 +293,7 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Conv
     used.add(candidate);
     if (automaticToc && heading.node) headingIds.set(heading.node, candidate);
   }
-  const context = { headings, headingIds };
+  const context = { headings, headingIds, references: options.references ?? {} };
   return { type: "document", version: 1, body: (document.content ?? []).map((node, index) => { const child = toNode(node, `document.body[${index}]`, context); return child.type === "image" ? { type: "paragraph", children: [child] } : child; }) };
 }
 
@@ -293,7 +310,11 @@ function fromNode(node: Node, path: string, marks: NonNullable<JSONContent["mark
   const inline = () => content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, marks));
   const wrap = (type: string, attributes?: Record<string, unknown>): JSONContent[] => [{ type, ...(attributes ? { attrs: attributes } : {}), ...(content(node).length ? { content: children() } : {}) }];
   if (REVERSE_MARKS[node.type]) {
-    check(node.type === "link" ? ["target", "rel", "class"] : []);
+    check(node.type === "link" ? ["target", "rel", "class", "ref"] : []);
+    if (node.type === "link" && attrs.ref !== undefined) {
+      if (typeof attrs.ref !== "string" || !attrs.ref || node.title || attrs.class || content(node).some(child => child.type !== "text" || child.attributes || child.id)) fail(path, "formatted or invalid link reference");
+      return [{ type: "loomaReference", attrs: { id: attrs.ref, kind: "link", href: node.url ?? "", label: text(node), target: attrs.target ?? "_self" }, ...(marks.length ? { marks } : {}) }];
+    }
     const mark: NonNullable<JSONContent["marks"]>[number] = { type: REVERSE_MARKS[node.type] };
     if (node.type === "link") mark.attrs = { href: node.url ?? "", ...attrs, ...(typeof node.title === "string" ? { title: node.title } : {}) };
     else if (Object.keys(attrs).length) mark.attrs = { ...attrs };
@@ -443,8 +464,16 @@ export function expressmarkToEditorDocument(document: Document): JSONContent {
  * Writes an editor document using Expressmark's shared parser/writer and safe HTML policy.
  * @failure Unsupported editor data raises EditorMarkdownConversionError before any input is changed.
  */
-export function editorDocumentToMarkdown(document: JSONContent, options: ConversionOptions = {}): string {
+export function editorDocumentToMarkdown(document: JSONContent, options: EditorMarkdownConversionOptions = {}): string {
   return stringify(editorDocumentToExpressmark(document, options), options);
+}
+
+/**
+ * Serializes the current editor, including its current display cache and concrete TOC entries.
+ * @failure Unsupported content throws EditorMarkdownConversionError without changing the document.
+ */
+export function editorToMarkdown(editor: Editor, options: ConversionOptions = {}): string {
+  return editorDocumentToMarkdown(editor.getJSON(), { ...options, references: getReferenceDisplay(editor) });
 }
 
 /**

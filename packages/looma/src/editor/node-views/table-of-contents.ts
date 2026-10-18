@@ -16,6 +16,7 @@ import { createUiTooltip } from "@threadlabs/looma/vanilla/UiTooltip.js";
 import { navigateTableOfContents, tableOfContentsTree } from "../extensions/table-of-contents";
 import { getTableOfContentsEntries, normalizeTableOfContentsConfig, type LoomaTableOfContentsConfig } from "@threadlabs/looma/editor";
 import { element } from "./element";
+import { getReferenceDisplay } from "../reference-display";
 
 let tocSequence = 0;
 
@@ -62,7 +63,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
       if (signature !== shown) { shown = signature; entries.replaceChildren(DOMSerializer.fromSchema(editor.schema).serializeFragment(current.content)); }
       return;
     }
-    const found = getTableOfContentsEntries(editor.state.doc, depth);
+    const found = getTableOfContentsEntries(editor.state.doc, depth, getReferenceDisplay(editor));
     const signature = JSON.stringify([format, found.map(({ id: entryId, text, level }) => [entryId, text, level])]);
     if (signature === shown) return;
     shown = signature;

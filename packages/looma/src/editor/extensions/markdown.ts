@@ -129,6 +129,12 @@ const NODES: Record<string, NodeSerializer> = {
     const id = String(node.attrs.id ?? "");
     state.write(`:mention[${label(String(node.attrs.label ?? id))}]${formatLoomaAttributes({ id }, { hashId: false })}`);
   },
+  loomaReference: (state, node) => {
+    // Saved HTML carries the identity in the legacy flavor; Expressive Markdown has a typed adapter.
+    const wrapper = document.createElement("span");
+    wrapper.append(DOMSerializer.fromSchema(node.type.schema).serializeNode(node));
+    state.write(wrapper.innerHTML);
+  },
 };
 const MARKS: Record<string, MarkSerializer> = {
   bold: defaultMarkdownSerializer.marks.strong as MarkSerializer,
