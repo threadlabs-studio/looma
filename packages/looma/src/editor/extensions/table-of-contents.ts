@@ -43,6 +43,8 @@ export function getTableOfContentsEntries(doc: ProseMirrorNode, depth = 3): Loom
   const entries: LoomaTableOfContentsEntry[] = [];
   const ancestors: number[] = [];
   doc.descendants((node, position) => {
+    // Authored navigation may contain headings of its own; they are not document sections.
+    if (node.type.name === "loomaTableOfContents") return false;
     if (node.type.name !== "heading" || node.attrs.level > depth || !node.textContent.trim()) return;
     const level = Number(node.attrs.level);
     while (ancestors.length && ancestors[ancestors.length - 1] >= level) ancestors.pop();
@@ -85,12 +87,13 @@ function anchorTransaction(state: EditorState, previous?: ProseMirrorNode) {
   let hasToc = false;
   const headings: { node: ProseMirrorNode; position: number }[] = [];
   state.doc.descendants((node, position) => {
-    if (node.type.name === "loomaTableOfContents") hasToc = true;
+    if (node.type.name === "loomaTableOfContents") { hasToc = true; return false; }
     if (node.type.name === "heading") headings.push({ node, position });
   });
   if (!headings.length) return null;
   const before = new Map<string, string>();
   previous?.descendants(node => {
+    if (node.type.name === "loomaTableOfContents") return false;
     if (node.type.name === "heading" && typeof node.attrs.id === "string") before.set(node.attrs.id, node.textContent.trim());
   });
   const custom = (node: ProseMirrorNode) => {

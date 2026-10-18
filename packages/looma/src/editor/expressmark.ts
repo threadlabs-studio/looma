@@ -239,7 +239,7 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Conv
   const headings: Heading[] = [];
   let automaticToc = false;
   const colors = new Set<unknown>(); const urls = new Set<string>();
-  const visit = (node: JSONContent) => {
+  const visit = (node: JSONContent, insideToc = false) => {
     const attrs = node.attrs ?? {};
     if (node.type === "tableCell" || node.type === "tableHeader") {
       if (attrs.backgroundColor != null && !colors.has(attrs.backgroundColor)) { safeBackground(attrs.backgroundColor, "document"); colors.add(attrs.backgroundColor); }
@@ -253,9 +253,10 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Conv
     for (const mark of node.marks ?? []) if (mark.type === "link") {
       const key = `link:${mark.attrs?.href}`; if (!urls.has(key)) { safeNavigation(mark.attrs?.href, false, "document"); urls.add(key); }
     }
-    if (node.type === "loomaTableOfContents" && !node.content?.length) automaticToc = true;
-    if (node.type === "heading") headings.push({ node, text: (node.content ?? []).map(child => child.text ?? "").join(""), id: string(node.attrs?.id), level: Number(node.attrs?.level ?? 1) });
-    for (const child of node.content ?? []) visit(child);
+    if (!insideToc && node.type === "loomaTableOfContents" && !node.content?.length) automaticToc = true;
+    if (!insideToc && node.type === "heading") headings.push({ node, text: (node.content ?? []).map(child => child.text ?? "").join(""), id: string(node.attrs?.id), level: Number(node.attrs?.level ?? 1) });
+    // Keep validating authored navigation content without treating its headings as sections.
+    for (const child of node.content ?? []) visit(child, insideToc || node.type === "loomaTableOfContents");
   };
   visit(document);
   const headingIds = new WeakMap<JSONContent, string>();
