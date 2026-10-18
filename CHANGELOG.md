@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Expressive Markdown roundtrips preserve whitespace in formatted text, adjacent and nested formatting, literal entity text, and authored empty paragraphs.
+
 - Convert saved editor documents to and from Expressive Markdown with the browser-independent `@threadlabs/looma/editor/expressmark` adapter. Unsupported content produces a location-bearing error instead of silently losing data. Imported table-of-contents links remain authored content, and tab groups can synchronize stable values across differently worded labels.
 
 - LoomaEditor draws images with Image's Vanilla factory in place of a Vue app per image: the stored attributes with delivery's on top go to the inner `img`, an attribute delivery drops is removed, selection and editability set Image's props, a resize commit writes the node's size as one undo step, and Image disconnects when the image is deleted. With this, every LoomaEditor node view is built from Looma's Vanilla factories. LoomaEditor's behavior and public API stay the same.

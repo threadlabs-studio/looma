@@ -140,8 +140,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.1.1
+        version: 0.1.1
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -5001,8 +5001,8 @@ packages:
     resolution: {integrity: sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==}
     engines: {node: '>= 0.10.0'}
 
-  expressmark@0.1.0:
-    resolution: {integrity: sha512-r6+GLtC2TpimHRCorQBbSbwJp8aRoasgfPsnlpKvsAToAGC0GheuA2SWuF355VukiKgmzhcPfPZEZdjfdU2wAw==}
+  expressmark@0.1.1:
+    resolution: {integrity: sha512-QDUu3RBN3z3bcTdm0be/MAxbHRXAwG+TwzusdP2TVhsorOtI8E1u96d5agiAj+HuVkC0arXfmG9u3iEuwAJfuQ==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -14265,7 +14265,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expressmark@0.1.0:
+  expressmark@0.1.1:
     dependencies:
       htmlparser2: 12.0.0
       markdown-it: 15.0.2
