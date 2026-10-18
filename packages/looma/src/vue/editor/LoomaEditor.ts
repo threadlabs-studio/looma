@@ -647,7 +647,7 @@ export const LoomaEditor = defineComponent({
                 if (view.isDestroyed) return;
                 editorStateVersion.value += 1;
                 const instance = editor.value;
-                if (instance?.isFocused && isLinkActive(instance) && linkState.value.surface !== "popover") {
+                if (instance?.isFocused && (instance.state.selection.empty || selectedLinkReference(instance)) && isLinkActive(instance) && linkState.value.surface !== "popover") {
                   linkPopup?.setAnchor(() => link.getBoundingClientRect());
                   linkPopup?.show();
                 }
@@ -1730,7 +1730,7 @@ export const LoomaEditor = defineComponent({
             }, [props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
-                  (linkState.value.surface === "context" || isLinkActive(instance)) && linkState.value.surface !== "popover" && formattingActive()
+                  (linkState.value.surface === "context" || (instance.state.selection.empty || selectedLinkReference(instance)) && isLinkActive(instance)) && linkState.value.surface !== "popover" && formattingActive()
                     ? renderLinkContextCard(instance)
                     : null,
                 ])
