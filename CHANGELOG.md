@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Convert saved editor documents to and from Expressive Markdown with the browser-independent `@threadlabs/looma/editor/expressmark` adapter. Unsupported content produces a location-bearing error instead of silently losing data. Imported table-of-contents links remain authored content, and tab groups can synchronize stable values across differently worded labels.
+
 - LoomaEditor draws images with Image's Vanilla factory in place of a Vue app per image: the stored attributes with delivery's on top go to the inner `img`, an attribute delivery drops is removed, selection and editability set Image's props, a resize commit writes the node's size as one undo step, and Image disconnects when the image is deleted. With this, every LoomaEditor node view is built from Looma's Vanilla factories. LoomaEditor's behavior and public API stay the same.
 - Looma builds with HTML Next 1.0.0-alpha.57, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.57`. Component rendering and behavior are unchanged.
 - LoomaEditor composes the table of contents and its settings from List, Button, Text, Icon Button, Tooltip, Popover, Form Field and Menu through their Vanilla factories in place of a Vue app per table: entries rebuild only when the headings or the format change, the dropdowns edit a draft that Save writes and Cancel drops, readers see only the entries, and the components disconnect when the table is deleted. LoomaEditor's behavior and public API stay the same.

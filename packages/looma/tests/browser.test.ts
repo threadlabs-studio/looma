@@ -1181,6 +1181,28 @@ describe("Shared block vocabulary", () => {
     }
   });
 
+  it("syncs authored tab values across different labels and preserves a missing choice", async () => {
+    const path = await bundle("html-tabs-values", `import "@threadlabs/looma";`);
+    const markup = (id: string, labels: string[], values: string[], initial = "") => `<ui-tabs id="${id}" group="language" value="${initial}">${labels.map((label, index) => `<section id="${id}-${index}" aria-label="${label}" data-value="${values[index]}">${label}</section>`).join("")}</ui-tabs>`;
+    const page = await open(path, markup("one", ["JavaScript", "TypeScript"], ["js", "ts"], "ts") + markup("two", ["JavaScript example", "Typed example"], ["js", "ts"]) + markup("other", ["Python", "Ruby"], ["py", "rb"]), [join(root, "tokens.css")]);
+    assert.equal(await page.locator("#one-1").isVisible(), true, "initial value selects an authored data-value");
+    await page.locator("#one").getByRole("tab", { name: "TypeScript", exact: true }).click();
+    assert.equal(await page.locator("#two-1").isVisible(), true, "stable values synchronize labels with different wording");
+    assert.equal(await page.locator("#other-0").isVisible(), true, "a group without the selected value keeps its current panel");
+    await page.evaluate(() => {
+      for (const id of ["unlabelled-one", "unlabelled-two"]) {
+        const tabs = document.createElement("ui-tabs");
+        tabs.id = id;
+        tabs.setAttribute("group", "unlabelled");
+        tabs.innerHTML = `<section id="${id}-first">First</section><section id="${id}-second">Second</section>`;
+        document.body.append(tabs);
+      }
+    });
+    await page.locator("#unlabelled-one").getByRole("tab", { name: "Tab 2", exact: true }).click();
+    assert.equal(await page.locator("#unlabelled-two-second").isVisible(), true, "unlabelled panels retain their generated-label group fallback");
+    await page.close();
+  });
+
   it("syncs grouped tabs by label across the page and remembers the choice", async () => {
     const path = await bundle("html-tabs-group", `
       import "@threadlabs/looma";
@@ -1210,6 +1232,28 @@ describe("Shared block vocabulary", () => {
     for (const id of ["install", "run"]) assert.equal(await page.locator(`#${id}-npm`).isVisible(), true, `${id} restores the remembered choice`);
     assert.equal(await page.locator("#other-pnpm").isVisible(), true);
     await context.close();
+  });
+});
+
+describe("Expressive Markdown editor integration", () => {
+  it("bundles the safe converter in a browser and loads its JSON into LoomaEditor", async () => {
+    const path = await bundle("expressmark-editor", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+      const content = markdownToEditorDocument('::: warning [Read first]\\nHello, @[Ada]#user-123 and :chip[Ready]{tone=green}.\\n:::\\n\\n<script>window.injection = true</script>');
+      window.markdown = editorDocumentToMarkdown(content);
+      createApp({ render: () => h(LoomaEditor, { modelValue: content, editable: false }) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    await page.getByText("Read first", { exact: true }).waitFor();
+    assert.equal(await page.locator('[data-looma-chip]').getAttribute("data-label"), "Ready");
+    assert.equal(await page.locator('.looma-mention').count(), 1);
+    assert.equal(await page.evaluate(() => (window as any).injection), undefined);
+    const markdown = await page.evaluate(() => (window as any).markdown);
+    assert.ok(markdown.includes("user-123"));
+    assert.ok(!markdown.includes("script"));
+    await page.close();
   });
 });
 
