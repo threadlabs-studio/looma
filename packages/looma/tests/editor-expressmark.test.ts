@@ -52,6 +52,19 @@ it("materializes table-of-contents links from the document headings", () => {
   ] });
 });
 
+it("excludes headings inside authored TOCs from other generated navigation", () => {
+  const doc = editorDocumentToExpressmark({ type: "doc", content: [
+    { type: "loomaTableOfContents", attrs: { depth: 3, format: "plain" }, content: [
+      { type: "heading", attrs: { level: 1, id: "nav-label" }, content: [{ type: "text", text: "Navigation label" }] },
+    ] },
+    { type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
+    { type: "heading", attrs: { level: 2, id: "actual" }, content: [{ type: "text", text: "Actual section" }] },
+  ] });
+  expect(doc.body[0]?.body?.[0]).toMatchObject({ type: "heading", id: "nav-label", value: "Navigation label" });
+  expect(doc.body[1]?.body?.[0]?.children).toHaveLength(1);
+  expect(doc.body[1]?.body?.[0]?.children?.[0]?.body?.[0]?.children?.[0]).toMatchObject({ type: "link", url: "#actual", value: "Actual section" });
+});
+
 it("keeps authored TOC navigation instead of replacing it with generated links", () => {
   const ast = { type: "document" as const, version: 1 as const, body: [{ type: "container", subType: "toc", attributes: { depth: "2", format: "bulleted" }, body: [{ type: "paragraph", children: [{ type: "link", url: "/other-page", value: "Read next" }] }] }] };
   expect(editorDocumentToExpressmark(expressmarkToEditorDocument(ast))).toEqual(ast);
