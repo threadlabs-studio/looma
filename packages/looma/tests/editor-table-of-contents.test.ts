@@ -98,6 +98,20 @@ describe("automatic table of contents", () => {
     expect(editor.view.dom.querySelector("nav")?.textContent).toBe("Read another guide");
   });
 
+  it("excludes authored navigation headings from entries and automatic anchor changes", async () => {
+    const editor = mount({ type: "doc", content: [
+      { type: "loomaTableOfContents", attrs: { depth: 3, format: "plain" }, content: [
+        { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Navigation label" }] },
+      ] },
+      { type: "loomaTableOfContents", attrs: { depth: 3, format: "plain" } },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Actual section" }] },
+    ] });
+    await vi.waitFor(() => expect(editor.state.doc.lastChild?.attrs.id).toBe("actual-section"));
+    expect(getTableOfContentsEntries(editor.state.doc).map(entry => entry.text)).toEqual(["Actual section"]);
+    expect(editor.state.doc.firstChild?.firstChild?.attrs.id).toBeNull();
+    expect(editor.view.dom.querySelectorAll("nav")[1]?.textContent).not.toContain("Navigation label");
+  });
+
   it("does not mutate headings in documents without a TOC", async () => {
     const editor = mount("<h1>Ordinary</h1>");
     await new Promise(resolve => setTimeout(resolve, 10));
