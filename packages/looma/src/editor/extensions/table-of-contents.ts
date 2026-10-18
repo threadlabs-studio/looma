@@ -3,6 +3,7 @@ import { DOMParser, DOMSerializer, Fragment, type DOMOutputSpec, type Node as Pr
 import { Plugin, type EditorState } from "@tiptap/pm/state";
 import { assignLoomaHeadingIds, loomaHeadingSlug } from "../../markdown";
 import { revealLoomaExpandAt } from "./expand";
+import { getReferenceDisplay, referenceDisplay, type LoomaReferenceMap } from "../reference-display";
 
 /** Formatting affects presentation only; heading order remains document order. */
 export type LoomaTableOfContentsFormat = "plain" | "bulleted" | "numbered";
@@ -39,16 +40,18 @@ export function normalizeTableOfContentsConfig(attributes: Record<string, unknow
  * @contract Depth is a maximum heading level. Relative nesting follows existing
  * ancestors rather than inserting artificial entries for skipped levels.
  */
-export function getTableOfContentsEntries(doc: ProseMirrorNode, depth = 3): LoomaTableOfContentsEntry[] {
+export function getTableOfContentsEntries(doc: ProseMirrorNode, depth = 3, references: LoomaReferenceMap = {}): LoomaTableOfContentsEntry[] {
   const entries: LoomaTableOfContentsEntry[] = [];
   const ancestors: number[] = [];
   doc.descendants((node, position) => {
     // Authored navigation may contain headings of its own; they are not document sections.
     if (node.type.name === "loomaTableOfContents") return false;
-    if (node.type.name !== "heading" || node.attrs.level > depth || !node.textContent.trim()) return;
+    if (node.type.name !== "heading" || node.attrs.level > depth) return;
+    const text = node.textBetween(0, node.content.size, "", leaf => leaf.type.name === "loomaReference" || leaf.type.name === "mention" ? `${leaf.type.name === "mention" ? "@" : ""}${referenceDisplay(leaf, references).label}` : String(leaf.attrs.label ?? "")).trim();
+    if (!text) return;
     const level = Number(node.attrs.level);
     while (ancestors.length && ancestors[ancestors.length - 1] >= level) ancestors.pop();
-    entries.push({ id: String(node.attrs.id ?? ""), text: node.textContent.trim(), level, depth: ancestors.length, position });
+    entries.push({ id: String(node.attrs.id ?? ""), text, level, depth: ancestors.length, position });
     ancestors.push(level);
   });
   return entries;
@@ -127,8 +130,8 @@ const LoomaHeadingAnchors = Extension.create({
   },
 });
 
-function contentsHtml(doc: ProseMirrorNode, config: LoomaTableOfContentsConfig): DOMOutputSpec {
-  const branches = tableOfContentsTree(getTableOfContentsEntries(doc, config.depth));
+function contentsHtml(doc: ProseMirrorNode, config: LoomaTableOfContentsConfig, references: LoomaReferenceMap = {}): DOMOutputSpec {
+  const branches = tableOfContentsTree(getTableOfContentsEntries(doc, config.depth, references));
   const list = (items: Branch[]): DOMOutputSpec => [
     config.format === "plain" ? "div" : config.format === "numbered" ? "ol" : "ul",
     { role: "list" },
@@ -149,7 +152,7 @@ function contentsHtml(doc: ProseMirrorNode, config: LoomaTableOfContentsConfig):
 export async function navigateTableOfContents(editor: import("@tiptap/core").Editor, id: string) {
   const target = [...editor.view.dom.querySelectorAll<HTMLElement>("h1[id], h2[id], h3[id]")].find(heading => heading.id === id);
   if (!target) return;
-  const entry = getTableOfContentsEntries(editor.state.doc).find(heading => heading.id === id);
+  const entry = getTableOfContentsEntries(editor.state.doc, 3, getReferenceDisplay(editor)).find(heading => heading.id === id);
   if (entry) await revealLoomaExpandAt(editor, entry.position + 1);
   if (!target.isConnected || editor.isDestroyed) return;
   target.scrollIntoView({ block: "start", behavior: "auto" });
@@ -224,7 +227,7 @@ export const LoomaTableOfContents = Node.create<TableOfContentsOptions>({
           nav.append(DOMSerializer.fromSchema(editor.schema).serializeFragment(current.content));
           dom.replaceChildren(nav);
         } else {
-          const { dom: content } = DOMSerializer.renderSpec(document, contentsHtml(editor.state.doc, normalizeTableOfContentsConfig(current.attrs)));
+          const { dom: content } = DOMSerializer.renderSpec(document, contentsHtml(editor.state.doc, normalizeTableOfContentsConfig(current.attrs), getReferenceDisplay(editor)));
           dom.replaceChildren(content);
         }
       };

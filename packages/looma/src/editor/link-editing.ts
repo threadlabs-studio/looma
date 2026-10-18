@@ -1,6 +1,15 @@
 import type { Editor } from "@tiptap/core";
 import { validLinkHref } from "./content";
 import { siteRelativeHref } from "./extensions/relative-links";
+import { getReferenceDisplay, referenceDisplay, setReferenceDisplay } from "./reference-display";
+import { NodeSelection } from "@tiptap/pm/state";
+
+/** Whether the current selection identifies an automatically labelled link. */
+export function selectedLinkReference(editor: Editor) {
+  const selection = editor.state.selection;
+  return selection instanceof NodeSelection && selection.node.type.name === "loomaReference" ? selection.node : null;
+}
+export const isLinkActive = (editor: Editor): boolean => editor.isActive("link") || Boolean(selectedLinkReference(editor));
 
 /** A destination supplied by the host application, such as a page or record. */
 export interface LoomaLinkTarget {
@@ -50,6 +59,8 @@ export interface LoomaLinkEditingOptions {
   search: () => LinkSearch | null | undefined;
   resolve: () => LinkResolve | null | undefined;
   baseUrl: () => string;
+  /** Enables automatically labelled references for newly inserted host targets. */
+  references?: () => boolean;
 }
 
 /**
@@ -106,6 +117,7 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
   let resolveSequence = 0;
   let currentHref: string | null = null;
   let destroyed = false;
+  let automaticText = false;
 
   const set = (patch: Partial<LoomaLinkEditingState>) => {
     const previous = state;
@@ -142,16 +154,23 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
     }
     try {
       const target = await resolve(href);
-      cache.set(href, target);
-      if (sequence === resolveSequence && !destroyed) set({ current: target });
+      if (sequence === resolveSequence && !destroyed) { cache.set(href, target); set({ current: target }); }
     } catch {
       // A failed lookup leaves the original destination visible and editable.
     }
   };
 
   const onTransaction = () => {
-    const href = editor.isActive("link") ? String(editor.getAttributes("link").href ?? "") : null;
-    if (href !== currentHref) {
+    const reference = selectedLinkReference(editor);
+    const display = reference ? referenceDisplay(reference, getReferenceDisplay(editor)) : null;
+    const href = display?.href ?? (editor.isActive("link") ? String(editor.getAttributes("link").href ?? "") : null);
+    if (reference && display && href) {
+      resolveSequence += 1;
+      const target = { id: String(reference.attrs.id), label: display.label, href };
+      cache.set(href, target);
+      if (state.current?.id !== target.id || state.current.label !== target.label || state.current.href !== href) set({ current: target });
+      currentHref = href;
+    } else if (href !== currentHref) {
       currentHref = href;
       void resolveCurrent(href);
     }
@@ -177,6 +196,14 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
     // Update the captured range without taking focus from the field being edited.
     const current = editor.state.selection;
     const chain = editor.chain().setTextSelection({ from: range.from, to: range.to });
+    if (automaticText && state.mode === "target" && state.selected && (options.references?.() || selectedLinkReference(editor))) {
+      const target = state.selected;
+      const previous = editor.state.doc.nodeAt(range.from);
+      const sameTarget = previous?.type.name === "loomaReference" && previous.attrs.id === target.id;
+      chain.insertContent({ type: "loomaReference", attrs: { id: target.id, kind: "link", href: sameTarget ? previous.attrs.href : attrs.href, label: sameTarget ? previous.attrs.label : target.label, target: attrs.target } }).setNodeSelection(range.from).run();
+      set({ range: { from: range.from, to: range.from + 1, existing: true }, error: "" });
+      return true;
+    }
     if (state.textEditable) {
       const text = state.text.trim();
       if (!text) return fail("Enter link text.");
@@ -198,24 +225,27 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
     },
     open(from, to, surface) {
       const empty = from === to;
-      const existing = editor.isActive("link");
-      const attrs = existing ? editor.getAttributes("link") : {};
+      const reference = selectedLinkReference(editor);
+      const existing = isLinkActive(editor);
+      const attrs = reference?.attrs ?? (existing ? editor.getAttributes("link") : {});
       const href = typeof attrs.href === "string" ? attrs.href : "";
-      const selected = cache.get(href) ?? null;
+      const display = reference ? referenceDisplay(reference, getReferenceDisplay(editor)) : null;
+      const selected = reference ? { id: String(reference.attrs.id), label: display!.label, href: display!.href ?? href } : cache.get(href) ?? null;
+      automaticText = Boolean(reference) || empty && !existing;
       set({
         surface,
         range: { from, to, existing },
-        textEditable: empty && !existing,
+        textEditable: Boolean(reference) || empty && !existing,
         href,
         newTab: attrs.target !== "_self",
-        text: empty && !existing ? "" : editor.state.doc.textBetween(from, to),
+        text: display?.label ?? (empty && !existing ? "" : editor.state.doc.textBetween(from, to)),
         error: "",
         selected,
-        mode: options.search() && (!existing || selected) ? "target" : "url",
+        mode: reference || options.search() && (!existing || selected) ? "target" : "url",
         query: selected?.label ?? href,
       });
       const resolve = options.resolve();
-      if (existing && resolve && !cache.has(href)) {
+      if (existing && !reference && resolve && !cache.has(href)) {
         void resolve(href).then((target) => {
           cache.set(href, target);
           if (!destroyed && state.href === href && target) set({ selected: target, mode: "target", query: target.label });
@@ -223,7 +253,7 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
       }
     },
     setDestination(value) {
-      if (options.search()) {
+      if (options.search() || selectedLinkReference(editor)) {
         const trimmed = value.trim();
         const url = /^(https?:\/\/|mailto:|tel:)/i.test(trimmed) || Boolean(state.range?.existing && /^(\/|\.\.?\/|#|\?)/.test(trimmed));
         set({ query: value, mode: url ? "url" : "target", selected: null, href: value, error: "" });
@@ -237,6 +267,7 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
     },
     choose(target) {
       cache.set(target.href, target);
+      if (options.references?.() || selectedLinkReference(editor)) setReferenceDisplay(editor, { ...getReferenceDisplay(editor), [`link:${target.id}`]: { label: target.label, href: target.href } });
       set({
         selected: target, href: target.href, query: target.label, results: [], newTab: false, error: "",
         ...(state.textEditable && !state.text.trim() ? { text: target.label } : {}),
@@ -248,6 +279,7 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
       apply();
     },
     setText(text) {
+      automaticText = false;
       set({ text, error: "" });
       apply();
     },
@@ -256,6 +288,12 @@ export function createLinkEditing(options: LoomaLinkEditingOptions): LoomaLinkEd
       if (state.surface !== "none") set({ surface: "none" });
     },
     remove() {
+      const reference = selectedLinkReference(editor);
+      if (reference) {
+        editor.chain().focus().insertContent({ type: "text", text: referenceDisplay(reference, getReferenceDisplay(editor)).label }).run();
+        set({ surface: "none" });
+        return;
+      }
       if (!editor.isActive("link")) return;
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       if (state.surface === "context") set({ surface: "none" });
