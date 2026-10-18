@@ -235,3 +235,23 @@ test("CI recipe changes exercise the real package, browser smoke and documentati
     assert.deepEqual([...plan.browserTests["packages/looma/tests/browser.test.ts"]].sort(), [...smokeCases["packages/looma/tests/browser.test.ts"]].sort(), file);
   }
 });
+
+test("the Expressive adapter has explicit editor, consumer and documentation ownership", () => {
+  const graph = { ...files,
+    "packages/looma/src/editor/expressmark.ts": 'import {parse,stringify} from "expressmark"; export const convert = parse;',
+    "packages/looma/tests/editor-expressmark.test.ts": 'import {convert} from "../src/editor/expressmark"; it("converts documents", () => convert("text"));',
+    "packages/looma/EXPRESSIVE-MARKDOWN.md": "# Expressive Markdown\nUsage guide.",
+  };
+  const adapter = automaticChecks(graph, ["packages/looma/src/editor/expressmark.ts"]);
+  assert.equal(adapter.full, false, "an isolated adapter edit does not request unrelated global checks");
+  assert.equal(adapter.editor, true);
+  assert.equal(adapter.packageConsumer, true);
+  assert.deepEqual(adapter.nativeTests["packages/looma/tests/editor-expressmark.test.ts"], ["converts documents"]);
+  const guide = automaticChecks(graph, ["packages/looma/EXPRESSIVE-MARKDOWN.md"]);
+  assert.equal(guide.full, false);
+  assert.equal(guide.source, false);
+  // Build/dependency changes keep the existing shared-input integration policy.
+  for (const file of ["packages/looma/build.mjs", "packages/looma/package.json", "pnpm-lock.yaml"]) {
+    assert.equal(automaticChecks(graph, [file]).packageConsumer, true, file);
+  }
+});

@@ -86,6 +86,18 @@ describe("automatic table of contents", () => {
     expect(restored.state.doc.textContent).toBe("TopChild");
   });
 
+  it("keeps an imported authored navigation body through JSON, HTML, and heading edits", () => {
+    const editor = mount({ type: "doc", content: [
+      { type: "loomaTableOfContents", attrs: { format: "bulleted", depth: 2 }, content: [{ type: "paragraph", content: [{ type: "text", text: "Read another guide", marks: [{ type: "link", attrs: { href: "/another-guide" } }] }] }] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Heading" }] },
+    ] });
+    expect(editor.view.dom.querySelector("nav")?.textContent).toBe("Read another guide");
+    expect(editor.getHTML()).toContain('data-authored-body=""');
+    expect(mount(editor.getHTML()).getJSON()).toEqual(editor.getJSON());
+    editor.commands.insertContentAt(editor.state.doc.content.size, { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Another heading" }] });
+    expect(editor.view.dom.querySelector("nav")?.textContent).toBe("Read another guide");
+  });
+
   it("does not mutate headings in documents without a TOC", async () => {
     const editor = mount("<h1>Ordinary</h1>");
     await new Promise(resolve => setTimeout(resolve, 10));
