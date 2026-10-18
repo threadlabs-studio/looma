@@ -9,6 +9,29 @@ import { editorDocumentToMarkdown, editorToMarkdown, markdownToEditorDocument } 
 const editors: Editor[] = [];
 afterEach(() => editors.splice(0).forEach(editor => editor.destroy()));
 
+it("enables mention presentation when cached values first arrive after editor creation", () => {
+  const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "mention", attrs: { id: "person", label: "Saved" } }] }] } }); editors.push(editor);
+  editor.commands.insertContent("Author text ");
+  const saved = editor.getJSON(), update = vi.fn(); editor.on("update", update);
+  setReferenceDisplay(editor, { "mention:person": { label: "Current" } });
+  expect(editor.view.dom.textContent).toContain("@Current");
+  expect(editor.getJSON()).toEqual(saved); expect(update).not.toHaveBeenCalled();
+  expect(editor.commands.undo()).toBe(true);
+  expect(editor.view.dom.textContent).toBe("@Current");
+});
+
+it("preserves host node views when cached mention values arrive", () => {
+  const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "mention", attrs: { id: "person", label: "Saved" } }] }] } }); editors.push(editor);
+  editor.view.setProps({ nodeViews: { mention: () => {
+    const dom = document.createElement("span"); dom.textContent = "Host presentation"; return { dom };
+  } } });
+  expect(editor.view.dom.textContent).toBe("Host presentation");
+  const selection = editor.state.selection.toJSON();
+  setReferenceDisplay(editor, { "mention:person": { label: "Current" } });
+  expect(editor.view.dom.textContent).toBe("Host presentation");
+  expect(editor.state.selection.toJSON()).toEqual(selection);
+});
+
 it("renders cached reference labels without changing content, history or authored updates", () => {
   const element = document.createElement("div"); document.body.append(element);
   const editor = new Editor({ element, extensions: getDefaultEditorExtensions({ references: {} }), content: {
