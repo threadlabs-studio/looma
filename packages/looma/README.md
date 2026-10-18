@@ -28,6 +28,12 @@ import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions"
 The editor components' event and geometry types, without Tiptap, are in
 `@threadlabs/looma/editor/ui`.
 
+## Expressive Markdown
+
+Convert saved editor JSON with the SSR-safe `@threadlabs/looma/editor/expressmark`
+adapter. It preserves supported semantic content and reports unsupported data
+instead of silently flattening it. See [conversion examples and coverage](EXPRESSIVE-MARKDOWN.md).
+
 ## HTML
 
 ```html

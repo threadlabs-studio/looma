@@ -1,4 +1,5 @@
 import type { NodeViewRenderer } from "@tiptap/core";
+import { DOMSerializer } from "@tiptap/pm/model";
 import { updateComponentProps } from "@nextwebwg/html-next/runtime";
 import { createUiButton } from "@threadlabs/looma/vanilla/UiButton.js";
 import { createUiCluster } from "@threadlabs/looma/vanilla/UiCluster.js";
@@ -29,7 +30,7 @@ const choiceLabel = (field: "format" | "depth", config: LoomaTableOfContentsConf
  * Composes a table of contents and its settings from Looma's components.
  * @lifecycle The view follows the document and rebuilds its entries when they change; the components
  * disconnect once ProseMirror removes its element, and destroying the view stops following the editor.
- * Only the saved configuration enters editor state.
+ * Imported authored links stay in the node body; automatic TOCs store only configuration.
  */
 export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
   const id = `looma-toc-${++tocSequence}`;
@@ -56,6 +57,11 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
   }));
   const renderEntries = () => {
     const { format, depth } = config();
+    if (current.childCount) {
+      const signature = JSON.stringify(current.content.toJSON());
+      if (signature !== shown) { shown = signature; entries.replaceChildren(DOMSerializer.fromSchema(editor.schema).serializeFragment(current.content)); }
+      return;
+    }
     const found = getTableOfContentsEntries(editor.state.doc, depth);
     const signature = JSON.stringify([format, found.map(({ id: entryId, text, level }) => [entryId, text, level])]);
     if (signature === shown) return;
@@ -142,7 +148,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
     const { format, depth } = config();
     nav.dataset.format = format;
     nav.dataset.depth = String(depth);
-    for (const author of [settingsButton, popover, tooltip]) author.hidden = !editable;
+    for (const author of [settingsButton, popover, tooltip]) author.hidden = !editable || current.childCount > 0;
     if (!editable) setSettingsOpen(false);
     renderEntries();
   };
