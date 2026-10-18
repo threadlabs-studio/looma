@@ -93,7 +93,8 @@ import {
 } from "../../editor/host-actions";
 import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement, tableToolbarPlacement } from "../../editor/table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "../../editor/mobile-dock";
-import { createLinkEditing, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
+import { createLinkEditing, isLinkActive, selectedLinkReference, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
+import { setReferenceDisplay, type LoomaReferenceMap } from "../../editor/reference-display";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "../../editor/selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
@@ -245,6 +246,8 @@ export const LoomaEditor = defineComponent({
       type: Object as PropType<JSONContent>,
       default: () => ({ ...EMPTY_DOCUMENT }),
     },
+    /** Cached display values; replace this map to refresh labels without editing content. */
+    references: { type: Object as PropType<LoomaReferenceMap | undefined>, default: undefined },
     // Deliberate exception to Looma's opt-in boolean rule: an editor that is
     // read-only unless configured would violate the primary UX promised by this wrapper.
     editable: { type: Boolean, default: true },
@@ -601,6 +604,7 @@ export const LoomaEditor = defineComponent({
       session = createEditorSession({
         extensions: [
           ...getDefaultEditorExtensions({
+            references: props.references,
             placeholder: props.placeholder,
             linkBaseUrl: props.linkBaseUrl,
             mention: consumerMention ? false : mentionExtension,
@@ -643,7 +647,7 @@ export const LoomaEditor = defineComponent({
                 if (view.isDestroyed) return;
                 editorStateVersion.value += 1;
                 const instance = editor.value;
-                if (instance?.isFocused && instance.state.selection.empty && instance.isActive("link") && linkState.value.surface !== "popover") {
+                if (instance?.isFocused && isLinkActive(instance) && linkState.value.surface !== "popover") {
                   linkPopup?.setAnchor(() => link.getBoundingClientRect());
                   linkPopup?.show();
                 }
@@ -684,6 +688,7 @@ export const LoomaEditor = defineComponent({
         search: () => answers("link-search") ? async (query) => (await askLatest<LoomaLinkTarget[]>("link-search", { query })) ?? [] : null,
         resolve: () => async (href) => await askLatest<LoomaLinkTarget>("link-resolve", { href }),
         baseUrl: () => props.linkBaseUrl,
+        references: () => props.references !== undefined,
       });
       engine.subscribe(() => { linkState.value = engine.state; });
       linkEditing = engine;
@@ -872,6 +877,7 @@ export const LoomaEditor = defineComponent({
       const wasFocused = instance.isFocused;
       if (session.setContent(value, lastFocusedSelection) && wasFocused) rememberSelection(instance);
     }, { deep: true });
+    watch(() => props.references, (value) => { if (editor.value) setReferenceDisplay(editor.value, value ?? {}); }, { deep: true });
 
     const closeTableUi = () => {
       Object.assign(tableUi, LOOMA_TABLE_CONTROLS_CLOSED);
@@ -1132,7 +1138,7 @@ export const LoomaEditor = defineComponent({
       element,
       pluginKey: "looma-link-context-menu",
       shouldShow: ({ editor: menuEditor, from, to }) =>
-        from === to && menuEditor.isActive("link") && linkState.value.surface !== "popover"
+        (from === to || Boolean(selectedLinkReference(menuEditor))) && isLinkActive(menuEditor) && linkState.value.surface !== "popover"
         && !formatting?.dismissed(menuEditor.state.selection)
         && Boolean(menuEditor.isFocused || linkState.value.surface === "context" || linkPopup?.element.contains(document.activeElement))
         && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingActive()),
@@ -1557,8 +1563,8 @@ export const LoomaEditor = defineComponent({
           size: "sm",
           variant: "ghost",
           "aria-expanded": linkState.value.surface === "popover" ? "true" : "false",
-          "aria-pressed": instance.isActive("link") ? "true" : "false",
-          "data-active": instance.isActive("link") ? "true" : "false",
+          "aria-pressed": isLinkActive(instance) ? "true" : "false",
+          "data-active": isLinkActive(instance) ? "true" : "false",
           onPointerenter: () => showTool(linkTriggerId, "Link", false),
           onPointerleave: hideTool,
           onPointerdown: (event: PointerEvent) => {
@@ -1724,7 +1730,7 @@ export const LoomaEditor = defineComponent({
             }, [props.toolbarMode === "contextual"
               ? h(Stack, { gap: "xs" }, () => [
                   renderToolbar(instance, true),
-                  (linkState.value.surface === "context" || instance.state.selection.empty && instance.isActive("link")) && linkState.value.surface !== "popover" && formattingActive()
+                  (linkState.value.surface === "context" || isLinkActive(instance)) && linkState.value.surface !== "popover" && formattingActive()
                     ? renderLinkContextCard(instance)
                     : null,
                 ])

@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Editors can refresh cached link titles and mention names without changing document content or undo history. Automatically labelled links retain their original target IDs, custom wording stays editable, and Expressive Markdown serialization includes current display values and concrete TOC entries.
+
 - Automatic tables of contents exclude headings inside other TOCs from editor navigation and Expressive Markdown exports. Authored navigation keeps its content and anchors.
 
 - Expressive Markdown roundtrips preserve whitespace in formatted text, adjacent and nested formatting, literal entity text, and authored empty paragraphs.

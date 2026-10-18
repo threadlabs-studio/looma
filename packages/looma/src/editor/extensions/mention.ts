@@ -1,6 +1,7 @@
 import Mention from "@tiptap/extension-mention";
 import type { AnyExtension } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
+import { getReferenceDisplay } from "../reference-display";
 import type {
   SuggestionKeyDownProps,
   SuggestionProps,
@@ -42,6 +43,15 @@ export const LoomaMentionSuggestionPluginKey = new PluginKey<MentionPluginState>
 );
 
 const LoomaMentionNode = Mention.extend({
+  renderText(props) {
+    const { node } = props;
+    const label = this.editor && getReferenceDisplay(this.editor)[`mention:${node.attrs.id}`]?.label;
+    return this.parent!({ ...props, node: typeof label === "string" ? node.type.create({ ...node.attrs, label }, node.content, node.marks) : node });
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    const label = this.editor && getReferenceDisplay(this.editor)[`mention:${node.attrs.id}`]?.label;
+    return this.parent!({ node: typeof label === "string" ? node.type.create({ ...node.attrs, label }, node.content, node.marks) : node, HTMLAttributes: typeof label === "string" ? { ...HTMLAttributes, "data-label": label } : HTMLAttributes });
+  },
   addAttributes() {
     const parentAttributes = (this.parent?.() ?? {}) as Record<string, unknown>;
     // The trigger character is transient suggestion state. Persisting it in
