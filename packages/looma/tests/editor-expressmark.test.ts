@@ -22,6 +22,7 @@ describe("Expressive Markdown editor documents", () => {
       ] }],
     }] });
     expect(expressmarkToEditorDocument(ast)).toEqual(content);
+    expect(editorDocumentToExpressmark(markdownToEditorDocument(editorDocumentToMarkdown(content)))).toEqual(ast);
   });
 
   it("refuses unsupported editor content and names its location", () => {
@@ -63,6 +64,16 @@ it("writes and reads the shared syntax through the actual converter", () => {
   expect(markdown).toContain("::: warning [Deploy carefully]");
   expect(markdown).toContain("#user-123");
   expect(editorDocumentToExpressmark(markdownToEditorDocument(markdown))).toEqual(editorDocumentToExpressmark(editor));
+});
+
+it("preserves authored empty paragraphs through Markdown", () => {
+  const editor = { type: "doc", content: [
+    { type: "paragraph", content: [{ type: "text", text: "Before" }] },
+    { type: "paragraph" },
+    { type: "paragraph", content: [{ type: "text", text: "After" }] },
+  ] };
+  expect(editorDocumentToExpressmark(markdownToEditorDocument(editorDocumentToMarkdown(editor))))
+    .toEqual(editorDocumentToExpressmark(editor));
 });
 
 it("keeps code title and presentation attributes in the existing fence metadata", () => {
