@@ -145,7 +145,7 @@ export function selectChecks(files, changes, hunks = {}) {
       if (files[file] && !owned && !docsTool(file) && !releaseTool(file) && !buildTool(file)) throw new Error(`Unmapped executable script: ${file}`);
       continue;
     }
-    if (/^apps\/|^(?:CHANGELOG\.md|CONCEPTS\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/README\.md)/.test(file)) continue;
+    if (/^apps\/|^(?:CHANGELOG\.md|CONCEPTS\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/(?:README|EXPRESSIVE-MARKDOWN)\.md)/.test(file)) continue;
     throw new Error(`Unmapped qualification input: ${file}`);
   }
   for (const [file, source] of Object.entries(files)) {

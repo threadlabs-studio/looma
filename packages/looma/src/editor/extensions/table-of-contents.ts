@@ -1,5 +1,5 @@
 import { Extension, Node, type NodeViewRenderer } from "@tiptap/core";
-import { DOMSerializer, type DOMOutputSpec, type Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { DOMParser, DOMSerializer, Fragment, type DOMOutputSpec, type Node as ProseMirrorNode, type Schema } from "@tiptap/pm/model";
 import { Plugin, type EditorState } from "@tiptap/pm/state";
 import { assignLoomaHeadingIds, loomaHeadingSlug } from "../../markdown";
 import { revealLoomaExpandAt } from "./expand";
@@ -154,6 +154,10 @@ export async function navigateTableOfContents(editor: import("@tiptap/core").Edi
   target.focus({ preventScroll: true });
 }
 
+function importAuthoredNavigation(element: HTMLElement, schema: Schema): Fragment {
+  return DOMParser.fromSchema(schema).parse(element).content;
+}
+
 interface TableOfContentsOptions {
   nodeView: NodeViewRenderer | null;
 }
@@ -168,13 +172,14 @@ declare module "@tiptap/core" {
 }
 
 /**
- * Automatic whole-document navigation with durable configuration only.
+ * Automatic navigation, or an explicitly authored navigation body imported from a document.
  * @ownership The schema owns configuration/anchors; node views derive entries.
  * @lifecycle Headless views subscribe to transactions and unsubscribe on destroy.
  */
 export const LoomaTableOfContents = Node.create<TableOfContentsOptions>({
   name: "loomaTableOfContents",
   group: "block",
+  content: "block*",
   atom: true,
   selectable: true,
   isolating: true,
@@ -186,8 +191,14 @@ export const LoomaTableOfContents = Node.create<TableOfContentsOptions>({
       depth: { default: 3, parseHTML: element => normalizeTableOfContentsConfig({ depth: Number(element.getAttribute("data-depth")) }).depth, renderHTML: () => ({}) },
     };
   },
-  parseHTML: () => [{ tag: "nav[data-looma-toc]" }],
+  parseHTML: () => [{ tag: "nav[data-looma-toc]", getContent: (element, schema) => {
+    if (!(element instanceof HTMLElement) || !element.hasAttribute("data-authored-body")) return Fragment.empty;
+    // Authored navigation is real child content. Legacy automatic TOCs continue
+    // storing configuration only, even though their HTML includes live links.
+    return importAuthoredNavigation(element, schema);
+  } }],
   renderHTML({ node }) {
+    if (node.childCount) return ["nav", { "data-looma-toc": "", "data-authored-body": "", "data-format": node.attrs.format, "data-depth": node.attrs.depth, "aria-label": "Table of contents" }, 0];
     // Tiptap renders the initial DOM before assigning its EditorView. A schema-
     // only serializer has no document context; hosts can use the entry helper.
     return contentsHtml(this.editor?.view?.state.doc ?? node, normalizeTableOfContentsConfig(node.attrs));
@@ -204,8 +215,15 @@ export const LoomaTableOfContents = Node.create<TableOfContentsOptions>({
       dom.contentEditable = "false";
       let current = node;
       const render = () => {
-        const { dom: content } = DOMSerializer.renderSpec(document, contentsHtml(editor.state.doc, normalizeTableOfContentsConfig(current.attrs)));
-        dom.replaceChildren(content);
+        if (current.childCount) {
+          const nav = document.createElement("nav");
+          nav.setAttribute("aria-label", "Table of contents");
+          nav.append(DOMSerializer.fromSchema(editor.schema).serializeFragment(current.content));
+          dom.replaceChildren(nav);
+        } else {
+          const { dom: content } = DOMSerializer.renderSpec(document, contentsHtml(editor.state.doc, normalizeTableOfContentsConfig(current.attrs)));
+          dom.replaceChildren(content);
+        }
       };
       dom.addEventListener("click", event => {
         const anchor = (event.target as Element).closest("a");

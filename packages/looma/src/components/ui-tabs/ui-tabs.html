@@ -5,7 +5,7 @@
     <prop name="label" type="string" default="Tabs"
     >The tab list's accessible name, announced when focus enters the list. Name what the tabs switch between.</prop>
     <prop name="value" type="string" default=""
-    >The id of the selected panel, initially or when set externally; empty selects the first panel. Choosing a tab updates it from there and reports a select
+    >The id or authored data-value of the selected panel, initially or when set externally; empty selects the first panel. Choosing a tab updates it from there and reports a select
       event. A panel without an id is given a generated one.</prop>
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >horizontal puts the tabs in a row above the panels, moved between with the Left and Right arrow keys; vertical puts them in a column beside the panels,
@@ -15,7 +15,7 @@
       displaying a panel takes time.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
     <prop name="group" type="string" default=""
-    >Tabs with the same nonempty group share one selection: choosing a tab selects the tab with the same label in every other Tabs of that group in the
+    >Tabs with the same nonempty group share one selection: choosing a tab selects the tab with the same data-value (or label when no value is authored) in every other Tabs of that group in the
       document, and the choice is remembered for the next visit. Use it for alternatives a reader picks once, such as a package manager or language.</prop>
     <state type="string" name="internalValue" value=""></state>
     <state name="tabs" type="list(object({ id: string, label: string }))" value="[]"></state>

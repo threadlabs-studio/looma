@@ -19,6 +19,8 @@ export const RELEASE_PACKAGES = [
       "package/vue/editor/index.d.ts",
       "package/editor/index.js",
       "package/editor/index.d.ts",
+      "package/editor/expressmark.js",
+      "package/editor/expressmark.d.ts",
       "package/editor/ui.js",
       "package/editor/ui.d.ts",
       "package/editor/extensions/index.js",
