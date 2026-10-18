@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Automatic tables of contents exclude headings inside other TOCs from editor navigation and Expressive Markdown exports. Authored navigation keeps its content and anchors.
+
 - Expressive Markdown roundtrips preserve whitespace in formatted text, adjacent and nested formatting, literal entity text, and authored empty paragraphs.
 
 - Convert saved editor documents to and from Expressive Markdown with the browser-independent `@threadlabs/looma/editor/expressmark` adapter. Unsupported content produces a location-bearing error instead of silently losing data. Imported table-of-contents links remain authored content, and tab groups can synchronize stable values across differently worded labels.
