@@ -46,6 +46,7 @@ import { createLoomaMentionExtension } from "./mention";
 import { createSiteRelativeLinks } from "./relative-links";
 import { LoomaSmartPaste } from "./smart-paste";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
+import { LoomaReference, LoomaReferencePresentation, type LoomaReferenceMap } from "../reference-display";
 
 /** Grammars supplied by the host; importing a language remains the host's choice. */
 export type LoomaCodeLanguages = NonNullable<Parameters<typeof createLowlight>[0]>;
@@ -56,6 +57,8 @@ export type LoomaCodeLanguages = NonNullable<Parameters<typeof createLowlight>[0
  * rather than relying on undocumented mutation of the returned extensions.
  */
 export interface DefaultEditorExtensionsOptions {
+  /** Replaceable display data; updating it must use setReferenceDisplay, never setContent. */
+  references?: LoomaReferenceMap;
   /** Placeholder shown only for empty paragraphs, not every empty node type. */
   placeholder?: string;
   /** Passed to Tiptap Link; defaults false to keep editing clicks in the editor. */
@@ -191,6 +194,8 @@ export function getDefaultEditorExtensions(
     Document,
     Paragraph,
     Text,
+    LoomaReference,
+    LoomaReferencePresentation.configure({ references: options.references ?? {}, mentions: options.references !== undefined }),
     Bold,
     Italic,
     Strike,

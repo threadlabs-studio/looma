@@ -294,9 +294,26 @@ leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `
 
 ## Configuration and events
 
+Pass a `references` map to render cached display values immediately. Keys are `link:<id>` and
+`mention:<id>`; values contain `label` and an optional `href`. Replacing the map refreshes
+presentation without emitting a document update or adding an undo step. The host owns access
+checks, background lookup and persistence of this metadata separately from authored content.
+
+With this prop, selecting a host destination at an empty caret inserts an automatically labelled
+link with its original ID. Existing selected text or text entered in the link form remains custom
+wording. Old ordinary links keep their saved wording; matching a title does not establish intent.
+The native node retains its insertion-time fallback for offline use and cold caches.
+
+Use `editorToMarkdown(editor)` from `@threadlabs/looma/editor/expressmark` to serialize the live
+editor's cached names and concrete TOC entries. For saved JSON plus a separately captured map,
+use `editorDocumentToMarkdown(document, { references })`. These operations retain target IDs and
+do not mutate editor content. Headless editors pass `{ references }` to `getDefaultEditorExtensions`
+and replace display metadata with `setReferenceDisplay(editor, references)`.
+
 | Prop | Default | Purpose |
 | --- | --- | --- |
 | `modelValue` | Empty document | Document JSON; use `v-model` |
+| `references` | None | Cached labels and destinations, stored separately from document changes |
 | `editable` | `true` | Allow editing or show the document read only |
 | `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
 | `label` | `Document` | Accessible name for the editing surface |

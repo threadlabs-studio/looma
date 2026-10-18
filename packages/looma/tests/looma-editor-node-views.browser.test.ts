@@ -3,7 +3,7 @@ import { NodeSelection } from "@tiptap/pm/state";
 import { updateComponentProps } from "@nextwebwg/html-next/runtime";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
+import { createApp, h, nextTick, shallowRef, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../tokens.css";
 import "../vue/components.css";
@@ -38,6 +38,32 @@ async function mountEditor(html: string) {
 const state = (element: Element) => element.getAttribute("data-ui-separator-state") ?? "";
 
 describe("LoomaEditor node views", () => {
+  it("refreshes cached reference display without an authored update and keeps link editing available", async () => {
+    const host = document.body.appendChild(document.createElement("div"));
+    const references = shallowRef({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });
+    const updates = vi.fn(); let editor: Editor | null = null;
+    const app = createApp({ render: () => h(LoomaEditor, {
+      modelValue: { type: "doc", content: [{ type: "paragraph", content: [
+        { type: "loomaReference", attrs: { id: "guide", kind: "link", href: "/guide", label: "Saved guide", target: "_self" } },
+        { type: "text", text: " " },
+        { type: "mention", attrs: { id: "person", label: "Saved person" } },
+        { type: "text", text: " My wording", marks: [{ type: "link", attrs: { href: "/guide" } }] },
+      ] }] },
+      references: references.value, onUpdate: updates, onReady: (instance: Editor) => { editor = instance; },
+    }) }); apps.push(app); app.mount(host); await flushBrowser();
+    const saved = editor!.getJSON();
+    expect(host.querySelector(".ProseMirror")!.textContent).toBe("Cached guide @Cached person My wording");
+    references.value = { "link:guide": { label: "Renamed guide" }, "mention:person": { label: "New name" } };
+    await flushBrowser();
+    expect(editor!.storage.loomaReferencePresentation.references).toEqual(references.value);
+    expect(host.querySelector(".ProseMirror")!.textContent).toBe("Renamed guide @New name My wording");
+    expect(editor!.getJSON()).toEqual(saved); expect(updates).not.toHaveBeenCalled();
+    await userEvent.click(host.querySelector<HTMLAnchorElement>("a[data-looma-reference]")!);
+    await vi.waitFor(() => expect(editor!.state.selection).toBeInstanceOf(NodeSelection));
+    expect(host.querySelector("a[data-looma-reference]")!.getAttribute("href")).toBe("/guide");
+    editor!.commands.deleteSelection(); await flushBrowser();
+    expect(updates).toHaveBeenCalledTimes(1);
+  });
   it("draws a divider with Separator, selects it on click, and disconnects it once the node is removed", async () => {
     const { host, editor } = await mountEditor("<p>Before</p><hr><p>After</p>");
     const divider = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-separator"]')!;
