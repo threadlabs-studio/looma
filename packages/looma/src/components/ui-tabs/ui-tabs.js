@@ -17,6 +17,10 @@ function connect(host) {
   const { list, panels: container } = host.refs;
   const [trigger, stopTracking] = trackTrigger(host);
   const panels = () => Array.from(container.children).filter((child) => child instanceof HTMLElement);
+  const panelKey = (panel) => panel?.getAttribute("data-value")
+    ?? (panel?.getAttribute("aria-label") || host.state.tabs.find(tab => tab.id === panel?.id)?.label);
+  const resolveValue = (value) => panels().find(panel => panel.id === value)?.id
+    ?? panels().find(panel => panel.getAttribute("data-value") === value)?.id;
   const tabButtons = () => Array.from(list.querySelectorAll("button"));
   const focusTab = (button) => {
     for (const tab of tabButtons()) tab.tabIndex = tab === button ? 0 : -1;
@@ -33,7 +37,7 @@ function connect(host) {
       return { id: panel.id, label: panel.getAttribute("aria-label") || `Tab ${index + 1}` };
     });
     if (!items.some((panel) => panel.id === host.state.internalValue)) {
-      host.state.internalValue = external || items[0]?.id || "";
+      host.state.internalValue = resolveValue(external) || items[0]?.id || "";
     }
     syncButtons();
   };
@@ -58,7 +62,7 @@ function connect(host) {
     const value = String(host.props.value.value || "");
     if (value !== external) {
       external = value;
-      host.state.internalValue = value;
+      host.state.internalValue = resolveValue(value) || panels()[0]?.id || "";
     }
     const selected = host.state.internalValue;
     for (const panel of panels()) panel.hidden = panel.id !== selected;
@@ -68,11 +72,11 @@ function connect(host) {
 
   const group = () => String(host.props.group.value || "");
   const document = host.element.ownerDocument;
-  // A group shares a selection by tab label, since panel ids are unique in a document.
-  const selectLabel = (label) => {
-    const tab = host.state.tabs.find((candidate) => candidate.label === label);
-    if (!tab || tab.id === host.state.internalValue) return false;
-    host.state.internalValue = tab.id;
+  // Authored selection values cross groups; labels remain the fallback for existing panels.
+  const selectGroupValue = (label) => {
+    const panel = panels().find(candidate => panelKey(candidate) === label);
+    if (!panel || panel.id === host.state.internalValue) return false;
+    host.state.internalValue = panel.id;
     return true;
   };
   const select = (button, how) => {
@@ -80,7 +84,7 @@ function connect(host) {
     host.state.internalValue = button.value;
     host.dispatch("select", { value: button.value, previousValue, trigger: how });
     const name = group();
-    const label = host.state.tabs.find((tab) => tab.id === button.value)?.label;
+    const label = panelKey(panels().find(panel => panel.id === button.value));
     if (!name || label === undefined) return;
     writeStored(name, label);
     document.dispatchEvent(new CustomEvent(GROUP_EVENT, { detail: { group: name, label, source: host.element } }));
@@ -89,7 +93,7 @@ function connect(host) {
     const { group: name, label, source } = event.detail;
     if (source === host.element || name !== group()) return;
     const previousValue = host.state.internalValue || undefined;
-    if (selectLabel(label)) host.dispatch("select", { value: host.state.internalValue, previousValue, trigger: "programmatic" });
+    if (selectGroupValue(label)) host.dispatch("select", { value: host.state.internalValue, previousValue, trigger: "programmatic" });
   };
   const onClick = (event) => {
     const button = event.target.closest?.('[role="tab"]');
@@ -138,7 +142,7 @@ function connect(host) {
   // A remembered choice applies when the page does not choose a panel itself.
   if (group() && !external) {
     const stored = readStored(group());
-    if (stored !== null) selectLabel(stored);
+    if (stored !== null) selectGroupValue(stored);
   }
   return () => {
     document.removeEventListener(GROUP_EVENT, onGroupSelect);

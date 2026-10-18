@@ -174,6 +174,16 @@ export function loomaMarkdownFromDoc(doc: ProseMirrorNode): string {
   const custom = customHeadingIds(doc);
   let heading = 0;
   const nodes: Record<string, NodeSerializer> = {
+    loomaTableOfContents: (state, node, parent, index) => {
+      if (node.childCount) { state.write(html(node)); state.closeBlock(node); }
+      else NODES.loomaTableOfContents(state, node, parent, index);
+    },
+    loomaTabs: (state, node, parent, index) => {
+      const hasSettings = [node.attrs.defaultValue, node.attrs.queryString, node.attrs.lazy].some(value => value !== null && value !== undefined)
+        || Array.from({ length: node.childCount }, (_, index) => node.child(index)).some(tab => tab.attrs.value !== null && tab.attrs.value !== undefined);
+      if (hasSettings) { state.write(html(node)); state.closeBlock(node); }
+      else NODES.loomaTabs(state, node, parent, index);
+    },
     heading: (state, node) => {
       state.write(`${"#".repeat(node.attrs.level)} `);
       state.renderInline(node, false);
