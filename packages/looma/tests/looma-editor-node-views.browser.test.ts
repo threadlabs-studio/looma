@@ -122,8 +122,10 @@ describe("LoomaEditor node views", () => {
   });
 
   it("lists the headings in a table of contents, follows edits, hides settings from readers, and disconnects once removed", async () => {
-    const { host, editor } = await mountEditor("<nav data-looma-toc></nav><h1>Overview</h1><h2>Details</h2>");
-    const nav = host.querySelector<HTMLElement>(".ProseMirror nav[data-looma-toc]")!;
+    const { host, editor } = await mountEditor('<nav data-looma-toc data-authored-body><h1>Navigation label</h1></nav><nav data-looma-toc></nav><h1>Overview</h1><h2>Details</h2>');
+    const navs = host.querySelectorAll<HTMLElement>(".ProseMirror nav[data-looma-toc]");
+    expect(navs[0]?.textContent).toContain("Navigation label");
+    const nav = navs[1]!;
     const links = () => [...nav.querySelectorAll("a")].map((link) => link.textContent?.trim());
     expect(links()).toEqual(["Overview", "Details"]);
     editor.commands.insertContentAt(editor.state.doc.content.size, "<h2>Later</h2>");

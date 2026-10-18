@@ -144,7 +144,8 @@ must traverse the body rather than omit collapsed content.
 ## Automatic table of contents
 
 Type `/toc` (or `/contents`) to insert links to headings throughout the document. The list updates
-when headings change, move, or disappear; there is no content wrapper or manual heading selection.
+when headings change, move, or disappear; headings inside another TOC are excluded. There is no
+content wrapper or manual heading selection.
 Open **Table of contents settings** to choose plain, bulleted, or numbered formatting and the
 maximum heading level (H1, H2, or H3), then **Save**. **Cancel** discards those choices. The default
 is plain formatting through H3. With no headings, the block explains how to populate it.
@@ -158,6 +159,13 @@ the heading's text follows the text as it changes, a custom ID stays with its he
 renames and moves, and duplicate IDs are repaired. Both the node and heading IDs round-trip through
 editor JSON, HTML and Markdown. `editor.getHTML()` includes the current
 entries as a named navigation landmark with real links.
+
+For Expressive Markdown, call `editorDocumentToMarkdown(editor.getJSON())` from
+`@threadlabs/looma/editor/expressmark`. It writes the current TOC entries and settings into the
+file. Reading that file preserves the saved navigation instead of regenerating it from surrounding
+headings. The editor's internal JSON can retain configuration only; it does not need an entry copy.
+Authored navigation imported from a file retains its body.
+
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
 they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
