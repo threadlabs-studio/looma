@@ -16,7 +16,9 @@ const referenceDisplayMeta = "loomaReferenceDisplay";
  * @lifecycle Values last until the next replacement or editor destruction; hosts own persistence.
  */
 export function setReferenceDisplay(editor: Editor, references: LoomaReferenceMap): void {
-  if (!editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta(referenceDisplayMeta, references).setMeta("addToHistory", false));
+  if (editor.isDestroyed) return;
+  (editor.storage.loomaReferencePresentation as { enableMentions?: () => void } | undefined)?.enableMentions?.();
+  editor.view.dispatch(editor.state.tr.setMeta(referenceDisplayMeta, references).setMeta("addToHistory", false));
 }
 
 /**
@@ -102,6 +104,13 @@ export const LoomaReferencePresentation = Extension.create<{ references: LoomaRe
       refresh.add(render); render();
       return { dom, update(next) { if (next.type !== current.type) return false; current = next; render(); return true; }, destroy: () => { refresh.delete(render); } };
     };
+    const nodeViews: Record<string, typeof nodeView> = { loomaReference: nodeView, ...(this.options.mentions && this.editor.schema.nodes.mention ? { mention: nodeView } : {}) };
+    this.storage.enableMentions = () => {
+      if (nodeViews.mention || !this.editor.schema.nodes.mention) return;
+      nodeViews.mention = nodeView;
+      // Rebuild the view's node-view lookup without replacing host overrides or editor state.
+      this.editor.view.setProps({ nodeViews: { ...this.editor.view.props.nodeViews } });
+    };
     return [new Plugin<LoomaReferenceMap>({
       key: referenceDisplayKey,
       state: { init: () => initial, apply: (transaction, previous) => {
@@ -109,7 +118,7 @@ export const LoomaReferencePresentation = Extension.create<{ references: LoomaRe
         this.storage.references = next;
         return next;
       } },
-      props: { nodeViews: { loomaReference: nodeView, ...(this.options.mentions && this.editor.schema.nodes.mention ? { mention: nodeView } : {}) } },
+      props: { nodeViews },
       // Reattaching an editor replaces plugin views while its node views can survive.
       // Each node view owns its registration until its own destroy callback runs.
       view: () => ({ update: (view, previous) => {
