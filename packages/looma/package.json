@@ -77,6 +77,11 @@
       "types": "./vue/editor/compact/index.d.ts",
       "import": "./vue/editor/compact/index.js",
       "default": "./vue/editor/compact/index.js"
+    },
+    "./editor/expressmark": {
+      "types": "./editor/expressmark.d.ts",
+      "import": "./editor/expressmark.js",
+      "default": "./editor/expressmark.js"
     }
   },
   "files": [
@@ -89,7 +94,8 @@
     "styles/",
     "*.css",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "EXPRESSIVE-MARKDOWN.md"
   ],
   "sideEffects": [
     "./dist/index.js",
@@ -109,7 +115,8 @@
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
     "markdown-it": "14.3.1",
-    "lucide": "~0.554.0"
+    "lucide": "~0.554.0",
+    "expressmark": "0.1.0"
   },
   "peerDependencies": {
     "@nextwebwg/html-next": "1.0.0-alpha.57",

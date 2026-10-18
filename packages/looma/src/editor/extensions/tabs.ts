@@ -15,6 +15,9 @@ export const LoomaTabs = Node.create({
   addAttributes() {
     return {
       group: { default: "", parseHTML: element => element.getAttribute("group") ?? "", renderHTML: attributes => attributes.group ? { group: attributes.group } : {} },
+      defaultValue: { default: null, parseHTML: element => element.getAttribute("data-default-value"), renderHTML: attributes => attributes.defaultValue === null ? {} : { "data-default-value": attributes.defaultValue, value: attributes.defaultValue } },
+      queryString: { default: null, parseHTML: element => element.getAttribute("data-query-string"), renderHTML: attributes => attributes.queryString === null ? {} : { "data-query-string": attributes.queryString } },
+      lazy: { default: null, parseHTML: element => element.hasAttribute("data-lazy") ? element.getAttribute("data-lazy") !== "false" : null, renderHTML: attributes => attributes.lazy === null ? {} : { "data-lazy": String(attributes.lazy) } },
       codeGroup: { default: false, parseHTML: element => element.classList.contains("code-group"), renderHTML: attributes => attributes.codeGroup ? { class: "code-group" } : {} },
     };
   },
@@ -45,6 +48,7 @@ export const LoomaTab = Node.create({
   isolating: true,
   addAttributes() {
     return {
+      value: { default: null, parseHTML: element => element.getAttribute("data-value"), renderHTML: attributes => attributes.value === null ? {} : { "data-value": attributes.value } },
       label: { default: "", parseHTML: element => element.getAttribute("aria-label") ?? "", renderHTML: attributes => ({ "aria-label": attributes.label }) },
     };
   },
