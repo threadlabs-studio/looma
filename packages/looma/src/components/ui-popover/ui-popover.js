@@ -42,7 +42,8 @@ function connect(host) {
     if (!anchor) return;
     anchor.removeEventListener("click", onAnchorClick);
     if (anchorExpanded === null) anchor.removeAttribute("aria-expanded");
-    else anchor.setAttribute("aria-expanded", anchorExpanded);
+    // A consumer may have mounted us after setting true; released anchors are collapsed.
+    else anchor.setAttribute("aria-expanded", "false");
     anchor = null;
     anchorExpanded = null;
   };
