@@ -384,7 +384,8 @@ function connect(host) {
       // The label names the option and the tag and description describe it, as a listbox option's
       // label and description parts do; a row without either keeps its name from its content.
       const detail = [row.tag ? `${uid}-option-${index}-tag` : "", row.description ? `${uid}-option-${index}-description` : ""].filter(Boolean).join(" ");
-      group.rows.push({ ...row, index, labelledBy: detail ? `${uid}-option-${index}-label` : null, detail: detail || null });
+      // The option slot receives the row as the consumer gave it, without the parts the listbox adds.
+      group.rows.push({ ...row, index, labelledBy: detail ? `${uid}-option-${index}-label` : null, detail: detail || null, option: row });
     });
     host.state.groups = groups;
     host.state.creatable = canCreate();

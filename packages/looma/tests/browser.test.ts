@@ -2575,6 +2575,37 @@ describe("Combobox option modes", () => {
     await page.close();
   });
 
+  it("renders each option and chosen item through one scoped slot in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.
+      const path = await bundle(`${adapter}-combobox-scoped-slots`, adapter === "html" ? `
+        import { lowerDocument } from "@nextwebwg/html-next/live";
+        import "@threadlabs/looma";
+        lowerDocument();
+      ` : `
+        import { createApp, h } from "vue";
+        import { Combobox } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", multiple: true, openOnFocus: true, items: [{ id: "apple", value: "apple", label: "Apple" }] }, {
+          default: () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear", "data-description": "Green" }, "Pear")],
+          option: ({ option }) => h("b", { class: "custom-option" }, option.label + (option.description ? " / " + option.description : "")),
+          item: ({ item }) => h("i", { class: "custom-item" }, item.label),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-combobox id="fruit" label="Fruit" multiple open-on-focus items='[{"id":"apple","value":"apple","label":"Apple"}]'>
+          <option value="apple">Apple</option><option value="pear" data-description="Green">Pear</option>
+          <template slot="option"><b class="custom-option">{$option.label}<template $if="$option.description"> / {$option.description}</template></b></template>
+          <template slot="item"><i class="custom-item">{$item.label}</i></template>
+        </ui-combobox>
+      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.locator("#fruit input[role=combobox]").focus();
+      await page.locator("#fruit .custom-option").first().waitFor();
+      assert.deepEqual(await page.locator("#fruit [role=option] .custom-option").allTextContents(), ["Apple", "Pear / Green"], adapter);
+      assert.deepEqual(await page.locator("#fruit .item .custom-item").allTextContents(), ["Apple"], adapter);
+      await page.close();
+    }
+  });
+
   it("announces loading and shows an authored empty state when settled in HTML", async () => {
     const path = await bundle("html-combobox-loading", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -4648,7 +4679,7 @@ describe("Form field error", () => {
         </ui-form-field>
         <ui-form-field id="action">
           <label slot="label" for="action-input">Price</label>
-          <ui-icon-button slot="label-action" id="action-help" label="Help for Price" variant="ghost" size="sm" round><ui-icon name="help"></ui-icon></ui-icon-button>
+          <ui-icon-button slot="labelAction" id="action-help" label="Help for Price" variant="ghost" size="sm" round><ui-icon name="help"></ui-icon></ui-icon-button>
           <ui-input id="action-input"></ui-input>
         </ui-form-field>
       </ui-grid>`, [join(root, "tokens.css")]);
@@ -7283,9 +7314,9 @@ describe("Vue editor components", () => {
     const actions = ["background-none", "background-gray", "background-yellow"];
     const path = await bundle(`cell-background-${adapter.toLowerCase()}`, adapter === "HTML" ? `
       import "@threadlabs/looma";
-      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.setBackground = value => {
-        for (const id of ["context", "toolbar"]) updateComponentProps(document.getElementById(id), { cellBackground: value });
+        for (const id of ["context", "toolbar"]) componentRegistry.update(document.getElementById(id), { cellBackground: value });
       };
     ` : `
       import { createApp, h, ref } from "vue";
@@ -7965,11 +7996,11 @@ describe("Combobox selectedValues", () => {
   it("follows selectedValues and reports the user's changes in HTML", async () => {
     const path = await bundle("html-combobox-selected-values", `
       import "@threadlabs/looma";
-      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.reports = [];
       const teams = () => document.querySelector("#teams");
       // A rendered component's data-* attributes only record its options; the prop channel sets them.
-      window.setValues = (values) => updateComponentProps(teams(), { selectedValues: values });
+      window.setValues = (values) => componentRegistry.update(teams(), { selectedValues: values });
       document.addEventListener("selected-values-change", (event) => {
         if (event.target !== teams()) return;
         window.reports.push(event.detail.selectedValues);

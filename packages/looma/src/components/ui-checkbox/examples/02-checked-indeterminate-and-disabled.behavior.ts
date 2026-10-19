@@ -1,4 +1,4 @@
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
 /** Keeps the summary checkbox in step with three independently checked items. */
 export default function connectSelection(root: HTMLElement): () => void {
@@ -9,12 +9,12 @@ export default function connectSelection(root: HTMLElement): () => void {
   const onItemChange = (event: Event) => {
     if (!(event instanceof CustomEvent) || typeof event.detail?.checked !== "boolean") return;
     const count = items.filter(checked).length;
-    updateComponentProps(all, { checked: count === items.length, indeterminate: count > 0 && count < items.length });
+    componentRegistry.update(all, { checked: count === items.length, indeterminate: count > 0 && count < items.length });
   };
   const onAllChange = (event: Event) => {
     if (!(event instanceof CustomEvent) || typeof event.detail?.checked !== "boolean") return;
-    for (const item of items) updateComponentProps(item, { checked: event.detail.checked });
-    updateComponentProps(all, { indeterminate: false });
+    for (const item of items) componentRegistry.update(item, { checked: event.detail.checked });
+    componentRegistry.update(all, { indeterminate: false });
   };
   all.addEventListener("change", onAllChange);
   for (const item of items) item.addEventListener("change", onItemChange);
