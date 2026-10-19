@@ -109,8 +109,10 @@
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
       <span class="actions" $ref="actions">
-        <ui-button $if="$moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
-        <span $else><slot name="actions"></slot></span>
+        <template $match>
+          <ui-button $when="$moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
+          <span $else><slot name="actions"></slot></span>
+        </template>
       </span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>

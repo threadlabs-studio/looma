@@ -12,7 +12,7 @@
       <prop name="columnBoundaries" required type="list">
         <prop type="number"></prop>
       </prop>
-      <prop name="activeCell" required nullable type="object">
+      <prop name="activeCell" type="object">
         <prop name="left" required type="number"></prop>
         <prop name="top" required type="number"></prop>
         <prop name="width" required type="number"></prop>
@@ -20,7 +20,7 @@
         <prop name="rowIndex" required type="integer"></prop>
         <prop name="columnIndex" required type="integer"></prop>
       </prop>
-      <prop name="hoveredCell" nullable type="object">
+      <prop name="hoveredCell" type="object">
         <prop name="left" required type="number"></prop>
         <prop name="top" required type="number"></prop>
         <prop name="width" required type="number"></prop>
@@ -60,7 +60,6 @@
     </state>
     <state
       name="hovered"
-      nullable
       type="object"
     >
       <prop name="left" required type="number"></prop>
@@ -74,7 +73,6 @@
     </state>
     <state
       name="active"
-      nullable
       type="object"
     >
       <prop name="left" required type="number"></prop>
