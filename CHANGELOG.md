@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.63, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.63`. Declarations no longer use the removed `nullable` attribute: a value that may be missing is an optional prop or field, and missing reads as null. Tree Item chooses between its Cancel button and its actions slot with `$match`, since `$if` has no else branch. Component behavior and public API are unchanged.
+
 - Menu and Popover triggers stop looking pressed after a conditionally mounted overlay closes, including when the consumer controls `aria-expanded`.
 
 - **Breaking:** Looma builds with HTML Next 1.0.0-alpha.58, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.58`. That release names every slot with an identifier and removes computed slot names, so three Looma slots change, and Looma declares 0.30.0:
