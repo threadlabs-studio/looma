@@ -11,7 +11,8 @@
     :host {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      /* Safe: a child wider than the cover keeps its start edge in view instead of overflowing both ways. */
+      align-items: safe center;
       justify-content: center;
       gap: var(--ui-space-6);
       box-sizing: border-box;
@@ -22,10 +23,6 @@
     :host([size="fill"]) {
       flex: 1;
       min-block-size: 100%;
-    }
-
-    :host > :slotted(*) {
-      max-inline-size: 100%;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

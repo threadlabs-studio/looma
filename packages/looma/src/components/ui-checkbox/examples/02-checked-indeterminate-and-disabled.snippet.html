@@ -1,6 +1,6 @@
 <script type="module">
   import "@threadlabs/looma";
-  import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+  import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
   const all = document.querySelector("#docs-checkbox-all");
   const items = [...document.querySelectorAll(".docs-checkbox-item")];
@@ -8,14 +8,14 @@
 
   all.addEventListener("change", (event) => {
     if (typeof event.detail?.checked !== "boolean") return;
-    for (const item of items) updateComponentProps(item, { checked: event.detail.checked });
-    updateComponentProps(all, { indeterminate: false });
+    for (const item of items) componentRegistry.update(item, { checked: event.detail.checked });
+    componentRegistry.update(all, { indeterminate: false });
   });
 
   for (const item of items) item.addEventListener("change", (event) => {
     if (typeof event.detail?.checked !== "boolean") return;
     const count = items.filter(isChecked).length;
-    updateComponentProps(all, { checked: count === items.length, indeterminate: count > 0 && count < items.length });
+    componentRegistry.update(all, { checked: count === items.length, indeterminate: count > 0 && count < items.length });
   });
 </script>
 
