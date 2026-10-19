@@ -1083,6 +1083,11 @@
           "id": "08-toggle",
           "title": "Outline toggles",
           "behavior": false
+        },
+        {
+          "id": "09-anticipatory",
+          "title": "Anticipatory context actions",
+          "behavior": false
         }
       ]
     },
