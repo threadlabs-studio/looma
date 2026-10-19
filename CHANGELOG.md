@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Center TOC gutter icons without text baseline spacing, and keep long-link action bars compact on phones. Supporting icons can use a secondary or muted tone without a text wrapper.
+
 - Editor: TOC settings now sit quietly in the left gutter, revealing a lighter gear from a dot on proximity, hover, focus or TOC selection. Touch keeps the control visible.
 
 - Editors can refresh cached link titles and mention names without changing document content or undo history. Automatically labelled links retain their original target IDs, custom wording stays editable, and Expressive Markdown serialization includes current display values and concrete TOC entries.
