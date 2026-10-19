@@ -137,7 +137,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
   });
   const settingsButton = element(createUiIconButton({
     label: "Table of contents settings", variant: "ghost", tone: "neutral", size: "sm", anticipatory: true,
-    attributes: { id }, children: [element(createUiText({ as: "span", tone: "secondary", children: [element(createUiIcon({ name: "settings" }))] }))],
+    attributes: { id }, children: [element(createUiIcon({ name: "settings", tone: "secondary" }))],
   }));
   const revealSettings = () => updateComponentProps(settingsButton, { revealed: selected || hovered || settingsOpen });
   const tooltip = element(createUiTooltip({ for: id, children: ["Table of contents settings"] }));

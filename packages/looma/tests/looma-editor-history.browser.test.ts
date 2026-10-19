@@ -849,6 +849,30 @@ it.each([1280, 375])("shows a compact Open link bar above a clicked link and dis
   await expect.element(reopenedActions).not.toBeVisible();
 });
 
+it.each([1280, 375])("keeps a long destination compact and closes its actions when selecting a TOC (%ipx)", async (width) => {
+  await page.viewport(width, 812);
+  const { editor, host } = await mountEditor({ toolbarMode: "contextual", width });
+  host.style.marginTop = "250px";
+  editor.commands.setContent('<p><a href="/guides/11111111-2222-4333-8444-555555555555/getting-started">Saved guide</a> plain text</p><nav data-looma-toc></nav><h2>Details</h2>');
+  await userEvent.click(editor.view.dom.querySelector("a")!);
+  const actions = page.getByRole("group", { name: "Link actions", exact: true });
+  await expect.element(actions).toBeVisible();
+  const box = actions.element().getBoundingClientRect();
+  expect(box.height).toBeLessThanOrEqual(44);
+  expect(box.left).toBeGreaterThanOrEqual(0);
+  expect(box.right).toBeLessThanOrEqual(width);
+  const open = actions.element().querySelector('[aria-label="Open link"]')!;
+  expect(open.getBoundingClientRect().height).toBeLessThanOrEqual(44);
+  await userEvent.click(editor.view.dom.querySelector('nav strong')!);
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="Link actions"]')).toBeNull());
+  const settings = page.getByRole("button", { name: "Table of contents settings", exact: true });
+  await userEvent.click(settings);
+  await expect.element(page.getByRole("button", { name: "Formatting", exact: true })).toBeVisible();
+  expect(document.querySelector('[aria-label="Link actions"]')).toBeNull();
+  await userEvent.keyboard("{Escape}");
+  expect(document.querySelector('[aria-label="Link actions"]')).toBeNull();
+});
+
 it("keeps editor popup anchors stable when links cross the phone breakpoint", async () => {
   await page.viewport(1280, 812);
   const { editor } = await mountEditor({ toolbarMode: "contextual" });

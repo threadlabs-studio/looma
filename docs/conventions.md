@@ -72,6 +72,8 @@ Use `concat()` for IDs, slot names, CSS values, and composed strings. Use Intl `
 - Icons inherit `currentColor` and are `1em` by default, so they follow the text
   around them. A container such as Icon Button sets its icon's default size
   instead. `--ui-icon-size` and `--ui-icon-stroke-width` restyle one icon.
+  `tone="secondary"` or `tone="muted"` gives a supporting icon its semantic colour
+  without wrapping it in text; the default `inherit` follows the control.
   Accessible names belong to the button or menu item, while decorative SVGs
   remain hidden from assistive technology.
 - Components whose icon is consumer content may continue to accept a slot, but
