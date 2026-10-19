@@ -43,9 +43,10 @@ function connect(host) {
   const releaseAnchor = () => {
     if (!anchor) return;
     anchor.removeEventListener("click", onAnchorClick);
+    // Restore metadata without restoring a consumer's stale open state.
     for (const [name, value] of Object.entries(anchorAria ?? {})) {
       if (value === null) anchor.removeAttribute(name);
-      else anchor.setAttribute(name, value);
+      else anchor.setAttribute(name, name === "aria-expanded" ? "false" : value);
     }
     anchor = null;
     anchorAria = null;
