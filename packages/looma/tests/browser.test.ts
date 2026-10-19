@@ -1811,6 +1811,40 @@ describe("Menu structure and navigation", () => {
     await page.close();
   });
 
+  it("collapses consumer-controlled triggers after conditional Vue overlays close", async () => {
+    for (const kind of ["menu", "popover"]) {
+      const path = await bundle(`vue-controlled-${kind}-cleanup`, `
+        import { createApp, h, ref } from "vue";
+        import { Button, Menu, MenuItem, Popover } from "@threadlabs/looma/vue";
+        const visible = ref(false);
+        window.hideOverlay = () => visible.value = false;
+        createApp({ render: () => h("div", [
+          h(Button, { id: "trigger", variant: "field", "aria-expanded": visible.value, onClick: () => visible.value = !visible.value }, () => "Choose color"),
+          visible.value ? h(${kind == "menu" ? "Menu" : "Popover"}, { id: "overlay", for: "trigger", open: true, onClose: () => visible.value = false, onSelect: () => visible.value = false }, () =>
+            ${kind == "menu" ? 'h(MenuItem, { id: "choice", value: "red" }, () => "Red")' : 'h(Button, { id: "choice", onClick: () => visible.value = false }, () => "Red")'}
+          ) : null,
+          h(Button, { id: "outside" }, () => "Outside"),
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const trigger = page.locator("#trigger");
+      for (const dismissal of ["choice", "escape", "outside", "trigger", "programmatic"]) {
+        await trigger.click();
+        await page.locator("#choice").waitFor({ state: "visible" });
+        if (dismissal === "escape") await page.keyboard.press("Escape");
+        else if (dismissal === "programmatic") await page.evaluate(() => (window as any).hideOverlay());
+        else await page.locator(`#${dismissal}`).click();
+        await page.waitForFunction(() => !document.querySelector("#overlay"));
+        assert.equal(await trigger.getAttribute("aria-expanded"), "false", `${kind}: ${dismissal} leaves its controlled trigger collapsed`);
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(200);
+        assert.ok(!(await trigger.evaluate(element => getComputedStyle(element).boxShadow)).includes("inset"), `${kind}: ${dismissal} releases the pressed field surface`);
+        if (kind === "menu" && dismissal === "escape") assert.equal(await trigger.evaluate(element => element === document.activeElement), true, "Escape retains keyboard focus on the menu trigger");
+      }
+      await page.close();
+    }
+  });
+
   it("keeps link semantics, groups and separators, and moves through enabled items in HTML", async () => {
     const path = await bundle("html-menu-structure", `
       import "@threadlabs/looma";

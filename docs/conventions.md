@@ -34,6 +34,7 @@ Set one API vocabulary that all components and adapters follow, including state 
 - Controlled source always wins when provided.
 - Events always fire for user intent.
 - Controlled consumers must reflect state updates back to the component.
+- Removing or reanchoring a Menu or Popover collapses its released trigger, even if the consumer set `aria-expanded="true"` before mounting the overlay. Other pre-existing trigger attributes are restored.
 
 ## Slots and Children
 
