@@ -23,12 +23,14 @@
     }
 
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
-      --_ui-reel-item-width: var(--ui-reel-item-width);
-
       --_reel-gap: var(--ui-space-4);
-      --_reel-item-width: auto;
-      display: flex;
+      --_reel-item-width: max-content;
+      /* Sizes its children from its own box: one row of columns, each the item width, that never
+         shrinks to fit, so the reel scrolls once they overflow. */
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: var(--ui-reel-item-width, var(--_reel-item-width));
+      justify-content: start;
       inline-size: 100%;
       gap: var(--ui-reel-gap, var(--_reel-gap));
       min-inline-size: 0;
@@ -61,11 +63,6 @@
 
     :host:dir(rtl) {
       --_ui-scroll-fade-direction: to left;
-    }
-
-    :host > :slotted(*) {
-      min-inline-size: 0;
-      flex: 0 0 var(--_ui-reel-item-width, var(--_reel-item-width));
     }
 
     :host([gap="xs"]) {

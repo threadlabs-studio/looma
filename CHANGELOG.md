@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Switcher, Reel and Cover lay out components passed into them, such as Card and Stack, as they lay out plain elements. Switcher sets its children on a grid that flips between one equal-width row and a stack at its threshold, and stacks above its limit; Reel gives every child its item width from a column grid; Cover keeps a child wider than itself in view from its start edge. Reel's snap alignment still applies only to plain elements, since a component's root is out of Reel's styling scope.
+
 - Center TOC gutter icons without text baseline spacing, and keep long-link action bars compact on phones. Supporting icons can use a secondary or muted tone without a text wrapper.
 
 - Editor: TOC settings now sit quietly in the left gutter, revealing a lighter gear from a dot on proximity, hover, focus or TOC selection. Touch keeps the control visible.

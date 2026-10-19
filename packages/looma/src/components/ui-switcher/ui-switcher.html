@@ -26,27 +26,22 @@
     }
 
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
-      --_ui-switcher-threshold: var(--ui-switcher-threshold);
-
       --_switcher-gap: var(--ui-space-4);
-      display: flex;
-      flex-wrap: wrap;
+      --_switcher-threshold: 30rem;
+      --_switcher-track: clamp(1px, (var(--ui-switcher-threshold, var(--_switcher-threshold)) - 100%) * 999, 100%);
+      /* Lays its children out from its own box: below the threshold each track takes the full width;
+         at or above it, tracks shrink to 1px so every child fits one row and empty tracks collapse.
+         The large multiplier makes the whole row flip at once. */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(var(--_switcher-track), 1fr));
       gap: var(--ui-switcher-gap, var(--_switcher-gap));
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
     }
 
-    :host > :slotted(*) {
-      min-inline-size: 0;
-      flex-grow: 1;
-      /* The large multiplier makes the basis flip as a group at the intrinsic threshold. */
-      flex-basis: calc((var(--_ui-switcher-threshold, 30rem) - 100%) * 999);
-    }
-
-    :host(:state(overLimit)) > :slotted(*) {
-      flex-basis: 100%;
+    :host(:state(overLimit)) {
+      grid-template-columns: minmax(0, 1fr);
     }
 
     :host([gap="xs"]) {
@@ -64,23 +59,23 @@
     :host([gap="xl"]) {
       --_switcher-gap: var(--ui-space-6);
     }
-    :host([threshold="xs"]) > :slotted(*) {
-      flex-basis: calc((var(--_ui-switcher-threshold, 20rem) - 100%) * 999);
+    :host([threshold="xs"]) {
+      --_switcher-threshold: 20rem;
     }
-    :host([threshold="md"]) > :slotted(*) {
-      flex-basis: calc((var(--_ui-switcher-threshold, 45rem) - 100%) * 999);
+    :host([threshold="md"]) {
+      --_switcher-threshold: 45rem;
     }
-    :host([threshold="lg"]) > :slotted(*) {
-      flex-basis: calc((var(--_ui-switcher-threshold, 60rem) - 100%) * 999);
+    :host([threshold="lg"]) {
+      --_switcher-threshold: 60rem;
     }
     :host([align="start"]) {
-      align-items: flex-start;
+      align-items: start;
     }
     :host([align="center"]) {
       align-items: center;
     }
     :host([align="end"]) {
-      align-items: flex-end;
+      align-items: end;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

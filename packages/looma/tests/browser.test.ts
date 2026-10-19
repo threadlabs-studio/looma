@@ -1134,6 +1134,44 @@ describe("Intrinsic layout limits", () => {
     await page.close();
   });
 
+  it("lays out slotted components in Switcher, Reel and Cover from their own boxes", async () => {
+    const path = await bundle("html-layout-slotted-components", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-switcher id="switcher" style="width: 1000px">
+        <ui-card>A</ui-card><ui-stack><span>B</span></ui-stack><ui-card>C</ui-card>
+      </ui-switcher>
+      <ui-switcher id="limited" limit="3" style="width: 1000px">
+        <ui-card>A</ui-card><ui-card>B</ui-card><ui-card>C</ui-card><ui-card>D</ui-card>
+      </ui-switcher>
+      <ui-reel id="reel" item-width="sm" aria-label="Items" style="width: 300px">
+        <ui-card>A</ui-card><ui-card>B</ui-card><ui-card>C</ui-card>
+      </ui-reel>
+      <div style="width: 300px; block-size: 20rem; display: flex; flex-direction: column">
+        <ui-cover id="cover" size="fill"><ui-card>Sign in</ui-card><ui-card style="width: 400px">Wide</ui-card></ui-cover>
+      </div>
+    `, [join(root, "tokens.css")]);
+    const boxes = (selector: string) => page.locator(selector).evaluate((element) => Array.from(element.children, (child) => {
+      const { left, top, width } = child.getBoundingClientRect();
+      return { left: Math.round(left), top: Math.round(top), width: Math.round(width) };
+    }));
+    const row = await boxes("#switcher");
+    assert.equal(new Set(row.map((box) => box.top)).size, 1, "a wide Switcher sets its components side by side");
+    assert.equal(new Set(row.map((box) => box.width)).size, 1, "with equal widths");
+    await page.locator("#switcher").evaluate((element) => { element.style.width = "300px"; });
+    const stack = await boxes("#switcher");
+    assert.equal(new Set(stack.map((box) => box.top)).size, 3, "a narrow Switcher stacks its components");
+    assert.ok(stack.every((box) => box.width === 300), JSON.stringify(stack));
+    assert.equal(new Set((await boxes("#limited")).map((box) => box.top)).size, 4, "components above the limit stack");
+    const reel = await boxes("#reel");
+    assert.ok(reel.every((box) => box.width === 192), JSON.stringify(reel));
+    assert.ok(await page.locator("#reel").evaluate((element) => element.scrollWidth > element.clientWidth), "the reel scrolls once its items overflow");
+    const cover = await page.locator("#cover").evaluate((element) => element.getBoundingClientRect().left);
+    const [card, wide] = await boxes("#cover");
+    assert.ok(Math.abs(card!.left - cover - (300 - card!.width) / 2) <= 1, "Cover centres a component");
+    assert.ok(wide!.left >= cover, "a component wider than Cover keeps its start edge in view");
+    await page.close();
+  });
+
   it("passes Grid and Switcher limits through Vue", async () => {
     const path = await bundle("vue-layout-limits", `
       import { createApp, h } from "vue";
