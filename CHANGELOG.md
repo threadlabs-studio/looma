@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Menu and Popover triggers stop looking pressed after a conditionally mounted overlay closes, including when the consumer controls `aria-expanded`.
+
 - **Breaking:** Looma builds with HTML Next 1.0.0-alpha.58, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.58`. That release names every slot with an identifier and removes computed slot names, so three Looma slots change, and Looma declares 0.30.0:
   - Form Field's `label-action` slot is now `labelAction`. Migrate with `slot="labelAction"` (Vue `#labelAction`).
   - Combobox's per-option slots `option-<id>` become one scoped `option` slot that receives each suggestion as `option`, and its per-item slots `item-<id>` become one scoped `item` slot that receives each chosen item as `item`. Migrate a set of per-id slots to one `<template slot="option">` that reads `$option` (or `<template slot="item">` that reads `$item`), branching on `$option.id` where one option needs different content; Vue uses `#option="{ option }"` and `#item="{ item }"`. In plain HTML, a template with bindings needs HTML Next's live parser on the page.
