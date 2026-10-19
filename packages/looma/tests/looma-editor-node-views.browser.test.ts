@@ -158,6 +158,25 @@ describe("LoomaEditor node views", () => {
     await vi.waitFor(() => expect(links()).toEqual(["Overview", "Details", "Later"]));
     const settings = nav.querySelector<HTMLElement>('[data-component~="ui-icon-button"]')!;
     expect(settings.hidden).toBe(false);
+    // The author tool belongs outside the guide line, not in the title row.
+    expect(settings.getBoundingClientRect().right).toBeLessThan(nav.getBoundingClientRect().left - 12);
+    const icon = settings.querySelector<HTMLElement>('.content')!;
+    await vi.waitFor(() => expect(getComputedStyle(icon).opacity).toBe("0"));
+    expect(Number(getComputedStyle(settings, "::before").opacity)).toBeGreaterThan(0);
+    await userEvent.hover(settings);
+    await vi.waitFor(() => expect(getComputedStyle(icon).opacity).toBe("1"));
+    // Move outside both the trigger and its viewport-clamped hover tooltip.
+    await userEvent.hover(host.querySelector<HTMLElement>('h2')!);
+    await userEvent.click(nav.querySelector<HTMLElement>('strong')!);
+    expect(editor.state.selection).toBeInstanceOf(NodeSelection);
+    await vi.waitFor(() => expect(getComputedStyle(icon).opacity).toBe("1"));
+    const saved = editor.getJSON();
+    settings.focus();
+    await userEvent.keyboard("{Enter}");
+    await vi.waitFor(() => expect(settings.getAttribute("aria-expanded")).toBe("true"));
+    await userEvent.keyboard("{Escape}");
+    await vi.waitFor(() => expect(settings.getAttribute("aria-expanded")).toBe("false"));
+    expect(editor.getJSON()).toEqual(saved);
     editor.setEditable(false);
     await flushBrowser();
     expect(settings.hidden).toBe(true);
