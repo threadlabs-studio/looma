@@ -26,6 +26,8 @@
     <prop name="guide" type="keyword" values="dot, bar" default="dot"
     >The idle marker of an anticipatory button: dot for contextual actions, or a slim neutral rounded bar for a panel-edge control. The icon appears on hover or
       keyboard focus; touch always shows the icon.</prop>
+    <prop name="revealed" type="boolean" default="false"
+    >Keeps an anticipatory button visible while its context is active, such as a selected block or an open popup. It does not imply a pressed or expanded state.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button
@@ -195,13 +197,13 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible) {
+      :host([anticipatory]):not(:host([revealed]), :host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
         background-color: transparent;
         box-shadow: none;
       }
 
-      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)
+      :host([anticipatory]):not(:host([revealed]), :host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)
         .content {
         opacity: 0;
         transform: scale(0.65);
@@ -209,7 +211,7 @@
       }
     }
 
-    :host([anticipatory]):is(:host([variant="solid"]), [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)::before {
+    :host([anticipatory]):is(:host([revealed]), :host([variant="solid"]), [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)::before {
       opacity: 0;
     }
 
