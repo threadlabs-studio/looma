@@ -169,6 +169,7 @@ describe("LoomaEditor node views", () => {
     await userEvent.hover(host.querySelector<HTMLElement>('h2')!);
     await userEvent.click(nav.querySelector<HTMLElement>('strong')!);
     expect(editor.state.selection).toBeInstanceOf(NodeSelection);
+    await userEvent.hover(host.querySelector<HTMLElement>('h2')!);
     await vi.waitFor(() => expect(getComputedStyle(icon).opacity).toBe("1"));
     const saved = editor.getJSON();
     settings.focus();
