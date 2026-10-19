@@ -724,7 +724,7 @@ describe("LoomaEditor collapsible sections", () => {
 describe("LoomaEditor automatic table of contents", () => {
   it("inserts from slash, configures standard dropdowns, and navigates in read-only mode", async () => {
     for (const width of [1280, 375]) {
-      const page = await openEditor("<p></p><h1>Overview</h1><h2>Details</h2><h3>Deep detail</h3>", "sticky", false, { hasTouch: width === 375, viewport: { width, height: 760 } });
+      const page = await openEditor("<p></p><h1>Overview</h1><h2>Details</h2><h3>Deep detail</h3>", "sticky", false, { hasTouch: width === 375, reducedMotion: width === 375 ? "reduce" : "no-preference", viewport: { width, height: 760 } });
       const activate = (control: Locator) => width === 375 ? control.tap() : control.click();
       await page.locator("#app").evaluate(element => { (element as HTMLElement).style.width = "min(720px, 100%)"; });
       await prose(page).locator("p").first().click();
@@ -733,6 +733,15 @@ describe("LoomaEditor automatic table of contents", () => {
       await page.keyboard.press("Enter");
       const nav = prose(page).getByRole("navigation", { name: "Table of contents" });
       await equals(() => nav.getByRole("link").count(), 3, "all headings appear automatically");
+      const trigger = nav.getByRole("button", { name: "Table of contents settings" });
+      const controlBox = (await trigger.boundingBox())!, navBox = (await nav.boundingBox())!;
+      assert.ok(controlBox.x >= 0 && controlBox.x + controlBox.width < navBox.x - 12, "settings fit outside the guide line");
+      if (width === 375) {
+        await equals(style(trigger.locator(".content"), "opacity"), "1", "touch exposes the gear");
+        assert.equal(await style(trigger.locator(".content"), "transition-duration")(), "0s", "reduced motion removes the reveal animation");
+      }
+      await mkdir(join(root, "../../.context"), { recursive: true });
+      await page.screenshot({ animations: "disabled", path: join(root, `../../.context/toc-gutter-${width}.png`) });
       await activate(nav.getByRole("button", { name: "Table of contents settings" }));
       const settings = page.locator(':is([data-component~="ui-popover"], .ui-popover)[aria-label="Table of contents settings"]');
       await activate(settings.getByRole("button", { name: "Formatting", exact: true }));

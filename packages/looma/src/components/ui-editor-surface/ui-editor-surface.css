@@ -1,9 +1,28 @@
 /* The editor surface owns its renderer canvas. Existing hooks retain their defaults. */
+/* Native TOC wrappers position the composed control beyond the active-block guide.
+   The IconButton itself owns its dot, motion, focus and touch treatment. */
+.looma-editor .ProseMirror nav[data-looma-toc] {
+  position: relative;
+}
+
+.looma-editor .ProseMirror [data-looma-toc-gutter] {
+  position: absolute;
+  inset-block-start: calc(-1 * var(--ui-space-1));
+  inset-inline-end: calc(100% + var(--ui-editor-active-block-offset, var(--ui-space-3)) + var(--ui-space-1));
+  display: flex;
+}
+
+/* Default canvases reserve the author gutter; consumers with their own outer
+   gutter retain their explicit content-padding hook. Compact readers need none. */
+.looma-editor .ProseMirror:has([data-looma-toc-gutter]:not([hidden])) {
+  --_ui-editor-toc-gutter: calc(var(--ui-space-6) + var(--ui-space-4));
+}
+
 :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
   min-height: var(--ui-editor-content-min-height, var(--_ui-editor-content-min-height, 300px));
   padding:
     var(--ui-editor-content-padding-block, var(--_ui-editor-content-padding-block, var(--ui-space-4)))
-    var(--ui-editor-content-padding-inline, var(--_ui-editor-content-padding-inline, var(--ui-space-6)));
+    var(--ui-editor-content-padding-inline, var(--_ui-editor-content-padding-inline, var(--_ui-editor-toc-gutter, var(--ui-space-6))));
   outline: none;
   color: var(--ui-editor-content-color, var(--ui-text-primary));
   caret-color: var(--ui-editor-caret-color, var(--ui-accent-solid));
