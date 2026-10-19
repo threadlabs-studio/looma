@@ -46,6 +46,26 @@ mixes kinds of result, such as people, businesses, and places:
   `value-change`, `items-change`, and the other item events. An option without them reports the same shape as
   before.
 
+## Custom option and item content
+
+To draw every suggestion your own way, give one `<template slot="option">`; it reads the suggestion
+as `$option`, with the same `id`, `value`, `label`, `description`, `tag`, `disabled`, and `selected`
+fields the item events report. In `multiple` mode, one `<template slot="item">` draws each chosen
+item in place of its badge, reading it as `$item`. The option stays the listbox's `option` and keeps
+its keyboard and selection behaviour.
+
+```html
+<ui-combobox label="Owner" multiple>
+  <option value="riley" data-description="Harbor Supply Co.">Riley Kim</option>
+  <template slot="option"><strong>{$option.label}</strong> {$option.description}</template>
+  <template slot="item">{$item.label}</template>
+</ui-combobox>
+```
+
+In plain HTML, a template with bindings needs HTML Next's live parser on the page
+(`lowerDocument()` or `observeDocument()` from `@nextwebwg/html-next/live`). Vue receives the
+same slots as `#option="{ option }"` and `#item="{ item }"`.
+
 ## Server search
 
 When the application searches on the server as the user types and renders the results as options,

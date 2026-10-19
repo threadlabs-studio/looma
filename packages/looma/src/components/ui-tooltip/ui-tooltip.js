@@ -137,6 +137,8 @@ function connect(host) {
     }
     trigger.addEventListener("focusin", onFocusin);
     trigger.addEventListener("focusout", onFocusout);
+    // A trigger that already had focus sent its focusin before this listener; treat it as arriving now.
+    onFocusin();
   };
   const ids = createIdResolver(document, () => {
     lastFor = undefined;

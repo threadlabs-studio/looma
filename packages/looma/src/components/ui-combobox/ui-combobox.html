@@ -187,6 +187,20 @@
             <prop name="index" required type="integer"></prop>
             <prop name="labelledBy" required nullable type="string"></prop>
             <prop name="detail" required nullable type="string"></prop>
+            <prop name="option" required type="object">
+              <prop name="id" required type="string"></prop>
+              <prop name="value" required type="string"></prop>
+              <prop name="label" required type="string"></prop>
+              <prop name="group" type="string"></prop>
+              <prop name="disabled" type="boolean"></prop>
+              <prop name="description" type="string"></prop>
+              <prop name="tag" type="object">
+                <prop name="label" required type="string"></prop>
+                <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+                <prop name="color" type="string"></prop>
+              </prop>
+              <prop name="selected" type="boolean"></prop>
+            </prop>
           </prop>
         </prop>
       </prop>
@@ -371,6 +385,37 @@
       </prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
+    <slot name="item">
+      <prop name="item" type="object" required>A chosen item in a multiple combobox: replaces its default badge.
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+    </slot>
+    <slot name="option">
+      <prop name="option" type="object" required>A suggestion in the list: replaces its default label, description and tag.
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+        <prop name="selected" type="boolean"></prop>
+      </prop>
+    </slot>
   </defs>
   <div>
     <label from:for="concat($uid, '-input')" class:sr-only="$labelVisibility = 'sr-only'">{$label}<template $if="$required">
@@ -390,7 +435,7 @@
               from:disabled="$disabled or $readonly or $item.disabled"
               from:aria-label="concat($item.label, ', press Delete or Backspace to remove')"
             >
-              <slot from:name="concat('item-', $item.id)"><ui-badge>{$item.label}</ui-badge></slot>
+              <slot name="item" from:item="$item"><ui-badge>{$item.label}</ui-badge></slot>
             </button>
           </template>
           <input
@@ -485,7 +530,7 @@
             from:aria-labelledby="$row.labelledBy"
             from:aria-describedby="$row.detail"
           >
-            <slot from:name="concat('option-', $row.id)">
+            <slot name="option" from:option="$row.option">
               <span $if="$row.detail" class="detail">
                 <span class="line">
                   <span class="primary" from:id="concat($uid, '-option-', $row.index, '-label')">{$row.label}</span>

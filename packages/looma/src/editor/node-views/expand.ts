@@ -1,5 +1,5 @@
 import type { NodeViewRenderer } from "@tiptap/core";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiButton } from "@threadlabs/looma/vanilla/UiButton.js";
 import { createUiCheckbox } from "@threadlabs/looma/vanilla/UiCheckbox.js";
 import { createUiCluster } from "@threadlabs/looma/vanilla/UiCluster.js";
@@ -36,7 +36,7 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
   const disclosure: HTMLElement = createUiDisclosure({ summary: node.attrs.summary, open: expanded, density: "compact", children: [contentDOM] });
   const setExpanded = (open: boolean) => {
     expanded = open;
-    updateComponentProps(disclosure, { summary: current.attrs.summary, open });
+    componentRegistry.update(disclosure, { summary: current.attrs.summary, open });
   };
   // A section nested in this one's body bubbles its own open and close through this Disclosure.
   disclosure.addEventListener("open", (event) => { if (event.target === disclosure) setExpanded(true); });
@@ -45,7 +45,7 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
   const summary: HTMLElement = createUiInput({ size: "sm", value: draft.summary, attributes: { id: `${id}-summary` } });
   summary.addEventListener("input", () => {
     draft.summary = (summary as HTMLInputElement).value;
-    updateComponentProps(summary, { value: draft.summary });
+    componentRegistry.update(summary, { value: draft.summary });
   });
   const label = document.createElement("label");
   label.htmlFor = `${id}-summary`;
@@ -53,7 +53,7 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
   const initiallyExpanded: HTMLElement = createUiCheckbox({ checked: draft.open, children: ["Initially expanded"] });
   initiallyExpanded.addEventListener("change", (event) => {
     draft.open = (event as CustomEvent<{ checked: boolean }>).detail.checked;
-    updateComponentProps(initiallyExpanded, { checked: draft.open });
+    componentRegistry.update(initiallyExpanded, { checked: draft.open });
   });
   const cancel: HTMLElement = createUiButton({ variant: "ghost", tone: "neutral", size: "sm", children: ["Cancel"] });
   const save: HTMLElement = createUiButton({ variant: "solid", size: "sm", children: ["Save"] });
@@ -66,13 +66,13 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
       element(createUiCluster({ justify: "end", gap: "xs", children: [cancel, save] })),
     ] }))],
   });
-  const setSettingsOpen = (open: boolean) => updateComponentProps(popover, { open });
+  const setSettingsOpen = (open: boolean) => componentRegistry.update(popover, { open });
   popover.addEventListener("open", (event) => {
     if (event.target !== popover) return;
     draft.summary = String(current.attrs.summary);
     draft.open = Boolean(current.attrs.open);
-    updateComponentProps(summary, { value: draft.summary });
-    updateComponentProps(initiallyExpanded, { checked: draft.open });
+    componentRegistry.update(summary, { value: draft.summary });
+    componentRegistry.update(initiallyExpanded, { checked: draft.open });
     setSettingsOpen(true);
   });
   popover.addEventListener("close", (event) => { if (event.target === popover) setSettingsOpen(false); });

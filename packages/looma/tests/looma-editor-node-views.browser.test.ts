@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, shallowRef, type App } from "vue";
@@ -75,13 +75,13 @@ describe("LoomaEditor node views", () => {
     expect(editor.state.selection).toBeInstanceOf(NodeSelection);
 
     // While connected, a prop update renders at once; once ProseMirror removes the node, it waits.
-    updateComponentProps(divider, { emphasis: "strong" });
+    componentRegistry.update(divider, { emphasis: "strong" });
     await vi.waitFor(() => expect(state(divider).split(" ")).toContain("emphasis=strong"));
     editor.commands.deleteSelection();
     await flushBrowser();
     expect(divider.isConnected).toBe(false);
     const before = state(divider);
-    updateComponentProps(divider, { emphasis: "normal", selectable: false });
+    componentRegistry.update(divider, { emphasis: "normal", selectable: false });
     await flushBrowser();
     expect(state(divider)).toBe(before);
   });
@@ -107,7 +107,7 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(callout.isConnected).toBe(false);
     // The prop record is written at once; rendering the heading waits for a connection that never comes.
-    updateComponentProps(callout, { heading: "Late" });
+    componentRegistry.update(callout, { heading: "Late" });
     await flushBrowser();
     expect(callout.querySelector(".heading")?.textContent ?? "").toBe("");
   });
@@ -128,7 +128,7 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(disclosure.isConnected).toBe(false);
     const summary = disclosure.textContent;
-    updateComponentProps(disclosure, { summary: "Late" });
+    componentRegistry.update(disclosure, { summary: "Late" });
     await flushBrowser();
     expect(disclosure.textContent).toBe(summary);
   });
@@ -195,7 +195,7 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(list.isConnected).toBe(false);
     const state = list.getAttribute("data-ui-list-state");
-    updateComponentProps(list, { markers: "disc" });
+    componentRegistry.update(list, { markers: "disc" });
     await flushBrowser();
     expect(list.getAttribute("data-ui-list-state")).toBe(state);
   });
@@ -214,7 +214,7 @@ describe("LoomaEditor node views", () => {
     await flushBrowser();
     expect(image.isConnected).toBe(false);
     const before = image.getAttribute("data-ui-image-state");
-    updateComponentProps(image, { resizable: false, selected: false });
+    componentRegistry.update(image, { resizable: false, selected: false });
     await flushBrowser();
     expect(image.getAttribute("data-ui-image-state")).toBe(before);
   });
