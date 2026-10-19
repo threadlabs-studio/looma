@@ -1,6 +1,6 @@
 import type { NodeViewRenderer } from "@tiptap/core";
 import { DOMSerializer } from "@tiptap/pm/model";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiButton } from "@threadlabs/looma/vanilla/UiButton.js";
 import { createUiAffordanceScope } from "@threadlabs/looma/vanilla/UiAffordanceScope.js";
 import { createUiCluster } from "@threadlabs/looma/vanilla/UiCluster.js";
@@ -82,7 +82,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
   const showDraft = () => {
     for (const field of ["format", "depth"] as const) {
       choices[field]?.replaceChildren(choiceLabel(field, draft));
-      for (const [value, item] of items[field]) updateComponentProps(item, { checked: String(draft[field]) === value });
+      for (const [value, item] of items[field]) componentRegistry.update(item, { checked: String(draft[field]) === value });
     }
   };
   const dropdown = (field: "format" | "depth") => {
@@ -121,7 +121,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
   // Popover reports its open state, and the view echoes it so Cancel and Save can close it.
   const setSettingsOpen = (open: boolean) => {
     settingsOpen = open;
-    updateComponentProps(popover, { open });
+    componentRegistry.update(popover, { open });
     revealSettings();
   };
   // A nested Menu's open and close bubble through the popover too; only the popover's own count.
@@ -139,7 +139,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
     label: "Table of contents settings", variant: "ghost", tone: "neutral", size: "sm", anticipatory: true,
     attributes: { id }, children: [element(createUiIcon({ name: "settings", tone: "secondary" }))],
   }));
-  const revealSettings = () => updateComponentProps(settingsButton, { revealed: selected || hovered || settingsOpen });
+  const revealSettings = () => componentRegistry.update(settingsButton, { revealed: selected || hovered || settingsOpen });
   const tooltip = element(createUiTooltip({ for: id, children: ["Table of contents settings"] }));
 
   const nav = document.createElement("nav");

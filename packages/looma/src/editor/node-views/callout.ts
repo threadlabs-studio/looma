@@ -1,6 +1,6 @@
 import type { NodeViewRenderer } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiCallout } from "@threadlabs/looma/vanilla/UiCallout.js";
 
 const calloutProps = (node: ProseMirrorNode) => ({ tone: node.attrs.tone, heading: node.attrs.heading || undefined });
@@ -25,7 +25,7 @@ export const calloutNodeView: NodeViewRenderer = ({ node }) => {
       if (next.type !== current.type) return false;
       current = next;
       // ProseMirror owns this element's lifetime, so the node view sets its props as a framework adapter does.
-      updateComponentProps(callout, calloutProps(next));
+      componentRegistry.update(callout, calloutProps(next));
       return true;
     },
     ignoreMutation: (mutation) => mutation.type !== "selection" && !contentDOM.contains(mutation.target),

@@ -3,7 +3,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import type { Decoration } from "@tiptap/pm/view";
 import { closeHistory } from "@tiptap/pm/history";
 import { NodeSelection } from "@tiptap/pm/state";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiImage } from "@threadlabs/looma/vanilla/UiImage.js";
 import { normalizeImagePlacement } from "../extensions/image";
 import { element } from "./element";
@@ -51,7 +51,7 @@ export const imageNodeView: NodeViewRenderer = ({ editor, node, getPos, decorati
   // ProseMirror owns this element's lifetime, so the view sets its props as a framework adapter does.
   const render = () => {
     writeMedia(current.attrs);
-    updateComponentProps(dom, props(current));
+    componentRegistry.update(dom, props(current));
   };
   dom.addEventListener("click", (event) => {
     if ((event.target as Element).closest("button")) return;

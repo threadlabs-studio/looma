@@ -1,14 +1,14 @@
 <script type="module">
   import "@threadlabs/looma";
-  import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+  import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
   const button = document.querySelector("#docs-save-changes");
   button.addEventListener("click", async () => {
-    updateComponentProps(button, { loading: true });
+    componentRegistry.update(button, { loading: true });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
     } finally {
-      updateComponentProps(button, { loading: false });
+      componentRegistry.update(button, { loading: false });
     }
   });
 </script>

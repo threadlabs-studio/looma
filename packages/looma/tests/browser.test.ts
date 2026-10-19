@@ -157,6 +157,26 @@ describe("Pressed icon controls and circular marks", () => {
     }
   });
 
+  it("opens a tooltip whose trigger already has keyboard focus when it attaches, in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-focused-trigger-tooltip`, adapter === "html" ? `import "@threadlabs/looma";
+        window.attach = () => document.body.insertAdjacentHTML("beforeend", '<ui-tooltip id="hint" for="action">Act now</ui-tooltip>');
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Tooltip } from "@threadlabs/looma/vue";
+        const shown = ref(false);
+        window.attach = () => { shown.value = true; };
+        createApp({ render: () => h("div", [h("button", { id: "action" }, "Act"), shown.value ? h(Tooltip, { id: "hint", for: "action" }, () => "Act now") : null]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<button id="action">Act</button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.keyboard.press("Tab");
+      assert.equal(await page.locator("#action").evaluate(element => element.matches(":focus-visible")), true);
+      await page.evaluate(() => (window as unknown as { attach: () => void }).attach());
+      await page.locator("#hint").waitFor({ state: "visible", timeout: 2_000 });
+      await page.close();
+    }
+  });
+
   it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
@@ -1131,6 +1151,44 @@ describe("Intrinsic layout limits", () => {
       return children.length === 3 && children.every((child) => child.getBoundingClientRect().top === children[0]!.getBoundingClientRect().top);
     });
     assert.equal(new Set(await rows()).size, 1);
+    await page.close();
+  });
+
+  it("lays out slotted components in Switcher, Reel and Cover from their own boxes", async () => {
+    const path = await bundle("html-layout-slotted-components", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-switcher id="switcher" style="width: 1000px">
+        <ui-card>A</ui-card><ui-stack><span>B</span></ui-stack><ui-card>C</ui-card>
+      </ui-switcher>
+      <ui-switcher id="limited" limit="3" style="width: 1000px">
+        <ui-card>A</ui-card><ui-card>B</ui-card><ui-card>C</ui-card><ui-card>D</ui-card>
+      </ui-switcher>
+      <ui-reel id="reel" item-width="sm" aria-label="Items" style="width: 300px">
+        <ui-card>A</ui-card><ui-card>B</ui-card><ui-card>C</ui-card>
+      </ui-reel>
+      <div style="width: 300px; block-size: 20rem; display: flex; flex-direction: column">
+        <ui-cover id="cover" size="fill"><ui-card>Sign in</ui-card><ui-card style="width: 400px">Wide</ui-card></ui-cover>
+      </div>
+    `, [join(root, "tokens.css")]);
+    const boxes = (selector: string) => page.locator(selector).evaluate((element) => Array.from(element.children, (child) => {
+      const { left, top, width } = child.getBoundingClientRect();
+      return { left: Math.round(left), top: Math.round(top), width: Math.round(width) };
+    }));
+    const row = await boxes("#switcher");
+    assert.equal(new Set(row.map((box) => box.top)).size, 1, "a wide Switcher sets its components side by side");
+    assert.equal(new Set(row.map((box) => box.width)).size, 1, "with equal widths");
+    await page.locator("#switcher").evaluate((element) => { element.style.width = "300px"; });
+    const stack = await boxes("#switcher");
+    assert.equal(new Set(stack.map((box) => box.top)).size, 3, "a narrow Switcher stacks its components");
+    assert.ok(stack.every((box) => box.width === 300), JSON.stringify(stack));
+    assert.equal(new Set((await boxes("#limited")).map((box) => box.top)).size, 4, "components above the limit stack");
+    const reel = await boxes("#reel");
+    assert.ok(reel.every((box) => box.width === 192), JSON.stringify(reel));
+    assert.ok(await page.locator("#reel").evaluate((element) => element.scrollWidth > element.clientWidth), "the reel scrolls once its items overflow");
+    const cover = await page.locator("#cover").evaluate((element) => element.getBoundingClientRect().left);
+    const [card, wide] = await boxes("#cover");
+    assert.ok(Math.abs(card!.left - cover - (300 - card!.width) / 2) <= 1, "Cover centres a component");
+    assert.ok(wide!.left >= cover, "a component wider than Cover keeps its start edge in view");
     await page.close();
   });
 
@@ -2535,6 +2593,37 @@ describe("Combobox option modes", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await verify(page);
     await page.close();
+  });
+
+  it("renders each option and chosen item through one scoped slot in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.
+      const path = await bundle(`${adapter}-combobox-scoped-slots`, adapter === "html" ? `
+        import { lowerDocument } from "@nextwebwg/html-next/live";
+        import "@threadlabs/looma";
+        lowerDocument();
+      ` : `
+        import { createApp, h } from "vue";
+        import { Combobox } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", multiple: true, openOnFocus: true, items: [{ id: "apple", value: "apple", label: "Apple" }] }, {
+          default: () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear", "data-description": "Green" }, "Pear")],
+          option: ({ option }) => h("b", { class: "custom-option" }, option.label + (option.description ? " / " + option.description : "")),
+          item: ({ item }) => h("i", { class: "custom-item" }, item.label),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <ui-combobox id="fruit" label="Fruit" multiple open-on-focus items='[{"id":"apple","value":"apple","label":"Apple"}]'>
+          <option value="apple">Apple</option><option value="pear" data-description="Green">Pear</option>
+          <template slot="option"><b class="custom-option">{$option.label}<template $if="$option.description"> / {$option.description}</template></b></template>
+          <template slot="item"><i class="custom-item">{$item.label}</i></template>
+        </ui-combobox>
+      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.locator("#fruit input[role=combobox]").focus();
+      await page.locator("#fruit .custom-option").first().waitFor();
+      assert.deepEqual(await page.locator("#fruit [role=option] .custom-option").allTextContents(), ["Apple", "Pear / Green"], adapter);
+      assert.deepEqual(await page.locator("#fruit .item .custom-item").allTextContents(), ["Apple"], adapter);
+      await page.close();
+    }
   });
 
   it("announces loading and shows an authored empty state when settled in HTML", async () => {
@@ -4610,7 +4699,7 @@ describe("Form field error", () => {
         </ui-form-field>
         <ui-form-field id="action">
           <label slot="label" for="action-input">Price</label>
-          <ui-icon-button slot="label-action" id="action-help" label="Help for Price" variant="ghost" size="sm" round><ui-icon name="help"></ui-icon></ui-icon-button>
+          <ui-icon-button slot="labelAction" id="action-help" label="Help for Price" variant="ghost" size="sm" round><ui-icon name="help"></ui-icon></ui-icon-button>
           <ui-input id="action-input"></ui-input>
         </ui-form-field>
       </ui-grid>`, [join(root, "tokens.css")]);
@@ -7245,9 +7334,9 @@ describe("Vue editor components", () => {
     const actions = ["background-none", "background-gray", "background-yellow"];
     const path = await bundle(`cell-background-${adapter.toLowerCase()}`, adapter === "HTML" ? `
       import "@threadlabs/looma";
-      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.setBackground = value => {
-        for (const id of ["context", "toolbar"]) updateComponentProps(document.getElementById(id), { cellBackground: value });
+        for (const id of ["context", "toolbar"]) componentRegistry.update(document.getElementById(id), { cellBackground: value });
       };
     ` : `
       import { createApp, h, ref } from "vue";
@@ -7927,11 +8016,11 @@ describe("Combobox selectedValues", () => {
   it("follows selectedValues and reports the user's changes in HTML", async () => {
     const path = await bundle("html-combobox-selected-values", `
       import "@threadlabs/looma";
-      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.reports = [];
       const teams = () => document.querySelector("#teams");
       // A rendered component's data-* attributes only record its options; the prop channel sets them.
-      window.setValues = (values) => updateComponentProps(teams(), { selectedValues: values });
+      window.setValues = (values) => componentRegistry.update(teams(), { selectedValues: values });
       document.addEventListener("selected-values-change", (event) => {
         if (event.target !== teams()) return;
         window.reports.push(event.detail.selectedValues);
