@@ -26,6 +26,12 @@ describe("Icon server render", () => {
     ]);
   });
 
+  it("preserves a supporting icon tone without adding text layout", async () => {
+    const html = await render(h(Icon, { name: "settings", tone: "secondary" }));
+    expect(html).toContain('data-ui-icon-prop-tone="secondary"');
+    expect(shapes(html).length).toBeGreaterThan(0);
+  });
+
   it("draws a notification bell before JavaScript runs", async () => {
     const html = await render(h(Icon, { name: "bell" }));
     expect(shapes(html).length).toBeGreaterThan(0);

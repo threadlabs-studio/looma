@@ -22,12 +22,12 @@
     <event name="remove" type="object">Requests removing this link.</event>
   </defs>
   <div>
-    <ui-card variant="elevated" padding="xs" size="content">
+    <ui-card variant="elevated" padding="xs" size="sm">
       <ui-cluster gap="xs" wrap="nowrap" role="group" aria-label="Link actions">
         <ui-icon from:name="{ true: 'file-text', false: 'link' }[concat($resolved)]"></ui-icon>
-        <ui-stack gap="none" from:title="$href" from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)">
-          <ui-text as="strong" size="sm" weight="medium" font="sans" wrap="anywhere">{$shown}</ui-text>
-          <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans">{$detail}</ui-text>
+        <ui-stack gap="none" fill from:title="$href" from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)">
+          <ui-text as="strong" size="sm" weight="medium" font="sans" truncate>{$shown}</ui-text>
+          <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans" truncate>{$detail}</ui-text>
         </ui-stack>
         <template $if="$openHref != ''">
           <ui-button
@@ -40,7 +40,7 @@
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open link"
-          ><ui-cluster gap="xs" wrap="nowrap"><ui-icon name="external-link"></ui-icon>Open link</ui-cluster></ui-button>
+          ><ui-icon name="external-link"></ui-icon></ui-button>
           <ui-tooltip from:for="concat($base, '-open')">Open link</ui-tooltip>
         </template>
         <ui-icon-button from:id="concat($base, '-edit')" label="Edit link" variant="ghost" size="sm" data-link-action="edit"><ui-icon

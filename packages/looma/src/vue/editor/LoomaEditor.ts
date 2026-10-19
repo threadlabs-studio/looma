@@ -1142,7 +1142,6 @@ export const LoomaEditor = defineComponent({
         && !formatting?.dismissed(menuEditor.state.selection)
         && Boolean(menuEditor.isFocused || linkState.value.surface === "context" || linkPopup?.element.contains(document.activeElement))
         && !(props.toolbarMode === "contextual" && floatingFormattingMode() && formattingActive()),
-      maxWidth: () => Math.min(480, window.innerWidth - 24),
       related: editorRoot,
       onDismiss: (reason) => reason === "escape" ? dismissFormatting() : linkPopup?.hide(),
     }));

@@ -1,5 +1,7 @@
 <template component="ui-icon">
   <defs>
+    <prop name="tone" type="keyword" values="inherit, secondary, muted" default="inherit"
+    >Icon colour. inherit follows its control; secondary and muted keep a supporting icon quiet without a text wrapper.</prop>
     <prop name="name" type="string" default=""
     >Which icon to draw, by its name in Looma's icon set (LOOMA_ICONS), such as "align-left". An unknown or empty name draws nothing. The icon is hidden from
       assistive technology, so name the control it sits in.</prop>
@@ -123,6 +125,14 @@
       flex: none;
       inline-size: var(--ui-icon-size, var(--_ui-default-icon-size, 1em));
       block-size: var(--ui-icon-size, var(--_ui-default-icon-size, 1em));
+    }
+
+    :host([tone="secondary"]) {
+      color: var(--ui-text-secondary);
+    }
+
+    :host([tone="muted"]) {
+      color: var(--ui-text-muted);
     }
 
     svg {
