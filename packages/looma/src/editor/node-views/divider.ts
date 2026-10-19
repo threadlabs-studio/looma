@@ -1,6 +1,6 @@
 import type { NodeViewRenderer } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
-import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiSeparator } from "@threadlabs/looma/vanilla/UiSeparator.js";
 
 /**
@@ -14,7 +14,7 @@ export const dividerNodeView: NodeViewRenderer = ({ editor, getPos }) => {
   // The root is a plain element to ProseMirror; its native events are the ones the view listens to.
   const dom: HTMLElement = createUiSeparator({ selectable: editor.isEditable, attributes: { contenteditable: "false" } });
   // ProseMirror owns this element's lifetime, so the node view sets its props as a framework adapter does.
-  const render = () => updateComponentProps(dom, { selectable: editor.isEditable, selected: editor.isEditable && selected });
+  const render = () => componentRegistry.update(dom, { selectable: editor.isEditable, selected: editor.isEditable && selected });
   dom.addEventListener("click", () => {
     const position = getPos();
     if (!editor.isEditable || typeof position !== "number") return;

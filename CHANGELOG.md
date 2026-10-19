@@ -2,6 +2,12 @@
 
 ## Next release
 
+- **Breaking:** Looma builds with HTML Next 1.0.0-alpha.58, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.58`. That release names every slot with an identifier and removes computed slot names, so three Looma slots change, and Looma declares 0.30.0:
+  - Form Field's `label-action` slot is now `labelAction`. Migrate with `slot="labelAction"` (Vue `#labelAction`).
+  - Combobox's per-option slots `option-<id>` become one scoped `option` slot that receives each suggestion as `option`, and its per-item slots `item-<id>` become one scoped `item` slot that receives each chosen item as `item`. Migrate a set of per-id slots to one `<template slot="option">` that reads `$option` (or `<template slot="item">` that reads `$item`), branching on `$option.id` where one option needs different content; Vue uses `#option="{ option }"` and `#item="{ item }"`. In plain HTML, a template with bindings needs HTML Next's live parser on the page.
+  - An additive alias cannot keep the old names: HTML Next 1.0.0-alpha.58 rejects a slot name that is not an identifier, and a computed one, at build time.
+  - Examples and LoomaEditor set component props with `componentRegistry.update`, which replaces HTML Next's `updateComponentProps`.
+
 - Switcher, Reel and Cover lay out components passed into them, such as Card and Stack, as they lay out plain elements. Switcher sets its children on a grid that flips between one equal-width row and a stack at its threshold, and stacks above its limit; Reel gives every child its item width from a column grid; Cover keeps a child wider than itself in view from its start edge. Reel's snap alignment still applies only to plain elements, since a component's root is out of Reel's styling scope.
 
 - Center TOC gutter icons without text baseline spacing, and keep long-link action bars compact on phones. Supporting icons can use a secondary or muted tone without a text wrapper.
