@@ -171,6 +171,14 @@ describe("LoomaEditor node views", () => {
     expect(editor.state.selection).toBeInstanceOf(NodeSelection);
     await userEvent.hover(host.querySelector<HTMLElement>('h2')!);
     await vi.waitFor(() => expect(getComputedStyle(icon).opacity).toBe("1"));
+    await vi.waitFor(() => expect(Math.abs(settings.querySelector("svg")!.getBoundingClientRect().width - 16)).toBeLessThan(0.05));
+    const glyph = settings.querySelector("svg")!.getBoundingClientRect();
+    const control = settings.getBoundingClientRect();
+    const title = nav.querySelector("strong")!.getBoundingClientRect();
+    expect(Math.abs(glyph.height - 16)).toBeLessThan(0.05);
+    expect(Math.abs(glyph.x + glyph.width / 2 - control.x - control.width / 2)).toBeLessThanOrEqual(1);
+    expect(Math.abs(glyph.y + glyph.height / 2 - control.y - control.height / 2)).toBeLessThanOrEqual(1);
+    expect(Math.abs(control.y + control.height / 2 - title.y - title.height / 2)).toBeLessThanOrEqual(1);
     const saved = editor.getJSON();
     settings.focus();
     await userEvent.keyboard("{Enter}");
