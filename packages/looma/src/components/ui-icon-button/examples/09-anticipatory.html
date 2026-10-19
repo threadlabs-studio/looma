@@ -1,0 +1,14 @@
+<!--
+title: Anticipatory context actions
+description: A resting dot reveals the action on proximity, hover or keyboard focus. revealed keeps the action visible while its context is selected, without implying a pressed state. Touch always shows the icon.
+-->
+<ui-affordance-scope>
+  <ui-cluster gap="m">
+    <ui-icon-button label="Settings" anticipatory>
+      <ui-icon name="settings"></ui-icon>
+    </ui-icon-button>
+    <ui-icon-button label="Selected block settings" anticipatory revealed>
+      <ui-icon name="settings"></ui-icon>
+    </ui-icon-button>
+  </ui-cluster>
+</ui-affordance-scope>
