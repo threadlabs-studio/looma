@@ -465,8 +465,8 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(54);
-  await expect(page.getByText("Showing 54 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(55);
+  await expect(page.getByText("Showing 55 components", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Image", exact: true })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
@@ -993,8 +993,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Includes the full-width card action alongside the existing Button examples.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(10);
+  // Includes the full-width card action and the field-height button alongside the other Button examples.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(11);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
@@ -1358,7 +1358,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const comboboxes = page.locator(":is([data-component~='ui-combobox'], .ui-combobox)");
-  await expect(comboboxes).toHaveCount(10);
+  await expect(comboboxes).toHaveCount(11);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
   await comboboxes.nth(0).evaluate((element) => {
@@ -2084,7 +2084,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
 test("every callout tone renders its icon without an empty oversized indent", async ({ page }) => {
   await page.goto("components/ui-callout", { waitUntil: "domcontentloaded" });
   const callouts = page.locator("[data-preview-scenario] :is([data-component~='ui-callout'], .ui-callout)");
-  await expect(callouts).toHaveCount(5);
+  await expect(callouts).toHaveCount(8);
   const treatments = await callouts.evaluateAll((roots) => roots.map((root) => {
     const surface = root;
     const content = root.querySelector(".content")!;
