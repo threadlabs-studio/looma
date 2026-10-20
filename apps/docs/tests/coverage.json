@@ -699,6 +699,11 @@
           "id": "01-menu",
           "title": "Block actions",
           "behavior": false
+        },
+        {
+          "id": "02-above",
+          "title": "Above its button",
+          "behavior": false
         }
       ]
     },
@@ -712,6 +717,11 @@
           "id": "01-chip",
           "title": "Chip",
           "behavior": false
+        },
+        {
+          "id": "02-new-chip",
+          "title": "New chip",
+          "behavior": false
         }
       ]
     },
@@ -724,6 +734,11 @@
         {
           "id": "01-languages",
           "title": "Languages",
+          "behavior": false
+        },
+        {
+          "id": "02-auto",
+          "title": "Auto",
           "behavior": false
         }
       ]
@@ -1758,6 +1773,11 @@
         {
           "id": "01-tones",
           "title": "Tones",
+          "behavior": false
+        },
+        {
+          "id": "02-none-chosen",
+          "title": "None chosen",
           "behavior": false
         }
       ]
