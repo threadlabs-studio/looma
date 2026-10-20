@@ -107,10 +107,13 @@ await writeFile(join(assembled, "tsconfig.json"), JSON.stringify({
 execFileSync(join(root, "node_modules/.bin/vue-tsc"), ["-p", join(assembled, "tsconfig.json")], { stdio: "inherit" });
 // Declarations describe the compiled modules (UiButton.js, UiButton.d.ts); the .vue sources ship
 // beside them for reference and are not what TypeScript or bundlers resolve.
+// They import their prop types from HTML Next's props helper, which ships as a declaration beside them.
 for (const name of names) {
-  await cp(join(assembled, "types/vue", `${name}.vue.d.ts`), join(root, "vue", `${name}.d.ts`));
+  const types = await readFile(join(assembled, "types/vue", `${name}.vue.d.ts`), "utf8");
+  await writeFile(join(root, "vue", `${name}.d.ts`), types.replaceAll("from './props'", "from './props.js'"));
   await cp(join(vueSource, `${name}.vue`), join(root, "vue", `${name}.vue`));
 }
+await cp(join(assembled, "types/vue/props.d.ts"), join(root, "vue/props.d.ts"));
 // The controller host and event dispatcher every component shares; the .vue sources import it.
 // HTML Next emits it only when a component has a controller.
 await cp(join(vueSource, "host.ts"), join(root, "vue/host.ts")).catch((error) => {
