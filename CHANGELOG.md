@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.63, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.63`. Declarations drop the removed `nullable` attribute: a value that may be missing is now an optional prop or field, and a missing value reads as null. Tree Item chooses between its Cancel button and its actions slot with `$match`, because `$if` has no else branch. Runtime behavior is unchanged, but the generated TypeScript declarations change in two ways:
+  - Combobox's `value-change`, `free-entry` and `create-entry` details declare `value` and `option` as optional (`value?: string | null`), not required `string | null`. Listbox's `value` prop and Editor Table Overlay's `geometry.activeCell` are optional in the same way. The events still carry `value: null` and `option: null` when nothing is chosen, so code that compares with `null` keeps working; code that assigns them to a `string | null` variable needs `?? null`.
+  - Optional fields of object props and event details, such as an option's `group`, `description` and `tag`, also accept `null`, as HTML Next now treats a null field as missing. The Vue declarations import these types from `vue/props.d.ts`, which ships with the package.
+
 - Expressive Markdown exports keep ordinary brackets, intraword underscores and at signs readable, while preserving literal syntax on import.
 
 - Menu and Popover triggers stop looking pressed after a conditionally mounted overlay closes, including when the consumer controls `aria-expanded`.
