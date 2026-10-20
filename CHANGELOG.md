@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.66, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.66`.
+
 - Looma builds with HTML Next 1.0.0-alpha.65, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.65`. Server-rendered pages carry each component as `<template carrier="ui-…">` in place of the `<?carrier?>` processing instruction; no Looma component authors a `carrier` attribute.
 
 - Looma builds with HTML Next 1.0.0-alpha.64, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.64`.
