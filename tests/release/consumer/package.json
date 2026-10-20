@@ -9,7 +9,7 @@
     "verify:ssr": "tsc -p tsconfig.json --noEmit false --outDir dist && node dist/index.js"
   },
   "dependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.59",
+    "@nextwebwg/html-next": "1.0.0-alpha.63",
     "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.6.5.tgz",
     "@tiptap/core": "^2.27.2",
     "@tiptap/pm": "^2.27.2",
