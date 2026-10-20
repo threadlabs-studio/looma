@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 
 describe("Expressive Markdown editor documents", () => {
+  it("exports literal punctuation without unnecessary escapes and retains its meaning", () => {
+    const literal = "Range [-1, 1]; array[index]; user_id; a@word; a@[Ada]; (@ada).";
+    const document = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: literal }] }] };
+    const markdown = editorDocumentToMarkdown(document);
+    expect(markdown.trim()).toBe(literal);
+    expect(markdownToEditorDocument(markdown)).toEqual(document);
+
+    const syntax = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "**literal** @ada [label](./file.md)" }] }] };
+    expect(markdownToEditorDocument(editorDocumentToMarkdown(syntax))).toEqual(syntax);
+  });
+
   it("keeps rich semantic content in independent AST fields without a browser", () => {
     const content = { type: "doc", content: [
       { type: "loomaCallout", attrs: { tone: "warning", heading: "Read first" }, content: [
