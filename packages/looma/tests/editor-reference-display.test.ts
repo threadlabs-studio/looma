@@ -114,6 +114,6 @@ it("uses cached names in live TOCs and serializes their concrete entries", () =>
   setReferenceDisplay(editor, { "link:guide": { label: "Renamed" } });
   expect(editor.view.dom.querySelector('nav a[href="#stable"]')?.textContent).toBe("Renamed");
   const markdown = editorToMarkdown(editor);
-  expect(markdown).toContain('[Renamed](<#stable>)');
+  expect(markdown).toContain('[Renamed](#stable)');
   expect(editor.getJSON().content?.[0]?.content).toBeUndefined();
 });
