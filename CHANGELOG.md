@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.65, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.65`. Server-rendered pages carry each component as `<template carrier="ui-…">` in place of the `<?carrier?>` processing instruction; no Looma component authors a `carrier` attribute.
+
 - Looma builds with HTML Next 1.0.0-alpha.64, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.64`.
 
 - Looma builds with HTML Next 1.0.0-alpha.63, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.63`. Declarations drop the removed `nullable` attribute: a value that may be missing is now an optional prop or field, and a missing value reads as null. Tree Item chooses between its Cancel button and its actions slot with `$match`, because `$if` has no else branch. Runtime behavior is unchanged, but the generated TypeScript declarations change in two ways:
