@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Expressive Markdown exports keep ordinary brackets, intraword underscores and at signs readable, while preserving literal syntax on import.
+
 - Menu and Popover triggers stop looking pressed after a conditionally mounted overlay closes, including when the consumer controls `aria-expanded`.
 
 - **Breaking:** Looma builds with HTML Next 1.0.0-alpha.58, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.58`. That release names every slot with an identifier and removes computed slot names, so three Looma slots change, and Looma declares 0.30.0:
