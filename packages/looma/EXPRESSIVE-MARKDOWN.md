@@ -32,6 +32,11 @@ See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and
 
 ## Conversion behavior
 
+Ordinary punctuation stays readable: ranges such as `[-1, 1]`, `array[index]`,
+`user_id` and `a@word` do not need backslashes. The shared writer escapes text
+only when its context would interpret it as syntax. Mentions start at the
+beginning of a line or after whitespace; embedded at signs remain literal.
+
 Headings, text formatting, links, images, lists, tasks, quotes, code, callouts,
 disclosures, figures, tabs, chips, mentions and tables map to their semantic AST
 nodes. Mention targets become `ref`; chips keep their `tone`; merged table cells
