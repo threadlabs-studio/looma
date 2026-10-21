@@ -275,7 +275,7 @@ menu provides insertion choices. This keeps block actions reachable without a ho
 
 Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts headings,
 Info, Note, and Warning callouts, bullet, numbered, and checklist lists, blockquote, a clickable
-inline chip, inline and block code, table, divider, and image. Markdown-style typing works too:
+inline chip, footnote, inline and block code, table, divider, and image. Markdown-style typing works too:
 `#` for headings, `-` for bullets, `[ ]` for a checklist, and `---` for a divider.
 
 **Chip** inserts an inline label without splitting its paragraph. Choosing `/chip` opens a focused
@@ -286,6 +286,17 @@ into one chip or inserts an empty one at the caret. Chips are atomic editor node
 HTML and plain-text copy. Their borders sit between the soft fill and the stronger theme tone;
 hosts can override surface, border, text, and font size with `--ui-editor-chip-*`
 tokens. Plain pasted HTML spans do not turn into chips.
+
+**Footnote** inserts a numbered reference at the caret and an empty note at the end of the
+document, and moves the caret into the note (`editor.commands.insertLoomaFootnote()`, or
+<kbd>Mod</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>). Typing or pasting `[^label]` makes a reference too, with a
+note for a new label. Notes are numbered by first reference and kept in that order on every edit;
+deleting a note's last reference removes the note. Click a reference to open its
+[footnote editor](/components/ui-editor-footnote-editor): it shows the note, edits a note of plain
+text in place, and renames the label on the note and every reference to it. **Go to note** moves the
+caret to the end of the note, and <kbd>Mod</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> moves between a
+reference and its note (`editor.commands.goToLoomaFootnote()`). The saved HTML is the HTML Looma
+Markdown renders for the same document.
 
 ## Pasting documents
 

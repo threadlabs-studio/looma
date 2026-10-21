@@ -33,7 +33,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 82);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 83);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
@@ -257,7 +257,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "choose", "clear", "color", "delete", "describe", "destination", "dismiss", "done", "edit", "highlight", "insert", "label", "language", "new-tab", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "save", "select", "select-column", "select-row", "text"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "choose", "clear", "color", "delete", "describe", "destination", "dismiss", "done", "edit", "go", "highlight", "insert", "label", "language", "new-tab", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "save", "select", "select-column", "select-row", "text"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

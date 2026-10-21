@@ -15,6 +15,7 @@ export {
   EditorBlockActions,
   EditorChipEditor,
   EditorCodeLanguage,
+  EditorFootnoteEditor,
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
@@ -52,6 +53,7 @@ export interface VueEditorAdapterEventMap {
   label: { label: string };
   color: { color: "neutral" | "blue" | "green" | "yellow" | "red" | "purple" };
   done: Record<string, never>;
+  go: Record<string, never>;
   "add-row-before": { boundaryIndex: number };
   "add-row-after": { boundaryIndex: number };
   "add-column-before": { boundaryIndex: number };
@@ -81,4 +83,5 @@ export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorBlockActions: "ui-editor-block-actions",
   EditorCodeLanguage: "ui-editor-code-language",
   EditorChipEditor: "ui-editor-chip-editor",
+  EditorFootnoteEditor: "ui-editor-footnote-editor",
 } as const;

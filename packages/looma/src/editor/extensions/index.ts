@@ -22,7 +22,7 @@ export {
 export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./expand";
 export { LoomaFigcaption, LoomaFigure } from "./figure";
-export { LoomaFootnote, LoomaFootnoteReference, LoomaFootnotes } from "./footnote";
+export { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL, LoomaFootnote, LoomaFootnoteReference, LoomaFootnotes } from "./footnote";
 export { LoomaTab, LoomaTabs } from "./tabs";
 export {
   LoomaTableOfContents,

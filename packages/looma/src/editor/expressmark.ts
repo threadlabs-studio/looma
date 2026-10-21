@@ -210,7 +210,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       fields(node, ["label", "number", "occurrence"], path);
       return { type: "inline", subType: "footnote", value: string(attrs.label) };
     case "loomaFootnotes": return block("container", [], { subType: "footnotes" });
-    case "loomaFootnote": return block("container", ["label"], { subType: "footnote", title: title(string(attrs.label)) });
+    case "loomaFootnote": return block("container", ["label", "count"], { subType: "footnote", title: title(string(attrs.label)) });
     case "loomaCallout":
       return block("container", ["tone", "heading"], { subType: string(attrs.tone, "note"), ...(attrs.heading ? { title: title(string(attrs.heading)) } : {}) });
     case "loomaExpand":
