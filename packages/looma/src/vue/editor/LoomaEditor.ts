@@ -1786,6 +1786,7 @@ export const LoomaEditor = defineComponent({
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
               class: "looma-editor__formatting-popover",
+              bare: true,
               role: "region",
               "aria-label": "Formatting tools",
               open: props.toolbarOpen,
@@ -1934,6 +1935,7 @@ export const LoomaEditor = defineComponent({
         }, () => linkState.value.surface === "popover" ? renderLinkForm() : null),
         props.editable && props.compactToolbar && !mobile.value ? h(Popover, {
           class: "looma-editor__compact-formatting", for: formatAnchorId,
+          bare: true,
           open: formatOpen.value, placement: "bottom-start",
           onOpen: () => { formatOpen.value = true; },
           onClose: () => { formatOpen.value = false; },

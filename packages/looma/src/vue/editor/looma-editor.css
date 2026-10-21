@@ -309,15 +309,6 @@
   background: transparent;
 }
 
-/* The floating toolbar supplies the surface; the containing popover only
-   positions it beside the app-owned trigger. */
-.looma-editor__formatting-popover {
-  --ui-popover-padding: 0;
-  --ui-popover-surface: transparent;
-  --ui-popover-border: transparent;
-  --ui-popover-shadow: none;
-}
-
 .looma-editor__chip-popover {
   inline-size: min(15rem, calc(100vw - 2rem));
 }
