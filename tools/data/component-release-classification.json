@@ -161,6 +161,12 @@
       "group": "editor",
       "description": "The editor's chip editor: a field for the chip's text and swatches for its colour."
     },
+    "ui-editor-footnote-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The editor's footnote editor: a field for the footnote's label and a field for its note."
+    },
     "ui-editor-code-language": {
       "status": "published",
       "package": "@threadlabs/looma",
