@@ -2,6 +2,9 @@
 
 ## Next release
 
+- Keep inline table controls within the document so wheel scrolling over row and column drag handles continues scrolling the page. Use one sticky table toolbar below the table, with its full controls visible when space permits; dropdown menus retain top-layer placement.
+- Respect the inherited `--ui-tooltip-show-delay` setting for pointer hints, including column resizing and editor toolbars; explicit tooltip delays still take precedence.
+
 - LoomaEditor edits footnotes. `/footnote`, `editor.commands.insertLoomaFootnote()` and Mod+Alt+F insert a reference at the caret with an empty note, and move the caret into the note; typing or pasting `[^label]` makes a reference, with a note for a new label. Notes are numbered again on every edit by first reference and kept in that order at the end of the document, a note goes when its last reference is deleted, and a cut reference pasted back gets its note again. `renameLoomaFootnote(from, to)` relabels a note and every reference to it, and `goToLoomaFootnote()` (Mod+Alt+N) moves the caret between a reference and its note. The saved HTML is Looma Markdown's: notes carry their back-links, and numbers follow the document. Pasted Markdown footnotes join the document's notes.
 
 - Footnote Editor (`ui-editor-footnote-editor`, Vue `EditorFootnoteEditor`) is the editor's footnote popover, opened by clicking a footnote reference: a label field that renames the footnote, a note field that edits a note of plain text and shows a formatted one read-only, and Go to note. It reports `text`, `label`, `go` and `done`.
