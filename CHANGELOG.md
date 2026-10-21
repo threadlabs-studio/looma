@@ -2,6 +2,7 @@
 
 ## Next release
 
+- Keep floating editor toolbar shadows unclipped and show expanded formatting in one surface. Popover's additive `bare` option lets content supply its own surface.
 - Keep inline table controls within the document so wheel scrolling over row and column drag handles continues scrolling the page. Use one sticky table toolbar below the table, with its full controls visible when space permits; dropdown menus retain top-layer placement.
 - Respect the inherited `--ui-tooltip-show-delay` setting for pointer hints, including column resizing and editor toolbars; explicit tooltip delays still take precedence.
 
