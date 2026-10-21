@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Alert dialogs use the same outer top, side and bottom inset. Their header no longer retains the smaller top inset that accounts for a regular dialog’s close button. Regular dialogs are unchanged.
+
 - Looma builds with HTML Next 1.0.0-alpha.67, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.67`.
 
 - Looma builds with HTML Next 1.0.0-alpha.66, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.66`.

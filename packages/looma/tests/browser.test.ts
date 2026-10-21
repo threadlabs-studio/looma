@@ -2013,11 +2013,11 @@ describe("Menu structure and navigation", () => {
 
 describe("Dialog close policy and presentation", () => {
   for (const adapter of ["html", "vue"]) {
-    it(`keeps ${adapter} dialog content inset and actions equally padded with early or late CSS`, async () => {
-      const path = await bundle(`${adapter}-dialog-spacing`, adapter === "html" ? `import "@threadlabs/looma";` : `
+    for (const alert of [false, true]) it(`keeps ${adapter} ${alert ? "alert" : "regular"} dialog content inset and actions equally padded with early or late CSS`, async () => {
+      const path = await bundle(`${adapter}-${alert ? "alert" : "regular"}-dialog-spacing`, adapter === "html" ? `import "@threadlabs/looma";` : `
         import { createApp, h } from "vue";
         import { Button, Dialog } from "@threadlabs/looma/vue";
-        createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Publish changes?" }, {
+        createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, alert: ${alert}, label: "Publish changes?" }, {
           default: () => h("p", { id: "message" }, "Your edits will be visible to everyone with access to this project."),
           actions: () => [h(Button, { variant: "outline" }, () => "Cancel"), h(Button, {}, () => "Publish")],
         }) }).mount("#app");
@@ -2026,7 +2026,7 @@ describe("Dialog close policy and presentation", () => {
       for (const width of [1024, 375]) {
         for (const late of [false, true]) {
           const page = await open(path, adapter === "html" ? `
-            <ui-dialog id="dialog" open modal label="Publish changes?">
+            <ui-dialog id="dialog" open modal ${alert ? "alert" : ""} label="Publish changes?">
               <p id="message">Your edits will be visible to everyone with access to this project.</p>
               <ui-button slot="actions" variant="outline">Cancel</ui-button><ui-button slot="actions">Publish</ui-button>
             </ui-dialog>
@@ -2042,6 +2042,7 @@ describe("Dialog close policy and presentation", () => {
             const action = footer.lastElementChild!.getBoundingClientRect();
             const body = element.querySelector(".body")!.getBoundingClientRect();
             return {
+              titleTop: title.top - rect.top - parseFloat(style.borderTopWidth),
               left: message.left - rect.left - parseFloat(style.borderLeftWidth),
               right: rect.right - message.right - parseFloat(style.borderRightWidth),
               title: title.left - rect.left - parseFloat(style.borderLeftWidth),
@@ -2056,6 +2057,7 @@ describe("Dialog close policy and presentation", () => {
           near(geometry.left, geometry.gutter, "body aligns with the title and footer gutter");
           near(geometry.right, geometry.gutter, "body has equal side padding");
           near(geometry.title, geometry.gutter, "title aligns with the body");
+          if (alert) near(geometry.titleTop, geometry.gutter, "alert title has the same top inset as the side and bottom gutters");
           near(geometry.actionRight, geometry.gutter, "actions keep their end gutter");
           near(geometry.actionBottom, geometry.gutter, "actions have equal bottom and side gutters");
           near(geometry.bodyTop, 12, "paragraph's outer top margin does not inflate the body inset");
