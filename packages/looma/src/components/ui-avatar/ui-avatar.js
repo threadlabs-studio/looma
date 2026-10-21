@@ -6,7 +6,7 @@ function toInitials(value) {
 }
 
 // Shows an authored <img>, else the `src` image, else initials, and tracks whether the image loaded.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const managed = host.refs.image;
   let active;
@@ -50,9 +50,4 @@ function connect(host) {
     active?.removeEventListener("load", onLoad);
     active?.removeEventListener("error", onError);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

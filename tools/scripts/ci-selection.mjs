@@ -22,7 +22,7 @@ export function affectedModules(files, initial) {
     grew = false;
     for (const [file, source] of Object.entries(files)) {
       if (affected.has(file)) continue;
-      const imports = [...source.matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?|\bhref\s*=\s*|\bcontroller\s*=\s*)["']((?:\.|@site\/)[^"']+)["']/g)].map((match) => match[1].startsWith("@site/") ? "apps/docs/" + match[1].slice(6) : path.posix.normalize(path.posix.join(path.posix.dirname(file), match[1])));
+      const imports = [...source.matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?|\bhref\s*=\s*|\bmodule\s*=\s*)["']((?:\.|@site\/)[^"']+)["']/g)].map((match) => match[1].startsWith("@site/") ? "apps/docs/" + match[1].slice(6) : path.posix.normalize(path.posix.join(path.posix.dirname(file), match[1])));
       if (imports.some((dependency) => [dependency, dependency.replace(/\.js$/, ".ts"), dependency + ".ts", dependency + ".tsx", dependency + ".js", dependency + "/index.ts"].some((candidate) => affected.has(candidate)))) { affected.add(file); grew = true; }
     }
   }

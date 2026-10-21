@@ -1,6 +1,6 @@
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const offset = () => {
@@ -99,9 +99,4 @@ function connect(host) {
     closeOverlay(document, overlayId);
     releaseAnchor();
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

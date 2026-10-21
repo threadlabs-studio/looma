@@ -28,7 +28,7 @@ const sections = [
 
 // Shows the menu at the place it is written, keeping one in a floating box inside the viewport, and lists
 // the actions the selection permits.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   let place = null;
   const nudge = () => {
@@ -108,9 +108,4 @@ function connect(host) {
     surface.destroy();
     element.removeEventListener("click", onClick);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }
