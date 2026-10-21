@@ -8255,6 +8255,27 @@ describe("Search Shell keyboard results", () => {
     await page.close();
   });
 
+  it("renders and reaches result rows added to its body after it opens in HTML", async () => {
+    const path = await bundle("html-search-shell-added-rows", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-shell open label="Search">
+        <input slot="search" type="search" aria-label="Search">
+        <div slot="body" id="results"></div>
+      </ui-search-shell>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector("dialog[open]");
+    // An application adds its results once a query resolves, after the shell has rendered.
+    await page.locator("#results").evaluate((results) => {
+      results.innerHTML = '<ui-search-result-row id="first"><span slot="title">First</span></ui-search-result-row>'
+        + '<ui-search-result-row id="skip" disabled><span slot="title">Skip</span></ui-search-result-row>'
+        + '<ui-search-result-row id="last"><span slot="title">Last</span></ui-search-result-row>';
+    });
+    await page.waitForSelector('#results > button#last[data-component~="ui-search-result-row"]');
+    assert.deepEqual((await page.locator("#results > button").allTextContents()).map((text) => text.trim()), ["First", "Skip", "Last"]);
+    await check(page);
+    await page.close();
+  });
+
   it("moves among enabled rows and closes on Escape in Vue", async () => {
     const path = await bundle("vue-search-shell-keyboard", `
       import { createApp, h } from "vue";
