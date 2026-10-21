@@ -744,6 +744,29 @@
       ]
     },
     {
+      "path": "components/ui-editor-footnote-editor",
+      "title": "Footnote Editor",
+      "source": "apps/docs/docs/editor/ui-editor-footnote-editor.mdx",
+      "component": "ui-editor-footnote-editor",
+      "examples": [
+        {
+          "id": "01-note",
+          "title": "Note",
+          "behavior": false
+        },
+        {
+          "id": "02-formatted-note",
+          "title": "Formatted note",
+          "behavior": false
+        },
+        {
+          "id": "03-label-in-use",
+          "title": "Label in use",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-image-toolbar",
       "title": "Image Toolbar",
       "source": "apps/docs/docs/editor/ui-editor-image-toolbar.mdx",

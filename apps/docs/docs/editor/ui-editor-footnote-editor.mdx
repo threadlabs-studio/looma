@@ -1,0 +1,16 @@
+---
+slug: /components/ui-editor-footnote-editor
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Footnote Editor
+
+The editor's footnote editor: a field for the footnote's label and a field for its note. The editor
+opens it from a footnote reference. It reports `text` as the note's text changes, and `label` when a new label is
+committed, on leaving the field or pressing Enter; the editor renames the footnote's references and
+note together. A note with formatting or more than one block shows its text read-only. Go to note
+reports `go`, and the editor moves the caret to the end of the note. Enter or Escape in a field
+reports `done`, so the editor can close it and return to the reference.
+
+<ComponentExamplesApiTabs component="ui-editor-footnote-editor" />

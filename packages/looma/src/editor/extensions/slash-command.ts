@@ -260,6 +260,15 @@ export function getDefaultSlashCommands(
       },
     },
     {
+      title: "Footnote",
+      description: "Numbered note at the end of the document",
+      icon: "superscript",
+      keywords: ["footnote", "note", "reference", "citation"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertLoomaFootnote().run();
+      },
+    },
+    {
       title: "Expand",
       description: "Collapsible section with a summary",
       icon: "chevron-down",
@@ -302,7 +311,7 @@ export function getDefaultSlashCommands(
     ...command,
     id: command.title.toLowerCase().replaceAll(" ", "-"),
     group: CALLOUT_COMMANDS.some(callout => callout.title === command.title) ? "Callouts"
-      : ["Chip", "Inline code", "Link", "Image", "Table", "Table of contents", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
+      : ["Chip", "Inline code", "Link", "Image", "Table", "Table of contents", "Footnote", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
     isAvailable: (context: LoomaSlashCommandContext) => canRunDefaultCommand(command.title, context),
   })).sort((a, b) => ["Basic blocks", "Callouts", "Insertions"].indexOf(a.group) - ["Basic blocks", "Callouts", "Insertions"].indexOf(b.group));
 }
@@ -325,6 +334,7 @@ function canRunDefaultCommand(title: string, { editor, range }: LoomaSlashComman
     case "Code block": return chain.toggleCodeBlock().run();
     case "Table": return chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     case "Table of contents": return chain.insertLoomaTableOfContents().run();
+    case "Footnote": return chain.insertLoomaFootnote().run();
     case "Expand": return chain.insertLoomaExpand().run();
     case "Divider": return chain.setHorizontalRule().run();
     default: return chain.run();

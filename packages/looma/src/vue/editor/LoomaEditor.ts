@@ -50,6 +50,7 @@ import {
   EditorBlockActions,
   EditorChipEditor,
   EditorCodeLanguage,
+  EditorFootnoteEditor,
   EditorImageToolbar,
   EditorInsertTableGrid,
   EditorLinkCard,
@@ -81,6 +82,7 @@ import { createFormattingSelection, type LoomaFormattingSelection } from "../../
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
 import { createChipEditing, LOOMA_CHIP_EDITING_IDLE, type LoomaChipEditing } from "../../editor/chip-editing";
+import { createFootnoteEditing, LOOMA_FOOTNOTE_EDITING_IDLE, type LoomaFootnoteEditing } from "../../editor/footnote-editing";
 import {
   groupRangeActions,
   rangeActionsAtCaret,
@@ -388,6 +390,14 @@ export const LoomaEditor = defineComponent({
     const chipInput = () => chipEditorRoot.value?.querySelector<HTMLInputElement>("[data-chip-label]");
     let chipEditing: LoomaChipEditing | undefined;
     const chipState = shallowRef(LOOMA_CHIP_EDITING_IDLE);
+    const footnoteAnchorId = `looma-editor-footnote-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const footnoteEditorRoot = ref<HTMLElement | null>(null);
+    const setFootnoteEditorRoot = (instance: unknown) => {
+      const element = (instance as { $el?: unknown } | null)?.$el;
+      footnoteEditorRoot.value = element instanceof HTMLElement ? element : null;
+    };
+    let footnoteEditing: LoomaFootnoteEditing | undefined;
+    const footnoteState = shallowRef(LOOMA_FOOTNOTE_EDITING_IDLE);
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -475,6 +485,18 @@ export const LoomaEditor = defineComponent({
       root.value?.querySelector(`#${chipAnchorId}`)?.removeAttribute("id");
       chipEditing.element!.id = chipAnchorId;
       void nextTick(() => chipInput()?.focus());
+    };
+    // The footnote popover anchors to its reference the same way.
+    const openFootnoteEditor = (position: number) => {
+      if (!footnoteEditing?.open(position)) return;
+      root.value?.querySelector(`#${footnoteAnchorId}`)?.removeAttribute("id");
+      footnoteEditing.element!.id = footnoteAnchorId;
+      void nextTick(() => footnoteEditorRoot.value?.querySelector<HTMLElement>("[data-footnote-note]")?.focus());
+    };
+    const closeFootnote = (focusReference = false) => {
+      const element = footnoteEditing?.element;
+      footnoteEditing?.close();
+      if (focusReference) element?.focus();
     };
     const closeChip = (focusChip = false) => {
       const element = chipEditing?.element;
@@ -695,6 +717,9 @@ export const LoomaEditor = defineComponent({
       const chips = createChipEditing({ editor: session.editor, isEditable: () => props.editable });
       chips.subscribe(() => { chipState.value = chips.state; });
       chipEditing = chips;
+      const footnotes = createFootnoteEditing({ editor: session.editor, isEditable: () => props.editable });
+      footnotes.subscribe(() => { footnoteState.value = footnotes.state; });
+      footnoteEditing = footnotes;
       const imageUploads = createImageUploads({
         editor: session.editor,
         // Paste and drop ask even without a known responder, so a plain listener still uploads them.
@@ -722,6 +747,7 @@ export const LoomaEditor = defineComponent({
       const content = edited ? previous.editor.getJSON() : props.modelValue;
       linkEditing?.destroy();
       chipEditing?.close();
+      footnoteEditing?.close();
       formatting?.destroy();
       uploads?.cancel();
       previous.destroy();
@@ -846,10 +872,11 @@ export const LoomaEditor = defineComponent({
       editor.value?.setEditable(editable, false);
       if (!editable) formattingPopup?.hide();
       if (editor.value) imageDelivery.reset(editor.value);
-      root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
+      root.value?.querySelectorAll<HTMLElement>("[data-looma-chip], [data-looma-footnote-ref]").forEach((chip) => {
         chip.setAttribute("aria-disabled", String(!editable));
       });
       if (!editable) chipEditing?.close();
+      if (!editable) footnoteEditing?.close();
     });
     watch([() => linkState.value.surface === "popover", tablePickerOpen, formatOpen], ([linking, table, format]) => {
       if (linking || table || format || !floatingFormattingMode() || editor.value?.isFocused
@@ -1243,7 +1270,20 @@ export const LoomaEditor = defineComponent({
       return element && root.value?.contains(element) ? element : null;
     };
 
+    const footnoteElementForEvent = (event: Event): HTMLElement | null => {
+      const element = event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-looma-footnote-ref]") : null;
+      return element && root.value?.contains(element) ? element : null;
+    };
+
     const onChipClickCapture = (event: MouseEvent) => {
+      const reference = footnoteElementForEvent(event);
+      if (reference && editor.value && props.editable) {
+        event.preventDefault();
+        event.stopPropagation();
+        openFootnoteEditor(editor.value.view.posAtDOM(reference, 0));
+        return;
+      }
       const chip = chipElementForEvent(event);
       if (chip && editor.value && props.editable) {
         event.preventDefault();
@@ -1266,6 +1306,12 @@ export const LoomaEditor = defineComponent({
 
     const onImageKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Enter" && event.key !== " ") return;
+      const reference = footnoteElementForEvent(event);
+      if (reference && editor.value && props.editable) {
+        event.preventDefault();
+        openFootnoteEditor(editor.value.view.posAtDOM(reference, 0));
+        return;
+      }
       const chip = chipElementForEvent(event);
       if (chip && editor.value && props.editable) {
         event.preventDefault();
@@ -1857,6 +1903,23 @@ export const LoomaEditor = defineComponent({
           onLabel: (event: CustomEvent<{ label: string }>) => chipEditing?.setLabel(event.detail.label),
           onColor: (event: CustomEvent<{ color: LoomaChipColor }>) => chipEditing?.setColor(event.detail.color),
           onDone: () => closeChip(true),
+        })),
+        h(Popover, {
+          size: "sm",
+          open: footnoteState.value.open,
+          for: footnoteAnchorId,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onClose: () => footnoteEditing?.close(),
+        }, () => h(EditorFootnoteEditor, {
+          ref: setFootnoteEditorRoot,
+          label: footnoteState.value.label,
+          note: footnoteState.value.note,
+          editable: footnoteState.value.editable,
+          error: footnoteState.value.error,
+          onText: (event: CustomEvent<{ text: string }>) => footnoteEditing?.setNote(event.detail.text),
+          onLabel: (event: CustomEvent<{ label: string }>) => footnoteEditing?.rename(event.detail.label),
+          onGo: () => footnoteEditing?.goToNote(),
+          onDone: () => closeFootnote(true),
         })),
         h(Popover, {
           class: "looma-editor__link-popover",
