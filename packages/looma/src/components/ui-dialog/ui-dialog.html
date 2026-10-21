@@ -148,6 +148,11 @@
       padding: calc(var(--ui-space-3) + var(--ui-space-1) / 2) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5);
     }
 
+    /* Alerts have no close target to add height above the title. */
+    :host([alert]) header {
+      padding: var(--ui-space-5) var(--ui-space-5) var(--ui-space-3);
+    }
+
     /* :host-qualified so page heading rules that reach in cannot outrank the dialog chrome. */
     :host .title {
       flex: 1;
