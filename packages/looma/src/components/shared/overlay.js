@@ -364,7 +364,7 @@ export function createViewportSurface(surface, options = {}) {
       // Suppress newly introduced UA borders without overriding authored theme-dependent chrome.
       for (const side of absentBorders) surface.style[`border${side}Width`] = "0";
     } else {
-      Object.assign(surface.style, { padding: "0", border: "0", background: "transparent" });
+      Object.assign(surface.style, { padding: "0", border: "0", background: "transparent", overflow: "visible" });
     }
   }
   const hideSurface = () => {
