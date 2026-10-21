@@ -1,3 +1,4 @@
+import { tooltipShowDelay } from "../shared/tooltip.js";
 import { closeOverlay, createAnchoredSurface, createIdResolver, onOverlayOpen, openOverlay } from "../shared/overlay.js";
 
 const warmTooltips = new WeakMap();
@@ -61,7 +62,7 @@ export function connect(host) {
     showTimer = setTimeout(() => {
       showTimer = null;
       setOpen(true, "pointer");
-    }, warm.active > 0 || warm.until > Date.now() ? 0 : Math.max(0, Number(host.props.showDelay.value ?? 500)));
+    }, warm.active > 0 || warm.until > Date.now() ? 0 : Math.max(0, host.props.showDelay.inputValue != null ? Number(host.props.showDelay.value) : tooltipShowDelay(element)));
   };
   const onLeave = () => {
     clearShow();
@@ -134,6 +135,8 @@ export function connect(host) {
     if (how === "hover") {
       trigger.addEventListener("pointerenter", onEnter);
       trigger.addEventListener("pointerleave", onLeave);
+      // Editor decorations can acquire their tooltip after the pointer has already entered.
+      if (trigger.matches(":hover")) onEnter({ pointerType: "mouse" });
     }
     trigger.addEventListener("focusin", onFocusin);
     trigger.addEventListener("focusout", onFocusout);

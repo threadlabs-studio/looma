@@ -1,5 +1,7 @@
 import type { AnyExtension, Editor } from "@tiptap/core";
-import TableBase from "@tiptap/extension-table";
+import TableBase, { TableView } from "@tiptap/extension-table";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import type { ViewMutationRecord } from "@tiptap/pm/view";
 import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
 export { TABLE_CELL_BACKGROUND_PRESETS } from "../table-backgrounds";
@@ -8,6 +10,30 @@ export { TABLE_CELL_BACKGROUND_PRESETS } from "../table-backgrounds";
 export type TableCellAlignment = "left" | "center" | "right";
 /** CSS color stored in document attrs; null removes authored cell background. */
 export type TableCellBackground = string | null;
+
+/** Table chrome lives outside the horizontal scroller, within the table's document block. */
+class LoomaTableView extends TableView {
+  readonly toolbarHost: HTMLDivElement;
+
+  constructor(node: ProseMirrorNode, cellMinWidth: number) {
+    super(node, cellMinWidth);
+    const scroller = this.dom;
+    this.dom = document.createElement("div");
+    this.dom.dataset.loomaTableBlock = "";
+    this.toolbarHost = document.createElement("div");
+    this.toolbarHost.dataset.loomaTableToolbarHost = "";
+    this.toolbarHost.contentEditable = "false";
+    this.dom.append(scroller, this.toolbarHost);
+  }
+
+  ignoreMutation(mutation: ViewMutationRecord) {
+    return mutation.type !== "selection" && this.toolbarHost.contains(mutation.target) || super.ignoreMutation(mutation);
+  }
+
+  stopEvent(event: Event) {
+    return event.target instanceof globalThis.Node && this.toolbarHost.contains(event.target);
+  }
+}
 
 /**
  * Looma's table behavior policy: resizable columns, stable minimum cell width,
@@ -19,6 +45,7 @@ export type TableCellBackground = string | null;
  */
 export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,
+  View: LoomaTableView,
   // Tiptap also uses this as its inward coordinate probe. The 5px default can
   // resolve to the row around an empty minimum-width cell instead of the cell.
   handleWidth: 3,

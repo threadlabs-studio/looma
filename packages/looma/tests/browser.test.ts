@@ -10002,6 +10002,107 @@ describe("Prop-driven reading surfaces", () => {
     }
   });
 
+  it("scrolls the document when the pointer is over inline table drag controls", async () => {
+    const path = await bundle("editor-table-scroll", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, {
+        onReady: editor => { window.editor = editor; },
+        modelValue: '<p>Before table</p><table><tr><td>First</td><td>Second</td></tr><tr><td>A</td><td>B</td></tr></table><p>After table</p>',
+      }) }).mount("#app");
+    `);
+    const page = await open(path,
+      '<div id="scroller" style="height:400px;overflow:auto;transform:translateY(0);padding:48px"><div style="height:80px"></div><div id="app" style="width:600px;min-height:1200px"></div></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")],
+      { viewport: { width: 1280, height: 800 } });
+    try {
+      const cell = page.locator(".ProseMirror td").first();
+      await cell.hover();
+      const handle = page.getByRole("button", { name: "Column actions", exact: true });
+      await handle.waitFor();
+      await handle.hover();
+      const before = await page.locator("#scroller").evaluate(element => element.scrollTop);
+      await page.mouse.wheel(0, 80);
+      await page.waitForFunction(previous => document.querySelector("#scroller")!.scrollTop > previous, before, { timeout: 1500 });
+      const shell = page.locator(".looma-editor__table-overlay-shell");
+      assert.equal(await shell.evaluate(element => element.matches(":popover-open")), false, "inline controls belong to the document");
+      assert.equal(await shell.evaluate(element => getComputedStyle(element).position), "absolute");
+      const tableBox = (await page.locator(".ProseMirror table").boundingBox())!;
+      const shellBox = (await shell.boundingBox())!;
+      assert.ok(Math.abs(shellBox.x - tableBox.x) < 1 && Math.abs(shellBox.y - tableBox.y) < 1, "controls follow the table after nested scrolling");
+      await cell.hover();
+      await page.getByRole("button", { name: "Column actions", exact: true }).click();
+      const menu = page.locator('.ui-editor-table-context-menu');
+      await menu.waitFor();
+      assert.equal(await menu.evaluate(element => element.matches(":popover-open")), true, "menus retain the top layer");
+    } finally {
+      await page.close();
+    }
+  });
+
+  it("delays the column resize hint using the global tooltip delay", async () => {
+    const path = await bundle("editor-resize-hint-delay", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, { modelValue: '<table><tr><td>First</td><td>Second</td></tr></table>' }) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app" style="width:600px;margin:100px;--ui-tooltip-show-delay:1200ms"></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { viewport: { width: 1280, height: 800 } });
+    try {
+      const cell = page.locator(".ProseMirror td").first();
+      const box = (await cell.boundingBox())!;
+      await page.mouse.move(box.x + box.width - 2, box.y + box.height / 2);
+      await page.locator(".column-resize-handle").waitFor();
+      const hint = page.getByRole("tooltip").filter({ hasText: "Drag to resize column" });
+      await page.waitForTimeout(650);
+      assert.equal(await hint.isVisible(), false, "resize hints must respect the configured hover delay");
+      await hint.waitFor({ state: "visible", timeout: 2000 });
+      await page.mouse.move(900, 700);
+      await hint.waitFor({ state: "hidden" });
+      await page.mouse.move(box.x + box.width - 2, box.y + box.height / 2);
+      await page.mouse.move(900, 700);
+      await page.waitForTimeout(1300);
+      assert.equal(await hint.isVisible(), false, "leaving cancels a pending hint");
+    } finally { await page.close(); }
+  });
+
+  it("keeps one table toolbar below the table and sticks it to the bottom while scrolling", async () => {
+    const path = await bundle("editor-sticky-table-toolbar", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, {
+        modelValue: '<p>Before</p><table>' + Array.from({length:20}, (_, index) => '<tr><td>Row ' + index + '</td><td>Value</td></tr>').join('') + '</table><p>After</p>',
+      }) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="scroller" style="height:420px;overflow:auto;padding:40px"><div id="app" style="width:900px"></div></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { viewport: { width: 1280, height: 800 } });
+    try {
+      await page.locator(".ProseMirror td").first().click();
+      const toolbar = page.locator(".looma-editor__table-toolbar-shell");
+      await toolbar.waitFor();
+      assert.equal(await toolbar.count(), 1);
+      assert.equal(await toolbar.evaluate(element => getComputedStyle(element).position), "sticky");
+      assert.equal(await toolbar.evaluate(element => element.matches(":popover-open")), false);
+      assert.equal(await toolbar.evaluate(element => element.scrollWidth > element.clientWidth), false, "a roomy viewport must show the whole toolbar");
+      const scroller = page.locator("#scroller");
+      const viewport = (await scroller.boundingBox())!;
+      const sticky = (await toolbar.boundingBox())!;
+      assert.ok(sticky.y + sticky.height <= viewport.y + viewport.height && sticky.y > viewport.y, "toolbar sticks inside the bottom edge");
+      if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.LOOMA_SCREENSHOT_DIR, "table-toolbar-sticky.png") });
+      await scroller.evaluate(element => { element.scrollTop = element.scrollHeight; });
+      const table = page.locator(".ProseMirror table");
+      await page.waitForTimeout(100);
+      const below = (await toolbar.boundingBox())!;
+      const tableBox = (await table.boundingBox())!;
+      assert.ok(below.y >= tableBox.y + tableBox.height, "toolbar returns below the table when there is room");
+      if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.LOOMA_SCREENSHOT_DIR, "table-toolbar-below.png") });
+      await page.getByRole("button", { name: "Table options", exact: true }).click();
+      const menu = page.getByRole("menu", { name: "More table actions" });
+      await menu.waitFor();
+      assert.equal(await menu.evaluate(element => element.matches(":popover-open")), true);
+    } finally { await page.close(); }
+  });
+
   it("fits compact read-only editor excerpts while preserving the default canvas", async () => {
     const path = await bundle("compact-editor-surface", `
       import { createApp, h } from "vue";
