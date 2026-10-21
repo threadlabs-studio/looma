@@ -37,6 +37,7 @@ import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
 import { LoomaExpand } from "./expand";
+import { LoomaFootnote, LoomaFootnoteReference, LoomaFootnotes } from "./footnote";
 import { LoomaFigcaption, LoomaFigure } from "./figure";
 import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
@@ -215,6 +216,9 @@ export function getDefaultEditorExtensions(
     ...(imageInline ? [] : [LoomaFigure, LoomaFigcaption]),
     LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
+    LoomaFootnoteReference,
+    LoomaFootnotes,
+    LoomaFootnote,
     dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,
