@@ -121,6 +121,10 @@ const NODES: Record<string, NodeSerializer> = {
     state.write(`::toc${formatLoomaAttributes({ depth: depth !== 3 ? depth : null, format: format !== "plain" ? format : null })}`);
     state.closeBlock(node);
   },
+  loomaFootnoteReference: (state, node) => state.write(`[^${node.attrs.label}]`),
+  // Each note is a definition whose later lines indent four spaces.
+  loomaFootnotes: (state, node) => state.renderContent(node),
+  loomaFootnote: (state, node) => state.wrapBlock("    ", `[^${node.attrs.label}]: `, node, () => state.renderContent(node)),
   loomaChip: (state, node) => {
     const tone = normalizeLoomaChipTone(node.attrs.color);
     state.write(`:chip[${label(String(node.attrs.label ?? ""))}]${formatLoomaAttributes({ tone: tone !== "neutral" ? tone : null })}`);
