@@ -105,7 +105,15 @@ Unanchored viewport UI uses the same top-layer boundary through
 owns viewport placement while the shared surface keeps it outside clipping
 ancestors. Tooltip pointer interactions wait 500ms to show and 100ms to hide by
 default through configurable `show-delay` and `hide-delay` properties; keyboard
-focus opens immediately.
+focus opens immediately. The inherited `--ui-tooltip-show-delay` custom property
+sets the pointer delay globally (milliseconds, or a CSS time such as `1.2s`).
+An explicit `show-delay`/`showDelay` takes precedence. Resize hints and editor
+toolbar hints use this same inherited setting.
+
+Inline table controls remain in the editable document's positioning and scroll
+context. The table toolbar sits below its table and sticks above the scrollport's
+bottom edge when needed. Its dropdown menus and other popups retain top-layer
+viewport positioning.
 
 `getVisualViewportRect` and `clampRectToViewport` are the shared geometry
 primitives for floating UI. `createProximityCoordinator` uses the same viewport

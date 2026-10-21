@@ -298,7 +298,6 @@
 
 .looma-editor__table-picker-popover,
 .looma-editor__chip-popover,
-.looma-editor__table-toolbar-shell,
 .looma-editor__table-menu-shell {
   z-index: var(--ui-editor-popover-z-index, 300);
 }
@@ -328,9 +327,7 @@
   outline-offset: var(--ui-focus-width);
 }
 
-.looma-editor__table-toolbar-shell,
-.looma-editor__table-menu-shell,
-.looma-editor__table-overlay-shell {
+.looma-editor__table-menu-shell {
   position: fixed;
 }
 
@@ -394,12 +391,6 @@
 .looma-editor__mobile-toolbar-back:is(:hover, :focus-visible) {
   background: var(--ui-surface-hover, #f3f4f6);
   color: var(--ui-text-primary, #111827);
-}
-
-.looma-editor__table-overlay-shell {
-  z-index: var(--ui-editor-overlay-z-index, 299);
-  overflow: visible;
-  pointer-events: none;
 }
 
 .looma-editor .ProseMirror .looma-mention {

@@ -35,19 +35,6 @@ export function tableControls(state: ActiveTableUiState, selectionInTable: boole
   };
 }
 
-/** Space, in pixels, the toolbar needs above a table; with less it sits below. */
-const ROOM_ABOVE = 76;
-
-/**
- * Centers the table toolbar on the table, at most 420px wide and 12px inside the viewport's sides,
- * above the table when there is room and below it otherwise.
- */
-export function tableToolbarPlacement(table: DOMRect, viewportWidth: number): { top: string; left: string; maxWidth: string } {
-  const width = Math.min(420, viewportWidth - 24);
-  const left = Math.min(Math.max(12, table.left + (table.width - width) / 2), Math.max(12, viewportWidth - width - 12));
-  return { top: `${table.top > ROOM_ABOVE ? table.top - 52 : table.bottom + 12}px`, left: `${left}px`, maxWidth: `${width}px` };
-}
-
-/** The overlay covers the table exactly. */
-export const tableOverlayPlacement = (table: DOMRect) =>
-  ({ top: `${table.top}px`, left: `${table.left}px`, width: `${table.width}px`, height: `${table.height}px` });
+/** Inline controls cover the table in the editor's coordinate system. */
+export const tableOverlayPlacement = (table: DOMRect, editor: DOMRect) =>
+  ({ top: `${table.top - editor.top}px`, left: `${table.left - editor.left}px`, width: `${table.width}px`, height: `${table.height}px` });

@@ -72,3 +72,27 @@
 :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror[data-link-navigation] a[href] {
   cursor: pointer;
 }
+
+/* Inline table affordances share the document's scroll chain; popups use the top layer. */
+.looma-editor__table-overlay-shell {
+  position: absolute;
+  z-index: var(--ui-editor-overlay-z-index, 299);
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* The toolbar follows its table, lifting inside the document scroller only when needed. */
+[data-looma-table-toolbar-host] { display: contents; }
+.looma-editor__table-toolbar-shell {
+  position: sticky;
+  bottom: var(--ui-space-3);
+  z-index: var(--ui-editor-popover-z-index, 300);
+  width: max-content;
+  max-width: 100%;
+  margin: var(--ui-space-3) auto 0;
+  overflow-x: auto;
+}
+
+.looma-editor .ProseMirror [data-looma-table-block] + p {
+  margin-top: var(--ui-editor-table-following-gap, var(--ui-space-4));
+}
