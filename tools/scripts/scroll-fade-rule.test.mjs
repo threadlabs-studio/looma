@@ -39,7 +39,7 @@ test("every scroller fades its edges with the shared scroll fade", async () => {
       const key = `${tag} ${selector}`;
       seen.add(key);
       const fades = blocks.some((block) => block.selector === selector && /animation-timeline:\s*scroll\(self/.test(block.body))
-        || (tag === "ui-scroll-area" && source.includes('controller="./ui-scroll-area.js"')
+        || (tag === "ui-scroll-area" && source.includes('module="./ui-scroll-area.js"')
           && blocks.some((block) => block.selector === ":host" && /mask-image:\s*linear-gradient/.test(block.body)));
       if (!fades && !EXEMPT[key]) missing.push(key);
     }

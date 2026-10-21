@@ -1,6 +1,6 @@
 // Builds the published package from src/.
 //
-// HTML Next assembles the components: the registration entry, component HTML, controller modules,
+// HTML Next assembles the components: the registration entry, component HTML, component modules,
 // plain DOM factories, and Vue single-file components. Vite and vue-tsc then compile the Vue
 // components to JavaScript and declarations, the way any Vue library ships; the .vue files ship too.
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
@@ -30,7 +30,7 @@ const { components } = await assembleComponentPackage({
   components: tags.map((tag) => ({ source: join(componentsRoot, tag, `${tag}.html`) })),
 });
 
-// Everything but Vue ships as assembled; the component sources, controllers included, are shared by
+// Everything but Vue ships as assembled; the component sources, modules included, are shared by
 // the DOM and Vue components.
 for (const name of ["dist", "vanilla", "components", "styles"]) {
   await cp(join(assembled, name), join(root, name), { recursive: true }).catch((error) => {
@@ -48,11 +48,11 @@ await writeFile(join(vueSource, "index.ts"), names.map((name) =>
   `\nexport { trackInputModality } from "../components/shared/input-modality.js";\n`);
 
 // Vue, the editor's libraries, and the package's own entries resolve at the consumer.
-// The components' controllers ship once, under components/, and the Vue components import them
+// The components' modules ship once, under components/, and the Vue components import them
 // through the package's own export.
 const componentsOut = join(assembled, "components");
-const sharedControllers = {
-  name: "looma-shared-controllers",
+const sharedModules = {
+  name: "looma-shared-modules",
   enforce: "pre",
   resolveId(source, importer) {
     if (!importer || !source.startsWith(".")) return null;
@@ -72,7 +72,7 @@ await build({
   configFile: false,
   logLevel: "warn",
   root: assembled,
-  plugins: [sharedControllers, vue()],
+  plugins: [sharedModules, vue()],
   resolve: { alias: { "@threadlabs/looma/vanilla": join(root, "vanilla") } },
   build: {
     outDir: join(root, "vue"),
@@ -114,8 +114,8 @@ for (const name of names) {
   await cp(join(vueSource, `${name}.vue`), join(root, "vue", `${name}.vue`));
 }
 await cp(join(assembled, "types/vue/props.d.ts"), join(root, "vue/props.d.ts"));
-// The controller host and event dispatcher every component shares; the .vue sources import it.
-// HTML Next emits it only when a component has a controller.
+// The component host and event dispatcher every component shares; the .vue sources import it.
+// HTML Next emits it only when a component has a module.
 await cp(join(vueSource, "host.ts"), join(root, "vue/host.ts")).catch((error) => {
   if (error.code !== "ENOENT") throw error;
 });

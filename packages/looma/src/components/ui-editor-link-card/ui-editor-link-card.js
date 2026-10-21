@@ -1,6 +1,6 @@
 // Gives each card its own tooltip ids and reports edit and remove requests without taking focus
 // from the editor.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   if (host.state.base === "ui-editor-link-card") host.state.base = `ui-editor-link-card-${Math.random().toString(36).slice(2, 11)}`;
   const action = (event) => {
@@ -19,9 +19,4 @@ function connect(host) {
     element.removeEventListener("pointerdown", onPointerDown);
     element.removeEventListener("click", onClick);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

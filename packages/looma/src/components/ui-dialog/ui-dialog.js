@@ -54,7 +54,7 @@ function observeContentHeight(dialog, refs) {
   return { reset, destroy() { reset(); observer.disconnect(); motion.removeEventListener("change", onMotionChange); } };
 }
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const dialog = element.localName === "dialog" ? element : element.querySelector("dialog");
@@ -185,9 +185,4 @@ function connect(host) {
     closeDialog(dialog);
     closeOverlay(document, overlayId);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

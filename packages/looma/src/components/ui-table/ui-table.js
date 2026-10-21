@@ -3,7 +3,7 @@
 // the table fits, the root is plain again, so it is not an empty stop in the tab order.
 let captions = 0;
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const authored = element.hasAttribute("tabindex") || element.hasAttribute("role");
   if (authored) return undefined;
@@ -52,9 +52,4 @@ function connect(host) {
     children.disconnect();
     plain();
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

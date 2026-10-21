@@ -13,7 +13,7 @@ function readOptions(container) {
   }));
 }
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const { options: authored, validity } = host.refs;
   const form = element.closest("form");
@@ -168,9 +168,4 @@ function connect(host) {
     form?.removeEventListener("reset", onReset);
     validity.removeEventListener("invalid", onInvalid);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

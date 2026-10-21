@@ -7,7 +7,7 @@ let groups = 0;
 // Native radios that share a name already move and check with the arrow keys. The group gives its
 // radios that name, applies a controlled value, and reports the user's choice. Its fieldset disables
 // them, so a radio's own disabled is never overwritten.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const name = String(host.props.name.value || `ui-radio-group-${++groups}`);
   const [trigger, stopTracking] = trackTrigger(host);
@@ -59,9 +59,4 @@ function connect(host) {
     stopTracking();
     element.removeEventListener("change", onChange);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

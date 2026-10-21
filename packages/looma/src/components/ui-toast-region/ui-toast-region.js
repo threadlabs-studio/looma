@@ -7,7 +7,7 @@ let toastIds = 0;
  * Shows the region while it has authored or generated messages. Generated messages dismiss by
  * action or timeout; authored ui-toast children hide themselves, and a hidden one does not count.
  */
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const [trigger, stopTracking] = trackTrigger(host);
   const toasts = () => host.state.toasts ?? [];
@@ -118,9 +118,4 @@ function connect(host) {
     timers.clear();
     if (element.matches(":popover-open")) element.hidePopover();
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

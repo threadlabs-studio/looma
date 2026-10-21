@@ -1,6 +1,6 @@
 // Reports the chip's text and colour as they change, and Enter or Escape in the text field as done.
 // A colour chosen with the pointer returns focus to the text; the arrow keys stay among the swatches.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const text = () => element.querySelector("[data-chip-label]");
   const onInput = (event) => {
@@ -25,9 +25,4 @@ function connect(host) {
     element.removeEventListener("select", onSelect);
     element.removeEventListener("keydown", onKeyDown);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

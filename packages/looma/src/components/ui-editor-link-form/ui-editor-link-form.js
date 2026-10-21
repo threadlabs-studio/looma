@@ -1,6 +1,6 @@
 // Gives each form its own field ids, reports field changes and choices, saves on Enter in a field,
 // closes on Escape, and moves between the search field and its results with the arrow keys.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   if (host.state.base === "ui-editor-link-form") host.state.base = `ui-editor-link-form-${Math.random().toString(36).slice(2, 11)}`;
   const within = (event, selector) => {
@@ -63,9 +63,4 @@ function connect(host) {
     element.removeEventListener("keydown", onKeyDown);
     element.removeEventListener("submit", onSubmit);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }
