@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Looma builds with HTML Next 1.0.0-alpha.69, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.69`. No Looma component puts a slot directly inside table markup, so the new HT032 check needs no change. Search Shell renders result rows that an application adds to its body after it opens, and the arrow keys reach them.
+
 - Keep floating editor toolbar shadows unclipped and show expanded formatting in one surface. Popover's additive `bare` option lets content supply its own surface.
 - Keep inline table controls within the document so wheel scrolling over row and column drag handles continues scrolling the page. Use one sticky table toolbar below the table, with its full controls visible when space permits; dropdown menus retain top-layer placement.
 - Respect the inherited `--ui-tooltip-show-delay` setting for pointer hints, including column resizing and editor toolbars; explicit tooltip delays still take precedence.
