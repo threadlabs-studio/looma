@@ -146,22 +146,21 @@ function appendBackLinks(item: HTMLElement, label: string, number: number, count
   }
 }
 
-// ProseMirror caches one serializer per schema; this one adds the back-links to each note it writes.
-class FootnoteSerializer extends DOMSerializer {
-  override serializeFragment(fragment: Fragment, options: { document?: Document } = {}, target?: HTMLElement | DocumentFragment): HTMLElement | DocumentFragment {
-    const dom = super.serializeFragment(fragment, options, target);
+// ProseMirror caches one serializer per schema; this adds the back-links to each note it writes. It
+// wraps that instance's method rather than subclassing DOMSerializer: a bundler that lowers classes
+// calls the base as a function, which a native class rejects.
+function installSerializer(schema: Schema) {
+  const serializer = DOMSerializer.fromSchema(schema);
+  if (Object.prototype.hasOwnProperty.call(serializer, "serializeFragment")) return;
+  const serializeFragment = serializer.serializeFragment;
+  serializer.serializeFragment = function (fragment, options = {}, target) {
+    const dom = serializeFragment.call(this, fragment, options, target);
     fragment.forEach((node, _offset, index) => {
       // A note's number is its place in the section, which the numbering keeps in order.
       if (node.type.name === NOTE) appendBackLinks(dom.childNodes[index] as HTMLElement, String(node.attrs.label), index + 1, Number(node.attrs.count) || 1);
     });
     return dom;
-  }
-}
-
-function installSerializer(schema: Schema) {
-  if (!(schema.cached.domSerializer instanceof FootnoteSerializer)) {
-    schema.cached.domSerializer = new FootnoteSerializer(DOMSerializer.nodesFromSchema(schema), DOMSerializer.marksFromSchema(schema));
-  }
+  };
 }
 
 /**
