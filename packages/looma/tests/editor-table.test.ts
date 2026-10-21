@@ -902,7 +902,7 @@ describe("LoomaEditor tables", () => {
     await equals(() => trigger.getAttribute("data-column-index"), "1", "menu follows keyboard focus");
     const assertAnchor = async () => {
       const tableBox = await table(page).boundingBox(), toolbarBox = await tableToolbar(page).boundingBox();
-      assert.ok(tableBox && toolbarBox && Math.abs(toolbarBox.y + 52 - tableBox.y) < 1, "toolbar remains beside its table");
+      assert.ok(tableBox && toolbarBox && toolbarBox.y >= tableBox.y + tableBox.height, "toolbar remains below its table when it fits");
     };
     await assertAnchor();
     await page.evaluate(() => { document.body.style.minHeight = "1800px"; window.scrollTo(0, 100); });
@@ -989,7 +989,7 @@ describe("LoomaEditor tables", () => {
 
   it("spaces a paragraph following a table", async () => {
     const page = await openEditor("<table><tbody><tr><td><p>Cell</p></td></tr></tbody></table><p>After</p>");
-    const followingParagraph = prose(page).locator(".tableWrapper + p");
+    const followingParagraph = prose(page).locator("[data-looma-table-block] + p");
     assert.equal(await followingParagraph.count(), 1, "paragraph follows the table wrapper");
     assert.ok(parseFloat(await style(followingParagraph, "margin-top")()) > 0, "paragraph has space after the table");
     await page.close();
@@ -1122,13 +1122,13 @@ describe("LoomaEditor tables", () => {
     await page.close();
   });
 
-  it("keeps the table overlay in the top layer beneath the table toolbar and context menu", async () => {
+  it("keeps inline table controls in the document beneath the context menu", async () => {
     const page = await openEditor("<p>Before</p><table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table><p>After</p>");
     await cell(page, 0, 0).click();
     await tableToolbar(page).waitFor();
     const shell = page.locator(".looma-editor__table-overlay-shell");
     assert.deepEqual(await shell.evaluate((element) => ({ topLayer: element.matches(":popover-open"), hidden: element.hidden })),
-      { topLayer: true, hidden: false });
+      { topLayer: false, hidden: false });
     await cell(page, 1, 1).hover();
     const handle = page.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)').getByRole("button", { name: "Row actions" });
     await handle.waitFor();
@@ -1141,7 +1141,7 @@ describe("LoomaEditor tables", () => {
       Object.assign(target.style, { left: `${x - 8}px`, top: `${y - 8}px`, translate: "none" });
       return target.contains(document.elementFromPoint(x, y));
     }, surface);
-    assert.equal(await above(".looma-editor__table-toolbar-shell"), true, "the table toolbar stays above the overlay");
+    assert.equal(await tableToolbar(page).evaluate(element => element.closest(".looma-editor__table-toolbar-shell")!.matches(":popover-open")), false, "the sticky toolbar stays in the document");
     await cell(page, 1, 1).click({ button: "right" });
     await page.locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)').waitFor();
     await handle.waitFor();

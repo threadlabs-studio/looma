@@ -27,7 +27,7 @@ export interface LoomaToolbarTooltip {
 }
 
 /** Calls `onChange` after every state change. */
-export function createToolbarTooltip(onChange: (state: LoomaToolbarTooltipState) => void): LoomaToolbarTooltip {
+export function createToolbarTooltip(onChange: (state: LoomaToolbarTooltipState) => void, delay: () => number = () => LOOMA_TOOLBAR_TOOLTIP_DELAY): LoomaToolbarTooltip {
   let state: LoomaToolbarTooltipState = { for: "", label: "", shortcut: "", open: false };
   let timer: ReturnType<typeof setTimeout> | undefined;
   const set = (patch: Partial<LoomaToolbarTooltipState>) => {
@@ -44,7 +44,7 @@ export function createToolbarTooltip(onChange: (state: LoomaToolbarTooltipState)
       clear();
       const open = immediate || state.open;
       set({ for: id, label, shortcut: shortcut ? formatEditorShortcut(shortcut, isApplePlatform()) : "", open });
-      if (!open) timer = setTimeout(() => { timer = undefined; set({ open: true }); }, LOOMA_TOOLBAR_TOOLTIP_DELAY);
+      if (!open) timer = setTimeout(() => { timer = undefined; set({ open: true }); }, delay());
     },
     hide() {
       clear();
