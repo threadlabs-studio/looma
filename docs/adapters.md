@@ -1,7 +1,7 @@
 # Adapter Contract
 
 Looma adapters are thin projections of the same declarative component contracts.
-They create native roots, attach the shared definitions and controllers, and map
+They create native roots, attach the shared definitions and component modules, and map
 props, events, and slots without owning different behavior.
 
 ## Release 1 Support
@@ -46,7 +46,7 @@ the editor element's custom-event detail.
   contract and preserves consumer-authored semantic content through slots.
 - Adapters must not replace semantic fallback content with framework-only markup.
 - Without JavaScript, direct invocation markup retains its semantic authored
-  content; lowering, controller interaction, and adapter event translation do not run.
+  content; lowering, module activation, and adapter event translation do not run.
 
 ## Vue Example
 

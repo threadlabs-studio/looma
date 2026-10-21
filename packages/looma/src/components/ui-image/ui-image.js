@@ -2,7 +2,7 @@
  * @lifecycle Pointer capture ends on release, Escape, cancellation, or teardown.
  * Only release commits a drag, so consumers can make it one undo operation.
  */
-function connect(host) {
+export function connect(host) {
   const root = host.element;
   const frame = host.refs.frame;
   const document = root.ownerDocument;
@@ -104,9 +104,4 @@ function connect(host) {
     root.removeEventListener("keydown", onKey);
     document.removeEventListener("keydown", onEscape, true);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

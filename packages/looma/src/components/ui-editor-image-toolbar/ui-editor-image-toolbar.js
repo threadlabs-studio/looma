@@ -1,6 +1,6 @@
 // Gives each toolbar its own ids for its tooltips and description popover, reports placement,
 // description, and delete requests, and keeps the description draft tied to the image it opened for.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   if (host.state.base === "ui-editor-image-toolbar") host.state.base = `ui-editor-image-toolbar-${Math.random().toString(36).slice(2, 11)}`;
   let target = null;
@@ -47,9 +47,4 @@ function connect(host) {
     element.removeEventListener("input", onInput);
     element.removeEventListener("submit", onSubmit);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

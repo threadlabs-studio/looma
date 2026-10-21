@@ -8,7 +8,7 @@ const overflowSections = [
 ];
 
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   let alive = true;
   let menu = null;
@@ -92,9 +92,4 @@ function connect(host) {
     releasePresentation();
     element.removeEventListener("click", onClick);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

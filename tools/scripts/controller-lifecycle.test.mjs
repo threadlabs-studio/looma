@@ -6,15 +6,12 @@ const components = new URL("../../packages/looma/src/components/", import.meta.u
 
 for (const tag of (await readdir(components)).filter((name) => name.startsWith("ui-"))) {
   const definition = await readFile(new URL(`${tag}/${tag}.html`, components), "utf8");
-  const controllerPath = /\bcontroller="([^"]+)"/.exec(definition)?.[1];
-  if (!controllerPath) continue;
-  test(`${tag} registers connection setup without touching disconnected DOM`, async () => {
-    const { default: controller } = await import(new URL(`${tag}/${controllerPath}`, components));
-    const hooks = [];
-    const host = { on: (name, callback) => { hooks.push({ name, callback }); return () => {}; } };
-    assert.equal(controller(host), undefined, "instance initialization must keep the reconnect subscription");
-    assert.equal(hooks.length, 1);
-    assert.equal(hooks[0].name, "connect");
-    assert.equal(typeof hooks[0].callback, "function");
+  const modulePath = /\bmodule="([^"]+)"/.exec(definition)?.[1];
+  test(`${tag} uses optional named activation without evaluating DOM setup on import`, async () => {
+    assert.doesNotMatch(definition, /\bcontroller=/);
+    if (!modulePath) return;
+    const exports = await import(new URL(`${tag}/${modulePath}`, components));
+    assert.deepEqual(Object.keys(exports), ["connect"]);
+    assert.equal(typeof exports.connect, "function");
   });
 }

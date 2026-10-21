@@ -13,7 +13,7 @@ function writeStored(group, label) {
 }
 
 /** Lists the authored panels (each labelled by its aria-label) as tabs and shows the selected one. */
-function connect(host) {
+export function connect(host) {
   const { list, panels: container } = host.refs;
   const [trigger, stopTracking] = trackTrigger(host);
   const panels = () => Array.from(container.children).filter((child) => child instanceof HTMLElement);
@@ -155,9 +155,4 @@ function connect(host) {
     list.removeEventListener("focusout", onFocusout);
     list.removeEventListener("wheel", onWheel);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

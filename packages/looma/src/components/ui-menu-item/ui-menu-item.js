@@ -2,7 +2,7 @@ function radioScope(item) {
   return item.closest('[role="group"]') ?? item.closest('[role="menu"]');
 }
 
-function connect(host) {
+export function connect(host) {
   const item = host.element;
   let external = Boolean(host.props.checked.value);
   host.state.internalChecked = external;
@@ -44,9 +44,4 @@ function connect(host) {
     item.removeEventListener("ui-menu-item-activate", onActivate);
     item.removeEventListener("ui-menu-item-clear", onClear);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

@@ -47,7 +47,7 @@ function createProximity(scope, selector = ".handle[data-ui-affordance]", radius
   } };
 }
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const proximity = createProximity(element);
   let drag = null;
@@ -172,9 +172,4 @@ function connect(host) {
     element.removeEventListener("focusin", enter);
     element.removeEventListener("focusout", leave);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }
