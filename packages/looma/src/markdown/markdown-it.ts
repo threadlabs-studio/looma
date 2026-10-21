@@ -272,6 +272,111 @@ function applyImageAttributes(image: Token, attributes: LoomaAttributes): void {
   if (attributes.responsive === true) image.attrSet("data-looma-responsive", "");
 }
 
+// Footnotes, as GFM writes them: `[^label]` refers to a `[^label]:` definition. A definition's
+// continuation lines are indented four spaces, so it holds any blocks. Notes are numbered in the
+// order they are first referred to and render at the end of the document; a definition no text
+// refers to renders nothing, and a reference with no definition stays text. IDs take a colon,
+// which no heading anchor holds: `fn:label`, `fnref:label` and `fnref:label:2` for a repeat.
+const FOOTNOTE_DEFINITION = /^\[\^([^\s\]]+)\]:/;
+const FOOTNOTE_REFERENCE = /^\[\^([^\s\]]+)\]/;
+interface FootnoteEnv { footnotes?: Set<string> }
+
+function footnoteDefinition(state: StateBlock, startLine: number, endLine: number, silent: boolean): boolean {
+  if (state.sCount[startLine] - state.blkIndent >= 4) return false;
+  const start = state.bMarks[startLine] + state.tShift[startLine];
+  const match = FOOTNOTE_DEFINITION.exec(state.src.slice(start, state.eMarks[startLine]));
+  if (!match) return false;
+  if (silent) return true;
+  ((state.env as FootnoteEnv).footnotes ??= new Set()).add(match[1]);
+  const open = state.push("looma_footnote_open", "li", 1);
+  Object.assign(open, { meta: { label: match[1] }, block: true, map: [startLine, startLine] });
+  // The definition's first line starts after its marker, and the lines after it nest four spaces in,
+  // as a list item's do.
+  const saved = { bMark: state.bMarks[startLine], tShift: state.tShift[startLine], sCount: state.sCount[startLine], parentType: state.parentType };
+  let position = start + match[0].length;
+  const contentStart = position;
+  let offset = state.sCount[startLine] + match[0].length;
+  const initial = offset;
+  while (position < state.eMarks[startLine] && (state.src[position] === " " || state.src[position] === "\t")) {
+    offset += state.src[position] === "\t" ? 4 - ((offset + state.bsCount[startLine]) % 4) : 1;
+    position++;
+  }
+  state.tShift[startLine] = position - contentStart;
+  state.sCount[startLine] = offset - initial;
+  state.bMarks[startLine] = contentStart;
+  state.blkIndent += 4;
+  state.parentType = "footnote" as typeof state.parentType;
+  if (state.sCount[startLine] < state.blkIndent) state.sCount[startLine] += state.blkIndent;
+  state.md.block.tokenize(state, startLine, endLine);
+  state.parentType = saved.parentType;
+  state.blkIndent -= 4;
+  state.tShift[startLine] = saved.tShift;
+  state.sCount[startLine] = saved.sCount;
+  state.bMarks[startLine] = saved.bMark;
+  open.map![1] = state.line;
+  state.push("looma_footnote_close", "li", -1).block = true;
+  return true;
+}
+
+function footnoteReference(state: StateInline, silent: boolean): boolean {
+  if (state.src.charCodeAt(state.pos) !== 0x5b || state.src.charCodeAt(state.pos + 1) !== 0x5e) return false;
+  const match = FOOTNOTE_REFERENCE.exec(state.src.slice(state.pos, state.posMax));
+  if (!match || !(state.env as FootnoteEnv).footnotes?.has(match[1])) return false;
+  if (!silent) state.push("looma_footnote_ref", "sup", 0).meta = { label: match[1] };
+  state.pos += match[0].length;
+  return true;
+}
+
+// Moves each referenced definition to the end of the document, numbered by first reference, and
+// gives every reference its number and its place among the note's references.
+function footnotes(state: StateCore): void {
+  const definitions = new Map<string, Token[]>();
+  const body: Token[] = [];
+  for (let index = 0; index < state.tokens.length; index++) {
+    const token = state.tokens[index];
+    if (token.type !== "looma_footnote_open") { body.push(token); continue; }
+    let depth = 0, end = index;
+    for (; end < state.tokens.length; end++) {
+      if (state.tokens[end].type === "looma_footnote_open") depth++;
+      else if (state.tokens[end].type === "looma_footnote_close" && --depth === 0) break;
+    }
+    const label = token.meta.label as string;
+    // The first definition of a label is its note.
+    if (!definitions.has(label)) definitions.set(label, state.tokens.slice(index, end + 1));
+    index = end;
+  }
+  if (!definitions.size) return;
+  const order: string[] = [];
+  const counts = new Map<string, number>();
+  const number = (tokens: Token[]) => {
+    for (const token of tokens) for (const child of token.children ?? []) {
+      if (child.type !== "looma_footnote_ref") continue;
+      const label = child.meta.label as string;
+      if (!counts.has(label)) order.push(label);
+      const occurrence = (counts.get(label) ?? 0) + 1;
+      counts.set(label, occurrence);
+      child.meta = { label, number: order.indexOf(label) + 1, occurrence };
+    }
+  };
+  number(body);
+  const notes: Token[] = [];
+  // A note may refer to a later note, which then joins the list.
+  for (let index = 0; index < order.length; index++) {
+    const label = order[index];
+    const tokens = definitions.get(label)!;
+    number(tokens);
+    const backrefs = Object.assign(new state.Token("looma_footnote_backrefs", "", 0), { meta: { label, number: index + 1 } });
+    const last = tokens.length - 2;
+    if (tokens[last].type === "paragraph_close") tokens.splice(last, 0, backrefs);
+    else tokens.splice(last + 1, 0, new state.Token("paragraph_open", "p", 1), backrefs, new state.Token("paragraph_close", "p", -1));
+    notes.push(...tokens);
+  }
+  if (!notes.length) { state.tokens = body; return; }
+  for (const note of notes) if (note.type === "looma_footnote_open") note.meta.count = counts.get(note.meta.label);
+  state.tokens = [...body, Object.assign(new state.Token("looma_footnotes_open", "section", 1), { block: true }), ...notes,
+    Object.assign(new state.Token("looma_footnotes_close", "section", -1), { block: true })];
+}
+
 interface TocEntry { id: string; text: string; children: TocEntry[] }
 
 function tableOfContents(tokens: Token[], format: string, depth: number, escape: (value: string) => string): string {
@@ -304,7 +409,7 @@ export interface LoomaMarkdownOptions {
 }
 
 /**
- * Adds Looma Markdown to a markdown-it instance: containers, alerts, task lists, the table of
+ * Adds Looma Markdown to a markdown-it instance: containers, alerts, task lists, footnotes, the table of
  * contents, chips, mentions, brace attributes, heading anchors, code meta and front matter.
  * @contract Renders the canonical HTML, which is the HTML LoomaEditor saves. It is not sanitized.
  * Linkify and raw HTML are instance options; `createLoomaMarkdownIt` turns both on.
@@ -312,12 +417,15 @@ export interface LoomaMarkdownOptions {
 export function loomaMarkdown(md: MarkdownIt, { codeNotation = "apply" }: LoomaMarkdownOptions = {}): void {
   const escape = md.utils.escapeHtml;
   md.block.ruler.before("table", "looma_frontmatter", frontmatter);
+  md.block.ruler.before("reference", "looma_footnote", footnoteDefinition, { alt: ["paragraph", "reference"] });
   md.block.ruler.before("fence", "looma_container", container, { alt: ["paragraph", "reference", "blockquote", "list"] });
   md.block.ruler.before("paragraph", "looma_leaf", leaf, { alt: ["paragraph", "reference", "blockquote", "list"] });
   md.inline.ruler.before("link", "looma_directive", directive);
+  md.inline.ruler.before("link", "looma_footnote_ref", footnoteReference);
   md.core.ruler.after("block", "looma_task_lists", taskLists);
   md.core.ruler.before("inline", "looma_alerts", alerts);
   md.core.ruler.before("text_join", "looma_attributes", attributes);
+  md.core.ruler.after("inline", "looma_footnotes", footnotes);
 
   const rules = md.renderer.rules;
   rules.looma_frontmatter = () => "";
@@ -342,6 +450,22 @@ export function loomaMarkdown(md: MarkdownIt, { codeNotation = "apply" }: LoomaM
   };
   rules.looma_tab_open = (tokens, index) => `<section aria-label="${escape(tokens[index].meta.label)}">\n`;
   rules.looma_tab_close = () => "</section>\n";
+  rules.looma_footnote_ref = (tokens, index) => {
+    const { label, number, occurrence } = tokens[index].meta as { label: string; number: number; occurrence: number };
+    return `<sup><a href="#fn:${escape(label)}" id="fnref:${escape(label)}${occurrence > 1 ? `:${occurrence}` : ""}" data-footnote-ref="" aria-describedby="footnote:label">${number}</a></sup>`;
+  };
+  rules.looma_footnote_backrefs = (tokens, index) => {
+    const { label, number } = tokens[index].meta as { label: string; number: number };
+    const count = (tokens.find(token => token.type === "looma_footnote_open" && token.meta.label === label)?.meta.count as number | undefined) ?? 1;
+    return Array.from({ length: count }, (_, occurrence) => {
+      const suffix = occurrence ? `:${occurrence + 1}` : "";
+      return ` <a href="#fnref:${escape(label)}${suffix}" data-footnote-backref="" aria-label="Back to reference ${number}${occurrence ? `-${occurrence + 1}` : ""}">↩${occurrence ? `<sup>${occurrence + 1}</sup>` : ""}</a>`;
+    }).join("");
+  };
+  rules.looma_footnotes_open = () => '<section data-footnotes="" class="footnotes">\n<h2 id="footnote:label" class="sr-only">Footnotes</h2>\n<ol>\n';
+  rules.looma_footnotes_close = () => "</ol>\n</section>\n";
+  rules.looma_footnote_open = (tokens, index) => `<li id="fn:${escape(tokens[index].meta.label)}">\n`;
+  rules.looma_footnote_close = () => "</li>\n";
   rules.looma_toc = (tokens, index) => tableOfContents(tokens, tokens[index].meta.format, tokens[index].meta.depth, escape);
   rules.looma_chip = (tokens, index) => {
     const { label, attributes } = tokens[index].meta as { label: string; attributes: LoomaAttributes };
