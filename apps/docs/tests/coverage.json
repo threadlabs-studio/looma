@@ -726,6 +726,24 @@
       ]
     },
     {
+      "path": "components/ui-editor-code-language",
+      "title": "Code Language",
+      "source": "apps/docs/docs/editor/ui-editor-code-language.mdx",
+      "component": "ui-editor-code-language",
+      "examples": [
+        {
+          "id": "01-languages",
+          "title": "Languages",
+          "behavior": false
+        },
+        {
+          "id": "02-auto",
+          "title": "Auto",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-editor-footnote-editor",
       "title": "Footnote Editor",
       "source": "apps/docs/docs/editor/ui-editor-footnote-editor.mdx",
@@ -744,24 +762,6 @@
         {
           "id": "03-label-in-use",
           "title": "Label in use",
-          "behavior": false
-        }
-      ]
-    },
-    {
-      "path": "components/ui-editor-code-language",
-      "title": "Code Language",
-      "source": "apps/docs/docs/editor/ui-editor-code-language.mdx",
-      "component": "ui-editor-code-language",
-      "examples": [
-        {
-          "id": "01-languages",
-          "title": "Languages",
-          "behavior": false
-        },
-        {
-          "id": "02-auto",
-          "title": "Auto",
           "behavior": false
         }
       ]
