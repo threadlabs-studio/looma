@@ -21,7 +21,7 @@ describe("Looma Markdown conformance", () => {
   });
 
   it("covers every row of the spec's Support table", () => {
-    expect(new Set(LOOMA_MARKDOWN_FIXTURES.map(fixture => fixture.feature)).size).toBe(20);
+    expect(new Set(LOOMA_MARKDOWN_FIXTURES.map(fixture => fixture.feature)).size).toBe(21);
   });
 
   it("keeps front matter as metadata", () => {
