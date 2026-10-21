@@ -1,0 +1,1 @@
+A note with no definition\[^missing\] stays text, and a definition nobody refers to renders nothing.
