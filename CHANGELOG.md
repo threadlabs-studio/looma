@@ -2,6 +2,7 @@
 
 ## Next release
 
+- Alert dialogs use the same outer top, side and bottom inset. Their header no longer retains the smaller top inset that accounts for a regular dialog’s close button. Regular dialogs are unchanged.
 - Looma Markdown has GitHub's footnotes. `[^label]` refers to a `[^label]:` definition, whose lines indented four spaces continue it. The markdown-it plugin numbers the notes by first reference and renders them after the document as GitHub does: a `<sup>` link per reference, and a `<section data-footnotes>` whose `<ol>` holds each note with links back to its references. IDs are `fn:label`, `fnref:label` and `fnref:label:2`, so they never meet a heading anchor. LoomaEditor reads and writes them as the `loomaFootnoteReference`, `loomaFootnotes` and `loomaFootnote` nodes, and Expressive Markdown carries them as `footnote` nodes. The conformance suite has a `footnotes` feature.
 
 - Looma builds with HTML Next 1.0.0-alpha.67, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.67`.
