@@ -720,6 +720,77 @@ describe("Anchored overlay placement", () => {
     await drawer.close();
   });
 
+  it("lets bare Popovers delegate their surface in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-bare-popover`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Popover, EditorToolbar } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Popover, { id: "popup", open: true, bare: true }, () => h(EditorToolbar, { floating: true }, () => h("button", "Bold"))) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-popover id="popup" open bare><ui-editor-toolbar floating><button>Bold</button></ui-editor-toolbar></ui-popover>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      await page.waitForFunction(() => document.querySelector("#popup")?.matches(":popover-open"));
+      const styles = await page.locator("#popup .surface").evaluate(element => {
+        const style = getComputedStyle(element);
+        return [style.padding, style.borderWidth, style.backgroundColor, style.boxShadow, style.overflow];
+      });
+      assert.deepEqual(styles, ["0px", "0px", "rgba(0, 0, 0, 0)", "none", "visible"]);
+      await page.close();
+    }
+  });
+
+  it("keeps selection toolbar shadows outside their positioning shell", async () => {
+    const path = await bundle("vue-editor-toolbar-shadow", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, {
+        toolbarMode: "contextual", compactToolbar: true,
+        modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+        onReady: (editor) => { window.fixtureEditor = editor; },
+      }) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app" style="margin: 150px 40px"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
+    const shell = page.locator(".looma-editor__formatting-shell:popover-open");
+    await shell.waitFor();
+    assert.equal(await shell.evaluate(element => getComputedStyle(element).overflow), "visible", "the positioning shell must not crop the toolbar's rounded shadow");
+    await page.close();
+  });
+
+  it("gives expanded and trigger-owned formatting one floating surface", async () => {
+    for (const mode of ["contextual", "popover"]) {
+      const path = await bundle(`vue-editor-format-surface-${mode}`, `
+        import { createApp, h } from "vue";
+        import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+        createApp({ render: () => h(LoomaEditor, {
+          toolbarMode: "${mode}", compactToolbar: ${mode === "contextual"}, toolbarTriggerId: "format-trigger",
+          modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+          onReady: (editor) => { window.fixtureEditor = editor; },
+        }) }).mount("#app");
+      `);
+      const page = await open(path, '<button id="format-trigger" style="margin: 100px 40px 40px">Formatting tools</button><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+      if (mode === "contextual") {
+        await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
+        await page.getByRole("button", { name: "Format", exact: true }).click();
+      } else await page.locator("#format-trigger").click();
+      const popup = page.locator(mode === "contextual" ? ".looma-editor__compact-formatting" : ".looma-editor__formatting-popover");
+      await page.waitForFunction(selector => document.querySelector(selector)?.matches(":popover-open"), mode === "contextual" ? ".looma-editor__compact-formatting" : ".looma-editor__formatting-popover");
+      const surface = await popup.evaluate(element => {
+        const panel = element.querySelector(".surface")!;
+        const style = getComputedStyle(panel), box = panel.getBoundingClientRect();
+        const toolbar = panel.querySelector('[role="toolbar"]')!.getBoundingClientRect();
+        return { padding: style.padding, border: style.borderWidth, shadow: style.boxShadow, overflow: style.overflow, background: style.backgroundColor, width: box.width - toolbar.width, height: box.height - toolbar.height };
+      });
+      assert.deepEqual(surface, { padding: "0px", border: "0px", shadow: "none", overflow: "visible", background: "rgba(0, 0, 0, 0)", width: 0, height: 0 }, `${mode}: the toolbar owns the sole surface and its shadow stays visible`);
+      if (mode === "contextual") {
+        await popup.getByRole("button", { name: "Heading 2", exact: true }).click();
+        assert.equal(await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.isActive("heading", { level: 2 })), true);
+      }
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(selector => !document.querySelector(selector)?.matches(":popover-open"), mode === "contextual" ? ".looma-editor__compact-formatting" : ".looma-editor__formatting-popover");
+      await page.close();
+    }
+  });
+
   it("closes a tooltip when the editor selection toolbar opens", async () => {
     const path = await bundle("vue-editor-tooltip-coordination", `
       import "@threadlabs/looma";
