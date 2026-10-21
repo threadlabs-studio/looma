@@ -70,7 +70,7 @@ In Markdown, a callout's tone is its container name and a chip's tone is its `to
 
 - The base is [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) with the
   [GFM 0.29](https://github.github.com/gfm/) extensions: tables, task list items, strikethrough
-  and autolinks.
+  and autolinks, plus GitHub's footnotes.
 - Raw HTML is part of the document. A renderer passes it through; LoomaEditor keeps the HTML its
   schema knows.
 - Front matter is a YAML mapping at the very start of the file, opened by a `---` line and closed
@@ -135,6 +135,45 @@ label, so the checkbox is named by its item:
 ```
 
 In an item of several paragraphs, the label holds the first paragraph's text.
+
+## Footnotes
+
+```md
+The build writes a log[^log], kept for a week[^log].
+
+[^log]: The log holds every step.
+
+    It is plain text.
+```
+
+`[^label]` refers to the definition `[^label]:`, wherever the definition stands. A label is any
+run of characters other than spaces and `]`, matched exactly. The definition's text starts after
+the colon, and lines indented four spaces continue it, so a note holds paragraphs, lists and code.
+A reference with no definition is text, and a definition no text refers to renders nothing; for
+the same label twice, the first definition is the note.
+
+The notes are numbered in the order they are first referred to and render after the document,
+in GitHub's form. A reference is a superscript link to its note, described by the notes' heading,
+and each note links back to every reference to it:
+
+```html
+<p>The build writes a log<sup><a href="#fn:log" id="fnref:log" data-footnote-ref aria-describedby="footnote:label">1</a></sup>, kept for a week<sup><a href="#fn:log" id="fnref:log:2" data-footnote-ref aria-describedby="footnote:label">1</a></sup>.</p>
+<section data-footnotes class="footnotes">
+<h2 id="footnote:label" class="sr-only">Footnotes</h2>
+<ol>
+<li id="fn:log">
+<p>The log holds every step.</p>
+<p>It is plain text. <a href="#fnref:log" data-footnote-backref aria-label="Back to reference 1">↩</a> <a href="#fnref:log:2" data-footnote-backref aria-label="Back to reference 1-2">↩<sup>2</sup></a></p>
+</li>
+</ol>
+</section>
+```
+
+The IDs hold a colon, which no heading anchor does: `fn:label` for a note, `fnref:label` for its
+first reference and `fnref:label:2` for the next. A renderer hides the `sr-only` heading visually,
+and keeps it for screen readers. LoomaEditor reads a reference as the `loomaFootnoteReference`
+node, `{ label }`, and the notes as `loomaFootnotes` holding a `loomaFootnote`, `{ label }`, per
+note. It writes each note as a definition after the text, in reference order.
 
 ## Code blocks
 
@@ -392,6 +431,7 @@ for (const fixture of LOOMA_MARKDOWN_FIXTURES) {
 | Heading anchors | `heading-ids` | Splits accented letters: "Über" is `u-ber` | Yes | Yes |
 | Lists, quotes and rules | `lists` | Yes | Yes | Yes |
 | Task lists | `task-lists` | Yes | Yes | Yes |
+| Footnotes | `footnotes` | Yes | Yes | Yes |
 | Code blocks | `code-blocks` | Yes | Yes | Yes |
 | Code meta | `code-meta` | Yes | Yes | Yes |
 | Tables | `tables` | Yes | Yes | Yes |

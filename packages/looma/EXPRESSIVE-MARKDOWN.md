@@ -40,7 +40,9 @@ beginning of a line or after whitespace; embedded at signs remain literal.
 Headings, text formatting, links, images, lists, tasks, quotes, code, callouts,
 disclosures, figures, tabs, chips, mentions and tables map to their semantic AST
 nodes. Mention targets become `ref`; chips keep their `tone`; merged table cells
-keep numeric spans and block bodies.
+keep numeric spans and block bodies. A footnote reference is the inline node
+`footnote` with its label as text, and the notes are a `footnotes` container
+holding a `footnote` container per note, titled by its label.
 
 Table cell presentation uses string attributes: `textAlign`, `backgroundColor`
 and the adapter profile's `columnWidths` (comma-separated pixel widths, such as

@@ -135,7 +135,7 @@ function tocBody(headings: Heading[], depth: number, ordered: boolean): Node[] {
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
-  if (!["text", "mention", "loomaReference", "loomaChip", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
+  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
   for (const mark of [...(node.marks ?? [])].reverse()) {
     const type = MARKS[mark.type];
     if (!type) fail(path, `mark ${mark.type}`);
@@ -205,6 +205,12 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     case "loomaChip":
       fields(node, ["label", "color"], path);
       return { type: "inline", subType: "chip", value: string(attrs.label), attributes: { tone: string(attrs.color, "neutral") } };
+    case "loomaFootnoteReference":
+      // The number and occurrence follow from the document's order.
+      fields(node, ["label", "number", "occurrence"], path);
+      return { type: "inline", subType: "footnote", value: string(attrs.label) };
+    case "loomaFootnotes": return block("container", [], { subType: "footnotes" });
+    case "loomaFootnote": return block("container", ["label"], { subType: "footnote", title: title(string(attrs.label)) });
     case "loomaCallout":
       return block("container", ["tone", "heading"], { subType: string(attrs.tone, "note"), ...(attrs.heading ? { title: title(string(attrs.heading)) } : {}) });
     case "loomaExpand":
@@ -361,6 +367,10 @@ function fromNode(node: Node, path: string, marks: NonNullable<JSONContent["mark
         check();
         return [{ type: "mention", attrs: { id: node.ref ?? null, label: text(node) }, ...(marks.length ? { marks } : {}) }];
       }
+      if (node.subType === "footnote") {
+        check();
+        return [{ type: "loomaFootnoteReference", attrs: { label: text(node) }, ...(marks.length ? { marks } : {}) }];
+      }
       if (node.subType === "chip") {
         check(["tone"]);
         if (attrs.tone !== undefined && !(LOOMA_CHIP_TONES as readonly unknown[]).includes(attrs.tone)) fail(path, "unsupported chip tone");
@@ -401,6 +411,8 @@ function fromNode(node: Node, path: string, marks: NonNullable<JSONContent["mark
         if (node.body?.length !== 1 || image?.type !== "image") fail(path, "figure body other than one image");
         return [{ type: "loomaFigure", content: [...children(), { type: "loomaFigcaption", ...(typeof node.title === "object" && content(node.title).length ? { content: content(node.title).flatMap((child, index) => fromNode(child, `${path}.title[${index}]`)) } : {}) }] }];
       }
+      if (node.subType === "footnotes") { check(); return wrap("loomaFootnotes"); }
+      if (node.subType === "footnote") { check(); return wrap("loomaFootnote", { label }); }
       if (node.subType === "toc") {
         check(["depth", "format"]);
         if (node.title) fail(path, "table-of-contents title");
