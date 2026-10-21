@@ -33,7 +33,7 @@ Looma has one framework-neutral component model:
 - Each contract declares props and defaults, input channels, slots,
   events, internal state, dependencies, and a native root.
 - Direct HTML uses `ui-*` invocation tags as declarative source. Browser imports
-  lower each invocation to its native light-DOM root and attach its controller.
+  lower each invocation to its native light-DOM root and activate its component module.
 - Framework adapters create the same native root directly and attach the same
   definition; they do not route through a custom-element bridge.
 - Authored semantic controls and content remain meaningful before JavaScript.
@@ -42,11 +42,13 @@ Looma has one framework-neutral component model:
   `window`, `document`, `HTMLElement`, or a custom-element registry at module
   evaluation time.
 
-Controllers initialize once per instance and register DOM work with
-`host.on("connect", callback)`. That callback runs on each connection and returns
-the connection's cleanup; the subscription remains active after disconnect so
-reconnecting reinstalls listeners and observers. Controllers communicate through
-native events and commands rather than generated methods on component elements.
+A component template selects its behavior with `module="./ui-button.js"`. That
+module exports a named `connect(host)` function, called once for each connection.
+It returns cleanup for listeners and observers; reconnecting calls it again with
+retained component state. A module import does not perform DOM setup. Component
+modules communicate through native events and commands rather than generated
+methods on component elements. There is no default activation callback or
+`controller` attribute in the authored component contract.
 
 Component styles read resolved props with `:host([prop])` and mutable or computed
 state with `:host(:state(name))`.

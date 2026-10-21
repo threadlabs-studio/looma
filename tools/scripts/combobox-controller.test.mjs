@@ -3,8 +3,8 @@ import test from "node:test";
 
 import * as comboboxController from "../../packages/looma/src/components/ui-combobox/ui-combobox.js";
 
-test("combobox controller exposes only its instance initializer", () => {
-  assert.deepEqual(Object.keys(comboboxController), ["default"]);
+test("combobox controller exposes named per-connection activation", () => {
+  assert.deepEqual(Object.keys(comboboxController), ["connect"]);
 });
 
 test("validation command keeps existing results and reconnect cleanup", () => {
@@ -17,7 +17,6 @@ test("validation command keeps existing results and reconnect cleanup", () => {
     element.ownerDocument = document;
     const input = { ownerDocument: document, value: "", removeAttribute() {}, setAttribute() {} };
     const popup = { ownerDocument: document, style: {}, setAttribute() {}, matches: () => false };
-    const hooks = [];
     const reports = [];
     const values = { required: true, value: null, query: null, filter: "label" };
     const host = {
@@ -26,9 +25,7 @@ test("validation command keeps existing results and reconnect cleanup", () => {
       state: { rows: [], expanded: false, raw: "", display: "", internalItems: [] },
       dispatch: (name, detail) => reports.push({ name, detail }),
       effect: (fn) => { fn(); return () => {}; },
-      on: (name, callback) => { assert.equal(name, "connect"); hooks.push(callback); return () => {}; },
     };
-    assert.equal(comboboxController.default(host), undefined);
     const request = new Event("command");
     Object.assign(request, { command: "--validate" });
     const check = () => {
@@ -41,13 +38,13 @@ test("validation command keeps existing results and reconnect cleanup", () => {
         assert.equal(reports[1].detail.output, undefined);
       }
     };
-    const stop = hooks[0]();
+    const stop = comboboxController.connect(host);
     try { check(); } finally { stop(); }
     reports.length = 0;
     element.dispatchEvent(request);
     element.dispatchEvent(new Event("validate"));
     assert.equal(reports.length, 0, "disconnect removes the validation listener");
-    const reconnectStop = hooks[0]();
+    const reconnectStop = comboboxController.connect(host);
     try {
       check();
       values.allowFreeText = true;

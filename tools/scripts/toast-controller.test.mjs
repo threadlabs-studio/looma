@@ -3,8 +3,8 @@ import test from "node:test";
 
 import * as toastController from "../../packages/looma/src/components/ui-toast-region/ui-toast-region.js";
 
-test("toast controller exposes only its instance initializer", () => {
-  assert.deepEqual(Object.keys(toastController), ["default"]);
+test("toast controller exposes named per-connection activation", () => {
+  assert.deepEqual(Object.keys(toastController), ["connect"]);
 });
 
 test("toast requests preserve message options and clean up across reconnects", () => {
@@ -17,13 +17,10 @@ test("toast requests preserve message options and clean up across reconnects", (
       showPopover() {}, hidePopover() {},
     });
     element.ownerDocument.getElementById = () => null;
-    const hooks = [];
     const host = {
       element, props: { duration: { value: 0 } }, state: { toasts: [] },
       dispatch() {}, effect: (fn) => { fn(); return () => {}; },
-      on: (name, callback) => { assert.equal(name, "connect"); hooks.push(callback); return () => {}; },
     };
-    assert.equal(toastController.default(host), undefined);
     const command = new Event("command");
     Object.assign(command, { command: "--show-toast", source: { value: "From a button" } });
     const request = new CustomEvent("show-toast", {
@@ -31,7 +28,7 @@ test("toast requests preserve message options and clean up across reconnects", (
     });
     element.dispatchEvent(request);
     assert.equal(host.state.toasts.length, 0, "disconnected requests do not create messages");
-    const stop = hooks[0]();
+    const stop = toastController.connect(host);
     try {
       element.dispatchEvent(command);
       element.dispatchEvent(request);
@@ -42,7 +39,7 @@ test("toast requests preserve message options and clean up across reconnects", (
     element.dispatchEvent(command);
     element.dispatchEvent(request);
     assert.equal(host.state.toasts.length, 2, "disconnect releases both command listeners");
-    const reconnectStop = hooks[0]();
+    const reconnectStop = toastController.connect(host);
     try {
       element.dispatchEvent(new CustomEvent("show-toast", { detail: { message: "Again", id: "again", tone: "danger" } }));
       assert.equal(host.state.toasts.length, 3, "reconnect attaches one request listener");

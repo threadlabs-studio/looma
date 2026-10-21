@@ -166,9 +166,9 @@ beforeAll(async () => {
     name: "delay-tree-item-controller",
     transform(code, id) {
       if (!id.endsWith("/components/ui-tree-item/ui-tree-item.js")) return;
-      const declaration = "export default function controller(host) {";
+      const declaration = "export function connect(host) {";
       assert.ok(code.includes(declaration), "delay the real Tree Item controller");
-      return code.replace(declaration, "export default async function controller(host) { await window.treeItemGate;");
+      return code.replace(declaration, "export async function connect(host) { await window.treeItemGate;");
     },
   }]);
   marqueePath = await bundle("vue-tree-marquee", `
