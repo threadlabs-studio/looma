@@ -216,12 +216,8 @@
       ".looma-editor__sticky-toolbar-shell { position: sticky; top: var(--ui-editor-sticky-toolbar-top, 0); z-index: var(--ui-editor-toolbar-z-index, 10); min-width: 0; background: var(--ui-editor-toolbar-surface, var(--ui-surface, #fff)); border-bottom: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));",
       ".looma-editor__table-menu-shell { position: fixed;",
       ".looma-editor__table-menu-shell { z-index: var(--ui-editor-popover-z-index, 300);",
-      ".looma-editor__table-overlay-shell { position: fixed;",
-      ".looma-editor__table-overlay-shell { z-index: var(--ui-editor-overlay-z-index, 299); overflow: visible; pointer-events: none;",
       ".looma-editor__table-picker-popover { min-width: 220px; padding: 0; border: 0; background: transparent;",
       ".looma-editor__table-picker-popover { z-index: var(--ui-editor-popover-z-index, 300);",
-      ".looma-editor__table-toolbar-shell { position: fixed;",
-      ".looma-editor__table-toolbar-shell { z-index: var(--ui-editor-popover-z-index, 300);",
       ".looma-editor__toolbar-button > .looma-icon { width: var(--ui-editor-toolbar-icon-size, 1rem); height: var(--ui-editor-toolbar-icon-size, 1rem); stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);",
       ".looma-editor__toolbar-button { --ui-icon-button-size: var(--ui-editor-toolbar-button-size, 2rem); --ui-icon-button-radius: var(--ui-editor-toolbar-button-radius, var(--ui-radius-sm)); --ui-icon-button-icon-size: var(--ui-editor-toolbar-icon-size, 1rem);",
       ".looma-editor__toolbar-button[data-active=\"true\"] { --ui-icon-button-surface: var(--ui-editor-toolbar-active-surface, var(--ui-accent-subtle)); --ui-icon-button-text: var(--ui-editor-toolbar-active-text, var(--ui-accent-active)); color: var(--ui-editor-toolbar-active-text, var(--ui-accent-active)); box-shadow: inset 0 0 0 1px var(--ui-editor-toolbar-active-border, color-mix(in srgb, var(--ui-accent) 40%, transparent));",
@@ -336,7 +332,6 @@
       "codeUi.style = {\n        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,\n        left: `${rect.left + rect.width / 2}px`,\n        transform: `translate(-50%, ${above ? \"-100%\" : \"0\"})`,\n      }",
       "style: codeUi.style",
       "style: mobileToolbarStyle.value",
-      "style: tableUi.toolbarStyle",
       "style: tableUi.overlayStyle",
       "style: tableUi.menuStyle"
     ]

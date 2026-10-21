@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NO_TABLE_CAPABILITIES, type ActiveTableUiState } from "../src/editor/extensions/table-commands";
-import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement, tableToolbarPlacement } from "../src/editor/table-ui";
+import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement } from "../src/editor/table-ui";
 
 const selection: ActiveTableUiState = {
   active: true, showToolbar: true, cellAlignment: "center", cellBackground: "blue", headerRow: true, headerColumn: false,
@@ -18,10 +18,8 @@ describe("table controls", () => {
     expect(Object.isFrozen(LOOMA_TABLE_CONTROLS_CLOSED.capabilities)).toBe(true);
   });
 
-  it("centers the toolbar on the table within the viewport, above it when there is room, and covers the table with the overlay", () => {
-    const table = { top: 200, bottom: 400, left: 100, width: 600, height: 200 } as DOMRect;
-    expect(tableToolbarPlacement(table, 1280)).toEqual({ top: "148px", left: "190px", maxWidth: "420px" });
-    expect(tableToolbarPlacement({ ...table, top: 40, bottom: 240, left: 0, width: 300 } as DOMRect, 375)).toEqual({ top: "252px", left: "12px", maxWidth: "351px" });
-    expect(tableOverlayPlacement(table)).toEqual({ top: "200px", left: "100px", width: "600px", height: "200px" });
+  it("places inline controls relative to the editable document", () => {
+    const table = { top: 200, left: 100, width: 600, height: 200 } as DOMRect;
+    expect(tableOverlayPlacement(table, { top: 50, left: 20 } as DOMRect)).toEqual({ top: "150px", left: "80px", width: "600px", height: "200px" });
   });
 });

@@ -5,6 +5,7 @@ import { Editor as VueEditor } from "@tiptap/vue-3";
 import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { NodeSelection } from "@tiptap/pm/state";
 import {
+  Teleport,
   computed,
   defineComponent,
   h,
@@ -93,7 +94,7 @@ import {
   type LoomaEditorSelectionAction,
   type LoomaEditorSelectionActionDetail,
 } from "../../editor/host-actions";
-import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement, tableToolbarPlacement } from "../../editor/table-ui";
+import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement } from "../../editor/table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "../../editor/mobile-dock";
 import { createLinkEditing, isLinkActive, selectedLinkReference, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "../../editor/link-editing";
 import { setReferenceDisplay, type LoomaReferenceMap } from "../../editor/reference-display";
@@ -101,6 +102,7 @@ import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "../../editor/selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "../../editor/session";
 import { isApplePlatform } from "../../editor/shortcuts";
+import { tooltipShowDelay } from "../../components/shared/tooltip.js";
 import { createToolbarTooltip } from "../../editor/toolbar-tooltip";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "../../editor/code-language-picker";
 import { tableOfContentsNodeView } from "../../editor/node-views/table-of-contents";
@@ -401,7 +403,7 @@ export const LoomaEditor = defineComponent({
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const toolbarTooltip = createToolbarTooltip((state) => { tooltip.value = state; });
+    const toolbarTooltip = createToolbarTooltip((state) => { tooltip.value = state; }, () => tooltipShowDelay(root.value));
     const tooltip = shallowRef(toolbarTooltip.state);
     const resizeHintFor = ref("");
     let resizeHintSequence = 0;
@@ -473,7 +475,7 @@ export const LoomaEditor = defineComponent({
       rows: 0,
       cols: 0,
       geometry: null as TableOverlayGeometry | null,
-      toolbarStyle: {} as CSSProperties,
+      toolbarTarget: null as HTMLElement | null,
       overlayStyle: {} as CSSProperties,
       menuStyle: {} as CSSProperties,
       capabilities: LOOMA_TABLE_CONTROLS_CLOSED.capabilities,
@@ -1002,8 +1004,8 @@ export const LoomaEditor = defineComponent({
       tableUi.rows = Math.max(0, geometry.rowBoundaries.length - 1);
       tableUi.cols = Math.max(0, geometry.columnBoundaries.length - 1);
       tableUi.geometry = geometry;
-      tableUi.toolbarStyle = tableToolbarPlacement(rect, window.innerWidth);
-      tableUi.overlayStyle = tableOverlayPlacement(rect);
+      tableUi.toolbarTarget = table.closest("[data-looma-table-block]")?.querySelector<HTMLElement>("[data-looma-table-toolbar-host]") ?? null;
+      tableUi.overlayStyle = tableOverlayPlacement(rect, root.value!.getBoundingClientRect());
     };
 
     const onEditorFocus = () => {
@@ -1078,18 +1080,12 @@ export const LoomaEditor = defineComponent({
         presentation?.show();
       };
     };
-    const tableToolbarRef = popupRef(tableToolbarShell);
     const codeLanguageRef = popupRef(codeLanguageShell, true);
     const mobileToolbarRef = popupRef(mobileToolbarShell, true);
-    // Presented shells carry keys: the root's children are diffed by key, and an unkeyed shell could
-    // otherwise take over a sibling's element, and with it that sibling's presentation.
-    // The table overlay enters the top layer once, as the editor mounts, so every editor surface shown
-    // after it, the table toolbar and context menu included, stays above its handles. It then opens and
-    // closes with `hidden`, which keeps that place in the top layer.
-    const presentTableOverlay = popupRef(tableOverlayShell);
+    // Inline table controls stay in the document's positioning and scroll context.
+    // Menus and popups retain viewport/top-layer presentation.
     const tableOverlayRef = (node: unknown) => {
-      presentTableOverlay(node);
-      if (node instanceof HTMLElement) node.hidden = !tableUi.overlayOpen;
+      tableOverlayShell.value = node instanceof HTMLElement ? node : null;
     };
     const onDocumentPointerDown = (event: PointerEvent) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
@@ -1761,8 +1757,6 @@ export const LoomaEditor = defineComponent({
         // would contribute overflow even while its opacity is zero.
         resizeHintFor.value ? h(Tooltip, {
           for: resizeHintFor.value,
-          open: true,
-          trigger: "focus",
           placement: "top",
           inverse: true,
         }, () => "Drag to resize column") : null,
@@ -1996,13 +1990,12 @@ export const LoomaEditor = defineComponent({
               },
             })
           : null,
-        tableUi.toolbarOpen
-          ? h("div", {
+        tableUi.toolbarOpen && tableUi.toolbarTarget
+          ? h(Teleport, { to: tableUi.toolbarTarget }, [h("div", {
               key: "looma-table-toolbar-shell",
-              ref: tableToolbarRef,
+              ref: tableToolbarShell,
               class: "looma-editor__table-toolbar-shell",
-              style: tableUi.toolbarStyle,
-            }, [h(EditorTableToolbar, tableProps)])
+            }, [h(EditorTableToolbar, tableProps)])])
           : null,
         instance && props.editable && !mobile.value
           ? h("div", {
