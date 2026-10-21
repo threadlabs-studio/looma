@@ -39,7 +39,7 @@ function looksLikeMarkdown(value: string): boolean {
     }
     // A bare URL is a link to Looma Markdown, but on its own it is not evidence of Markdown.
     return token.type === "inline" && Boolean(token.children?.some((child) =>
-      (child.type === "link_open" && child.markup !== "linkify") || ["image", "strong_open", "looma_chip", "looma_mention"].includes(child.type)));
+      (child.type === "link_open" && child.markup !== "linkify") || ["image", "strong_open", "looma_chip", "looma_mention", "looma_footnote_ref"].includes(child.type)));
   });
 }
 
@@ -147,8 +147,10 @@ export const LoomaSmartPaste = Extension.create({
             const plainText = event.clipboardData.getData("text/plain");
             if (!plainText.trim()) return false;
             if (hasRichClipboardStructure(event.clipboardData.getData("text/html"))) return false;
-            const slice = documentSlice(view.state.schema, plainText);
+            let slice = documentSlice(view.state.schema, plainText);
             if (!slice) return false;
+            // As ProseMirror does for the slices it parses.
+            view.someProp("transformPasted", (transform) => { slice = transform(slice!, view, true); });
             if (slice.size === 0) return true;
 
             const transaction = view.state.tr

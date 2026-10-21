@@ -2,6 +2,12 @@
 
 ## Next release
 
+- LoomaEditor edits footnotes. `/footnote`, `editor.commands.insertLoomaFootnote()` and Mod+Alt+F insert a reference at the caret with an empty note, and move the caret into the note; typing or pasting `[^label]` makes a reference, with a note for a new label. Notes are numbered again on every edit by first reference and kept in that order at the end of the document, a note goes when its last reference is deleted, and a cut reference pasted back gets its note again. `renameLoomaFootnote(from, to)` relabels a note and every reference to it, and `goToLoomaFootnote()` (Mod+Alt+N) moves the caret between a reference and its note. The saved HTML is Looma Markdown's: notes carry their back-links, and numbers follow the document. Pasted Markdown footnotes join the document's notes.
+
+- Footnote Editor (`ui-editor-footnote-editor`, Vue `EditorFootnoteEditor`) is the editor's footnote popover, opened by clicking a footnote reference: a label field that renames the footnote, a note field that edits a note of plain text and shows a formatted one read-only, and Go to note. It reports `text`, `label`, `go` and `done`.
+
+- The icon set has `superscript`.
+
 - **Breaking:** Component definitions select `module` and export named `connect(host)` for each connection. The old `controller` attribute/default initializer is removed. This lets the same resources work with HTML Next's module-only compiler and gives reconnects an explicit activation/cleanup lifetime; an alias would preserve the incompatible contract. Component props, events and rendered roots stay the same. Applications loading component definitions need a module-capable HTML Next runtime (the exact alpha.67 peer supports it). Any direct implementation-module imports must use `connect` instead of a default initializer, call it per connection and invoke its returned cleanup on disconnection. DOM setup no longer requires registering an internal connect hook.
 
 - Alert dialogs use the same outer top, side and bottom inset. Their header no longer retains the smaller top inset that accounts for a regular dialog’s close button. Regular dialogs are unchanged.

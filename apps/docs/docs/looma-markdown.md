@@ -169,7 +169,8 @@ The IDs hold a colon, which no heading anchor does: `fn:label` for a note, `fnre
 first reference and `fnref:label:2` for the next. A renderer hides the `sr-only` heading visually,
 and keeps it for screen readers. LoomaEditor reads a reference as the `loomaFootnoteReference`
 node, `{ label }`, and the notes as `loomaFootnotes` holding a `loomaFootnote`, `{ label }`, per
-note. It writes each note as a definition after the text, in reference order.
+note. It numbers them again on every edit and saves the HTML above, back-links included, and its
+Markdown writes each note as a definition after the text, in reference order.
 
 ## Code blocks
 
