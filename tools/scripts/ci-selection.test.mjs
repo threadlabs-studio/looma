@@ -88,7 +88,7 @@ test("shared themes/compiler inputs select full coverage and unmapped inputs fai
 
 test("shared TS/controller imports propagate, while example compositions remain one-way docs consumers", () => {
   const graph = { ...files,
-    "packages/looma/src/components/ui-button/ui-button.html": '<template component="ui-button" controller="./ui-button.js"></template>',
+    "packages/looma/src/components/ui-button/ui-button.html": '<template component="ui-button" module="./ui-button.js"></template>',
     "packages/looma/src/components/shared/state.ts": "export const state = {};",
     "packages/looma/src/components/ui-button/ui-button.js": 'import { state } from "../shared/state.js";',
     "packages/looma/src/components/ui-table/examples/01-default.html": "<ui-badge>Ready</ui-badge>",

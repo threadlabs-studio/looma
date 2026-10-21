@@ -1,4 +1,4 @@
-function connect(host) {
+export function connect(host) {
   const area = host.element;
   let frame = 0;
 
@@ -29,9 +29,4 @@ function connect(host) {
     area.removeEventListener("scroll", schedule);
     if (frame) cancelAnimationFrame(frame);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

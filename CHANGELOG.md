@@ -2,6 +2,8 @@
 
 ## Next release
 
+- **Breaking:** Component definitions select `module` and export named `connect(host)` for each connection. The old `controller` attribute/default initializer is removed. This lets the same resources work with HTML Next's module-only compiler and gives reconnects an explicit activation/cleanup lifetime; an alias would preserve the incompatible contract. Component props, events and rendered roots stay the same. Applications loading component definitions need a module-capable HTML Next runtime (the exact alpha.67 peer supports it). Any direct implementation-module imports must use `connect` instead of a default initializer, call it per connection and invoke its returned cleanup on disconnection. DOM setup no longer requires registering an internal connect hook.
+
 - Alert dialogs use the same outer top, side and bottom inset. Their header no longer retains the smaller top inset that accounts for a regular dialog’s close button. Regular dialogs are unchanged.
 - Looma Markdown has GitHub's footnotes. `[^label]` refers to a `[^label]:` definition, whose lines indented four spaces continue it. The markdown-it plugin numbers the notes by first reference and renders them after the document as GitHub does: a `<sup>` link per reference, and a `<section data-footnotes>` whose `<ol>` holds each note with links back to its references. IDs are `fn:label`, `fnref:label` and `fnref:label:2`, so they never meet a heading anchor. LoomaEditor reads and writes them as the `loomaFootnoteReference`, `loomaFootnotes` and `loomaFootnote` nodes, and Expressive Markdown carries them as `footnote` nodes. The conformance suite has a `footnotes` feature.
 

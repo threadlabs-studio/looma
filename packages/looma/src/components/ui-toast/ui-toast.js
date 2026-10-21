@@ -5,7 +5,7 @@ function inputFor(event) {
 }
 
 /** An authored toast hides itself when dismissed, like a dialog closing; clearing hidden shows it again. */
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const { action } = host.refs;
   if (!element.id) element.id = `ui-toast-authored-${++toastSequence}`;
@@ -81,9 +81,4 @@ function connect(host) {
     element.removeEventListener("focusin", pause);
     element.removeEventListener("focusout", onFocusOut);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }

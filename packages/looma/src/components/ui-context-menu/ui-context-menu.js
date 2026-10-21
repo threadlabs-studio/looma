@@ -5,7 +5,7 @@ function disabled(item) {
   return item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.getAttribute("disabled") === "true";
 }
 
-function connect(host) {
+export function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const menuSurface = host.refs.menu;
@@ -156,9 +156,4 @@ function connect(host) {
     surface?.destroy();
     closeOverlay(document, overlayId);
   };
-}
-
-/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
-export default function controller(host) {
-  host.on("connect", () => connect(host));
 }
