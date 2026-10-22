@@ -52,6 +52,12 @@ export function normalizeLoomaChipTone(value: unknown): LoomaChipTone {
 }
 
 /**
+ * A mention handle, as `@handle` and the `#ref` of `@[Label]#ref` spell it: a letter, number or
+ * underscore, then letters, marks, numbers, underscores and hyphens.
+ */
+export const LOOMA_MENTION_HANDLE = /^[\p{L}\p{N}_][\p{L}\p{M}\p{N}_-]*/u;
+
+/**
  * Names that open a `:::` container, matched without regard to case. A container with any other
  * name is ordinary text.
  */

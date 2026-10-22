@@ -7,6 +7,7 @@ import {
   applyLoomaCodeNotation,
   assignLoomaHeadingIds,
   LOOMA_CONTAINER_NAMES,
+  LOOMA_MENTION_HANDLE,
   normalizeLoomaCalloutTone,
   normalizeLoomaChipTone,
   parseLoomaAttributes,
@@ -184,11 +185,11 @@ function taskLists(state: StateCore): void {
   }
 }
 
-// `:chip[Label]{tone=green}` and `:mention[Label]{id=u1}`.
+// `:chip[Label]{tone=green}`.
 function directive(state: StateInline, silent: boolean): boolean {
   const { src, pos } = state;
   if (src.charCodeAt(pos) !== 0x3a) return false;
-  const name = /^:(chip|mention)\[/.exec(src.slice(pos, pos + 10))?.[1];
+  const name = /^:(chip)\[/.exec(src.slice(pos, pos + 10))?.[1];
   if (!name) return false;
   let label = "";
   let index = pos + name.length + 2;
@@ -199,12 +200,43 @@ function directive(state: StateInline, silent: boolean): boolean {
   if (src[index] !== "]") return false;
   const read = src[index + 1] === "{" ? readLoomaAttributes(src, index + 1) : { attributes: {} as LoomaAttributes, end: index + 1 };
   if (!read || read.end > state.posMax) return false;
-  if (name === "mention" && typeof read.attributes.id !== "string") return false;
   if (!silent) {
     const token = state.push(`looma_${name}`, "span", 0);
     token.meta = { label, attributes: read.attributes };
   }
   state.pos = read.end;
+  return true;
+}
+
+// Mentions as Expressive Markdown writes them: `@handle`, `@[Label]` and `@[Label]#ref`, with
+// `{ref="…"}` after the label for a reference that is not a handle. An `@` starts a mention only at
+// the start of the text or after whitespace, so `a@b.com` stays text.
+function mention(state: StateInline, silent: boolean): boolean {
+  const { src, pos } = state;
+  if (src.charCodeAt(pos) !== 0x40 || (pos > 0 && !/\s/u.test(src[pos - 1]))) return false;
+  let index = pos + 1;
+  let label = "";
+  if (src[index] === "[") {
+    for (index++; index < state.posMax && src[index] !== "]"; index++) {
+      if (src[index] === "\\" && index + 1 < state.posMax) index++;
+      label += src[index];
+    }
+    if (src[index] !== "]" || !label) return false;
+    index++;
+  } else {
+    label = LOOMA_MENTION_HANDLE.exec(src.slice(index, state.posMax))?.[0] ?? "";
+    if (!label) return false;
+    index += label.length;
+  }
+  let ref = src[index] === "#" ? LOOMA_MENTION_HANDLE.exec(src.slice(index + 1, state.posMax))?.[0] : undefined;
+  if (ref) index += ref.length + 1;
+  const read = src[index] === "{" ? readLoomaAttributes(src, index) : null;
+  if (read && read.end <= state.posMax) {
+    if (typeof read.attributes.ref === "string") ref ??= read.attributes.ref;
+    index = read.end;
+  }
+  if (!silent) state.push("looma_mention", "span", 0).meta = { label, ref };
+  state.pos = index;
   return true;
 }
 
@@ -421,6 +453,7 @@ export function loomaMarkdown(md: MarkdownIt, { codeNotation = "apply" }: LoomaM
   md.block.ruler.before("fence", "looma_container", container, { alt: ["paragraph", "reference", "blockquote", "list"] });
   md.block.ruler.before("paragraph", "looma_leaf", leaf, { alt: ["paragraph", "reference", "blockquote", "list"] });
   md.inline.ruler.before("link", "looma_directive", directive);
+  md.inline.ruler.before("link", "looma_mention", mention);
   md.inline.ruler.before("link", "looma_footnote_ref", footnoteReference);
   md.core.ruler.after("block", "looma_task_lists", taskLists);
   md.core.ruler.before("inline", "looma_alerts", alerts);
@@ -473,9 +506,8 @@ export function loomaMarkdown(md: MarkdownIt, { codeNotation = "apply" }: LoomaM
     return `<span data-looma-chip="" data-label="${escape(label)}" data-color="${tone}"${label ? "" : ' data-placeholder=""'}>${escape(label)}</span>`;
   };
   rules.looma_mention = (tokens, index) => {
-    const { label, attributes } = tokens[index].meta as { label: string; attributes: LoomaAttributes };
-    const id = String(attributes.id);
-    return `<span data-type="mention" class="looma-mention" data-id="${escape(id)}" data-label="${escape(label || id)}">@${escape(label || id)}</span>`;
+    const { label, ref } = tokens[index].meta as { label: string; ref?: string };
+    return `<span data-type="mention" class="looma-mention"${ref === undefined ? "" : ` data-id="${escape(ref)}"`} data-label="${escape(label)}">@${escape(label)}</span>`;
   };
   // Code holds its lines without the newline that closes the last one, and shows its notation
   // applied unless the instance edits source.
