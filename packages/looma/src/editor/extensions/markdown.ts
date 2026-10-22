@@ -1,6 +1,6 @@
 import { defaultMarkdownSerializer, MarkdownSerializer, type MarkdownSerializerState } from "@tiptap/pm/markdown";
 import { DOMSerializer, type Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { assignLoomaHeadingIds, formatLoomaAttributes, LOOMA_CONTAINER_NAMES, loomaCodeFence, loomaContainerMarker, normalizeLoomaChipTone, parseLoomaFenceInfo } from "../../markdown";
+import { assignLoomaHeadingIds, formatLoomaAttributes, LOOMA_CONTAINER_NAMES, LOOMA_MENTION_HANDLE, loomaCodeFence, loomaContainerMarker, normalizeLoomaChipTone, parseLoomaFenceInfo } from "../../markdown";
 import { createLoomaMarkdownIt } from "../../markdown/markdown-it";
 
 /** The markdown-it instance LoomaEditor reads Looma Markdown with; code keeps its notation as source. */
@@ -129,9 +129,11 @@ const NODES: Record<string, NodeSerializer> = {
     const tone = normalizeLoomaChipTone(node.attrs.color);
     state.write(`:chip[${label(String(node.attrs.label ?? ""))}]${formatLoomaAttributes({ tone: tone !== "neutral" ? tone : null })}`);
   },
+  // `@[Label]#ref`, as Expressive Markdown writes a mention; a reference that is not a handle goes in `{ref}`.
   mention: (state, node) => {
-    const id = String(node.attrs.id ?? "");
-    state.write(`:mention[${label(String(node.attrs.label ?? id))}]${formatLoomaAttributes({ id }, { hashId: false })}`);
+    const id = node.attrs.id == null ? "" : String(node.attrs.id);
+    const reference = !id ? "" : LOOMA_MENTION_HANDLE.exec(id)?.[0] === id ? `#${id}` : formatLoomaAttributes({ ref: id });
+    state.write(`@[${label(String(node.attrs.label || id))}]${reference}`);
   },
   loomaReference: (state, node) => {
     // Saved HTML carries the identity in the legacy flavor; Expressive Markdown has a typed adapter.

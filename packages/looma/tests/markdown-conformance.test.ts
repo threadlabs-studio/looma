@@ -30,6 +30,14 @@ describe("Looma Markdown conformance", () => {
     expect(env.frontmatter).toBe("title: Notes");
   });
 
+  it("reads Expressive Markdown's mentions, starting only at the start of the text or after whitespace", () => {
+    const span = (label: string, id?: string) => `<span data-type="mention" class="looma-mention"${id ? ` data-id="${id}"` : ""} data-label="${label}">@${label}</span>`;
+    expect(md.render("@ada, @[Grace Hopper] and @[Ada Lovelace]#u1\n")).toBe(`<p>${span("ada")}, ${span("Grace Hopper")} and ${span("Ada Lovelace", "u1")}</p>\n`);
+    expect(md.render("@[Ada]{ref=\"user:42\"} and\n@[A \\] B]#x-2\n")).toBe(`<p>${span("Ada", "user:42")} and\n${span("A ] B", "x-2")}</p>\n`);
+    expect(md.render("mail a@b.com or (@ada)\n")).toBe("<p>mail a@b.com or (@ada)</p>\n");
+    expect(md.render(":mention[Ada]{id=u1}\n")).toBe("<p>:mention[Ada]{id=u1}</p>\n");
+  });
+
   it("leaves text literal when a brace list or directive is malformed", () => {
     expect(md.render(":chip[Ready]{tone=green\n")).toBe("<p>:chip[Ready]{tone=green</p>\n");
     expect(md.render(":mention[Ada]\n")).toBe("<p>:mention[Ada]</p>\n");
