@@ -1,1 +1,1 @@
-Thanks, :mention[Ada Lovelace]{id=u1}.
+Thanks, @[Ada Lovelace]#u1.

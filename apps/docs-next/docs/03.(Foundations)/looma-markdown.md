@@ -23,7 +23,7 @@ Back up your data first.
 :::
 
 - [x] Read the changelog
-- [ ] Run the migration, owned by :mention[Ada Lovelace]{id=u1}
+- [ ] Run the migration, owned by @[Ada Lovelace]#u1
 
 Status: :chip[Ready]{tone=green}
 
@@ -41,7 +41,7 @@ Two mechanisms carry everything CommonMark and GFM do not.
 
 | Form | Scope | Examples |
 | --- | --- | --- |
-| `:name[label]{attributes}` | Inline | `:chip[Ready]{tone=green}`, `:mention[Ada]{id=u1}` |
+| `:name[label]{attributes}` | Inline | `:chip[Ready]{tone=green}` |
 | `::name{attributes}` | A block without content | `::toc{depth=2}` |
 | `::: name Title` … `:::` | A block that holds content | `::: tip Title`, `::: details Summary` |
 
@@ -367,12 +367,19 @@ and an unknown or missing tone is `neutral`. LoomaEditor saves it as
 ## Mentions
 
 ```md
-Thanks, :mention[Ada Lovelace]{id=u1}.
+Thanks @ada, @[Grace Hopper] and @[Ada Lovelace]#u1.
 ```
 
-A mention names a person or other entity by the application's `id`, with the label it shows. A
-mention without an `id` is text. LoomaEditor saves it as
+A mention is written as Expressive Markdown writes it: `@handle`, `@[Label]`, or `@[Label]#ref`,
+where `ref` is the application's ID for the person or other entity. A handle and a `ref` are a
+letter, number or underscore followed by letters, marks, numbers, underscores and hyphens; any
+other ID goes in braces, `@[Label]{ref="user:42"}`. An `@` starts a mention only at the start of a
+line or after whitespace, so `a@b.com` is text. LoomaEditor writes `@[Label]`, with the ID when the
+mention has one, and saves the mention as
 `<span data-type="mention" data-id="u1" data-label="Ada Lovelace">@Ada Lovelace</span>`.
+
+`:mention[Label]{id=…}` is text. To keep mentions written that way, convert each one to
+`@[Label]#id` before reading the document.
 
 ## Table of contents
 

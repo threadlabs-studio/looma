@@ -55,7 +55,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     const { editor, host } = await mountEditor();
     editor.commands.focus("start");
     pasteSource(editor, [
-      "Status :chip[Ready]{tone=green}, owned by :mention[Ada]{id=u1}.", "",
+      "Status :chip[Ready]{tone=green}, owned by @[Ada]#u1.", "",
       "- [x] Read the changelog", "- [ ] Run the migration", "",
       "::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", ":::",
     ].join("\n"));

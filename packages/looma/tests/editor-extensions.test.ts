@@ -192,6 +192,20 @@ describe("editor extension contract", () => {
     editor.destroy();
   });
 
+  it("writes mentions as Expressive Markdown's @[Label]#ref and reads every @ form back", () => {
+    const mention = (id: string | null, label: string) => ({ type: "mention", attrs: { id, label } });
+    const content = { type: "doc", content: [{ type: "paragraph", content: [
+      mention("u1", "Ada Lovelace"), { type: "text", text: " " }, mention("user:42", "Grace"), { type: "text", text: " " }, mention(null, "ada"),
+    ] }] };
+    const editor = new Editor({ extensions: getDefaultEditorExtensions(), content });
+    const markdown = loomaMarkdownFromDoc(editor.state.doc);
+    expect(markdown).toBe("@[Ada Lovelace]#u1 @[Grace]{ref=user:42} @[ada]");
+    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
+    expect(reloaded.getJSON()).toEqual(editor.getJSON());
+    editor.destroy();
+    reloaded.destroy();
+  });
+
   it("exports callouts and expand sections as the shared Markdown and reads them back", () => {
     const editor = new Editor({
       extensions: getDefaultEditorExtensions(),
