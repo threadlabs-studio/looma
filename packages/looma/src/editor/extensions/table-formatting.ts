@@ -11,23 +11,34 @@ export type TableCellAlignment = "left" | "center" | "right";
 /** CSS color stored in document attrs; null removes authored cell background. */
 export type TableCellBackground = string | null;
 
-/** Table chrome lives outside the horizontal scroller, within the table's document block. */
-class LoomaTableView extends TableView {
+/**
+ * Table chrome lives outside the horizontal scroller, within the table's document block.
+ * @invariant It holds Tiptap's TableView rather than extending it: a bundler that lowers classes
+ * calls the base as a function, which a native class rejects.
+ */
+class LoomaTableView {
+  readonly table: TableView;
+  readonly dom: HTMLDivElement;
+  readonly contentDOM: HTMLElement;
   readonly toolbarHost: HTMLDivElement;
 
   constructor(node: ProseMirrorNode, cellMinWidth: number) {
-    super(node, cellMinWidth);
-    const scroller = this.dom;
+    this.table = new TableView(node, cellMinWidth);
+    this.contentDOM = this.table.contentDOM;
     this.dom = document.createElement("div");
     this.dom.dataset.loomaTableBlock = "";
     this.toolbarHost = document.createElement("div");
     this.toolbarHost.dataset.loomaTableToolbarHost = "";
     this.toolbarHost.contentEditable = "false";
-    this.dom.append(scroller, this.toolbarHost);
+    this.dom.append(this.table.dom, this.toolbarHost);
+  }
+
+  update(node: ProseMirrorNode) {
+    return this.table.update(node);
   }
 
   ignoreMutation(mutation: ViewMutationRecord) {
-    return mutation.type !== "selection" && this.toolbarHost.contains(mutation.target) || super.ignoreMutation(mutation);
+    return mutation.type !== "selection" && this.toolbarHost.contains(mutation.target) || this.table.ignoreMutation(mutation);
   }
 
   stopEvent(event: Event) {
