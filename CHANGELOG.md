@@ -2,6 +2,8 @@
 
 ## Next release
 
+- LoomaEditor starts in apps whose bundler lowers classes to functions, such as Docusaurus's Babel preset. Footnote back-links and the table view were subclasses of ProseMirror and Tiptap classes; a lowered subclass calls its native base class without `new`, which throws "Class constructor cannot be invoked without 'new'". The footnote serializer now wraps ProseMirror's cached serializer, and the table view holds Tiptap's `TableView`. A tooling rule keeps editor code from subclassing a dependency's class.
+
 - Looma builds with HTML Next 1.0.0-alpha.69, and `@nextwebwg/html-next` is a peer dependency at exactly `1.0.0-alpha.69`. No Looma component puts a slot directly inside table markup, so the new HT032 check needs no change. Search Shell renders result rows that an application adds to its body after it opens, and the arrow keys reach them.
 
 - Keep floating editor toolbar shadows unclipped and show expanded formatting in one surface. Popover's additive `bare` option lets content supply its own surface.
