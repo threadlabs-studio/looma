@@ -1391,8 +1391,8 @@ export const LoomaEditor = defineComponent({
     });
 
     const onAttachmentChange = async (event: Event) => {
-      const input = event.target as HTMLInputElement; const files = Array.from(input.files ?? []); input.value = "";
-      for (const file of files) await attachmentUploads?.insert(file);
+      const input = event.target as HTMLInputElement; const file = input.files?.[0]; input.value = "";
+      if (file) await attachmentUploads?.insert(file);
     };
 
     const onFileChange = async (event: Event) => {
@@ -1880,7 +1880,7 @@ export const LoomaEditor = defineComponent({
           "aria-hidden": "true",
           onChange: onFileChange,
         }),
-        h("input", { ref: attachmentInput, class: "looma-editor__file-input", type: "file", multiple: true, tabindex: -1, "aria-hidden": "true", onChange: onAttachmentChange }),
+        h("input", { ref: attachmentInput, class: "looma-editor__file-input", type: "file", tabindex: -1, "aria-hidden": "true", onChange: onAttachmentChange }),
         fileUploadState.value.uploading ? h(StatusMessage, { kind: "loading" }, { default: () => "Attaching file…", action: () => h(Button, { size: "sm", variant: "ghost", onClick: () => attachmentUploads?.cancel() }, () => "Cancel") }) : null,
         uploadState.value.uploading
           ? h(StatusMessage, { kind: "loading" }, {
