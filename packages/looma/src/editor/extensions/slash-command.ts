@@ -147,6 +147,7 @@ export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
   onOpenChipEditor?: (editor: Editor, position: number) => void,
   onOpenLinkEditor?: () => void,
+  onOpenFilePicker?: () => void,
 ): LoomaSlashCommand[] {
   const commands: LoomaSlashCommand[] = [
     {
@@ -296,6 +297,11 @@ export function getDefaultSlashCommands(
         onOpenLinkEditor();
       },
     } satisfies LoomaSlashCommand] : []),
+    ...(onOpenFilePicker ? [{
+      title: "File attachment", description: "Attach a file", icon: "paperclip" as const,
+      keywords: ["file", "attachment", "upload", "pdf"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).run(); onOpenFilePicker(); },
+    } satisfies LoomaSlashCommand] : []),
     ...(onOpenImagePicker ? [{
       title: "Image",
       description: "Upload an image",
@@ -311,7 +317,7 @@ export function getDefaultSlashCommands(
     ...command,
     id: command.title.toLowerCase().replaceAll(" ", "-"),
     group: CALLOUT_COMMANDS.some(callout => callout.title === command.title) ? "Callouts"
-      : ["Chip", "Inline code", "Link", "Image", "Table", "Table of contents", "Footnote", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
+      : ["File attachment", "Chip", "Inline code", "Link", "Image", "Table", "Table of contents", "Footnote", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
     isAvailable: (context: LoomaSlashCommandContext) => canRunDefaultCommand(command.title, context),
   })).sort((a, b) => ["Basic blocks", "Callouts", "Insertions"].indexOf(a.group) - ["Basic blocks", "Callouts", "Insertions"].indexOf(b.group));
 }
