@@ -1,3 +1,4 @@
+import { createFileUploads, type LoomaFileDescriptor, type LoomaFileUploadsState } from "../../editor/file-uploads";
 import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
 import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
@@ -183,7 +184,10 @@ export type LoomaMentionQuery = LoomaResponder<LoomaMentionQueryDetail, LoomaMen
  */
 export type LoomaImageUploader = LoomaResponder<LoomaImageUploadDetail, LoomaImageDescriptor>;
 
-// Each request the editor asks and its function prop (https://nextwebwg.org/declarative-components/javascript#requests).
+/** Uploads a file and returns its retained link; rejection leaves authored content unchanged. */
+export type LoomaFileUploader = LoomaResponder<{ file: File }, LoomaFileDescriptor>;
+
+// Each request maps to its function prop.
 const EDITOR_REQUESTS = {
   extensions: "extensions",
   "slash-commands": "slashCommands",
@@ -191,6 +195,7 @@ const EDITOR_REQUESTS = {
   "link-search": "linkSearch",
   "link-resolve": "linkResolve",
   "image-upload": "imageUpload",
+  "file-upload": "fileUpload",
 } as const;
 type EditorRequest = keyof typeof EDITOR_REQUESTS;
 const EDITOR_REQUEST_NAMES = Object.keys(EDITOR_REQUESTS) as EditorRequest[];
@@ -309,7 +314,9 @@ export const LoomaEditor = defineComponent({
       type: String,
       default: "Item",
     },
-    /** Answers `image-upload`: uploads a pasted, dropped, or chosen image and returns the image to insert. */
+    /** Answers `file-upload` with a retained ordinary file link. */
+    fileUpload: { type: Function as PropType<LoomaFileUploader | undefined>, default: undefined },
+    /** Answers `image-upload` with the image to insert. */
     imageUpload: {
       type: Function as PropType<LoomaImageUploader | undefined>,
       default: undefined,
@@ -371,6 +378,9 @@ export const LoomaEditor = defineComponent({
     const formatOpen = ref(false);
 
     const fileInput = ref<HTMLInputElement | null>(null);
+    const attachmentInput = ref<HTMLInputElement | null>(null);
+    const fileUploadState = shallowRef<LoomaFileUploadsState>({ uploading: false, progress: null });
+    let attachmentUploads: ReturnType<typeof createFileUploads> | undefined;
     const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -544,11 +554,12 @@ export const LoomaEditor = defineComponent({
       });
     };
     // The same defaults while image uploads stay available or unavailable, so an answer built from them compares equal.
-    let slashDefaults: { uploads: boolean; commands: LoomaSlashCommand[] } | undefined;
+    let slashDefaults: { uploads: boolean; files: boolean; commands: LoomaSlashCommand[] } | undefined;
     const defaultSlashCommands = () => {
       const uploads = answers("image-upload");
-      if (slashDefaults?.uploads !== uploads) {
-        slashDefaults = { uploads, commands: getDefaultSlashCommands(uploads ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor()) };
+      const files = answers("file-upload");
+      if (slashDefaults?.uploads !== uploads || slashDefaults?.files !== files) {
+        slashDefaults = { uploads, files, commands: getDefaultSlashCommands(uploads ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor(), files ? () => attachmentInput.value?.click() : undefined) };
       }
       return slashDefaults.commands;
     };
@@ -577,7 +588,7 @@ export const LoomaEditor = defineComponent({
       const current = new Set(EDITOR_REQUEST_NAMES.filter(answers));
       const arrived = (name: EditorRequest) => current.has(name) && !responders.has(name);
       const extensionsArrived = arrived("extensions");
-      const slashChanged = arrived("slash-commands") || current.has("image-upload") !== responders.has("image-upload");
+      const slashChanged = arrived("slash-commands") || current.has("image-upload") !== responders.has("image-upload") || current.has("file-upload") !== responders.has("file-upload");
       responders = current;
       if (extensionsArrived) askExtensions();
       if (slashChanged) askSlashCommands();
@@ -730,6 +741,7 @@ export const LoomaEditor = defineComponent({
       });
       imageUploads.subscribe(() => { uploadState.value = imageUploads.state; });
       uploads = imageUploads;
+      attachmentUploads = createFileUploads({ editor: session.editor, upload: () => (file, init) => ask<LoomaFileDescriptor>("file-upload", { file }, init), onError: (error, file) => emit("uploadError", error, file), onState: value => { fileUploadState.value = value; } });
       const instance = session.editor;
       formatting = createFormattingSelection({
         editor: instance,
@@ -752,6 +764,7 @@ export const LoomaEditor = defineComponent({
       footnoteEditing?.close();
       formatting?.destroy();
       uploads?.cancel();
+      attachmentUploads?.cancel();
       previous.destroy();
       build(content);
     };
@@ -783,6 +796,7 @@ export const LoomaEditor = defineComponent({
       // Leave a static copy in place so the document stays visible while the component leaves.
       const element = session?.editor.options.element;
       element?.parentNode?.replaceChild(element.cloneNode(true), element);
+      attachmentUploads?.cancel();
       connection.abort();
       stopAnnouncements?.();
       linkEditing?.destroy();
@@ -1376,6 +1390,11 @@ export const LoomaEditor = defineComponent({
       if (tablePointerFrame !== null) cancelAnimationFrame(tablePointerFrame);
     });
 
+    const onAttachmentChange = async (event: Event) => {
+      const input = event.target as HTMLInputElement; const file = input.files?.[0]; input.value = "";
+      if (file) await attachmentUploads?.insert(file);
+    };
+
     const onFileChange = async (event: Event) => {
       const input = event.target as HTMLInputElement;
       const files = Array.from(input.files ?? []);
@@ -1654,6 +1673,7 @@ export const LoomaEditor = defineComponent({
           // The popover anchored here with `for` owns the toggle; toggling here too reopened and
           // closed it on the same click.
         }, () => loomaIcon("table")),
+        commandButton("Attach file", "paperclip", false, fileUploadState.value.uploading || !answers("file-upload"), () => attachmentInput.value?.click()),
         commandButton(uploadState.value.uploading ? "Uploading image" : "Insert image", "image", false, uploadState.value.uploading || !answers("image-upload"), () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run(), "Mod-z"),
@@ -1860,6 +1880,8 @@ export const LoomaEditor = defineComponent({
           "aria-hidden": "true",
           onChange: onFileChange,
         }),
+        h("input", { ref: attachmentInput, class: "looma-editor__file-input", type: "file", tabindex: -1, "aria-hidden": "true", onChange: onAttachmentChange }),
+        fileUploadState.value.uploading ? h(StatusMessage, { kind: "loading" }, { default: () => "Attaching file…", action: () => h(Button, { size: "sm", variant: "ghost", onClick: () => attachmentUploads?.cancel() }, () => "Cancel") }) : null,
         uploadState.value.uploading
           ? h(StatusMessage, { kind: "loading" }, {
               default: () => uploadProgressText(uploadState.value.progress),
