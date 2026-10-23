@@ -128,3 +128,14 @@ describe("LoomaEditor requests", () => {
     expect(signals.slice(0, -1).every(Boolean)).toBe(true);
   });
 });
+
+
+it("attaches a chosen file through its host responder as an editable link", async () => {
+  const { host, ready } = await mountEditor({ fileUpload: ({ file }: { file: File }) => ({ href: "/files/report.pdf", name: file.name, size: file.size, contentType: file.type }) });
+  await expect.element(page.getByRole("button", { name: "Attach file", exact: true })).toBeEnabled();
+  const input = host.querySelector<HTMLInputElement>('input[type="file"]:not([accept])')!;
+  const transfer = new DataTransfer(); transfer.items.add(new File(["report"], "report.pdf", { type: "application/pdf" }));
+  input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  await vi.waitFor(() => expect(JSON.stringify(ready.at(-1)!.getJSON())).toContain('/files/report.pdf'));
+  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+});

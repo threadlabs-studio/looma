@@ -19,6 +19,7 @@ export {
   type LoomaLinkResolveDetail,
   type LoomaMentionQuery,
   type LoomaMentionQueryDetail,
+  type LoomaFileUploader,
   type LoomaImageUploader,
   type LoomaImageUploadDetail,
   type LoomaRequestInit,
@@ -33,3 +34,5 @@ export type {
   LoomaImageRenditionErrorDetail,
   LoomaImageRenditionAttributes,
 } from "../../editor/image-delivery";
+
+export type { LoomaFileDescriptor } from "../../editor/file-uploads";
