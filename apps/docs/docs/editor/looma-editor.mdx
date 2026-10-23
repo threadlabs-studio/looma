@@ -26,6 +26,7 @@ formatting commands, selection and focus, and every editor control. See
 | `codeLanguages` | built-in catalog | Override the built-in code language list with application-owned grammars. Pass `{}` to disable syntax highlighting. |
 | `mentionItems`, `mentionQuery`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, and the answer to [`mention-query`](#mention-query) that searches. |
 | `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Answer [`link-search`](#link-search) and [`link-resolve`](#link-resolve): search host destinations for links and describe a saved destination from its `href`. |
+| `fileUpload` | none | Answers `file-upload` with a retained file link. |
 | `imageUpload` | none | Answers [`image-upload`](#image-upload): uploads a chosen, pasted, or dropped image and returns the image to insert. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
 | `resolveImageSource` | none | Resolves a browser-only master URL for every image; stored content and event identities retain their original source. |
@@ -79,6 +80,7 @@ Each request's function prop is its name in camelCase: `image-upload` is `imageU
 | `link-search` | `{ query }` | link targets |
 | `link-resolve` | `{ href }` | a link target |
 | `image-upload` | `{ file }` | an image to insert |
+| `file-upload` | `{ file }` | `{ href, name, size, contentType }` |
 
 ### extensions
 
@@ -162,6 +164,16 @@ const imageUpload: LoomaImageUploader = ({ file }, { signal, progress }) => new 
   request.send(file);
 });
 ```
+
+### file-upload
+
+Answer `fileUpload` with the retained file's `{ href, name, size, contentType }`,
+or `null` to insert nothing. The application owns storage, access and size limits.
+**File attachment** in the insertion menu and **Attach file** in the toolbar open
+the file picker when a responder is available. Looma inserts the filename as an
+ordinary link, followed by its type and byte-size label. The caret is mapped
+through intervening edits while transport runs. Cancel or unmount prevents a
+late answer from inserting; rejection emits `uploadError` and keeps the document.
 
 ## Toolbar
 
