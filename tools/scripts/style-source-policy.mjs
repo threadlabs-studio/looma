@@ -7,9 +7,14 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const sourceRoot = path.join(repo, 'packages/looma/src');
 const ts = createRequire(path.join(repo, 'packages/looma/package.json'))('typescript');
 
+// Priority hardening changes no frozen declaration's value or scope.
+const normalizeLayoutPriority = text => text.replace(/((?:^|[;{])\s*(?:display|box-sizing|flex-direction|flex-wrap|align-items|align-content|justify-content|justify-items|gap|row-gap|column-gap|margin(?:-[\w-]+)?|padding(?:-[\w-]+)?)\s*:[^;{}]*?)\s*!important(?=\s*[;}])/g, '$1');
+
 /** Read leaf CSS rules with their enclosing at-rules; changes cannot hide under a new media query. */
 export function cssRules(source) {
   source = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Priority hardening does not approve new composition declarations. The ownership gate checks it.
+  source = normalizeLayoutPriority(source);
   const stack = [];
   const rules = [];
   let start = 0;
@@ -86,7 +91,7 @@ async function files(directory) {
 export function additions(values, allowed = []) {
   const remaining = [...allowed];
   return values.filter(value => {
-    const index = remaining.indexOf(value);
+    const index = remaining.findIndex(entry => normalizeLayoutPriority(entry) === normalizeLayoutPriority(value));
     if (index < 0) return true;
     remaining.splice(index, 1);
     return false;

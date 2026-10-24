@@ -10,11 +10,11 @@
   </li>
   <style>
     :host {
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       min-block-size: 44px;
-      padding: var(--ui-space-2) var(--ui-space-3);
-      gap: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
+      gap: var(--ui-space-3) !important;
       cursor: pointer;
       list-style: none;
     }
@@ -38,9 +38,9 @@
     }
 
     .avatar {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       inline-size: 32px;
       block-size: 32px;
       flex: 0 0 auto;
@@ -52,9 +52,9 @@
     }
 
     .body {
-      display: flex;
+      display: flex !important;
       min-inline-size: 0;
-      flex-direction: column;
+      flex-direction: column !important;
     }
 
     .label, .detail {
@@ -75,7 +75,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

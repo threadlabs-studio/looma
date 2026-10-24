@@ -47,15 +47,15 @@
       --_ui-toast-accent: var(--ui-border-strong);
       --_ui-toast-surface: var(--ui-surface-muted);
 
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-2);
-      box-sizing: border-box;
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      box-sizing: border-box !important;
       inline-size: 100%;
-      margin: 0;
-      padding: var(--ui-space-3) var(--ui-space-4);
+      margin: 0 !important;
+      padding: var(--ui-space-3) var(--ui-space-4) !important;
       /* The close button's internal space supplies the rest of the trailing inset. */
-      padding-inline-end: var(--ui-space-2);
+      padding-inline-end: var(--ui-space-2) !important;
       border: var(--ui-border-width) solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-toast-accent, var(--_ui-toast-accent))));
       border-radius: var(--ui-toast-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       background: var(--ui-toast-surface, var(--ui-overlay-surface, var(--_ui-toast-surface)));
@@ -90,10 +90,10 @@
       flex: 1;
     }
     .action:not(:has(> *)) {
-      display: none;
+      display: none !important;
     }
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

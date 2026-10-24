@@ -31,19 +31,19 @@
     :host {
       --_list-gap: var(--ui-list-gap, var(--ui-space-1));
       --_list-min-item-width: var(--ui-list-min-item-width, 14rem);
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       inline-size: 100%;
-      gap: var(--_list-gap);
+      gap: var(--_list-gap) !important;
       min-inline-size: 0;
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       list-style: none;
     }
 
     :host([as="ol"]),
     :host([markers="disc"]) {
-      padding-inline-start: var(--ui-space-5);
+      padding-inline-start: var(--ui-space-5) !important;
     }
 
     :host([as="ol"]) {
@@ -55,16 +55,16 @@
     }
 
     :host > :slotted(li) {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       min-inline-size: 0;
-      padding: var(--_ui-list-native-padding-block, var(--ui-space-2)) var(--_ui-list-native-padding-inline, var(--ui-space-3));
+      padding: var(--_ui-list-native-padding-block, var(--ui-space-2)) var(--_ui-list-native-padding-inline, var(--ui-space-3)) !important;
       border-radius: var(--ui-radius-md);
       color: var(--ui-text-primary);
       list-style: inherit;
     }
 
     :host > :slotted(li.card) {
-      padding: var(--_ui-list-native-padding-block, var(--ui-space-3)) var(--_ui-list-native-padding-inline, var(--ui-space-4));
+      padding: var(--_ui-list-native-padding-block, var(--ui-space-3)) var(--_ui-list-native-padding-inline, var(--ui-space-4)) !important;
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--ui-surface-raised);
@@ -84,13 +84,13 @@
 
     :host([layout="grid"]) {
       --_list-gap: var(--ui-list-gap, var(--ui-space-3));
-      display: grid;
+      display: grid !important;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_list-min-item-width)), 1fr));
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

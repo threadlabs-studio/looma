@@ -31,7 +31,7 @@
       );
       inline-size: var(--ui-control-min-block-size);
       block-size: var(--ui-control-min-block-size);
-      display: inline-flex;
+      display: inline-flex !important;
       z-index: var(--ui-floating-action-button-z-index, 100);
     }
 
@@ -39,11 +39,11 @@
       appearance: none;
       border: none;
       border-radius: var(--ui-radius-round);
-      margin: 0;
-      padding: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       background: var(--ui-accent);
       color: var(--ui-on-accent);
       box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-accent) 40%, transparent);
@@ -83,13 +83,13 @@
 
     @media (min-width: 768px) {
       :host([mobileOnly]) {
-        display: none;
+        display: none !important;
       }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

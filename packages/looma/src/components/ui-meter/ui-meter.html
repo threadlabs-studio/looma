@@ -70,7 +70,7 @@
     :host {
       --_meter-fill: var(--ui-text-muted);
 
-      display: inline-block;
+      display: inline-block !important;
       flex: none;
       vertical-align: middle;
       inline-size: var(--ui-meter-inline-size, 8rem);
@@ -90,7 +90,7 @@
     }
 
     .fill {
-      display: block;
+      display: block !important;
       block-size: 100%;
       background-color: var(--_meter-fill);
       background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.26), transparent 70%);
@@ -184,10 +184,10 @@
     /* A categorical distribution uses flex ratios, avoiding rounded percentages and retaining
        identical geometry before hydration. It has no progress mask or growing-value animation. */
     :host([variant="distribution"]) {
-      display: flex;
+      display: flex !important;
       inline-size: 100%;
       block-size: var(--ui-space-4);
-      gap: var(--ui-space-0-5);
+      gap: var(--ui-space-0-5) !important;
     }
 
     :host([variant="distribution"])[size="sm"] {
@@ -233,7 +233,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

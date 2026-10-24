@@ -17,9 +17,9 @@
 
     /* The root is the hr, so the rules name :host; a bare hr matches only a descendant. */
     :host {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       align-self: stretch;
-      margin: 0;
+      margin: 0 !important;
       border: 0;
       border-block-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
     }

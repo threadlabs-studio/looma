@@ -95,6 +95,12 @@
       "group": "layout",
       "description": "Cluster layout primitive for row-style content with wrapping support. Set `wrap=\"nowrap\"` to keep a small group, such as a meter and its value, on one row."
     },
+    "ui-color-picker": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "forms",
+      "description": "Square or circular swatch button with shared control sizing and a dismissible RGB/hex colour editor."
+    },
     "ui-combobox": {
       "status": "published",
       "package": "@threadlabs/looma",
@@ -161,17 +167,17 @@
       "group": "editor",
       "description": "The editor's chip editor: a field for the chip's text and swatches for its colour."
     },
-    "ui-editor-footnote-editor": {
-      "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The editor's footnote editor: a field for the footnote's label and a field for its note."
-    },
     "ui-editor-code-language": {
       "status": "published",
       "package": "@threadlabs/looma",
       "group": "editor",
       "description": "The code block's language picker: a compact combobox of the languages the editor can highlight, with Auto first."
+    },
+    "ui-editor-footnote-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "editor",
+      "description": "The editor's footnote editor: a field for the footnote's label and a field for its note."
     },
     "ui-editor-image-toolbar": {
       "status": "published",
@@ -215,17 +221,17 @@
       "group": "editor",
       "description": "Responsive suggestion surface for app-provided slash commands."
     },
-    "ui-editor-slash-menu-item": {
-      "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-editor-slash-menu",
-      "description": "An authored command in a Slash Menu."
-    },
     "ui-editor-slash-menu-group": {
       "status": "published",
       "package": "@threadlabs/looma",
       "navigationParent": "ui-editor-slash-menu",
       "description": "Names related Slash Menu Items for sighted and assistive technology users."
+    },
+    "ui-editor-slash-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-editor-slash-menu",
+      "description": "An authored command in a Slash Menu."
     },
     "ui-editor-surface": {
       "status": "internal",
@@ -323,17 +329,17 @@
       "group": "overlay",
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children."
     },
-    "ui-menu-item": {
-      "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-menu",
-      "description": "Use an item inside a Menu or Context Menu."
-    },
     "ui-menu-group": {
       "status": "published",
       "package": "@threadlabs/looma",
       "navigationParent": "ui-menu",
       "description": "Use a named group to organize related commands or choices within a Menu or Context Menu."
+    },
+    "ui-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-menu",
+      "description": "Use an item inside a Menu or Context Menu."
     },
     "ui-meter": {
       "status": "published",
@@ -479,17 +485,17 @@
       "group": "forms",
       "description": "Multiline input that lowers directly to a native `<textarea>` while applying Looma's shared control theme."
     },
-    "ui-toast-region": {
-      "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Toast Region stacks authored `<ui-toast>` children and messages added with the `show-toast` event or the `--show-toast` command."
-    },
     "ui-toast": {
       "status": "published",
       "package": "@threadlabs/looma",
       "navigationParent": "ui-toast-region",
       "description": "Author a toast inside Toast Region when its message has a tone, rich content, or an action."
+    },
+    "ui-toast-region": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "group": "overlay",
+      "description": "Toast Region stacks authored `<ui-toast>` children and messages added with the `show-toast` event or the `--show-toast` command."
     },
     "ui-tooltip": {
       "status": "published",

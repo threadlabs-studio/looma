@@ -4,8 +4,8 @@
     >Marks the field's control invalid by setting aria-invalid on it. Only while invalid, the error slot appears and becomes part of the control's
       description.</prop>
     <prop name="disabled" type="boolean" default="false"
-    >Disables the field's control: the first input, textarea, or select inside it. The field writes this to the control whenever it updates, so set it here
-      rather than on the control.</prop>
+    >Disables the control named by the label's for attribute, or the first field control inside it. Composite controls supply their focus target and form value.
+      The field writes this to the control whenever it updates, so set it here rather than on the control.</prop>
     <prop name="required" type="boolean" default="false"
     >Marks the field's control required, for native form validation. Like disabled, it is written to the control, so set it here rather than on the control. It
       adds no visual marker; show one in the label if the form needs it.</prop>
@@ -59,10 +59,10 @@
       --_ui-form-field-help-text: var(--ui-form-field-help-text);
       --_ui-form-field-help-font-size: var(--ui-form-field-help-font-size);
 
-      display: grid;
-      gap: var(--ui-space-2);
+      display: grid !important;
+      gap: var(--ui-space-2) !important;
       min-inline-size: var(--ui-form-field-min-inline-size, 0);
-      align-content: start;
+      align-content: start !important;
       color: var(--ui-text-primary);
     }
 
@@ -71,7 +71,7 @@
     .label,
     .help,
     .error {
-      display: contents;
+      display: contents !important;
     }
 
     .label {
@@ -83,19 +83,19 @@
        tall, centred on the first line and overflowing it. A button taller than a line of label
        text then never makes this field's label row taller than its neighbours' in a grid row. */
     .label:has(> .label-action > *) {
-      display: flex;
-      align-items: start;
-      gap: var(--ui-space-1);
+      display: flex !important;
+      align-items: start !important;
+      gap: var(--ui-space-1) !important;
     }
 
     .label-action {
-      display: flex;
-      align-items: unsafe center;
+      display: flex !important;
+      align-items: unsafe center !important;
       block-size: 1lh;
     }
 
     .label-action:not(:has(> *)) {
-      display: none;
+      display: none !important;
     }
 
     .help {
@@ -109,11 +109,11 @@
     }
 
     .error {
-      display: none;
+      display: none !important;
     }
 
     :host([invalid]) .error {
-      display: contents;
+      display: contents !important;
     }
 
     /* An error reads in the danger colour, the one the invalid control's border takes. */
@@ -125,7 +125,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

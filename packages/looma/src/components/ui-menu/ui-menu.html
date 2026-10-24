@@ -2,7 +2,8 @@
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
-    <prop name="icons" type="boolean" default="false">Reserves a fixed icon column in every item, including items without an icon. Supply item icons through their icon slot.</prop>
+    <prop name="icons" type="boolean" default="false"
+    >Reserves a fixed icon column in every item, including items without an icon. Supply item icons through their icon slot.</prop>
     <prop name="size" type="keyword" values="sm, md" default="md"
     >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, a small check, and a narrower minimum width. md is the
       standard size.</prop>
@@ -61,8 +62,8 @@
       --_ui-default-menu-item-padding-inline: var(--ui-space-2);
       --_ui-default-menu-item-font-size: var(--ui-font-size-sm);
       --_ui-default-menu-item-radius: var(--ui-radius-sm);
-      padding: var(--ui-space-1);
-      gap: 0;
+      padding: var(--ui-space-1) !important;
+      gap: 0 !important;
     }
 
     /* Small follows its trigger down: an item's own hooks still win. */
@@ -74,8 +75,8 @@
       --_ui-default-menu-item-min-block-size: 1.5rem;
       --_ui-default-menu-indicator-size: 0.75rem;
       min-inline-size: min(8rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2));
-      padding: var(--ui-space-1);
-      gap: 0;
+      padding: var(--ui-space-1) !important;
+      gap: 0 !important;
     }
 
     :host([icons]) {
@@ -95,13 +96,13 @@
       --_ui-default-menu-item-min-block-size: initial;
       --_ui-default-menu-indicator-size: initial;
       --_ui-default-menu-icon-display: none;
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
+      display: flex !important;
+      flex-direction: column !important;
+      box-sizing: border-box !important;
       inline-size: max-content;
       min-inline-size: min(12rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2));
       max-inline-size: calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2);
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       outline: 0;
       border-radius: 0;
@@ -111,11 +112,11 @@
     }
 
     .surface {
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
+      display: flex !important;
+      flex-direction: column !important;
+      box-sizing: border-box !important;
       max-inline-size: inherit;
-      padding: var(--ui-space-1);
+      padding: var(--ui-space-1) !important;
       background: var(--_ui-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       border: var(--ui-border-width) solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
@@ -127,19 +128,19 @@
     .surface hr {
       align-self: stretch;
       block-size: 0;
-      margin: var(--ui-space-1) 0;
+      margin: var(--ui-space-1) 0 !important;
       border: 0;
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     :host(:not(:state(internalOpen))):not(:host([inline])) {
-      display: none;
+      display: none !important;
     }
 
     :host[popover] {
       position: fixed;
       inset: auto;
-      margin: 0;
+      margin: 0 !important;
       overflow: visible;
       max-block-size: calc(100dvh - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2);
       opacity: 0;
@@ -164,7 +165,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

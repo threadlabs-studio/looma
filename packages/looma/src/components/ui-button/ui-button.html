@@ -15,7 +15,8 @@
     >rounded uses the theme's action radius; pill rounds the ends fully, for a compact choice such as a status or a person.</prop>
     <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="accent"
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
-      tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour. The field variant always uses neutral field colors.</prop>
+      tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour. The field
+      variant always uses neutral field colors.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Makes the button unavailable: it cannot be pressed, uses a flat neutral palette, and loses its raised look. A disabled link (as="a" with href) drops its
       href and states aria-disabled="true" instead, because a link has no native disabled state.</prop>
@@ -191,10 +192,10 @@
       --_tone-text: var(--_hue-text);
       --_on-tone: var(--_on-hue);
 
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      column-gap: var(--ui-space-2);
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      column-gap: var(--ui-space-2) !important;
       vertical-align: middle;
       color: var(--_tone-text);
     }
@@ -204,12 +205,12 @@
     }
 
     :host([align="start"]) {
-      justify-content: flex-start;
+      justify-content: flex-start !important;
       text-align: start;
     }
 
     :host([stretch]) {
-      display: flex;
+      display: flex !important;
       inline-size: 100%;
     }
 
@@ -228,16 +229,17 @@
       /* Unset, a button wraps as its container does. */
       white-space: var(--ui-button-white-space, inherit);
       line-height: var(--ui-line-height-tight);
-      padding: var(--ui-space-2) var(--ui-space-3);
+      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-action-inset-md, var(--ui-space-3)) !important;
       background-image: none;
       box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
       cursor: pointer;
       transition:
+        scale var(--ui-motion-press, var(--ui-motion-fast)) var(--ui-motion-ease),
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-base) var(--ui-motion-ease);
-      margin: 0;
+      margin: 0 !important;
     }
 
     /* An anchor keeps the boxed button look even when an app styles ordinary links. */
@@ -246,7 +248,7 @@
     }
 
     .spinner-wrap {
-      display: inline-flex;
+      display: inline-flex !important;
       flex: none;
       vertical-align: middle;
     }
@@ -254,17 +256,17 @@
     /* A count is an adornment, not another line of label text. Keep the standard control height
        with enough inset for a 24px mark; large content can still grow the button naturally. */
     :host:not([variant="link"]):has(.badge:not(:empty)) {
-      padding-block: var(--ui-space-0-5);
+      padding-block: var(--ui-space-0-5) !important;
     }
 
     .badge {
-      display: inline-flex;
-      align-items: center;
+      display: inline-flex !important;
+      align-items: center !important;
       flex: none;
     }
 
     .badge:empty {
-      display: none;
+      display: none !important;
     }
 
     @supports (text-box-trim: trim-both) {
@@ -276,7 +278,7 @@
 
     :host([size="xs"]) {
       min-block-size: 1.5rem;
-      padding: calc(var(--ui-space-0-5) * 1.5) calc(var(--ui-space-1) * 1.25);
+      padding: calc(var(--ui-space-0-5) * 1.5) calc(var(--ui-space-1) * 1.25) !important;
       font-size: var(--ui-font-size-xs);
     }
 
@@ -286,24 +288,24 @@
 
     :host([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
-      padding: var(--ui-space-1) var(--ui-space-2);
+      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-action-inset-sm, var(--ui-space-2)) !important;
       font-size: var(--ui-font-size-sm);
     }
 
     :host([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
-      padding: var(--ui-space-3) var(--ui-space-4);
+      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-action-inset-lg, var(--ui-space-4)) !important;
       font-size: var(--ui-font-size-md);
     }
 
     /* Card actions inherit Button's palette and behavior; only their shared layout changes.
        The icon may contain any decorative composition. Empty icons remove their column. */
     :host([variant="card"]) {
-      display: grid;
+      display: grid !important;
       grid-template-columns: auto minmax(0, 1fr) auto;
-      align-content: center;
-      align-items: start;
-      gap: var(--ui-space-3);
+      align-content: center !important;
+      align-items: start !important;
+      gap: var(--ui-space-3) !important;
       inline-size: 100%;
       min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-md));
       text-align: start;
@@ -318,18 +320,18 @@
       grid-template-columns: minmax(0, 1fr) auto;
     }
     .card-icon {
-      display: flex;
-      align-items: flex-start;
+      display: flex !important;
+      align-items: flex-start !important;
     }
     .card-icon:empty {
-      display: none;
+      display: none !important;
     }
     .card-content {
       min-inline-size: 0;
     }
     .card-action {
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       align-self: center;
     }
 
@@ -351,6 +353,7 @@
 
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:not(:disabled, [aria-disabled="true"]) {
+      scale: var(--ui-press-scale, 1);
       background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
       background-image: none;
       box-shadow: var(--ui-pressed);
@@ -536,9 +539,9 @@
     /* Link: an inline text action. No box, padding, or minimum height (inline targets are exempt under
        WCAG 2.5.8); the inherited font; an underline that strengthens on hover; a visible focus ring. */
     :host([variant="link"]) {
-      display: inline;
+      display: inline !important;
       min-block-size: 0;
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       border-radius: var(--ui-radius-sm);
       background: none;
@@ -578,7 +581,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -27,13 +27,13 @@
 
     :host {
       --_layout-gap: var(--ui-space-4);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--ui-stack-gap, var(--_layout-gap));
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: var(--ui-stack-gap, var(--_layout-gap)) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host([fill]) {
@@ -64,27 +64,27 @@
       --_layout-gap: var(--ui-space-6);
     }
     :host([align="start"]) {
-      align-items: flex-start;
+      align-items: flex-start !important;
     }
     :host([align="center"]) {
-      align-items: center;
+      align-items: center !important;
     }
     :host([align="end"]) {
-      align-items: flex-end;
+      align-items: flex-end !important;
     }
     :host([justify="center"]) {
-      justify-content: center;
+      justify-content: center !important;
     }
     :host([justify="end"]) {
-      justify-content: flex-end;
+      justify-content: flex-end !important;
     }
     :host([justify="between"]) {
-      justify-content: space-between;
+      justify-content: space-between !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

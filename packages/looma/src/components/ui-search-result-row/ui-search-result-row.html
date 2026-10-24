@@ -56,12 +56,12 @@
       appearance: none;
       inline-size: 100%;
       min-block-size: var(--ui-search-result-row-min-height, 56px);
-      margin: 0;
-      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3));
-      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4));
-      display: flex;
-      align-items: flex-start;
-      gap: var(--ui-search-result-row-gap, var(--ui-space-3));
+      margin: 0 !important;
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3)) !important;
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4)) !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: var(--ui-search-result-row-gap, var(--ui-space-3)) !important;
       background: var(--ui-search-result-row-surface, transparent);
       border: var(--ui-border-width) solid var(--ui-search-result-row-border, transparent);
       border-radius: var(--ui-selection-radius);
@@ -73,10 +73,10 @@
 
     :host([density="compact"]) {
       min-block-size: var(--ui-search-result-row-min-height, 3.125rem);
-      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-1));
-      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-2));
-      gap: var(--ui-search-result-row-gap, var(--ui-space-2));
-      align-items: center;
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-1)) !important;
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-2)) !important;
+      gap: var(--ui-search-result-row-gap, var(--ui-space-2)) !important;
+      align-items: center !important;
       font-family: var(--ui-font-family-sans, sans-serif);
     }
 
@@ -116,22 +116,22 @@
 
     .leading,
     .trailing {
-      display: inline-flex;
-      align-items: flex-start;
+      display: inline-flex !important;
+      align-items: flex-start !important;
       flex-shrink: 0;
     }
 
     .content {
       min-inline-size: 0;
       flex: 1;
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
     }
 
     .title,
     .meta,
     .excerpt {
-      display: block;
+      display: block !important;
       min-inline-size: 0;
     }
 
@@ -140,14 +140,14 @@
     .meta:empty,
     .excerpt:empty,
     .trailing:empty {
-      display: none;
+      display: none !important;
     }
 
     :slotted([slot="title"]),
     :slotted([slot="meta"]),
     :slotted([slot="excerpt"]) {
-      display: block;
-      margin: 0;
+      display: block !important;
+      margin: 0 !important;
     }
 
     @media (forced-colors: active) {
@@ -159,7 +159,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -8505,6 +8505,8 @@ describe("Form participation", () => {
     <form id="form">
       <ui-input id="title" name="title" value="Draft"></ui-input>
       <ui-input name="off-input" value="Hidden" disabled></ui-input>
+      <ui-color-picker id="brand-colour" name="brand-colour" value="#7c3aed" label="Brand colour"></ui-color-picker>
+      <ui-color-picker name="off-colour" disabled value="#ff0000" label="Disabled colour"></ui-color-picker>
       <ui-input-group><span slot="prefix">https://</span><ui-input id="site" name="site" value="docs"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
       <ui-textarea id="body" name="body" value="Hello"></ui-textarea>
       <ui-select id="topic" name="topic" value="help">${topics}</ui-select>
@@ -8536,7 +8538,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { Checkbox, ColorPicker, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -8546,6 +8548,8 @@ describe("Form participation", () => {
         h("form", { id: "form" }, [
           h(Input, { id: "title", name: "title", value: "Draft" }),
           h(Input, { name: "off-input", value: "Hidden", disabled: true }),
+          h(ColorPicker, {id:"brand-colour",name:"brand-colour",value:"#7c3aed",label:"Brand colour"}),
+          h(ColorPicker, {name:"off-colour",disabled:true,value:"#ff0000",label:"Disabled colour"}),
           h(InputGroup, null, { prefix: text("https://"), default: () => h(Input, { id: "site", name: "site", value: "docs" }), suffix: text(".example.com") }),
           h(Textarea, { id: "body", name: "body", value: "Hello" }),
           h(Select, { id: "topic", name: "topic", value: "help" }, list([["problem", "Problem"], ["help", "Help"]])),
@@ -8581,11 +8585,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
     ["color", "blue"], ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
     ["plan", "free"], ["color", "neutral"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -8609,6 +8613,9 @@ describe("Form participation", () => {
     assert.deepEqual(await entries(page), initial);
 
     await page.locator("#title").fill("Final");
+    await page.locator('#brand-colour button').click();
+    await page.locator('#brand-colour input[aria-label="Hex colour"]').fill('#123456');
+    await page.locator('#brand-colour input[aria-label="Hex colour"]').press('Escape');
     await page.locator("#site").fill("wiki");
     await page.locator("#body").fill("Hi there");
     await page.locator("#topic").selectOption("problem");
@@ -8634,6 +8641,7 @@ describe("Form participation", () => {
 
     await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
     await settles(page, initial);
+    assert.equal(await page.locator('#brand-colour .colour').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(124, 58, 237)');
     assert.equal(await page.locator("#agree input").isChecked(), false);
     assert.equal(await page.locator("#news input").isChecked(), true);
     assert.equal(await page.locator('#fruit input[role="combobox"]').inputValue(), "");
@@ -10295,5 +10303,223 @@ describe("Meter categorical distribution", () => {
       assert.equal(await distribution.locator(".part").first().evaluate(node => getComputedStyle(node).outlineStyle), "solid");
       await page.close();
     }
+  });
+});
+
+describe("Component-owned layout", () => {
+  for (const target of ["html", "vue"] as const) {
+    it(`${target}: checkbox alignment resists ordinary consumer CSS and retains an explicit important escape hatch`, async () => {
+      const source = target === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Checkbox } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", { id: "fixture" }, [
+          h(Checkbox, { id: "ordinary" }, () => "Notify me when my link is ready"),
+          h(Checkbox, { id: "overridden", style: "align-items:center;gap:60px;padding:12px" }, () => "Notify me when my link is ready"),
+          h(Checkbox, { id: "wrapped" }, { default: () => "A label long enough to wrap over several lines", description: () => "A separate description." })
+        ]) }).mount("#app");`;
+      const bundlePath = await bundle(`checkbox-layout-ownership-${target}`, source);
+      const page = await open(bundlePath, target === "html" ? `<div id="fixture">
+        <ui-checkbox id="ordinary">Notify me when my link is ready</ui-checkbox>
+        <ui-checkbox id="overridden" style="align-items:center;gap:60px;padding:12px">Notify me when my link is ready</ui-checkbox>
+        <ui-checkbox id="wrapped">A label long enough to wrap over several lines<span slot="description">A separate description.</span></ui-checkbox>
+      </div>` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+      await page.addStyleTag({ content: `#fixture #overridden { align-items:center;gap:60px;flex-direction:column;flex-wrap:wrap;justify-content:center; } #fixture #overridden input { margin-top:40px;align-self:center;padding:20px;transform:translateY(20px); } #fixture #overridden .text { font:26px/2 serif;padding:20px;margin:20px;align-self:center;order:-1; } #fixture #overridden .label { position:absolute;transform:translateY(20px);margin-top:20px; } #wrapped { inline-size:16rem; }` });
+      for (const fontSize of [12, 16, 24]) {
+        await page.locator("#fixture").evaluate((element, size) => { (element as HTMLElement).style.fontSize = `${size}px`; }, fontSize);
+        for (const id of ["ordinary", "overridden", "wrapped"]) {
+          const delta = await page.locator(`#${id}`).evaluate((element) => {
+            const input = element.querySelector("input")!.getBoundingClientRect();
+            const label = element.querySelector(".label")!;
+            const text = label.getBoundingClientRect();
+            const style = getComputedStyle(label);
+            return (input.top + input.height / 2) - (text.top + parseFloat(style.paddingTop) + parseFloat(style.lineHeight) / 2);
+          });
+          assert.ok(Math.abs(delta) < 0.6, `${target} ${id} at ${fontSize}px centres on the first label line: ${delta}`);
+        }
+      }
+      assert.equal(await page.locator("#overridden").evaluate(element => getComputedStyle(element).alignItems), "flex-start");
+      await page.locator("#overridden").evaluate(element => { (element as HTMLElement).style.setProperty("align-items", "center", "important"); });
+      assert.equal(await page.locator("#overridden").evaluate(element => getComputedStyle(element).alignItems), "center");
+      const beforeEscape=(await page.locator('#wrapped input').boundingBox())!.y;
+      await page.locator('#wrapped').evaluate(el=>(el as HTMLElement).style.setProperty('align-items','center','important'));
+      const afterEscape=(await page.locator('#wrapped input').boundingBox())!.y;
+      assert.ok(Math.abs(afterEscape-beforeEscape)>1,'the explicit important escape changes actual placement, not only a computed property');
+      await page.close();
+    });
+  }
+});
+
+describe("Color picker", () => {
+  for (const adapter of ["html", "vue"]) it(`toggles, edits and shares field geometry in ${adapter}`, async () => {
+    const path = await bundle(`${adapter}-color-picker`, adapter === "html" ? `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.disablePicker=()=>componentRegistry.update(document.getElementById("picker-sm"), {disabled:true});` : `
+      import { createApp, h } from "vue";
+      import { ColorPicker, Input } from "@threadlabs/looma/vue";
+      createApp({ render: () => h('main', {}, ['sm','md','lg'].map(size => h('div', {}, [h(ColorPicker,{id:'picker-'+size,size,value:'#7c3aed',label:size+' colour',round:size==='lg'}),h(Input,{id:'field-'+size,size,value:'#7c3aed'})]))) }).mount('#app');
+    `);
+    const body = adapter === "html" ? ['sm','md','lg'].map(size => `<div><ui-color-picker id="picker-${size}" size="${size}" value="#7c3aed" label="${size} colour" ${size === 'lg' ? 'round' : ''}></ui-color-picker><ui-input id="field-${size}" size="${size}" value="#7c3aed"></ui-input></div>`).join('') : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])]);
+    try {
+      for (const size of ['sm','md','lg']) {
+        const box = await page.locator(`#picker-${size} button`).boundingBox();
+        const field = await page.locator(`#field-${size}`).boundingBox();
+        assert.ok(box && field);
+        assert.ok(Math.abs(box.width-box.height)<.6, JSON.stringify({size,box}));
+        assert.ok(Math.abs(box.height-field.height)<.6, JSON.stringify({size,box,field}));
+      }
+      const roundedTheme = await page.addStyleTag({content:'body { --ui-field-radius: 100px; }'});
+      const squareRadius = await page.locator('#picker-md button').evaluate(el=>({radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),width:el.getBoundingClientRect().width}));
+      assert.ok(squareRadius.radius <= squareRadius.width/4, 'a theme must not turn the default square swatch into a circle');
+      await roundedTheme.evaluate(el=>el.remove());
+      const largeType = await page.addStyleTag({content:'body { font-size: 32px; }'});
+      const largeSwatch = await page.locator('#picker-md button').boundingBox();
+      const largeField = await page.locator('#field-md').boundingBox();
+      assert.ok(Math.abs(largeSwatch!.height-largeField!.height)<.6, 'inherited type grows the field and swatch together');
+      await largeType.evaluate(el=>el.remove());
+      assert.equal(await page.locator('#picker-lg button').evaluate(el => getComputedStyle(el).borderRadius),'50%');
+      const trigger = page.locator('#picker-sm button');
+      const editor = page.locator('#picker-sm [role=dialog]');
+      assert.equal(await editor.isVisible(), false);
+      await trigger.click(); assert.equal(await editor.isVisible(),true);
+      await trigger.click(); assert.equal(await editor.isVisible(),false);
+      await trigger.press('Enter'); assert.equal(await editor.isVisible(),true);
+      await editor.locator('input[aria-label="Hex colour"]').fill('#123456');
+      assert.equal(await page.locator('#picker-sm .colour').evaluate(el => getComputedStyle(el).backgroundColor),'rgb(18, 52, 86)');
+      await editor.locator('input[aria-label="Hex colour"]').fill('#xyz');
+      assert.equal(await editor.locator('input[aria-label="Hex colour"]').getAttribute('aria-invalid'),'true');
+      assert.equal(await page.locator('#picker-sm .colour').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(18, 52, 86)');
+      await editor.locator('input[aria-label="Hex colour"]').fill('#654321');
+      assert.equal(await editor.locator('input[aria-label="Hex colour"]').getAttribute('aria-invalid'),null);
+      await editor.locator('input[aria-label="Hex colour"]').press('Escape');
+      assert.equal(await editor.isVisible(),false);
+      assert.equal(await trigger.evaluate(el=>el===document.activeElement),true);
+      await trigger.click();
+      await page.locator('#field-md').click(); assert.equal(await editor.isVisible(),false);
+      if(adapter==='html') { await page.evaluate(() => (window as any).disablePicker()); assert.equal(await trigger.isDisabled(),true); }
+      const touch = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])], {hasTouch:true});
+      try {
+        for(const size of ['sm','md','lg']) {
+          const swatch=await touch.locator(`#picker-${size} button`).boundingBox();
+          const field=await touch.locator(`#field-${size}`).boundingBox();
+          assert.ok(Math.abs(swatch!.height-field!.height)<.6, 'touch sizing stays shared');
+          assert.ok(Math.abs(swatch!.width-swatch!.height)<.6, 'touch swatch stays square');
+        }
+      } finally { await touch.close(); }
+    } finally { await page.close(); }
+  });
+});
+
+describe("Shared semantic theme roles", () => {
+  for(const adapter of ['html','vue']) it(`applies action insets, display typography and press response in ${adapter}`, async()=>{
+    const path=await bundle(adapter+'-semantic-roles',adapter==='html'?`import "@threadlabs/looma";`:`
+      import {createApp,h} from 'vue';
+      import {Button,Checkbox,Input,PageHeader,Section,Text} from '@threadlabs/looma/vue';
+      createApp({render:()=>h('div',{},[
+        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'action-'+size,size},()=> 'Share update'),h(Input,{id:'field-'+size,size,value:'Project document'})]),
+        h(Checkbox,{id:'semantic-choice',checked:true},()=> 'Notify the team'),h(PageHeader,{id:'heading'},()=> 'Team office'),h(Section,{id:'section',heading:'Weekly update'},()=> 'Project checklist ready.'),h(Text,{id:'text-heading',as:'h2'},()=> 'Notes')
+      ])}).mount('#app');`);
+    const body=adapter==='html'?['sm','md','lg'].map(size=>`<ui-button id="action-${size}" size="${size}">Share update</ui-button><ui-input id="field-${size}" size="${size}" value="Project document"></ui-input>`).join('')+'<ui-checkbox id="semantic-choice" checked>Notify the team</ui-checkbox><ui-page-header id="heading">Team office</ui-page-header><ui-section id="section" heading="Weekly update">Project checklist ready.</ui-section><ui-text id="text-heading" as="h2">Notes</ui-text>':'<div id="app"></div>';
+    const page=await open(path,body,[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try{
+      await page.addStyleTag({content:'body {--ui-action-inset-sm:16px;--ui-action-inset-md:20px;--ui-action-inset-lg:24px;--ui-font-display:monospace;--ui-press-scale:.93;--ui-motion-fast:0ms;--ui-motion-base:240ms;--ui-radius-sm:100px;}'});
+      const choice=await page.locator('#semantic-choice input').evaluate(el=>({width:el.getBoundingClientRect().width,radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),duration:getComputedStyle(el,'::after').animationDuration}));
+      assert.ok(choice.radius<=choice.width/4,'a highly rounded theme must preserve checkbox shape');
+      assert.equal(choice.duration,'0.24s','check reveal follows the shared motion role');
+      for(const [size,inset] of [['sm',16],['md',20],['lg',24]] as const){
+        assert.equal(await page.locator('#action-'+size).evaluate(el=>getComputedStyle(el).paddingInlineStart),inset+'px');
+        const action=await page.locator('#action-'+size).boundingBox(),field=await page.locator('#field-'+size).boundingBox();
+        assert.ok(Math.abs(action!.height-field!.height)<.6);
+      }
+      for(const selector of ['#heading h1','#section h2','#text-heading'])assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).fontFamily),'monospace');
+      await page.locator('#action-md').hover();await page.mouse.down();
+      assert.equal(await page.locator('#action-md').evaluate(el=>getComputedStyle(el).scale),'0.93');await page.mouse.up();
+    }finally{await page.close();}
+  });
+});
+
+describe("Composite field ownership",()=>{
+ for(const adapter of ['html','vue'])it(`labels the requested field and supports a swatch field in ${adapter}`,async()=>{
+ const path=await bundle(adapter+'-composite-field',adapter==='html'?`import '@threadlabs/looma';`:`
+ import {createApp,h} from 'vue';import {FormField,ColorPicker,Input} from '@threadlabs/looma/vue';
+ createApp({render:()=>h('div',{},[
+ h(FormField,{id:'paired'},{label:()=>h('label',{for:'chosen'},'Hex colour'),default:()=>[h(ColorPicker,{value:'#7c3aed',label:'Swatch'}),h(Input,{id:'chosen',value:'#7c3aed'})],help:()=> 'Six hexadecimal digits'}),
+ h('form',{id:'disabled-form'},[h(FormField,{disabled:true},{label:()=>h('label',{},'Brand colour'),default:()=>h(ColorPicker,{id:'disabled-picker',name:'brand',value:'#7c3aed'})})])
+ ])}).mount('#app');`);
+ const body=adapter==='html'?`<ui-form-field id="paired"><label slot="label" for="chosen">Hex colour</label><ui-color-picker value="#7c3aed" label="Swatch"></ui-color-picker><ui-input id="chosen" value="#7c3aed"></ui-input><span slot="help">Six hexadecimal digits</span></ui-form-field><form id="disabled-form"><ui-form-field disabled><label slot="label">Brand colour</label><ui-color-picker id="disabled-picker" name="brand" value="#7c3aed"></ui-color-picker></ui-form-field></form>`:'<div id="app"></div>';
+ const page=await open(path,body,[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+ try{assert.ok(await page.locator('#chosen').getAttribute('aria-describedby'),'help belongs to the explicitly labelled text input');assert.equal(await page.locator('#disabled-picker button').isDisabled(),true);assert.deepEqual(await page.locator('#disabled-form').evaluate(el=>[...new FormData(el as HTMLFormElement)]),[]);const id=await page.locator('#disabled-picker button').getAttribute('id');assert.equal(await page.locator('#disabled-form .label > label').getAttribute('for'),id);}finally{await page.close();}
+ });
+});
+
+
+describe("Shared choice geometry", () => {
+  for (const adapter of ['html', 'vue']) it(`scales marks with typography and keeps first-line alignment in ${adapter}`, async () => {
+    const path = await bundle(adapter + '-choice-geometry', adapter === 'html' ? `import '@threadlabs/looma';` : `
+      import { createApp, h } from 'vue';
+      import { Checkbox, Radio, Switch } from '@threadlabs/looma/vue';
+      createApp({ render: () => h('div', {}, [Checkbox, Radio, Switch].flatMap((component, i) => ['sm', 'md', 'lg'].map(size => h(component, { id: 'choice-' + i + '-' + size, size }, { default: () => 'A choice with a label that wraps onto another line', description: () => 'An explanatory description' })))) }).mount('#app');`);
+    const body = adapter === 'html' ? ['checkbox', 'radio', 'switch'].flatMap((kind, i) => ['sm', 'md', 'lg'].map(size => `<ui-${kind} id="choice-${i}-${size}" size="${size}">A choice with a label that wraps onto another line<span slot="description">An explanatory description</span></ui-${kind}>`)).join('') : '<div id="app"></div>';
+    const page = await open(path, body, [join(root, 'tokens.css'), ...(adapter === 'vue' ? [join(root, 'vue/components.css')] : [])]);
+    try {
+      await page.addStyleTag({content: '[id^="choice-"] { max-width:180px; }'});
+      for (const font of [12, 16, 24]) {
+        await page.evaluate(value => { document.body.setAttribute('data-theme', 'test'); document.body.style.setProperty('--ui-font-size', value + 'px'); }, font);
+        for (const kind of [0, 1, 2]) for (const size of ['sm', 'md', 'lg']) {
+          const metrics = await page.locator('#choice-' + kind + '-' + size).evaluate(el => {
+            const input = el.querySelector('input')!, label = el.querySelector('.label')!;
+            const box = input.getBoundingClientRect(), text = label.getBoundingClientRect(), css = getComputedStyle(label), thumb = getComputedStyle(input, '::after');
+            return { width: box.width, height: box.height, delta: Math.abs(box.y + box.height / 2 - (text.y + parseFloat(css.paddingTop) + parseFloat(css.lineHeight) / 2)), thumb: parseFloat(thumb.height), inset: parseFloat(thumb.top), border: parseFloat(getComputedStyle(input).borderTopWidth) };
+          });
+          assert.ok(Math.abs(metrics.height - font * (kind === 2 ? 1.5 : 1.125)) < .1, JSON.stringify({kind, size, font, ...metrics}));
+          assert.ok(metrics.delta < .6, JSON.stringify({kind, size, font, ...metrics}));
+          if (kind === 2) {
+            assert.ok(Math.abs(metrics.width - font * 2.5) < .1);
+            assert.ok(Math.abs(metrics.inset + metrics.border + metrics.thumb / 2 - metrics.height / 2) < .1);
+          }
+        }
+      }
+    } finally { await page.close(); }
+  });
+});
+
+
+describe("Optional semantic theme recipe", () => {
+  for (const adapter of ['html', 'vue']) it(`shares native CSS units, independent scales and material roles in ${adapter}`, async () => {
+    const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@threadlabs/looma';` : `
+      import {createApp,h} from 'vue';import {Button,Input,Switch,ColorPicker} from '@threadlabs/looma/vue';
+      createApp({render:()=>h('div',{},[
+        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
+        h(Switch,{id:'recipe-switch',checked:true},()=> 'A switch'),h('div',{'data-theme':'nested',id:'nested'},[h(Button,{id:'nested-action'},()=> 'Nested action')])
+      ])}).mount('#app');`);
+    const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try {
+      assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),32,'legacy sizing stays unchanged without the optional recipe');
+      await page.addStyleTag({path:join(root,'theme-system.css')});
+      await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-density:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
+      for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','colour']) {
+        const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button':'');
+        assert.ok(Math.abs((await page.locator(selector).boundingBox())!.height-height)<.6,selector);
+      }
+      assert.equal(await page.locator('#nested-action').evaluate(el=>el.getBoundingClientRect().height),32);
+      await page.addStyleTag({content:'body {padding-left:var(--ui-space-4)} #nested {display:grid;gap:var(--ui-space-4)}'});
+      assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).paddingLeft),'19.2px','size ratio does not change the linear spacing curve');
+      assert.equal(await page.locator('#nested').evaluate(el=>getComputedStyle(el).gap),'51.2px','quadratic spacing is an independent choice');
+      assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).scale),'none');
+      await page.waitForTimeout(250); // Let the authored .2s material transition reach its resting value.
+      const shadow = await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).boxShadow);
+      assert.ok(shadow.split(/,(?![^(]*\))/).filter(part=>!/^\s*rgba\([^)]*, 0\)/.test(part)).every(part=>[...part.matchAll(/(-?[\d.]+)px/g)].every(match=>Number(match[1])===0)), 'zero depth removes visible elevation: '+shadow);
+      assert.equal(await page.locator('#recipe-switch input').evaluate(el=>getComputedStyle(el,'::after').boxShadow),'rgba(0, 0, 0, 0.08) 0px 0px 0px 0px');
+      assert.ok((await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).transitionDuration)).includes('0.2s'),'seconds stay seconds');
+      await page.addStyleTag({content: ':root {--ui-action-inset-md:9px;--ui-control-size-sm:35px;}'});
+      assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).paddingLeft),'9px','explicit derived role still wins');
+      assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),35);
+      await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-density:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
+      for (const size of ['sm','md','lg']) {
+        const heights = await Promise.all(['action','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
+        assert.ok(Math.max(...heights)-Math.min(...heights)<.6, 'large typography and curved page spacing preserve shared boxes: '+heights.join(','));
+      }
+      await page.emulateMedia({reducedMotion:'reduce'});
+      assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).getPropertyValue('--ui-motion-press').trim()),'0ms');
+    } finally { await page.close(); }
   });
 });

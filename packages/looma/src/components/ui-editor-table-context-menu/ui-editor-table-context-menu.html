@@ -83,42 +83,42 @@
     :host[popover] {
       position: fixed;
       inset: auto;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host {
       /* The max-width is a promise about the menu's footprint, so it counts padding and border. */
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       min-width: min(14rem, calc(100vw - 24px));
       max-width: min(17rem, calc(100vw - 24px));
       max-height: min(28rem, calc(100vh - 24px));
-      padding: var(--ui-space-2);
+      padding: var(--ui-space-2) !important;
       background: var(--ui-surface);
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 2px !important;
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
     }
 
     .section {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 3px !important;
     }
 
     :host button {
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-2);
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
       width: 100%;
       text-align: left;
       min-height: 32px;
-      padding: var(--ui-space-2) var(--ui-space-2);
+      padding: var(--ui-space-2) var(--ui-space-2) !important;
       border: none;
       border-radius: var(--ui-radius-sm);
       background: none;
@@ -146,24 +146,24 @@
 
     /* Swatches wrap like words: the row asks for the menu's full width, and a narrower menu fits fewer. */
     .swatches {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 3px;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 3px !important;
     }
 
     /* Three to a row at the menu's full width; 5rem keeps the longest label, "Default", whole. */
     :host .swatch-button {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--ui-space-2);
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
       flex: 1 0 5rem;
       min-width: 5rem;
       max-width: calc((100% - 6px) / 3);
-      padding-inline-end: var(--ui-space-1);
+      padding-inline-end: var(--ui-space-1) !important;
     }
 
     .swatch {
-      display: inline-flex;
+      display: inline-flex !important;
       width: 1rem;
       height: 1rem;
       border-radius: var(--ui-radius-round);
@@ -192,7 +192,7 @@
     }
 
     .heading {
-      padding: var(--ui-space-1) var(--ui-space-2);
+      padding: var(--ui-space-1) var(--ui-space-2) !important;
       font-size: var(--ui-font-size-2xs);
       font-weight: 700;
       letter-spacing: 0.05em;
@@ -203,16 +203,16 @@
     .sep {
       height: 1px;
       background: var(--ui-border-divider);
-      margin: var(--ui-space-1) 0;
+      margin: var(--ui-space-1) 0 !important;
     }
 
     /* Separators divide sections, so none sits above the first. */
     .sep:first-child {
-      display: none;
+      display: none !important;
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

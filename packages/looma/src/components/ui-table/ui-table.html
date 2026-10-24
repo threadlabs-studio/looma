@@ -19,8 +19,8 @@
       --_pad-block: var(--ui-space-1);
       --_pad-inline: var(--ui-space-3);
       --_row-size: var(--ui-control-size);
-      display: block;
-      box-sizing: border-box;
+      display: block !important;
+      box-sizing: border-box !important;
       max-inline-size: 100%;
       min-inline-size: 0;
       min-block-size: 0;
@@ -73,7 +73,7 @@
     }
 
     :slotted(caption) {
-      padding-block-end: var(--ui-space-2);
+      padding-block-end: var(--ui-space-2) !important;
       color: var(--ui-text-secondary);
       font-weight: var(--ui-font-medium);
       text-align: start;
@@ -84,7 +84,7 @@
     :slotted(th),
     :slotted(td) {
       block-size: var(--_row-size);
-      padding: var(--_pad-block) var(--_pad-inline);
+      padding: var(--_pad-block) var(--_pad-inline) !important;
       border-block-end: var(--ui-border-width) solid var(--ui-border-subtle);
       text-align: start;
       vertical-align: middle;
@@ -92,7 +92,7 @@
 
     :slotted(thead th) {
       block-size: auto;
-      padding-block: var(--ui-space-2);
+      padding-block: var(--ui-space-2) !important;
       border-block-end-color: var(--ui-border-divider);
       background: var(--ui-surface);
       color: var(--ui-text-muted);
@@ -125,7 +125,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -48,7 +48,7 @@
     }
 
     :host {
-      margin: 0;
+      margin: 0 !important;
       min-inline-size: 0;
       color: var(--ui-text-primary);
       text-align: start;
@@ -57,6 +57,7 @@
     /* A heading drops the browser's heading size and weight, so size and weight set it as they set
        any text, and inherit keeps the text around it. */
     :host:is(h2, h3, h4, h5, h6) {
+      font-family: var(--ui-font-display, inherit);
       font-size: inherit;
       font-weight: inherit;
     }
@@ -163,7 +164,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>
