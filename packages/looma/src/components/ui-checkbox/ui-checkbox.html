@@ -130,7 +130,8 @@
       margin: max(0px, calc((1lh - var(--_ui-checkbox-size, 1.125rem)) / 2)) 0 0 !important;
       border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: min(var(--ui-radius-sm), calc(var(--_ui-checkbox-size, 1.125rem) / 4));
-      background: var(--ui-control-surface, var(--ui-surface-default));
+      background-color: var(--ui-control-surface, var(--ui-surface-default));
+      background-image: var(--ui-surface-highlight, none);
       box-shadow: var(--ui-control-inset);
       cursor: pointer;
       transition:
@@ -149,7 +150,8 @@
     input:checked,
     input:indeterminate {
       border-color: var(--ui-accent-solid);
-      background: var(--ui-accent-solid);
+      background-color: var(--ui-accent-solid);
+      background-image: var(--ui-accent-highlight, none);
       box-shadow: var(--ui-control-inset);
     }
 

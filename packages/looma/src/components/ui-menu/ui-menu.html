@@ -136,6 +136,7 @@
       --_ui-material-content-color: var(--_ui-menu-surface, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))));
       --_ui-material-rim-color: color-mix(in srgb, var(--ui-material-glass, var(--ui-surface-elevated)) calc(var(--_ui-material-active) * 100%), transparent);
       background:
+        var(--ui-surface-highlight, linear-gradient(transparent, transparent)) padding-box,
         linear-gradient(var(--_ui-material-content-color), var(--_ui-material-content-color)) padding-box,
         linear-gradient(var(--_ui-material-rim-color), var(--_ui-material-rim-color)) border-box,
         var(--_ui-material-content-color) padding-box;
@@ -151,6 +152,7 @@
           0 calc(var(--_ui-material-separation) * var(--_ui-material-scale, 0.28) * 8px) calc(
             var(--_ui-material-separation) * var(--_ui-material-scale, 0.28) * 24px
           ) color-mix(in oklab, var(--ui-text-primary) 15%, transparent),
+          var(--ui-material-glow, 0 0 transparent),
           inset 0 0 0 calc(var(--_ui-material-active) * var(--ui-border-width)) var(--ui-material-edge, var(--ui-border-strong)),
           var(--ui-elevation-overlay, var(--ui-shadow-lg))
         )

@@ -35,7 +35,7 @@ function numberHost(values = {}) {
   const refs = Object.fromEntries(['input', 'decrease', 'increase'].map(name => [name, new Field()]));
   const props = Object.fromEntries(Object.entries({value: '16px', unit: 'px', min: 8, max: 40, step: 2, disabled: false, ...values}).map(([key, value]) => [key, {value}]));
   const events = []; let effect;
-  const stop = connectNumber({element: { querySelector: selector => refs[selector === 'input' ? 'input' : selector.includes('decrease') ? 'decrease' : 'increase'] }, props, effect: callback => { effect = callback; callback(); return () => {}; }, dispatch: (type, detail) => events.push({type, detail})});
+  const stop = connectNumber({state: {}, element: { querySelector: selector => refs[selector === 'input' ? 'input' : selector.includes('decrease') ? 'decrease' : 'increase'] }, props, effect: callback => { effect = callback; callback(); return () => {}; }, dispatch: (type, detail) => events.push({type, detail})});
   return {refs, props, events, stop, sync: () => effect()};
 }
 test('number controller calculates on commit, clamps typing and steps, rejects invalid edits', () => {

@@ -190,7 +190,7 @@ The toolbar is always one row, in four groups. When it is wider than the space i
 
 A mark or block that applies to the selection is shown as active: a tint and an inset edge in the
 accent, with `aria-pressed="true"`, never a solid fill. On a narrow screen the toolbar docks to the
-bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-toolbar) tokens, plus
+bottom of the viewport. Its buttons follow the [Toolbar](/editor/ui-editor-toolbar) tokens, plus
 `--ui-editor-toolbar-button-size`, `--ui-editor-toolbar-button-radius`,
 `--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
 `--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
@@ -283,7 +283,7 @@ menu provides insertion choices. This keeps block actions reachable without a ho
 
 ## Slash menu
 
-Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts headings,
+Typing `/` opens the [slash menu](/editor/ui-editor-slash-menu), which inserts headings,
 Info, Note, and Warning callouts, bullet, numbered, and checklist lists, blockquote, a clickable
 inline chip, footnote, inline and block code, table, divider, and image. Markdown-style typing works too:
 `#` for headings, `-` for bullets, `[ ]` for a checklist, and `---` for a divider.
@@ -302,7 +302,7 @@ document, and moves the caret into the note (`editor.commands.insertLoomaFootnot
 <kbd>Mod</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>). Typing or pasting `[^label]` makes a reference too, with a
 note for a new label. Notes are numbered by first reference and kept in that order on every edit;
 deleting a note's last reference removes the note. Click a reference to open its
-[footnote editor](/components/ui-editor-footnote-editor): it shows the note, edits a note of plain
+[footnote editor](/editor/ui-editor-footnote-editor): it shows the note, edits a note of plain
 text in place, and renames the label on the note and every reference to it. **Go to note** moves the
 caret to the end of the note, and <kbd>Mod</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> moves between a
 reference and its note (`editor.commands.goToLoomaFootnote()`). The saved HTML is the HTML Looma

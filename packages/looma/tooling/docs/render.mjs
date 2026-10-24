@@ -8,7 +8,7 @@ const literal = value => escape(value).replaceAll('{', '\\{');
 const code = value => `<code>${literal(value ?? '—')}</code>`;
 const table = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${literal(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(value => `<td>${value}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 export const exampleKey = id => createHash('sha256').update(id).digest('hex').slice(0, 20);
-export const componentPath = component => `/components/${component.navigationParent ?? component.tag}/` + (component.navigationParent ? `#${component.tag}-api` : '');
+export const componentPath = component => `/${component.group === 'editor' ? 'editor' : 'components'}/${component.navigationParent ?? component.tag}/` + (component.navigationParent ? `#${component.tag}-api` : '');
 export const previewPath = example => `/_looma/preview/${exampleKey(example.id)}/`;
 
 export function apiBody(api, prefix = '') {

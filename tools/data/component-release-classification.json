@@ -73,6 +73,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-light-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-description-item": {
       "status": "published",
       "package": "@threadlabs/looma"

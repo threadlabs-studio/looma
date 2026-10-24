@@ -2,6 +2,7 @@
   :root:not([data-theme], [data-contrast="high"]),
   [data-theme="light"] {
     color-scheme: light;
+    --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c58' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     /* The seeds, and only the seeds. Neutrals, hovers, tints, and disabled colours are mixed from
        these in tokens.css, so a product themes Looma by changing these eleven values. */
     --ui-surface: #ffffff;

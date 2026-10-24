@@ -8,6 +8,7 @@ export function createThemeSession(view, { base, baseline, systemCSS }) {
   const key = `looma:documentation-theme:v1:${base}`;
   let original = validateRecipe(baseline);
   let selected;
+  let portableCSS = '';
   let storageAvailable = true;
   const style = view.document.createElement('style');
   style.dataset.loomaDocumentationTheme = '';
@@ -15,9 +16,10 @@ export function createThemeSession(view, { base, baseline, systemCSS }) {
   const read = value => { try { return value ? validateRecipe(JSON.parse(value)) : undefined; } catch { return undefined; } };
   try { selected = read(view.localStorage.getItem(key)); } catch { storageAvailable = false; }
   const paint = () => {
+    portableCSS = selected ? themeCSS(selected, systemCSS) : '';
     view.document.documentElement.toggleAttribute('data-looma-documentation-theme', Boolean(selected));
     style.textContent = selected ? themeCSS(selected, systemCSS, { scope: 'documentation' }) : '';
-    view.dispatchEvent(new view.CustomEvent(themeEvent, { detail: { css: selected ? themeCSS(selected, systemCSS) : '' } }));
+    view.dispatchEvent(new view.CustomEvent(themeEvent, { detail: { css: portableCSS } }));
   };
   const persist = () => {
     try { if (selected) view.localStorage.setItem(key, JSON.stringify(selected)); else view.localStorage.removeItem(key); storageAvailable = true; } catch { storageAvailable = false; }
@@ -27,7 +29,7 @@ export function createThemeSession(view, { base, baseline, systemCSS }) {
     get recipe() { return structuredClone(selected ?? original); },
     get hasOverride() { return selected !== undefined; },
     get storageAvailable() { return storageAvailable; },
-    get css() { return selected ? themeCSS(selected, systemCSS) : ''; },
+    get css() { return portableCSS; },
     apply(recipe) { selected = validateRecipe(recipe); persist(); },
     reset() { selected = undefined; persist(); return structuredClone(original); },
     baseline(recipe) { original = validateRecipe(recipe); },

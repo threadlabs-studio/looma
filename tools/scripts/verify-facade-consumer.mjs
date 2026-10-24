@@ -237,11 +237,19 @@ async function main() {
     const tarball = path.join(packDirectory, tarballs[0]);
     const facadeManifest = JSON.parse(await readFile(path.join(facadeRoot, "package.json"), "utf8"));
 
-    await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball, facadeManifest);
-    await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
-    await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
-    await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
-    await verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest);
+    // The installed docs build and the smaller SSR/type consumers use separate directories.
+    // Drain both branches before cleanup, including when one reports a failure.
+    const consumers = await Promise.allSettled([
+      (async () => {
+        await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball, facadeManifest);
+        await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
+        await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
+        await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
+      })(),
+      verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest),
+    ]);
+    const failed = consumers.find(consumer => consumer.status === "rejected");
+    if (failed) throw failed.reason;
     console.log("Packed Looma facade consumer matrix passed");
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
