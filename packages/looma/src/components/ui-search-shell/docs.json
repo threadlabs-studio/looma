@@ -1,0 +1,4 @@
+{
+  "description": "Responsive dialog structure for application search and command palettes. It owns visibility, dismissal, accessible dialog semantics, and the search/status/body/footer regions while applications retain query and result state.",
+  "group": "overlay"
+}

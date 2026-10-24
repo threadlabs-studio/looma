@@ -1,0 +1,4 @@
+{
+  "description": "A surface that groups content, with even space between its children. `outlined` (the default) is a bordered panel; `subtle` is a quiet filled one for supporting details; `elevated` floats a view's one card, such as sign-in. `padding` is `sm`, `md`, or `lg`. For a titled group of settings, use a Section with `variant=\"card\"`.",
+  "group": "display"
+}

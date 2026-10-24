@@ -86,6 +86,7 @@ export function findForbiddenTarballEntries(entries) {
     /(^|\/)\.git(?:\/|$)/,
     /(^|\/)\.stencil(?:\/|$)/,
     /(^|\/)node_modules(?:\/|$)/,
+    /^package\/docs\/.*\.(?:test|spec)\.(?:mjs|cjs|js|ts)$/,
     /(^|\/)(?:test|tests|__tests__)(?:\/|$)/,
     /(^|\/)tsconfig(?:\.[^/]*)?\.json$/,
     /(^|\/)vitest(?:\.[^/]*)?\.config\.[^/]+$/,

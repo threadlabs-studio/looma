@@ -1,0 +1,4 @@
+{
+  "description": "Toast Region stacks authored `<ui-toast>` children and messages added with the `show-toast` event or the `--show-toast` command.",
+  "group": "overlay"
+}

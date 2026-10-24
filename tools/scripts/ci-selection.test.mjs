@@ -255,3 +255,25 @@ test("the Expressive adapter has explicit editor, consumer and documentation own
     assert.equal(automaticChecks(graph, [file]).packageConsumer, true, file);
   }
 });
+
+test('published documentation tooling selects its fixtures, docs and installed-package qualification', () => {
+  const graph = { ...files, 'packages/looma/tooling/docs/theme.mjs': 'export const theme = 1;', 'packages/looma/tooling/docs/theme.test.mjs': 'import { theme } from "./theme.mjs";' };
+  for (const file of ['packages/looma/tooling/docs/theme.mjs', 'packages/looma/bin/looma-docs.mjs']) {
+    const selected = automaticChecks(graph, [file]);
+    assert.equal(selected.full, false);
+    assert.equal(selected.docsBuild, true);
+    assert.equal(selected.packageConsumer, true);
+    assert.ok(selected.scripts.includes('packages/looma/tooling/docs/theme.test.mjs'));
+  }
+});
+
+test('shared and colocated component documentation metadata select catalog fixtures and documentation qualification', () => {
+  const fixture = 'packages/looma/tooling/docs/catalog.test.mjs';
+  const graph = { ...files, [fixture]: 'test("portable catalog", () => {});' };
+  for (const file of ['packages/looma/src/components/docs.json', 'packages/looma/src/components/ui-button/docs.json']) {
+    const selected = automaticChecks(graph, [file]);
+    assert.equal(selected.docsBuild, true, file);
+    assert.equal(selected.packageConsumer, true, file);
+    assert.ok(selected.scripts.includes(fixture), file);
+  }
+});

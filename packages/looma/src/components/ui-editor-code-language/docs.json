@@ -1,0 +1,4 @@
+{
+  "description": "The code block's language picker: a compact combobox of the languages the editor can highlight, with Auto first.",
+  "group": "editor"
+}

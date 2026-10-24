@@ -1,0 +1,4 @@
+{
+  "description": "Cluster layout primitive for row-style content with wrapping support. Set `wrap=\"nowrap\"` to keep a small group, such as a meter and its value, on one row.",
+  "group": "layout"
+}

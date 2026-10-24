@@ -1,237 +1,145 @@
 {
   "schemaVersion": 2,
-  "groups": [
-    {
-      "id": "layout",
-      "label": "Layout"
-    },
-    {
-      "id": "overlay",
-      "label": "Overlay"
-    },
-    {
-      "id": "forms",
-      "label": "Forms"
-    },
-    {
-      "id": "display",
-      "label": "Display"
-    },
-    {
-      "id": "editor",
-      "label": "Editor"
-    }
-  ],
   "tags": {
     "ui-action-bar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "The action row at the foot of a form or dialog. It places each action by what it does, so every form in a product ends the same way and no one hand-aligns buttons."
+      "package": "@threadlabs/looma"
     },
     "ui-affordance-scope": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control."
+      "package": "@threadlabs/looma"
     },
     "ui-avatar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees."
+      "package": "@threadlabs/looma"
     },
     "ui-avatar-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum."
+      "package": "@threadlabs/looma"
     },
     "ui-badge": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Lightweight status and label primitive with minimal styling hooks."
+      "package": "@threadlabs/looma"
     },
     "ui-breadcrumb-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-breadcrumbs",
-      "description": "One step in a Breadcrumbs trail: a link up to that place, or, with `current`, the view you are on (`aria-current=\"page\"`). An icon slotted in the link sits with its name. See [Breadcrumbs](/components/ui-breadcrumbs)."
+      "package": "@threadlabs/looma"
     },
     "ui-breadcrumbs": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Where a view sits: a trail of `ui-breadcrumb-item` from the top down to the current view, in a navigation landmark. Every step but the current one holds a link; a chevron leads each step after the first. It wraps rather than scrolls, so every step stays reachable."
+      "package": "@threadlabs/looma"
     },
     "ui-button": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Essential button primitive that enhances semantic button markup and styling hooks."
+      "package": "@threadlabs/looma"
     },
     "ui-callout": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "A static semantic message surface with a tone-specific icon. It is not a live alert and does not include dismissal behavior."
+      "package": "@threadlabs/looma"
     },
     "ui-card": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "A surface that groups content, with even space between its children. `outlined` (the default) is a bordered panel; `subtle` is a quiet filled one for supporting details; `elevated` floats a view's one card, such as sign-in. `padding` is `sm`, `md`, or `lg`. For a titled group of settings, use a Section with `variant=\"card\"`."
+      "package": "@threadlabs/looma"
     },
     "ui-checkbox": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Form control primitive for boolean and mixed selection state. When omitting visible label text in a list or table, supply `label` to give the native checkbox an accessible name."
+      "package": "@threadlabs/looma"
     },
     "ui-cluster": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Cluster layout primitive for row-style content with wrapping support. Set `wrap=\"nowrap\"` to keep a small group, such as a meter and its value, on one row."
+      "package": "@threadlabs/looma"
     },
     "ui-color-picker": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Square or circular swatch button with shared control sizing and a dismissible RGB/hex colour editor."
+      "package": "@threadlabs/looma"
     },
     "ui-combobox": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "A searchable text field with authored `<option>` suggestions."
+      "package": "@threadlabs/looma"
     },
     "ui-container": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Container primitive for readable measure and horizontal gutters."
+      "package": "@threadlabs/looma"
     },
     "ui-context-menu": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Action menu that opens where its target is context-clicked: right-click, touch long-press, or Shift+F10 / the Menu key on the focused target. A plain click does nothing; for a button that opens a menu, use [Menu](./ui-menu.mdx)."
+      "package": "@threadlabs/looma"
     },
     "ui-cover": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "A layout primitive that centres its content both ways, with room around it: the frame for a view that is one card or one message, such as sign-in. `size=\"screen\"` (the default) is at least the viewport's height; `size=\"fill\"` takes the space its parent gives it."
+      "package": "@threadlabs/looma"
     },
     "ui-description-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-description-list",
-      "description": "One `term` and its value (the content) in a Description List, laid out by the list. See [Description List](/components/ui-description-list)."
+      "package": "@threadlabs/looma"
     },
     "ui-description-list": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Named values: each `ui-description-item` is a `term` and its value, rendered as a `<dl>` of `<div><dt/><dd/></div>` groups. `layout=\"rows\"` lines terms up in one column and values in the next, for a short summary; `layout=\"stacked\"` sets every term above its value, for a narrow space such as a side panel or a popover; `layout=\"grid\"` sets the pairs in columns, term above value, for facts to scan across; `layout=\"tiles\"` sets each pair on its own tile, for figures to compare. `columns` (`2`, `3`, or `4`) caps how many columns grid and tiles set, and `density=\"compact\"` sets the pairs close together. A rows list does not stack on its own; choose `stacked` where it will be narrow. A value can hold code ([Text](/components/ui-text) `variant=\"code\"`), a [Badge](/components/ui-badge), or a long identifier, which wraps rather than overflowing."
+      "package": "@threadlabs/looma"
     },
     "ui-dialog": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules."
+      "package": "@threadlabs/looma"
     },
     "ui-disclosure": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Progressively enhances a button/content pair into an accessible disclosure."
+      "package": "@threadlabs/looma"
     },
     "ui-editable": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Reveal an editing control from an explicit presentation trigger."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-block-actions": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The editor's block menu: insert a paragraph below, duplicate, or delete the block that holds the caret."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-chip-editor": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The editor's chip editor: a field for the chip's text and swatches for its colour."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-code-language": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The code block's language picker: a compact combobox of the languages the editor can highlight, with Auto first."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-footnote-editor": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The editor's footnote editor: a field for the footnote's label and a field for its note."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-image-toolbar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Contextual actions for a selected image: four placement commands, a description form, and delete."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-insert-table-grid": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Grid picker for table dimensions and optional header-row intent."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-link-card": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The actions bar for a link in the editor: its destination, Open link, Edit link, and Remove link."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-link-form": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "The editor's form for adding or editing a link: a destination field, its search results or Open in new tab, and the link's text when there is none yet."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-mention-menu": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Bounded, responsive suggestion surface for an app-provided people directory."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-mention-menu-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-editor-mention-menu",
-      "description": "An authored person in a Mention Menu."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Responsive suggestion surface for app-provided slash commands."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-editor-slash-menu",
-      "description": "Names related Slash Menu Items for sighted and assistive technology users."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-editor-slash-menu",
-      "description": "An authored command in a Slash Menu."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-surface": {
       "status": "internal",
@@ -239,27 +147,19 @@
     },
     "ui-editor-table-context-menu": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Cell and table action menu whose available commands are controlled by app-provided capabilities."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-table-overlay": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Anticipatory table controls for exact-boundary insertion and table actions."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-table-toolbar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Selection-aware quick toolbar for table alignment and structural actions."
+      "package": "@threadlabs/looma"
     },
     "ui-editor-toolbar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "editor",
-      "description": "Semantic, slot-based toolbar frame for app-owned editor command controls. It keeps its controls on one row that scrolls sideways when space runs out, fading each edge that hides controls with the fade every Looma scroller uses (see [Scroll Area](/components/ui-scroll-area)); `--ui-editor-toolbar-fade-size` sets the fade's width."
+      "package": "@threadlabs/looma"
     },
     "ui-floating-action-button": {
       "status": "deferred",
@@ -267,15 +167,11 @@
     },
     "ui-form-field": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Form-field composition primitive that links label/control/description semantics."
+      "package": "@threadlabs/looma"
     },
     "ui-grid": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Responsive auto-fit grid primitive."
+      "package": "@threadlabs/looma"
     },
     "ui-icon": {
       "status": "internal",
@@ -283,243 +179,163 @@
     },
     "ui-icon-button": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome."
+      "package": "@threadlabs/looma"
     },
     "ui-image": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "A semantic image surface with optional selection, corner resizing, and text wrapping."
+      "package": "@threadlabs/looma"
     },
     "ui-input": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Text input that lowers directly to a native `<input>` while applying Looma's shared control theme."
+      "package": "@threadlabs/looma"
     },
     "ui-input-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "An Input with fixed text before or after the value, such as a domain suffix."
+      "package": "@threadlabs/looma"
     },
     "ui-list": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "A list of items: pages, people, sites, results."
+      "package": "@threadlabs/looma"
     },
     "ui-list-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-list",
-      "description": "One entry in a `ui-list`: leading, title, description, and trailing, with one-line title and description."
+      "package": "@threadlabs/looma"
     },
     "ui-listbox": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Keep choices visible in a styled list. A selected choice stays visible; in `multiple` mode, each row uses the same checkmark treatment as Combobox suggestions. Click to choose, use arrow keys to move, and press Space to toggle a multiple choice."
+      "package": "@threadlabs/looma"
     },
     "ui-menu": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children."
+      "package": "@threadlabs/looma"
     },
     "ui-menu-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-menu",
-      "description": "Use a named group to organize related commands or choices within a Menu or Context Menu."
+      "package": "@threadlabs/looma"
     },
     "ui-menu-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-menu",
-      "description": "Use an item inside a Menu or Context Menu."
+      "package": "@threadlabs/looma"
     },
     "ui-meter": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "How far along something is, at a glance: the share of an invoice collected, of items reviewed, of a checklist done. `value` runs from 0 to `max` (1 by default, as on a native `<meter>`); a value outside that range draws at the nearer end, so an empty meter still shows its track and a full one fills it. The bar is drawn as the page renders, on the server and before JavaScript."
+      "package": "@threadlabs/looma"
     },
     "ui-nav-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "One destination in a side or rail navigation: the sections of a product, or the parts of a record."
+      "package": "@threadlabs/looma"
     },
     "ui-page-header": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "The top of a view: its one `h1`, with an optional icon or mark before it (`leading`), a short `eyebrow` above it, a `description` under it, and the view's own `actions` at the end. Every view titles itself the same way, at the same size. `align=\"center\"` stacks it centred, for a standalone card such as sign-in."
+      "package": "@threadlabs/looma"
     },
     "ui-popover": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Non-modal overlay primitive with shared open/close overlay lifecycle."
+      "package": "@threadlabs/looma"
     },
     "ui-radio": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`."
+      "package": "@threadlabs/looma"
     },
     "ui-radio-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events."
+      "package": "@threadlabs/looma"
     },
     "ui-reel": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Contained, keyboard-focusable horizontal scrolling for cards and other repeated items."
+      "package": "@threadlabs/looma"
     },
     "ui-scroll-area": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "A region that scrolls when its content outgrows it, and fades each edge that hides content so the reader can tell there is more. Use it for any scrolling region: a navigation list, a panel's body, a strip of controls."
+      "package": "@threadlabs/looma"
     },
     "ui-search-result-row": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-search-shell",
-      "description": "Presentational row shell for command/search results. It owns row layout, spacing, hover/selected states, and optional leading/meta/excerpt/trailing regions while apps keep result shaping and highlighting."
+      "package": "@threadlabs/looma"
     },
     "ui-search-shell": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Responsive dialog structure for application search and command palettes. It owns visibility, dismissal, accessible dialog semantics, and the search/status/body/footer regions while applications retain query and result state."
+      "package": "@threadlabs/looma"
     },
     "ui-section": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "A part of a view: an `h2` `heading`, an optional `description`, `actions` for the whole section, and its content. `variant=\"card\"` sets it on a bordered surface, for a settings group; `variant=\"divided\"` rules it off from the section before, for a long form; `tone=\"danger\"` marks destructive actions. Space sections with a Stack."
+      "package": "@threadlabs/looma"
     },
     "ui-select": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Select control that lowers directly to a native `<select>`; author `<option>` children directly inside it."
+      "package": "@threadlabs/looma"
     },
     "ui-separator": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Semantic separator primitive with horizontal and vertical orientations."
+      "package": "@threadlabs/looma"
     },
     "ui-sidebar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "An application sidebar panel. Docked beside the page's main content it can be resized and collapsed; below its breakpoint it becomes an off-canvas drawer. It is only the panel: the page lays it out next to its content."
+      "package": "@threadlabs/looma"
     },
     "ui-spinner": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Something is on its way. With a `label` it is a status that assistive technology announces; beside visible text that already says so, leave the label off. It holds still under reduced motion."
+      "package": "@threadlabs/looma"
     },
     "ui-stack": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Vertical layout primitive that owns spacing between children."
+      "package": "@threadlabs/looma"
     },
     "ui-status-message": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "The one way a view says it is loading (`kind=\"loading\"`, with a spinner), has nothing yet (`kind=\"empty\"`, the default), or failed (`kind=\"error\"`, in the danger tone and announced at once), with an optional next step in the `action` slot. `layout=\"panel\"` sets it on a dashed surface for an empty area in a page; `layout=\"fill\"` centres it in all the space, for a whole view."
+      "package": "@threadlabs/looma"
     },
     "ui-swatch": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "A round colour dot that is a native radio, named by its tone, for choosing a colour inside a radio group."
+      "package": "@threadlabs/looma"
     },
     "ui-switch": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Binary control primitive that reflects switch semantics for checked state."
+      "package": "@threadlabs/looma"
     },
     "ui-switcher": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "layout",
-      "description": "Intrinsic equal-column layout that stacks when its own container becomes too narrow."
+      "package": "@threadlabs/looma"
     },
     "ui-table": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Styles an authored `<table>` in place: write the `caption`, `thead`, `tbody`, and `th scope` yourself, and the table reads as a table before JavaScript and to a screen reader. A cell's `data-ui-align` (`start`, `center`, or `end`; `start` when unset) sets its content along the row, such as `end` for a column of figures; compose a value with a muted line beneath it from [Text](/components/ui-text). Table is presentation only: it does not sort, page, or select rows."
+      "package": "@threadlabs/looma"
     },
     "ui-tabs": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility."
+      "package": "@threadlabs/looma"
     },
     "ui-text": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Running text on the type scale, in a tone that says what it is: default for content, `secondary` for supporting prose, `muted` for metadata and hints, `info` for something moving forward normally, `warning` for something that needs attention, `danger` for an error, `success` to confirm one. The words must carry the meaning too, since colour alone does not. `variant=\"eyebrow\"` is a short uppercase label that names a group; `variant=\"code\"` sets a value to read exactly, such as an address. A view never styles text of its own: it picks a size and a tone. A link inside Text is underlined, so it reads as a link by more than its colour."
+      "package": "@threadlabs/looma"
     },
     "ui-textarea": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "forms",
-      "description": "Multiline input that lowers directly to a native `<textarea>` while applying Looma's shared control theme."
+      "package": "@threadlabs/looma"
     },
     "ui-toast": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-toast-region",
-      "description": "Author a toast inside Toast Region when its message has a tone, rich content, or an action."
+      "package": "@threadlabs/looma"
     },
     "ui-toast-region": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Toast Region stacks authored `<ui-toast>` children and messages added with the `show-toast` event or the `--show-toast` command."
+      "package": "@threadlabs/looma"
     },
     "ui-tooltip": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "overlay",
-      "description": "Contextual overlay primitive that links descriptive content to a trigger element."
+      "package": "@threadlabs/looma"
     },
     "ui-top-bar": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions."
+      "package": "@threadlabs/looma"
     },
     "ui-tree": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "group": "display",
-      "description": "An accessible hierarchy with disclosure, bounded logical indentation, and truthful drag-and-drop previews."
+      "package": "@threadlabs/looma"
     },
     "ui-tree-item": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-tree",
-      "description": "The row primitive used inside `ui-tree`."
+      "package": "@threadlabs/looma"
     }
   }
 }

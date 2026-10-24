@@ -1,0 +1,4 @@
+{
+  "description": "The action row at the foot of a form or dialog. It places each action by what it does, so every form in a product ends the same way and no one hand-aligns buttons.",
+  "group": "layout"
+}

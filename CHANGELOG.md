@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Ship the Markupress/HTMLKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
+
 - Editor formatting-back and image-upload retry actions use Looma Button. Regenerate the declarative icon catalogs so the attachment icon renders consistently.
 
 - Add opt-in `theme-system.css`: seven shared density, size/spacing curve and material levers derive existing public roles. Existing token and palette defaults remain unchanged without the import. Single-line control padding fits the common height independently of page spacing growth.

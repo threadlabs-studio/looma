@@ -88,7 +88,8 @@ jobs:
 
   release-package:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    # Includes a fresh installed docs build and the local save/discovery flow.
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:

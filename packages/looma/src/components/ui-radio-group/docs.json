@@ -1,0 +1,4 @@
+{
+  "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
+  "group": "forms"
+}
