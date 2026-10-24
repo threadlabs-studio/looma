@@ -18,6 +18,8 @@
 - Keep NumberInput's normalized unit display stable when composed controls update its value, while form reset retains its original default.
 - Native Select follows its nearest light/dark boundary and shares field material, with readable mode-specific chevrons.
 - Keep editor references in the Editor section rather than appending them to the general Components navigation.
+- Keep shared depth, spacing and light response consistent between the documentation shell and isolated examples when a remembered theme restores before baseline styles.
+- Bundle independent preview entries with bounded concurrency and overlap isolated consumer checks with the installed documentation build; retain the complete qualification matrix and its time limits.
 - IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
 
 ### Improvements
