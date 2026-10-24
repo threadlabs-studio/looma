@@ -47,6 +47,20 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   const css = await readFile(await (await cssReady).path(), 'utf8');
   expect(css).toContain('--ui-surface: #11141c;');
   expect(css).toContain('pow(2, var(--_ui-theme-curve))');
+  const buttonFrame = page.locator('[data-component-card="ui-button"] iframe').first();
+  const appearance = element => {
+    const style = getComputedStyle(element);
+    return Object.fromEntries(['color', 'backgroundColor', 'borderRadius', 'height', 'padding', 'boxShadow', 'transitionDuration'].map(property => [property, style[property]]));
+  };
+  const previewAppearance = await buttonFrame.contentFrame().locator('[data-preview] button').first().evaluate(appearance);
+  const consumer = await page.context().newPage();
+  try {
+    await consumer.goto(new URL(await buttonFrame.getAttribute('src'), page.url()).href);
+    expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).not.toBe('#11141c');
+    await consumer.addStyleTag({ content: css });
+    await expect.poll(() => consumer.locator('[data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
+    expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toBe('#11141c');
+  } finally { await consumer.close(); }
   const recipeReady = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download recipe', exact: true }).click();
   const recipe = await readFile(await (await recipeReady).path(), 'utf8');
