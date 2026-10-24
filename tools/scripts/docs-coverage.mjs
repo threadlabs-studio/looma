@@ -12,7 +12,7 @@ export function discoverDocsCoverage(root) {
     const doc = JSON.parse(readFileSync(path.join(metadata, name), "utf8"));
     if (!doc.permalink || doc.draft) return [];
     const route = routePath(doc.permalink);
-    const component = /^components\/(ui-[\w-]+)$/.exec(route)?.[1] ?? null;
+    const component = /^(?:components|editor)\/(ui-[\w-]+)$/.exec(route)?.[1] ?? null;
     const dir = component && path.join(root, "packages/looma/src/components", component, "examples");
     const examples = dir && existsSync(dir) ? readdirSync(dir).filter((name) => /^\d+[^.]*\.html$/.test(name)).sort().map((name) => {
       const source = readFileSync(path.join(dir, name), "utf8");
