@@ -221,20 +221,29 @@ export async function buildDocumentation({ root = process.cwd(), config = {}, ca
 
 async function isolatePreviewScripts(site, { outDir, writeFile: writeOutput }) {
   const { build } = await tool('vite', site.root);
-  for (const example of site.examples) {
-    const htmlFile = path.join(outDir, '_looma/preview', exampleKey(example.id), 'index.html');
-    let html = await readFile(htmlFile, 'utf8');
-    const scripts = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g)];
-    if (!scripts.length) throw new Error(`No browser module found for isolated preview ${example.id}.`);
-    for (const [tag, url] of scripts) {
-      const input = path.join(outDir, url.slice(site.base.length));
-      const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
-      const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
-      const name = `${exampleKey(example.id)}.js`;
-      await writeOutput('_looma/runtime/' + name, code);
-      html = html.replace(tag, `<script src="${site.base}_looma/runtime/${name}" defer></script>`);
-    }
-    html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
-    await writeFile(htmlFile, html);
-  }
+  // Preview entries and outputs are independent. Keep compiler memory bounded
+  // and retain the build lock until every in-flight bundle has settled.
+  const remaining = [...site.examples];
+  const results = await Promise.allSettled(Array.from({ length: Math.min(2, remaining.length) }, async () => {
+    try {
+      for (let example; (example = remaining.pop());) {
+        const htmlFile = path.join(outDir, '_looma/preview', exampleKey(example.id), 'index.html');
+        let html = await readFile(htmlFile, 'utf8');
+        const scripts = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g)];
+        if (!scripts.length) throw new Error(`No browser module found for isolated preview ${example.id}.`);
+        for (const [tag, url] of scripts) {
+          const input = path.join(outDir, url.slice(site.base.length));
+          const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
+          const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
+          const name = `${exampleKey(example.id)}.js`;
+          await writeOutput('_looma/runtime/' + name, code);
+          html = html.replace(tag, `<script src="${site.base}_looma/runtime/${name}" defer></script>`);
+        }
+        html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
+        await writeFile(htmlFile, html);
+      }
+    } catch (error) { remaining.length = 0; throw error; }
+  }));
+  const failed = results.find(result => result.status === 'rejected');
+  if (failed) throw failed.reason;
 }
