@@ -57,13 +57,13 @@
     }
 
     :host {
-      box-sizing: border-box;
-      display: inline-block;
+      box-sizing: border-box !important;
+      display: inline-block !important;
       inline-size: var(--ui-select-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-control-size-md);
-      margin: 0;
-      padding: var(--ui-space-2) var(--ui-space-3);
+      margin: 0 !important;
+      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-space-3) !important;
       border: var(--ui-border-width) solid var(--ui-select-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-select-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background-color: var(--ui-select-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
@@ -82,7 +82,7 @@
      * The root stays a native <select>, so the icon is a background image rather than an element. */
     :host {
       appearance: none;
-      padding-inline-end: calc(var(--ui-space-3) + 1.5rem);
+      padding-inline-end: calc(var(--ui-space-3) + 1.5rem) !important;
       background-image: var(
         --ui-select-chevron,
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c58' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
@@ -129,8 +129,8 @@
 
     :host([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
-      padding: var(--ui-space-1) var(--ui-space-2);
-      padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1));
+      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
+      padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1)) !important;
       background-position: right var(--ui-space-2) center;
       background-size: var(--ui-icon-size-sm) var(--ui-icon-size-sm);
       font-size: var(--ui-font-size-sm);
@@ -138,8 +138,8 @@
 
     :host([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
-      padding: var(--ui-space-3) var(--ui-space-4);
-      padding-inline-end: calc(var(--ui-space-4) + 1.5rem);
+      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-space-4) !important;
+      padding-inline-end: calc(var(--ui-space-4) + 1.5rem) !important;
       background-position: right var(--ui-space-4) center;
       font-size: var(--ui-font-size-md);
     }
@@ -159,7 +159,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

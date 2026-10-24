@@ -1856,8 +1856,10 @@ export const LoomaEditor = defineComponent({
               "aria-label": mobileToolbarMode.value === "table" ? "Table editing" : "Text formatting",
             }, mobileToolbarMode.value === "table"
               ? [
-                  h("button", {
-                    class: "looma-editor__mobile-toolbar-back",
+                  h(Button, {
+                    size: "sm",
+                    variant: "ghost",
+                    tone: "neutral",
                     type: "button",
                     "aria-label": "Formatting tools",
                     onClick: () => {
@@ -1865,7 +1867,7 @@ export const LoomaEditor = defineComponent({
                       editor.value?.commands.focus();
                       nextTick(updateMobileViewport);
                     },
-                  }, [loomaIcon("chevron-left"), h("span", "Formatting")]),
+                  }, { start: () => loomaIcon("chevron-left"), default: () => "Formatting" }),
                   h(EditorTableToolbar, tableProps),
                 ]
               : [renderToolbar(instance)])
@@ -1894,11 +1896,14 @@ export const LoomaEditor = defineComponent({
               role: "alert",
             }, [
               h("span", "Couldn’t upload image."),
-              h("button", {
+              h(Button, {
+                size: "sm",
+                variant: "ghost",
+                tone: "neutral",
                 type: "button",
                 disabled: uploadState.value.uploading,
                 onClick: () => { void uploads?.retry(); },
-              }, uploadState.value.uploading ? "Retrying…" : "Retry"),
+              }, () => uploadState.value.uploading ? "Retrying…" : "Retry"),
             ])
           : null,
         dragOver.value

@@ -423,6 +423,19 @@
       ]
     },
     {
+      "path": "components/ui-color-picker",
+      "title": "ColorPicker",
+      "source": "apps/docs/docs/components/forms/ui-color-picker.mdx",
+      "component": "ui-color-picker",
+      "examples": [
+        {
+          "id": "01-shapes-and-sizes",
+          "title": "Shapes and shared sizes",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-combobox",
       "title": "Combobox",
       "source": "apps/docs/docs/components/forms/ui-combobox.mdx",

@@ -106,6 +106,12 @@
     --ui-font-family-sans: var(--ui-font-sans);
     --ui-font-family-mono: var(--ui-font-mono);
 
+    /* Text actions share the spacing scale; a theme may derive roomier action insets from its
+       control sizes without altering field padding or the common control height. */
+    --ui-action-inset-sm: var(--ui-space-2);
+    --ui-action-inset-md: var(--ui-space-3);
+    --ui-action-inset-lg: var(--ui-space-4);
+
     /* Space steps either side of the contract's four. */
     --ui-space-0-5: calc(var(--ui-space-1) * 0.5);
     --ui-space-5: calc(var(--ui-space-4) * 1.5);
@@ -243,6 +249,11 @@
     --ui-control-size-md: var(--ui-control-size);
     --ui-control-size-lg: calc(var(--ui-control-size) * 1.2);
 
+    /* Choice marks follow typography; row heights follow the shared control scale. */
+    --ui-choice-mark-size: calc(var(--ui-font-size) * 1.125);
+    --ui-choice-track-height: calc(var(--ui-font-size) * 1.5);
+    --ui-choice-track-width: calc(var(--ui-font-size) * 2.5);
+
     /* Icon sizes, used by icon buttons and field affordances. */
     --ui-icon-size-sm: var(--ui-font-size);
     --ui-icon-size-md: calc(var(--ui-font-size) * 1.25);
@@ -355,14 +366,14 @@
   [data-ui-choice-option][data-multiple]::before {
     content: "";
     flex: none;
-    inline-size: 1.125rem;
-    block-size: 1.125rem;
+    inline-size: var(--ui-choice-mark-size);
+    block-size: var(--ui-choice-mark-size);
     border: var(--ui-border-width) solid var(--ui-control-border-hover, var(--ui-border-strong));
     border-radius: var(--ui-radius-sm);
     background-color: var(--ui-control-surface);
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 0.7rem;
+    background-size: calc(var(--ui-font-size) * 0.7);
   }
 
   [data-ui-choice-option][data-multiple][aria-selected="true"]::before {

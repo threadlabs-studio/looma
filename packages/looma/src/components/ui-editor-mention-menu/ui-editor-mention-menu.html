@@ -47,7 +47,7 @@
     :host[popover] {
       position: fixed;
       inset: auto;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host {
@@ -55,9 +55,9 @@
     }
 
     :host {
-      display: flex;
+      display: flex !important;
       overflow: hidden;
-      flex-direction: column;
+      flex-direction: column !important;
       background: var(--ui-surface);
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-dialog);
@@ -65,11 +65,11 @@
     }
 
     .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--ui-space-3);
-      padding: var(--ui-space-2) var(--ui-space-3);
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: var(--ui-space-3) !important;
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
       color: var(--ui-text-secondary);
       border-bottom: var(--ui-border-width) solid var(--ui-border-divider);
       font-size: var(--ui-font-size-xs);
@@ -77,11 +77,11 @@
     }
 
     :host > .header:empty, :host > .empty:empty {
-      display: none;
+      display: none !important;
     }
 
     .empty {
-      padding: var(--ui-space-3);
+      padding: var(--ui-space-3) !important;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-sm);
     }
@@ -96,8 +96,8 @@
 
     .list {
       max-height: 280px;
-      padding: var(--ui-space-1) 0;
-      margin: 0;
+      padding: var(--ui-space-1) 0 !important;
+      margin: 0 !important;
       overflow-y: auto;
       overscroll-behavior: contain;
       list-style: none;
@@ -121,11 +121,11 @@
     }
 
     .item {
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       min-height: 44px;
-      padding: var(--ui-space-2) var(--ui-space-3);
-      gap: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
+      gap: var(--ui-space-3) !important;
       cursor: pointer;
     }
 
@@ -141,9 +141,9 @@
     }
 
     .avatar {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       width: 32px;
       height: 32px;
       flex: 0 0 auto;
@@ -155,9 +155,9 @@
     }
 
     .body {
-      display: flex;
+      display: flex !important;
       min-width: 0;
-      flex-direction: column;
+      flex-direction: column !important;
     }
 
     .label,
@@ -181,7 +181,7 @@
 
     .loading {
       min-height: 44px;
-      padding: var(--ui-space-3);
+      padding: var(--ui-space-3) !important;
     }
 
     @media (max-width: 767px) {
@@ -196,7 +196,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

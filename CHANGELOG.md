@@ -2,6 +2,35 @@
 
 ## Next release
 
+- Editor formatting-back and image-upload retry actions use Looma Button. Regenerate the declarative icon catalogs so the attachment icon renders consistently.
+
+- Add opt-in `theme-system.css`: seven shared density, size/spacing curve and material levers derive existing public roles. Existing token and palette defaults remain unchanged without the import. Single-line control padding fits the common height independently of page spacing growth.
+
+- Checkbox and radio marks, multi-select option marks and switch tracks derive from the base text size. Choice labels align on their first line across text sizes; switch thumb size and travel follow its track dimensions.
+
+- Checkbox keeps its rounded-square identity under large corner themes, and its check reveal uses the shared motion duration. ColorPicker also preserves its square default when the theme uses pill-shaped controls.
+
+- Form Field respects an explicit label target, skips hidden form values, and names composite field triggers. Plain-text help and errors describe their control in both HTML and Vue. ColorPicker submits a named value, omits disabled values and restores its latest external value on reset.
+
+- Add shared display-font, action content-inset and press-response roles. Themes can carry these decisions across heading and action components through public tokens; existing defaults remain the fallback.
+
+- Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
+### Breaking: component-owned layout priority
+
+- Component flow, alignment, gaps, margins, padding and box sizing no longer yield to
+  ordinary host CSS or normal inline styles. Accidental consumer overrides changed
+  component behavior without going through its public API. Public props and custom
+  properties remain configurable. Migrate ordinary layout overrides to supported
+  props/hooks; add a missing shared capability to the primitive. Explicit consumer
+  `!important` is the deliberate cascade escape hatch. An additive hook alone cannot
+  prevent existing ordinary selectors from corrupting internal geometry.
+- Checkbox alignment follows the label's first line at every inherited font size,
+  including wrapped labels and descriptions. It no longer combines a fixed em
+  offset for the default size with a different rule for small and large sizes.
+- Builds reject unprotected component layout declarations; consumer pages must not
+  compensate for missing component capabilities by styling their private structure.
+
 - Attach files through LoomaEditor’s File attachment insertion command and toolbar. The additive `fileUpload` responder retains a file and answers with its name, size, content type and download URL; the editor inserts an ordinary editable link at the saved writing position. Failed or canceled uploads preserve the document.
 
 - **Breaking:** Mentions are Expressive Markdown's `@` forms. LoomaEditor writes a mention as `@[Label]#ref` (`@[Label]` without an ID, and `@[Label]{ref="…"}` for an ID that is not a handle), and the markdown-it plugin reads `@handle`, `@[Label]` and `@[Label]#ref`, where an `@` at the start of a line or after whitespace starts a mention, to the same `<span data-type="mention">` as before. `:mention[Label]{id=…}` is text. All Markdown across Looma, Markupress and LoomaEditor is Expressive Markdown, which reads `:mention[…]` as text, so Markdown the editor saved read back without its mentions in every other Expressive tool; reading both forms would keep the old one in use. To keep mentions saved the old way, convert them before reading the document, for example with `markdown.replace(/:mention\[((?:\\.|[^\]])*)\]\{id=([^}\s]+)\}/g, "@[$1]#$2")`. The `mentions/person` fixture is `Thanks, @[Ada Lovelace]#u1.`, with the same HTML.

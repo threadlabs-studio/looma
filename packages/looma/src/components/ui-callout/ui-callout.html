@@ -132,14 +132,14 @@
       --_callout-border: var(--ui-info-solid);
       --_callout-icon: var(--ui-info-solid);
 
-      display: grid;
+      display: grid !important;
       grid-template-columns: var(--ui-callout-icon-column, 1.125rem) minmax(0, 1fr);
-      gap: var(--ui-callout-gap, calc(var(--ui-space-2) * 0.75));
-      align-items: start;
+      gap: var(--ui-callout-gap, calc(var(--ui-space-2) * 0.75)) !important;
+      align-items: start !important;
       max-width: 100%;
-      padding-block: var(--ui-callout-padding-block, var(--ui-space-2));
-      padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2));
-      padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3));
+      padding-block: var(--ui-callout-padding-block, var(--ui-space-2)) !important;
+      padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2)) !important;
+      padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3)) !important;
       border: var(--ui-callout-border-width, var(--ui-border-width)) solid
         color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
       border-inline-start: var(--ui-callout-leading-border-width, var(--ui-callout-border-width, var(--ui-border-width))) solid
@@ -155,7 +155,7 @@
 
     /* One line box tall, so the icon centres on the first line of text. */
     .icon {
-      display: grid;
+      display: grid !important;
       place-items: center;
       inline-size: var(--_ui-callout-icon-column, 1.125rem);
       block-size: 1lh;
@@ -172,7 +172,7 @@
     }
 
     .heading {
-      display: block;
+      display: block !important;
       font-weight: var(--ui-font-semibold);
     }
 
@@ -225,7 +225,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -94,10 +94,10 @@
 
       position: fixed;
       inset: auto;
-      margin: 0;
-      display: inline-block;
-      box-sizing: border-box;
-      padding: 0;
+      margin: 0 !important;
+      display: inline-block !important;
+      box-sizing: border-box !important;
+      padding: 0 !important;
       border: 0;
       outline: 0;
       border-radius: 0;
@@ -117,16 +117,16 @@
     .surface {
       --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-strong)));
       position: relative;
-      display: flex;
-      align-items: baseline;
-      gap: var(--ui-space-2);
-      box-sizing: border-box;
+      display: flex !important;
+      align-items: baseline !important;
+      gap: var(--ui-space-2) !important;
+      box-sizing: border-box !important;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
       border: var(--ui-border-width) solid var(--_tooltip-line);
       border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
       background: var(--_ui-tooltip-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--_ui-tooltip-text, var(--ui-text-primary));
-      padding: var(--ui-space-2) var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
@@ -136,9 +136,9 @@
     /* A keyboard shortcut follows the label after a thin divider, smaller and quieter, as menus show
        it. The label stays first in the description, so a screen reader hears the name, then the keys. */
     .shortcut {
-      display: inline-flex;
-      align-items: center;
-      padding-inline-start: var(--ui-space-2);
+      display: inline-flex !important;
+      align-items: center !important;
+      padding-inline-start: var(--ui-space-2) !important;
       border-inline-start: 1px solid color-mix(in oklab, currentColor 28%, transparent);
       color: color-mix(in oklab, currentColor 72%, transparent);
       font-size: var(--ui-font-size-xs);
@@ -148,7 +148,7 @@
     }
 
     .shortcut:empty {
-      display: none;
+      display: none !important;
     }
 
     /* A <kbd> takes the browser's monospace; the hint reads in the tooltip's own type. */
@@ -172,7 +172,7 @@
       inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inline-size: var(--_ui-tooltip-arrow-size, 0.625rem);
       block-size: var(--_ui-tooltip-arrow-size, 0.625rem);
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       background: inherit;
       border: 0 solid var(--_tooltip-line);
       border-inline-end-width: var(--ui-border-width);
@@ -246,7 +246,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

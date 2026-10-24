@@ -45,20 +45,20 @@
 
     :host {
       --_ui-radio-group-invalid-text: var(--ui-radio-group-invalid-text, var(--ui-field-danger, var(--ui-danger-solid)));
-      display: inline-flex;
-      align-items: center;
-      gap: var(--ui-space-2);
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
       min-inline-size: 0;
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       border: 0;
     }
 
     legend {
       float: inline-start;
       inline-size: 100%;
-      margin: 0 0 var(--ui-space-2);
-      padding: 0;
+      margin: 0 0 var(--ui-space-2) !important;
+      padding: 0 !important;
       color: var(--ui-text-primary);
       font-weight: var(--ui-font-medium);
     }
@@ -81,13 +81,13 @@
     }
 
     :host([orientation="vertical"]) {
-      display: inline-grid;
-      justify-items: start;
+      display: inline-grid !important;
+      justify-items: start !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

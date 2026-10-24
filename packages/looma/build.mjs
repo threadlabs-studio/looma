@@ -14,6 +14,8 @@ import { build } from "vite";
 
 import { assertStyleSources } from "../../tools/scripts/style-source-policy.mjs";
 await assertStyleSources();
+const { assertComponentLayoutOwnership } = await import("../../tools/scripts/component-style-ownership.mjs");
+await assertComponentLayoutOwnership();
 
 const root = dirname(fileURLToPath(import.meta.url));
 const assembled = join(root, ".build");

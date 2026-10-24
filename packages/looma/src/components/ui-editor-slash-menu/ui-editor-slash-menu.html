@@ -46,7 +46,7 @@
     :host[popover] {
       position: fixed;
       inset: auto;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host {
@@ -59,8 +59,8 @@
       border-radius: var(--ui-radius-dialog);
       box-shadow: var(--ui-shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
     }
 
     @media (max-width: 767px) {
@@ -71,10 +71,10 @@
     }
 
     .header {
-      display: none;
-      align-items: center;
-      gap: var(--ui-space-2);
-      padding: var(--ui-space-3) var(--ui-space-4);
+      display: none !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      padding: var(--ui-space-3) var(--ui-space-4) !important;
       border-bottom: var(--ui-border-width) solid var(--ui-border-divider);
       font-size: var(--ui-font-size-xs);
       color: var(--ui-text-muted);
@@ -84,25 +84,25 @@
     }
 
     :host > .header:empty, :host > .footer:empty, :host > .empty:empty {
-      display: none;
+      display: none !important;
     }
 
     .empty {
-      padding: var(--ui-space-3);
+      padding: var(--ui-space-3) !important;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-sm);
     }
 
     @media (max-width: 767px) {
       .header {
-        display: flex;
+        display: flex !important;
       }
     }
 
     .list {
       list-style: none;
-      margin: 0;
-      padding: var(--ui-space-1) 0;
+      margin: 0 !important;
+      padding: var(--ui-space-1) 0 !important;
       overflow-y: auto;
       max-height: 280px;
       overscroll-behavior: contain;
@@ -128,15 +128,15 @@
     @media (max-width: 767px) {
       .list {
         max-height: calc(60dvh - 80px);
-        padding: var(--ui-space-1) 0 var(--ui-space-2);
+        padding: var(--ui-space-1) 0 var(--ui-space-2) !important;
       }
     }
 
     .item {
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-3);
-      padding: var(--ui-space-2) var(--ui-space-3);
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-3) !important;
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
       min-height: 44px;
       cursor: pointer;
       transition: background-color 120ms ease;
@@ -147,9 +147,9 @@
     }
 
     .icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       width: 32px;
       height: 32px;
       background: var(--ui-surface-hover);
@@ -175,10 +175,10 @@
     }
 
     .body {
-      display: flex;
+      display: flex !important;
       min-width: 0;
-      flex-direction: column;
-      gap: 1px;
+      flex-direction: column !important;
+      gap: 1px !important;
     }
 
     .title {
@@ -199,27 +199,27 @@
     }
 
     .footer {
-      padding: var(--ui-space-2) var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
       border-top: var(--ui-border-width) solid var(--ui-border-divider);
       font-size: var(--ui-font-size-xs);
       color: var(--ui-text-muted);
     }
 
     :host kbd {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       font-family: var(--ui-font-family-mono, ui-monospace, monospace);
       font-size: var(--ui-font-size-2xs);
       background: var(--ui-surface-hover);
       border: var(--ui-border-width) solid var(--ui-border);
       border-radius: var(--ui-radius-sm);
-      padding: 0 3px;
+      padding: 0 3px !important;
       color: var(--ui-text-secondary);
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -29,38 +29,38 @@
 
     :host {
       --_layout-gap: var(--ui-space-3);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--ui-cluster-gap, var(--_layout-gap));
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: var(--ui-cluster-gap, var(--_layout-gap)) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host([fixed]) {
       flex: none;
     }
     :host([padding="s"]) {
-      padding: var(--ui-space-2);
+      padding: var(--ui-space-2) !important;
     }
     :host([padding="m"]) {
-      padding: var(--ui-space-3);
+      padding: var(--ui-space-3) !important;
     }
     :host([padding="l"]) {
-      padding: var(--ui-space-4);
+      padding: var(--ui-space-4) !important;
     }
     :host([paddingEnd="s"]) {
-      padding-inline-end: var(--ui-space-2);
+      padding-inline-end: var(--ui-space-2) !important;
     }
     :host([paddingEnd="m"]) {
-      padding-inline-end: var(--ui-space-3);
+      padding-inline-end: var(--ui-space-3) !important;
     }
     :host([paddingEnd="l"]) {
-      padding-inline-end: var(--ui-space-4);
+      padding-inline-end: var(--ui-space-4) !important;
     }
     :host([paddingEnd="xl"]) {
-      padding-inline-end: calc(var(--ui-space-4) * 4);
+      padding-inline-end: calc(var(--ui-space-4) * 4) !important;
     }
 
     :host([gap="xs"]) {
@@ -79,33 +79,33 @@
       --_layout-gap: var(--ui-space-6);
     }
     :host([align="start"]) {
-      align-items: flex-start;
+      align-items: flex-start !important;
     }
     :host([align="end"]) {
-      align-items: flex-end;
+      align-items: flex-end !important;
     }
     :host([align="baseline"]) {
-      align-items: baseline;
+      align-items: baseline !important;
     }
     :host([align="stretch"]) {
-      align-items: stretch;
+      align-items: stretch !important;
     }
     :host([justify="center"]) {
-      justify-content: center;
+      justify-content: center !important;
     }
     :host([justify="end"]) {
-      justify-content: flex-end;
+      justify-content: flex-end !important;
     }
     :host([justify="between"]) {
-      justify-content: space-between;
+      justify-content: space-between !important;
     }
     :host([wrap="nowrap"]) {
-      flex-wrap: nowrap;
+      flex-wrap: nowrap !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

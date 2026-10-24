@@ -80,17 +80,17 @@
 
       position: fixed;
       inset: 0;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       inline-size: min(
         calc(100% - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2),
         var(--ui-dialog-max-width, var(--_ui-dialog-size, 440px))
       );
       max-inline-size: none;
       max-block-size: calc(100dvh - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2);
-      margin: auto;
-      padding: 0;
+      margin: auto !important;
+      padding: 0 !important;
       overflow: hidden;
-      flex-direction: column;
+      flex-direction: column !important;
       background: var(--ui-dialog-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       border: var(--ui-border-width) solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--ui-dialog-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
@@ -108,7 +108,7 @@
     }
 
     :host[open] {
-      display: flex;
+      display: flex !important;
       visibility: visible;
       pointer-events: auto;
       opacity: 1;
@@ -129,36 +129,36 @@
       inline-size: 100%;
       block-size: 100dvh;
       max-block-size: none;
-      margin: 0;
+      margin: 0 !important;
       border-radius: var(--ui-dialog-radius, 0);
     }
 
     :host([alert]) .close {
-      display: none;
+      display: none !important;
     }
 
     /* Own the layout wrapper; nested component roots are outside these scoped rules. */
     header {
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-3);
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-3) !important;
       flex: none;
       /* The title's ink sits inside its line box and the taller close target. Balance that
          visible top inset against the action row's bottom inset, not just the boxes. */
-      padding: calc(var(--ui-space-3) + var(--ui-space-1) / 2) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5);
+      padding: calc(var(--ui-space-3) + var(--ui-space-1) / 2) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5) !important;
     }
 
     /* Alerts have no close target to add height above the title. */
     :host([alert]) header {
-      padding: var(--ui-space-5) var(--ui-space-5) var(--ui-space-3);
+      padding: var(--ui-space-5) var(--ui-space-5) var(--ui-space-3) !important;
     }
 
     /* :host-qualified so page heading rules that reach in cannot outrank the dialog chrome. */
     :host .title {
       flex: 1;
       min-inline-size: 0;
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       border: 0;
       color: var(--ui-text-primary);
       letter-spacing: normal;
@@ -168,13 +168,13 @@
     }
 
     .close {
-      display: inline-grid;
+      display: inline-grid !important;
       place-items: center;
       flex: none;
-      margin-inline-start: auto;
+      margin-inline-start: auto !important;
       inline-size: var(--ui-control-size-sm);
       block-size: var(--ui-control-size-sm);
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       border-radius: var(--ui-radius-round);
       background: transparent;
@@ -223,24 +223,24 @@
     }
 
     .body {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       flex: 1 1 auto;
       min-block-size: 0;
-      padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-5);
+      padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-5) !important;
     }
 
     footer {
-      display: flex;
+      display: flex !important;
       flex: none;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: var(--ui-space-2);
-      padding: 0 var(--ui-space-5) var(--ui-space-5);
+      flex-wrap: wrap !important;
+      justify-content: flex-end !important;
+      gap: var(--ui-space-2) !important;
+      padding: 0 var(--ui-space-5) var(--ui-space-5) !important;
     }
 
     footer:empty {
-      display: none;
+      display: none !important;
     }
 
     @keyframes ui-dialog-enter {

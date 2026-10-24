@@ -1,0 +1,22 @@
+---
+slug: /components/ui-color-picker
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ColorPicker
+
+Square or circular swatch button with shared control sizing and a dismissible RGB/hex colour editor.
+
+The swatch is square by default; `round` makes it circular. `size` uses the same shared
+control heights as Input and Button, including touch sizing. Click the swatch again,
+press Escape, or click outside to close the editor. Escape returns focus to the swatch.
+
+`value` accepts an opaque six-digit sRGB hex colour, including its leading `#`.
+The native RGB sliders and hex field edit the same value. Valid edits emit `input` and
+`change` with `detail.value`. Invalid hex text is marked invalid and leaves the last valid
+colour in place. Set `label` to name the swatch and its editor. Set `disabled` to prevent
+opening and editing. With `name`, it submits the selected colour; disabled and unnamed controls
+submit nothing. A form reset restores the latest external `value`.
+
+<ComponentExamplesApiTabs component="ui-color-picker" />

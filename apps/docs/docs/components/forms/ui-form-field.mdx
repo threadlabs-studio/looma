@@ -19,6 +19,10 @@ Put a small action about the label, such as a help button that opens a toggletip
 centred on the first line, so a button taller than the text never makes that field's label row
 taller than its neighbours' in a grid row. Name the button for what it explains ("Help for Price").
 
+When a field contains several controls, an explicit label target also selects which control
+receives its help, invalid and disabled state. Hidden form values are excluded. Composite
+controls such as ColorPicker provide their native focus target and submitted value internally.
+
 ## Connect labels to controls
 
 Give the control an `id` and the label a matching `for`, or put the control inside the `<label>`.

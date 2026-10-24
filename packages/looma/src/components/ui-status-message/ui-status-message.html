@@ -20,11 +20,11 @@
     /* The one way a view says it is loading, has nothing yet, or failed, with an optional next step.
        Every view says it the same way, in the same place, at the same size. */
     :host {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--ui-space-2) var(--ui-space-4);
-      padding-block: var(--ui-space-4);
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) var(--ui-space-4) !important;
+      padding-block: var(--ui-space-4) !important;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-md);
       line-height: var(--ui-line-height);
@@ -35,30 +35,30 @@
     }
 
     :host([layout="panel"]) {
-      padding: var(--ui-space-6);
+      padding: var(--ui-space-6) !important;
       border: var(--ui-border-width) dashed var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
     }
 
     :host([layout="fill"]) {
       flex: 1;
-      flex-direction: column;
-      justify-content: center;
+      flex-direction: column !important;
+      justify-content: center !important;
       min-block-size: 50vh;
       text-align: center;
     }
 
     .copy {
-      display: flex;
+      display: flex !important;
       flex: 1 1 12rem;
-      flex-direction: column;
-      gap: var(--ui-space-1);
+      flex-direction: column !important;
+      gap: var(--ui-space-1) !important;
       min-inline-size: 0;
     }
 
     :host([layout="fill"]) .copy {
       flex: none;
-      align-items: center;
+      align-items: center !important;
     }
 
     .heading {
@@ -67,18 +67,18 @@
     }
 
     .action {
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: var(--ui-space-2);
+      display: inline-flex !important;
+      flex-wrap: wrap !important;
+      gap: var(--ui-space-2) !important;
     }
 
     .action:empty {
-      display: none;
+      display: none !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>
