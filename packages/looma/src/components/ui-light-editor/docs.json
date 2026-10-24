@@ -1,0 +1,4 @@
+{
+  "description": "Position a shared light source with a draggable, keyboard-operable handle and exact bounded coordinates. The position is relative to each illuminated surface.",
+  "group": "forms"
+}

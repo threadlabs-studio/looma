@@ -1,6 +1,33 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { themeFields, defaultRecipe, validateRecipe, themeCSS, startingPoints, startingPointFor, deriveTheme, themePalettes, paletteFor } from './theme.mjs';
+import { themeFields, defaultRecipe, validateRecipe, themeCSS, startingPoints, startingPointFor, deriveTheme, themePalettes, paletteFor, applyRefinement, refinementState, materialPresets } from './theme.mjs';
+
+test('material presets retain their identity through refinement, reload and scoped restore', () => {
+  assert.deepEqual(refinementState(startingPoints.bookish, 'material'), { id: 'glass', customized: false });
+  const recipe = applyRefinement(startingPoints.wiki, 'material', 'polished');
+  assert.equal(recipe.values.action, startingPoints.wiki.values.action);
+  assert.equal(recipe.values['control-size'], startingPoints.wiki.values['control-size']);
+  assert.deepEqual(refinementState(recipe, 'material'), { id: 'polished', customized: false });
+  recipe.values['light-x'] = '.2';
+  const reloaded = validateRecipe(JSON.parse(JSON.stringify(recipe)));
+  assert.deepEqual(refinementState(reloaded, 'material'), { id: 'polished', customized: true });
+  const restored = applyRefinement(reloaded, 'material', 'polished');
+  assert.equal(restored.values['light-x'], materialPresets.polished.values['light-x']);
+  assert.equal(restored.values['control-size'], startingPoints.wiki.values['control-size']);
+  assert.equal(refinementState(restored, 'material').customized, false);
+});
+
+test('old recipes receive bounded lighting defaults and exports carry the shared lighting model', () => {
+  const legacy = { schemaVersion: 1, values: { action: '#2e1228' } };
+  const recipe = validateRecipe(legacy);
+  for (const id of ['light-x', 'light-y', 'light-spread', 'light-strength', 'finish', 'glow']) {
+    assert.ok(Object.hasOwn(recipe.values, id));
+    assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, [id]: '1.1' } }));
+  }
+  assert.match(themeCSS(applyRefinement(recipe, 'material', 'polished')), /--ui-finish: /);
+  assert.throws(() => applyRefinement(recipe, 'material', 'made-up'));
+  assert.throws(() => validateRecipe({ ...recipe, presets: { material: 'made-up' } }));
+});
 
 test('shared decisions round-trip without truncating native lengths or times', () => {
   assert.ok(themeFields.some(field => field.id === 'glassiness'));
@@ -18,12 +45,13 @@ test('shared decisions round-trip without truncating native lengths or times', (
   assert.ok(!css.includes('--ui-button-'));
 });
 
-test('material customization uses shared levers and starting points keep their public compatibility', () => {
+test('material customization uses shared levers and exposes only current starting point names', () => {
   const recipe = defaultRecipe();
   Object.assign(recipe.values, { glassiness: '.8', 'surface-separation': '.6' });
   assert.match(themeCSS(recipe), /--ui-glassiness: .8/);
   assert.match(themeCSS(recipe), /--ui-surface-separation: .6/);
-  assert.equal(startingPointFor(startingPoints.library), 'bookish');
+  assert.equal(startingPointFor(startingPoints.bookish), 'bookish');
+  assert.equal(Object.hasOwn(startingPoints, 'library'), false);
   assert.equal(startingPointFor(startingPoints.wiki), 'wiki');
   assert.ok(parseFloat(startingPoints.wiki.values['control-size']) < parseFloat(startingPoints.clear.values['control-size']));
 });
@@ -67,6 +95,18 @@ test('saved and imported recipes identify their starting point without claiming 
 
 const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(s => s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+
+test('neutral fills stay in the surface family and reflection peaks remain readable in both modes', () => {
+  for (const recipe of Object.values(startingPoints)) for (const mode of ['light', 'dark']) {
+    const { tokens } = deriveTheme(recipe, { mode });
+    assert.notEqual(tokens['--ui-neutral-surface'], tokens['--ui-text']);
+    assert.ok(contrast(tokens['--ui-neutral-surface'], tokens['--ui-text']) >= 4.5);
+    assert.ok(contrast(tokens['--ui-surface-reflection'], tokens['--ui-text']) >= 4.5);
+    for (const tone of ['accent', 'danger', 'success', 'warning', 'info']) {
+      assert.ok(contrast(tokens[`--ui-${tone}-reflection`], tokens[`--ui-on-${tone}`]) >= 4.5, `${mode} ${tone}`);
+    }
+  }
+});
 test('palette derivation repairs unreadable seeds across surface, text, outline and tone roles', () => {
   for (const colors of [
     { canvas: '#ffffff', surface: '#000000', text: '#ffffff', action: '#ffffcc' },

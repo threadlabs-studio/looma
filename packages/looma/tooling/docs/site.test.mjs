@@ -23,6 +23,11 @@ test('generates full portable reference and the same isolated cards, including b
     assert.match(await readFile(site.examples.find(example => example.behavior).file.replace(/\.html$/, ".js"), "utf8"), /setupExample/);
     assert.match(preview, /hk:navigation/);
     assert.ok(site.catalog.components.length > 75);
+    const editor = catalog.components.find(component => component.group === 'editor' && !component.navigationParent);
+    const editorPage = await readFile(path.join(site.content, 'editor', editor.tag + '.md'), 'utf8');
+    assert.match(editorPage, /looma-example-card/);
+    const { componentPath } = await import('./render.mjs');
+    assert.equal(componentPath(editor), `/editor/${editor.tag}/`);
     const directory = await readFile(path.join(site.content, 'components/index.md'), 'utf8');
     assert.match(directory, /looma-example-card/);
     assert.match(directory, /category="forms"/);

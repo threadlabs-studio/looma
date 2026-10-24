@@ -7,9 +7,12 @@ export function connect(host) {
   const increase = host.element.querySelector('[data-number-step="increase"]');
   let current = 0;
   let external;
+  let resetValue;
   const unit = () => host.props.unit.value || "";
   const normalize = value => boundedNumber(value, host.props.min.value, host.props.max.value);
-  const paint = value => { current = normalize(value); input.value = numberText(current, unit()); input.removeAttribute("aria-invalid"); input.setCustomValidity(""); input.setAttribute("role", "spinbutton"); input.setAttribute("aria-valuenow", String(current)); input.setAttribute("aria-valuetext", input.value); input.setAttribute("aria-valuemin", String(host.props.min.value)); input.setAttribute("aria-valuemax", String(host.props.max.value)); };
+  // Bind the normalized display, so a later child binding flush cannot restore the
+  // raw prop (for example "51") over its calculated value with units ("51%").
+  const paint = value => { current = normalize(value); input.value = numberText(current, unit()); host.state.display = input.value; input.removeAttribute("aria-invalid"); input.setCustomValidity(""); input.setAttribute("role", "spinbutton"); input.setAttribute("aria-valuenow", String(current)); input.setAttribute("aria-valuetext", input.value); input.setAttribute("aria-valuemin", String(host.props.min.value)); input.setAttribute("aria-valuemax", String(host.props.max.value)); };
   const emit = () => { const value = numberText(current, unit()); host.dispatch("input", { value }); host.dispatch("change", { value }); };
   const commit = () => {
     if (host.props.disabled.value) return;
@@ -37,8 +40,8 @@ export function connect(host) {
   const stop = host.effect(() => {
     const signature = JSON.stringify([host.props.value.value, unit(), host.props.min.value, host.props.max.value]);
     if (signature === external) return; external = signature;
-    try { paint(calculateValue(host.props.value.value, unit())); input.defaultValue = input.value; } catch { paint(current); }
+    try { paint(calculateValue(host.props.value.value, unit())); resetValue = input.value; input.defaultValue = resetValue; } catch { paint(current); }
   });
-  const reset = afterFormReset(input, () => { try { paint(calculateValue(input.defaultValue, unit())); } catch { paint(0); } });
+  const reset = afterFormReset(input, () => { try { paint(calculateValue(resetValue, unit())); } catch { paint(0); } });
   return () => { stop(); reset(); input.removeEventListener("input", stopInput); input.removeEventListener("change", stopInput); input.removeEventListener("keydown", key); input.removeEventListener("blur", commit); decrease.removeEventListener("click", down); increase.removeEventListener("click", up); };
 }

@@ -18,6 +18,12 @@
     --ui-overlay-translucency: 0;
     --ui-glassiness: 0;
     --ui-surface-separation: 0;
+    --ui-finish: 0;
+    --ui-glow: 0;
+    --ui-light-x: 0.5;
+    --ui-light-y: 0;
+    --ui-light-spread: 0.5;
+    --ui-light-strength: 0.65;
   }
 
   :where(:root, [data-theme], [data-contrast]) {
@@ -58,26 +64,47 @@
     --_ui-theme-outer: max(0, var(--ui-outer-depth));
     --_ui-theme-inner: max(0, var(--ui-inner-depth));
     --_ui-theme-edge: clamp(0, var(--ui-edge-light), 1);
-    --_ui-theme-edge-paint: inset 1px 1px 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * 0.08)), inset -1px -1px 0 rgb(0 0 0 / calc(var(--_ui-theme-edge) * 0.08));
+    --_ui-light-inline: calc((0.5 - var(--ui-light-x)) * 2px);
+    --_ui-shadow-x: calc((0.5 - var(--ui-light-x)) * 2);
+    --_ui-shadow-y: calc((0.5 - var(--ui-light-y)) * 2);
+    --_ui-light-block: calc((0.5 - var(--ui-light-y)) * 2px);
+    --_ui-theme-edge-paint: inset var(--_ui-light-inline) var(--_ui-light-block) 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * var(--ui-light-strength) * 0.3)), inset calc(-1 * var(--_ui-light-inline)) calc(-1 * var(--_ui-light-block)) 0 rgb(0 0 0 / calc(var(--_ui-theme-edge) * 0.1));
     --ui-action-edge: var(--_ui-theme-edge-paint);
-    --ui-shadow-xs: 0 calc(1px * var(--_ui-theme-outer)) calc(2px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.08);
-    --ui-shadow-sm: 0 calc(1px * var(--_ui-theme-outer)) calc(3px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), 0 calc(4px * var(--_ui-theme-outer)) calc(12px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
+    --ui-shadow-xs: calc(1px * var(--_ui-theme-outer) * var(--_ui-shadow-x)) calc(1px * var(--_ui-theme-outer) * var(--_ui-shadow-y)) calc(2px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.08);
+    --ui-shadow-sm: calc(1px * var(--_ui-theme-outer) * var(--_ui-shadow-x)) calc(1px * var(--_ui-theme-outer) * var(--_ui-shadow-y)) calc(3px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), calc(4px * var(--_ui-theme-outer) * var(--_ui-shadow-x)) calc(4px * var(--_ui-theme-outer) * var(--_ui-shadow-y)) calc(12px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
     --ui-shadow-md: var(--ui-shadow-sm);
-    --ui-shadow-lg: 0 calc(8px * var(--_ui-theme-outer)) calc(24px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), 0 calc(4px * var(--_ui-theme-outer)) calc(8px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
+    --ui-shadow-lg: calc(8px * var(--_ui-theme-outer) * var(--_ui-shadow-x)) calc(8px * var(--_ui-theme-outer) * var(--_ui-shadow-y)) calc(24px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), calc(4px * var(--_ui-theme-outer) * var(--_ui-shadow-x)) calc(4px * var(--_ui-theme-outer) * var(--_ui-shadow-y)) calc(8px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
     --ui-shadow-xl: var(--ui-shadow-lg);
-    --ui-action-shadow: var(--ui-shadow-sm);
+    --ui-action-shadow: var(--ui-action-edge), var(--ui-shadow-sm);
     --ui-raised: var(--ui-shadow-sm);
     --ui-elevation-tooltip: var(--ui-shadow-sm);
     --ui-elevation-overlay: var(--ui-shadow-lg);
     --ui-elevation-dialog: var(--ui-shadow-lg);
-    --ui-control-inset: inset 0 calc(1px * var(--_ui-theme-inner)) calc(3px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.15), inset 0 -1px 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * 0.18));
-    --ui-pressed: inset 0 calc(2px * var(--_ui-theme-inner)) calc(4px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.2);
+    --ui-control-inset: inset calc(var(--_ui-light-inline) * var(--_ui-theme-inner)) calc(var(--_ui-light-block) * var(--_ui-theme-inner)) calc(3px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.15), inset calc(-1 * var(--_ui-light-inline)) calc(-1 * var(--_ui-light-block)) 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * var(--ui-light-strength) * 0.18)), var(--ui-material-glow);
+    --ui-pressed: inset calc(2 * var(--_ui-light-inline) * var(--_ui-theme-inner)) calc(2 * var(--_ui-light-block) * var(--_ui-theme-inner)) calc(4px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.2);
     --ui-overlay-surface: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 100%), transparent);
     /* Decorative outer material is allowed to transmit the scene. Content keeps
        its own opaque plane; changing the scene cannot undermine text contrast. */
     --ui-material-content: var(--ui-surface-raised);
     --ui-material-glass: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 35%), transparent);
     --ui-material-edge: color-mix(in srgb, var(--ui-surface-raised) 80%, var(--ui-text));
+    /* Each role has a bounded reflection colour. Shared source coordinates are
+       relative to each surface, so size and position never change the lighting. */
+    --ui-surface-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-surface-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-neutral-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-neutral-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-accent-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-accent-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-danger-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-danger-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-success-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-success-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-warning-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-warning-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-info-highlight: radial-gradient(ellipse calc(35% + var(--ui-light-spread) * 165%) calc(55% + var(--ui-light-spread) * 200%) at calc(var(--ui-light-x) * 100%) calc(var(--ui-light-y) * 100%), color-mix(in srgb, var(--ui-info-reflection, var(--ui-surface-raised)) calc(var(--ui-finish) * var(--ui-light-strength) * 100%), transparent), transparent 85%);
+    --ui-material-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-accent) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-neutral-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-text) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-accent-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-accent) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-danger-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-danger) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-success-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-success) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-warning-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-warning) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-info-glow: 0 0 calc(18px * var(--ui-glow)) color-mix(in srgb, var(--ui-info) calc(var(--ui-glow) * var(--ui-light-strength) * 18%), transparent);
+    --ui-raised-highlight: var(--ui-surface-highlight);
 
     /* Existing timing and easing names stay canonical. */
     --ui-motion-press: var(--ui-motion-fast);
@@ -91,6 +118,12 @@
       --ui-motion-press: 0ms;
       --ui-motion-base: 0ms;
       --ui-press-scale: 1;
+    }
+  }
+  @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+    :where(:root, [data-theme], [data-contrast]) {
+      --ui-finish: 0;
+      --ui-glow: 0;
     }
   }
 }
