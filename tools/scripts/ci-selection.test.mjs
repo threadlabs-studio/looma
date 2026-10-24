@@ -264,3 +264,14 @@ test('published documentation tooling selects its fixtures, docs and installed-p
   assert.equal(selected.packageConsumer, true);
   assert.ok(selected.scripts.includes('packages/looma/tooling/docs/theme.test.mjs'));
 });
+
+test('shared and colocated component documentation metadata select catalog fixtures and documentation qualification', () => {
+  const fixture = 'packages/looma/tooling/docs/catalog.test.mjs';
+  const graph = { ...files, [fixture]: 'test("portable catalog", () => {});' };
+  for (const file of ['packages/looma/src/components/docs.json', 'packages/looma/src/components/ui-button/docs.json']) {
+    const selected = automaticChecks(graph, [file]);
+    assert.equal(selected.docsBuild, true, file);
+    assert.equal(selected.packageConsumer, true, file);
+    assert.ok(selected.scripts.includes(fixture), file);
+  }
+});
