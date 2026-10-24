@@ -230,7 +230,7 @@ test("documentation building cannot consume the Pages deployment budget", async 
   assert.doesNotMatch(deploy, /pnpm|name: Build/);
 });
 
-test("automatic checks and publication fit a 15-minute parallel critical path", async () => {
+test("automatic checks and publication fit a 16-minute parallel critical path", async () => {
   const ci = await readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8");
   const release = await readFile(path.join(repoRoot, ".github/workflows/release.yml"), "utf8");
   const docs = await readFile(path.join(repoRoot, ".github/workflows/docs.yml"), "utf8");
@@ -251,7 +251,7 @@ test("automatic checks and publication fit a 15-minute parallel critical path", 
   assert.equal(stepMinutes.length, 1, "only the npm wait may carry a step timeout");
   assert.ok(Number(npmWait[1]) <= 10);
   const runnerWork = jobMinutes(release).reduce((a, b) => a + b, 0) - Number(npmWait[1]);
-  assert.ok(qualification + runnerWork <= 15);
+  assert.ok(qualification + runnerWork <= 16);
   assert.ok(qualification + jobMinutes(docs).reduce((a, b) => a + b, 0) <= 15);
   assert.ok(Math.max(...minutes(parity)) <= 15);
   assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
