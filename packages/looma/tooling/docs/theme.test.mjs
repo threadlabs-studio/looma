@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { themeFields, defaultRecipe, validateRecipe, themeCSS, startingPoints, startingPointFor, deriveTheme } from './theme.mjs';
+import { themeFields, defaultRecipe, validateRecipe, themeCSS, startingPoints, startingPointFor, deriveTheme, themePalettes, paletteFor } from './theme.mjs';
 
 test('shared decisions round-trip without truncating native lengths or times', () => {
   assert.ok(themeFields.some(field => field.id === 'glassiness'));
@@ -10,7 +10,7 @@ test('shared decisions round-trip without truncating native lengths or times', (
   const parsed = validateRecipe(JSON.parse(JSON.stringify(recipe)));
   assert.deepEqual(parsed, recipe);
   const css = themeCSS(parsed);
-  assert.match(css, /--ui-control-size: 2\.5rem/);
+  assert.match(css, /--ui-control-size: clamp\(32px, 2\.5rem, 64px\)/);
   assert.match(css, /--ui-motion-fast: 0\.15s/);
   assert.match(css, /--ui-space-curve: 2/);
   assert.match(css, /--ui-scale-ratio: 1\.25/);
@@ -51,7 +51,7 @@ test('starting points change shared surfaces and depth never adds motion amplitu
   const clear = themeCSS(startingPoints.clear);
   const night = themeCSS(startingPoints.night);
   assert.notEqual(clear, night);
-  assert.match(night, /--ui-surface: #11141c/);
+  assert.match(night, /--ui-surface: light-dark\([^,]+, #11141c\)/);
   const recipe = defaultRecipe(); recipe.values['inner-depth'] = '2';
   const css = themeCSS(recipe);
   assert.match(css, /--ui-inner-depth: 2/);
@@ -78,17 +78,51 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
     const recipe = { ...defaultRecipe(), values: { ...defaultRecipe().values, ...colors } };
     const { tokens, adjustments } = deriveTheme(recipe);
     const surfaces = ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken'].map(name => tokens[name]);
-    for (const name of ['--ui-text', '--ui-text-secondary', '--ui-text-muted']) {
+    for (const name of ['--ui-text', '--ui-text-secondary', '--ui-text-muted', '--ui-disabled-text']) {
       for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= 4.5, `${name} on ${surface}`);
     }
     for (const name of ['--ui-control-border', '--ui-focus-ring']) {
       for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= 3, `${name} on ${surface}`);
     }
     for (const tone of ['accent', 'danger', 'success', 'warning', 'info']) {
-      assert.ok(contrast(tokens[`--ui-${tone}`], tokens[`--ui-on-${tone}`]) >= 4.5, `${tone} solid`);
+      for (const state of ['', '-hover', '-active']) assert.ok(contrast(tokens[`--ui-${tone}${state}`], tokens[`--ui-on-${tone}`]) >= 4.5, `${tone}${state} solid`);
       for (const surface of surfaces) assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], surface) >= 4.5, `${tone} text on ${surface}`);
     }
     assert.ok(Array.isArray(adjustments));
     assert.deepEqual(recipe.values, { ...defaultRecipe().values, ...colors }, 'authoring seeds remain editable');
   }
+});
+
+
+test('every recipe exports a coordinated pair and both resolved palettes remain readable', () => {
+  for (const recipe of Object.values(startingPoints)) {
+    for (const mode of ['light', 'dark']) {
+      const { tokens } = deriveTheme(recipe, { mode });
+      assert.equal(tokens['color-scheme'], mode);
+      for (const surface of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
+        assert.ok(contrast(tokens['--ui-text'], tokens[surface]) >= 4.5);
+        assert.ok(contrast(tokens['--ui-control-border'], tokens[surface]) >= 3);
+      }
+    }
+    const css = themeCSS(recipe);
+    assert.match(css, /--ui-surface: light-dark\(/);
+    assert.match(css, /\[data-theme="light"\] \{ color-scheme: light; \}/);
+    assert.match(css, /\[data-theme="dark"\] \{ color-scheme: dark; \}/);
+  }
+});
+
+
+test('coordinated palettes identify their four seeds independently from geometry', () => {
+  for (const [id, palette] of Object.entries(themePalettes)) {
+    const recipe = defaultRecipe();
+    Object.assign(recipe.values, palette.values, { 'control-size': '56px', 'inner-depth': '1.7' });
+    assert.equal(paletteFor(recipe), id);
+    assert.equal(validateRecipe(recipe).values['control-size'], '56px');
+    for (const mode of ['light', 'dark']) {
+      const { tokens } = deriveTheme(recipe, { mode });
+      assert.ok(contrast(tokens['--ui-text'], tokens['--ui-surface-raised']) >= 4.5);
+    }
+  }
+  const custom = defaultRecipe(); custom.values.action = '#019283';
+  assert.equal(paletteFor(custom), 'custom');
 });

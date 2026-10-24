@@ -2,7 +2,7 @@ import { curvePoints, curveText } from "./curve.js";
 
 export function connect(host) {
   const { plot, first, second, firstLine, secondLine, curve, result } = host.refs;
-  const fields = [host.refs.x1, host.refs.y1, host.refs.x2, host.refs.y2];
+  const fields = [...host.element.querySelectorAll("[data-curve-coordinate]")];
   let points = [.25, .1, .25, 1]; let external; let drag;
   const limit = () => { points = curvePoints(curveText(points)); };
   const paint = () => {

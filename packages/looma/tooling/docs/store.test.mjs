@@ -18,7 +18,7 @@ test('saves a shared recipe and formula-based CSS, reloads it, and rejects stale
   assert.notEqual(saved.revision, initial.revision);
   assert.deepEqual((await (await createThemeStore({ root })).read()).recipe, startingPoints.night);
   const css = await readFile(path.join(root, 'looma.theme.css'), 'utf8');
-  assert.match(css, /--ui-surface: #11141c/);
+  assert.match(css, /--ui-surface: light-dark\([^,]+, #11141c\)/);
   assert.match(css, /--ui-control-size-sm: calc/);
   await assert.rejects(store.save({ recipe: defaultRecipe(), revision: initial.revision }), /changed.*reload/i);
   await writeFile(path.join(root, 'looma.theme.css'), css + '\n/* manual edit */');
@@ -44,5 +44,5 @@ test('serializes concurrent saves and leaves the winning recipe and CSS coherent
   assert.equal(results.filter(result => result.status === 'fulfilled').length, 1);
   const current = await first.read();
   const css = await readFile(path.join(root, 'looma.theme.css'), 'utf8');
-  assert.ok(css.includes(`--ui-surface: ${current.recipe.values.canvas};`));
+  assert.ok(/--ui-surface: light-dark\((#[\da-f]+), (#[\da-f]+)\)/i.exec(css).slice(1).includes(current.recipe.values.canvas));
 }));

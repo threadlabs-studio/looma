@@ -2,7 +2,8 @@ import { boundedNumber, calculateValue } from "../ui-number-input/arithmetic.js"
 import { afterFormReset } from "../shared/form-reset.js";
 
 export function connect(host) {
-  const { range, exact } = host.refs;
+  const { range } = host.refs;
+  const exact = host.element.querySelector("[data-slider-exact]");
   let external;
   const paint = value => {
     range.value = String(boundedNumber(value, host.props.min.value, host.props.max.value));

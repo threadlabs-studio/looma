@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Keep documentation customization across navigation, reload and tabs until reset, including the complete navigation shell and isolated example cards. Add Bookish and compact Wiki themes, coordinated palette choices, paired light/dark exports and nested mode boundaries, with bounded readable text, outlines and disabled states.
+- Add reusable NumberInput, Slider and CurveEditor controls with arithmetic on entry, units, shared bounds, pointer/touch and keyboard editing. Use them in the package customizer alongside typography and floating-surface documentation cards.
+- Add independent action presets to Button and IconButton, intent tones to icon actions, display/heading/label/caption text roles, and a glass Card surface. Shared glassiness and surface separation preserve an opaque content plane while popup purpose and measured size govern the surrounding material.
+
 - Ship the Markupress/HTMLKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
 
 - Editor formatting-back and image-upload retry actions use Looma Button. Regenerate the declarative icon catalogs so the attachment icon renders consistently.

@@ -35,12 +35,15 @@ function numberHost(values = {}) {
   const refs = Object.fromEntries(['input', 'decrease', 'increase'].map(name => [name, new Field()]));
   const props = Object.fromEntries(Object.entries({value: '16px', unit: 'px', min: 8, max: 40, step: 2, disabled: false, ...values}).map(([key, value]) => [key, {value}]));
   const events = []; let effect;
-  const stop = connectNumber({refs, props, effect: callback => { effect = callback; callback(); return () => {}; }, dispatch: (type, detail) => events.push({type, detail})});
+  const stop = connectNumber({element: { querySelector: selector => refs[selector === 'input' ? 'input' : selector.includes('decrease') ? 'decrease' : 'increase'] }, props, effect: callback => { effect = callback; callback(); return () => {}; }, dispatch: (type, detail) => events.push({type, detail})});
   return {refs, props, events, stop, sync: () => effect()};
 }
 test('number controller calculates on commit, clamps typing and steps, rejects invalid edits', () => {
   const host = numberHost();
   assert.equal(host.refs.input.value, '16px');
+  assert.equal(host.refs.input.attrs.get('role'), 'spinbutton');
+  assert.equal(host.refs.input.attrs.get('aria-valuenow'), '16');
+  assert.equal(host.refs.input.attrs.get('aria-valuetext'), '16px');
   host.refs.input.value = '150px * 2'; host.refs.input.dispatchEvent(new Event('blur'));
   assert.equal(host.refs.input.value, '40px'); assert.deepEqual(host.events.at(-1), {type:'change', detail:{value:'40px'}});
   host.refs.decrease.dispatchEvent(new Event('click')); assert.equal(host.refs.input.value, '38px');

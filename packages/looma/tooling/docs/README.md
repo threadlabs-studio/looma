@@ -40,13 +40,43 @@ pnpm exec looma-docs preview
 
 ## Change the rule, keep the family consistent
 
-The authoring model has twenty shared decisions, grouped as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: a control size, spaciousness, corners, inner and outer depth, and response pace.
+The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: a control size, spaciousness, corners, inner and outer depth, and response pace.
 
-The generated values follow rules. Small and large control heights follow a ratio around the shared control size. Spacing follows an independent power curve: linear growth at 1, quadratic at 2. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
+The generated values follow rules. Small and large control heights follow a ratio around the shared control size. Spacing follows an independent curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
+
+Choose a coordinated palette to change related paper, ink and action seeds together without changing geometry or motion. Palette seeds remain available for precise edits; the light/dark range previews and resolved values explain readability adjustments.
+
+Number controls accept arithmetic such as `42px / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates.
 
 Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared recipe as well as your inputs. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
 
-Changes remain a preview until saved. Starting points update all selected cards. Reset returns to the loaded recipe. Invalid input keeps the last valid preview and explains which decision needs attention.
+Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset returns to the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
+
+Text offers body, display, heading, label, caption, eyebrow and code roles. Choose a heading's document level with `as` independently from its visual role. Button and IconButton keep appearance and tone independent, with four optional shortcuts: primary (solid accent), standard (solid neutral), quiet (ghost neutral) and destructive (solid danger). A named preset takes precedence over the separate choices; `preset="none"` preserves their existing defaults.
+
+Glassiness and surface separation govern floating surfaces and the Card glass variant. Popup purpose and measured size refine the shared treatment. Decorative material can transmit the scene; the content plane remains opaque and readable, with opaque fallbacks for reduced transparency and unsupported backdrop filtering.
+
+## Use light, dark, or both
+
+Every generated theme includes a coordinated light/dark pair. The type, geometry and motion decisions stay shared. Both palettes derive readable text, outlines, focus and action states from the same identity; the generator may adjust requested color seeds to maintain contrast.
+
+Load the generated CSS after Looma's tokens and palette. Choose how it runs:
+
+- **System preference:** leave `data-theme` off the document root. The CSS follows the operating system automatically.
+- **Light only:** set `<html data-theme="light">`.
+- **Dark only:** set `<html data-theme="dark">`.
+- **User switch:** set the root attribute to `light` or `dark`, and remove it to return to system preference. Persist that choice in your application if desired.
+
+Fixed-mode applications still receive both palettes. A mode boundary applies to its descendants, so a dark panel can contain a light subsection without changing the page or its siblings:
+
+```html
+<section data-theme="dark">
+  <h2>After-hours Fellowship office</h2>
+  <div data-theme="light">Sam's daylight reading area</div>
+</section>
+```
+
+Use the public semantic color properties inside those regions. A floating surface moved elsewhere in the DOM must retain its originating mode boundary; Looma's isolated documentation previews receive their card's mode automatically.
 
 ## Add your components
 
@@ -64,7 +94,7 @@ Opt into source directories in `looma.docs.json`:
 }
 ```
 
-`content` and `overrides` are optional. Create files you configure before building. Markdown guidance supplements the generated reference; it cannot replace an API page. Relative component and asset dependencies keep their original project locations, and code examples remain literal.
+`content` and `overrides` are optional. Create files you configure before building. Markdown guidance supplements the generated reference; it cannot replace an API page. Relative component and asset dependencies keep their original project locations, and code examples remain literal. Local web fonts referenced by override CSS are embedded in the documentation's theme stylesheet so isolated examples render the same fonts on static hosts. Load your chosen web fonts in the consuming application; downloaded theme CSS selects their font families.
 
 A resource can use any valid HTML Next component tag:
 

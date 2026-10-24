@@ -9,6 +9,7 @@
     "packages/looma/src/components/shared/input-modality.js",
     "packages/looma/src/components/shared/menu-navigation.js",
     "packages/looma/src/components/shared/overlay.js",
+    "packages/looma/src/components/shared/surface-material.js",
     "packages/looma/src/components/shared/trigger.js",
     "packages/looma/src/components/ui-action-bar/ui-action-bar.html",
     "packages/looma/src/components/ui-affordance-scope/ui-affordance-scope.html",

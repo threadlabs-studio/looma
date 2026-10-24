@@ -17,7 +17,7 @@ test('a browser theme survives a fresh document, stays scoped, and resets to the
   const first = createThemeSession(browser(storage), config);
   first.apply(startingPoints.library);
   assert.match(first.css, /shared derivation/);
-  assert.match(first.css, /--ui-accent: #2e1228/);
+  assert.match(first.css, /--ui-accent: light-dark\(#2e1228, /);
   const next = createThemeSession(browser(storage), config);
   assert.deepEqual(next.recipe, startingPoints.library);
   assert.equal(createThemeSession(browser(storage), { ...config, base: '/other/' }).hasOverride, false);
@@ -34,7 +34,25 @@ test('malformed stored themes and inaccessible browser storage cannot inject sty
   Object.defineProperty(view, 'localStorage', { get() { throw new Error('Blocked'); } });
   const session = createThemeSession(view, config);
   session.apply(startingPoints.night);
-  assert.match(session.css, /--ui-surface: #11141c/);
+  assert.match(session.css, /--ui-surface: light-dark\([^,]+, #11141c\)/);
   assert.throws(() => session.apply({ schemaVersion: 1, values: { action: 'red; } body {}' } }));
   assert.deepEqual(session.recipe, startingPoints.night);
+});
+
+test('reports failed persistence while keeping the edited theme usable', () => {
+  const view = browser();
+  view.localStorage.setItem = () => { throw new Error('Quota exceeded'); };
+  const session = createThemeSession(view, config);
+  session.apply(startingPoints.bookish);
+  assert.equal(session.storageAvailable, false);
+  assert.deepEqual(session.recipe, startingPoints.bookish);
+});
+
+test('cross-tab changes and clearing storage restore the appropriate recipe', () => {
+  const view = browser(); const session = createThemeSession(view, config);
+  const change = (key, newValue) => view.dispatchEvent(Object.assign(new Event('storage'), { key, newValue }));
+  change('looma:documentation-theme:v1:/looma/', JSON.stringify(startingPoints.wiki));
+  assert.deepEqual(session.recipe, startingPoints.wiki);
+  change(null, null);
+  assert.deepEqual(session.recipe, config.baseline);
 });

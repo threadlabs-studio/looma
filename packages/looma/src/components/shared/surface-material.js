@@ -15,7 +15,7 @@ export function updateSurfaceMaterial(element, role) {
   const height = element.offsetHeight;
   const next = surfaceMaterialScale(role, width, height);
   const previous = Number.parseFloat(element.style.getPropertyValue("--_ui-material-scale"));
-  if (!Number.isFinite(previous) || Math.abs(next - previous) >= 0.04) {
+  if (!Number.isFinite(previous) || Math.abs(next - previous) >= Math.max(0.002, Math.abs(previous) * 0.04)) {
     element.style.setProperty("--_ui-material-scale", String(next));
   }
 }

@@ -1,5 +1,12 @@
 /* Optional shared recipe. Load after tokens.css and the chosen palette.
    Existing public roles remain the customization interface; no component selectors. */
+/* Resolve shared geometry once where it is declared, rather than once per consuming
+   control's font. Palette roles remain unregistered so light-dark resolves locally. */
+@property --ui-font-size { syntax: "<length>"; inherits: true; initial-value: 16px; }
+@property --ui-control-size { syntax: "<length>"; inherits: true; initial-value: 40px; }
+@property --ui-radius-md { syntax: "<length>"; inherits: true; initial-value: 8px; }
+@property --ui-border-width { syntax: "<length>"; inherits: true; initial-value: 1px; }
+
 @layer theme {
   :root {
     --ui-density: 1;
@@ -22,21 +29,23 @@
     --ui-control-size-sm: calc(var(--ui-control-size) / var(--_ui-theme-ratio));
     --ui-control-size-md: var(--ui-control-size);
     --ui-control-size-lg: calc(var(--ui-control-size) * var(--_ui-theme-ratio));
+    /* Bend the interior of the family while keeping its endpoints stable. */
     --ui-space-1: var(--_ui-theme-unit);
-    --ui-space-2: calc(var(--_ui-theme-unit) * pow(2, var(--_ui-theme-curve)));
-    --ui-space-3: calc(var(--_ui-theme-unit) * pow(3, var(--_ui-theme-curve)));
-    --ui-space-4: calc(var(--_ui-theme-unit) * pow(4, var(--_ui-theme-curve)));
+    --ui-space-2: calc(var(--_ui-theme-unit) * (1 + 7 * pow(1 / 7, var(--_ui-theme-curve))));
+    --ui-space-3: calc(var(--_ui-theme-unit) * (1 + 7 * pow(2 / 7, var(--_ui-theme-curve))));
+    --ui-space-4: calc(var(--_ui-theme-unit) * (1 + 7 * pow(3 / 7, var(--_ui-theme-curve))));
     --ui-space-0-5: calc(var(--ui-space-1) * 0.5);
-    --ui-space-5: calc(var(--_ui-theme-unit) * pow(6, var(--_ui-theme-curve)));
-    --ui-space-6: calc(var(--_ui-theme-unit) * pow(8, var(--_ui-theme-curve)));
+    --ui-space-5: calc(var(--_ui-theme-unit) * (1 + 7 * pow(5 / 7, var(--_ui-theme-curve))));
+    --ui-space-6: calc(var(--_ui-theme-unit) * (1 + 7 * pow(7 / 7, var(--_ui-theme-curve))));
     /* Vertical editing/action insets fit the shared box instead of growing with the
        page spacing curve. Multi-line content can still grow intrinsically. */
     --ui-control-inset-block-sm: max(0px, calc((var(--ui-control-size-sm) - var(--ui-font-size-sm) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
     --ui-control-inset-block-md: max(0px, calc((var(--ui-control-size-md) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
     --ui-control-inset-block-lg: max(0px, calc((var(--ui-control-size-lg) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
-    --ui-action-inset-sm: calc(var(--ui-control-size-sm) * 0.625 * var(--ui-density));
-    --ui-action-inset-md: calc(var(--ui-control-size-md) * 0.625 * var(--ui-density));
-    --ui-action-inset-lg: calc(var(--ui-control-size-lg) * 0.625 * var(--ui-density));
+    --ui-font-size-xs: max(12px, calc(var(--ui-font-size) * 0.75));
+    --ui-action-inset-sm: var(--ui-space-2);
+    --ui-action-inset-md: var(--ui-space-3);
+    --ui-action-inset-lg: var(--ui-space-4);
 
     --ui-radius-sm: calc(var(--ui-radius-md) * 0.5);
     --ui-radius-lg: calc(var(--ui-radius-md) * 1.5);
@@ -67,12 +76,12 @@
     /* Decorative outer material is allowed to transmit the scene. Content keeps
        its own opaque plane; changing the scene cannot undermine text contrast. */
     --ui-material-content: var(--ui-surface-raised);
-    --ui-material-glass: color-mix(in srgb, var(--ui-surface-raised) 35%, transparent);
+    --ui-material-glass: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 35%), transparent);
     --ui-material-edge: color-mix(in srgb, var(--ui-surface-raised) 80%, var(--ui-text));
 
     /* Existing timing and easing names stay canonical. */
-    --ui-motion-press: calc(var(--ui-motion-fast) / 3);
-    --ui-motion-base: calc(var(--ui-motion-fast) * 1.2);
+    --ui-motion-press: var(--ui-motion-fast);
+    --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
     --ui-motion-ease-out: var(--ui-motion-ease);
     --ui-press-scale: 0.98;
   }

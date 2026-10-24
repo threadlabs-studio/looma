@@ -2,12 +2,14 @@ import { calculateValue, boundedNumber, numberText } from "./arithmetic.js";
 import { afterFormReset } from "../shared/form-reset.js";
 
 export function connect(host) {
-  const { input, decrease, increase } = host.refs;
+  const input = host.element.querySelector('input');
+  const decrease = host.element.querySelector('[data-number-step="decrease"]');
+  const increase = host.element.querySelector('[data-number-step="increase"]');
   let current = 0;
   let external;
   const unit = () => host.props.unit.value || "";
   const normalize = value => boundedNumber(value, host.props.min.value, host.props.max.value);
-  const paint = value => { current = normalize(value); input.value = numberText(current, unit()); input.removeAttribute("aria-invalid"); input.setCustomValidity(""); };
+  const paint = value => { current = normalize(value); input.value = numberText(current, unit()); input.removeAttribute("aria-invalid"); input.setCustomValidity(""); input.setAttribute("role", "spinbutton"); input.setAttribute("aria-valuenow", String(current)); input.setAttribute("aria-valuetext", input.value); input.setAttribute("aria-valuemin", String(host.props.min.value)); input.setAttribute("aria-valuemax", String(host.props.max.value)); };
   const emit = () => { const value = numberText(current, unit()); host.dispatch("input", { value }); host.dispatch("change", { value }); };
   const commit = () => {
     if (host.props.disabled.value) return;

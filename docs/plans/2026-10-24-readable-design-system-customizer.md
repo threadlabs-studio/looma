@@ -51,14 +51,14 @@ Preview themes currently disappear on navigation. The customizer omits search an
 #### Rendered migration parity and site theming
 
 - R14. Checkpoint the in-progress work, check out the last pre-HTMLKit documentation revision separately, and capture its actual rendered appearance before changing the replacement shell.
-- R15. Capture screenshots and computed styles across the prior site's UI, navigation and component examples, including applicable hover, keyboard focus, pressed, selected, expanded and disabled states, desktop/mobile layouts, and light/dark themes.
+- R15. Capture screenshots and computed styles across the prior site's UI, navigation and component examples, including applicable hover, keyboard focus, pressed, selected, expanded and disabled states, desktop, intermediate and mobile layouts, and light/dark themes.
 - R16. Restore the Markupress implementation and match the captured baseline's visual hierarchy, typography, colors, spacing, sidebar structure, navigation affordances and interaction states; record intentional content differences separately from styling regressions.
 - R17. Give Markupress a natural, pleasing default theme distinct from Looma's default, and apply the Looma documentation theme consistently across the complete Looma site.
 - R18. Build side navigation from Looma components or use Looma's public custom properties and design-system contracts for its layout and all interaction states; customization must reach the shell as well as the example cards.
 - R19. Always generate a coordinated light/dark pair for every theme: the Markupress default, Looma default, Bookish, Wiki and every customization. Preview and verify both modes, even when a consumer deploys only one, and explain how to use light only, dark only, automatic system selection or an explicit switch.
 - R20. Support DOM-scoped light/dark boundaries, including the opposite mode inside a page and boundaries nested within boundaries; all descendant semantic roles and component states follow the closest boundary without changing ancestors or siblings.
 
-R14–R18 are explicit user-directed requirements. The stated capture-before-restoration sequence governs implementation ordering. A functional migration check alone cannot establish rendered parity.
+R14–R20 are explicit user-directed requirements. The stated capture-before-restoration sequence governs implementation ordering. A functional migration check alone cannot establish rendered parity.
 
 ### Acceptance Examples
 
@@ -75,7 +75,7 @@ R14–R18 are explicit user-directed requirements. The stated capture-before-res
 - KTD1. Keep browser state in a base-scoped recipe session shared by the early head bootstrap and component modules; store semantic inputs, never injected CSS. Give the active root theme enough selector specificity to survive later baseline styles without `!important` (R1, R13).
 - KTD2. Keep validation and derivation in the shared theme module. Separate input seeds from generated accessible roles, report corrections, and test all role/surface pairs. Numeric design bounds are adjustable engineering choices, not claims that WCAG prescribes default typography (R6–R8).
 - KTD3. Add public semantic seeds for glassiness and surface separation. Derive a bounded material profile with private component-role coefficients and actual popup-size scaling. The role defines purpose; size refines treatment within that role. Prefer CSS size-aware derivation where supported and a shared observer only where required. Content remains on a contrast-safe plane, with opaque fallbacks. Existing translucency and edge-light recipes remain compatible (R11–R13).
-- KTD4. Build value editors as package components using established HTMLNext contracts, metadata, examples, adapters and source ownership. Arithmetic, if offered, evaluates on commit through a restricted unit-aware parser; never execute expressions as code. This is an implementation choice, not a user-selected expression-storage policy (R9).
+- KTD4. Build value editors as package components using established HTMLNext contracts, metadata, examples, adapters and source ownership. Arithmetic evaluates on entry and displays the resulting value, as the user selected. Use a restricted unit-aware parser; never execute expressions as code. Parser design and unit compatibility rules are engineering choices (R9).
 - KTD5. Retain existing independent button variant/tone and text APIs, adding missing bounded presets and role coverage through their owning components. Use public shared seeds for Bookish and Wiki; include no downstream private source or assets (R5, R8, R10).
 - KTD6. Use the parent of the documentation migration commit as the rendered reference, with dependencies reused in a detached scratch checkout. Record source revision, route, viewport, theme, state, selector, screenshot path and computed-style values in a machine-readable capture inventory. Restore the current checkout only after this inventory is complete; do not infer parity from source CSS or successful navigation (R14–R16).
 - KTD7. Keep the shared Markupress shell's component behavior and theme inputs reusable. Put Looma's site identity in a site-wide semantic theme rather than hardcoded sidebar-only paint. Prefer existing Looma navigation primitives; any HTMLKit navigation renderer must consume public Looma semantics and own its own internal styles (R17–R18).
@@ -118,9 +118,22 @@ Test navigation/reload in a fresh browser context with stored recipe, reset, blo
 
 For migration parity, inventory every prior documentation component/example and shell region. Record successful captures and explicit missing or inapplicable states; never count unvisited examples as covered. Capture actual browser computed styles, box geometry, font loading, pseudo-elements, transitions and state changes alongside screenshots. Compare baseline and replacement at matching viewport, color mode and interaction state, with a per-region difference report. Include the sidebar's group toggles, active item, expanded/collapsed groups, keyboard focus and mobile drawer. Capture the production page after deployment and compare it with the qualified local result.
 
+Include a 900px intermediate viewport: the prior documentation collapses navigation around 996px, whereas the migrated shell currently waits until 768px. Compare header wrapping, drawer behavior and the usable content width in that interval rather than qualifying desktop and narrow mobile alone.
+
 Run contrast, state and rendered checks against both resolved color modes of every shipped starting theme, plus customized and imported recipes. Verify fixed-light, fixed-dark, system preference and explicit user switching, including persistence and exported CSS in an independent consumer. Verify Markupress's own default pair independently from the Looma site's pair.
 
 Test dark inside light, light inside dark, and recursively nested boundaries. Inspect actual computed roles and states for descendant controls, menus, dialogs and tooltips; verify ancestors and siblings do not change. Repeat after switching the page's mode and after exporting to an independent consumer.
+
+## Required migration and theme evidence
+
+These are required deliverables for R14–R20, not optional follow-up polish. Earlier customization requirements R1–R13 remain in scope.
+
+- **Capture first.** Preserve current work, serve the previous documentation revision, and inventory every shell region and component example before restoring Markupress. Retain screenshots, actual computed styles and geometry, fonts, pseudo-elements, hover, focus, pressed, selected, expanded and disabled states.
+- **Match the rendered result.** Compare the restored Markupress site against that inventory at desktop, intermediate and mobile widths in both modes. Explain every remaining difference; a successful build or navigation check does not establish visual parity.
+- **Theme the whole site.** Keep the Markupress baseline visually distinct and pleasing. Apply the Looma site theme to header, sidebar, navigation groups, menus, search, content, component cards and their interaction states. Navigation must use Looma components or public Looma design-system properties.
+- **Always deliver both modes.** Generate and verify a coordinated light/dark pair for Markupress, Looma, Bookish, Wiki and every customized or imported recipe. Explain fixed light, fixed dark, system preference and explicit switching; exporting a single preferred mode must still retain the pair.
+- **Respect local boundaries.** Verify dark within light, light within dark, and further nested boundaries. Descendant components, example frames and floating surfaces follow their originating nearest boundary; ancestors and siblings remain independent.
+- **Qualify the public result.** After release, capture the deployed documentation and compare its shell, controls, cards and mode behavior with the qualified local result. Keep the screenshots and per-region style comparison as delivery evidence.
 
 ## Definition of Done
 

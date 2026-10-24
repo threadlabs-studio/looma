@@ -86,14 +86,19 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   await cp(own('preview.js'), path.join(generated, 'preview.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
-  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs']) await cp(own(file), path.join(generated, file));
+  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs']) await cp(own(file), path.join(generated, file));
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
   const examples = [];
+  // HTMLKit route groups retain their labels/order in navigation without changing public URLs.
+  const groupDirectories = new Map(combined.groups.map((group, index) => [group.id,
+    `${String(index + 1).padStart(2, '0')}.(${group.label.replace(/[\\/()]/g, '-')})`]));
+  const generatedReferences = new Set();
   const resourceByTag = new Map(combined.resources.map(resource => [resource.tag, resource]));
   for (const component of combined.components) {
     if (!component.navigationParent) {
-      const page = path.join(content, 'components', component.tag + '.md');
+      const page = path.join(content, 'components', groupDirectories.get(component.group), component.tag + '.md');
       await write(page, referencePage(component, combined, relativeHref(page, card), base));
+      generatedReferences.add(`components/${component.tag}.md`);
     }
     for (const example of component.examples) {
       const key = exampleKey(example.id);
@@ -108,7 +113,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       const setup = path.join(previews, key + '.js');
       const behavior = example.behavior;
       await write(setup, `import { connect as connectPreview } from '../preview.js';\n${behavior ? `import setupExample from ${JSON.stringify(behavior)};\n` : ''}export function connect(host) { const stopPreview = connectPreview(host); ${behavior ? 'const stopExample = setupExample(host.element);' : ''} return () => { ${behavior ? 'stopExample?.();' : ''} stopPreview(); }; }\n`);
-      await write(file, ` ${links}\n<template component="looma-preview-${key}" module="./${key}.js"><defs><meta name="hk:navigation" content="hidden"><title>${escapeHtml(example.title)}</title></defs><div data-preview="${escapeHtml(example.id)}">${example.markup}${anchors}</div></template>\n`);
+      await write(file, ` ${links}\n<template component="looma-preview-${key}" module="./${key}.js"><defs><meta name="hk:navigation" content="hidden"><title>${escapeHtml(example.title)}</title></defs><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${example.markup}${anchors}</div></template>\n`);
       examples.push({ ...example, file, component: component.id, path: base + previewPath(example).slice(1) });
     }
   }
@@ -123,6 +128,9 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
     const authored = path.resolve(root, config.content);
     for (const source of await authoredFiles(authored)) {
       const target = path.join(content, path.relative(authored, source));
+      const publicPath = path.relative(authored, source).split(path.sep)
+        .filter(segment => !/^\d+\.\([^)]*\)$/.test(segment)).map(segment => segment.replace(/^\d+\./, '')).join('/');
+      if (generatedReferences.has(publicPath)) throw new Error(`Authored/generated documentation collision: ${source} would replace a generated component reference. Add guidance under another path.`);
       let exists = false;
       try { await readFile(target); exists = true; } catch (error) { if (error.code !== 'ENOENT') throw error; }
       // A project's landing page and footer are branding/content, never API overrides.
@@ -169,13 +177,35 @@ export async function documentationOptions(site) {
   const { siteOptions } = await tool('markupress', site.root);
   const styles = ['tokens.css', 'theme-light.css', 'theme-dark.css', 'theme-system.css'].map(file => fileURLToPath(import.meta.resolve(`@threadlabs/looma/${file}`)));
   const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
-  let savedTheme;
-  savedTheme = path.join(site.generated, 'saved-theme.css');
+  const savedTheme = path.join(site.generated, 'saved-theme.css');
   await writeFile(savedTheme, site.config.themeCSSContents ?? themeCSS(site.config.recipe ?? defaultRecipe()));
-  const themeStyles = [savedTheme, ...(site.config.overrides ?? []).map(file => path.resolve(site.root, file))].filter(Boolean);
+  const themeStyles = [savedTheme, ...await portableThemeStyles(site)];
   return { ...options, plugins: [...options.plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) },
     // Markupress supplies its head script in its own config hook; compose after it.
     { name: 'looma-browser-theme', config: async current => ({ headScript: [current.headScript, await themeBootstrap(site)].filter(Boolean).join('\n;\n') }) }] };
+}
+
+/** Opaque example frames cannot fetch local fonts without host-specific CORS headers.
+ * Bundle those font files into theme CSS for both the local server and static output. */
+async function portableThemeStyles(site) {
+  const overrides = site.config.overrides ?? [];
+  if (!overrides.length) return [];
+  const { build } = await tool('vite', site.root);
+  const entry = path.join(site.generated, 'theme-entry.css');
+  await writeFile(entry, overrides.map(file => `@import ${JSON.stringify(path.resolve(site.root, file))};`).join('\n'));
+  const bundled = await build({ root: site.root, base: './', configFile: false, logLevel: 'silent',
+    build: { write: false, minify: false, cssMinify: false,
+      assetsInlineLimit: file => /\.(woff2?|ttf|otf)$/i.test(file),
+      rollupOptions: { input: entry, output: { assetFileNames: 'theme-assets/[name]-[hash][extname]' } } } });
+  const styles = [];
+  for (const output of (Array.isArray(bundled) ? bundled[0] : bundled).output) {
+    if (output.type !== 'asset') continue;
+    const file = path.join(site.generated, output.fileName);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, output.source);
+    if (file.endsWith('.css')) styles.push(file);
+  }
+  return styles;
 }
 
 /** Build through HTMLKit, then make opaque preview scripts portable to static hosts without CORS. */

@@ -54,7 +54,7 @@ try {
   const saved = await fetch(server.url + '_looma/theme', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'X-Looma-Capability': session.capability }, body: JSON.stringify({ recipe: startingPoints.night, revision: session.revision }) });
   assert.equal(saved.status, 200, await saved.text());
   assert.equal(JSON.parse(await readFile('looma.theme.json', 'utf8')).values.canvas, '#11141c');
-  assert.match(await readFile('looma.theme.css', 'utf8'), /pow\\(2/);
+  assert.match(await readFile('looma.theme.css', 'utf8'), /pow\\(1 \\/ 7/);
   const loaded = await (await fetch(server.url + '_looma/session', { headers: { Origin: origin } })).json();
   assert.equal(loaded.recipe.values.canvas, '#11141c');
   await mkdir('app/components/office-note');
