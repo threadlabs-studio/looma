@@ -2,6 +2,13 @@
 
 ## Next release
 
+### Migration: readable theme recipes
+
+- Theme recipes now reject numeric values outside the shared readability bounds. Apply the bounds shown by the customizer or its `themeFields` metadata when importing an older recipe. Color seeds remain editable and derive readable roles in both modes. Editor-only limits would leave imports, repository saves and exports able to reproduce unreadable results, so the canonical validator governs every path.
+- IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
+
+### Improvements
+
 - Keep documentation customization across navigation, reload and tabs until reset, including the complete navigation shell and isolated example cards. Add Bookish and compact Wiki themes, coordinated palette choices, paired light/dark exports and nested mode boundaries, with bounded readable text, outlines and disabled states.
 - Add reusable NumberInput, Slider and CurveEditor controls with arithmetic on entry, units, shared bounds, pointer/touch and keyboard editing. Use them in the package customizer alongside typography and floating-surface documentation cards.
 - Add independent action presets to Button and IconButton, intent tones to icon actions, display/heading/label/caption text roles, and a glass Card surface. Shared glassiness and surface separation preserve an opaque content plane while popup purpose and measured size govern the surrounding material.
