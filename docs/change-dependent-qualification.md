@@ -14,7 +14,7 @@ must be confirmed after rollout.
 | --- | --- | --- |
 | `quality` | Selected tooling tests, package build and affected unit/SSR tests | 9 minutes |
 | `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 9 minutes |
-| `release-package` | Package-only build, tarball integrity, packed consumer matrix | 4 minutes |
+| `release-package` | Package-only build, tarball integrity, packed component and documentation consumer matrix | 6 minutes |
 | `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 9 minutes |
 | `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
 
