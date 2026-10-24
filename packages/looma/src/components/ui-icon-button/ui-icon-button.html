@@ -1,6 +1,12 @@
 <link rel="component" href="../ui-spinner/ui-spinner.html">
 <template component="ui-icon-button" module="./ui-icon-button.js">
   <defs>
+    <prop name="preset" type="keyword" values="none, primary, standard, quiet, destructive" default="none"
+    >The same shortcuts as Button: primary is solid accent, standard is solid neutral, quiet is ghost neutral, and destructive is solid danger. A named preset
+      wins over variant and tone; none preserves independent choices.</prop>
+    <!-- Computed maps read every member in HTML Next. auto keeps an omitted tone concrete so the preset map can resolve, while retaining the existing variant-dependent appearance. -->
+    <computed name="appearance" from="{ none: $variant, primary: 'solid', standard: 'solid', quiet: 'ghost', destructive: 'solid' }[$preset]"></computed>
+    <computed name="colorTone" from="{ none: $tone, primary: 'accent', standard: 'neutral', quiet: 'neutral', destructive: 'danger' }[$preset]"></computed>
     <prop name="disabled" type="boolean" default="false"
     >Disables the button, so it cannot be pressed or focused, and gives it a flat neutral surface and muted icon.</prop>
     <prop name="loading" type="boolean" default="false"
@@ -17,9 +23,10 @@
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
       accent colour, for the one primary action in a group.</prop>
-    <prop name="tone" type="keyword" values="accent, neutral"
-    >Colour for every variant. When omitted, ghost and outline keep their neutral appearance and solid keeps its accent fill. Set accent for a coloured action
-      or neutral for a quiet one. Native aria-pressed="true" keeps an outline toggle visibly pressed; the consumer owns that state.</prop>
+    <prop name="tone" type="keyword" values="auto, accent, neutral, danger, success, warning, info" default="auto"
+    >Colour for every variant. auto preserves the existing variant-specific default. When omitted, ghost and outline keep their neutral appearance and solid
+      keeps its accent fill. Set accent for a coloured action or neutral for a quiet one. danger, success, warning and info share Button's intent colors. Native
+      aria-pressed="true" keeps an outline toggle visibly pressed; the consumer owns that state.</prop>
     <prop name="anticipatory" type="boolean" default="false"
     >Keeps the button out of sight until it is wanted: at rest a fine pointer sees only a small guide dot, and the button appears on hover, on focus, or when
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
@@ -32,6 +39,8 @@
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button
+    from:data-appearance="$appearance"
+    from:data-tone="$colorTone"
     from:disabled="$disabled"
     type="button"
     from:aria-label="$label"
@@ -144,7 +153,7 @@
       --_ui-action-start: -1px;
     }
 
-    :host([tone="accent"]) {
+    :host[data-tone="accent"] {
       --_icon-button-border: var(--ui-accent-solid);
       --_icon-button-hover-border: var(--ui-accent-hover);
       --_icon-button-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
@@ -152,8 +161,52 @@
       color: var(--_icon-button-text);
     }
 
+    :host[data-tone="danger"] {
+      --_icon-button-border: var(--ui-danger);
+      --_icon-button-hover-border: var(--ui-danger-hover);
+      --_icon-button-text: var(--ui-danger-subtle-text);
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-danger) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-danger);
+      --_icon-button-solid-hover-surface: var(--ui-danger-hover);
+      --_icon-button-solid-text: var(--ui-danger-on-strong);
+      color: var(--_icon-button-text);
+    }
+
+    :host[data-tone="success"] {
+      --_icon-button-border: var(--ui-success);
+      --_icon-button-hover-border: var(--ui-success-hover);
+      --_icon-button-text: var(--ui-success-subtle-text);
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-success) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-success);
+      --_icon-button-solid-hover-surface: var(--ui-success-hover);
+      --_icon-button-solid-text: var(--ui-success-on-strong);
+      color: var(--_icon-button-text);
+    }
+
+    :host[data-tone="warning"] {
+      --_icon-button-border: var(--ui-warning);
+      --_icon-button-hover-border: var(--ui-warning-hover);
+      --_icon-button-text: var(--ui-warning-subtle-text);
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-warning) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-warning);
+      --_icon-button-solid-hover-surface: var(--ui-warning-hover);
+      --_icon-button-solid-text: var(--ui-warning-on-strong);
+      color: var(--_icon-button-text);
+    }
+
+    :host[data-tone="info"] {
+      --_icon-button-border: var(--ui-info);
+      --_icon-button-hover-border: var(--ui-info-hover);
+      --_icon-button-text: var(--ui-info-subtle-text);
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-info) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-info);
+      --_icon-button-solid-hover-surface: var(--ui-info-hover);
+      --_icon-button-solid-text: var(--ui-info-on-strong);
+      color: var(--_icon-button-text);
+    }
+
     /* Omitted tone retains the existing accent solid; explicit neutral is additive. */
-    :host([tone="neutral"]) {
+    :host[data-tone="neutral"] {
       --_icon-button-solid-surface: var(--ui-text-primary);
       --_icon-button-solid-hover-surface: var(--ui-text-primary);
       --_icon-button-solid-text: var(--ui-surface-default);
@@ -198,13 +251,13 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-      :host([anticipatory]):not(:host([revealed]), :host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible) {
+      :host([anticipatory]):not(:host([revealed]), :host[data-appearance="solid"], :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
         background-color: transparent;
         box-shadow: none;
       }
 
-      :host([anticipatory]):not(:host([revealed]), :host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)
+      :host([anticipatory]):not(:host([revealed]), :host[data-appearance="solid"], :host([loading]), :host([pending]), :disabled, [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)
         .content {
         opacity: 0;
         transform: scale(0.65);
@@ -212,7 +265,7 @@
       }
     }
 
-    :host([anticipatory]):is(:host([revealed]), :host([variant="solid"]), [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)::before {
+    :host([anticipatory]):is(:host([revealed]), :host[data-appearance="solid"], [aria-pressed="true"], [data-ui-proximity="near"], :hover, :focus-visible)::before {
       opacity: 0;
     }
 
@@ -321,7 +374,7 @@
       border-radius: var(--ui-radius-round);
     }
 
-    :host([variant="outline"]) {
+    :host[data-appearance="outline"] {
       border-color: var(--ui-icon-button-border, var(--_icon-button-border, var(--ui-control-border, var(--ui-border-strong))));
       background-color: var(--ui-icon-button-outline-surface, var(--_icon-button-outline-surface, var(--ui-surface-default)));
       background-image: none;
@@ -329,7 +382,7 @@
       box-shadow: var(--ui-action-shadow, var(--_ui-action-shadow));
     }
 
-    :host([variant="solid"]) {
+    :host[data-appearance="solid"] {
       background-color: var(--ui-icon-button-solid-surface, var(--_icon-button-solid-surface, var(--ui-accent-solid)));
       background-image: none;
       color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
@@ -342,27 +395,26 @@
       color: var(--ui-icon-button-hover-text, var(--_icon-button-text, var(--ui-text-primary)));
     }
 
-    :host([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
+    :host[data-appearance="outline"]:hover:enabled:not([aria-disabled="true"]) {
       border-color: var(--ui-icon-button-hover-border, var(--_icon-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border))));
     }
 
-    :host([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
+    :host[data-appearance="solid"]:hover:enabled:not([aria-disabled="true"]) {
       background-color: var(--ui-icon-button-solid-hover-surface, var(--_icon-button-solid-hover-surface, var(--ui-accent-hover)));
     }
 
-    :host([variant="solid"][tone="accent"]):hover:enabled:not([aria-disabled="true"]),
-    :host([variant="solid"][tone="neutral"]):hover:enabled:not([aria-disabled="true"]) {
+    :host[data-appearance="solid"]:hover:enabled:not([aria-disabled="true"]) {
       color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
     }
 
-    :host([variant="ghost"])[aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
+    :host[data-appearance="ghost"][aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
       background-color: var(--ui-icon-button-active-surface, color-mix(in srgb, currentColor 16%, transparent));
       color: var(--ui-icon-button-hover-text, var(--_icon-button-text, var(--ui-text-primary)));
       box-shadow: var(--ui-pressed);
     }
 
     /* Native toggle state persists after pointer release, including during loading. */
-    :host([variant="outline"])[aria-pressed="true"]:enabled {
+    :host[data-appearance="outline"][aria-pressed="true"]:enabled {
       background-color: var(--ui-icon-button-active-surface, color-mix(in srgb, currentColor 12%, var(--ui-surface-default)));
       background-image: none;
       box-shadow: var(--ui-pressed);
@@ -397,35 +449,35 @@
       box-shadow: var(--ui-focus-halo);
     }
 
-    :host([variant="outline"]):focus-visible {
+    :host[data-appearance="outline"]:focus-visible {
       box-shadow:
         var(--ui-action-shadow, var(--_ui-action-shadow)),
         var(--ui-focus-halo);
     }
 
-    :host([variant="solid"]):focus-visible {
+    :host[data-appearance="solid"]:focus-visible {
       box-shadow:
         var(--ui-icon-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
     }
 
-    :host:is(:host([variant="outline"]), :host([variant="solid"])):active:enabled:not([aria-disabled="true"]) {
+    :host:is(:host[data-appearance="outline"], :host[data-appearance="solid"]):active:enabled:not([aria-disabled="true"]) {
       background-image: none;
       box-shadow: var(--ui-pressed);
     }
 
-    :host([variant="outline"])[aria-pressed="true"]:enabled:focus-visible {
+    :host[data-appearance="outline"][aria-pressed="true"]:enabled:focus-visible {
       box-shadow:
         var(--ui-pressed),
         var(--ui-focus-halo);
     }
 
     @media (forced-colors: active) {
-      :host([variant="outline"])[aria-pressed="true"]:enabled {
+      :host[data-appearance="outline"][aria-pressed="true"]:enabled {
         outline: var(--ui-focus-width) solid Highlight;
         outline-offset: calc(-2 * var(--ui-focus-width));
       }
-      :host([variant="outline"])[aria-pressed="true"]:enabled:focus-visible {
+      :host[data-appearance="outline"][aria-pressed="true"]:enabled:focus-visible {
         outline-offset: var(--ui-focus-width);
       }
     }
@@ -442,7 +494,7 @@
       background-image: none;
     }
 
-    :host([variant="ghost"]):disabled {
+    :host[data-appearance="ghost"]:disabled {
       border-color: transparent;
     }
 
