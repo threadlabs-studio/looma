@@ -1,16 +1,13 @@
 # Changelog
 
-## Next release
+## v0.35.0
 
 ### Migration: semantic surface treatment
-
 - Replace Card `variant="glass"` with `treatment="expressive"`; add `variant="elevated"` only when the surface also needs a lift. Standard elevated cards retain their subtle treatment. The removed glass value has no compatibility alias on this pre-1.0 release line.
 - Card danger tone now changes only its palette. The previous squared corners and leading stripe made a danger card a different shape from other cards, even when the theme reduced the stripe to an ordinary border. Alerts retain their own accent treatment.
 - Solid neutral Button and IconButton use calm surface fills in both modes instead of text-color fills. Appearance remains independent of tone; existing solid neutral actions keep their labels and behavior.
 - The starting-point API uses `bookish`; remove uses of the obsolete `library` name.
-
 ### Material and palette refinement
-
 - Add focused Material and Palette views backed by the same persistent recipe as the main customizer. Presets retain their identity after refinement, show customized status, and restore one family without discarding other decisions.
 - Add LightEditor with pointer, touch, keyboard and exact coordinate editing. Shared relative light position, spread, strength, finish and glow generate material responses across controls, fields, expressive cards and floating surfaces. Bookish uses a top-centre radial reflection; edge lighting remains present when a theme supplies action shadows.
 - Bound reflection peaks and neutral fills for readable text in the generated light/dark pair. Export the complete formula-based theme, including reduced-transparency behavior and the optional preset identities in recipes.
@@ -21,10 +18,9 @@
 - Keep shared depth, spacing and light response consistent between the documentation shell and isolated examples when a remembered theme restores before baseline styles.
 - Bundle independent preview entries with bounded concurrency and overlap isolated consumer checks with the installed documentation build; retain the complete qualification matrix and its time limits.
 - IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
-
 ### Improvements
-
 - Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
 ## v0.34.0
 
 ### Migration: readable theme recipes
