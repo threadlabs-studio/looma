@@ -9,8 +9,10 @@ This file is the canonical guidance for AI coding agents in this repository.
   (`@threadlabs/looma`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.
-- `apps/docs` (Docusaurus), `apps/docs-next` (its Markupress migration, previewed at
-  `/looma-next/`) and `apps/storybook` are private workspaces.
+- `apps/docs-next` is the public HTMLKit/Markupress site at `/looma/`; it consumes
+  the same package-shipped documentation generator as downstream projects.
+  `apps/docs` is the retained Docusaurus parity fixture. Both and `apps/storybook`
+  are private workspaces.
 - Architecture: `docs/architecture.md`. Naming, events, slots, and SSR rules:
   `docs/conventions.md` and `docs/event-schema.md`. Support promises:
   `docs/release-support-matrix.md`. Comments: `docs/code-documentation-policy.md`.
@@ -132,7 +134,8 @@ Every app using Looma pays for a changed API, so the bar is high.
 
 ## Releases and Docs
 
-- Merging a change to `packages/looma/src` releases it: once CI passes, the
+- Merging a package change (sources, documentation tooling, command launcher,
+  build inputs or manifest) releases it: once CI passes, the
   release workflow publishes the next patch to npm `latest` and tags it
   `vX.Y.Z`. Nothing to bump by hand. `main` only takes pull requests, so the
   release never commits back to it: `main`'s manifests keep the last version a
@@ -146,7 +149,13 @@ Every app using Looma pays for a changed API, so the bar is high.
   never receives that commit, so shipped entries can linger under Next release
   there; the next release files them under their versions. Optionally, to tidy
   main, run `git fetch --tags` and `node tools/scripts/release-commit.mjs --changelog`.
-- Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
+- Every green `main` redeploys the package-generated HTMLKit docs site
+  (`.github/workflows/docs.yml`, `apps/docs-next/site`).
+- Documentation metadata and examples live beside their component definitions.
+  The package owns the renderer, reusable cards and customizer in
+  `packages/looma/tooling/docs`; the public site supplies configuration and authored
+  guides. Read that directory's `README.md` for discovery and theme contracts.
+  Fix shared behavior there rather than creating a public-site-only implementation.
 - Looma is pre-1.0: breaking changes bump the minor version.
 
 ## Public Repository Hygiene

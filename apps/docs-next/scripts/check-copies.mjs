@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Until Markupress serves /looma/, these pages are copies of apps/docs/docs. Edit both; this check
+// While the legacy parity fixture is retained, these guides match apps/docs/docs. Edit both; this check
 // fails when they drift. Markupress front matter, a Docusaurus-only fence flag and the relative
 // paths of .md links (files moved into a route group) are not content. getting-started.md is
 // compared from its first copied heading; its opening section is converted from a React component.
