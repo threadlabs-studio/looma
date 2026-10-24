@@ -1,10 +1,16 @@
 <!--
 title: variant
-description: Solid, outline (the default), ghost, and danger cover the common emphasis and intent levels.
+description: Appearance sets emphasis independently from tone: solid neutral is a standard action, and danger can be an outline. Named presets combine those shared choices.
 -->
 <ui-cluster gap="s">
   <ui-button variant="solid">Solid</ui-button>
   <ui-button variant="outline">Outline</ui-button>
   <ui-button variant="ghost">Ghost</ui-button>
   <ui-button variant="danger">Danger</ui-button>
+  <ui-button variant="solid" tone="neutral">Solid neutral</ui-button>
+  <ui-button variant="outline" tone="danger">Danger outline</ui-button>
+  <ui-button preset="primary">Primary</ui-button>
+  <ui-button preset="standard">Standard</ui-button>
+  <ui-button preset="quiet">Quiet</ui-button>
+  <ui-button preset="destructive">Destructive</ui-button>
 </ui-cluster>

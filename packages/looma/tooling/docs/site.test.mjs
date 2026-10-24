@@ -11,7 +11,7 @@ test('generates full portable reference and the same isolated cards, including b
     const { readCatalog } = await import('./catalog.mjs');
     const catalog = await readCatalog(new URL('../../docs/catalog.json', import.meta.url));
     const site = await prepareDocumentation({ root, catalog, config: { title: 'A design system', base: '/system/' } });
-    const button = await readFile(path.join(site.content, 'components/ui-button.md'), 'utf8');
+    const button = await readFile(path.join(site.content, 'components/03.(Forms)/ui-button.md'), 'utf8');
     assert.match(button, /looma-example-card/);
     assert.match(button, /\/system\/_looma\/preview\//);
     assert.match(button, /Framework props/);
@@ -73,8 +73,8 @@ test('catalog descriptions and snippet language names cannot mount a controller 
     component.description = '<link rel="component" href="evil.html"><evil-writer></evil-writer>';
     component.examples[0].frameworks['html-next'] = { language: 'html"><evil-writer></evil-writer><code class="', code: '<ui-button>Safe source</ui-button>' };
     const site = await prepareDocumentation({ root, catalog });
-    assert.match(await readFile(path.join(site.content, 'components/ui-input.md'), 'utf8'), /description: "Input component reference\."/);
-    const reference = await readFile(path.join(site.content, 'components/ui-button.md'), 'utf8');
+    assert.match(await readFile(path.join(site.content, 'components/03.(Forms)/ui-input.md'), 'utf8'), /description: "Input component reference\."/);
+    const reference = await readFile(path.join(site.content, 'components/03.(Forms)/ui-button.md'), 'utf8');
     const body = reference.replace(/^---\n[\s\S]*?\n---\n/, '');
     assert.ok(!body.includes('<evil-writer>'));
     assert.ok(!body.includes('href="evil.html"'));

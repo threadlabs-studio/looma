@@ -10,8 +10,8 @@ describe("CardButton before upgrade", () => {
     }) }));
     expect(html.match(/<button\b/g)).toHaveLength(1);
     expect(html).toMatch(/<button class="ui-button"/);
-    expect(html).toMatch(/data-ui-button-state="[^"]*variant=card/);
-    expect(html).toMatch(/data-ui-button-state="[^"]*tone=accent/);
+    expect(html).toContain('data-appearance="card"');
+    expect(html).toContain('data-tone="accent"');
     expect(html).toContain('aria-controls="details"');
     expect(html).toContain("Custom icon and divider");
     expect(html).toContain("chevron-right");
@@ -31,5 +31,25 @@ describe("CardButton before upgrade", () => {
     expect(html).toMatch(/<a\b/);
     expect(html).not.toMatch(/<a[^>]*\shref="\/guide"/);
     expect(html).toContain('aria-disabled="true"');
+  });
+});
+
+
+describe("Button semantic presets before upgrade", () => {
+  it.each([
+    ["primary", "solid", "accent"],
+    ["standard", "solid", "neutral"],
+    ["quiet", "ghost", "neutral"],
+    ["destructive", "solid", "danger"],
+  ])("resolves %s into independent appearance and tone", async (preset, appearance, tone) => {
+    const html = await renderToString(createSSRApp({ render: () => h(Button, { preset, variant: "outline", tone: "info" }, () => "Send Fellowship memo") }));
+    expect(html).toContain(`data-appearance="${appearance}"`);
+    expect(html).toContain(`data-tone="${tone}"`);
+    expect(html).not.toContain("card-content");
+  });
+  it("retains explicit appearance and tone when no preset is selected", async () => {
+    const html = await renderToString(createSSRApp({ render: () => h(Button, { variant: "outline", tone: "success" }, () => "Approve Sam's leave") }));
+    expect(html).toContain('data-appearance="outline"');
+    expect(html).toContain('data-tone="success"');
   });
 });

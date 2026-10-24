@@ -161,6 +161,12 @@
     --ui-accent-active: color-mix(in oklab, var(--ui-accent) 74%, var(--ui-text));
     --ui-accent-subtle: color-mix(in oklab, var(--ui-accent) 12%, var(--ui-surface));
     --ui-danger-hover: color-mix(in oklab, var(--ui-danger) 86%, var(--ui-text));
+    --ui-danger-active: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-text));
+    --ui-success-active: color-mix(in oklab, var(--ui-success) 74%, var(--ui-text));
+    --ui-warning-active: color-mix(in oklab, var(--ui-warning) 74%, var(--ui-text));
+    --ui-info-active: color-mix(in oklab, var(--ui-info) 74%, var(--ui-text));
+    --ui-warning-hover: color-mix(in oklab, var(--ui-warning) 86%, var(--ui-text));
+    --ui-info-hover: color-mix(in oklab, var(--ui-info) 86%, var(--ui-text));
 
     /* Disabled is one decision, not a per-component one: the sunken surface and a pale ink, at
        full opacity, so a disabled control reads as unavailable rather than as a faded variant.
@@ -340,7 +346,7 @@
 
   [data-ui-choice-option]:is(:hover, .active) {
     background: var(--ui-surface-muted);
-    outline: var(--ui-border-width) solid var(--ui-focus-ring);
+    outline: var(--ui-focus-width) solid var(--ui-focus-ring);
     outline-offset: calc(-1 * var(--ui-border-width));
   }
 
@@ -390,7 +396,7 @@
 
   @media (forced-colors: active) {
     [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]):not(.active) {
-      outline: var(--ui-border-width) solid Highlight;
+      outline: var(--ui-focus-width) solid Highlight;
       outline-offset: calc(-1 * var(--ui-border-width));
     }
   }

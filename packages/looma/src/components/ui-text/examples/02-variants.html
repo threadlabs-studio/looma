@@ -1,8 +1,13 @@
 <!--
-title: Eyebrow and code
-description: An eyebrow names a group of things; code sets a value to read exactly, such as an address.
+title: Typography roles
+description: One shared type family gives the Fellowship office titles, section headings, labels, captions and eyebrows. Choose document heading levels separately from visual roles.
 -->
-<ui-stack gap="xs">
-  <ui-text variant="eyebrow" tone="muted">Workspace</ui-text>
-  <ui-text variant="code" tone="secondary" size="sm">acme.example.com</ui-text>
+<ui-stack gap="sm">
+  <ui-text variant="eyebrow" tone="secondary">Fellowship office</ui-text>
+  <ui-text variant="display" as="h1">There and back by Friday</ui-text>
+  <ui-text variant="heading" as="h2">This week's expedition</ui-text>
+  <ui-text>Frodo and Sam are reviewing the route. Sméagol has booked the quiet meeting room.</ui-text>
+  <ui-text variant="label">Next stand-up</ui-text>
+  <ui-text variant="caption" tone="secondary">Tuesday, after second breakfast</ui-text>
+  <ui-text variant="code" tone="secondary" size="sm">fellowship.example.com</ui-text>
 </ui-stack>

@@ -2,9 +2,10 @@
   <defs>
     <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
     >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
-    <prop name="variant" type="keyword" values="outlined, subtle, elevated" default="outlined"
+    <prop name="variant" type="keyword" values="outlined, subtle, elevated, glass" default="outlined"
     >The surface. outlined is a bordered panel on the page; subtle is a quiet filled one with no border, for supporting details set apart from the flow;
-      elevated floats above the page with a shadow, for a view's one card, such as sign-in.</prop>
+      elevated floats above the page with a shadow, for a view's one card, such as sign-in. glass frames an opaque readable content plane with frosted material;
+      shared glassiness and surface separation govern its treatment.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
@@ -60,6 +61,47 @@
     :host([variant="elevated"]) {
       border-color: var(--ui-border-subtle);
       box-shadow: var(--ui-shadow-lg);
+    }
+
+    :host([variant="glass"]) {
+      --_ui-panel-glass: clamp(0, var(--ui-glassiness, 0), 1);
+      --_ui-panel-separation: clamp(0, var(--ui-surface-separation, 0), 1);
+      --_ui-panel-rim: calc((var(--_ui-panel-separation) + var(--_ui-panel-glass) * 0.25) * 0.65 * 8px);
+      border-width: calc(var(--ui-border-width) + var(--_ui-panel-rim));
+      border-color: transparent;
+      background:
+        linear-gradient(var(--_ui-card-surface), var(--_ui-card-surface)) padding-box,
+        linear-gradient(var(--ui-material-glass, var(--ui-surface-raised)), var(--ui-material-glass, var(--ui-surface-raised))) border-box,
+        var(--_ui-card-surface) padding-box;
+      box-shadow:
+        var(--ui-shadow-lg),
+        inset 0 0 0 var(--ui-border-width) var(--ui-material-edge, var(--ui-border-strong));
+      backdrop-filter: blur(calc(var(--_ui-panel-glass) * 0.65 * 18px)) saturate(calc(1 + var(--_ui-panel-glass) * 0.65 * 0.18));
+      -webkit-backdrop-filter: blur(calc(var(--_ui-panel-glass) * 0.65 * 18px)) saturate(calc(1 + var(--_ui-panel-glass) * 0.65 * 0.18));
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      :host([variant="glass"]) {
+        background: var(--_ui-card-surface);
+      }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      :host([variant="glass"]) {
+        background: var(--_ui-card-surface);
+        border-width: var(--ui-border-width);
+        border-color: var(--ui-border-strong);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+    }
+    @media (forced-colors: active) {
+      :host([variant="glass"]) {
+        background: Canvas;
+        color: CanvasText;
+        border: var(--ui-border-width) solid CanvasText;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
     }
 
     :host([tone="accent"]) {

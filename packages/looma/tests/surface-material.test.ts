@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { test } from 'vitest';
 import { surfaceMaterialScale, updateSurfaceMaterial } from '../src/components/shared/surface-material.js';
 
 test('popup purpose governs separation and rendered size refines it within that role', () => {
@@ -40,4 +40,18 @@ test('material measurement ignores its own small rim changes but responds to sub
   updateSurfaceMaterial(element, 'dialog');
   assert.equal(scale, '1.35');
   assert.equal(writes, 2);
+});
+
+
+test('small popup roles still respond to substantial changes in rendered size', () => {
+  let value = '';
+  const element = { offsetWidth: 320, offsetHeight: 240, style: {
+    getPropertyValue: () => value,
+    setProperty: (_name: string, next: string) => { value = next; },
+  } };
+  updateSurfaceMaterial(element, 'tooltip');
+  const initial = Number(value);
+  element.offsetWidth = 640; element.offsetHeight = 480;
+  updateSurfaceMaterial(element, 'tooltip');
+  assert.ok(Number(value) > initial);
 });

@@ -9,6 +9,8 @@ export function connect(host) {
   const receive = event => {
     if (event.source !== view.parent || event.data?.type !== 'looma-theme' || typeof event.data.css !== 'string') return;
     theme.textContent = event.data.css;
+    document.documentElement.toggleAttribute('data-preview-reference', event.data.reference === true);
+    if (['light', 'dark'].includes(event.data.mode)) document.documentElement.dataset.theme = event.data.mode;
     height();
   };
   view.addEventListener('message', receive);

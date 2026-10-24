@@ -3,7 +3,9 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-number-input" module="./ui-number-input.js">
   <defs>
-    <prop name="value" type="string" default="0">Exact value. Arithmetic is calculated on Enter or blur; the resulting value includes unit. Invalid expressions stay visible and expose invalid state.</prop>
+    <prop name="value" type="string" default="0"
+    >Exact value. Arithmetic is calculated on Enter or blur; the resulting value includes unit. Invalid expressions stay visible and expose invalid
+      state.</prop>
     <prop name="unit" type="string" default="">One accepted unit, such as px, rem, ms or %. Bare numbers use this unit. No automatic unit conversion.</prop>
     <prop name="min" type="number" default="-1000000">Inclusive lower bound applied to typing, arithmetic, stepping and external values.</prop>
     <prop name="max" type="number" default="1000000">Inclusive upper bound applied to every editing path.</prop>
@@ -11,17 +13,50 @@
     <prop name="name" type="string" default="">Optional form field name.</prop>
     <prop name="label" type="string" default="Value">Accessible name for the editing control.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and button height.</prop>
-    <prop name="disabled" type="boolean" default="false">Prevents editing.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents typing, stepping and pointer or keyboard changes while keeping the value visible.</prop>
     <event name="input" type="object"><prop name="value" type="string" required></prop></event>
     <event name="change" type="object"><prop name="value" type="string" required></prop></event>
   </defs>
   <span>
-    <ui-icon-button $ref="decrease" match-button type="button" from:size="$size" from:disabled="$disabled" label="Decrease value"><ui-icon name="minus"></ui-icon></ui-icon-button>
-    <ui-input $ref="input" data-ui-field-control from:size="$size" from:disabled="$disabled" from:value="$value" from:aria-label="$label" from:name="$name" inputmode="decimal" spellcheck="false"></ui-input>
-    <ui-icon-button $ref="increase" match-button type="button" from:size="$size" from:disabled="$disabled" label="Increase value"><ui-icon name="plus"></ui-icon></ui-icon-button>
+    <ui-icon-button
+      data-number-step="decrease"
+      match-button
+      type="button"
+      from:size="$size"
+      from:disabled="$disabled"
+      from:label="concat('Decrease ', $label)"
+    ><ui-icon name="minus"></ui-icon></ui-icon-button>
+    <ui-input
+      data-ui-field-control
+      from:size="$size"
+      from:disabled="$disabled"
+      from:value="$value"
+      from:aria-label="$label"
+      from:name="$name"
+      inputmode="decimal"
+      spellcheck="false"
+      aria-description="Enter calculates arithmetic. Arrow keys step; Shift changes ten steps."
+    ></ui-input>
+    <ui-icon-button
+      data-number-step="increase"
+      match-button
+      type="button"
+      from:size="$size"
+      from:disabled="$disabled"
+      from:label="concat('Increase ', $label)"
+    ><ui-icon name="plus"></ui-icon></ui-icon-button>
   </span>
   <style>
-    :host { display: flex !important; align-items: center !important; gap: var(--ui-space-1) !important; margin: 0 !important; padding: 0 !important; min-inline-size: 0; }
-    :host[hidden] { display: none !important; }
+    :host {
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-1) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      min-inline-size: 0;
+    }
+    :host[hidden] {
+      display: none !important;
+    }
   </style>
 </template>

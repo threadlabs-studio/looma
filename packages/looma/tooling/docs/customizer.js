@@ -1,6 +1,8 @@
-import { documentationTheme } from './theme-session.mjs';
+import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, themeCSS, validateRecipe } from './theme.mjs';
+import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, paletteFor, deriveTheme } from './theme.mjs';
+
+import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
 /** The editor changes public theme values; the library owns every control's layout. */
 export function connect(host) {
@@ -19,9 +21,32 @@ export function connect(host) {
   let alive = true;
   const abort = new AbortController();
   const say = (text, error = false) => { message.textContent = text; message.setAttribute('role', error ? 'alert' : 'status'); };
-  const updateControl = (element, value) => componentRegistry.update(element, { value });
+  const sayApplied = text => say(theme?.storageAvailable ? text : 'Theme applies to this page. Browser storage is unavailable; download CSS or a recipe to keep it.');
+  const fields = new Map(themeFields.map(field => [field.id, field]));
+  const unitContext = () => ({ remPixels: parseFloat(view.getComputedStyle(document.documentElement).fontSize) });
+  const updateControl = (element, value) => {
+    const field = fields.get(element.dataset.token);
+    if (!field || !element.dataset.editorKind) { componentRegistry.update(element, { value }); return; }
+    const editor = valueEditor(field, value, unitContext());
+    if (element.dataset.editorKind === 'curve') {
+      element.closest('[data-curve-for]').hidden = editor.kind !== 'curve';
+      if (editor.kind === 'curve') componentRegistry.update(element, { value });
+    } else componentRegistry.update(element, Object.fromEntries(['value', 'unit', 'min', 'max', 'step'].map(key => [key, editor[key]])));
+  };
+  const updateUnits = () => {
+    for (const control of root.querySelectorAll('[data-unit-for]')) {
+      const field = fields.get(control.dataset.unitFor), editor = valueEditor(field, recipe.values[field.id], unitContext());
+      if (![...control.options].some(option => option.value === editor.unit)) control.add(new view.Option(editor.unit, editor.unit));
+      componentRegistry.update(control, { value: editor.unit });
+    }
+  };
   const paint = () => {
     const css = themeCSS(recipe);
+    updateControl(root.querySelector('[data-palette]'), paletteFor(recipe));
+    const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
+    const report = root.querySelector('[data-palette-adjustments]');
+    report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your seed colors stay editable; resolved values are shown below.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
+    root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Seed colors remain editable.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
     for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css: theme?.css ?? css } }));
     updateControl(root.querySelector('[data-css]'), css);
   };
@@ -30,6 +55,7 @@ export function connect(host) {
     if (persist) theme?.apply(recipe);
     for (const control of root.querySelectorAll('[data-token]')) updateControl(control, recipe.values[control.dataset.token]);
     updateControl(root.querySelector('[data-preset]'), startingPointFor(recipe));
+    updateUnits();
     changed = JSON.stringify(recipe) !== JSON.stringify(saved);
     paint();
   };
@@ -49,15 +75,18 @@ export function connect(host) {
     if (event.target.matches('[data-example-query]')) { filterExamples(); return; }
     const control = event.target.closest?.('[data-token]');
     if (!control) return;
-    const value = event.detail?.value ?? control.value;
+    const field = fields.get(control.dataset.token);
+    const raw = event.detail?.value ?? control.value;
+    const value = control.dataset.editorKind ? editorValue(field, raw) : String(raw);
     const next = { schemaVersion: 1, values: { ...recipe.values, [control.dataset.token]: value } };
     try {
       recipe = validateRecipe(next);
       theme?.apply(recipe); changed = true;
       updateControl(root.querySelector('[data-preset]'), startingPointFor(recipe));
       control.removeAttribute('aria-invalid');
-      for (const sibling of root.querySelectorAll('[data-token]')) if (sibling !== control && sibling.dataset.token === control.dataset.token) updateControl(sibling, value);
-      paint(); say('Theme remembered in this browser. Download it or save it to your repository.');
+      for (const sibling of root.querySelectorAll('[data-token]')) if (sibling.dataset.token === control.dataset.token) updateControl(sibling, value);
+      updateUnits();
+      paint(); sayApplied('Theme remembered in this browser. Download it or save it to your repository.');
     } catch (error) { control.setAttribute('aria-invalid', 'true'); say(error.message, true); }
   };
   const download = (data, name, type) => {
@@ -85,7 +114,7 @@ export function connect(host) {
         }
         case 'recipe': download(JSON.stringify(recipe, null, 2) + '\n', 'looma.theme.json', 'application/json'); say('Editable recipe downloaded.'); break;
         case 'import': file.click(); break;
-        case 'reset': show(theme?.reset() ?? structuredClone(saved), false); say('Browser customization reset to the saved theme.'); break;
+        case 'reset': show(theme?.reset() ?? structuredClone(saved), false); say(theme?.storageAvailable ? 'Browser customization reset to the saved theme.' : 'Changes reset for this page. Browser storage is unavailable, so a previous browser theme may return after reload.'); break;
         case 'save': {
           if (!capability) throw new Error('Repository saving is available only in the local documentation server.');
           const submitted = structuredClone(recipe);
@@ -105,23 +134,39 @@ export function connect(host) {
     finally { if (button.dataset.action === 'save') saving = false; }
   };
   const change = async event => {
-    if (event.target.matches('[data-preset]')) { show(structuredClone(startingPoints[event.target.value])); say('Starting point applied throughout the documentation and remembered in this browser.'); }
+    if (event.target.matches('[data-unit-for]')) {
+      const field = fields.get(event.target.dataset.unitFor);
+      try {
+        let current = recipe.values[field.id];
+        try { current = convertValueUnit(current, event.target.value, unitContext()); }
+        catch { current = convertValueUnit(view.getComputedStyle(document.documentElement).getPropertyValue(field.property).trim(), event.target.value, unitContext()); }
+        show({ ...recipe, values: { ...recipe.values, [field.id]: current } });
+        sayApplied(`${field.label} units updated and remembered in this browser.`);
+      } catch (error) { updateUnits(); say(error.message, true); }
+    }
+    if (event.target.matches('[data-palette]')) { show({ ...recipe, values: { ...recipe.values, ...themePalettes[event.target.value].values } }); sayApplied('Coordinated palette applied. Both color modes are remembered with your existing size, material and motion.'); }
+    if (event.target.matches('[data-preset]')) { show(structuredClone(startingPoints[event.target.value])); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
     if (event.target === file && file.files[0]) {
-      try { show(JSON.parse(await file.files[0].text())); say('Recipe applied throughout the documentation and remembered in this browser.'); }
+      try { show(JSON.parse(await file.files[0].text())); sayApplied('Recipe applied throughout the documentation and remembered in this browser.'); }
       catch (error) { say(error.message, true); }
       file.value = '';
     }
   };
+  const blur = event => { const control = event.target; if (control.closest?.('[data-token]')) queueMicrotask(() => { if (alive && control.validity?.customError) say(control.validationMessage, true); }); };
+  const synchronize = () => { if (theme && JSON.stringify(recipe) !== JSON.stringify(theme.recipe)) show(theme.recipe, false); };
   const ready = event => {
     if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
   };
   const remove = event => { host.state.cards = host.state.cards.filter(card => card.id !== event.detail.id); };
   root.addEventListener('looma-example-remove', remove);
   root.addEventListener('input', input);
+  root.addEventListener('blur', blur, true);
   root.addEventListener('change', change);
   root.addEventListener('click', click);
   view.addEventListener('message', ready);
+  view.addEventListener(themeEvent, synchronize);
   show(recipe, false); filterExamples();
+  if (theme?.storageAvailable === false) sayApplied('');
   if (root.dataset.mode === 'local') {
     fetch(root.dataset.base + '_looma/session', { signal: abort.signal }).then(async response => {
       if (!response.ok) throw new Error('Local theme saving is unavailable.');
@@ -132,5 +177,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('message', ready); };
+  return () => { alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
 }

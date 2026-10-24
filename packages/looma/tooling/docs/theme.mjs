@@ -1,3 +1,10 @@
+const bounds = {
+  'text-size': [14, 24], 'control-size': [32, 64], 'corner-roundness': [0, 32],
+  'line-weight': [.5, 3], density: [.75, 1.5], 'scale-contrast': [1, 1.5],
+  'space-curve': [.5, 2], 'text-weight': [400, 700], 'outer-depth': [0, 2], 'inner-depth': [0, 2],
+  'response-time': [0, 600],
+};
+
 /** The shared authoring schema; ids remain stable in saved recipes. */
 export const themeFields = [
   ['Colour', 'action', 'Action', '--ui-accent', 'colour', '#5b55d6', 'Primary commands and selected controls.'],
@@ -22,7 +29,7 @@ export const themeFields = [
   ['Material', 'edge-light', 'Edge light', '--ui-edge-light', 'fraction', '0', 'Light caught by surface edges, independent of depth.'],
   ['Motion', 'response-time', 'Response time', '--ui-motion-fast', 'time', '120ms', 'Shared feedback pace; floating transitions take proportionally longer.'],
   ['Motion', 'response-curve', 'Response curve', '--ui-motion-ease', 'easing', 'cubic-bezier(0.2,0,0.2,1)', 'How movement accelerates and settles.'],
-].map(([family, id, label, property, type, defaultValue, description]) => Object.freeze({ family, id, label, property, type, defaultValue, description }));
+].map(([family, id, label, property, type, defaultValue, description]) => Object.freeze({ family, id, label, property, type, defaultValue, description, ...(bounds[id] ? { min: bounds[id][0], max: bounds[id][1] } : type === 'fraction' ? { min: 0, max: 1 } : {}) }));
 
 export const defaultRecipe = () => ({ schemaVersion: 1, values: Object.fromEntries(themeFields.map(field => [field.id, field.defaultValue])) });
 const starting = values => ({ schemaVersion: 1, values: { ...defaultRecipe().values, ...values } });
@@ -37,6 +44,19 @@ export const startingPoints = {
 // Preserve the public historical startingPoints.library import without a duplicate UI preset.
 Object.defineProperty(startingPoints, 'library', { value: startingPoints.bookish });
 export const startingPointLabels = { clear: 'Clear', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
+const paletteKeys = ['action', 'canvas', 'surface', 'text'];
+// Palette choices move only the shared color seeds; size, material and motion stay independent.
+export const themePalettes = Object.fromEntries([
+  ['clear', 'Indigo & mist'], ['bookish', 'Plum & paper'], ['wiki', 'Indigo & chalk'],
+  ['editorial', 'Ink & parchment'], ['night', 'Midnight'], ['garden', 'Forest & cream'],
+].map(([id, label]) => [id, { label, values: Object.fromEntries(paletteKeys.map(key => [key, startingPoints[id].values[key]])) }]));
+
+/** Identify a coordinated palette without coupling it to the rest of a recipe. */
+export function paletteFor(input) {
+  const { values } = validateRecipe(input);
+  return Object.entries(themePalettes).find(([, palette]) => paletteKeys.every(key => values[key].toLowerCase() === palette.values[key].toLowerCase()))?.[0] ?? 'custom';
+}
+
 const scalar = /^[+]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const length = /^(?:0|[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:px|rem|em|ex|ch|cap|ic|lh|rlh|vw|vh|vi|vb|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|cm|mm|Q|in|pt|pc))$/;
 const font = /^(?:"[^"\\;{}<>@\x00-\x1f]+"|'[^'\\;{}<>@\x00-\x1f]+'|[\p{L}_-][\p{L}\p{N}_ -]*)(?:\s*,\s*(?:"[^"\\;{}<>@\x00-\x1f]+"|'[^'\\;{}<>@\x00-\x1f]+'|[\p{L}_-][\p{L}\p{N}_ -]*))*$/u;
@@ -44,7 +64,21 @@ const time = /^[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:ms|s)$/;
 function easing(value) {
   if (/^(ease|linear|ease-in|ease-out|ease-in-out|step-start|step-end)$/.test(value)) return true;
   const match = /^cubic-bezier\(\s*([\d.+-]+)\s*,\s*([\d.+-]+)\s*,\s*([\d.+-]+)\s*,\s*([\d.+-]+)\s*\)$/.exec(value);
-  return Boolean(match && match.slice(1).every(n => Number.isFinite(Number(n))) && [1, 3].every(i => Number(match[i]) >= 0 && Number(match[i]) <= 1));
+  return Boolean(match && match.slice(1).every(n => Number.isFinite(Number(n))) && [1, 3].every(i => Number(match[i]) >= 0 && Number(match[i]) <= 1) && [2, 4].every(i => Number(match[i]) >= -1 && Number(match[i]) <= 2));
+}
+
+// Authoring bounds are shared by every entry path. Relative lengths keep their units;
+// viewport/font-metric lengths are constrained at use time rather than guessed in JS.
+
+const pixels = { px: 1, cm: 96 / 2.54, mm: 96 / 25.4, Q: 96 / 101.6, in: 96, pt: 96 / 72, pc: 16 };
+function boundedNumber(field, value) {
+  if (field.type === 'time') return parseFloat(value) * (value.endsWith('ms') ? 1 : 1000);
+  if (field.type.includes('length')) {
+    if (value === '0') return 0;
+    const unit = value.match(/[a-z]+$/i)?.[0];
+    return Object.hasOwn(pixels, unit) ? parseFloat(value) * pixels[unit] : undefined;
+  }
+  return Number(value);
 }
 
 /** Validate the whole recipe before previewing or writing any output. */
@@ -72,6 +106,10 @@ export function validateRecipe(input) {
       }
     }
     if (!valid) throw new Error(`${field.label}: enter a valid ${field.type.replaceAll('-', ' ')} value.`);
+    if (Object.hasOwn(bounds, field.id)) {
+      const number = boundedNumber(field, value), [min, max] = bounds[field.id];
+      if (number !== undefined && (number < min || number > max)) throw new Error(`${field.label}: choose a value between ${min} and ${max}${field.type.includes('length') ? 'px (or equivalent)' : field.type === 'time' ? 'ms' : ''}.`);
+    }
   }
   return { schemaVersion: 1, values };
 }
@@ -99,13 +137,23 @@ function readableColour(seed, surfaces, minimum, endpoint) {
 }
 
 /** Resolve editable colour seeds into a coordinated set of readable semantic roles. */
-export function deriveTheme(input) {
+export function deriveTheme(input, { mode } = {}) {
+  if (mode !== undefined && !['light', 'dark'].includes(mode)) throw new Error('Unknown theme color mode.');
   const { values } = validateRecipe(input);
   const tokens = Object.fromEntries(themeFields.map(field => [field.property, values[field.id]]));
+  for (const field of themeFields.filter(field => field.type.includes('length') && Object.hasOwn(bounds, field.id))) {
+    if (boundedNumber(field, values[field.id]) === undefined) {
+      const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
+    }
+  }
   const adjustments = [];
-  const ink = foreground(values.canvas, '#ffffff', '#000000');
+  const nativeInk = foreground(values.canvas, '#ffffff', '#000000');
+  const ink = mode === 'light' ? '#000000' : mode === 'dark' ? '#ffffff' : nativeInk;
   const paper = ink === '#000000' ? '#ffffff' : '#000000';
-  const surface = seed => readableColour(seed, [ink], 7, paper);
+  // Preserve the requested palette in its native mode. The companion keeps a restrained
+  // tint of the same surface seeds; contrast resolution below governs all usable roles.
+  const companionSurface = mix(values.text, paper, .8);
+  const surface = seed => readableColour(nativeInk === ink ? seed : mix(seed, companionSurface, .02), [ink], 7, paper);
   tokens['--ui-surface'] = surface(values.canvas);
   tokens['--ui-surface-raised'] = surface(values.surface);
   tokens['--ui-surface-sunken'] = surface(mix(tokens['--ui-surface-raised'], tokens['--ui-surface'], .92));
@@ -125,13 +173,20 @@ export function deriveTheme(input) {
   for (const tone of Object.keys(tones)) {
     tokens[`--ui-${tone}-subtle-text`] = readableColour(tokens[`--ui-${tone}`], readingSurfaces, 4.5, ink);
   }
-  tokens['--ui-text'] = readableColour(values.text, readingSurfaces, 4.5, ink);
+  const textSeed = nativeInk === ink ? values.text : mix(values.text, ink, .08);
+  tokens['--ui-text'] = readableColour(textSeed, readingSurfaces, 4.5, ink);
   tokens['--ui-text-secondary'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .72), readingSurfaces, 4.5, ink);
   tokens['--ui-text-muted'] = tokens['--ui-text-secondary'];
+  tokens['--ui-selection-surface'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .1);
+  tokens['--ui-selection-text'] = tokens['--ui-accent-subtle-text'];
+  tokens['--ui-selection-border'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .2);
   tokens['--ui-control-surface'] = tokens['--ui-surface-raised'];
   tokens['--ui-control-border'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .43), readingSurfaces, 3, ink);
   tokens['--ui-control-border-hover'] = tokens['--ui-control-border'];
   tokens['--ui-border-strong'] = tokens['--ui-control-border'];
+  tokens['--ui-disabled-text'] = tokens['--ui-text-secondary'];
+  tokens['--ui-disabled-surface'] = tokens['--ui-surface-sunken'];
+  tokens['--ui-disabled-border'] = tokens['--ui-control-border'];
   tokens['--ui-focus-ring'] = readableColour(tokens['--ui-accent'], readingSurfaces, 3, ink);
   tokens['--ui-focus-width'] = 'max(2px, calc(var(--ui-border-width) * 2))';
   tokens['color-scheme'] = ink === '#000000' ? 'light' : 'dark';
@@ -148,6 +203,17 @@ export function themeCSS(input, systemCSS = '', { scope = 'portable' } = {}) {
   const selector = scope === 'documentation'
     ? ':root[data-looma-documentation-theme], :root[data-looma-documentation-theme] [data-theme], :root[data-looma-documentation-theme] [data-contrast]'
     : ':root, [data-theme], [data-contrast]';
-  const { tokens } = deriveTheme(input);
-  return `/* Looma shared semantic theme. */\n${systemCSS}\n${selector} {\n${Object.entries(tokens).map(([name, value]) => `  ${name}: ${value};`).join('\n')}\n}\n@media (prefers-reduced-motion: reduce) {\n  ${selector} { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; --ui-motion-press: 0ms; --ui-press-scale: 1; }\n}\n`;
+  const light = deriveTheme(input, { mode: 'light' }).tokens;
+  const dark = deriveTheme(input, { mode: 'dark' }).tokens;
+  const palette = [], geometry = [];
+  for (const [name, value] of Object.entries(light)) {
+    if (name === 'color-scheme') continue;
+    if (/^#[\da-f]{6}$/i.test(value)) palette.push(`  ${name}: light-dark(${value}, ${dark[name]});`);
+    else geometry.push(`  ${name}: ${value};`);
+  }
+  const geometrySelector = scope === 'documentation' ? ':root[data-looma-documentation-theme]' : ':root';
+  // Resolve colors at their point of use, so a nearer mode boundary wins independently
+  // of the selector specificity needed to restore an early documentation theme.
+  // Keep the first comment stable: the local writer recognizes its generated files by this marker.
+  return `/* Looma shared semantic theme. */\n/* Always includes light and dark.\n   Set data-theme="light" or "dark" on any element to fix that subtree's mode.\n   Leave the root attribute unset to follow the system; a switch can set/remove it. */\n${systemCSS}\n${geometrySelector} {\n${geometry.join('\n')}\n}\n${selector} {\n${palette.join('\n')}\n}\n:root:not([data-theme]) { color-scheme: light dark; }\n[data-theme="light"] { color-scheme: light; }\n[data-theme="dark"] { color-scheme: dark; }\n@media (prefers-reduced-motion: reduce) {\n  ${selector} { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; --ui-motion-press: 0ms; --ui-press-scale: 1; }\n}\n`;
 }
