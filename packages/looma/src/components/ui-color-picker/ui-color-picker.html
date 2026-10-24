@@ -1,0 +1,135 @@
+<link rel="component" href="../ui-input/ui-input.html">
+<template component="ui-color-picker" module="./ui-color-picker.js">
+  <defs>
+    <prop name="value" type="string" default="#000000"
+    >An opaque sRGB colour as six hexadecimal digits prefixed with #. User edits emit input and change with detail.value. Invalid values are ignored. This
+      control does not submit a named form value.</prop>
+    <prop name="name" type="string" default="">The form field name. Leave empty to omit the colour from form submission. A form reset restores value.</prop>
+    <prop name="label" type="string" default="Choose colour">Accessible name for the swatch button and editor.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared control height, matching Input and Button of the same size.</prop>
+    <prop name="round" type="boolean" default="false">Makes the square swatch circular.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents opening and editing.</prop>
+    <event name="input" type="object"><prop name="value" type="string" required></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop></event>
+  </defs>
+  <span>
+    <input $ref="field" type="hidden" data-ui-field-value from:name="$name" from:disabled="$disabled">
+    <button data-ui-field-control $ref="trigger" type="button" from:aria-label="$label" from:disabled="$disabled" aria-haspopup="dialog" aria-expanded="false">
+      <span class="colour" $ref="colour"></span>
+    </button>
+    <span class="editor" $ref="editor" hidden role="dialog" from:aria-label="$label">
+      <label class="channel">Red<input $ref="red" type="range" min="0" max="255" aria-label="Red"></label>
+      <label class="channel">Green<input $ref="green" type="range" min="0" max="255" aria-label="Green"></label>
+      <label class="channel">Blue<input $ref="blue" type="range" min="0" max="255" aria-label="Blue"></label>
+      <ui-input $ref="hex" size="sm" aria-label="Hex colour" maxlength="7" spellcheck="false"></ui-input>
+    </span>
+  </span>
+  <style>
+    :host {
+      display: inline-flex !important;
+      flex: 0 0 auto;
+      margin: 0 !important;
+      padding: 0 !important;
+      --_size: var(--ui-control-size-md);
+      --_font: 1em;
+      --_padding: var(--ui-control-inset-block-md, var(--ui-space-2));
+    }
+    :host([size="sm"]) {
+      --_size: var(--ui-control-size-sm);
+      --_font: var(--ui-font-size-sm);
+      --_padding: var(--ui-control-inset-block-sm, var(--ui-space-1));
+    }
+    :host([size="lg"]) {
+      --_size: var(--ui-control-size-lg);
+      --_font: var(--ui-font-size-md);
+      --_padding: var(--ui-control-inset-block-lg, var(--ui-space-3));
+    }
+    button {
+      --_radius: min(var(--ui-field-radius, var(--ui-radius-md)), calc(var(--_size) / 4));
+      --_inset: min(calc(var(--ui-space-1) * 1.5), calc(var(--_size) / 5));
+      box-sizing: border-box !important;
+      display: inline-grid !important;
+      place-items: center;
+      margin: 0 !important;
+      padding: var(--_inset) !important;
+      inline-size: max(var(--_size), calc(var(--_font) * var(--ui-line-height-tight) + var(--_padding) * 2 + var(--ui-border-width) * 2));
+      aspect-ratio: 1;
+      flex: 0 0 auto;
+      border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
+      border-radius: var(--_radius);
+      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      box-shadow: var(--ui-control-inset);
+      font: inherit;
+      cursor: pointer;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), scale var(--ui-motion-press, var(--ui-motion-fast)) var(--ui-motion-ease);
+    }
+    button:hover:not(:disabled) {
+      background: var(--ui-surface-subtle);
+    }
+    button:active:not(:disabled) {
+      scale: var(--ui-press-scale, 0.96);
+    }
+    button:focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-focus-width);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .colour {
+      display: block !important;
+      inline-size: 100%;
+      block-size: 100%;
+      border-radius: max(0px, calc(var(--_radius) - var(--_inset) - var(--ui-border-width)));
+      box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+    }
+    :host([round]) button {
+      border-radius: 50%;
+    }
+    :host([round]) .colour {
+      border-radius: 50%;
+    }
+    .editor {
+      box-sizing: border-box !important;
+      display: grid !important;
+      gap: var(--ui-space-3) !important;
+      padding: var(--ui-space-4) !important;
+      margin: 0 !important;
+      inline-size: min(18rem, calc(100vw - 1rem));
+      border: var(--ui-border-width) solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-md);
+      background: var(--ui-surface-elevated);
+      color: var(--ui-text-primary);
+      box-shadow: var(--ui-shadow-lg);
+      font: inherit;
+    }
+    .editor[hidden] {
+      display: none !important;
+    }
+    .channel {
+      display: grid !important;
+      grid-template-columns: 3.5em 1fr;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    input[type="range"] {
+      inline-size: 100%;
+      min-inline-size: 0;
+      margin: 0 !important;
+      padding: 0 !important;
+      accent-color: var(--ui-accent-solid);
+    }
+    @media (pointer: coarse) {
+      :host {
+        --_size: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
+      }
+      :host([size="sm"]) {
+        --_size: var(--ui-control-min-block-size);
+        --_font: var(--ui-font-size-md);
+      }
+    }
+  </style>
+</template>

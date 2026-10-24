@@ -27,15 +27,15 @@
       --_reel-item-width: max-content;
       /* Sizes its children from its own box: one row of columns, each the item width, that never
          shrinks to fit, so the reel scrolls once they overflow. */
-      display: grid;
+      display: grid !important;
       grid-auto-flow: column;
       grid-auto-columns: var(--ui-reel-item-width, var(--_reel-item-width));
-      justify-content: start;
+      justify-content: start !important;
       inline-size: 100%;
-      gap: var(--ui-reel-gap, var(--_reel-gap));
+      gap: var(--ui-reel-gap, var(--_reel-gap)) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-      margin: 0;
+      margin: 0 !important;
       overflow-x: auto;
       overflow-y: hidden;
       overscroll-behavior-inline: contain;
@@ -101,7 +101,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

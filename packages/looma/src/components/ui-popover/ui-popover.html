@@ -68,14 +68,14 @@
       --_ui-popover-radius: var(--ui-popover-radius);
       --_ui-popover-shadow: var(--ui-popover-shadow);
       --_ui-popover-padding: var(--ui-popover-padding);
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       max-inline-size: min(
         20rem,
         calc(100vw - var(--ui-popover-viewport-gap, var(--ui-space-2)) * 2)
       );
       max-block-size: calc(100dvh - var(--ui-popover-viewport-gap, var(--ui-space-2)) * 2);
       overflow: visible;
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       outline: 0;
       border-radius: 0;
@@ -84,11 +84,11 @@
     }
 
     .surface {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       max-inline-size: inherit;
       max-block-size: inherit;
       overflow: auto;
-      padding: var(--_ui-popover-padding, var(--ui-space-3));
+      padding: var(--_ui-popover-padding, var(--ui-space-3)) !important;
       background: var(--_ui-popover-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       border: var(--ui-border-width) solid var(--_ui-popover-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-popover-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
@@ -98,20 +98,20 @@
     /* A toolbar or card can supply its own surface, including an unclipped shadow. */
     :host([bare]) .surface {
       overflow: visible;
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       background: transparent;
       box-shadow: none;
     }
 
     :host(:not(:state(internalOpen))) {
-      display: none;
+      display: none !important;
     }
 
     :host[popover] {
       position: fixed;
       inset: auto;
-      margin: 0;
+      margin: 0 !important;
       opacity: 0;
       transform: translateY(-4px) scale(0.99);
       transition:
@@ -147,7 +147,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

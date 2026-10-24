@@ -53,12 +53,19 @@
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
-      --_ui-switch-track-width: var(--ui-switch-track-width);
-      --_ui-switch-track-height: var(--ui-switch-track-height);
+      --_ui-switch-track-width: var(--ui-switch-track-width, var(--ui-choice-track-width));
+      --_ui-switch-track-height: var(--ui-switch-track-height, var(--ui-choice-track-height));
 
-      display: inline-flex;
-      align-items: flex-start;
-      gap: var(--ui-switch-gap, var(--ui-space-2));
+      --_thumb: calc(var(--_ui-switch-track-height) * 2 / 3);
+      --_inset: calc((var(--_ui-switch-track-height) - var(--_thumb)) / 2 - var(--ui-border-width));
+
+      display: inline-flex !important;
+      align-items: flex-start !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      padding: 0 !important;
+      line-height: var(--ui-line-height-md) !important;
+      gap: var(--ui-switch-gap, var(--ui-space-2)) !important;
       max-inline-size: 100%;
       color: var(--ui-text-primary);
       cursor: pointer;
@@ -66,15 +73,21 @@
 
     /* The label, and under it an optional line saying what the choice means. */
     .text {
-      display: flex;
-      flex-direction: column;
-      gap: var(--ui-space-1);
+      font: inherit !important;
+      align-self: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: var(--ui-space-1) !important;
       min-inline-size: 0;
     }
 
     .label {
       min-inline-size: 0;
-      line-height: var(--ui-line-height-md);
+      font: inherit !important;
+      line-height: var(--ui-line-height-md) !important;
+      padding-block: max(0px, calc((var(--_ui-switch-track-height, 1.5rem) - 1lh) / 2)) !important;
     }
 
     .description {
@@ -84,33 +97,36 @@
     }
 
     .description:empty {
-      display: none;
+      display: none !important;
     }
 
     input {
+      font: inherit !important;
+      box-sizing: border-box !important;
+      align-self: auto !important;
       appearance: none;
       -webkit-appearance: none;
       position: relative;
       flex: 0 0 auto;
       width: var(--_ui-switch-track-width, 2.5rem);
       height: var(--_ui-switch-track-height, 1.5rem);
-      padding: 0;
+      padding: 0 !important;
       border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: var(--ui-radius-round);
       background-color: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
       cursor: pointer;
       transition: background-color var(--ui-motion-base) var(--ui-motion-ease), border-color var(--ui-motion-base) var(--ui-motion-ease);
-      margin: 0;
+      margin: max(0px, calc((1lh - var(--_ui-switch-track-height, 1.5rem)) / 2)) 0 0 !important;
     }
 
     input::after {
       content: "";
       position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 1rem;
-      height: 1rem;
+      top: var(--_inset);
+      left: var(--_inset);
+      width: var(--_thumb);
+      height: var(--_thumb);
       border-radius: var(--ui-radius-round);
       background: var(--ui-text-secondary);
       box-shadow: var(--ui-shadow-xs);
@@ -123,7 +139,7 @@
     }
 
     input:checked::after {
-      transform: translateX(1rem);
+      transform: translateX(calc(var(--_ui-switch-track-width) - var(--_ui-switch-track-height)));
       background: var(--ui-text-on-accent);
     }
 
@@ -174,13 +190,7 @@
     :host([size="lg"]) {
       --_line: calc(var(--_font) * var(--ui-line-height-md));
       font-size: var(--_font);
-      padding-block: calc((var(--_row) - var(--ui-switch-track-height, 1.5rem)) / 2);
-    }
-
-    /* The label centres on the track. */
-    :host([size="sm"]) .text,
-    :host([size="lg"]) .text {
-      margin-top: calc((var(--_ui-switch-track-height, 1.5rem) - var(--_line)) / 2);
+      padding-block: max(0px, calc((var(--_row) - max(var(--_line), var(--_ui-switch-track-height, 1.5rem))) / 2)) !important;
     }
 
     @media (pointer: coarse) {
@@ -191,7 +201,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

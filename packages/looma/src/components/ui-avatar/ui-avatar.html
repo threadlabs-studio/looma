@@ -60,7 +60,7 @@
 
     :host {
       --_ui-default-icon-size: 1.25rem;
-      display: inline-grid;
+      display: inline-grid !important;
       place-items: center;
       overflow: hidden;
       inline-size: 2.5rem;
@@ -122,9 +122,9 @@
 
     .fallback {
       grid-area: 1 / 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       inline-size: 100%;
       block-size: 100%;
     }
@@ -134,21 +134,21 @@
      * Trimming applies to block containers, so the box is a block with centred content. */
     @supports (text-box-trim: trim-both) {
       .fallback {
-        display: block;
+        display: block !important;
         text-align: center;
-        align-content: center;
+        align-content: center !important;
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
     }
 
     [hidden] {
-      display: none;
+      display: none !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

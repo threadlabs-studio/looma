@@ -433,7 +433,7 @@ export function createAnchoredSurface(surface, options = {}) {
     positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap, boundary });
   };
   surface.style.position = "fixed";
-  surface.style.margin = "0";
+  surface.style.setProperty("margin", "0", "important");
   // `bare` resets the browser's popover chrome on a surface that has none of its own.
   const presentation = createViewportSurface(surface, { position, bare: options.bare });
   // Resize and scroll events do not report an ancestor's transition or layout shift.

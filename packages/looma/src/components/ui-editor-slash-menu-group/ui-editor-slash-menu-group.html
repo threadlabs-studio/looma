@@ -10,22 +10,22 @@
   </li>
   <style>
     :host {
-      display: block;
+      display: block !important;
       list-style: none;
     }
     .heading {
-      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1);
+      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1) !important;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
     }
     ul {
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       list-style: none;
     }
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

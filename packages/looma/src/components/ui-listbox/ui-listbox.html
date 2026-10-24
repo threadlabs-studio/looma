@@ -101,12 +101,12 @@
 
     :host {
       position: relative;
-      box-sizing: border-box;
-      display: block;
+      box-sizing: border-box !important;
+      display: block !important;
       inline-size: 100%;
       min-inline-size: 0;
-      margin: 0;
-      padding: var(--ui-space-1);
+      margin: 0 !important;
+      padding: var(--ui-space-1) !important;
       border: var(--ui-border-width) solid var(--ui-listbox-border, var(--ui-control-border));
       border-radius: var(--ui-listbox-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-listbox-surface, var(--ui-control-surface));
@@ -119,13 +119,13 @@
 
     /* Its own box around the nested Scroll Area, which it shrinks into so the choices scroll. */
     .choices {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       max-block-size: calc(max(2, var(--_rows, 5)) * var(--ui-control-size-md));
     }
 
     :host:not([data-enhanced]) {
-      padding: 0;
+      padding: 0 !important;
       border: 0;
       background: transparent;
       box-shadow: none;
@@ -133,11 +133,11 @@
 
     :host:not([data-enhanced]) .choices,
     :host[data-enhanced] .fallback {
-      display: none;
+      display: none !important;
     }
 
     .fallback {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       inline-size: 100%;
       font: inherit;
     }
@@ -171,7 +171,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

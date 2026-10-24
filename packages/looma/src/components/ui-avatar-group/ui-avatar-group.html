@@ -40,21 +40,21 @@
        * a white gap out of the avatar underneath. */
       --_overlap-shadow: -1px 0 0 0 rgb(0 0 0 / 0.22);
 
-      display: flex;
-      align-items: center;
-      flex-direction: row;
-      gap: 0;
+      display: flex !important;
+      align-items: center !important;
+      flex-direction: row !important;
+      gap: 0 !important;
     }
 
     /* Overlap and the separating shadow are applied by the controller: slotted avatars are nested
      * component roots outside this style scope. */
     :slotted(*) {
-      margin-inline-start: -0.5rem;
+      margin-inline-start: -0.5rem !important;
       flex-shrink: 0;
     }
 
     :slotted(*:first-child) {
-      margin-inline-start: 0;
+      margin-inline-start: 0 !important;
     }
 
     :host:dir(rtl) {
@@ -62,10 +62,10 @@
     }
 
     .overflow {
-      margin-inline-start: -0.5rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      margin-inline-start: -0.5rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       inline-size: 2.5rem;
       block-size: 2.5rem;
       border-radius: var(--ui-radius-round);
@@ -82,13 +82,13 @@
     }
 
     :host([size="sm"]) .overflow {
-      margin-inline-start: -0.25rem;
+      margin-inline-start: -0.25rem !important;
       inline-size: 1.75rem;
       block-size: 1.75rem;
     }
 
     :host([size="xs"]) .overflow {
-      margin-inline-start: -0.1875rem;
+      margin-inline-start: -0.1875rem !important;
       inline-size: 1.25rem;
       block-size: 1.25rem;
       /* Matches the xs Avatar's initials. */
@@ -97,12 +97,12 @@
     }
 
     .overflow[hidden] {
-      display: none;
+      display: none !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

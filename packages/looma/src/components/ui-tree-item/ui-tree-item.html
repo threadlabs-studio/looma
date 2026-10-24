@@ -154,16 +154,16 @@
       --_tree-disclosure-size: 16px;
 
       position: relative;
-      display: block;
+      display: block !important;
       min-inline-size: 0;
-      margin-inline-start: calc(var(--_ui-tree-item-indent-step, 0) * var(--_ui-tree-indent, 16px));
+      margin-inline-start: calc(var(--_ui-tree-item-indent-step, 0) * var(--_ui-tree-indent, 16px)) !important;
     }
 
     .row {
       position: relative;
-      display: grid;
+      display: grid !important;
       grid-template-columns: var(--_tree-disclosure-size) auto minmax(0, 1fr);
-      align-items: center;
+      align-items: center !important;
       min-block-size: var(--_ui-tree-item-min-block-size, var(--_tree-row-min-height));
       min-inline-size: 0;
       font-size: var(--_ui-tree-item-font-size, var(--ui-font-size-sm));
@@ -232,10 +232,10 @@
     }
 
     .disclosure {
-      display: grid;
+      display: grid !important;
       /* Start-aligned: the chevron's ink, not its hit area, aligns with the content above it. */
       place-items: center start;
-      padding: 0;
+      padding: 0 !important;
       color: var(--ui-text-muted);
       background: transparent;
       border: 0;
@@ -244,11 +244,11 @@
     }
 
     .disclosure[hidden] {
-      display: none;
+      display: none !important;
     }
 
     .selection-hit {
-      display: none;
+      display: none !important;
       grid-column: 2;
       grid-row: 1;
       place-items: center;
@@ -259,7 +259,7 @@
     .selection-checkbox {
       inline-size: 1rem;
       block-size: 1rem;
-      margin: 0;
+      margin: 0 !important;
       accent-color: var(--ui-accent-solid);
     }
 
@@ -267,7 +267,7 @@
       grid-template-columns: var(--_tree-disclosure-size) 1.25rem auto minmax(0, 1fr);
     }
     :host[data-selection-mode="multiple"] > .row > .selection-hit {
-      display: grid;
+      display: grid !important;
     }
     :host[data-selection-mode="multiple"] > .row > .leading {
       grid-column: 3;
@@ -282,7 +282,7 @@
     }
 
     .disclosure-icon {
-      display: grid;
+      display: grid !important;
       place-items: center;
       inline-size: 12px;
       block-size: 12px;
@@ -291,7 +291,7 @@
     }
 
     .disclosure-icon::before {
-      display: block;
+      display: block !important;
       inline-size: 0.375rem;
       block-size: 0.375rem;
       border-inline-end: 1.5px solid currentColor;
@@ -307,20 +307,20 @@
 
     /* Lucide grip-vertical, filling the handle as in Looma 0.2. */
     .drag-handle svg {
-      display: block;
+      display: block !important;
       inline-size: 100%;
       block-size: 100%;
     }
 
     /* Slotted content is outside this scope, so :has() cannot see it; hide only a truly empty slot. */
     .leading {
-      display: inline-grid;
+      display: inline-grid !important;
       place-items: center;
       grid-column: 2;
       grid-row: 1;
       inline-size: 1em;
       block-size: 1em;
-      margin-inline-start: var(--ui-space-1);
+      margin-inline-start: var(--ui-space-1) !important;
       color: var(--ui-text-muted);
       /* Above the label, so a sliding name passes under the icon. */
       position: relative;
@@ -328,13 +328,13 @@
     }
 
     .leading:empty {
-      display: none;
+      display: none !important;
     }
 
     /* Icons match the label's size (as in Knit's tree): an unsized SVG would otherwise render 300×150. */
     :slotted(svg),
     :slotted(img) {
-      display: block;
+      display: block !important;
       inline-size: 1em;
       block-size: 1em;
       flex: none;
@@ -346,22 +346,22 @@
       grid-column: 3;
       grid-row: 1;
       align-self: stretch;
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       min-inline-size: 0;
       /* The cell clips: a name longer than the row slides inside it rather than over its icons. */
       overflow: hidden;
-      padding: var(--_ui-tree-item-label-padding-block, var(--ui-space-1)) var(--_ui-tree-item-label-padding-inline, var(--ui-space-2));
+      padding: var(--_ui-tree-item-label-padding-block, var(--ui-space-1)) var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)) !important;
       /* The length of the fade before the controls. The label's one flex child lays out no gap; this
          is where the controller reads the length in pixels to stop a sliding name before the fade. */
-      column-gap: var(--ui-space-1);
+      column-gap: var(--ui-space-1) !important;
     }
 
     /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
        its own text and reading as overflow. */
     .label-text {
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       /* Stretches, so slotted content can still be the row's full-height hit area. */
       align-self: stretch;
       block-size: 100%;
@@ -416,8 +416,8 @@
        where it was, and fades out across the gap before the icon, fully gone where the icon begins
        to cover it: the name slips under the icon rather than stopping at a hard edge beside it. */
     .row[data-ui-marquee] > .label {
-      margin-inline-start: calc(-1 * var(--_marquee-lead, 0px));
-      padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)));
+      margin-inline-start: calc(-1 * var(--_marquee-lead, 0px)) !important;
+      padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))) !important;
       mask-image: linear-gradient(
         to right,
         transparent var(--_marquee-icon-width, 0px),
@@ -464,8 +464,8 @@
       z-index: 1;
       inset-block: 0;
       inset-inline-end: 0;
-      display: inline-flex;
-      align-items: center;
+      display: inline-flex !important;
+      align-items: center !important;
       min-inline-size: 0;
       opacity: 0;
       pointer-events: none;
@@ -490,7 +490,7 @@
         position: static;
         grid-column: 4;
         grid-row: 1;
-        padding-inline-start: 0;
+        padding-inline-start: 0 !important;
         background: none;
         opacity: 1;
         pointer-events: auto;
@@ -547,9 +547,9 @@
       inset-inline-start: 0;
       inline-size: var(--_tree-disclosure-size);
       block-size: 24px;
-      display: grid;
+      display: grid !important;
       place-items: center;
-      padding: 5px 2px;
+      padding: 5px 2px !important;
       color: var(--ui-text-muted);
       background: transparent;
       border: 0;
@@ -587,7 +587,7 @@
       position: absolute;
       z-index: 3;
       inset-inline: 1px;
-      display: none;
+      display: none !important;
       block-size: var(--ui-accent-line-width);
       border-radius: var(--ui-radius-round);
       background: var(--_ui-tree-drop-color, var(--ui-accent-solid));
@@ -615,17 +615,17 @@
     }
 
     :host[data-drop-position="before"] > .row > .row-drop-indicator {
-      display: block;
+      display: block !important;
       inset-block-start: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     :host[data-drop-position="after"] > .subtree-drop-indicator {
-      display: block;
+      display: block !important;
       inset-block-end: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     .children[hidden] {
-      display: none;
+      display: none !important;
     }
 
     html[data-ui-input-modality="touch"] :host {
@@ -644,7 +644,7 @@
       inset: auto;
       inline-size: 44px;
       block-size: 44px;
-      padding: 14px;
+      padding: 14px !important;
       opacity: 1;
       transform: none;
       cursor: pointer;
@@ -714,7 +714,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

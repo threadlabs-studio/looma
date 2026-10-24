@@ -21,11 +21,11 @@
       --_min: 10rem;
       --_track: var(--_min);
       --_tile-padding: var(--ui-space-3);
-      display: grid;
+      display: grid !important;
       grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
-      gap: var(--_gap) var(--_column-gap);
+      gap: var(--_gap) var(--_column-gap) !important;
       min-inline-size: 0;
-      margin: 0;
+      margin: 0 !important;
     }
 
     /* Stacked, grid, and tiles set each term above its value, passing the shape to the items through
@@ -78,7 +78,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -9,15 +9,15 @@
     /* A layout primitive that centres its content in the space, both ways, with room around it: the
        frame for a view that is one card or one message. */
     :host {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       /* Safe: a child wider than the cover keeps its start edge in view instead of overflowing both ways. */
-      align-items: safe center;
-      justify-content: center;
-      gap: var(--ui-space-6);
-      box-sizing: border-box;
+      align-items: safe center !important;
+      justify-content: center !important;
+      gap: var(--ui-space-6) !important;
+      box-sizing: border-box !important;
       min-block-size: 100dvh;
-      padding: var(--ui-space-6) var(--ui-space-4);
+      padding: var(--ui-space-6) var(--ui-space-4) !important;
     }
 
     :host([size="fill"]) {
@@ -27,7 +27,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>
