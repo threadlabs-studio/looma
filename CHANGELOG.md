@@ -5,7 +5,7 @@
 ### Documentation workspaces and control polish
 
 - Customize uses its Starting point, Palette and Material controls as its sidebar. Detailed decisions, example selection and export tools open on demand; the Editor playground also leaves out documentation navigation while editor reference pages keep their own section.
-- Shared catalog cards use Stack spacing for their content and the directory groups. Separator examples use Stack and Cluster spacing rather than adding component margins.
+- Shared catalog cards use Stack spacing for their content and the directory groups. Keep the directory's cards inside Grid through Markdown rendering, restoring columns and gaps. Separator examples use Stack and Cluster spacing rather than adding component margins.
 - Vertical wheel gestures over Tabs scroll the page instead of being captured by the tab strip. Horizontal gestures retain native strip scrolling.
 - Keep Tooltip arrow shoulders level by scaling after rotation, in both native HTML and generated Vue.
 - Reel examples have enough items to show meaningful overflow and use native item wrappers for scroll snapping without reaching into component roots.
