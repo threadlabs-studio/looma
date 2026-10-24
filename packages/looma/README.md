@@ -58,3 +58,18 @@ stylesheet is the only stylesheet to include. Without a build, link components o
 Components read design tokens (`--ui-*` custom properties) from `tokens.css` and a theme
 (`theme-light.css`, `theme-dark.css`, `theme-high-contrast.css`), and each exposes its own
 `--ui-<component>-*` properties. Set them on the component or any ancestor.
+
+
+## Weave your design system
+
+The package includes the documentation generator and theme customizer used by Looma's public site. Browse real component cards, generate a theme from shared semantic decisions, and document your own HTML Next components beside Looma's.
+
+Install the optional documentation tools, then initialize your project:
+
+```sh
+pnpm add -D markupress @nextwebwg/htmlkit@1.0.0-alpha.69 vite
+pnpm exec looma-docs init
+pnpm exec looma-docs dev
+```
+
+The local editor saves `looma.theme.json` and generated `looma.theme.css`; import that CSS in your application. Static builds offer CSS and recipe downloads. See the [design-system guide](https://threadlabs.studio/looma/design-system/) for configuration, discovery, saving and recovery. Programmatic tooling is available through `@threadlabs/looma/docs`.

@@ -1,0 +1,4 @@
+{
+  "description": "Keep choices visible in a styled list. A selected choice stays visible; in `multiple` mode, each row uses the same checkmark treatment as Combobox suggestions. Click to choose, use arrow keys to move, and press Space to toggle a multiple choice.",
+  "group": "forms"
+}

@@ -1,0 +1,4 @@
+{
+  "description": "The editor's form for adding or editing a link: a destination field, its search results or Open in new tab, and the link's text when there is none yet.",
+  "group": "editor"
+}

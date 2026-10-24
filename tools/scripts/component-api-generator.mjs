@@ -481,11 +481,23 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
   };
 }
 
+/** Release policy stays separate from documentation authored beside each component. */
+export async function readDocumentationClassifications() {
+  const release = JSON.parse(await readFile(path.join(repoRoot, RELEASE_CLASSIFICATION_PATH), "utf8"));
+  const root = path.join(repoRoot, "packages/looma/src/components");
+  const { groups } = JSON.parse(await readFile(path.join(root, "docs.json"), "utf8"));
+  const entries = await Promise.all(Object.entries(release.tags).map(async ([tag, status]) => {
+    let docs = {};
+    try { docs = JSON.parse(await readFile(path.join(root, tag, "docs.json"), "utf8")); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    return [tag, { ...(typeof status === "string" ? { status } : status), ...docs }];
+  }));
+  return { groups, tags: Object.fromEntries(entries) };
+}
+
 export async function generateComponentApiMetadata() {
   validateBooleanDefaultPolicy();
-  const classificationsDocument = JSON.parse(
-    await readFile(path.join(repoRoot, RELEASE_CLASSIFICATION_PATH), "utf8"),
-  );
+  const classificationsDocument = await readDocumentationClassifications();
   const classifications = classificationsDocument.tags ?? {};
   const groups = classificationsDocument.groups ?? [];
   const componentEntries = CONTRACT_GROUPS.flatMap((group) =>

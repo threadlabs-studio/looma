@@ -65,7 +65,7 @@ jobs:
           last_release="$(git tag --list 'v*' --sort=-v:refname | head -n 1)"
           if [ -n "$last_release" ] && git rev-parse -q --verify "$last_release" > /dev/null; then
             # Only the package's own sources: the release commit itself touches versions alone.
-            changed="$(git diff --name-only "$last_release"..HEAD -- packages/looma/src packages/looma/build.mjs | wc -l)"
+            changed="$(git diff --name-only "$last_release"..HEAD -- packages/looma/src packages/looma/tooling/docs packages/looma/bin packages/looma/build.mjs tools/scripts/build-docs-catalog.mjs tools/scripts/component-api-generator.mjs | wc -l)"
             # The manifest counts too (a dependency or peer range is part of what ships), but only
             # outside its version, which the release commit stamps.
             manifest='const strip = (text) => { const value = JSON.parse(text); delete value.version; return JSON.stringify(value); }; const [a, b] = process.argv.slice(1); process.exit(strip(a) === strip(b) ? 0 : 1);'

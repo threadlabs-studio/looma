@@ -1,0 +1,19 @@
+<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-cluster/ui-cluster.html">
+<link rel="component" href="@threadlabs/looma/components/ui-avatar/ui-avatar.html">
+<link rel="component" href="@threadlabs/looma/components/ui-badge/ui-badge.html">
+<link rel="component" href="@threadlabs/looma/components/ui-checkbox/ui-checkbox.html">
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<link rel="component" href="@threadlabs/looma/components/ui-meter/ui-meter.html">
+<template component="looma-home-demo">
+  <defs></defs>
+  <ui-card variant="elevated" padding="lg"><ui-stack gap="l">
+    <ui-cluster justify="between"><strong>The Fellowship office</strong><ui-badge tone="success" variant="subtle">On track</ui-badge></ui-cluster>
+    <div><h2>The quarterly journey</h2><p>One small team. A rather large delivery.</p></div>
+    <ui-cluster><ui-avatar name="Frodo Baggins" fallback="FB"></ui-avatar><ui-avatar name="Samwise Gamgee" fallback="SG"></ui-avatar><ui-avatar name="Sméagol" fallback="S"></ui-avatar></ui-cluster>
+    <ui-meter value="64" max="100" label="Journey progress" value-text="64 percent of the journey complete"></ui-meter>
+    <ui-stack><ui-checkbox checked>Sam booked second breakfast</ui-checkbox><ui-checkbox>Frodo sent the journey report</ui-checkbox><ui-checkbox>Sméagol returned the office key</ui-checkbox></ui-stack>
+    <ui-cluster justify="end"><ui-button as="a" href="/components/" variant="solid">Explore the components</ui-button></ui-cluster>
+  </ui-stack></ui-card>
+</template>

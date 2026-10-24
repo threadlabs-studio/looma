@@ -5,6 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { verifyDocumentationConsumer } from "./verify-docs-consumer.mjs";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const facadeRoot = path.join(repoRoot, "packages/looma");
 const releaseConsumerRoot = path.join(repoRoot, "tests/release/consumer");
@@ -92,7 +94,7 @@ async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
   assert.equal(installed.name, "@threadlabs/looma");
   await assertPackagesAbsent(
     directory,
-    ["vue", "valibot", "@tiptap/core", "prosemirror-tables"],
+    ["vue", "valibot", "@tiptap/core", "prosemirror-tables", "markupress", "@nextwebwg/htmlkit", "vite"],
     "a core-only consumer",
   );
 }
@@ -239,6 +241,7 @@ async function main() {
     await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
     await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
     await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
+    await verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest);
     console.log("Packed Looma facade consumer matrix passed");
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

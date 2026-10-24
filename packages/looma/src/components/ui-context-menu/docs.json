@@ -1,0 +1,4 @@
+{
+  "description": "Action menu that opens where its target is context-clicked: right-click, touch long-press, or Shift+F10 / the Menu key on the focused target. A plain click does nothing; for a button that opens a menu, use [Menu](/components/ui-menu/).",
+  "group": "overlay"
+}

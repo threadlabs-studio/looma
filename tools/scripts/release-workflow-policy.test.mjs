@@ -84,8 +84,9 @@ test("docs deploy to Pages after CI passes on main", () => {
   afterGreenMain(docsWorkflow);
   assert.match(docsWorkflow, /pages: write/);
   const packageBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma build");
-  const docsBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma-docs build");
+  const docsBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma-docs-next build");
   assert.ok(packageBuild >= 0 && docsBuild > packageBuild, "docs must build the package first");
+  assert.match(docsWorkflow, /path: apps\/docs-next\/site/);
   assert.match(docsWorkflow, /actions\/deploy-pages@/);
 });
 
@@ -115,4 +116,12 @@ test("workflows pin actions to commits and disable checkout credentials", () => 
     const pushes = [...source.matchAll(/git push origin/g)].length;
     assert.equal(withoutCredentials + pushes, checkouts);
   }
+});
+
+// Installers link commands before the package build creates ignored output.
+test("documentation command exists in a clean source checkout before building", async () => {
+  const manifest = JSON.parse(await read("packages/looma/package.json"));
+  const launcher = `packages/looma/${manifest.bin["looma-docs"].replace(/^\.\//, "")}`;
+  execFileSync("git", ["ls-files", "--error-unmatch", launcher], { cwd: repoRoot, stdio: "ignore" });
+  assert.match(await read(launcher), /^#!\/usr\/bin\/env node/);
 });

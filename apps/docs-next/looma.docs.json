@@ -1,0 +1,21 @@
+{
+  "title": "Looma",
+  "base": "/looma/",
+  "origin": "https://threadlabs.studio",
+  "outDir": "site",
+  "content": "docs",
+  "nav": [
+    {
+      "label": "Customize",
+      "href": "/customize/"
+    },
+    {
+      "label": "Get started",
+      "href": "/getting-started/"
+    },
+    {
+      "label": "GitHub",
+      "href": "https://github.com/threadlabs-studio/looma"
+    }
+  ]
+}

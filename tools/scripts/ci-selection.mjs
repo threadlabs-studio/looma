@@ -9,8 +9,9 @@ const componentOf = (file) => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//
 const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|packages\/looma\/(?:build\.mjs|package\.json|tsconfig[^/]*|src\/(?:tokens\/|env\.d\.ts))|tools\/(?:tsconfig\/|style-source-allowlist\.json|scripts\/style-source-policy\.mjs))/.test(file);
 // The catalog generator rewrites a checked-in source file; that file's change selects its tests.
 const buildTool = (file) => /^tools\/(?:style-source-allowlist\.json|scripts\/(?:style-source-policy|generate-code-language-catalog)\.mjs)$/.test(file);
-const docsTool = (file) => /^tools\/scripts\/(?:generate-component-api|component-api-generator|docs-coverage)\.mjs$/.test(file);
-const releaseTool = (file) => /^tools\/scripts\/(?:verify-packages|verify-facade-consumer|release-config|create-release-manifest|managed-process)\.mjs$/.test(file);
+const docsMetadata = (file) => /^packages\/looma\/src\/components\/(?:ui-[\w-]+\/)?docs\.json$/.test(file);
+const docsTool = (file) => docsMetadata(file) || file === "packages/looma/bin/looma-docs.mjs" || /^packages\/looma\/tooling\/docs\//.test(file) || /^tools\/scripts\/(?:generate-component-api|component-api-generator|build-docs-catalog|docs-coverage)\.mjs$/.test(file);
+const releaseTool = (file) => /^tools\/scripts\/(?:verify-packages|verify-facade-consumer|verify-docs-consumer|release-config|create-release-manifest|managed-process)\.mjs$/.test(file);
 const ciRecipe = (file) => /^\.github\/workflows\/(?:ci|docs-parity)\.yml$|^tools\/scripts\/ci-(?:selection|qualification)\.mjs$/.test(file);
 const componentNames = (tag) => [tag, tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(""), "Ui" + tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join("")];
 const references = (source, tag) => componentNames(tag).some((name) => new RegExp(`(?<![\\w-])${escape(name)}(?![\\w-])`).test(source));
@@ -133,6 +134,10 @@ export function selectChecks(files, changes, hunks = {}) {
   const browserConfig = changes.includes("packages/looma/vitest.browser.config.ts");
   const packageTests = {}, scripts = new Set();
   for (const file of changes) {
+    if (docsMetadata(file) || file === "packages/looma/bin/looma-docs.mjs" || /^packages\/looma\/tooling\/docs\//.test(file)) {
+      for (const test of Object.keys(files)) if (/^packages\/looma\/tooling\/docs\/.*\.test\.mjs$/.test(test)) scripts.add(test);
+      continue;
+    }
     if (componentOf(file) || globalInput(file) || /^packages\/looma\/(?:src\/(?:editor|vue|markdown)\/|markdown-fixtures\/|src\/components\/shared\/|tests\/|vitest)/.test(file)) continue;
     if (/^tools\/scripts\//.test(file)) {
       let owned = false;
@@ -218,7 +223,7 @@ export function automaticChecks(files, changes, hunks = {}) {
     (browserTests[entry.file] ??= []).push(entry.name);
     instances += entry.weight;
   }
-  const packageConsumer = selection.source || changes.some(releaseTool) || changes.some(file => file.startsWith("tests/release/"));
+  const packageConsumer = selection.source || changes.some(docsTool) || changes.some(releaseTool) || changes.some(file => file.startsWith("tests/release/"));
   // Only documentation changes build the docs in PRs. Package behavior is tested at its owner.
   // apps/docs-next is compared with apps/docs, so a change to either builds both.
   const docsBuild = selection.full || changes.some(file => /^apps\/docs(?:-next)?\//.test(file) || file.includes("/examples/") || docsTool(file));

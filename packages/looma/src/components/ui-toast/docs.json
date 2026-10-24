@@ -1,0 +1,4 @@
+{
+  "description": "Author a toast inside Toast Region when its message has a tone, rich content, or an action.",
+  "navigationParent": "ui-toast-region"
+}
