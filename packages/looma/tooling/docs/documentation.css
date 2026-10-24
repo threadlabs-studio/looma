@@ -1,0 +1,8 @@
+/* Documentation presentation owns only its native preview frame and code overflow. Controls use Looma. */
+[data-example-card] iframe { display: block; max-inline-size: 100%; border: 0; background: transparent; }
+[data-example-card] pre { overflow: auto; }
+/* The customizer is an application page; use Markupress's public width token instead of patching its layout. */
+:root:has([data-looma-customizer]), :root:has([data-component-card]) { --markupress-content-width: 110rem; }
+body:has([data-preview]) { background: var(--ui-surface); color: var(--ui-text); font-family: var(--ui-font-sans); font-size: var(--ui-font-size); line-height: var(--ui-line-height); }
+[data-preview] { display: grid; place-items: center; gap: var(--ui-space-4); min-block-size: 13rem; padding: 1.35rem; box-sizing: border-box; }
+body:has([data-preview]) { margin: 0; background: linear-gradient(90deg, rgb(43 37 56 / .035) 1px, transparent 1px), linear-gradient(rgb(43 37 56 / .035) 1px, transparent 1px), color-mix(in srgb, var(--ui-accent) 5%, var(--ui-surface)); background-size: 22px 22px; }

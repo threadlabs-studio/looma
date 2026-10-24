@@ -255,3 +255,12 @@ test("the Expressive adapter has explicit editor, consumer and documentation own
     assert.equal(automaticChecks(graph, [file]).packageConsumer, true, file);
   }
 });
+
+test('published documentation tooling selects its fixtures, docs and installed-package qualification', () => {
+  const graph = { ...files, 'packages/looma/tooling/docs/theme.mjs': 'export const theme = 1;', 'packages/looma/tooling/docs/theme.test.mjs': 'import { theme } from "./theme.mjs";' };
+  const selected = automaticChecks(graph, ['packages/looma/tooling/docs/theme.mjs']);
+  assert.equal(selected.full, false);
+  assert.equal(selected.docsBuild, true);
+  assert.equal(selected.packageConsumer, true);
+  assert.ok(selected.scripts.includes('packages/looma/tooling/docs/theme.test.mjs'));
+});

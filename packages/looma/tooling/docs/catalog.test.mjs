@@ -35,6 +35,10 @@ test('merge rejects duplicate tags, conflicting categories and missing compound 
   assert.throws(() => mergeCatalogs([core, catalog, { ...catalog, package: 'b', components: [{ ...component, id: 'b/acme-status', package: 'b' }] }]), /Duplicate.*acme-status.*a\/acme-status.*b\/acme-status/i);
   assert.throws(() => mergeCatalogs([core, { ...catalog, groups: [{ id: 'display', label: 'Widgets' }] }]), /category.*display/i);
   assert.throws(() => mergeCatalogs([core, { ...catalog, components: [{ ...component, navigationParent: 'missing' }] }]), /parent.*missing/i);
+  assert.throws(() => mergeCatalogs([core, { ...catalog, components: [{ ...component, navigationParent: component.tag }] }]), /parent cycle/i);
+  assert.throws(() => mergeCatalogs([core, { ...catalog, components: [{ ...component, tag: '../../../outside' }] }]), /invalid component tag/i);
+  const example = { id: 'a/acme-status/default', markup: '<acme-status></acme-status>' };
+  assert.throws(() => mergeCatalogs([core, { ...catalog, components: [{ ...component, examples: [example, example] }] }]), /duplicate example/i);
 });
 
 test('published catalog contains portable resources, authored APIs and browser-ready behavior', async () => {

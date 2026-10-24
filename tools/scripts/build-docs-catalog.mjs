@@ -34,7 +34,13 @@ export async function buildDocsCatalog() {
     entries.push({ ...api, id, title: titleOf(api.tag), resource: `${api.package}/components/${api.tag}/${api.tag}.html`, targets: ['html-next', 'vue'], examples });
   }
   const manifest = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
-  const catalog = { schemaVersion: 1, package: manifest.name, version: manifest.version, groups, components: entries };
+  const resources = [];
+  for (const tag of await readdir(path.join(packageRoot, 'src/components'))) {
+    try { await readFile(path.join(packageRoot, 'src/components', tag, `${tag}.html`)); }
+    catch (error) { if (['ENOENT', 'ENOTDIR'].includes(error.code)) continue; throw error; }
+    resources.push({ tag, package: manifest.name, resource: `${manifest.name}/components/${tag}/${tag}.html` });
+  }
+  const catalog = { resources, schemaVersion: 1, package: manifest.name, version: manifest.version, groups, components: entries };
   await writeFile(path.join(output, 'catalog.json'), JSON.stringify(catalog, null, 2) + '\n');
   return catalog;
 }

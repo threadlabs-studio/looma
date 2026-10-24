@@ -85,7 +85,12 @@
     },
     "./theme-system.css": "./theme-system.css",
     "./docs/catalog.json": "./docs/catalog.json",
-    "./docs/*": "./docs/*"
+    "./docs/*": "./docs/*",
+    "./docs": {
+      "types": "./docs/index.d.ts",
+      "import": "./docs/index.mjs",
+      "default": "./docs/index.mjs"
+    }
   },
   "files": [
     "dist/",
@@ -127,7 +132,10 @@
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
-    "vue": "^3.5.43"
+    "vue": "^3.5.43",
+    "markupress": "^0.8.0",
+    "@nextwebwg/htmlkit": "1.0.0-alpha.69",
+    "vite": "^8.3.4"
   },
   "peerDependenciesMeta": {
     "@tiptap/core": {
@@ -140,6 +148,15 @@
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "markupress": {
+      "optional": true
+    },
+    "@nextwebwg/htmlkit": {
+      "optional": true
+    },
+    "vite": {
       "optional": true
     }
   },
@@ -194,5 +211,8 @@
   },
   "engines": {
     "node": ">=22.22.2 <23 || >=24.15 <25"
+  },
+  "bin": {
+    "looma-docs": "./docs/cli.mjs"
   }
 }
