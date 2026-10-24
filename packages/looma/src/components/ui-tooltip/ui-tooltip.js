@@ -160,7 +160,7 @@ export function connect(host) {
       attach();
     }
     surface?.destroy();
-    surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement, gap: offset });
+    surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement, gap: offset, materialRole: "tooltip" });
   };
   const close = (reason, input) => {
     if (reason !== "escape" && reason !== "light-dismiss" && reason !== "programmatic") return;

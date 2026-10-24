@@ -1,0 +1,31 @@
+<link rel="component" href="../ui-number-input/ui-number-input.html">
+<template component="ui-slider" module="./ui-slider.js">
+  <defs>
+    <state name="current" type="number" from="$value"></state>
+    <prop name="value" type="number" default="0">Current numeric value. Native range and exact entry share bounds.</prop>
+    <prop name="min" type="number" default="0">Inclusive lower bound.</prop>
+    <prop name="max" type="number" default="100">Inclusive upper bound.</prop>
+    <prop name="step" type="number" default="1">Positive native range and exact entry increment.</prop>
+    <prop name="unit" type="string" default="">Unit shown by the exact editor.</prop>
+    <prop name="name" type="string" default="">Optional numeric form field name.</prop>
+    <prop name="label" type="string" default="Value">Accessible name for the editing control.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and button height.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing.</prop>
+    <event name="input" type="object"><prop name="value" type="number" required></prop></event>
+    <event name="change" type="object"><prop name="value" type="number" required></prop></event>
+  </defs>
+  <span>
+    <input $ref="range" type="range" data-ui-field-control from:aria-label="$label" from:value="$value" from:min="$min" from:max="$max" from:step="$step" from:disabled="$disabled" from:name="$name">
+    <ui-number-input $ref="exact" from:value="concat($current, $unit)" from:unit="$unit" from:min="$min" from:max="$max" from:step="$step" from:size="$size" from:disabled="$disabled" from:label="$label"></ui-number-input>
+  </span>
+  <style>
+    :host { display: grid !important; grid-template-columns: minmax(4rem, 1fr) minmax(8rem, 1fr) !important; align-items: center !important; gap: var(--ui-space-2) !important; margin: 0 !important; padding: 0 !important; min-inline-size: 0; }
+    input { inline-size: 100%; min-inline-size: 0; min-block-size: var(--ui-control-size-md); margin: 0 !important; accent-color: var(--ui-accent-solid); cursor: pointer; }
+    :host([size="sm"]) input { min-block-size: var(--ui-control-size-sm); }
+    :host([size="lg"]) input { min-block-size: var(--ui-control-size-lg); }
+    input:focus-visible { outline: var(--ui-focus-width) solid var(--ui-control-focus, var(--ui-accent-solid)); outline-offset: var(--ui-space-1); border-radius: var(--ui-radius-sm); }
+    input:disabled { cursor: not-allowed; }
+    @media (pointer: coarse) { input { min-block-size: max(var(--ui-control-size-md), var(--ui-control-min-block-size)); } }
+    :host[hidden] { display: none !important; }
+  </style>
+</template>

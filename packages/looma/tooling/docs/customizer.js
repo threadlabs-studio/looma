@@ -1,3 +1,4 @@
+import { documentationTheme } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
 import { startingPoints, startingPointFor, themeCSS, validateRecipe } from './theme.mjs';
 
@@ -8,8 +9,9 @@ export function connect(host) {
   const view = document.defaultView;
   const message = root.querySelector('[data-message]');
   const file = root.querySelector('[data-recipe-file]');
-  let recipe = validateRecipe(JSON.parse(root.dataset.recipe));
-  let saved = structuredClone(recipe);
+  const theme = documentationTheme(view);
+  let saved = validateRecipe(JSON.parse(root.dataset.recipe));
+  let recipe = theme?.recipe ?? structuredClone(saved);
   let revision = root.dataset.revision;
   let capability;
   let changed = false;
@@ -20,27 +22,42 @@ export function connect(host) {
   const updateControl = (element, value) => componentRegistry.update(element, { value });
   const paint = () => {
     const css = themeCSS(recipe);
-    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
+    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css: theme?.css ?? css } }));
     updateControl(root.querySelector('[data-css]'), css);
   };
-  const show = next => {
+  const show = (next, persist = true) => {
     recipe = validateRecipe(next);
+    if (persist) theme?.apply(recipe);
     for (const control of root.querySelectorAll('[data-token]')) updateControl(control, recipe.values[control.dataset.token]);
     updateControl(root.querySelector('[data-preset]'), startingPointFor(recipe));
     changed = JSON.stringify(recipe) !== JSON.stringify(saved);
     paint();
   };
+  const filterExamples = () => {
+    const words = root.querySelector('[data-example-query]').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+    const select = root.querySelector('[data-add-example]');
+    const options = [...select.options];
+    for (const option of options) option.hidden = !words.every(word => option.dataset.search.includes(word));
+    for (const group of select.querySelectorAll('optgroup')) group.hidden = [...group.children].every(option => option.hidden);
+    if (select.selectedOptions[0]?.hidden) select.value = options.find(option => !option.hidden)?.value ?? '';
+    for (const card of root.querySelectorAll('[data-example-card]')) card.closest('section').hidden = !words.every(word => card.textContent.toLocaleLowerCase().includes(word) || card.dataset.componentCard.includes(word));
+    const matches = options.filter(option => !option.hidden).length;
+    root.querySelector('[data-example-count]').textContent = matches ? `${matches} matching examples` : 'No examples match. Try another name or purpose.';
+    componentRegistry.update(root.querySelector('[data-action="add"]'), { disabled: matches === 0 });
+  };
   const input = event => {
+    if (event.target.matches('[data-example-query]')) { filterExamples(); return; }
     const control = event.target.closest?.('[data-token]');
     if (!control) return;
     const value = event.detail?.value ?? control.value;
     const next = { schemaVersion: 1, values: { ...recipe.values, [control.dataset.token]: value } };
     try {
-      recipe = validateRecipe(next); changed = true;
+      recipe = validateRecipe(next);
+      theme?.apply(recipe); changed = true;
       updateControl(root.querySelector('[data-preset]'), startingPointFor(recipe));
       control.removeAttribute('aria-invalid');
       for (const sibling of root.querySelectorAll('[data-token]')) if (sibling !== control && sibling.dataset.token === control.dataset.token) updateControl(sibling, value);
-      paint(); say('Unsaved preview. Download the theme or save it to your repository.');
+      paint(); say('Theme remembered in this browser. Download it or save it to your repository.');
     } catch (error) { control.setAttribute('aria-invalid', 'true'); say(error.message, true); }
   };
   const download = (data, name, type) => {
@@ -59,7 +76,7 @@ export function connect(host) {
           const selected = JSON.parse(option.dataset.example);
           const card = Object.fromEntries(['id','title','description','exampleTitle','src','resizable','category','tag','nativeRoot','href','packageName'].map(key => [key, selected[key]]));
           if (!host.state.cards.some(item => item.id === card.id)) host.state.cards = [...host.state.cards, card];
-          view.requestAnimationFrame(paint); break;
+          view.requestAnimationFrame(() => { paint(); filterExamples(); }); break;
         }
         case 'css': {
           const response = await fetch(root.dataset.base + '_looma/theme-system.css', { signal: abort.signal });
@@ -68,7 +85,7 @@ export function connect(host) {
         }
         case 'recipe': download(JSON.stringify(recipe, null, 2) + '\n', 'looma.theme.json', 'application/json'); say('Editable recipe downloaded.'); break;
         case 'import': file.click(); break;
-        case 'reset': show(structuredClone(saved)); say('Returned to the saved theme.'); break;
+        case 'reset': show(theme?.reset() ?? structuredClone(saved), false); say('Browser customization reset to the saved theme.'); break;
         case 'save': {
           if (!capability) throw new Error('Repository saving is available only in the local documentation server.');
           const submitted = structuredClone(recipe);
@@ -77,7 +94,7 @@ export function connect(host) {
           const response = await fetch(root.dataset.base + '_looma/theme', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Looma-Capability': capability }, body: JSON.stringify({ recipe: submitted, revision }), signal: abort.signal });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error ?? 'Could not save this theme.');
-          revision = result.revision; saved = submitted;
+          revision = result.revision; saved = submitted; theme?.baseline(saved);
           changed = JSON.stringify(recipe) !== JSON.stringify(saved);
           if (changed) { say('Saved the submitted theme. Your newer edits are still an unsaved preview.'); break; }
           say('Saved to your repository. Reloading your design system…');
@@ -88,9 +105,9 @@ export function connect(host) {
     finally { if (button.dataset.action === 'save') saving = false; }
   };
   const change = async event => {
-    if (event.target.matches('[data-preset]')) { show(structuredClone(startingPoints[event.target.value])); say('Starting point applied to every preview card.'); }
+    if (event.target.matches('[data-preset]')) { show(structuredClone(startingPoints[event.target.value])); say('Starting point applied throughout the documentation and remembered in this browser.'); }
     if (event.target === file && file.files[0]) {
-      try { show(JSON.parse(await file.files[0].text())); say('Recipe imported as an unsaved preview.'); }
+      try { show(JSON.parse(await file.files[0].text())); say('Recipe applied throughout the documentation and remembered in this browser.'); }
       catch (error) { say(error.message, true); }
       file.value = '';
     }
@@ -104,13 +121,14 @@ export function connect(host) {
   root.addEventListener('change', change);
   root.addEventListener('click', click);
   view.addEventListener('message', ready);
-  paint();
+  show(recipe, false); filterExamples();
   if (root.dataset.mode === 'local') {
     fetch(root.dataset.base + '_looma/session', { signal: abort.signal }).then(async response => {
       if (!response.ok) throw new Error('Local theme saving is unavailable.');
-      const session = await response.json(); if (!alive) return;
-      capability = session.capability;
-      if (!changed) { saved = validateRecipe(session.recipe); revision = session.revision; show(saved); }
+      const local = await response.json(); if (!alive) return;
+      capability = local.capability;
+      saved = validateRecipe(local.recipe); revision = local.revision; theme?.baseline(saved);
+      if (!changed && !theme?.hasOverride) show(saved, false);
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }

@@ -1,4 +1,5 @@
-import { closeDialog, closeOverlay, createIdResolver, openOverlay, requestTopOverlayClose, showDialog } from "../shared/overlay.js";
+import { updateSurfaceMaterial } from "../shared/surface-material.js";
+import { closeDialog, closeOverlay, createIdResolver, openOverlay, observeOverlayViewport, requestTopOverlayClose, showDialog } from "../shared/overlay.js";
 
 function inferredLabel(element, explicit) {
   if (String(explicit ?? "").trim()) return String(explicit).trim();
@@ -18,6 +19,7 @@ function observeContentHeight(dialog, refs) {
   };
   const observer = new owner.ResizeObserver(() => {
     if (!dialog.open) { reset(); return; }
+    updateSurfaceMaterial(dialog, "dialog");
     const previous = animation ? parseFloat(owner.getComputedStyle(dialog).height) : lastHeight;
     animation?.cancel();
     animation = null;
@@ -63,6 +65,7 @@ export function connect(host) {
   let lastFor = "";
   let lastExternalOpen = Boolean(host.props.open.value);
   let lastOpen;
+  let stopMaterialViewport = null;
   host.state.internalOpen = lastExternalOpen;
 
   const requestClose = (reason, input) => {
@@ -126,9 +129,13 @@ export function connect(host) {
     dialog.setAttribute("closedby", closedBy);
     if (open) {
       showDialog(dialog, modal);
+      updateSurfaceMaterial(dialog, "dialog");
+      stopMaterialViewport ??= observeOverlayViewport(document, () => updateSurfaceMaterial(dialog, "dialog"));
       openOverlay({ id: overlayId, modal, element, modalElement: dialog, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
     } else {
       resize.reset();
+      stopMaterialViewport?.();
+      stopMaterialViewport = null;
       closeDialog(dialog);
       closeOverlay(document, overlayId);
     }
@@ -176,6 +183,7 @@ export function connect(host) {
     ids.stop();
     observer.disconnect();
     resize.destroy();
+    stopMaterialViewport?.();
     dialog?.removeEventListener("close", onClose, true);
     dialog?.removeEventListener("cancel", onCancel);
     closeButton?.removeEventListener("click", onCloseClick);
