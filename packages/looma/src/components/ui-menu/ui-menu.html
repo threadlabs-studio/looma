@@ -84,6 +84,7 @@
     }
 
     :host {
+      --_ui-material-scale: 0.28;
       --_ui-menu-surface: var(--ui-menu-surface);
       --_ui-menu-border: var(--ui-menu-border);
       --_ui-menu-radius: var(--ui-menu-radius);
@@ -123,6 +124,65 @@
       box-shadow: var(--_ui-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       max-block-size: inherit;
       overflow: auto;
+    }
+
+    /* Purpose and measured size shape one shared separation lever. The content plane stays opaque;
+       transparency, saturation and edge light belong to the surrounding decorative material. */
+    :host:not([inline]) .surface {
+      --_ui-material-glassiness: clamp(0, var(--ui-glassiness, 0), 1);
+      --_ui-material-separation: clamp(0, var(--ui-surface-separation, 0), 1);
+      --_ui-material-active: clamp(0, calc((var(--_ui-material-glassiness) + var(--_ui-material-separation)) * 100000), 1);
+      --_ui-material-rim: calc((var(--_ui-material-separation) + var(--_ui-material-glassiness) * 0.25) * var(--_ui-material-scale, 0.28) * 8px);
+      --_ui-material-content-color: var(--_ui-menu-surface, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))));
+      --_ui-material-rim-color: color-mix(in srgb, var(--ui-material-glass, var(--ui-surface-elevated)) calc(var(--_ui-material-active) * 100%), transparent);
+      background:
+        linear-gradient(var(--_ui-material-content-color), var(--_ui-material-content-color)) padding-box,
+        linear-gradient(var(--_ui-material-rim-color), var(--_ui-material-rim-color)) border-box,
+        var(--_ui-material-content-color) padding-box;
+      border-width: calc(var(--ui-border-width) + var(--_ui-material-rim));
+      border-color: var(
+        --_ui-menu-border,
+        color-mix(in oklab, var(--ui-overlay-border, var(--ui-border-strong)) calc((1 - var(--_ui-material-active)) * 100%), transparent)
+      );
+      box-shadow: var(
+        --_ui-menu-shadow,
+        var(
+          --ui-overlay-shadow,
+          0 calc(var(--_ui-material-separation) * var(--_ui-material-scale, 0.28) * 8px) calc(
+            var(--_ui-material-separation) * var(--_ui-material-scale, 0.28) * 24px
+          ) color-mix(in oklab, var(--ui-text-primary) 15%, transparent),
+          inset 0 0 0 calc(var(--_ui-material-active) * var(--ui-border-width)) var(--ui-material-edge, var(--ui-border-strong)),
+          var(--ui-elevation-overlay, var(--ui-shadow-lg))
+        )
+      );
+      backdrop-filter: blur(calc(var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.28) * 18px))
+        saturate(calc(1 + var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.28) * 0.18));
+      -webkit-backdrop-filter: blur(calc(var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.28) * 18px))
+        saturate(calc(1 + var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.28) * 0.18));
+    }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      :host:not([inline]) .surface {
+        background: var(--_ui-material-content-color);
+      }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      :host:not([inline]) .surface {
+        background: var(--_ui-material-content-color);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      :host:not([inline]) .surface {
+        background: Canvas;
+        border-color: CanvasText;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
     }
 
     .surface hr {

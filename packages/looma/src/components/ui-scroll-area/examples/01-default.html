@@ -3,12 +3,14 @@ title: Default
 description: A vertical area scrolls its content. The bottom edge fades while more is below; scroll down and the top fades too, and each fade lifts once that edge has nothing past it.
 -->
 <ui-scroll-area style="block-size: 10rem">
-  <p>One</p>
-  <p>Two</p>
-  <p>Three</p>
-  <p>Four</p>
-  <p>Five</p>
-  <p>Six</p>
-  <p>Seven</p>
-  <p>Eight</p>
+  <ui-stack gap="s">
+    <ui-card padding="sm">Frodo — quarterly quest planning</ui-card>
+    <ui-card padding="sm">Sam — office garden rota</ui-card>
+    <ui-card padding="sm">Sméagol — lost property</ui-card>
+    <ui-card padding="sm">Merry — second breakfast</ui-card>
+    <ui-card padding="sm">Pippin — meeting room bookings</ui-card>
+    <ui-card padding="sm">Aragorn — team check-in</ui-card>
+    <ui-card padding="sm">Gimli — facilities requests</ui-card>
+    <ui-card padding="sm">Legolas — desk plants</ui-card>
+  </ui-stack>
 </ui-scroll-area>

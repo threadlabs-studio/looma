@@ -1,0 +1,181 @@
+<link rel="component" href="../ui-number-input/ui-number-input.html">
+<template component="ui-curve-editor" module="./ui-curve-editor.js">
+  <defs>
+    <state name="point0" type="string" value="0.25"></state>
+    <state name="point1" type="string" value="0.1"></state>
+    <state name="point2" type="string" value="0.25"></state>
+    <state name="point3" type="string" value="1"></state>
+
+    <prop name="value" type="string" default="cubic-bezier(0.25, 0.1, 0.25, 1)"
+    >CSS cubic-bezier or a standard easing keyword. X stays within 0–1; Y is bounded to -1–2 for a limited overshoot.</prop>
+    <prop name="label" type="string" default="Value">Accessible name for the editing control.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and button height.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents typing, stepping and pointer or keyboard changes while keeping the value visible.</prop>
+    <event name="input" type="object"><prop name="value" type="string" required></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop></event>
+  </defs>
+  <span>
+    <span class="plot-frame" from:aria-label="$label" role="group"><span class="plot" $ref="plot">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path class="guide" d="M0 66.667 H100 M0 33.333 H100"></path>
+          <path $ref="firstLine" class="guide" d="M0 66.667 L25 63.333"></path>
+          <path $ref="secondLine" class="guide" d="M100 33.333 L25 33.333"></path>
+          <path $ref="curve" d="M0 66.667 C25 63.333 25 33.333 100 33.333"></path>
+        </svg>
+        <button $ref="first" class="handle" type="button" from:disabled="$disabled" aria-label="First curve handle. Arrow keys adjust; Shift moves faster.">
+        </button>
+        <button
+          $ref="second"
+          class="handle second"
+          type="button"
+          from:disabled="$disabled"
+          aria-label="Second curve handle. Arrow keys adjust; Shift moves faster."
+        >
+        </button>
+      </span></span>
+    <span class="coordinates">
+      <span class="coordinate"><span>X1</span><ui-number-input
+          data-curve-coordinate="0"
+          from:value="$point0"
+          min="0"
+          max="1"
+          step="0.01"
+          label="First handle X"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input></span>
+      <span class="coordinate"><span>Y1</span><ui-number-input
+          data-curve-coordinate="1"
+          from:value="$point1"
+          min="-1"
+          max="2"
+          step="0.01"
+          label="First handle Y"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input></span>
+      <span class="coordinate"><span>X2</span><ui-number-input
+          data-curve-coordinate="2"
+          from:value="$point2"
+          min="0"
+          max="1"
+          step="0.01"
+          label="Second handle X"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input></span>
+      <span class="coordinate"><span>Y2</span><ui-number-input
+          data-curve-coordinate="3"
+          from:value="$point3"
+          min="-1"
+          max="2"
+          step="0.01"
+          label="Second handle Y"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input></span>
+    </span>
+    <output $ref="result">{$value}</output>
+  </span>
+  <style>
+    :host {
+      display: grid !important;
+      gap: var(--ui-space-3) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      min-inline-size: 0;
+    }
+    .plot-frame {
+      box-sizing: border-box !important;
+      display: block !important;
+      block-size: 12rem;
+      padding: max(var(--ui-space-4), 0.75rem, calc(var(--ui-control-min-block-size) / 2)) !important;
+      margin: 0 !important;
+      border: var(--ui-border-width) solid var(--ui-control-border);
+      border-radius: var(--ui-field-radius, var(--ui-radius-md));
+      background: var(--ui-control-surface, var(--ui-surface));
+    }
+    .plot {
+      position: relative;
+      display: block !important;
+      inline-size: 100%;
+      block-size: 100%;
+    }
+    svg {
+      inline-size: 100%;
+      block-size: 100%;
+      overflow: visible;
+    }
+    path {
+      fill: none;
+      stroke: var(--ui-accent-solid);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+    .guide {
+      stroke: var(--ui-control-border);
+      stroke-width: 1;
+    }
+    .handle {
+      position: absolute;
+      left: 25%;
+      top: 63.333%;
+      translate: -50% -50%;
+      inline-size: max(1.5rem, var(--ui-control-min-block-size));
+      block-size: max(1.5rem, var(--ui-control-min-block-size));
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--ui-text-primary);
+      touch-action: none;
+      cursor: grab;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .second {
+      top: 33.333%;
+    }
+    .handle::after {
+      content: "";
+      position: absolute;
+      inset: 25%;
+      border: var(--ui-border-width) solid var(--ui-accent-solid);
+      background: var(--ui-surface-raised);
+      border-radius: 50%;
+      box-shadow: var(--ui-shadow-xs);
+    }
+    .handle::before {
+      content: "";
+      position: absolute;
+      inset: 40%;
+      background: var(--ui-accent-solid);
+      border-radius: 50%;
+      z-index: 1;
+    }
+    .handle:focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-control-focus, var(--ui-accent-solid));
+      outline-offset: var(--ui-space-1);
+    }
+    .handle:disabled {
+      cursor: not-allowed;
+    }
+    .coordinates {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: var(--ui-space-2) !important;
+    }
+    .coordinate {
+      display: grid !important;
+      gap: var(--ui-space-1) !important;
+      font-size: var(--ui-font-size-sm);
+    }
+    output {
+      overflow-wrap: anywhere;
+      font-family: var(--ui-font-mono, monospace);
+      font-size: var(--ui-font-size-sm);
+    }
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>

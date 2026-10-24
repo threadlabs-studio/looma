@@ -297,6 +297,11 @@
           "id": "11-field",
           "title": "Value picker",
           "behavior": false
+        },
+        {
+          "id": "12-tones",
+          "title": "Appearance and tone",
+          "behavior": false
         }
       ]
     },
@@ -342,6 +347,11 @@
         {
           "id": "03-semantic-tones",
           "title": "Quiet semantic surfaces",
+          "behavior": false
+        },
+        {
+          "id": "04-glass",
+          "title": "Glass panel",
           "behavior": false
         }
       ]
@@ -553,6 +563,19 @@
         {
           "id": "02-message",
           "title": "A message",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-curve-editor",
+      "title": "CurveEditor",
+      "source": "apps/docs/docs/components/forms/ui-curve-editor.mdx",
+      "component": "ui-curve-editor",
+      "examples": [
+        {
+          "id": "01-editing",
+          "title": "Exact and visual editing",
           "behavior": false
         }
       ]
@@ -1481,6 +1504,19 @@
       ]
     },
     {
+      "path": "components/ui-number-input",
+      "title": "NumberInput",
+      "source": "apps/docs/docs/components/forms/ui-number-input.mdx",
+      "component": "ui-number-input",
+      "examples": [
+        {
+          "id": "01-editing",
+          "title": "Exact and visual editing",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-page-header",
       "title": "Page Header",
       "source": "apps/docs/docs/components/display/ui-page-header.mdx",
@@ -1742,6 +1778,19 @@
       ]
     },
     {
+      "path": "components/ui-slider",
+      "title": "Slider",
+      "source": "apps/docs/docs/components/forms/ui-slider.mdx",
+      "component": "ui-slider",
+      "examples": [
+        {
+          "id": "01-editing",
+          "title": "Exact and visual editing",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-spinner",
       "title": "Spinner",
       "source": "apps/docs/docs/components/display/ui-spinner.mdx",
@@ -1958,7 +2007,7 @@
         },
         {
           "id": "02-variants",
-          "title": "Eyebrow and code",
+          "title": "Typography roles",
           "behavior": false
         }
       ]

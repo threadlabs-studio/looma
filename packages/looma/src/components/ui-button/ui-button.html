@@ -2,6 +2,14 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-button" module="./ui-button.js">
   <defs>
+    <prop name="preset" type="keyword" values="none, primary, standard, quiet, destructive" default="none"
+    >A shortcut that sets appearance and tone together: primary is solid accent, standard is solid neutral, quiet is ghost neutral, and destructive is solid
+      danger. A named preset takes precedence over variant and tone. Leave it at none to choose variant and tone independently.</prop>
+    <computed name="appearance" from="{ none: $variant, primary: 'solid', standard: 'solid', quiet: 'ghost', destructive: 'solid' }[$preset]"></computed>
+    <computed
+      name="colorTone"
+      from="{ none: { true: 'danger', false: $tone }[concat($variant = 'danger')], primary: 'accent', standard: 'neutral', quiet: 'neutral', destructive: 'danger' }[$preset]"
+    ></computed>
     <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link, card, field" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
       hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it. card uses the
@@ -42,7 +50,9 @@
   </defs>
   <template $match>
     <a
-      $when="$variant = 'card' and $as = 'a'"
+      from:data-appearance="$appearance"
+      from:data-tone="$colorTone"
+      $when="$appearance = 'card' and $as = 'a'"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
       from:target="$target"
       from:rel="$rel"
@@ -57,7 +67,9 @@
       <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
     </a>
     <button
-      $when="$variant = 'card'"
+      from:data-appearance="$appearance"
+      from:data-tone="$colorTone"
+      $when="$appearance = 'card'"
       from:type="$type"
       from:disabled="$disabled"
       from:aria-disabled="{ true: 'true', false: null }[concat($loading or $pending)]"
@@ -70,6 +82,8 @@
       <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
     </button>
     <a
+      from:data-appearance="$appearance"
+      from:data-tone="$colorTone"
       $when="$as = 'a'"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
       from:target="$target"
@@ -83,6 +97,8 @@
       <span class="badge"><slot name="badge"></slot></span>
     </a>
     <button
+      from:data-appearance="$appearance"
+      from:data-tone="$colorTone"
       $else
       from:type="$type"
       from:disabled="$disabled"
@@ -255,7 +271,7 @@
 
     /* A count is an adornment, not another line of label text. Keep the standard control height
        with enough inset for a 24px mark; large content can still grow the button naturally. */
-    :host:not([variant="link"]):has(.badge:not(:empty)) {
+    :host:not([data-appearance="link"]):has(.badge:not(:empty)) {
       padding-block: var(--ui-space-0-5) !important;
     }
 
@@ -300,7 +316,7 @@
 
     /* Card actions inherit Button's palette and behavior; only their shared layout changes.
        The icon may contain any decorative composition. Empty icons remove their column. */
-    :host([variant="card"]) {
+    :host[data-appearance="card"] {
       display: grid !important;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-content: center !important;
@@ -313,10 +329,10 @@
       box-shadow: none;
       background-image: none;
     }
-    :host([variant="card"][size="lg"]) {
+    :host[data-appearance="card"][size="lg"] {
       min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-lg));
     }
-    :host([variant="card"]):has(.card-icon:empty) {
+    :host[data-appearance="card"]:has(.card-icon:empty) {
       grid-template-columns: minmax(0, 1fr) auto;
     }
     .card-icon {
@@ -343,11 +359,11 @@
     }
 
     /* A neutral card encloses content quietly; ordinary outlines keep their action-tone edge. */
-    :host([variant="card"][tone="neutral"]) {
+    :host[data-appearance="card"][data-tone="neutral"] {
       border-color: var(--ui-button-border, var(--ui-border));
     }
 
-    :host([variant="card"][tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="card"][data-tone="neutral"]:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--ui-border-strong));
     }
 
@@ -359,19 +375,19 @@
       box-shadow: var(--ui-pressed);
     }
 
-    :host([variant="solid"]), :host([variant="danger"]) {
+    :host[data-appearance="solid"], :host[data-appearance="danger"] {
       border-color: var(--_tone);
       background-color: var(--_tone);
       color: var(--_on-tone);
       box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
     }
 
-    :is(:host([variant="solid"]), :host([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
+    :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-hover);
       border-color: var(--_tone-hover);
     }
 
-    :is(:host([variant="solid"]), :host([variant="danger"])):active:not(:disabled, [aria-disabled="true"]) {
+    :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-active);
       border-color: var(--_tone-active);
       background-image: none;
@@ -380,7 +396,7 @@
 
     /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
        destructive secondary action, not a special case. */
-    :host([tone="neutral"]) {
+    :host[data-tone="neutral"] {
       --_hue: var(--ui-text);
       --_hue-hover: var(--ui-text);
       --_hue-active: var(--ui-text);
@@ -388,40 +404,40 @@
       --_on-hue: var(--ui-surface);
     }
 
-    :host([tone="danger"]), :host([variant="danger"]) {
+    :host[data-tone="danger"], :host[data-appearance="danger"] {
       --_hue: var(--ui-danger);
       --_hue-hover: var(--ui-danger-hover);
-      --_hue-active: var(--ui-danger-hover);
-      --_hue-text: var(--ui-danger-hover);
+      --_hue-active: var(--ui-danger-active, var(--ui-danger-hover));
+      --_hue-text: var(--ui-danger-subtle-text);
       --_on-hue: var(--ui-on-danger);
     }
 
-    :host([tone="success"]) {
+    :host[data-tone="success"] {
       --_hue: var(--ui-success);
-      --_hue-hover: color-mix(in srgb, var(--ui-success) 85%, #000);
-      --_hue-active: color-mix(in srgb, var(--ui-success) 75%, #000);
-      --_hue-text: color-mix(in srgb, var(--ui-success) 85%, #000);
-      --_on-hue: var(--ui-surface);
+      --_hue-hover: var(--ui-success-hover);
+      --_hue-active: var(--ui-success-active);
+      --_hue-text: var(--ui-success-subtle-text);
+      --_on-hue: var(--ui-success-on-strong);
     }
 
-    :host([tone="warning"]) {
+    :host[data-tone="warning"] {
       --_hue: var(--ui-warning);
-      --_hue-hover: color-mix(in srgb, var(--ui-warning) 85%, #000);
-      --_hue-active: color-mix(in srgb, var(--ui-warning) 75%, #000);
-      --_hue-text: color-mix(in srgb, var(--ui-warning) 85%, #000);
-      --_on-hue: var(--ui-surface);
+      --_hue-hover: var(--ui-warning-hover);
+      --_hue-active: var(--ui-warning-active);
+      --_hue-text: var(--ui-warning-subtle-text);
+      --_on-hue: var(--ui-warning-on-strong);
     }
 
-    :host([tone="info"]) {
+    :host[data-tone="info"] {
       --_hue: var(--ui-info);
-      --_hue-hover: color-mix(in srgb, var(--ui-info) 85%, #000);
-      --_hue-active: color-mix(in srgb, var(--ui-info) 75%, #000);
-      --_hue-text: color-mix(in srgb, var(--ui-info) 85%, #000);
-      --_on-hue: var(--ui-surface);
+      --_hue-hover: var(--ui-info-hover);
+      --_hue-active: var(--ui-info-active);
+      --_hue-text: var(--ui-info-subtle-text);
+      --_on-hue: var(--ui-info-on-strong);
     }
 
     /* A value picker is a field, with Select's quiet edge and resting lift. */
-    :host([variant="field"]) {
+    :host[data-appearance="field"] {
       --_ui-field-shadow: var(--ui-shadow-sm);
       border-color: var(--ui-button-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-button-radius, var(--ui-field-radius, var(--ui-radius-md)));
@@ -431,23 +447,23 @@
       box-shadow: var(--ui-button-shadow, var(--_ui-field-shadow));
     }
 
-    :host([variant="field"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="field"]:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--ui-control-border-hover, var(--ui-text-secondary)));
       background-color: var(--ui-button-hover-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
     }
 
-    :host([variant="field"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="field"]:is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
       --_ui-field-shadow: var(--ui-pressed);
     }
 
-    :host([variant="field"]):focus-visible {
+    :host[data-appearance="field"]:focus-visible {
       border-color: var(--ui-control-focus, var(--ui-accent-solid));
       box-shadow:
         var(--ui-button-shadow, var(--_ui-field-shadow)),
         var(--ui-control-focus-halo-shadow);
     }
 
-    :host([variant="ghost"]) {
+    :host[data-appearance="ghost"] {
       border-color: transparent;
       background: transparent;
       box-shadow: none;
@@ -455,14 +471,14 @@
     }
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
-    :host([variant="ghost"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="ghost"]:hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
       border-color: transparent;
     }
 
     /* Pressed, or holding its menu open, a ghost button sinks slightly: a light surface with a faint
        edge and a soft inner shadow. Lighter than hover, so an open menu's trigger never reads as heavy. */
-    :host([variant="ghost"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="ghost"]:is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-active-surface, color-mix(in oklch, var(--ui-surface), var(--_tone) 3%));
       border-color: transparent;
       box-shadow: inset 0 0 0 1px oklch(from var(--_tone) l c h / 10%), inset 0 1px 2px oklch(from var(--_tone) l c h / 8%);
@@ -476,13 +492,13 @@
         var(--ui-focus-halo);
     }
 
-    :host([variant="solid"]):focus-visible {
+    :host[data-appearance="solid"]:focus-visible {
       box-shadow:
         var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
     }
 
-    :is(:host([variant="ghost"]), :host([variant="link"]), :host([variant="card"])):focus-visible {
+    :is(:host[data-appearance="ghost"], :host[data-appearance="link"], :host[data-appearance="card"]):focus-visible {
       box-shadow: var(--ui-focus-halo);
     }
 
@@ -504,7 +520,7 @@
     }
 
     /* Ghost keeps no border, but gains the same neutral surface as other disabled buttons. */
-    :host([variant="ghost"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+    :host[data-appearance="ghost"]:is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
       background-color: var(--ui-disabled-surface);
       border-color: transparent;
     }
@@ -521,12 +537,12 @@
        a link-style one keeps its text size, so a standalone one ("See all" under a list) needs the
        area. xs sits inside a line of text the same way, so it keeps its size and gains the area too.
        Only these need it: a hit area on every button would reach over its neighbours. */
-    html[data-ui-input-modality="touch"] :host([variant="link"]),
+    html[data-ui-input-modality="touch"] :host[data-appearance="link"],
     html[data-ui-input-modality="touch"] :host([size="xs"]) {
       position: relative;
     }
 
-    html[data-ui-input-modality="touch"] :host([variant="link"])::after,
+    html[data-ui-input-modality="touch"] :host[data-appearance="link"]::after,
     html[data-ui-input-modality="touch"] :host([size="xs"])::after {
       position: absolute;
       inset: 50% auto auto 50%;
@@ -538,7 +554,7 @@
 
     /* Link: an inline text action. No box, padding, or minimum height (inline targets are exempt under
        WCAG 2.5.8); the inherited font; an underline that strengthens on hover; a visible focus ring. */
-    :host([variant="link"]) {
+    :host[data-appearance="link"] {
       display: inline !important;
       min-block-size: 0;
       padding: 0 !important;
@@ -555,24 +571,24 @@
       transition: color var(--ui-motion-fast) var(--ui-motion-ease), text-decoration-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host([variant="link"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="link"]:hover:not(:disabled, [aria-disabled="true"]) {
       color: var(--ui-button-link-hover-text, var(--ui-text-primary));
       text-decoration-color: currentColor;
       background: none;
       transform: none;
     }
 
-    :host([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="link"]:active:not(:disabled, [aria-disabled="true"]) {
       background: none;
       transform: none;
     }
 
-    :host([variant="link"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+    :host[data-appearance="link"]:is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
       background: none;
       border-color: transparent;
     }
 
-    :host([variant="link"]):focus-visible {
+    :host[data-appearance="link"]:focus-visible {
       box-shadow: none;
       /* Fallback keeps the ring if the token is missing: an unresolved var() would void the outline. */
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);

@@ -63,7 +63,7 @@ export function connect(host) {
     anchor = ids.get(nextFor);
     if (anchor) anchorAria = { "aria-haspopup": anchor.getAttribute("aria-haspopup"), "aria-expanded": anchor.getAttribute("aria-expanded") };
     anchor?.addEventListener("click", onAnchorClick);
-    surface = host.props.inline.value ? null : createAnchoredSurface(element, { anchor, placement: nextPlacement });
+    surface = host.props.inline.value ? null : createAnchoredSurface(element, { anchor, placement: nextPlacement, materialRole: "menu" });
   };
   const apply = () => {
     const inline = Boolean(host.props.inline.value);

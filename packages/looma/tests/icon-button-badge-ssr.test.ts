@@ -61,3 +61,12 @@ describe("Icon Button and circular Badge before upgrade", () => {
     expect(await render(h(Badge, null, () => "Ready"))).toMatch(/data-ui-badge-state="[^"]*shape=pill/);
   });
 });
+
+
+describe("Icon Button shared action semantics", () => {
+  it.each([['primary', 'solid', 'accent'], ['standard', 'solid', 'neutral'], ['quiet', 'ghost', 'neutral'], ['destructive', 'solid', 'danger']])('resolves the %s preset before upgrade', async (preset, appearance, tone) => {
+    const html = await render(h(IconButton, { preset, label: 'Fellowship action' }));
+    expect(html).toContain(`data-appearance="${appearance}"`);
+    expect(html).toContain(`data-tone="${tone}"`);
+  });
+});

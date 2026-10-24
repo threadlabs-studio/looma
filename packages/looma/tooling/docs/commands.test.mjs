@@ -12,7 +12,7 @@ test('initialization creates explicit theme files and configuration without edit
     const result = await initializeDocumentation({ root, title: 'The Fellowship' });
     assert.equal(result.applicationImport, './looma.theme.css');
     assert.equal((await readConfiguration(root)).config.title, 'The Fellowship');
-    assert.match(await readFile(path.join(root, 'looma.theme.css'), 'utf8'), /pow\(2, var\(--_ui-theme-curve\)\)/);
+    assert.match(await readFile(path.join(root, 'looma.theme.css'), 'utf8'), /pow\(1 \/ 7, var\(--_ui-theme-curve\)\)/);
     assert.equal(await readFile(path.join(root, 'app.html'), 'utf8'), '<p>Fellowship office</p>');
     await assert.rejects(initializeDocumentation({ root }), /already exists/);
     assert.equal((await readConfiguration(root)).config.title, 'The Fellowship');
