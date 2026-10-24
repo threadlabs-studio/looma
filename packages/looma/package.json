@@ -104,7 +104,8 @@
     "README.md",
     "LICENSE",
     "EXPRESSIVE-MARKDOWN.md",
-    "docs/"
+    "docs/",
+    "bin/"
   ],
   "sideEffects": [
     "./dist/index.js",
@@ -213,6 +214,6 @@
     "node": ">=22.22.2 <23 || >=24.15 <25"
   },
   "bin": {
-    "looma-docs": "./docs/cli.mjs"
+    "looma-docs": "./bin/looma-docs.mjs"
   }
 }

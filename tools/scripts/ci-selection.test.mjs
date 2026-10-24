@@ -258,11 +258,13 @@ test("the Expressive adapter has explicit editor, consumer and documentation own
 
 test('published documentation tooling selects its fixtures, docs and installed-package qualification', () => {
   const graph = { ...files, 'packages/looma/tooling/docs/theme.mjs': 'export const theme = 1;', 'packages/looma/tooling/docs/theme.test.mjs': 'import { theme } from "./theme.mjs";' };
-  const selected = automaticChecks(graph, ['packages/looma/tooling/docs/theme.mjs']);
-  assert.equal(selected.full, false);
-  assert.equal(selected.docsBuild, true);
-  assert.equal(selected.packageConsumer, true);
-  assert.ok(selected.scripts.includes('packages/looma/tooling/docs/theme.test.mjs'));
+  for (const file of ['packages/looma/tooling/docs/theme.mjs', 'packages/looma/bin/looma-docs.mjs']) {
+    const selected = automaticChecks(graph, [file]);
+    assert.equal(selected.full, false);
+    assert.equal(selected.docsBuild, true);
+    assert.equal(selected.packageConsumer, true);
+    assert.ok(selected.scripts.includes('packages/looma/tooling/docs/theme.test.mjs'));
+  }
 });
 
 test('shared and colocated component documentation metadata select catalog fixtures and documentation qualification', () => {
