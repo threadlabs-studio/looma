@@ -1,0 +1,4 @@
+{
+  "description": "Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.",
+  "group": "forms"
+}

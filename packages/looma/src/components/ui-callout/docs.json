@@ -1,0 +1,4 @@
+{
+  "description": "A static semantic message surface with a tone-specific icon. It is not a live alert and does not include dismissal behavior.",
+  "group": "display"
+}

@@ -1,0 +1,4 @@
+{
+  "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
+  "group": "overlay"
+}

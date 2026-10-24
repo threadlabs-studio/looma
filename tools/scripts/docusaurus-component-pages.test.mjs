@@ -8,9 +8,8 @@ import { fileURLToPath } from "node:url";
 // metadata does not read this tree; this check keeps the current site consistent with it.
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const docsRoot = path.join(repoRoot, "apps/docs/docs");
-const { groups, tags } = JSON.parse(
-  await readFile(path.join(repoRoot, "tools/data/component-release-classification.json"), "utf8"),
-);
+const { readDocumentationClassifications } = await import("./component-api-generator.mjs");
+const { groups, tags } = await readDocumentationClassifications();
 const published = Object.entries(tags).filter(([, value]) => value.status === "published");
 
 async function componentPages() {

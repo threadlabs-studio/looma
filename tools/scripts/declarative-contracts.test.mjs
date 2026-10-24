@@ -162,10 +162,8 @@ test("every bound example attribute is valid JSON on an element with an id", asy
 test("redundant layout aliases stay compatible without remaining public components", async () => {
   const groups = await readDeclarativeContractGroups();
   const [layout] = groups;
-  const classifications = JSON.parse(await readFile(
-    new URL("../data/component-release-classification.json", import.meta.url),
-    "utf8",
-  )).tags;
+  const { readDocumentationClassifications } = await import("./component-api-generator.mjs");
+  const classifications = (await readDocumentationClassifications()).tags;
   const navigationTags = Object.keys(classifications)
     .filter((tag) => classifications[tag].status === "published" && !classifications[tag].navigationParent);
 

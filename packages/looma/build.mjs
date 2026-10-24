@@ -191,4 +191,6 @@ for (const file of await readdir(join(root, "src/tokens"))) {
   await cp(join(root, "src/tokens", file), join(root, file));
 }
 await mkdir(join(root, "dist"), { recursive: true });
-console.log(`Built ${components.length} components.`);
+const { buildDocsCatalog } = await import("../../tools/scripts/build-docs-catalog.mjs");
+await buildDocsCatalog();
+console.log(`Built ${components.length} components and their documentation catalog.`);

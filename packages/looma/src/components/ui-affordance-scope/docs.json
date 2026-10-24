@@ -1,0 +1,4 @@
+{
+  "description": "A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control.",
+  "group": "overlay"
+}
