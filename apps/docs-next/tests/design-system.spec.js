@@ -263,11 +263,11 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await expect.poll(() => text.getByRole('heading', { level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).not.toContain('Georgia');
 });
 
-test('all solid action tones and icon actions remain readable in both modes and interaction states', async ({ page }, info) => {
-  const recipes = [...Object.entries(startingPoints), ['imported white seeds', {
-    ...startingPoints.clear, values: { ...startingPoints.clear.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
-  }]];
-  for (const [preset, recipe] of recipes) {
+const readableRecipes = [...Object.entries(startingPoints), ['imported white seeds', {
+  ...startingPoints.clear, values: { ...startingPoints.clear.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
+}]];
+for (const [preset, recipe] of readableRecipes) {
+  test(`solid action tones and icon actions stay readable in both modes and states: ${preset}`, async ({ page }, info) => {
     await page.goto(info.config.metadata.markupress + 'customize/');
     if (Object.hasOwn(startingPoints, preset)) await page.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption(preset);
     else {
@@ -306,5 +306,5 @@ test('all solid action tones and icon actions remain readable in both modes and 
       }
     }
     expect(await card.locator('pre').first().evaluate(contrast)).toBeGreaterThanOrEqual(4.5);
-  }
-});
+  });
+}
