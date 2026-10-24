@@ -506,7 +506,7 @@ test("the component catalog exposes the complete library and filters live previe
 });
 
 test("table overlay uses one structured geometry property", async ({ page }) => {
-  await page.goto("components/ui-editor-table-overlay", { waitUntil: "domcontentloaded" });
+  await page.goto("editor/ui-editor-table-overlay", { waitUntil: "domcontentloaded" });
 
   const primary = page.locator("[data-preview-scenario='Open with geometry']");
   const overlay = primary.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
@@ -524,7 +524,7 @@ test("table overlay uses one structured geometry property", async ({ page }) => 
 
 test("editor table menus use one action capability set", async ({ page }) => {
   for (const tag of ["ui-editor-table-context-menu", "ui-editor-table-toolbar"] as const) {
-    await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`editor/${tag}`, { waitUntil: "domcontentloaded" });
     const configured = page.locator("[data-preview-scenario='Actions']");
     await expect((tag === "ui-editor-table-context-menu" ? configured.frameLocator("iframe") : configured).locator("[data-action^='add-row']").first()).toBeVisible();
     const code = configured.locator(".looma-mode-code").first();
@@ -534,7 +534,7 @@ test("editor table menus use one action capability set", async ({ page }) => {
     await expect(code).not.toContainText("can-merge");
   }
 
-  await page.goto("components/ui-editor-table-toolbar", { waitUntil: "domcontentloaded" });
+  await page.goto("editor/ui-editor-table-toolbar", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
   await expect(
     page.locator("[data-preview-scenario='Open']").getByRole("button", { name: "Table options" })
@@ -545,7 +545,7 @@ test("editor table menus use one action capability set", async ({ page }) => {
 });
 
 test("table context menus fit a narrow presentation viewport", async ({ page }) => {
-  await page.goto("components/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
+  await page.goto("editor/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
   const preview = page.locator("[data-preview-scenario='Actions'] iframe");
   await preview.evaluate((frame) => { frame.style.width = "200px"; });
   const menu = preview.contentFrame().locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
@@ -1039,7 +1039,7 @@ test("code panes scroll inside the example and expose readable authored IDs", as
 });
 
 test("structured props appear as attributes in HTML and bindings in framework examples", async ({ page }) => {
-  await page.goto("components/ui-editor-mention-menu", { waitUntil: "domcontentloaded" });
+  await page.goto("editor/ui-editor-mention-menu", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Open']");
   const code = scenario.locator(".looma-mode-code");
   const modes = scenario.getByRole("group", { name: "Example framework" });

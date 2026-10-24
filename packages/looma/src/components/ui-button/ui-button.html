@@ -188,7 +188,7 @@
     :host {
       /* Optional inherited action-group values keep text and icon actions under the same light.
          One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
-         A single ambient lift avoids stacking a face gradient or another inset bevel. */
+         The shared theme supplies reflections and glow independently of the resting lift. */
       --_ui-action-start: 1px;
       --_ui-action-edge: var(
         --ui-action-edge,
@@ -196,6 +196,8 @@
         inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
       --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
+      --_tone-highlight: var(--ui-accent-highlight, none);
+      --_tone-glow: var(--ui-accent-glow, 0 0 transparent);
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
       --_hue-active: var(--ui-accent-active);
@@ -246,8 +248,8 @@
       white-space: var(--ui-button-white-space, inherit);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-action-inset-md, var(--ui-space-3)) !important;
-      background-image: none;
-      box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
+      background-image: var(--ui-surface-highlight, none);
+      box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))), var(--_tone-glow);
       cursor: pointer;
       transition:
         scale var(--ui-motion-press, var(--ui-motion-fast)) var(--ui-motion-ease),
@@ -379,7 +381,8 @@
       border-color: var(--_tone);
       background-color: var(--_tone);
       color: var(--_on-tone);
-      box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow)));
+      background-image: var(--_tone-highlight);
+      box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))), var(--_tone-glow);
     }
 
     :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
@@ -397,6 +400,8 @@
     /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
        destructive secondary action, not a special case. */
     :host[data-tone="neutral"] {
+      --_tone-highlight: var(--ui-neutral-highlight, none);
+      --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
       --_hue: var(--ui-text);
       --_hue-hover: var(--ui-text);
       --_hue-active: var(--ui-text);
@@ -404,7 +409,21 @@
       --_on-hue: var(--ui-surface);
     }
 
+    :host[data-tone="neutral"][data-appearance="solid"] {
+      border-color: var(--ui-button-border, var(--ui-control-border));
+      background-color: var(--ui-button-surface, var(--ui-neutral-surface));
+      color: var(--ui-button-text, var(--ui-text));
+    }
+    :host[data-tone="neutral"][data-appearance="solid"]:hover:not(:disabled, [aria-disabled="true"]) {
+      background-color: var(--ui-button-hover-surface, var(--ui-neutral-hover));
+    }
+    :host[data-tone="neutral"][data-appearance="solid"]:active:not(:disabled, [aria-disabled="true"]) {
+      background-color: var(--ui-button-active-surface, var(--ui-neutral-active));
+    }
+
     :host[data-tone="danger"], :host[data-appearance="danger"] {
+      --_tone-highlight: var(--ui-danger-highlight, none);
+      --_tone-glow: var(--ui-danger-glow, 0 0 transparent);
       --_hue: var(--ui-danger);
       --_hue-hover: var(--ui-danger-hover);
       --_hue-active: var(--ui-danger-active, var(--ui-danger-hover));
@@ -413,6 +432,8 @@
     }
 
     :host[data-tone="success"] {
+      --_tone-highlight: var(--ui-success-highlight, none);
+      --_tone-glow: var(--ui-success-glow, 0 0 transparent);
       --_hue: var(--ui-success);
       --_hue-hover: var(--ui-success-hover);
       --_hue-active: var(--ui-success-active);
@@ -421,6 +442,8 @@
     }
 
     :host[data-tone="warning"] {
+      --_tone-highlight: var(--ui-warning-highlight, none);
+      --_tone-glow: var(--ui-warning-glow, 0 0 transparent);
       --_hue: var(--ui-warning);
       --_hue-hover: var(--ui-warning-hover);
       --_hue-active: var(--ui-warning-active);
@@ -429,6 +452,8 @@
     }
 
     :host[data-tone="info"] {
+      --_tone-highlight: var(--ui-info-highlight, none);
+      --_tone-glow: var(--ui-info-glow, 0 0 transparent);
       --_hue: var(--ui-info);
       --_hue-hover: var(--ui-info-hover);
       --_hue-active: var(--ui-info-active);

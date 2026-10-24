@@ -57,6 +57,24 @@ afterAll(async () => {
 });
 
 describe("Pressed icon controls and circular marks", () => {
+  it("keeps card corner geometry consistent when changing danger tone in either writing direction", async () => {
+    const path = await bundle('card-tone-geometry', 'import "@threadlabs/looma";');
+    const page = await open(path, '<ui-card id="ordinary">Ordinary</ui-card><ui-card id="danger" tone="danger">Danger</ui-card>', [join(root, 'tokens.css')]);
+    for (const direction of ['ltr', 'rtl']) {
+      await page.locator('body').evaluate((element, direction) => element.setAttribute('dir', direction), direction);
+      const radii = await page.locator('#ordinary, #danger').evaluateAll(elements => elements.map(element => {
+        const style = getComputedStyle(element);
+        return [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomLeftRadius, style.borderBottomRightRadius];
+      }));
+      assert.deepEqual(radii[1], radii[0], direction);
+      const borders = await page.locator('#danger').evaluate(element => {
+        const style = getComputedStyle(element);
+        return [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth];
+      });
+      assert.equal(new Set(borders).size, 1, 'danger tone never adds an accent stripe');
+    }
+    await page.close();
+  });
   it("keeps a translated icon button centered while pressed in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-pressed-translation`, adapter === "html" ? `import "@threadlabs/looma";` : `
@@ -3173,7 +3191,7 @@ describe("Shared action edges", () => {
       const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
       try {
         await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); color: var(--ui-text-primary); background: var(--ui-surface-default); display: grid; gap: 16px; justify-items: start; } :root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
-        const shadow = (id: string) => page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow);
+        const shadow = async (id: string) => (await page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow)).split(/,(?![^()]*\))/).filter(layer => !layer.trim().startsWith("rgba(0, 0, 0, 0) ")).join(",");
         for (const theme of ["light", "dark"]) {
           await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
           assert.equal(await shadow("primary-0"), await shadow("more-0"), "text and icon actions share the same raised edge and shadow");
@@ -5497,7 +5515,8 @@ describe("Shared visual geometry", () => {
     assert.equal(await css("#divider", "border-top-width"), "3px");
     assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
     assert.equal(await css("#callout", "border-inline-start-width"), "3px", "rounded Callout uses ordinary border width on every edge");
-    for (const selector of ["#card", "#quote"]) {
+    assert.equal(await css("#card", "border-inline-start-width"), "3px", "danger cards keep an ordinary border on every edge");
+    for (const selector of ["#quote"]) {
       assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
     }
     assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");
@@ -10607,6 +10626,84 @@ describe("Bounded value editors", () => {
 
 
 describe("Shared readable material planes", () => {
+  for (const adapter of ['html','vue']) it(`edits a bounded light position by keyboard, pointer and exact entry in ${adapter}`, async () => {
+    const path = await bundle(adapter + '-light-position', adapter === 'html' ? `
+      import '@threadlabs/looma'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      window.disableLight=()=>componentRegistry.update(document.getElementById('light'),{disabled:true});
+    ` : `
+      import {createApp,h,ref} from 'vue'; import {LightEditor,Button} from '@threadlabs/looma/vue';
+      const disabled=ref(false); window.disableLight=()=>{disabled.value=true;};
+      const app=createApp({render:()=>h(LightEditor,{id:'light',x:.5,y:.2,disabled:disabled.value},()=>h(Button,()=> 'Sample'))});
+      app.mount('#app'); window.removeLight=()=>app.unmount();
+    `);
+    const page = await open(path, adapter === 'html' ? '<ui-light-editor id="light" x=".5" y=".2"><ui-button>Sample</ui-button></ui-light-editor>' : '<div id="app"></div>', [join(root,'tokens.css'),...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])], { viewport: { width: 375, height: 800 }, hasTouch: true });
+    try {
+      const handle=page.getByRole('button',{name:/Light position. Arrow keys/});
+      const x=page.getByRole('spinbutton',{name:'Light horizontal position',exact:true});
+      const y=page.getByRole('spinbutton',{name:'Light vertical position',exact:true});
+      await handle.focus(); await handle.press('ArrowRight'); await handle.press('Shift+ArrowDown');
+      assert.equal(await x.inputValue(),'51%'); assert.equal(await y.inputValue(),'30%');
+      await x.fill('100 / 4'); await x.press('Enter'); assert.equal(await x.inputValue(),'25%');
+      const plane=(await page.locator('#light .plane').boundingBox())!;
+      const start=(await handle.boundingBox())!;
+      await page.mouse.move(start.x+start.width/2,start.y+start.height/2); await page.mouse.down();
+      await page.mouse.move(plane.x+plane.width*2,plane.y-plane.height); await page.mouse.up();
+      assert.equal(await x.inputValue(),'100%'); assert.equal(await y.inputValue(),'0%');
+      await handle.press('Home'); assert.equal(await x.inputValue(),'50%');
+      const touch=(await handle.boundingBox())!, client=await page.context().newCDPSession(page);
+      await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:touch.x+touch.width/2,y:touch.y+touch.height/2}]});
+      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:plane.x+plane.width*.75,y:plane.y+plane.height*.5}]});
+      await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await client.detach();
+      assert.ok(Math.abs(parseFloat(await x.inputValue())-75)<=1);
+      assert.ok(Math.abs(parseFloat(await y.inputValue())-50)<=1);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+      await page.evaluate(()=>(window as any).disableLight());
+      assert.equal(await handle.isDisabled(),true); assert.equal(await x.isDisabled(),true);
+      if(adapter==='vue') {
+        await page.evaluate(()=>{(window as any).retainedLight=document.querySelector('#light .source');(window as any).retainedPosition=(window as any).retainedLight.style.cssText;(window as any).removeLight();});
+        assert.equal(await page.evaluate(()=>{(window as any).retainedLight.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft'}));return (window as any).retainedLight.style.cssText===(window as any).retainedPosition;}),true);
+      }
+    } finally { await page.close(); }
+  });
+  it('shares Bookish lighting across surfaces while neutral fills stay calm and elevation stays independent', async () => {
+    const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
+    const path = await bundle('shared-lighting', 'import "@threadlabs/looma"; import {componentRegistry} from "@nextwebwg/html-next/runtime"; window.disableChoices=()=>{for(const id of ["material-check","material-switch"])componentRegistry.update(document.getElementById(id),{disabled:true});};');
+    const page = await open(path, `<ui-button id="primary" preset="primary">Join briefing</ui-button><ui-button id="neutral" preset="standard">Read memo</ui-button>
+      <ui-input id="field" label="Office"></ui-input><ui-select id="material-select"><option>Office</option></ui-select><ui-checkbox id="material-check" checked>Notify Sam</ui-checkbox><ui-switch id="material-switch" checked>Office alerts</ui-switch><ui-card id="standard" variant="elevated">Quiet</ui-card>
+      <ui-card id="expressive" treatment="expressive">Expressive</ui-card>`, [join(root, 'tokens.css')], { reducedMotion: 'reduce' });
+    await page.addStyleTag({ path: join(root, 'src/tokens/theme-system.css') });
+    const style = await page.addStyleTag({ content: themeCSS(startingPoints.bookish) });
+    for (const mode of ['light', 'dark']) {
+      await page.locator('html').evaluate((element, mode) => element.setAttribute('data-theme', mode), mode);
+      const paint = await page.evaluate(() => Object.fromEntries(['primary','neutral','field','material-select','standard','expressive'].map(id => {
+        const s = getComputedStyle(document.getElementById(id)!);
+        return [id, { image: s.backgroundImage, fill: s.backgroundColor, text: s.color, blur: s.backdropFilter, shadow: s.boxShadow }];
+      })));
+      assert.match(paint.primary.image, /radial-gradient/);
+      assert.match(paint.field.image, /radial-gradient/);
+      assert.equal(paint['material-select'].fill, paint.field.fill, 'native Select inherits the nearest light/dark boundary');
+      assert.match(paint['material-select'].image, /radial-gradient/);
+      for (const choice of await page.locator('#material-check input, #material-switch input').all()) assert.equal(await choice.evaluate(element => getComputedStyle(element).backgroundColor), paint.primary.fill, 'checked choices keep their accent fill beneath the reflection');
+      assert.notEqual(paint.neutral.fill, paint.neutral.text);
+      assert.equal(paint.standard.blur, 'none');
+      assert.notEqual(paint.expressive.blur, 'none');
+      assert.notEqual(paint.primary.shadow, 'none');
+    }
+    await page.evaluate(() => (window as any).disableChoices());
+    for (const choice of await page.locator('#material-check input, #material-switch input').all()) assert.equal(await choice.evaluate(element => getComputedStyle(element).backgroundImage), 'none', 'disabled choices suppress ornamental lighting');
+    await page.locator('#material-select').evaluate(element => element.setAttribute('disabled', ''));
+    assert.doesNotMatch(await page.locator('#material-select').evaluate(element => getComputedStyle(element).backgroundImage), /radial-gradient/, 'disabled fields stay quiet');
+    const before = await page.locator('#primary').evaluate(element => getComputedStyle(element).backgroundImage);
+    const moved = structuredClone(startingPoints.bookish); moved.values['light-x'] = '.9'; moved.values['light-y'] = '.8';
+    await style.evaluate((element, css) => element.textContent = css, themeCSS(moved));
+    const after = await page.locator('#primary').evaluate(element => getComputedStyle(element).backgroundImage);
+    assert.notEqual(after, before);
+    await page.locator('#primary').hover();
+    await page.mouse.down();
+    assert.equal(await page.locator('#primary').evaluate(element => getComputedStyle(element).backgroundImage), 'none');
+    await page.mouse.up();
+    await page.close();
+  });
   for (const adapter of ['html', 'vue']) it(`keeps translucent material around opaque readable content and scales dialog size in ${adapter}`, async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
     const recipe = structuredClone(startingPoints.bookish); recipe.values.translucency = '1';
@@ -10621,7 +10718,7 @@ describe("Shared readable material planes", () => {
         h(Menu,{id:'material-menu'},()=>h(MenuItem,{value:'memo'},()=> 'Fellowship memo')),
         h(Popover,{id:'material-popover'},()=> 'Frodo has updated the map.'),
         h(Tooltip,{id:'material-tooltip'},()=> 'Office route'),
-        h(Card,{id:'material-card',variant:'glass'},()=> 'Sam has prepared the briefing.')
+        h(Card,{id:'material-card',variant:'elevated',treatment:'expressive'},()=> 'Sam has prepared the briefing.')
       ])}).mount('#app');
     `);
     const page = await open(path, adapter === 'html' ? `
@@ -10629,7 +10726,7 @@ describe("Shared readable material planes", () => {
       <ui-menu id="material-menu"><ui-menu-item value="memo">Fellowship memo</ui-menu-item></ui-menu>
       <ui-popover id="material-popover">Frodo has updated the map.</ui-popover>
       <ui-tooltip id="material-tooltip">Office route</ui-tooltip>
-      <ui-card id="material-card" variant="glass">Sam has prepared the briefing.</ui-card>
+      <ui-card id="material-card" variant="elevated" treatment="expressive">Sam has prepared the briefing.</ui-card>
     ` : '<div id="app"></div>', [join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])], {reducedMotion:'reduce'});
     try {
       await page.addStyleTag({content:themeCSS(recipe) + 'body {background:repeating-linear-gradient(45deg,black 0 20px,white 20px 40px);color:var(--ui-text)}'});
@@ -10668,8 +10765,8 @@ describe("Nested portable theme boundaries", () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
     const path = await bundle(adapter + '-nested-theme-boundaries', adapter === 'html' ? `import '@threadlabs/looma';` : `
       import {createApp,h} from 'vue';
-      import {Button,Input,Dialog,Menu,MenuItem,Popover,Tooltip} from '@threadlabs/looma/vue';
-      const controls = name => [h(Button,{id:name+'-action'},()=>name),h(Input,{id:name+'-field',value:name})];
+      import {Button,Input,Select,Dialog,Menu,MenuItem,Popover,Tooltip} from '@threadlabs/looma/vue';
+      const controls = name => [h(Button,{id:name+'-action'},()=>name),h(Input,{id:name+'-field',value:name}),h(Select,{id:name+'-select'},()=>h('option',{},name))];
       createApp({render:()=>h('main',[
         ...controls('outside'),
         h('section',{id:'outer','data-theme':'dark'},[
@@ -10681,7 +10778,7 @@ describe("Nested portable theme boundaries", () => {
           h('section',{id:'inner','data-theme':'light'},[...controls('inner'),h('section',{'data-theme':'dark'},controls('deep'))])
         ])
       ])}).mount('#app');`);
-    const controls = (name: string) => `<ui-button id="${name}-action">${name}</ui-button><ui-input id="${name}-field" value="${name}"></ui-input>`;
+    const controls = (name: string) => `<ui-button id="${name}-action">${name}</ui-button><ui-input id="${name}-field" value="${name}"></ui-input><ui-select id="${name}-select"><option>${name}</option></ui-select>`;
     const body = adapter === 'vue' ? '<div id="app"></div>' : controls('outside') + `<section id="outer" data-theme="dark">${controls('outer')}
       <ui-button id="dialog-trigger">Review memo</ui-button><ui-dialog id="mode-dialog" for="dialog-trigger" label="Fellowship memo">Sam has the notes.</ui-dialog>
       <ui-button id="menu-trigger">Office actions</ui-button><ui-menu id="mode-menu" for="menu-trigger"><ui-menu-item value="memo">Read memo</ui-menu-item></ui-menu>
@@ -10693,10 +10790,10 @@ describe("Nested portable theme boundaries", () => {
       await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
       await page.locator('html').evaluate(element=>{element.dataset.theme='light';});
       const paint = (selector: string) => page.locator(selector).evaluate(element=>{
-        const style=getComputedStyle(element);return [style.color,style.backgroundColor,style.borderTopColor,style.colorScheme];
+        const style=getComputedStyle(element);return [style.color,style.backgroundColor,style.borderTopColor,style.colorScheme,style.backgroundImage];
       });
-      const initial = Object.fromEntries(await Promise.all(['outside','outer','inner','deep'].flatMap(name=>['action','field'].map(async kind=>[name+'-'+kind,await paint('#'+name+'-'+kind)])))) as Record<string,string[]>;
-      for(const kind of ['action','field']) {
+      const initial = Object.fromEntries(await Promise.all(['outside','outer','inner','deep'].flatMap(name=>['action','field','select'].map(async kind=>[name+'-'+kind,await paint('#'+name+'-'+kind)])))) as Record<string,string[]>;
+      for(const kind of ['action','field','select']) {
         assert.deepEqual(initial['outside-'+kind],initial['inner-'+kind]);
         assert.deepEqual(initial['outer-'+kind],initial['deep-'+kind]);
         assert.notDeepEqual(initial['outer-'+kind],initial['inner-'+kind]);
@@ -10714,7 +10811,7 @@ describe("Nested portable theme boundaries", () => {
         await page.locator('#outer').evaluate(element=>{element.dataset.theme='dark';});
         await page.keyboard.press('Escape'); await page.mouse.move(0,0);
       }
-      for(const kind of ['action','field']) {
+      for(const kind of ['action','field','select']) {
         assert.deepEqual(await paint('#outside-'+kind),initial['outer-'+kind]);
         for(const name of ['outer','inner','deep']) assert.deepEqual(await paint('#'+name+'-'+kind),initial[name+'-'+kind],`${name}: nested scope survives page switching`);
       }

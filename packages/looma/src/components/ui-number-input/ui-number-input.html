@@ -3,6 +3,7 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-number-input" module="./ui-number-input.js">
   <defs>
+    <state name="display" type="string" from="$value"></state>
     <prop name="value" type="string" default="0"
     >Exact value. Arithmetic is calculated on Enter or blur; the resulting value includes unit. Invalid expressions stay visible and expose invalid
       state.</prop>
@@ -30,7 +31,7 @@
       data-ui-field-control
       from:size="$size"
       from:disabled="$disabled"
-      from:value="$value"
+      from:value="$display"
       from:aria-label="$label"
       from:name="$name"
       inputmode="decimal"

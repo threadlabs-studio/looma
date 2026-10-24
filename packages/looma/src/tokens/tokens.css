@@ -85,6 +85,10 @@
      never has to: these exist so components share one vocabulary, not to be configured. */
   :root,
   :where([data-theme], [data-contrast]) {
+    /* Neutral is a quiet filled surface, never the text colour inverted. */
+    --ui-neutral-surface: color-mix(in srgb, var(--ui-text) 6%, var(--ui-surface-raised));
+    --ui-neutral-hover: color-mix(in srgb, var(--ui-text) 10%, var(--ui-surface-raised));
+    --ui-neutral-active: color-mix(in srgb, var(--ui-text) 14%, var(--ui-surface-raised));
     --ui-accent-line-width: var(--ui-border-width);
 
     /* Type scale, from the base size. */

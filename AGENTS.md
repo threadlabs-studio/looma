@@ -115,7 +115,13 @@ do not establish design-system conformity.
 
 Every app using Looma pays for a changed API, so the bar is high.
 
-- A rename, removal, changed event, or changed value is a breaking change. Make
+Before 1.0, do not add or retain compatibility aliases, deprecated spellings,
+fallback APIs or migration shims solely to preserve a superseded contract.
+Remove the old name and update its callers, examples and tests together. Record
+the change and migration in the changelog. The stability guidance below applies
+from 1.0; it must not be used to recreate compatibility layers before then.
+
+- From 1.0, a rename, removal, changed event, or changed value is a breaking change. Make
   one only with a strong justification, written in the PR description and in
   the CHANGELOG entry: what goes wrong for users or apps today, why an additive
   change (a new option, value, or alias) can't fix it, and how to migrate. "More
@@ -123,7 +129,7 @@ Every app using Looma pays for a changed API, so the bar is high.
 - Changing a default needs the strongest justification of all. It silently
   changes behaviour for every app that never set the option. State who is
   affected and why the new default is right for nearly all of them.
-- Prefer additive changes. When a clearer name arrives, keep the old one working
+- From 1.0, prefer additive changes. When a clearer name arrives, keep the old one working
   unless keeping it causes real harm.
 - The boolean rule (an omitted boolean means `false`) is never by itself a
   reason to change a default or invert a name. If making something the default
@@ -156,6 +162,11 @@ Every app using Looma pays for a changed API, so the bar is high.
   `packages/looma/tooling/docs`; the public site supplies configuration and authored
   guides. Read that directory's `README.md` for discovery and theme contracts.
   Fix shared behavior there rather than creating a public-site-only implementation.
+- Author new design-system components and documentation examples in HTML Next.
+  The approved next packaging phase removes distributed Vue components; Vue
+  consumers will use the HTML Next Vite plugin or converter. Until that migration
+  lands, existing generated Vue checks still apply; do not add a second authored
+  Vue implementation.
 - Looma is pre-1.0: breaking changes bump the minor version.
 
 ## Public Repository Hygiene
