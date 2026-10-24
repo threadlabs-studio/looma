@@ -66,7 +66,7 @@ Release documentation follows built artifacts, not a blanket format claim:
 ## Token Flow
 
 - `@threadlabs/looma/tokens.css` defines primitive and semantic CSS variables in `@layer tokens`.
-- Theme files override semantics in `@layer theme`.
+- Theme files override semantics in `@layer theme`. Optional `theme-system.css` derives shared scale/material roles from semantic levers without changing the default token contract.
 - The facade layout, core, and editor entries consume semantic tokens.
 - Apps may add their own utility layer and override documented tokens.
 

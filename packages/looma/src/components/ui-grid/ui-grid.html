@@ -24,8 +24,8 @@
     :host {
       --_grid-gap: var(--ui-space-4);
       --_grid-min: 12rem;
-      display: grid;
-      gap: var(--ui-grid-gap, var(--_grid-gap));
+      display: grid !important;
+      gap: var(--ui-grid-gap, var(--_grid-gap)) !important;
       grid-template-columns:
         repeat(
         auto-fit,
@@ -42,7 +42,7 @@
       );
       min-inline-size: 0;
       max-inline-size: 100%;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host([gap="xs"]) {
@@ -69,7 +69,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

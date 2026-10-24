@@ -95,8 +95,7 @@
           >
             <ui-icon slot="leading" name="file-text"></ui-icon>
             <ui-text slot="title" as="strong" size="sm" weight="medium" truncate from:title="$result.label">{$result.label}</ui-text>
-            <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" truncate from:title="$result.detail"
-            >{$result.detail}</ui-text>
+            <ui-text $if="$result.detail" slot="meta" as="span" size="xs" tone="secondary" truncate from:title="$result.detail">{$result.detail}</ui-text>
             <ui-icon $if="$result.id = $selected" slot="trailing" name="check"></ui-icon>
           </ui-search-result-row>
         </ui-scroll-area>

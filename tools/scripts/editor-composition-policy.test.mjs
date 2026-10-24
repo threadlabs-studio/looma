@@ -8,9 +8,9 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const editor = path.join(repo, 'packages/looma/src/vue/editor');
 
 // Composed editor surfaces consume components. Native markup belongs in component definitions.
-// Existing gaps: mobile table back action, upload retry, chip text/color picker, and a hidden
-// platform file input. Keep their exact counts until those surfaces are migrated; never add debt.
-const debt = new Map([['LoomaEditor.ts', 3]]);
+// Only the two hidden platform file inputs remain. Visible editor actions consume Button.
+// Keep their exact count until the platform inputs can be owned by a primitive; never add debt.
+const debt = new Map([['LoomaEditor.ts', 2]]);
 export function nativeControls(source) {
   return [...source.matchAll(/\bh\s*\(\s*["'](button|input|select|textarea)["']/g)]
     .map(match => ({ tag: match[1], line: source.slice(0, match.index).split('\n').length }));

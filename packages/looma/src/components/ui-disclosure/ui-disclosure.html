@@ -89,7 +89,7 @@
     /* An accordion row, not a field: no enclosing box, just a divider, so it never reads as a
      * select or combobox. Stacked disclosures share their dividers. */
     :host {
-      display: block;
+      display: block !important;
       inline-size: 100%;
       overflow: clip;
       border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
@@ -97,13 +97,13 @@
     }
 
     .trigger {
-      display: flex;
-      gap: var(--ui-space-3);
-      align-items: center;
+      display: flex !important;
+      gap: var(--ui-space-3) !important;
+      align-items: center !important;
       inline-size: 100%;
       min-block-size: var(--_ui-disclosure-trigger-min-block-size, var(--_trigger-min-block-size));
       padding: var(--_ui-disclosure-trigger-padding-block, var(--_trigger-padding-block))
-        var(--_ui-disclosure-trigger-padding-inline, var(--_trigger-padding-inline));
+        var(--_ui-disclosure-trigger-padding-inline, var(--_trigger-padding-inline)) !important;
       border: 0;
       background: transparent;
       color: inherit;
@@ -134,13 +134,13 @@
 
     .leading,
     .indicator {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       flex: none;
     }
     .leading:empty {
-      display: none;
+      display: none !important;
     }
     .indicator {
       transition: transform var(--ui-motion-feedback) var(--ui-motion-feedback-ease);
@@ -158,7 +158,7 @@
     }
 
     .panel {
-      display: grid;
+      display: grid !important;
       grid-template-rows: 0fr;
       transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease), content-visibility var(--ui-motion-reveal) allow-discrete;
     }
@@ -166,21 +166,21 @@
     .panel-inner {
       min-block-size: 0;
       overflow: hidden;
-      padding-inline: var(--ui-space-3);
+      padding-inline: var(--ui-space-3) !important;
     }
 
     :host(:state(internalOpen)) .panel {
       grid-template-rows: 1fr;
     }
     :host(:state(internalOpen)) .panel-inner {
-      padding-block: 0 var(--ui-space-3);
+      padding-block: 0 var(--ui-space-3) !important;
     }
 
     /* A bounded accordion owns one flexible body, so its trigger never scrolls away. The
      * normal content-sized layout and its animation remain unchanged when fill is omitted. */
     :host([fill]) {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       flex: 0 0 var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size));
       min-block-size: calc(var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size)) + var(--ui-border-width));
       transition: flex-grow var(--ui-motion-layout) var(--ui-motion-layout-ease);
@@ -201,26 +201,26 @@
       min-block-size: 0;
     }
     :host([fill]) .panel-inner {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       flex: 1;
       min-block-size: 0;
-      padding: 0;
+      padding: 0 !important;
     }
 
     :host([variant="navigation"]) .trigger {
-      gap: var(--ui-nav-gap);
-      padding-inline: var(--ui-nav-padding-inline);
+      gap: var(--ui-nav-gap) !important;
+      padding-inline: var(--ui-nav-padding-inline) !important;
       min-block-size: var(--ui-nav-min-block-size);
-      padding-block: var(--ui-nav-padding-block);
+      padding-block: var(--ui-nav-padding-block) !important;
       border-radius: var(--ui-selection-radius);
       font-size: var(--ui-font-size-md);
       font-weight: var(--ui-font-normal);
       color: var(--ui-text-secondary);
     }
     :host([variant="navigation"][density="compact"]) .trigger {
-      padding-inline: var(--ui-nav-compact-padding-inline);
-      padding-block: var(--ui-nav-compact-padding-block);
+      padding-inline: var(--ui-nav-compact-padding-inline) !important;
+      padding-block: var(--ui-nav-compact-padding-block) !important;
       min-block-size: var(--ui-nav-compact-min-block-size);
       font-size: var(--ui-font-size-sm);
     }
@@ -248,7 +248,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

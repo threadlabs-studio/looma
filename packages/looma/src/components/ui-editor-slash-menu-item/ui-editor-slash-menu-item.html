@@ -13,11 +13,11 @@
   </li>
   <style>
     :host {
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-3);
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-3) !important;
       min-block-size: 44px;
-      padding: var(--ui-space-2) var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3) !important;
       cursor: pointer;
       list-style: none;
     }
@@ -36,9 +36,9 @@
     }
 
     .icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       inline-size: 32px;
       block-size: 32px;
       flex: 0 0 auto;
@@ -53,10 +53,10 @@
     }
 
     .body {
-      display: flex;
+      display: flex !important;
       min-inline-size: 0;
-      flex-direction: column;
-      gap: 1px;
+      flex-direction: column !important;
+      gap: 1px !important;
     }
     .title, .description {
       overflow: hidden;
@@ -74,7 +74,7 @@
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -177,6 +177,118 @@ and space steps either side of the contract's own, the elevation names, and the 
 Do not restate a derived value in a theme. Setting `--ui-accent` gives you `--ui-accent-solid`,
 `--ui-action-primary-surface` and the rest for free, and they keep agreeing when the accent changes.
 
+### Derived action insets
+
+`--ui-action-inset-sm`, `--ui-action-inset-md` and `--ui-action-inset-lg` derive from the
+corresponding spacing steps. They control boxed text actions' horizontal content padding while
+height remains on the shared control scale. A theme can derive these values from its control
+sizes to give actions more room without changing fields' editing insets.
+
+## Optional semantic theme recipe
+
+Import `@threadlabs/looma/theme-system.css` after `tokens.css` and your palette to
+express a theme through shared scales and material decisions. It is opt-in:
+existing themes keep their current defaults when this file is absent. The recipe
+contains only custom properties, with no component selectors or runtime script.
+
+```css
+@import "@threadlabs/looma/tokens.css";
+@import "@threadlabs/looma/theme-light.css";
+@import "@threadlabs/looma/theme-system.css";
+
+:root {
+  --ui-accent: #3859b8;
+  --ui-on-accent: #ffffff;
+  --ui-font-display: Georgia, serif;
+  --ui-control-size: 2.75rem;
+  --ui-density: 1.05;
+  --ui-scale-ratio: 1.2;
+  --ui-space-curve: 1;
+  --ui-radius-md: 0.5rem;
+  --ui-outer-depth: 0.7;
+  --ui-inner-depth: 0.4;
+  --ui-edge-light: 0.25;
+  --ui-overlay-translucency: 0.1;
+  --ui-motion-fast: 0.15s;
+}
+```
+
+Use unlayered declarations, as above, to override the recipe's `theme` layer.
+Lengths, font families, weights, easing functions and durations use native CSS
+syntax. For example, `2rem` remains a relative length and `0.15s` remains a time;
+there is no JavaScript number parser or separate generated theme to synchronize.
+The recipe re-evaluates at `:root`, `[data-theme]` and `[data-contrast]` boundaries.
+Set a local seed on such a boundary when its descendants need a distinct theme.
+A class by itself is not a recomputation boundary.
+
+### New semantic levers
+
+| Property | Default | Meaning and range |
+| --- | --- | --- |
+| `--ui-density` | `1` | Spacing unit relative to control size. Nonnegative number; `0` removes the spacing unit. |
+| `--ui-scale-ratio` | `1.2` | Multiplier between small, medium and large boxed controls. Values below `1` behave as `1`. |
+| `--ui-space-curve` | `1` | Exponent for spacing steps. `0` gives equal steps, `1` linear growth, `2` quadratic growth. Negative values behave as `0`. |
+| `--ui-outer-depth` | `0.6` | Strength of raised and floating elevation. `0` is flat; larger nonnegative numbers increase shadow distance and spread. |
+| `--ui-inner-depth` | `0.3` | Strength of recessed field and pressed-control shadows. `0` removes recession. Does not change animation scale. |
+| `--ui-edge-light` | `0` | Edge highlight on actions and recessed controls. Clamped to `0`–`1`; separate from elevation. |
+| `--ui-overlay-translucency` | `0` | Transparency of participating floating surfaces. Clamped to `0`–`1`: `0` opaque, `1` transparent. Inverse tooltips keep their own surface. |
+
+These names describe shared decisions, not individual shadow strings. They derive
+existing roles: `--ui-shadow-xs` through `-xl`, `--ui-elevation-*`,
+`--ui-action-shadow`, `--ui-raised`, `--ui-pressed`, `--ui-control-inset`,
+`--ui-action-edge` and `--ui-overlay-surface`. A component with an explicit hook
+or a specialized surface recipe retains that more specific treatment.
+
+### Existing names remain canonical
+
+| Family | Shared inputs |
+| --- | --- |
+| Colour | `--ui-accent`, `--ui-surface`, `--ui-surface-raised`, `--ui-text` |
+| Typography | `--ui-font-sans`, `--ui-font-display`, `--ui-font-size`, `--ui-font-medium` |
+| Geometry | `--ui-control-size`, `--ui-radius-md`, `--ui-border-width` |
+| Motion | `--ui-motion-fast`, `--ui-motion-ease` |
+
+Together with the seven new levers, these are twenty useful authoring decisions,
+not twenty additional aliases or a claim of a universal minimum. The medium font
+weight controls emphasis in participating controls; normal body and semibold
+heading weights retain their separate semantic roles. There is no second
+ornamental accent colour. Focus continues to derive from `--ui-accent` unless
+`--ui-focus-ring` is explicitly set.
+
+The existing danger, success, warning, info, readable foreground and focus roles
+remain available. The four colour inputs above do not replace the intent palette
+or guarantee contrast. Check text against each actual surface and intent state;
+set `--ui-on-accent`, `--ui-on-danger` and intent shades when needed. Translucent
+surfaces also need checks against the content behind them.
+
+### Independent scales and deliberate overrides
+
+For control height `h`, size ratio `r`, density `d` and spacing curve `c`, the
+recipe uses control sizes `h/r`, `h`, `h*r`, and spacing step `n` is
+`(h*d/10) * n^c`. Steps 1–4 use `n=1,2,3,4`; steps 5 and 6 use `n=6,8`.
+Changing the size ratio leaves the spacing curve unchanged. Native [CSS `pow()`](https://www.w3.org/TR/css-values-4/#exponent-funcs)
+implements the spacing progression. Large values can produce impractical layouts;
+these are authoring controls, not an automatic fit or accessibility guarantee.
+
+Single-line Button, Input, Select and Combobox editing areas read derived
+`--ui-control-inset-block-sm`, `-md` and `-lg`. Their vertical padding fits the
+shared height and typography instead of taking page spacing steps. Multi-line
+content may still grow intrinsically, and coarse pointers retain the minimum
+touch target. Horizontal action insets follow size and density. Choice marks
+follow typography; their rows align with the shared heights.
+
+Radius steps derive from `--ui-radius-md`; explicit round shapes keep their
+shape. Press timing is one third of `--ui-motion-fast`, reveal timing is 1.2
+times it, and both use `--ui-motion-ease`. Activation scale is a separate derived
+role (`--ui-press-scale: 0.98`), independent of depth. Reduced motion removes that
+scale and the recipe's press/reveal timing. Components retain their own
+reduced-motion behavior; custom timing overrides should also respect the preference.
+
+A direct role override still wins. For example, an application can set
+`--ui-shadow-lg` or `--ui-action-inset-md` without replacing the recipe, or set a
+supported group/component hook. The recipe never selects private inputs or labels
+to achieve a theme.
+
 ## Group values
 
 Group values are the middle layer. They inherit from a page, form, dialog, theme root or other
@@ -188,6 +300,9 @@ ancestor, and work only in the components listed here. They are intentionally ab
   <tbody>
     <tr><td><code>--ui-field-radius</code></td><td>Input, Input Group, Select, Listbox, Textarea, Combobox field, Search Shell's slotted search input, editor link form</td><td><code>--ui-radius-md</code></td></tr>
     <tr><td><code>--ui-field-danger</code></td><td>Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form</td><td><code>--ui-danger</code> and its solid alias</td></tr>
+    <tr><td><code>--ui-font-display</code></td><td>Page Header title, Section heading, Text rendered as h2–h6</td><td>Inherited font; setting Text’s explicit sans font still takes precedence</td></tr>
+    <tr><td><code>--ui-press-scale</code></td><td>Button, Icon Button, ColorPicker swatch on activation</td><td>Button: 1; Icon Button and ColorPicker: 0.96; explicit Icon Button hook takes precedence</td></tr>
+    <tr><td><code>--ui-motion-press</code></td><td>Scale feedback on Button, Icon Button and ColorPicker</td><td><code>--ui-motion-fast</code></td></tr>
     <tr><td><code>--ui-action-radius</code></td><td>Button, Icon Button, except the Icon Button's explicit <code>round</code> shape</td><td><code>--ui-radius-md</code></td></tr>
     <tr><td><code>--ui-overlay-radius</code></td><td>Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup</td><td>Each component's former radius default</td></tr>
     <tr><td><code>--ui-overlay-surface</code>, <code>--ui-overlay-border</code>, <code>--ui-overlay-shadow</code></td><td>The same overlay surfaces, except an inverse Tooltip uses its own surface and border</td><td>The elevated surface, strong border, and elevation tokens</td></tr>
@@ -400,3 +515,28 @@ which one it is.
 
 In a dark theme the intent tones are light, so their foregrounds (`--ui-on-accent`,
 `--ui-on-danger`) are dark. That is what lets one tone per intent serve both text and solid surfaces.
+
+## Components own their layout
+
+Themes supply shared values; components retain their layout rules. Looma protects
+its declared flow, alignment and spacing with important priority. Setting
+`align-items: center` on a Checkbox, even as a normal inline style, does not change
+the alignment between its box and label. Its first-line alignment is component
+behavior, including when the label wraps or has a description.
+
+Use a supported prop or public custom property. If the capability is missing, improve
+the component instead of selecting its private inputs or labels. A consumer can
+make a deliberate `!important` override under the CSS cascade, but doing so leaves
+the normal theming contract. Public token declarations themselves are not important;
+changing them still updates every protected declaration that reads them.
+
+This priority contract protects declared layout properties, not every possible
+application style or arbitrary author markup. It does not create a security boundary
+against intentionally hostile CSS.
+
+Choice marks follow typography through derived `--ui-choice-mark-size`,
+`--ui-choice-track-height` and `--ui-choice-track-width`. The default ratios are
+1.125, 1.5 and 2.5 times the base font size. Checkbox and radio marks retain the
+same size across sm/md/lg rows; those rows align with the shared control heights.
+The switch thumb and travel derive from its track, including component hooks.
+These are derived roles, not additional theme seeds.

@@ -8,9 +8,9 @@
       position: sticky;
       top: 0;
       z-index: var(--ui-editor-toolbar-z-index, 10);
-      display: flex;
-      align-items: center;
-      padding: var(--ui-editor-toolbar-padding-block, 6px) var(--ui-editor-toolbar-padding-inline, 12px);
+      display: flex !important;
+      align-items: center !important;
+      padding: var(--ui-editor-toolbar-padding-block, 6px) var(--ui-editor-toolbar-padding-inline, 12px) !important;
       min-height: var(--ui-editor-toolbar-min-height, 48px);
       background: var(--ui-editor-toolbar-surface, var(--ui-surface));
       border-bottom: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border-divider));
@@ -19,11 +19,11 @@
     /* One row, always. When the controls outgrow the space, the row scrolls sideways rather than
        wrapping into several lines, and a fade at each edge that has more to show says so. */
     .strip {
-      display: flex;
+      display: flex !important;
       flex: 1 1 auto;
-      align-items: center;
-      justify-content: flex-start;
-      gap: var(--ui-editor-toolbar-gap, 2px);
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: var(--ui-editor-toolbar-gap, 2px) !important;
       min-width: 0;
       overflow-x: auto;
       overflow-y: hidden;
@@ -32,7 +32,7 @@
     }
 
     .strip::-webkit-scrollbar {
-      display: none;
+      display: none !important;
     }
 
     .strip > :slotted(*) {
@@ -69,17 +69,17 @@
       height: 20px;
       background: var(--ui-editor-toolbar-divider, var(--ui-border-divider));
       flex-shrink: 0;
-      margin: 0 var(--ui-editor-toolbar-divider-margin, 4px);
+      margin: 0 var(--ui-editor-toolbar-divider-margin, 4px) !important;
     }
 
     :host([floating]) {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       position: relative;
       top: auto;
       width: max-content;
       max-width: min(calc(100vw - 24px), 100%);
       min-height: auto;
-      padding: var(--ui-editor-toolbar-floating-padding, 4px);
+      padding: var(--ui-editor-toolbar-floating-padding, 4px) !important;
       background: color-mix(in srgb, var(--ui-editor-toolbar-surface, var(--ui-surface)) 96%, transparent);
       border: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border-strong));
       border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
@@ -124,7 +124,7 @@
       width: 100%;
       max-width: none;
       min-height: 100%;
-      padding: 0;
+      padding: 0 !important;
       background: transparent;
       border: 0;
       border-radius: 0;
@@ -138,7 +138,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

@@ -62,6 +62,22 @@ executable inputs need an owner mapping. See
 - Style a nested component only through its props or the custom properties it
   supports; never select its root (HTML Next scoping never matches it).
 
+## Consumer styling boundary
+
+Looma owns the internal layout of each component. Normal application CSS, including
+inline styles, must not change its declared flow, alignment, or spacing. Those
+declarations use `!important`; supported props and public custom properties remain
+the normal customization interface. An application author can deliberately opt out
+with an explicit `!important` override, subject to the CSS cascade. Do not generate
+that escape hatch to make a theme or composition fit.
+
+A visual mismatch is evidence of a missing shared primitive or public capability,
+not permission to style nested inputs, labels, runtime markers, or private variables.
+Fix the responsible approved primitive and test its consumers. A theme describes
+shared semantics; do not add per-component knobs merely to reproduce an inconsistent
+reference. Compare related controls and first-line alignment across typography,
+wrapping, descriptions and sizes. The package build checks ownership priority.
+
 ## Composed editor controls
 
 Only the explicitly approved sources in `tools/style-source-allowlist.json` may

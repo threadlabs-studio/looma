@@ -13,12 +13,13 @@ const editorStyles = path.join(repoRoot, "packages/looma/src/vue/editor/looma-ed
 // reads its global fallback when a consumer has not themed that group.
 const GROUP_TOKENS = new Set([
   "--ui-field-radius", "--ui-field-danger", "--ui-action-radius", "--ui-action-edge", "--ui-action-shadow",
+  "--ui-font-display", "--ui-press-scale", "--ui-motion-press",
   "--ui-overlay-radius", "--ui-overlay-surface", "--ui-overlay-border", "--ui-overlay-shadow",
 ]);
 
-async function definedTokens() {
+async function definedTokens(includeRecipe = true) {
   const files = await readdir(tokensRoot);
-  const sources = await Promise.all(files.map((file) => readFile(path.join(tokensRoot, file), "utf8")));
+  const sources = await Promise.all(files.filter(file => includeRecipe || file !== "theme-system.css").map((file) => readFile(path.join(tokensRoot, file), "utf8")));
   return new Set(sources.flatMap((source) => [...source.matchAll(/(--ui-[\w-]+)\s*:/g)].map((match) => match[1])));
 }
 
@@ -35,6 +36,8 @@ async function componentTokens() {
  */
 test("every global token a stylesheet reads is defined", async () => {
   const defined = await definedTokens();
+  const defaults = await definedTokens(false);
+  const optional = new Set([...defined].filter(token => !defaults.has(token)));
   const { prefixes } = await componentTokens();
   const files = [
     ...(await readdir(componentsRoot))
@@ -51,6 +54,10 @@ test("every global token a stylesheet reads is defined", async () => {
     // the parts that read `--_ui-x` supply the fallback.
     const relays = new Set([...source.matchAll(/--_(ui-[\w-]+)\s*:\s*var\(--(ui-[\w-]+)\)/g)].filter(([, relay, hook]) => relay === hook).map(([, , hook]) => `--${hook}`));
     for (const [, token, next] of source.matchAll(/var\((--ui-[\w-]+)\s*(,|\))/g)) {
+      if (optional.has(token) && !GROUP_TOKENS.has(token)) {
+        if (next === ")") violations.push(`${path.basename(file)}: optional recipe role ${token} has no default fallback`);
+        continue;
+      }
       if (defined.has(token) || GROUP_TOKENS.has(token) || local.has(token) || relays.has(token)) continue;
       // A component's own token is defined by whoever sets it, so a fallback is the contract.
       if (prefixes.some((prefix) => token.startsWith(`--${prefix}`))) {
@@ -66,7 +73,8 @@ test("every global token a stylesheet reads is defined", async () => {
 });
 
 test("group tokens stay optional and shared across components", async () => {
-  const defined = await definedTokens();
+  // Only an explicitly imported recipe opts into group values; defaults and palettes do not.
+  const defined = await definedTokens(false);
   const tags = (await readdir(componentsRoot)).filter((name) => name.startsWith("ui-"));
   for (const token of GROUP_TOKENS) {
     assert.equal(defined.has(token), false, `${token} must be unset so its fallback remains live`);

@@ -32,12 +32,12 @@
       /* Lays its children out from its own box: below the threshold each track takes the full width;
          at or above it, tracks shrink to 1px so every child fits one row and empty tracks collapse.
          The large multiplier makes the whole row flip at once. */
-      display: grid;
+      display: grid !important;
       grid-template-columns: repeat(auto-fit, minmax(var(--_switcher-track), 1fr));
-      gap: var(--ui-switcher-gap, var(--_switcher-gap));
+      gap: var(--ui-switcher-gap, var(--_switcher-gap)) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-      margin: 0;
+      margin: 0 !important;
     }
 
     :host(:state(overLimit)) {
@@ -69,18 +69,18 @@
       --_switcher-threshold: 60rem;
     }
     :host([align="start"]) {
-      align-items: start;
+      align-items: start !important;
     }
     :host([align="center"]) {
-      align-items: center;
+      align-items: center !important;
     }
     :host([align="end"]) {
-      align-items: end;
+      align-items: end !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

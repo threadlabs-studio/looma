@@ -20,11 +20,11 @@
   <style>
     /* A rounded SVG arc grows and recedes over a quiet full-circle track. */
     :host {
-      display: inline-flex;
+      display: inline-flex !important;
       flex: none;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
       inline-size: 1em;
       block-size: 1em;
       color: currentColor;
@@ -37,7 +37,7 @@
     }
 
     svg {
-      display: block;
+      display: block !important;
       inline-size: 100%;
       block-size: 100%;
       animation: ui-spinner-rotate 2s linear infinite;
@@ -89,7 +89,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

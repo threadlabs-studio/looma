@@ -8,20 +8,20 @@
   </div>
   <style>
     :host {
-      display: flex;
-      flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       min-inline-size: 0;
     }
 
     .heading {
-      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1);
+      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1) !important;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-semibold);
     }
 
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

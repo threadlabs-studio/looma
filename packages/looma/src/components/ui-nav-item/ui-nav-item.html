@@ -73,16 +73,16 @@
       --_indicator-width: var(--ui-nav-item-indicator-width, var(--ui-accent-line-width));
       --_indicator-color: var(--ui-nav-item-indicator-color, var(--ui-accent));
       position: relative;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      gap: var(--ui-nav-gap);
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-nav-gap) !important;
       inline-size: var(--ui-nav-item-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-nav-min-block-size);
-      margin: 0;
-      padding-block: var(--ui-nav-padding-block);
-      padding-inline: var(--ui-nav-padding-inline);
+      margin: 0 !important;
+      padding-block: var(--ui-nav-padding-block) !important;
+      padding-inline: var(--ui-nav-padding-inline) !important;
       border: 0;
       border-radius: var(--ui-selection-radius);
       background: transparent;
@@ -131,12 +131,12 @@
       position: absolute;
       inset-block: 0;
       inset-inline-start: 0;
-      display: none;
+      display: none !important;
       border-inline-start: var(--_indicator-width) solid var(--_indicator-color);
     }
 
     :host([variant="line"])[aria-current] .indicator {
-      display: block;
+      display: block !important;
     }
 
     @media (forced-colors: active) {
@@ -153,26 +153,26 @@
 
     .leading,
     .trailing {
-      display: inline-flex;
+      display: inline-flex !important;
       flex: none;
-      align-items: center;
-      justify-content: center;
+      align-items: center !important;
+      justify-content: center !important;
       inline-size: var(--ui-nav-icon-size);
       color: inherit;
       font-size: var(--ui-nav-icon-size);
     }
 
     .content {
-      display: flex;
+      display: flex !important;
       flex: 1;
-      flex-direction: column;
-      gap: var(--ui-space-0-5, 2px);
+      flex-direction: column !important;
+      gap: var(--ui-space-0-5, 2px) !important;
       min-inline-size: 0;
     }
 
     .label,
     .description {
-      display: block;
+      display: block !important;
       min-inline-size: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -193,8 +193,8 @@
 
     :host([density="compact"]) {
       min-block-size: var(--ui-nav-compact-min-block-size);
-      padding-block: var(--ui-nav-compact-padding-block);
-      padding-inline: var(--ui-nav-compact-padding-inline);
+      padding-block: var(--ui-nav-compact-padding-block) !important;
+      padding-inline: var(--ui-nav-compact-padding-inline) !important;
     }
     :host([density="compact"]) .label {
       font-size: var(--ui-font-size-sm);
@@ -210,12 +210,12 @@
     .leading:empty,
     .trailing:empty,
     .description:empty {
-      display: none;
+      display: none !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

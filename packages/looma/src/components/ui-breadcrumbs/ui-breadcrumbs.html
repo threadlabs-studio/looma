@@ -7,25 +7,25 @@
     /* Where a view sits: a trail of ui-breadcrumb-item, from the top down to the current view. It wraps
        rather than scrolls, so every step stays reachable. */
     :host {
-      display: block;
+      display: block !important;
       min-inline-size: 0;
       color: var(--ui-text-muted);
       font-size: var(--ui-font-size-sm);
     }
 
     ol {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--ui-space-1) var(--ui-space-2);
-      margin: 0;
-      padding: 0;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: var(--ui-space-1) var(--ui-space-2) !important;
+      margin: 0 !important;
+      padding: 0 !important;
       list-style: none;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

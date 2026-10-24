@@ -1,0 +1,80 @@
+/* Optional shared recipe. Load after tokens.css and the chosen palette.
+   Existing public roles remain the customization interface; no component selectors. */
+@layer theme {
+  :root {
+    --ui-density: 1;
+    --ui-scale-ratio: 1.2;
+    --ui-space-curve: 1;
+    --ui-outer-depth: 0.6;
+    --ui-inner-depth: 0.3;
+    --ui-edge-light: 0;
+    --ui-overlay-translucency: 0;
+  }
+
+  :where(:root, [data-theme], [data-contrast]) {
+    /* Controls use a ratio. Spacing uses an independent curve, so increasing the size
+       contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
+    --_ui-theme-ratio: max(1, var(--ui-scale-ratio));
+    --_ui-theme-unit: calc(var(--ui-control-size) * 0.1 * max(0, var(--ui-density)));
+    --_ui-theme-curve: max(0, var(--ui-space-curve));
+    --ui-control-size-sm: calc(var(--ui-control-size) / var(--_ui-theme-ratio));
+    --ui-control-size-md: var(--ui-control-size);
+    --ui-control-size-lg: calc(var(--ui-control-size) * var(--_ui-theme-ratio));
+    --ui-space-1: var(--_ui-theme-unit);
+    --ui-space-2: calc(var(--_ui-theme-unit) * pow(2, var(--_ui-theme-curve)));
+    --ui-space-3: calc(var(--_ui-theme-unit) * pow(3, var(--_ui-theme-curve)));
+    --ui-space-4: calc(var(--_ui-theme-unit) * pow(4, var(--_ui-theme-curve)));
+    --ui-space-0-5: calc(var(--ui-space-1) * 0.5);
+    --ui-space-5: calc(var(--_ui-theme-unit) * pow(6, var(--_ui-theme-curve)));
+    --ui-space-6: calc(var(--_ui-theme-unit) * pow(8, var(--_ui-theme-curve)));
+    /* Vertical editing/action insets fit the shared box instead of growing with the
+       page spacing curve. Multi-line content can still grow intrinsically. */
+    --ui-control-inset-block-sm: max(0px, calc((var(--ui-control-size-sm) - var(--ui-font-size-sm) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
+    --ui-control-inset-block-md: max(0px, calc((var(--ui-control-size-md) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
+    --ui-control-inset-block-lg: max(0px, calc((var(--ui-control-size-lg) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
+    --ui-action-inset-sm: calc(var(--ui-control-size-sm) * 0.625 * var(--ui-density));
+    --ui-action-inset-md: calc(var(--ui-control-size-md) * 0.625 * var(--ui-density));
+    --ui-action-inset-lg: calc(var(--ui-control-size-lg) * 0.625 * var(--ui-density));
+
+    --ui-radius-sm: calc(var(--ui-radius-md) * 0.5);
+    --ui-radius-lg: calc(var(--ui-radius-md) * 1.5);
+    --ui-action-radius: var(--ui-radius-md);
+    --ui-field-radius: var(--ui-radius-md);
+    --ui-overlay-radius: calc(var(--ui-radius-md) * 1.75);
+
+    /* Depth changes elevation and recession, not motion amplitude. Neutral shadows
+       work across palettes without an extra ornamental brand colour. */
+    --_ui-theme-outer: max(0, var(--ui-outer-depth));
+    --_ui-theme-inner: max(0, var(--ui-inner-depth));
+    --_ui-theme-edge: clamp(0, var(--ui-edge-light), 1);
+    --_ui-theme-edge-paint: inset 1px 1px 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * 0.08)), inset -1px -1px 0 rgb(0 0 0 / calc(var(--_ui-theme-edge) * 0.08));
+    --ui-action-edge: var(--_ui-theme-edge-paint);
+    --ui-shadow-xs: 0 calc(1px * var(--_ui-theme-outer)) calc(2px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.08);
+    --ui-shadow-sm: 0 calc(1px * var(--_ui-theme-outer)) calc(3px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), 0 calc(4px * var(--_ui-theme-outer)) calc(12px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
+    --ui-shadow-md: var(--ui-shadow-sm);
+    --ui-shadow-lg: 0 calc(8px * var(--_ui-theme-outer)) calc(24px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.12), 0 calc(4px * var(--_ui-theme-outer)) calc(8px * var(--_ui-theme-outer)) rgb(0 0 0 / 0.06);
+    --ui-shadow-xl: var(--ui-shadow-lg);
+    --ui-action-shadow: var(--ui-shadow-sm);
+    --ui-raised: var(--ui-shadow-sm);
+    --ui-elevation-tooltip: var(--ui-shadow-sm);
+    --ui-elevation-overlay: var(--ui-shadow-lg);
+    --ui-elevation-dialog: var(--ui-shadow-lg);
+    --ui-control-inset: inset 0 calc(1px * var(--_ui-theme-inner)) calc(3px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.15), inset 0 -1px 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * 0.18));
+    --ui-pressed: inset 0 calc(2px * var(--_ui-theme-inner)) calc(4px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.2);
+    --ui-overlay-surface: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 100%), transparent);
+
+    /* Existing timing and easing names stay canonical. */
+    --ui-motion-press: calc(var(--ui-motion-fast) / 3);
+    --ui-motion-base: calc(var(--ui-motion-fast) * 1.2);
+    --ui-motion-ease-out: var(--ui-motion-ease);
+    --ui-press-scale: 0.98;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(:root, [data-theme], [data-contrast]) {
+      --ui-motion-press: 0ms;
+      --ui-motion-base: 0ms;
+      --ui-press-scale: 1;
+    }
+  }
+}
