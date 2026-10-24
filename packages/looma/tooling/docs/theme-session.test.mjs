@@ -15,11 +15,11 @@ const config = { base: '/looma/', baseline: defaultRecipe(), systemCSS: '/* shar
 test('a browser theme survives a fresh document, stays scoped, and resets to the project baseline', () => {
   const storage = new Map();
   const first = createThemeSession(browser(storage), config);
-  first.apply(startingPoints.library);
+  first.apply(startingPoints.bookish);
   assert.match(first.css, /shared derivation/);
   assert.match(first.css, /--ui-accent: light-dark\(#2e1228, /);
   const next = createThemeSession(browser(storage), config);
-  assert.deepEqual(next.recipe, startingPoints.library);
+  assert.deepEqual(next.recipe, startingPoints.bookish);
   assert.equal(createThemeSession(browser(storage), { ...config, base: '/other/' }).hasOverride, false);
   next.baseline(startingPoints.garden);
   assert.deepEqual(next.reset(), startingPoints.garden);

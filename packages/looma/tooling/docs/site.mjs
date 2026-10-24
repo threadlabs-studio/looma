@@ -96,9 +96,10 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   const resourceByTag = new Map(combined.resources.map(resource => [resource.tag, resource]));
   for (const component of combined.components) {
     if (!component.navigationParent) {
-      const page = path.join(content, 'components', groupDirectories.get(component.group), component.tag + '.md');
+      const section = component.group === 'editor' ? ['editor'] : ['components', groupDirectories.get(component.group)];
+      const page = path.join(content, ...section, component.tag + '.md');
       await write(page, referencePage(component, combined, relativeHref(page, card), base));
-      generatedReferences.add(`components/${component.tag}.md`);
+      generatedReferences.add(`${component.group === 'editor' ? 'editor' : 'components'}/${component.tag}.md`);
     }
     for (const example of component.examples) {
       const key = exampleKey(example.id);
@@ -123,6 +124,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   }).join('\n\n');
   await write(path.join(content, 'components/index.md'), `---\ntitle: Components\n---\n\n# Components\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), card)}">\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog>\n\n${gallery}\n\n</looma-catalog>\n`);
   await write(path.join(content, 'index.md'), `---\ntitle: ${JSON.stringify(config.title ?? 'Your design system')}\n---\n\n# ${config.title ?? 'Your design system'}\n\nWeave your design system from Looma and your own HTML Next components.\n\n[Explore components](/components/) · [Customize your theme](/customize/)\n`);
+  if (combined.components.some(component => component.group === 'editor')) await write(path.join(content, 'editor.md'), `---\ntitle: Editor\n---\n\n# Editor\n\nWriting tools and editor components, separate from the general component reference.\n\n${combined.components.filter(component => component.group === 'editor' && !component.navigationParent).map(component => `- [${component.title}](${componentPath(component)})`).join('\n')}\n`);
   await write(path.join(content, 'design-system.md'), await readFile(own('README.md'), 'utf8'));
   if (config.content) {
     const authored = path.resolve(root, config.content);
@@ -134,7 +136,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       let exists = false;
       try { await readFile(target); exists = true; } catch (error) { if (error.code !== 'ENOENT') throw error; }
       // A project's landing page and footer are branding/content, never API overrides.
-      if (exists && !['index.md', '_footer.md'].includes(path.relative(content, target))) throw new Error(`Authored/generated documentation collision: ${source} would replace ${target}. Add guidance under another path.`);
+      if (exists && !['index.md', 'editor.md', '_footer.md'].includes(path.relative(content, target))) throw new Error(`Authored/generated documentation collision: ${source} would replace ${target}. Add guidance under another path.`);
       await mkdir(path.dirname(target), { recursive: true }); await cp(source, target);
     }
   }
@@ -147,7 +149,6 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   for (const component of combined.components) {
     const target = componentPath(component);
     redirects[`/components/${component.group}/${component.tag}/`] = target;
-    if (component.group === 'editor') redirects[`/editor/${component.tag}/`] = target;
     if (component.navigationParent) redirects[`/parts/${component.tag}/`] = target;
   }
   return { root, config, base, catalog: combined, examples, generated, content, previews, redirects };
@@ -220,20 +221,29 @@ export async function buildDocumentation({ root = process.cwd(), config = {}, ca
 
 async function isolatePreviewScripts(site, { outDir, writeFile: writeOutput }) {
   const { build } = await tool('vite', site.root);
-  for (const example of site.examples) {
-    const htmlFile = path.join(outDir, '_looma/preview', exampleKey(example.id), 'index.html');
-    let html = await readFile(htmlFile, 'utf8');
-    const scripts = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g)];
-    if (!scripts.length) throw new Error(`No browser module found for isolated preview ${example.id}.`);
-    for (const [tag, url] of scripts) {
-      const input = path.join(outDir, url.slice(site.base.length));
-      const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
-      const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
-      const name = `${exampleKey(example.id)}.js`;
-      await writeOutput('_looma/runtime/' + name, code);
-      html = html.replace(tag, `<script src="${site.base}_looma/runtime/${name}" defer></script>`);
-    }
-    html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
-    await writeFile(htmlFile, html);
-  }
+  // Preview entries and outputs are independent. Keep compiler memory bounded
+  // and retain the build lock until every in-flight bundle has settled.
+  const remaining = [...site.examples];
+  const results = await Promise.allSettled(Array.from({ length: Math.min(2, remaining.length) }, async () => {
+    try {
+      for (let example; (example = remaining.pop());) {
+        const htmlFile = path.join(outDir, '_looma/preview', exampleKey(example.id), 'index.html');
+        let html = await readFile(htmlFile, 'utf8');
+        const scripts = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g)];
+        if (!scripts.length) throw new Error(`No browser module found for isolated preview ${example.id}.`);
+        for (const [tag, url] of scripts) {
+          const input = path.join(outDir, url.slice(site.base.length));
+          const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
+          const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
+          const name = `${exampleKey(example.id)}.js`;
+          await writeOutput('_looma/runtime/' + name, code);
+          html = html.replace(tag, `<script src="${site.base}_looma/runtime/${name}" defer></script>`);
+        }
+        html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
+        await writeFile(htmlFile, html);
+      }
+    } catch (error) { remaining.length = 0; throw error; }
+  }));
+  const failed = results.find(result => result.status === 'rejected');
+  if (failed) throw failed.reason;
 }

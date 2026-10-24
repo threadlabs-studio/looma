@@ -17,7 +17,7 @@ export interface DocumentationCatalog {
   resources?: { tag: string; package: string; resource: string }[]; components: DocumentationComponent[];
 }
 export interface DiscoveryRoot { directory: string; packageName: string; groups?: DocumentationGroup[] }
-export interface ThemeRecipe { schemaVersion: 1; values: Record<string, string> }
+export interface ThemeRecipe { schemaVersion: 1; values: Record<string, string>; presets?: Partial<Record<'material' | 'palette', string>> }
 export interface ThemeField { family: string; id: string; label: string; property: string; type: string; defaultValue: string; description: string; min?: number; max?: number }
 export interface DocumentationConfiguration {
   title?: string; base?: string; origin?: string; outDir?: string; content?: string;
@@ -50,6 +50,9 @@ export function previewProjectDocumentation(input?: DocumentationInput & { port?
 export const themeFields: readonly ThemeField[];
 export const startingPoints: Record<string, ThemeRecipe>;
 export function defaultRecipe(): ThemeRecipe;
+export const materialPresets: Record<string, { label: string; values: Record<string, string> }>;
+export function applyRefinement(input: ThemeRecipe, family: 'material' | 'palette', id: string): ThemeRecipe;
+export function refinementState(input: ThemeRecipe, family: 'material' | 'palette'): { id: string; customized: boolean };
 export function validateRecipe(input: unknown): ThemeRecipe;
 export interface ResolvedTheme { tokens: Record<string, string>; adjustments: { id: string; requested: string; resolved: string; reason: string }[] }
 export function deriveTheme(input: ThemeRecipe, options?: { mode?: 'light' | 'dark' }): ResolvedTheme;

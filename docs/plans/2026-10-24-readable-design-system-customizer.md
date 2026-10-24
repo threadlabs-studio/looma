@@ -38,7 +38,7 @@ Preview themes currently disappear on navigation. The customizer omits search an
 
 #### Coherent customization
 
-- R5. Offer Bookish and compact Wiki starting themes, preserving old Library recipes and existing supported public imports.
+- R5. Offer Bookish and compact Wiki starting themes; remove the superseded Library name without a compatibility alias.
 - R6. Enforce readable text, essential outlines, focus and state differentiation in generated values across typing, dragging, recipe import, preview, save and export.
 - R7. Edit a coordinated limited palette and surface range, retaining related hues and deriving role colors rather than requiring every color individually.
 - R8. Expose shared size, spacing and typography families, including eyebrow, heading, body, label and supporting text; controls with the same size use the same box height.
@@ -74,12 +74,12 @@ R14–R20 are explicit user-directed requirements. The stated capture-before-res
 
 - KTD1. Keep browser state in a base-scoped recipe session shared by the early head bootstrap and component modules; store semantic inputs, never injected CSS. Give the active root theme enough selector specificity to survive later baseline styles without `!important` (R1, R13).
 - KTD2. Keep validation and derivation in the shared theme module. Separate input seeds from generated accessible roles, report corrections, and test all role/surface pairs. Numeric design bounds are adjustable engineering choices, not claims that WCAG prescribes default typography (R6–R8).
-- KTD3. Add public semantic seeds for glassiness and surface separation. Derive a bounded material profile with private component-role coefficients and actual popup-size scaling. The role defines purpose; size refines treatment within that role. Prefer CSS size-aware derivation where supported and a shared observer only where required. Content remains on a contrast-safe plane, with opaque fallbacks. Existing translucency and edge-light recipes remain compatible (R11–R13).
+- KTD3. Add public semantic seeds for glassiness and surface separation. Derive a bounded material profile with private component-role coefficients and actual popup-size scaling. The role defines purpose; size refines treatment within that role. Prefer CSS size-aware derivation where supported and a shared observer only where required. Content remains on a contrast-safe plane, with opaque fallbacks. Translucency and edge-light remain shared semantic inputs (R11–R13).
 - KTD4. Build value editors as package components using established HTMLNext contracts, metadata, examples, adapters and source ownership. Arithmetic evaluates on entry and displays the resulting value, as the user selected. Use a restricted unit-aware parser; never execute expressions as code. Parser design and unit compatibility rules are engineering choices (R9).
 - KTD5. Retain existing independent button variant/tone and text APIs, adding missing bounded presets and role coverage through their owning components. Use public shared seeds for Bookish and Wiki; include no downstream private source or assets (R5, R8, R10).
 - KTD6. Use the parent of the documentation migration commit as the rendered reference, with dependencies reused in a detached scratch checkout. Record source revision, route, viewport, theme, state, selector, screenshot path and computed-style values in a machine-readable capture inventory. Restore the current checkout only after this inventory is complete; do not infer parity from source CSS or successful navigation (R14–R16).
 - KTD7. Keep the shared Markupress shell's component behavior and theme inputs reusable. Put Looma's site identity in a site-wide semantic theme rather than hardcoded sidebar-only paint. Prefer existing Looma navigation primitives; any HTMLKit navigation renderer must consume public Looma semantics and own its own internal styles (R17–R18).
-- KTD8. A theme recipe describes one identity with two resolved color-mode palettes. Share geometry, typography and motion across modes, derive both readable palettes in the canonical generator, and emit explicit mode selectors plus a system-preference default. Preserve versioned recipe compatibility and keep mode selection separate from theme selection (R19).
+- KTD8. A theme recipe describes one identity with two resolved color-mode palettes. Share geometry, typography and motion across modes, derive both readable palettes in the canonical generator, and emit explicit mode selectors plus a system-preference default. Keep mode selection separate from theme selection; remove superseded pre-1.0 API names without aliases (R19).
 - KTD9. Use the existing public `data-theme="light"` / `data-theme="dark"` DOM boundary convention, with inherited `color-scheme` and semantic roles recomputed at each boundary. Avoid root-only mode rules and ancestor selector specificity that overrides a nearer boundary. Preserve the originating boundary when rendering any floating surface that changes DOM placement (R20).
 
 The observed default Button is outline; its variants card already contains solid examples. `ui-text` already supports eyebrow. Extend and explain these APIs rather than duplicating them. Current theme sessions store correctly but their early style loses to later baseline CSS; moving that style to the end confirms the cascade cause.
@@ -96,7 +96,7 @@ Requirements: R1–R4, R13. Files: `packages/looma/tooling/docs/{theme-session.m
 
 ### U2. Bounded palette, geometry and materials
 
-Requirements: R5–R8, R11–R13, R19–R20. Files: `packages/looma/tooling/docs/theme.mjs`, token sources, floating component sources and theme tests. Implement KTD2–KTD3 and KTD8–KTD9, compatibility and Bookish/Wiki. Test seed extremes, both resolved mode palettes, nested mode boundaries, role contrasts, glass compositing/fallbacks and popup role/size relationships.
+Requirements: R5–R8, R11–R13, R19–R20. Files: `packages/looma/tooling/docs/theme.mjs`, token sources, floating component sources and theme tests. Implement KTD2–KTD3 and KTD8–KTD9, paired modes and Bookish/Wiki. Test seed extremes, both resolved mode palettes, nested mode boundaries, role contrasts, glass compositing/fallbacks and popup role/size relationships.
 
 ### U3. Reusable editing controls
 
@@ -137,4 +137,10 @@ These are required deliverables for R14–R20, not optional follow-up polish. Ea
 
 ## Definition of Done
 
-Every R-ID has passing automated checks or recorded visual/interaction evidence appropriate to its behavior. U0 has a complete capture inventory and inspected before/after evidence with no unexplained shell or state styling regressions. U1–U4 are implemented with documentation and compatibility; U5 has a merged PR, a successful automatic release, and verified public flows. Generated package assets include new components and controls. Remove abandoned experiments from the diff and leave unrelated work untouched. Do not claim completion from source inspection alone.
+Every R-ID has passing automated checks or recorded visual/interaction evidence appropriate to its behavior. U0 has a complete capture inventory and inspected before/after evidence with no unexplained shell or state styling regressions. U1–U4 are implemented with documentation and updated callers; superseded pre-1.0 API names are removed without compatibility aliases; U5 has a merged PR, a successful automatic release, and verified public flows. Generated package assets include new components and controls. Remove abandoned experiments from the diff and leave unrelated work untouched. Do not claim completion from source inspection alone.
+
+## Next packaging phase: HTML Next authoring and distribution
+
+Approved direction (2026-10-24): Looma will distribute HTML Next components only. Teach consumers to build their own design systems, component definitions, descriptions and documentation examples in HTML Next. Vue applications will use the HTML Next Vite plugin or converter rather than a Vue distribution maintained by Looma.
+
+This is a subsequent packaging migration, not a claim about the currently published exports. Inventory existing Vue entrypoints and editor dependencies, document the consumer conversion setup, remove distributed Vue outputs and update package/export tests together. Do not add parallel authored Vue implementations during the transition.

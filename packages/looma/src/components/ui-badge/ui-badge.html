@@ -325,10 +325,18 @@
       box-shadow: none;
     }
 
-    /* Neutral reverses a subtle surface/ink pair rather than a strong tone. Keep its original
-       surface ink: moving it toward dark-theme primary text would reduce overlay contrast. */
     :host([variant="inverse"][tone="neutral"]) {
-      color: var(--ui-badge-text, var(--_badge-color-text, var(--_badge-surface)));
+      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, color-mix(in srgb, var(--ui-surface-raised) 88%, transparent)));
+      color: var(--ui-badge-text, var(--_badge-color-text, var(--ui-text-primary)));
+    }
+    :host([variant="inverse"][tone="neutral"]:not([shape="circle"])) {
+      border-color: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-outline-surface)));
+    }
+    :host([variant="inverse"][tone="neutral"][shape="circle"]) {
+      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, light-dark(
+        color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 66%), transparent),
+        color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 56%), transparent)
+      )));
     }
 
     :host([variant="outline"]) {

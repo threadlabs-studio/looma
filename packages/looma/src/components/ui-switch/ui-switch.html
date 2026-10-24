@@ -114,6 +114,7 @@
       border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: var(--ui-radius-round);
       background-color: var(--ui-control-surface, var(--ui-surface-default));
+      background-image: var(--ui-surface-highlight, none);
       box-shadow: var(--ui-control-inset);
       cursor: pointer;
       transition: background-color var(--ui-motion-base) var(--ui-motion-ease), border-color var(--ui-motion-base) var(--ui-motion-ease);
@@ -135,6 +136,7 @@
 
     input:checked {
       background-color: var(--ui-accent-solid);
+      background-image: var(--ui-accent-highlight, none);
       border-color: var(--ui-accent-solid);
     }
 
@@ -158,6 +160,7 @@
     :host([disabled]) input {
       border-color: var(--ui-disabled-border);
       background-color: var(--ui-disabled-surface);
+      background-image: none;
       box-shadow: none;
       cursor: not-allowed;
     }

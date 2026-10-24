@@ -46,6 +46,10 @@ The generated values follow rules. Small and large control heights follow a rati
 
 Choose a coordinated palette to change related paper, ink and action seeds together without changing geometry or motion. Palette seeds remain available for precise edits; the light/dark range previews and resolved values explain readability adjustments.
 
+The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four color seeds. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
+
+A refined preset keeps its name with “customized” beside it. **Restore material preset** resets only material and light; **Restore palette preset** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
+
 Number controls accept arithmetic such as `42px / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates.
 
 Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared recipe as well as your inputs. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
@@ -54,7 +58,23 @@ Changes apply throughout the documentation and remain in this browser across nav
 
 Text offers body, display, heading, label, caption, eyebrow and code roles. Choose a heading's document level with `as` independently from its visual role. Button and IconButton keep appearance and tone independent, with four optional shortcuts: primary (solid accent), standard (solid neutral), quiet (ghost neutral) and destructive (solid danger). A named preset takes precedence over the separate choices; `preset="none"` preserves their existing defaults.
 
-Glassiness and surface separation govern floating surfaces and the Card glass variant. Popup purpose and measured size refine the shared treatment. Decorative material can transmit the scene; the content plane remains opaque and readable, with opaque fallbacks for reduced transparency and unsupported backdrop filtering.
+## Describe material and light
+
+Light position is relative to each surface: horizontal and vertical positions run from 0 to 1, with 0.5, 0 at top centre. Drag the source, use its arrow keys (Shift moves faster), or enter exact percentages. Home returns it to top centre. Spread runs from a concentrated spot to broad illumination; strength controls its intensity. The source influences reflections, illuminated edges and the direction of depth shadows throughout the theme.
+
+Finish controls how strongly a material catches a reflection, from matte to polished. Edge light catches its boundary; glow spills softly beyond it. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
+
+Card keeps surface structure and decorative treatment independent:
+
+```html
+<ui-card variant="elevated">Standard subtle lift</ui-card>
+<ui-card variant="elevated" treatment="expressive">Lift with the theme's material</ui-card>
+<ui-card treatment="expressive">Material treatment without added lift</ui-card>
+```
+
+`treatment="standard"` is the default. Expressive treatment follows the theme: a matte theme stays opaque, while Bookish can use a light-catching frame. Card tones change colors without changing corners or adding a stripe. Solid neutral actions use quiet mode-appropriate surface fills with readable text, instead of inverted text-color fills.
+
+To add a sample to the preview, search **Choose a component example**, select a result, then choose **Add to preview**. Existing component cards still link to the full reference.
 
 ## Use light, dark, or both
 
@@ -79,6 +99,8 @@ Fixed-mode applications still receive both palettes. A mode boundary applies to 
 Use the public semantic color properties inside those regions. A floating surface moved elsewhere in the DOM must retain its originating mode boundary; Looma's isolated documentation previews receive their card's mode automatically.
 
 ## Add your components
+
+Build your design-system components in HTML Next. Their definitions, description attributes, controllers and HTML examples are the source for the generated documentation and customizer cards. Use Looma’s public semantic properties to make your components respond to the same theme.
 
 Opt into source directories in `looma.docs.json`:
 
@@ -131,7 +153,9 @@ description: Sam has finished the morning checklist.
 
 The example appears in both the reference and the customizer's selection list. Optional `.behavior.js` or `.behavior.ts` companions export a default setup function receiving the example root; return a cleanup function when needed. Add `preview: resizable` to expose the shared card's width control. Framework-specific `.snippet.html` and `.vue` companions provide literal source views.
 
-Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not invent a Vue adapter or make arbitrary components respond to Looma's tokens.
+Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not make arbitrary components respond to Looma's tokens.
+
+The planned HTML Next-only distribution will use the HTML Next Vite plugin or converter for Vue consumption. Author components and documentation examples in HTML Next; framework conversion belongs in the consuming application. The current package still includes Vue exports while that packaging migration is pending.
 
 ## Combine installed catalogs
 

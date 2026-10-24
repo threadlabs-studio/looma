@@ -1,6 +1,6 @@
 import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, paletteFor, deriveTheme } from './theme.mjs';
+import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
 
 import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
@@ -19,6 +19,8 @@ export function connect(host) {
   let changed = false;
   let saving = false;
   let alive = true;
+  let selectedExample = '';
+  let refinementTrigger;
   const abort = new AbortController();
   const say = (text, error = false) => { message.textContent = text; message.setAttribute('role', error ? 'alert' : 'status'); };
   const sayApplied = text => say(theme?.storageAvailable ? text : 'Theme applies to this page. Browser storage is unavailable; download CSS or a recipe to keep it.');
@@ -41,13 +43,21 @@ export function connect(host) {
     }
   };
   const paint = () => {
-    const css = themeCSS(recipe);
-    updateControl(root.querySelector('[data-palette]'), paletteFor(recipe));
+    const css = theme?.css || themeCSS(recipe);
+    for (const family of ['material','palette']) {
+      const state = refinementState(recipe, family), presets = family === 'material' ? materialPresets : themePalettes;
+      for (const select of root.querySelectorAll(`[data-refinement-preset="${family}"]`)) {
+        for (const option of select.options) if (presets[option.value]) option.textContent = presets[option.value].label + (state.id === option.value && state.customized ? ' · customized' : '');
+        updateControl(select, state.id);
+      }
+      componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
+    }
+    componentRegistry.update(root.querySelector('[data-light-editor]'), { x: Number(recipe.values['light-x']), y: Number(recipe.values['light-y']) });
     const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
     const report = root.querySelector('[data-palette-adjustments]');
     report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your seed colors stay editable; resolved values are shown below.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
     root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Seed colors remain editable.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
-    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css: theme?.css ?? css } }));
+    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
     updateControl(root.querySelector('[data-css]'), css);
   };
   const show = (next, persist = true) => {
@@ -61,24 +71,35 @@ export function connect(host) {
   };
   const filterExamples = () => {
     const words = root.querySelector('[data-example-query]').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-    const select = root.querySelector('[data-add-example]');
-    const options = [...select.options];
-    for (const option of options) option.hidden = !words.every(word => option.dataset.search.includes(word));
-    for (const group of select.querySelectorAll('optgroup')) group.hidden = [...group.children].every(option => option.hidden);
-    if (select.selectedOptions[0]?.hidden) select.value = options.find(option => !option.hidden)?.value ?? '';
+    const options = [...root.querySelectorAll('[data-add-example] option')];
     for (const card of root.querySelectorAll('[data-example-card]')) card.closest('section').hidden = !words.every(word => card.textContent.toLocaleLowerCase().includes(word) || card.dataset.componentCard.includes(word));
-    const matches = options.filter(option => !option.hidden).length;
+    const matches = options.filter(option => words.every(word => option.dataset.search.includes(word))).length;
     root.querySelector('[data-example-count]').textContent = matches ? `${matches} matching examples` : 'No examples match. Try another name or purpose.';
-    componentRegistry.update(root.querySelector('[data-action="add"]'), { disabled: matches === 0 });
+    componentRegistry.update(root.querySelector('[data-action="add"]'), { disabled: !selectedExample || host.state.cards.some(item => item.id === selectedExample) });
+  };
+  const refinedRecipe = values => {
+    const presets = { ...recipe.presets };
+    for (const family of ['material', 'palette']) {
+      const state = refinementState(recipe, family);
+      if (!presets[family] && state.id !== 'custom') presets[family] = state.id;
+    }
+    return { ...recipe, presets, values };
   };
   const input = event => {
     if (event.target.matches('[data-example-query]')) { filterExamples(); return; }
+    if (event.target.matches('[data-light-editor]')) {
+      try {
+        show(refinedRecipe({ ...recipe.values, 'light-x': String(event.detail.x), 'light-y': String(event.detail.y) }));
+        sayApplied('Light position remembered throughout your design system.');
+      } catch (error) { say(error.message, true); }
+      return;
+    }
     const control = event.target.closest?.('[data-token]');
     if (!control) return;
     const field = fields.get(control.dataset.token);
     const raw = event.detail?.value ?? control.value;
     const value = control.dataset.editorKind ? editorValue(field, raw) : String(raw);
-    const next = { schemaVersion: 1, values: { ...recipe.values, [control.dataset.token]: value } };
+    const next = refinedRecipe({ ...recipe.values, [control.dataset.token]: value });
     try {
       recipe = validateRecipe(next);
       theme?.apply(recipe); changed = true;
@@ -99,12 +120,31 @@ export function connect(host) {
     if (!button || (button.dataset.action === 'save' && saving)) return;
     try {
       switch (button.dataset.action) {
+        case 'refine-material': case 'refine-palette': {
+          const family = button.dataset.action.slice(7);
+          refinementTrigger = button;
+          root.querySelector('[data-customizer-overview]').hidden = true;
+          for (const section of root.querySelectorAll('[data-refinement-view]')) section.hidden = section.dataset.refinementView !== family;
+          const section = root.querySelector(`[data-refinement-view="${family}"]`);
+          section.focus(); section.scrollIntoView({ block: 'start' });
+          break;
+        }
+        case 'back':
+          for (const section of root.querySelectorAll('[data-refinement-view]')) section.hidden = true;
+          root.querySelector('[data-customizer-overview]').hidden = false;
+          refinementTrigger?.focus(); break;
+        case 'restore-material': case 'restore-palette': {
+          const family = button.dataset.action.slice(8), state = refinementState(recipe, family);
+          if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${family === 'material' ? 'Material' : 'Palette'} preset restored; other theme decisions are unchanged.`); }
+          break;
+        }
         case 'add': {
-          const select = root.querySelector('[data-add-example]');
-          const option = select.selectedOptions[0];
+          const option = [...root.querySelectorAll('[data-add-example] option')].find(option => option.value === selectedExample);
+          if (!option) break;
           const selected = JSON.parse(option.dataset.example);
           const card = Object.fromEntries(['id','title','description','exampleTitle','src','resizable','category','tag','nativeRoot','href','packageName'].map(key => [key, selected[key]]));
           if (!host.state.cards.some(item => item.id === card.id)) host.state.cards = [...host.state.cards, card];
+          say(`${card.title} · ${card.exampleTitle} added to preview.`);
           view.requestAnimationFrame(() => { paint(); filterExamples(); }); break;
         }
         case 'css': {
@@ -144,7 +184,11 @@ export function connect(host) {
         sayApplied(`${field.label} units updated and remembered in this browser.`);
       } catch (error) { updateUnits(); say(error.message, true); }
     }
-    if (event.target.matches('[data-palette]')) { show({ ...recipe, values: { ...recipe.values, ...themePalettes[event.target.value].values } }); sayApplied('Coordinated palette applied. Both color modes are remembered with your existing size, material and motion.'); }
+    if (event.target.matches('[data-refinement-preset]')) {
+      const family = event.target.dataset.refinementPreset;
+      show(applyRefinement(recipe, family, event.target.value));
+      sayApplied(`${family === 'material' ? 'Material' : 'Coordinated palette'} preset applied and remembered in both modes.`);
+    }
     if (event.target.matches('[data-preset]')) { show(structuredClone(startingPoints[event.target.value])); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
     if (event.target === file && file.files[0]) {
       try { show(JSON.parse(await file.files[0].text())); sayApplied('Recipe applied throughout the documentation and remembered in this browser.'); }
@@ -157,9 +201,15 @@ export function connect(host) {
   const ready = event => {
     if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
   };
-  const remove = event => { host.state.cards = host.state.cards.filter(card => card.id !== event.detail.id); };
+  const remove = event => { host.state.cards = host.state.cards.filter(card => card.id !== event.detail.id); view.requestAnimationFrame(filterExamples); };
+  const selectExample = event => {
+    if (!event.target.matches('[data-add-example]')) return;
+    selectedExample = event.detail.value ?? '';
+    filterExamples();
+  };
   root.addEventListener('looma-example-remove', remove);
   root.addEventListener('input', input);
+  root.addEventListener('value-change', selectExample);
   root.addEventListener('blur', blur, true);
   root.addEventListener('change', change);
   root.addEventListener('click', click);
@@ -177,5 +227,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
+  return () => { alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
 }
