@@ -1,4 +1,4 @@
 {
-  "description": "A surface that groups content with shared spacing, corners and material. Choose outlined, subtle, elevated or glass; content stays readable as the surrounding material changes.",
+  "description": "A surface that groups content with shared spacing and corners. Choose outlined, subtle or elevated; standard or expressive treatment independently follows the theme's material. Tones change colour without changing geometry.",
   "group": "display"
 }

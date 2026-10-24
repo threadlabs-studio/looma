@@ -350,8 +350,8 @@
           "behavior": false
         },
         {
-          "id": "04-glass",
-          "title": "Glass panel",
+          "id": "04-expressive-surface",
+          "title": "Expressive surface",
           "behavior": false
         }
       ]
@@ -1245,6 +1245,19 @@
         {
           "id": "05-multiline",
           "title": "Multiline message",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-light-editor",
+      "title": "LightEditor",
+      "source": "apps/docs/docs/components/forms/ui-light-editor.mdx",
+      "component": "ui-light-editor",
+      "examples": [
+        {
+          "id": "01-position",
+          "title": "Light position",
           "behavior": false
         }
       ]

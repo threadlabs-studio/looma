@@ -38,6 +38,8 @@
     "packages/looma/src/components/ui-cover/ui-cover.html",
     "packages/looma/src/components/ui-curve-editor/ui-curve-editor.html",
     "packages/looma/src/components/ui-curve-editor/ui-curve-editor.js",
+    "packages/looma/src/components/ui-light-editor/ui-light-editor.html",
+    "packages/looma/src/components/ui-light-editor/ui-light-editor.js",
     "packages/looma/src/components/ui-description-item/ui-description-item.html",
     "packages/looma/src/components/ui-description-list/ui-description-list.html",
     "packages/looma/src/components/ui-dialog/ui-dialog.html",
