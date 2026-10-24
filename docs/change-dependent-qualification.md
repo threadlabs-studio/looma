@@ -1,8 +1,8 @@
 # Change-dependent qualification
 
 Routine fixes target five minutes of CI elapsed time. Automatic qualification runs
-in parallel and has a ten-minute execution ceiling; release preparation,
-publication, and tagging have another five minutes. The longest configured path
+in parallel and has a seven-minute execution ceiling; release preparation,
+publication, and tagging have another eight minutes. The longest configured path
 of runner work from checks through publication is fifteen minutes. Queue delays, runner
 provisioning, workflow handoff delays, protected-environment approvals, and npm's
 availability wait after the upload are outside these execution limits. Hosted timing
@@ -12,8 +12,8 @@ must be confirmed after rollout.
 
 | Check | Work | Job timeout |
 | --- | --- | --- |
-| `quality` | Selected tooling tests, package build and affected unit/SSR tests | 9 minutes |
-| `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 9 minutes |
+| `quality` | Selected tooling tests, package build and affected unit/SSR tests | 6 minutes |
+| `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 6 minutes |
 | `release-package` | Package-only build, tarball integrity, packed component and documentation consumer matrix | 6 minutes |
 | `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 9 minutes |
 | `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
@@ -27,8 +27,11 @@ Formatting, comment documentation checks, Storybook builds, documentation browse
 parity, full screenshot/axe sweeps, Firefox and WebKit are outside automatic release
 qualification. Package packing builds only the published package.
 
-Release preparation and publication each have two minutes of runner work; recording
-the tag has one minute. Between upload and the registry checks, publication waits for
+Release preparation has five minutes of runner work for the complete packed
+consumer matrix, publication has two minutes, and recording the tag has one minute.
+The main-branch run measured quality at 2m31s, browser at 3m34s, visual at 4m07s
+and package qualification at 4m42s; each CI job has six minutes. This allocation
+keeps the configured checks-to-publication path within fifteen minutes. Between upload and the registry checks, publication waits for
 npm to serve the version in its own step with a ten-minute timeout (measured maximum
 311 seconds), so its job timeout is twelve minutes. If that wait times out, re-run the
 publish job: it skips the upload because npm has the version, waits again, and the
