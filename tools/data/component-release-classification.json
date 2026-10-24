@@ -69,6 +69,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-curve-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-description-item": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -225,6 +229,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-number-input": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-page-header": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -270,6 +278,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-sidebar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-slider": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

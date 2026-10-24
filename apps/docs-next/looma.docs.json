@@ -17,5 +17,23 @@
       "label": "GitHub",
       "href": "https://github.com/threadlabs-studio/looma"
     }
-  ]
+  ],
+  "overrides": [
+    "theme.css"
+  ],
+  "recipe": {
+    "schemaVersion": 1,
+    "values": {
+      "action": "#7658d6",
+      "canvas": "#fbf9f4",
+      "surface": "#fffdf8",
+      "text": "#2b2538",
+      "body-font": "\"Manrope\", system-ui, sans-serif",
+      "display-font": "\"Manrope\", system-ui, sans-serif",
+      "text-size": "17px",
+      "control-size": "40px",
+      "text-weight": "500",
+      "response-time": "120ms"
+    }
+  }
 }

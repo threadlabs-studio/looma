@@ -3097,11 +3097,8 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     // Converted Vue marks the component root with its tag as a class, beside the consumer's own.
     assert.equal(await button.getAttribute("class"), "ui-button consumer");
-    // The state's tokens, not their order: the order follows how the adapter applied them.
-    assert.deepEqual(
-      (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
-      ["align", "align=center", "shape", "shape=rounded", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
-    );
+    assert.equal(await button.getAttribute("data-appearance"), "solid");
+    assert.equal(await button.getAttribute("data-tone"), "accent");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -8504,6 +8501,10 @@ describe("Form participation", () => {
   const html = `
     <form id="form">
       <ui-input id="title" name="title" value="Draft"></ui-input>
+      <ui-number-input id="distance" name="distance" value="42px" unit="px" label="Distance"></ui-number-input>
+      <ui-number-input name="off-number" value="99" disabled></ui-number-input>
+      <ui-slider id="progress" name="progress" value="25" label="Progress"></ui-slider>
+      <ui-slider name="off-slider" value="75" disabled></ui-slider>
       <ui-input name="off-input" value="Hidden" disabled></ui-input>
       <ui-color-picker id="brand-colour" name="brand-colour" value="#7c3aed" label="Brand colour"></ui-color-picker>
       <ui-color-picker name="off-colour" disabled value="#ff0000" label="Disabled colour"></ui-color-picker>
@@ -8538,7 +8539,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, ColorPicker, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { Checkbox, ColorPicker, Combobox, Editable, Input, InputGroup, Listbox, NumberInput, Slider, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -8547,6 +8548,10 @@ describe("Form participation", () => {
       render: () => h("div", [
         h("form", { id: "form" }, [
           h(Input, { id: "title", name: "title", value: "Draft" }),
+          h(NumberInput, { id: "distance", name: "distance", value: "42px", unit: "px", label: "Distance" }),
+          h(NumberInput, { name: "off-number", value: "99", disabled: true }),
+          h(Slider, { id: "progress", name: "progress", value: 25, label: "Progress" }),
+          h(Slider, { name: "off-slider", value: 75, disabled: true }),
           h(Input, { name: "off-input", value: "Hidden", disabled: true }),
           h(ColorPicker, {id:"brand-colour",name:"brand-colour",value:"#7c3aed",label:"Brand colour"}),
           h(ColorPicker, {name:"off-colour",disabled:true,value:"#ff0000",label:"Disabled colour"}),
@@ -8585,11 +8590,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["distance", "42px"], ["progress", "25"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
     ["color", "blue"], ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["distance", "35px"], ["progress", "100"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
     ["plan", "free"], ["color", "neutral"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -8613,6 +8618,9 @@ describe("Form participation", () => {
     assert.deepEqual(await entries(page), initial);
 
     await page.locator("#title").fill("Final");
+    await page.locator('#distance input').fill('42px / 1.2');
+    await page.locator('#distance input').press('Enter');
+    await page.locator('#progress input[type="range"]').press('End');
     await page.locator('#brand-colour button').click();
     await page.locator('#brand-colour input[aria-label="Hex colour"]').fill('#123456');
     await page.locator('#brand-colour input[aria-label="Hex colour"]').press('Escape');
@@ -9062,6 +9070,9 @@ describe("Component hooks", () => {
     ["div", hook("--ui-input-radius", "7px"), [["Input", { id: "input-nested", "aria-label": "Nested" }]]],
     ["Input", { id: "input-plain", "aria-label": "Plain" }],
     ["Input", { id: "input-own", "aria-label": "Own", ...hook("--ui-input-radius", "7px") }],
+    ["div", hook("--ui-tabs-panel-padding", "7px"), [["Tabs", { id: "tabs-nested", label: "Nested tabs" }, [["section", { "aria-label": "Overview" }, ["Overview"]]]]]],
+    ["Tabs", { id: "tabs-plain", label: "Plain tabs" }, [["section", { "aria-label": "Overview" }, ["Overview"]]]],
+    ["Tabs", { id: "tabs-own", label: "Own tabs", ...hook("--ui-tabs-panel-padding", "7px") }, [["section", { "aria-label": "Overview" }, ["Overview"]]]],
     ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", variant: "line", current: "true" }, ["Home"]]]],
     ["NavItem", { id: "nav-plain", variant: "line", current: "true" }, ["Home"]],
     ["NavItem", { id: "nav-own", variant: "line", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
@@ -9103,6 +9114,7 @@ describe("Component hooks", () => {
       ["badge", "border-top-color", mark],
       ["button", "background-color", mark],
       ["input", "border-top-left-radius", "7px"],
+      ["tabs", "padding-top", "7px", "[role=tabpanel]"],
       ["nav", "border-inline-start-color", mark, ".indicator"],
     ] as const) {
       const plain = await style(`${component}-plain`, property, part);
@@ -9168,8 +9180,14 @@ describe("Theme levels", () => {
     const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
     const page = await open(path, body, css);
     await page.waitForSelector('#group-input:is([data-component~="ui-input"], .ui-input)');
-    const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) =>
-      getComputedStyle(element).getPropertyValue(name), property);
+    const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) => {
+      const value = getComputedStyle(element).getPropertyValue(name);
+      if (!name.endsWith('color')) return value;
+      const context = document.createElement('canvas').getContext('2d')!;
+      context.fillStyle = value; context.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+      return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a! / 255})`;
+    }, property);
 
     for (const [theme, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
@@ -10503,9 +10521,14 @@ describe("Optional semantic theme recipe", () => {
       assert.equal(await page.locator('#nested-action').evaluate(el=>el.getBoundingClientRect().height),32);
       await page.addStyleTag({content:'body {padding-left:var(--ui-space-4)} #nested {display:grid;gap:var(--ui-space-4)}'});
       assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).paddingLeft),'19.2px','size ratio does not change the linear spacing curve');
-      assert.equal(await page.locator('#nested').evaluate(el=>getComputedStyle(el).gap),'51.2px','quadratic spacing is an independent choice');
+      assert.ok(Math.abs(await page.locator('#nested').evaluate(el=>parseFloat(getComputedStyle(el).gap)) - 7.3142857) < .01, 'quadratic spacing bends a fixed range independently of control size');
+      await page.addStyleTag({content:'#nested {padding-inline-start:var(--ui-space-1);padding-inline-end:var(--ui-space-6)}'});
+      assert.deepEqual(await page.locator('#nested').evaluate(el=>[getComputedStyle(el).paddingInlineStart,getComputedStyle(el).paddingInlineEnd]),['3.2px','25.6px'],'the spacing curve keeps its endpoints');
       assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).scale),'none');
-      await page.waitForTimeout(250); // Let the authored .2s material transition reach its resting value.
+      await page.locator('#recipe-action-md').evaluate(async element => {
+        getComputedStyle(element).boxShadow;
+        await Promise.all(element.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {})));
+      });
       const shadow = await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).boxShadow);
       assert.ok(shadow.split(/,(?![^(]*\))/).filter(part=>!/^\s*rgba\([^)]*, 0\)/.test(part)).every(part=>[...part.matchAll(/(-?[\d.]+)px/g)].every(match=>Number(match[1])===0)), 'zero depth removes visible elevation: '+shadow);
       assert.equal(await page.locator('#recipe-switch input').evaluate(el=>getComputedStyle(el,'::after').boxShadow),'rgba(0, 0, 0, 0.08) 0px 0px 0px 0px');
@@ -10521,5 +10544,183 @@ describe("Optional semantic theme recipe", () => {
       await page.emulateMedia({reducedMotion:'reduce'});
       assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).getPropertyValue('--ui-motion-press').trim()),'0ms');
     } finally { await page.close(); }
+  });
+});
+
+describe("Bounded value editors", () => {
+  for (const adapter of ["html", "vue"]) it(`calculates, rejects invalid values, drags by touch and disables in ${adapter}`, async () => {
+    const path = await bundle(`${adapter}-value-editors`, adapter === "html" ? `
+      import "@threadlabs/looma";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      window.disableEditors = (disabled = true) => ['amount', 'progress', 'curve'].forEach(id => componentRegistry.update(document.getElementById(id), {disabled}));
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { NumberInput, Slider, CurveEditor } from "@threadlabs/looma/vue";
+      const disabled = ref(false);
+      window.disableEditors = (value = true) => { disabled.value = value; };
+      const app = createApp({render: () => h('main', [
+        h(NumberInput, {id:'amount',label:'Distance',value:'16px',unit:'px',min:8,max:40,disabled:disabled.value}),
+        h(Slider, {id:'progress',label:'Progress',value:25,disabled:disabled.value}),
+        h(CurveEditor, {id:'curve',label:'Office motion',disabled:disabled.value})
+      ])});
+      app.mount('#app'); window.removeEditors = () => app.unmount();
+    `);
+    const page = await open(path, '<meta name="viewport" content="width=device-width, initial-scale=1">' + (adapter === "html" ? `
+      <ui-number-input id="amount" label="Distance" value="16px" unit="px" min="8" max="40"></ui-number-input>
+      <ui-slider id="progress" label="Progress" value="25"></ui-slider>
+      <ui-curve-editor id="curve" label="Office motion"></ui-curve-editor>
+    ` : '<div id="app"></div>'), [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], {viewport:{width:375,height:900},hasTouch:true,isMobile:true});
+    try {
+      const amount = page.getByRole('spinbutton', {name:'Distance',exact:true});
+      await amount.fill('42px / 1.2'); await amount.press('Enter'); assert.equal(await amount.inputValue(), '35px');
+      await amount.fill('2rem'); await amount.press('Enter'); assert.equal(await amount.getAttribute('aria-invalid'), 'true');
+      await amount.press('Escape'); assert.equal(await amount.inputValue(), '35px'); assert.equal(await amount.getAttribute('aria-invalid'), null);
+      const slider = page.getByRole('slider', {name:'Progress',exact:true}); await slider.press('End');
+      assert.equal(await slider.inputValue(),'100'); assert.equal(await page.getByRole('spinbutton',{name:'Progress',exact:true}).inputValue(),'100');
+      const handle = page.getByRole('button', {name:/^First curve handle/});
+      await handle.scrollIntoViewIfNeeded();
+      const before = await page.locator('#curve output').textContent();
+      const bounds = (await handle.boundingBox())!;
+      const client = await page.context().newCDPSession(page);
+      const touch = (x:number,y:number) => [{x,y,id:1}];
+      await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:touch(bounds.x+bounds.width/2,bounds.y+bounds.height/2)});
+      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:touch(bounds.x+bounds.width/2+40,bounds.y+bounds.height/2-20)});
+      await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      await client.detach();
+      assert.notEqual(await page.locator('#curve output').textContent(),before);
+      const x = page.getByRole('spinbutton',{name:'First handle X',exact:true});
+      await x.fill('2'); await x.press('Enter'); assert.equal(await x.inputValue(),'1');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await page.evaluate(() => (window as any).disableEditors());
+      assert.equal(await amount.isDisabled(),true); assert.equal(await slider.isDisabled(),true); assert.equal(await handle.isDisabled(),true);
+      if (adapter === 'vue') {
+        await page.evaluate(() => (window as any).disableEditors(false));
+        await page.waitForFunction(() => !(document.querySelector('#curve .handle') as HTMLButtonElement).disabled);
+        const retained = await page.locator('#curve output').textContent();
+        await page.evaluate(() => { (window as any).retainedHandle = document.querySelector('#curve .handle'); (window as any).retainedOutput = document.querySelector('#curve output'); (window as any).removeEditors(); });
+        await page.evaluate(() => (window as any).retainedHandle.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true})));
+        assert.equal(await page.evaluate(() => (window as any).retainedOutput.textContent),retained);
+      }
+    } finally { await page.close(); }
+  });
+});
+
+
+describe("Shared readable material planes", () => {
+  for (const adapter of ['html', 'vue']) it(`keeps translucent material around opaque readable content and scales dialog size in ${adapter}`, async () => {
+    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+    const recipe = structuredClone(startingPoints.bookish); recipe.values.translucency = '1';
+    const path = await bundle(adapter + '-readable-materials', adapter === 'html' ? `
+      import '@threadlabs/looma'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      window.enlargeDialog=()=>componentRegistry.update(document.getElementById('material-dialog'),{size:'lg'});
+    ` : `
+      import {createApp,h,ref} from 'vue'; import {Dialog,Menu,MenuItem,Popover,Tooltip,Card} from '@threadlabs/looma/vue';
+      const size=ref('sm'); window.enlargeDialog=()=>{size.value='lg';};
+      createApp({render:()=>h('main',[
+        h(Dialog,{id:'material-dialog',open:true,size:size.value,label:'Fellowship briefing'},()=>h('p','Sam and Frodo are reviewing the route to the next office.')),
+        h(Menu,{id:'material-menu'},()=>h(MenuItem,{value:'memo'},()=> 'Fellowship memo')),
+        h(Popover,{id:'material-popover'},()=> 'Frodo has updated the map.'),
+        h(Tooltip,{id:'material-tooltip'},()=> 'Office route'),
+        h(Card,{id:'material-card',variant:'glass'},()=> 'Sam has prepared the briefing.')
+      ])}).mount('#app');
+    `);
+    const page = await open(path, adapter === 'html' ? `
+      <ui-dialog id="material-dialog" open size="sm" label="Fellowship briefing"><p>Sam and Frodo are reviewing the route to the next office.</p></ui-dialog>
+      <ui-menu id="material-menu"><ui-menu-item value="memo">Fellowship memo</ui-menu-item></ui-menu>
+      <ui-popover id="material-popover">Frodo has updated the map.</ui-popover>
+      <ui-tooltip id="material-tooltip">Office route</ui-tooltip>
+      <ui-card id="material-card" variant="glass">Sam has prepared the briefing.</ui-card>
+    ` : '<div id="app"></div>', [join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])], {reducedMotion:'reduce'});
+    try {
+      await page.addStyleTag({content:themeCSS(recipe) + 'body {background:repeating-linear-gradient(45deg,black 0 20px,white 20px 40px);color:var(--ui-text)}'});
+      const selectors=['#material-dialog','#material-menu .surface','#material-popover .surface','#material-tooltip .surface','#material-card'];
+      for (const mode of ['light','dark']) {
+        await page.locator('html').evaluate((element,mode)=>{element.dataset.theme=mode;},mode);
+        for (const selector of selectors) {
+          const result=await page.locator(selector).evaluate(element=>{
+            const style=getComputedStyle(element), context=document.createElement('canvas').getContext('2d')!;
+            const channels=(color:string)=>{context.clearRect(0,0,1,1);context.fillStyle=color;context.fillRect(0,0,1,1);return [...context.getImageData(0,0,1,1).data];};
+            const bg=channels(style.backgroundColor), fg=channels(style.color);
+            const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
+            const a=luminance(bg),b=luminance(fg);
+            return {alpha:bg[3],contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),filter:style.backdropFilter};
+          });
+          assert.equal(result.alpha,255,`${adapter}/${mode}/${selector}: content stays opaque at maximum translucency`);
+          assert.ok(result.contrast>=4.5,`${selector}: ${result.contrast}`);
+          assert.ok(result.filter.includes('blur('));
+        }
+      }
+      const dialog=page.locator('#material-dialog');
+      const before=await dialog.evaluate(element=>parseFloat(getComputedStyle(element).borderTopWidth));
+      await page.evaluate(()=>(window as any).enlargeDialog());
+      await page.waitForFunction(before=>parseFloat(getComputedStyle(document.querySelector('#material-dialog')!).borderTopWidth)>before,before);
+      const client=await page.context().newCDPSession(page);
+      await client.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-transparency',value:'reduce'}]});
+      for(const selector of selectors) assert.equal(await page.locator(selector).evaluate(element=>getComputedStyle(element).backdropFilter),'none');
+      await client.detach();
+    } finally {await page.close();}
+  });
+});
+
+
+describe("Nested portable theme boundaries", () => {
+  for (const adapter of ['html', 'vue']) it(`keeps controls and open floating surfaces in their nearest mode in ${adapter}`, async () => {
+    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+    const path = await bundle(adapter + '-nested-theme-boundaries', adapter === 'html' ? `import '@threadlabs/looma';` : `
+      import {createApp,h} from 'vue';
+      import {Button,Input,Dialog,Menu,MenuItem,Popover,Tooltip} from '@threadlabs/looma/vue';
+      const controls = name => [h(Button,{id:name+'-action'},()=>name),h(Input,{id:name+'-field',value:name})];
+      createApp({render:()=>h('main',[
+        ...controls('outside'),
+        h('section',{id:'outer','data-theme':'dark'},[
+          ...controls('outer'),
+          h(Button,{id:'dialog-trigger'},()=> 'Review memo'),h(Dialog,{id:'mode-dialog',for:'dialog-trigger',label:'Fellowship memo'},()=> 'Sam has the notes.'),
+          h(Button,{id:'menu-trigger'},()=> 'Office actions'),h(Menu,{id:'mode-menu',for:'menu-trigger'},()=>h(MenuItem,{value:'memo'},()=> 'Read memo')),
+          h(Button,{id:'popover-trigger'},()=> 'Office briefing'),h(Popover,{id:'mode-popover',for:'popover-trigger'},()=> 'Frodo has the maps.'),
+          h(Button,{id:'tooltip-trigger'},()=> 'Help'),h(Tooltip,{id:'mode-tooltip',for:'tooltip-trigger',delay:0},()=> 'Office help'),
+          h('section',{id:'inner','data-theme':'light'},[...controls('inner'),h('section',{'data-theme':'dark'},controls('deep'))])
+        ])
+      ])}).mount('#app');`);
+    const controls = (name: string) => `<ui-button id="${name}-action">${name}</ui-button><ui-input id="${name}-field" value="${name}"></ui-input>`;
+    const body = adapter === 'vue' ? '<div id="app"></div>' : controls('outside') + `<section id="outer" data-theme="dark">${controls('outer')}
+      <ui-button id="dialog-trigger">Review memo</ui-button><ui-dialog id="mode-dialog" for="dialog-trigger" label="Fellowship memo">Sam has the notes.</ui-dialog>
+      <ui-button id="menu-trigger">Office actions</ui-button><ui-menu id="mode-menu" for="menu-trigger"><ui-menu-item value="memo">Read memo</ui-menu-item></ui-menu>
+      <ui-button id="popover-trigger">Office briefing</ui-button><ui-popover id="mode-popover" for="popover-trigger">Frodo has the maps.</ui-popover>
+      <ui-button id="tooltip-trigger">Help</ui-button><ui-tooltip id="mode-tooltip" for="tooltip-trigger" delay="0">Office help</ui-tooltip>
+      <section id="inner" data-theme="light">${controls('inner')}<section data-theme="dark">${controls('deep')}</section></section></section>`;
+    const page = await open(path, body, [join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])], {reducedMotion:'reduce'});
+    try {
+      await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
+      await page.locator('html').evaluate(element=>{element.dataset.theme='light';});
+      const paint = (selector: string) => page.locator(selector).evaluate(element=>{
+        const style=getComputedStyle(element);return [style.color,style.backgroundColor,style.borderTopColor,style.colorScheme];
+      });
+      const initial = Object.fromEntries(await Promise.all(['outside','outer','inner','deep'].flatMap(name=>['action','field'].map(async kind=>[name+'-'+kind,await paint('#'+name+'-'+kind)])))) as Record<string,string[]>;
+      for(const kind of ['action','field']) {
+        assert.deepEqual(initial['outside-'+kind],initial['inner-'+kind]);
+        assert.deepEqual(initial['outer-'+kind],initial['deep-'+kind]);
+        assert.notDeepEqual(initial['outer-'+kind],initial['inner-'+kind]);
+      }
+      for(const [trigger,surface] of [['#dialog-trigger','#mode-dialog'],['#menu-trigger','#mode-menu .surface'],['#popover-trigger','#mode-popover .surface'],['#tooltip-trigger','#mode-tooltip .surface']]) {
+        if(trigger==='#tooltip-trigger') await page.locator(trigger).hover(); else await page.locator(trigger).click();
+        await page.locator(surface).waitFor({state:'visible'});
+        const dark=await paint(surface);
+        assert.equal(dark[3],'dark',`${surface}: top-layer presentation retains the outer boundary`);
+        await page.locator('html').evaluate(element=>{element.dataset.theme='dark';});
+        assert.deepEqual(await paint(surface),dark,`${surface}: page mode cannot override its local boundary`);
+        await page.locator('#outer').evaluate(element=>{element.dataset.theme='light';});
+        await page.waitForFunction(selector=>getComputedStyle(document.querySelector(selector)!).colorScheme==='light',surface);
+        assert.notDeepEqual(await paint(surface),dark,`${surface}: changing its own boundary updates the open surface`);
+        await page.locator('#outer').evaluate(element=>{element.dataset.theme='dark';});
+        await page.keyboard.press('Escape'); await page.mouse.move(0,0);
+      }
+      for(const kind of ['action','field']) {
+        assert.deepEqual(await paint('#outside-'+kind),initial['outer-'+kind]);
+        for(const name of ['outer','inner','deep']) assert.deepEqual(await paint('#'+name+'-'+kind),initial[name+'-'+kind],`${name}: nested scope survives page switching`);
+      }
+      await page.locator('#inner-action').focus();
+      assert.equal(await page.locator('#inner-action').evaluate(element=>element.matches(':focus-visible')),true);
+      assert.equal((await paint('#inner-action'))[3],'light');
+    } finally {await page.close();}
   });
 });

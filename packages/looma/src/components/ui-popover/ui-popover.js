@@ -59,7 +59,7 @@ export function connect(host) {
     anchor = ids.get(nextFor);
     if (anchor) anchorExpanded = anchor.getAttribute("aria-expanded");
     anchor?.addEventListener("click", onAnchorClick);
-    surface = createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset });
+    surface = createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset, materialRole: "popover" });
   };
   const apply = () => {
     const externalOpen = Boolean(host.props.open.value);

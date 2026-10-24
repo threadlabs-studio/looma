@@ -17,14 +17,16 @@
       does not carry the meaning, so the words must say it too.</prop>
     <prop name="weight" type="keyword" values="inherit, normal, medium, semibold" default="inherit"
     >The weight. inherit keeps the surrounding weight; medium and semibold emphasise a name or a figure.</prop>
-    <prop name="variant" type="keyword" values="body, eyebrow, code" default="body"
-    >body is running text. eyebrow is a short, uppercase, tracked label that names what follows, such as a group of links; code sets a value to copy or read
-      exactly, such as an address, in the monospace face.</prop>
+    <prop name="variant" type="keyword" values="body, display, heading, label, caption, eyebrow, code" default="body"
+    >body is running text. display is a page title, heading names a section, label identifies a control, and caption is supporting text. These roles set their
+      shared type scale, weight and leading; pair heading or display with an appropriate as heading element. eyebrow is a short, uppercase, tracked label that
+      names what follows, such as a group of links; code sets a value to copy or read exactly, such as an address, in the monospace face.</prop>
     <prop name="truncate" type="boolean" default="false">Keeps the text on one line, ending in an ellipsis when it does not fit.</prop>
     <prop name="align" type="keyword" values="start, center" default="start">Aligns the text within its line.</prop>
-    <prop name="as" type="keyword" values="p, span, div, small, strong, label, h2, h3, h4, h5, h6" default="p"
+    <prop name="as" type="keyword" values="p, span, div, small, strong, label, h1, h2, h3, h4, h5, h6" default="p"
     >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, a label for a control, or a
-      heading, h2 to h6, below a Page Header's h1 and a Section's h2. A heading takes its size and weight from size and weight, like any other text.</prop>
+      heading, h1 to h6. Choose its document level independently from its visual variant. The default body variant keeps the existing size and weight
+      behavior.</prop>
   </defs>
   <template $match>
     <span $when="$as = 'span'"><slot></slot></span>
@@ -32,6 +34,7 @@
     <small $when="$as = 'small'"><slot></slot></small>
     <strong $when="$as = 'strong'"><slot></slot></strong>
     <label $when="$as = 'label'"><slot></slot></label>
+    <h1 $when="$as = 'h1'"><slot></slot></h1>
     <h2 $when="$as = 'h2'"><slot></slot></h2>
     <h3 $when="$as = 'h3'"><slot></slot></h3>
     <h4 $when="$as = 'h4'"><slot></slot></h4>
@@ -56,7 +59,7 @@
 
     /* A heading drops the browser's heading size and weight, so size and weight set it as they set
        any text, and inherit keeps the text around it. */
-    :host:is(h2, h3, h4, h5, h6) {
+    :host:is(h1, h2, h3, h4, h5, h6) {
       font-family: var(--ui-font-display, inherit);
       font-size: inherit;
       font-weight: inherit;
@@ -119,10 +122,32 @@
       font-weight: var(--ui-font-semibold);
     }
 
+    :host([variant="display"]), :host([variant="heading"]) {
+      font-family: var(--ui-font-display, var(--ui-font-family-sans));
+      font-weight: var(--ui-font-semibold);
+      line-height: var(--ui-line-height-tight);
+    }
+    :host([variant="display"]) {
+      font-size: var(--ui-font-size-2xl);
+    }
+    :host([variant="heading"]) {
+      font-size: var(--ui-font-size-xl);
+    }
+    :host([variant="label"]) {
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-medium);
+      line-height: var(--ui-line-height);
+    }
+    :host([variant="caption"]) {
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+
     :host([variant="eyebrow"]) {
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
       letter-spacing: 0.06em;
+      line-height: var(--ui-line-height);
       text-transform: uppercase;
     }
     :host([variant="code"]) {

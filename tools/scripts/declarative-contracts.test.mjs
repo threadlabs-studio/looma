@@ -33,7 +33,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 84);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 87);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
@@ -114,8 +114,8 @@ test("a button renders as a link through its polymorphic root, not a second comp
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
   assert.equal(contracts["ui-button"].props.as?.type, "keyword");
   assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
-  assert.match(source, /<a\s+\$when="\$as = 'a'"/);
-  assert.match(source, /<button\s+\$else\b/);
+  assert.match(source, /<a\s+[^>]*\$when="\$as = 'a'"/);
+  assert.match(source, /<button\s+[^>]*\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {
     assert.equal(contracts["ui-button"].props[name]?.type, "string", `ui-button declares ${name}`);
