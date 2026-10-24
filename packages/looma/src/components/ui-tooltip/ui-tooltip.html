@@ -238,7 +238,8 @@
       border-inline-end-width: var(--ui-border-width);
       border-block-end-width: var(--ui-border-width);
       border-end-end-radius: var(--ui-border-width);
-      transform: rotate(45deg) scaleX(1.25) scaleY(0.85);
+      /* Stretch in screen axes after rotation so both arrow shoulders stay level. */
+      transform: scale(1.25, 0.85) rotate(45deg);
     }
 
     :host[data-ui-actual-placement="bottom"] .surface::after {
