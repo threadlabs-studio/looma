@@ -241,6 +241,7 @@ test("automatic checks and publication fit a 15-minute parallel critical path", 
   assert.ok(qualification + Math.max(...minutes(docs)) <= 15);
   assert.ok(Math.max(...minutes(parity)) <= 15);
   assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
+  assert.match(parity, /docs-parity:\n    runs-on: ubuntu-24\.04-arm\n/);
   assert.match(parity, /image: mcr\.microsoft\.com\/playwright:v1\.60\.0-noble@sha256:/);
   const qualificationSource = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualificationSource, /"@threadlabs\/looma-docs-next", "test:parity"/);
