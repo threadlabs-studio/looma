@@ -71,10 +71,13 @@ export function connect(host) {
   };
   const filterExamples = () => {
     const words = root.querySelector('[data-example-query]').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-    const options = [...root.querySelectorAll('[data-add-example] option')];
-    for (const card of root.querySelectorAll('[data-example-card]')) card.closest('section').hidden = !words.every(word => card.textContent.toLocaleLowerCase().includes(word) || card.dataset.componentCard.includes(word));
-    const matches = options.filter(option => words.every(word => option.dataset.search.includes(word))).length;
-    root.querySelector('[data-example-count]').textContent = matches ? `${matches} matching examples` : 'No examples match. Try another name or purpose.';
+    let visible = 0;
+    for (const card of root.querySelectorAll('[data-example-card]')) {
+      const matches = words.every(word => card.textContent.toLocaleLowerCase().includes(word) || card.dataset.componentCard.includes(word));
+      card.closest('section').hidden = !matches;
+      if (matches) visible++;
+    }
+    root.querySelector('[data-example-count]').textContent = visible ? `${visible} example${visible === 1 ? '' : 's'} in preview` : 'No previews match. Clear the filter or add another example.';
     componentRegistry.update(root.querySelector('[data-action="add"]'), { disabled: !selectedExample || host.state.cards.some(item => item.id === selectedExample) });
   };
   const refinedRecipe = values => {

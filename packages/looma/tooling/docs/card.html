@@ -1,3 +1,4 @@
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
 <link rel="component" href="@threadlabs/looma/components/ui-form-field/ui-form-field.html">
 <link rel="component" href="@threadlabs/looma/components/ui-input/ui-input.html">
 <link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
@@ -23,7 +24,7 @@
     <div class="preview"><iframe $ref="frame" from:title="$title" from:src="$src" sandbox="allow-scripts" from:loading="$loading" width="100%" height="208"></iframe></div>
     <section $if="$reference" class="example-code"><h4>Code</h4><slot name="code"></slot></section>
     <div $if="$resizable" class="preview-width">      <ui-form-field><label slot="label">Preview width</label><span slot="help">Explore the example at a narrower width.</span><ui-input $ref="width" type="number" min="240" max="1600" value="720" aria-label="Preview width in pixels" size="sm"></ui-input></ui-form-field></div>
-    <div $if="not $reference" class="body">
+    <div $if="not $reference" class="body"><ui-stack gap="xs">
       <div class="meta"><span>{$category}</span><code>{$nativeRoot}</code></div>
       <h3><a from:href="$href">{$title}</a></h3>
       <p class="description">{$description}</p>
@@ -31,7 +32,7 @@
       <p class="example-caption" $if="$exampleTitle">{$exampleTitle}</p>
 
       <footer><ui-button $if="$href" as="a" from:href="$href" variant="link" size="sm">View component</ui-button><ui-button $if="$removable" $ref="remove" variant="ghost" size="sm">Remove</ui-button><slot name="actions"></slot></footer>
-    </div>
+    </ui-stack></div>
   </article>
   <style>
     /* The existing documentation catalog card, shared by the directory, reference and customizer. */
@@ -65,13 +66,13 @@
     footer { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; }
     .preview-width { padding: var(--ui-space-4) !important; }
     .body { padding: var(--ui-space-5) !important; }
-    .meta { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; margin-block-end: var(--ui-space-2) !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); font-weight: var(--ui-font-bold); letter-spacing: .09em; text-transform: uppercase; }
+    .meta { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); font-weight: var(--ui-font-bold); letter-spacing: .09em; text-transform: uppercase; }
     .meta code { padding: 0 !important; background: transparent; color: inherit; text-transform: none; }
     h3 { margin: 0 !important; padding: 0 !important; font-size: var(--ui-font-size-lg); letter-spacing: -.035em; }
     h3 a { color: var(--ui-text); text-decoration: none; }
-    .description { margin: var(--ui-space-2) 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height); }
-    .owner { margin: var(--ui-space-2) 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); overflow-wrap: anywhere; }
-    .example-caption { margin: var(--ui-space-2) 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); }
+    .description { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height); }
+    .owner { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); overflow-wrap: anywhere; }
+    .example-caption { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); }
     @media (prefers-reduced-motion: reduce) { :host { transition: none; } :host:hover { transform: none; } }
   </style>
 </template>

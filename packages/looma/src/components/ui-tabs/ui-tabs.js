@@ -122,17 +122,9 @@ export function connect(host) {
     if (list.contains(event.relatedTarget)) return;
     for (const button of tabButtons()) button.tabIndex = button.value === host.state.internalValue ? 0 : -1;
   };
-  // A vertical mouse wheel over an overflowing strip scrolls it sideways instead of the page.
-  // Trackpad gestures already carry a horizontal delta and are left to the browser.
-  const onWheel = (event) => {
-    if (list.scrollWidth <= list.clientWidth || event.deltaX !== 0 || event.ctrlKey) return;
-    event.preventDefault();
-    list.scrollLeft += event.deltaY;
-  };
   list.addEventListener("click", onClick);
   list.addEventListener("keydown", onKeydown);
   list.addEventListener("focusout", onFocusout);
-  list.addEventListener("wheel", onWheel, { passive: false });
   const observer = new MutationObserver(readPanels);
   observer.observe(container, { childList: true });
   const tabObserver = new MutationObserver(syncButtons);
@@ -153,6 +145,5 @@ export function connect(host) {
     list.removeEventListener("click", onClick);
     list.removeEventListener("keydown", onKeydown);
     list.removeEventListener("focusout", onFocusout);
-    list.removeEventListener("wheel", onWheel);
   };
 }
