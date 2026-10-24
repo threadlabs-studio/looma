@@ -17,6 +17,7 @@ test('local saving preserves newer edits and directly opened examples remain iso
       await route.fulfill({ response, body: (await response.text()).replace('data-mode="public"', 'data-mode="local"') });
     });
     await page.goto(server.url + 'customize/');
+    await page.getByRole('button', { name: 'Export & save', exact: true }).click();
     await expect(page.locator('[data-action="save"]')).toBeVisible();
     await page.locator('[data-preset]').selectOption('night');
     const submitted = page.waitForRequest(request => request.method() === 'POST' && request.url().endsWith('/_looma/theme'));
