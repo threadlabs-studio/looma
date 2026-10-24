@@ -39,7 +39,14 @@ tag is recorded after it succeeds. Documentation builds have five minutes, follo
 by a separate two-minute Pages deployment job, alongside publication. In the first
 0.34 deployment the build took 3m51s and Pages needed another 26s; combining setup,
 build and publishing exhausted the former five-minute job as Pages finished. Separate
-jobs keep build time from consuming the deployment allowance. Trusted publishing,
+jobs keep build time from consuming the deployment allowance.
+
+Documentation building and release preparation use the Ubuntu 24.04 ARM runner
+already qualifying documentation parity. On the 0.35 source, the 483-route build
+measured 3m56s there versus 4m26s on x64; the package build measured 15s versus 22s.
+The x64 jobs finished their work just after the five-minute deadline, before
+artifact upload. These build jobs retain their five-minute limits; publishing and
+registry-consumer verification remain on x64. Trusted publishing,
 exact release-byte identity, packed consumers, public
 registry integrity/provenance and the public-registry consumer remain required.
 
