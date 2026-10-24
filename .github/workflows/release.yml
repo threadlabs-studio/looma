@@ -30,8 +30,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-24.04-arm
-    # Same installed consumer matrix as CI; ARM already qualifies the documentation build.
-    timeout-minutes: 5
+    # Full installed matrix measured 5m12s including setup; retain room for artifact upload.
+    timeout-minutes: 6
     permissions:
       contents: read
     outputs:
@@ -197,7 +197,7 @@ jobs:
           LOOMA_RELEASE_PUBLISH: approved
         run: node tools/scripts/publish-release.mjs --execute
 
-      # npm's processing, not runner work, so the 15-minute budget excludes it by this step name
+      # npm's processing, not runner work, so the 16-minute budget excludes it by this step name
       # (release-qualification-policy.test.mjs). Measured after upload: p50 129s, p90 250s, max
       # 311s. If it times out, re-run this job: the upload is skipped because npm has the version,
       # the wait resumes, and record then tags the release.
