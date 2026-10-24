@@ -124,7 +124,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   }).join('\n\n');
   await write(path.join(content, 'components/index.md'), `---\ntitle: Components\n---\n\n# Components\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), card)}">\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog>\n\n${gallery}\n\n</looma-catalog>\n`);
   await write(path.join(content, 'index.md'), `---\ntitle: ${JSON.stringify(config.title ?? 'Your design system')}\n---\n\n# ${config.title ?? 'Your design system'}\n\nWeave your design system from Looma and your own HTML Next components.\n\n[Explore components](/components/) · [Customize your theme](/customize/)\n`);
-  if (combined.components.some(component => component.group === 'editor')) await write(path.join(content, 'editor.md'), `---\ntitle: Editor\n---\n\n# Editor\n\nWriting tools and editor components, separate from the general component reference.\n\n${combined.components.filter(component => component.group === 'editor' && !component.navigationParent).map(component => `- [${component.title}](${componentPath(component)})`).join('\n')}\n`);
+  if (combined.components.some(component => component.group === 'editor')) await write(path.join(content, 'editor.md'), `---\ntitle: Editor\nsidebar: false\n---\n\n# Editor\n\nWriting tools and editor components, separate from the general component reference.\n\n${combined.components.filter(component => component.group === 'editor' && !component.navigationParent).map(component => `- [${component.title}](${componentPath(component)})`).join('\n')}\n`);
   await write(path.join(content, 'design-system.md'), await readFile(own('README.md'), 'utf8'));
   if (config.content) {
     const authored = path.resolve(root, config.content);
@@ -143,7 +143,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   const customizer = path.join(generated, 'customizer.html');
   await write(customizer, customizerResource({ catalog: combined, config, base }, config.recipe));
   const customizerPage = path.join(content, 'customize.md');
-  await write(customizerPage, `---\ntitle: Customize\n---\n\n# Weave your design system\n\n<link rel="component" href="${relativeHref(customizerPage, customizer)}">\n<looma-customizer></looma-customizer>\n`);
+  await write(customizerPage, `---\ntitle: Customize\nsidebar: false\noutline: false\nprevious: false\nnext: false\n---\n\n# Weave your design system\n\n<link rel="component" href="${relativeHref(customizerPage, customizer)}">\n<looma-customizer></looma-customizer>\n`);
   await write(path.join(generated, 'catalog.json'), JSON.stringify(combined));
   const redirects = {};
   for (const component of combined.components) {

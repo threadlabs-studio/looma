@@ -19,7 +19,7 @@
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "@tiptap/vue-3": "^2.11.5",
-    "markupress": "^0.8.4",
+    "markupress": "~0.8.5",
     "vite": "8.3.4",
     "vue": "^3.5.43"
   },

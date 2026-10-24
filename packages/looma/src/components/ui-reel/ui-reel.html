@@ -8,7 +8,8 @@
       scrolls sideways once they overflow.</prop>
     <prop name="snap" type="keyword" values="start, center"
     >Snaps scrolling to items: start comes to rest with an item's start edge at the reel's start, and center with an item centred in the reel. Unset, the reel
-      scrolls freely.</prop>
+      scrolls freely. Wrap a component item in a plain element when snapping: the wrapper receives snap alignment while the component keeps ownership of its
+      root styles.</prop>
   </defs>
   <div role="region" tabindex="0"><slot></slot></div>
   <style>

@@ -227,6 +227,8 @@ export function deriveTheme(input, { mode } = {}) {
   tokens['--ui-selection-text'] = tokens['--ui-accent-subtle-text'];
   tokens['--ui-selection-border'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .2);
   tokens['--ui-control-surface'] = tokens['--ui-surface-raised'];
+  // A hint is quieter than body copy; resolve it against its field, not every tinted content surface.
+  tokens['--ui-control-placeholder'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-control-surface'], .5), [tokens['--ui-control-surface']], 4.5, ink);
   tokens['--ui-control-border'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .43), readingSurfaces, 3, ink);
   tokens['--ui-control-border-hover'] = tokens['--ui-control-border'];
   tokens['--ui-border-strong'] = tokens['--ui-control-border'];

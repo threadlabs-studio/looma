@@ -17,7 +17,7 @@ pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies (Markupress 0.8.5 or newer on the supported 0.8 line). Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
@@ -45,6 +45,8 @@ The authoring model groups shared decisions as Colour, Type, Size & spacing, Mat
 The generated values follow rules. Small and large control heights follow a ratio around the shared control size. Spacing follows an independent curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
 
 Choose a coordinated palette to change related paper, ink and action seeds together without changing geometry or motion. Palette seeds remain available for precise edits; the light/dark range previews and resolved values explain readability adjustments.
+
+The customizer uses Starting point, Palette and Material as its controls sidebar, with documentation navigation left out of this workspace. Detailed type, size and motion controls, example selection and exports open when needed.
 
 The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four color seeds. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
 

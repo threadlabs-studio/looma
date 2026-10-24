@@ -2,6 +2,15 @@
 
 ## Next release
 
+### Documentation workspaces and control polish
+
+- Customize uses its Starting point, Palette and Material controls as its sidebar. Detailed decisions, example selection and export tools open on demand; the Editor playground also leaves out documentation navigation while editor reference pages keep their own section.
+- Shared catalog cards use Stack spacing for their content and the directory groups. Separator examples use Stack and Cluster spacing rather than adding component margins.
+- Vertical wheel gestures over Tabs scroll the page instead of being captured by the tab strip. Horizontal gestures retain native strip scrolling.
+- Keep Tooltip arrow shoulders level by scaling after rotation, in both native HTML and generated Vue.
+- Reel examples have enough items to show meaningful overflow and use native item wrappers for scroll snapping without reaching into component roots.
+- Derive a distinct placeholder color against the field surface, so hints stay readable and visibly quieter than entered text in paired themes.
+
 ### Migration: semantic surface treatment
 
 - Replace Card `variant="glass"` with `treatment="expressive"`; add `variant="elevated"` only when the surface also needs a lift. Standard elevated cards retain their subtle treatment. The removed glass value has no compatibility alias on this pre-1.0 release line.
