@@ -2,8 +2,8 @@
 
 Routine fixes target five minutes of CI elapsed time. Automatic qualification runs
 in parallel and has a seven-minute execution ceiling; release preparation,
-publication, and tagging have another eight minutes. The longest configured path
-of runner work from checks through publication is fifteen minutes. Queue delays, runner
+publication, and tagging have another nine minutes. The longest configured path
+of runner work from checks through publication is sixteen minutes. Queue delays, runner
 provisioning, workflow handoff delays, protected-environment approvals, and npm's
 availability wait after the upload are outside these execution limits. Hosted timing
 must be confirmed after rollout.
@@ -27,11 +27,11 @@ Formatting, comment documentation checks, Storybook builds, documentation browse
 parity, full screenshot/axe sweeps, Firefox and WebKit are outside automatic release
 qualification. Package packing builds only the published package.
 
-Release preparation has five minutes of runner work for the complete packed
+Release preparation has six minutes of runner work for the complete packed
 consumer matrix, publication has two minutes, and recording the tag has one minute.
 The main-branch run measured quality at 2m31s, browser at 3m34s, visual at 4m07s
 and package qualification at 4m42s; each CI job has six minutes. This allocation
-keeps the configured checks-to-publication path within fifteen minutes. Between upload and the registry checks, publication waits for
+keeps the configured checks-to-publication path within sixteen minutes. Between upload and the registry checks, publication waits for
 npm to serve the version in its own step with a ten-minute timeout (measured maximum
 311 seconds), so its job timeout is twelve minutes. If that wait times out, re-run the
 publish job: it skips the upload because npm has the version, waits again, and the
@@ -45,7 +45,10 @@ Documentation building and release preparation use the Ubuntu 24.04 ARM runner
 already qualifying documentation parity. On the 0.35 source, the 483-route build
 measured 3m56s there versus 4m26s on x64; the package build measured 15s versus 22s.
 The x64 jobs finished their work just after the five-minute deadline, before
-artifact upload. These build jobs retain their five-minute limits; publishing and
+artifact upload. Documentation retains its five-minute limit. Release preparation
+completed the full installed-consumer matrix at approximately 5m12s on both x64
+and ARM, before its job was cancelled without uploading the artifact. It now has
+six minutes, making the configured maximum path sixteen minutes. Publishing and
 registry-consumer verification remain on x64. Trusted publishing,
 exact release-byte identity, packed consumers, public
 registry integrity/provenance and the public-registry consumer remain required.
