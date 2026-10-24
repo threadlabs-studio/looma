@@ -1,0 +1,4 @@
+{
+  "description": "The actions bar for a link in the editor: its destination, Open link, Edit link, and Remove link.",
+  "group": "editor"
+}

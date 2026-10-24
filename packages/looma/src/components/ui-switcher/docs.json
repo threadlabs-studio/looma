@@ -1,0 +1,4 @@
+{
+  "description": "Intrinsic equal-column layout that stacks when its own container becomes too narrow.",
+  "group": "layout"
+}

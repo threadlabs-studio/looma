@@ -83,7 +83,9 @@
       "import": "./editor/expressmark.js",
       "default": "./editor/expressmark.js"
     },
-    "./theme-system.css": "./theme-system.css"
+    "./theme-system.css": "./theme-system.css",
+    "./docs/catalog.json": "./docs/catalog.json",
+    "./docs/*": "./docs/*"
   },
   "files": [
     "dist/",
@@ -96,7 +98,8 @@
     "*.css",
     "README.md",
     "LICENSE",
-    "EXPRESSIVE-MARKDOWN.md"
+    "EXPRESSIVE-MARKDOWN.md",
+    "docs/"
   ],
   "sideEffects": [
     "./dist/index.js",

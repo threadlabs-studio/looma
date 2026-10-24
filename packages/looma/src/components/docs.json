@@ -1,0 +1,24 @@
+{
+  "groups": [
+    {
+      "id": "layout",
+      "label": "Layout"
+    },
+    {
+      "id": "overlay",
+      "label": "Overlay"
+    },
+    {
+      "id": "forms",
+      "label": "Forms"
+    },
+    {
+      "id": "display",
+      "label": "Display"
+    },
+    {
+      "id": "editor",
+      "label": "Editor"
+    }
+  ]
+}

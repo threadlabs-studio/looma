@@ -1,0 +1,4 @@
+{
+  "description": "Binary control primitive that reflects switch semantics for checked state.",
+  "group": "forms"
+}
