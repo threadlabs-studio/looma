@@ -2,6 +2,9 @@
    Existing public roles remain the customization interface; no component selectors. */
 /* Resolve shared geometry once where it is declared, rather than once per consuming
    control's font. Palette roles remain unregistered so light-dark resolves locally. */
+/* Reserve the same order when the remembered theme arrives before baseline CSS. */
+@layer tokens, base, theme, components;
+
 @property --ui-font-size { syntax: "<length>"; inherits: true; initial-value: 16px; }
 @property --ui-control-size { syntax: "<length>"; inherits: true; initial-value: 40px; }
 @property --ui-radius-md { syntax: "<length>"; inherits: true; initial-value: 8px; }

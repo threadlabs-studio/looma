@@ -323,9 +323,11 @@ test('material refinement shares a movable light, remembers customized presets a
   await material.getByRole('combobox', { name: 'Material preset', exact: true }).selectOption('polished');
   const sample = material.locator('[data-light-editor]').getByRole('button', { name: 'Join briefing', exact: true });
   const before = await sample.evaluate(element => getComputedStyle(element).backgroundImage);
+  const shadowBefore = await sample.evaluate(element => getComputedStyle(element).getPropertyValue('--ui-shadow-sm'));
   const handle = material.getByRole('button', { name: /^Theme light position. Arrow keys/ });
   await handle.focus(); await handle.press('Shift+ArrowRight');
   await expect.poll(() => sample.evaluate(element => getComputedStyle(element).backgroundImage)).not.toBe(before);
+  await expect.poll(() => sample.evaluate(element => getComputedStyle(element).getPropertyValue('--ui-shadow-sm'))).not.toBe(shadowBefore);
   await expect(material.locator('[data-refinement-preset] option:checked')).toHaveText('Polished · customized');
   await page.reload(); await enter();
   await expect(material.locator('[data-refinement-preset] option:checked')).toHaveText('Polished · customized');
