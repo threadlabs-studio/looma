@@ -21,7 +21,7 @@ env:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -48,7 +48,7 @@ jobs:
 
   browser:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 9
+    timeout-minutes: 6
     # Browsers and OS libraries are preinstalled. No apt/CDN install on a fix.
     container:
       image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
@@ -116,7 +116,7 @@ jobs:
 
   visual:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
