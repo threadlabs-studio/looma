@@ -29,8 +29,8 @@ jobs:
     if: >-
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
-    runs-on: ubuntu-latest
-    # Same installed consumer matrix as CI; measured above two minutes.
+    runs-on: ubuntu-24.04-arm
+    # Same installed consumer matrix as CI; ARM already qualifies the documentation build.
     timeout-minutes: 5
     permissions:
       contents: read
