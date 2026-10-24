@@ -45,7 +45,7 @@
         {
           "id": "01-form-footer",
           "title": "Form footer",
-          "behavior": false
+          "behavior": true
         },
         {
           "id": "02-dialog-footer",

@@ -1,0 +1,4 @@
+{
+  "description": "Multiline input that lowers directly to a native `<textarea>` while applying Looma's shared control theme.",
+  "group": "forms"
+}

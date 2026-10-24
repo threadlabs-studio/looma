@@ -36,7 +36,13 @@ export const RELEASE_PACKAGES = [
       "package/tokens.css",
       "package/theme-light.css",
       "package/theme-dark.css",
-      "package/theme-high-contrast.css"
+      "package/theme-high-contrast.css",
+      "package/theme-system.css",
+      "package/docs/index.mjs",
+      "package/docs/index.d.ts",
+      "package/docs/cli.mjs",
+      "package/docs/catalog.json",
+      "package/docs/README.md"
     ]
   }
 ];

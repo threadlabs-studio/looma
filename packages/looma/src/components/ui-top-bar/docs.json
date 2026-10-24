@@ -1,0 +1,4 @@
+{
+  "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
+  "group": "display"
+}

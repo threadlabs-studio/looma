@@ -1,0 +1,4 @@
+{
+  "description": "Vertical layout primitive that owns spacing between children.",
+  "group": "layout"
+}

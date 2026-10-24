@@ -1,7 +1,7 @@
 name: Docs
 
 # Deploys the documentation site to GitHub Pages after CI passes on main.
-# threadlabs.studio/looma proxies to it; see apps/docs/docusaurus.config.ts.
+# threadlabs.studio/looma proxies to the same package-shipped HTMLKit documentation.
 on:
   workflow_run:
     workflows: ["CI"]
@@ -56,12 +56,12 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build docs
-        run: pnpm --filter @threadlabs/looma-docs build
+        run: pnpm --filter @threadlabs/looma-docs-next build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: apps/docs/build
+          path: apps/docs-next/site
 
       - name: Deploy
         id: deployment

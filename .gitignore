@@ -79,3 +79,7 @@ apps/docs/static/preview-runtime/
 
 # Screenshots written by package tests.
 /.context/
+
+# Package-owned documentation artifacts.
+/packages/looma/docs/
+.looma/
