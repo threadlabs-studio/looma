@@ -139,6 +139,8 @@ test('every recipe exports a coordinated pair and both resolved palettes remain 
     for (const mode of ['light', 'dark']) {
       const { tokens } = deriveTheme(recipe, { mode });
       assert.equal(tokens['color-scheme'], mode);
+      assert.ok(contrast(tokens['--ui-control-placeholder'], tokens['--ui-control-surface']) >= 4.5, 'field hint remains readable');
+      assert.ok(contrast(tokens['--ui-control-placeholder'], tokens['--ui-control-surface']) < contrast(tokens['--ui-text'], tokens['--ui-control-surface']), 'hint is quieter than entered text');
       for (const surface of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
         assert.ok(contrast(tokens['--ui-text'], tokens[surface]) >= 4.5);
         assert.ok(contrast(tokens['--ui-control-border'], tokens[surface]) >= 3);

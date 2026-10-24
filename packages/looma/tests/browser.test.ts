@@ -928,6 +928,30 @@ describe("Touch input typography", () => {
   });
 });
 
+describe("Tooltip arrow geometry", () => {
+  it("keeps the arrow symmetric around its tip on every side in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-tooltip-arrow`, adapter === "html" ? 'import "@threadlabs/looma";' : `
+        import { createApp, h } from "vue";
+        import { Tooltip } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Tooltip, { id: "hint", for: "anchor", open: true }, () => "Office hours") }).mount("#app");
+      `);
+      const page = await open(path, '<button id="anchor" style="position: fixed; left: 300px; top: 250px">Office</button>' + (adapter === "html" ? '<ui-tooltip id="hint" for="anchor" open>Office hours</ui-tooltip>' : '<div id="app"></div>'), [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      for (const side of ["top", "bottom", "left", "right"]) {
+        // Inspect the painted arrow on each resolved side, independently of overlay collision policy.
+        const symmetry = await page.locator("#hint").evaluate((element, side) => {
+          element.setAttribute("data-ui-actual-placement", side);
+          const arrow = getComputedStyle(element.querySelector(".surface")!, "::after");
+          const matrix = new DOMMatrix(arrow.transform);
+          return { acrossTip: Math.abs(matrix.a + matrix.c), acrossBase: Math.abs(matrix.b - matrix.d) };
+        }, side);
+        assert.ok(symmetry.acrossTip < 0.001 && symmetry.acrossBase < 0.001, `${adapter} ${side}: arrow sides meet at the same height`);
+      }
+      await page.close();
+    }
+  });
+});
+
 describe("Tooltip shortcut", () => {
   it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
     const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
@@ -1445,6 +1469,19 @@ describe("Editor callouts", () => {
 });
 
 describe("Tabs activation", () => {
+  it("lets vertical wheel scrolling reach the page over fitting and overflowing tabs", async () => {
+    const path = await bundle("html-tabs-wheel", 'import "@threadlabs/looma";');
+    const page = await open(path, '<div style="height: 3000px"><ui-tabs style="max-inline-size: 12rem"><section aria-label="HTML Next">HTML</section><section aria-label="Vue">Vue</section><section aria-label="Long additional example">More</section></ui-tabs></div>', [join(root, "tokens.css")]);
+    for (const width of ["12rem", "60rem"]) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.locator('[role="tablist"]').evaluate((list, width) => { (list.parentElement as HTMLElement).style.maxInlineSize = width; }, width);
+      await page.getByRole("tab", { name: "HTML Next", exact: true }).hover();
+      await page.mouse.wheel(0, 150);
+      await page.waitForFunction(() => window.scrollY > 0);
+    }
+    await page.close();
+  });
+
   it("moves focus without selecting in manual mode and selects on Enter or Space", async () => {
     const path = await bundle("html-manual-tabs", `
       import "@threadlabs/looma";
