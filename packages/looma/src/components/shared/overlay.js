@@ -1,3 +1,5 @@
+import { updateSurfaceMaterial } from "./surface-material.js";
+
 const dialogInvokers = new WeakMap();
 
 function stateFor(document) {
@@ -345,7 +347,10 @@ export function createViewportSurface(surface, options = {}) {
   let frame = null;
   const position = () => {
     frame = null;
-    if (stop) options.position?.();
+    if (stop) {
+      if (options.materialRole) updateSurfaceMaterial(surface, options.materialRole);
+      options.position?.();
+    }
   };
   const refresh = () => {
     if (stop && frame === null) frame = owner.requestAnimationFrame(position);
@@ -378,6 +383,7 @@ export function createViewportSurface(surface, options = {}) {
     show() {
       if (destroyed) return;
       show(surface);
+      if (options.materialRole) updateSurfaceMaterial(surface, options.materialRole);
       stop ??= observeOverlayViewport(surface.ownerDocument, position);
       options.position?.();
       if (!sizeObserver && owner.ResizeObserver) {
@@ -435,7 +441,7 @@ export function createAnchoredSurface(surface, options = {}) {
   surface.style.position = "fixed";
   surface.style.setProperty("margin", "0", "important");
   // `bare` resets the browser's popover chrome on a surface that has none of its own.
-  const presentation = createViewportSurface(surface, { position, bare: options.bare });
+  const presentation = createViewportSurface(surface, { position, bare: options.bare, materialRole: options.materialRole });
   // Resize and scroll events do not report an ancestor's transition or layout shift.
   // While visible, sample the live anchor and only re-position when its bounds change.
   const trackAnchor = () => {

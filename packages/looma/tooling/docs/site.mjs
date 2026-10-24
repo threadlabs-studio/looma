@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { discoverComponents, escapeHtml, mergeCatalogs, readCatalog, readJson } from './catalog.mjs';
 import { cardMarkup, componentPath, exampleKey, previewPath, referencePage } from './render.mjs';
+import { defaultRecipe, themeCSS } from './theme.mjs';
 import { customizerResource } from './customizer-render.mjs';
 import { catalogResource } from './catalog-view.mjs';
 import { cacheDirectory, rejectSymlink, withBuildLock } from './workspace.mjs';
@@ -85,7 +86,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   await cp(own('preview.js'), path.join(generated, 'preview.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
-  for (const file of ['customizer.js', 'theme.mjs']) await cp(own(file), path.join(generated, file));
+  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs']) await cp(own(file), path.join(generated, file));
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
   const examples = [];
   const resourceByTag = new Map(combined.resources.map(resource => [resource.tag, resource]));
@@ -144,6 +145,16 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   return { root, config, base, catalog: combined, examples, generated, content, previews, redirects };
 }
 
+/** Bundle validated theme restoration into HTMLKit's before-paint head hook. */
+async function themeBootstrap(site) {
+  const { build } = await tool('vite', site.root);
+  const entry = path.join(site.generated, 'theme-bootstrap.mjs');
+  const baseline = site.config.recipe ?? { schemaVersion: 1, values: {} };
+  await writeFile(entry, `import { installDocumentationTheme } from './theme-session.mjs';\nimport systemCSS from '@threadlabs/looma/theme-system.css?inline';\ninstallDocumentationTheme(window, { base: ${JSON.stringify(site.base)}, baseline: ${JSON.stringify(baseline)}, systemCSS });\n`);
+  const bundled = await build({ root: site.root, configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry, name: 'LoomaDocumentationTheme', formats: ['iife'] } } });
+  return (Array.isArray(bundled) ? bundled[0] : bundled).output.find(file => file.type === 'chunk').code;
+}
+
 /** One plugin powers both the public consumer and local repositories. */
 export function documentationPlugin(site) {
   return {
@@ -159,12 +170,12 @@ export async function documentationOptions(site) {
   const styles = ['tokens.css', 'theme-light.css', 'theme-dark.css', 'theme-system.css'].map(file => fileURLToPath(import.meta.resolve(`@threadlabs/looma/${file}`)));
   const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
   let savedTheme;
-  if (site.config.themeCSSContents !== undefined) {
-    savedTheme = path.join(site.generated, 'saved-theme.css');
-    await writeFile(savedTheme, site.config.themeCSSContents);
-  }
+  savedTheme = path.join(site.generated, 'saved-theme.css');
+  await writeFile(savedTheme, site.config.themeCSSContents ?? themeCSS(site.config.recipe ?? defaultRecipe()));
   const themeStyles = [savedTheme, ...(site.config.overrides ?? []).map(file => path.resolve(site.root, file))].filter(Boolean);
-  return themeStyles.length ? { ...options, plugins: [...options.plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) }] } : options;
+  return { ...options, plugins: [...options.plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) },
+    // Markupress supplies its head script in its own config hook; compose after it.
+    { name: 'looma-browser-theme', config: async current => ({ headScript: [current.headScript, await themeBootstrap(site)].filter(Boolean).join('\n;\n') }) }] };
 }
 
 /** Build through HTMLKit, then make opaque preview scripts portable to static hosts without CORS. */

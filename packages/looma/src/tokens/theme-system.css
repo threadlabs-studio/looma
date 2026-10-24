@@ -9,6 +9,8 @@
     --ui-inner-depth: 0.3;
     --ui-edge-light: 0;
     --ui-overlay-translucency: 0;
+    --ui-glassiness: 0;
+    --ui-surface-separation: 0;
   }
 
   :where(:root, [data-theme], [data-contrast]) {
@@ -62,6 +64,11 @@
     --ui-control-inset: inset 0 calc(1px * var(--_ui-theme-inner)) calc(3px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.15), inset 0 -1px 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * 0.18));
     --ui-pressed: inset 0 calc(2px * var(--_ui-theme-inner)) calc(4px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.2);
     --ui-overlay-surface: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 100%), transparent);
+    /* Decorative outer material is allowed to transmit the scene. Content keeps
+       its own opaque plane; changing the scene cannot undermine text contrast. */
+    --ui-material-content: var(--ui-surface-raised);
+    --ui-material-glass: color-mix(in srgb, var(--ui-surface-raised) 35%, transparent);
+    --ui-material-edge: color-mix(in srgb, var(--ui-surface-raised) 80%, var(--ui-text));
 
     /* Existing timing and easing names stay canonical. */
     --ui-motion-press: calc(var(--ui-motion-fast) / 3);

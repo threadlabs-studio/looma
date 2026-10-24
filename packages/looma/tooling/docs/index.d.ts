@@ -51,4 +51,4 @@ export const themeFields: readonly ThemeField[];
 export const startingPoints: Record<string, ThemeRecipe>;
 export function defaultRecipe(): ThemeRecipe;
 export function validateRecipe(input: unknown): ThemeRecipe;
-export function themeCSS(input: ThemeRecipe, systemCSS?: string): string;
+export function themeCSS(input: ThemeRecipe, systemCSS?: string, options?: { scope?: 'portable' | 'documentation' }): string;

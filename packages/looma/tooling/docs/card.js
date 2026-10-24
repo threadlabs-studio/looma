@@ -1,3 +1,4 @@
+import { documentationTheme, themeEvent } from './theme-session.mjs';
 /** Only theme data and measured height cross the opaque preview boundary. */
 export function connect(host) {
   const frame = host.refs.frame;
@@ -5,7 +6,8 @@ export function connect(host) {
   const remove = host.refs.remove;
   const removeCard = () => host.element.dispatchEvent(new CustomEvent("looma-example-remove", { bubbles: true, detail: { id: host.props.identity.value } }));
   const view = frame.ownerDocument.defaultView;
-  let theme = '';
+  let theme = documentationTheme(view)?.css ?? '';
+  const documentTheme = () => { theme = documentationTheme(view)?.css ?? ''; send(); };
   const send = () => frame.contentWindow?.postMessage({ type: 'looma-theme', css: theme }, '*');
   const message = event => {
     if (event.source !== frame.contentWindow) return;
@@ -21,12 +23,14 @@ export function connect(host) {
   width?.addEventListener('input', resize);
   remove?.addEventListener('click', removeCard);
   view.addEventListener('message', message);
+  view.addEventListener(themeEvent, documentTheme);
   frame.addEventListener('load', send);
   return () => {
     host.element.removeEventListener('looma-theme-preview', update);
     width?.removeEventListener('input', resize);
     remove?.removeEventListener('click', removeCard);
     view.removeEventListener('message', message);
+    view.removeEventListener(themeEvent, documentTheme);
     frame.removeEventListener('load', send);
   };
 }

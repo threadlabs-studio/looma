@@ -34,7 +34,7 @@ test('customizer reuses real cards, updates every isolated preview and exports t
     await expect.poll(() => frame.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toBe('#11141c');
     expect(await frame.locator('html').evaluate(() => { try { void parent.document; return false; } catch { return true; } })).toBe(true);
   }
-  const extra = catalog.components.find(component => component.tag === 'ui-button').examples[1];
+  const extra = catalog.components.find(component => component.tag === 'ui-button').examples[0];
   await page.locator('[data-add-example]').selectOption(extra.id);
   await page.getByRole('button', { name: 'Add example card', exact: true }).click();
   await expect(page.locator('[data-example-card]')).toHaveCount(7);
@@ -53,14 +53,15 @@ test('customizer reuses real cards, updates every isolated preview and exports t
     return Object.fromEntries(['color', 'backgroundColor', 'borderRadius', 'height', 'padding', 'boxShadow', 'transitionDuration'].map(property => [property, style[property]]));
   };
   const previewAppearance = await buttonFrame.contentFrame().locator('[data-preview] button').first().evaluate(appearance);
-  const consumer = await page.context().newPage();
+  const consumerContext = await page.context().browser().newContext();
+  const consumer = await consumerContext.newPage();
   try {
     await consumer.goto(new URL(await buttonFrame.getAttribute('src'), page.url()).href);
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).not.toBe('#11141c');
     await consumer.addStyleTag({ content: css });
     await expect.poll(() => consumer.locator('[data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toBe('#11141c');
-  } finally { await consumer.close(); }
+  } finally { await consumerContext.close(); }
   const recipeReady = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download recipe', exact: true }).click();
   const recipe = await readFile(await (await recipeReady).path(), 'utf8');
@@ -111,4 +112,32 @@ test('reference fragments open the containing API tab', async ({ page }, info) =
   await page.getByRole('tab', { name: 'Examples', exact: true }).click();
   await page.locator('a[href$="#ui-menu-item-api"]:visible').first().click();
   await expect(page.getByRole('heading', { name: 'Menu Item API', exact: true })).toBeVisible();
+});
+
+test('Bookish themes the whole documentation, survives navigation and reload, and resets explicitly', async ({ page }, info) => {
+  const base = info.config.metadata.markupress;
+  await page.goto(base + 'customize/');
+  await page.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption('bookish');
+  const action = () => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-accent').trim());
+  await expect.poll(action).toBe('#2e1228');
+  const buttonCard = page.locator('[data-component-card="ui-button"]');
+  const solid = buttonCard.locator('iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
+  await expect.poll(() => solid.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, height: element.getBoundingClientRect().height }))).toEqual({ background: 'rgb(46, 18, 40)', height: 42 });
+  await page.getByRole('searchbox', { name: 'Find components and examples', exact: true }).fill('button');
+  await expect(buttonCard).toBeVisible();
+  await expect(page.locator('[data-component-card="ui-input"]')).toBeHidden();
+  await buttonCard.getByRole('link', { name: 'View component', exact: true }).click();
+  await expect(page).toHaveURL(base + 'components/ui-button/');
+  await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
+  await expect.poll(action).toBe('#2e1228');
+  await page.reload();
+  await expect.poll(action).toBe('#2e1228');
+  await page.goto(base + 'components/');
+  await expect.poll(action).toBe('#2e1228');
+  await page.goto(base + 'customize/');
+  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('bookish');
+  await page.getByRole('button', { name: 'Reset changes', exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('clear');
+  await expect.poll(action).toBe('#5b55d6');
 });
