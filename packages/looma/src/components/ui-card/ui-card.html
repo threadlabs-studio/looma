@@ -27,12 +27,12 @@
       --_ui-selection-context-surface: initial;
       --_ui-selection-context-border: initial;
       --_ui-selection-context-text: initial;
-      display: flex;
-      flex-direction: column;
-      gap: var(--ui-space-4);
-      box-sizing: border-box;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: var(--ui-space-4) !important;
+      box-sizing: border-box !important;
       min-inline-size: 0;
-      padding: var(--ui-space-5);
+      padding: var(--ui-space-5) !important;
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--_ui-card-surface);
@@ -40,16 +40,16 @@
     }
 
     :host([padding="xs"]) {
-      gap: var(--ui-space-1);
-      padding: var(--ui-space-2);
+      gap: var(--ui-space-1) !important;
+      padding: var(--ui-space-2) !important;
     }
     :host([padding="sm"]) {
-      gap: var(--ui-space-2);
-      padding: var(--ui-space-3);
+      gap: var(--ui-space-2) !important;
+      padding: var(--ui-space-3) !important;
     }
 
     :host([padding="lg"]) {
-      padding: var(--ui-space-6);
+      padding: var(--ui-space-6) !important;
     }
 
     :host([variant="subtle"]) {
@@ -123,7 +123,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

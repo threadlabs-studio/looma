@@ -96,15 +96,15 @@
     }
 
     :host {
-      box-sizing: border-box;
-      display: inline-block;
+      box-sizing: border-box !important;
+      display: inline-block !important;
       inline-size: var(--ui-input-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-md)));
-      margin: 0;
-      padding: var(--ui-space-2) var(--ui-space-3);
+      margin: 0 !important;
+      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-space-3) !important;
       appearance: none;
-      padding-inline-start: var(--_ui-default-input-padding-inline-start, var(--ui-space-3));
+      padding-inline-start: var(--_ui-default-input-padding-inline-start, var(--ui-space-3)) !important;
       border: var(--ui-input-border-width, var(--_ui-default-input-border-width, var(--ui-border-width))) solid
         var(--ui-input-border, var(--_ui-default-input-border, var(--ui-control-border, var(--ui-border-strong))));
       border-radius: var(--ui-input-radius, var(--_ui-default-input-radius, var(--ui-field-radius, var(--ui-radius-md))));
@@ -122,13 +122,13 @@
     /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */
     :host([size="sm"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-sm)));
-      padding: var(--ui-space-1) var(--ui-space-2);
+      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
       font-size: var(--ui-font-size-sm);
     }
 
     :host([size="lg"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-lg)));
-      padding: var(--ui-space-3) var(--ui-space-4);
+      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-space-4) !important;
       font-size: var(--ui-font-size-md);
     }
 
@@ -215,7 +215,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

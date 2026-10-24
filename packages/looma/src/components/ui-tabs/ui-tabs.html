@@ -5,8 +5,8 @@
     <prop name="label" type="string" default="Tabs"
     >The tab list's accessible name, announced when focus enters the list. Name what the tabs switch between.</prop>
     <prop name="value" type="string" default=""
-    >The id or authored data-value of the selected panel, initially or when set externally; empty selects the first panel. Choosing a tab updates it from there and reports a select
-      event. A panel without an id is given a generated one.</prop>
+    >The id or authored data-value of the selected panel, initially or when set externally; empty selects the first panel. Choosing a tab updates it from there
+      and reports a select event. A panel without an id is given a generated one.</prop>
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >horizontal puts the tabs in a row above the panels, moved between with the Left and Right arrow keys; vertical puts them in a column beside the panels,
       moved between with Up and Down.</prop>
@@ -15,8 +15,9 @@
       displaying a panel takes time.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
     <prop name="group" type="string" default=""
-    >Tabs with the same nonempty group share one selection: choosing a tab selects the tab with the same data-value (or label when no value is authored) in every other Tabs of that group in the
-      document, and the choice is remembered for the next visit. Use it for alternatives a reader picks once, such as a package manager or language.</prop>
+    >Tabs with the same nonempty group share one selection: choosing a tab selects the tab with the same data-value (or label when no value is authored) in
+      every other Tabs of that group in the document, and the choice is remembered for the next visit. Use it for alternatives a reader picks once, such as a
+      package manager or language.</prop>
     <state type="string" name="internalValue" value=""></state>
     <state name="tabs" type="list(object({ id: string, label: string }))" value="[]"></state>
     <event name="select" type="object">
@@ -78,16 +79,16 @@
     }
 
     :host {
-      display: grid;
+      display: grid !important;
       inline-size: 100%;
       min-inline-size: 0;
     }
 
     .list {
-      display: grid;
+      display: grid !important;
       grid-auto-flow: column;
       grid-auto-columns: max-content;
-      justify-content: start;
+      justify-content: start !important;
       inline-size: 100%;
       max-inline-size: 100%;
       /* Tabs that do not fit scroll sideways rather than wrapping or squeezing. */
@@ -103,8 +104,8 @@
     .list button,
     .list > :slotted(button[slot="tab"]) {
       min-block-size: var(--_ui-tabs-tab-min-block-size, var(--_tab-min-block-size));
-      margin: 0 0 calc(-1 * var(--ui-border-width));
-      padding: var(--_ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--_ui-tabs-tab-padding-inline, var(--_tab-padding-inline));
+      margin: 0 0 calc(-1 * var(--ui-border-width)) !important;
+      padding: var(--_ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--_ui-tabs-tab-padding-inline, var(--_tab-padding-inline)) !important;
       border: 0;
       border-block-end: var(--ui-accent-line-width) solid transparent;
       background: transparent;
@@ -125,9 +126,9 @@
     @supports (text-box-trim: trim-both) {
       .list button,
       .list > :slotted(button[slot="tab"]) {
-        display: block;
+        display: block !important;
         text-align: center;
-        align-content: center;
+        align-content: center !important;
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
@@ -164,12 +165,12 @@
       min-inline-size: 0;
     }
     .panels > :slotted(*) {
-      padding: var(--ui-space-4);
+      padding: var(--ui-space-4) !important;
     }
 
     :host([orientation="vertical"]) {
       grid-template-columns: max-content minmax(0, 1fr);
-      align-items: start;
+      align-items: start !important;
     }
 
     :host([orientation="vertical"]) .list {
@@ -181,7 +182,7 @@
 
     :host([orientation="vertical"]) .list button,
     :host([orientation="vertical"]) .list > :slotted(button[slot="tab"]) {
-      margin: 0 calc(-1 * var(--ui-border-width)) 0 0;
+      margin: 0 calc(-1 * var(--ui-border-width)) 0 0 !important;
       border-block-end: 0;
       border-inline-end: var(--ui-accent-line-width) solid transparent;
       text-align: start;
@@ -201,7 +202,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

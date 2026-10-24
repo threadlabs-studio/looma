@@ -13,6 +13,9 @@ importers:
 
   .:
     devDependencies:
+      postcss:
+        specifier: 8.5.28
+        version: 8.5.28
       dprint:
         specifier: ^0.57.4
         version: 0.57.4

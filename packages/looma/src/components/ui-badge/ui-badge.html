@@ -3,8 +3,8 @@
     <prop name="variant" type="keyword" values="solid, subtle, outline, inverse, overlay" default="subtle"
     >Emphasis. subtle sets toned text over a soft wash; solid fills with the tone and uses contrasting text; outline keeps the surface with a toned edge.
       inverse uses a translucent contrasting surface and toned ink for a count or label on a filled control of that tone. Neutral looks the same in solid and
-      subtle. overlay inherits the containing filled control's text colour on a faint translucent fill, with a quiet single-pixel boundary and no shadow. Its small circle is
-      20px. When space is constrained, the label truncates with an ellipsis while its full text remains available.</prop>
+      subtle. overlay inherits the containing filled control's text colour on a faint translucent fill, with a quiet single-pixel boundary and no shadow. Its
+      small circle is 20px. When space is constrained, the label truncates with an ellipsis while its full text remains available.</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
@@ -102,14 +102,14 @@
       --_badge-color-text: var(--_badge-color-ink);
       --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-surface)));
 
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--ui-space-1);
-      box-sizing: border-box;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: var(--ui-space-1) !important;
+      box-sizing: border-box !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-      padding: var(--ui-badge-padding-block, var(--ui-space-0-5)) var(--ui-badge-padding-inline, var(--ui-space-2));
+      padding: var(--ui-badge-padding-block, var(--ui-space-0-5)) var(--ui-badge-padding-inline, var(--ui-space-2)) !important;
       border: var(--ui-border-width) solid var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
       border-radius: var(--ui-radius-round);
       background: var(--_badge-outline-surface);
@@ -124,30 +124,30 @@
     /* A constrained badge keeps its surface intact and ellipsizes only its label. The full
        text stays in the DOM for accessible names and consumers' selected values. */
     .label {
-      display: block;
+      display: block !important;
       min-inline-size: 0;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .label:empty {
-      display: none;
+      display: none !important;
     }
 
     /* Icon content has its own flex item so label ellipsis never clips its strokes. */
     .icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       flex: none;
     }
 
     .icon:empty {
-      display: none;
+      display: none !important;
     }
 
     .icon :slotted(svg) {
-      display: block;
+      display: block !important;
       inline-size: 1em;
       block-size: 1em;
       flex: none;
@@ -158,7 +158,7 @@
       inline-size: 1em;
       block-size: 1em;
       vertical-align: middle;
-      margin-inline-end: var(--ui-space-1);
+      margin-inline-end: var(--ui-space-1) !important;
     }
 
     .label:has(svg) {
@@ -169,15 +169,15 @@
        Vertical ink remains visible so trimming never cuts off ascenders or descenders. */
     @supports (text-box-trim: trim-both) {
       :host {
-        display: inline-block;
+        display: inline-block !important;
         min-block-size: var(--ui-badge-min-block-size, 1.5rem);
         text-align: center;
-        align-content: center;
+        align-content: center !important;
         text-box-trim: none;
       }
       :host:has(.icon:not(:empty)),
       :host:has(.label svg) {
-        display: inline-flex;
+        display: inline-flex !important;
         text-box-trim: none;
       }
       .label:not(:has(svg)) {
@@ -189,12 +189,12 @@
     }
 
     :host([size="xs"]) {
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       min-inline-size: 1rem;
       min-block-size: var(--ui-badge-min-block-size, 1rem);
       /* Compact text still needs room at both rounded edges. Fixed marks override this
          padding below; ordinary text badges retain their larger spacing. */
-      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, var(--ui-space-1));
+      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, var(--ui-space-1)) !important;
       font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
       line-height: var(--ui-badge-line-height, 1);
     }
@@ -368,14 +368,14 @@
     /* An icon mark keeps the existing tone recipe and follows the global spacing and radius. */
     :host([shape="square"]) {
       --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-4) * 2));
-      display: inline-flex;
-      box-sizing: border-box;
+      display: inline-flex !important;
+      box-sizing: border-box !important;
       flex: none;
       inline-size: var(--_badge-square-size);
       block-size: var(--_badge-square-size);
       min-inline-size: var(--_badge-square-size);
       min-block-size: var(--_badge-square-size);
-      padding: 0;
+      padding: 0 !important;
       border-radius: var(--ui-radius-md);
       text-box-trim: none;
     }
@@ -389,29 +389,29 @@
     }
 
     :host([shape="square"]) .label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
     }
 
     :host([shape="square"]) .label :slotted(svg) {
-      margin-inline-end: 0;
+      margin-inline-end: 0 !important;
     }
 
     :host([shape="square"]) .label:empty {
-      display: none;
+      display: none !important;
     }
 
     /* A visible glyph needs fixed geometry, unlike a content-sized pill or a hidden-label dot. */
     :host([shape="circle"]) {
       --_badge-circle-size: var(--ui-badge-circle-size, calc(var(--ui-space-3) * 2));
-      display: inline-flex;
+      display: inline-flex !important;
       flex: none;
       inline-size: var(--_badge-circle-size);
       block-size: var(--_badge-circle-size);
       min-inline-size: var(--_badge-circle-size);
       min-block-size: var(--_badge-circle-size);
-      padding: 0;
+      padding: 0 !important;
       border-radius: var(--ui-radius-round);
       text-box-trim: none;
     }
@@ -429,19 +429,19 @@
     }
 
     :host([shape="circle"]) .label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       line-height: 1;
       text-box-trim: none;
     }
 
     :host([shape="circle"]) .label :slotted(svg) {
-      margin-inline-end: 0;
+      margin-inline-end: 0 !important;
     }
 
     :host([shape="circle"]) .label:empty {
-      display: none;
+      display: none !important;
     }
 
     /* Center capital and numeral ink, rather than the font's ascent/descent line box.
@@ -449,7 +449,7 @@
     @supports (text-box-trim: trim-both) {
       :host([shape="circle"]) .label:not(:has(svg)),
       :host([shape="square"]) .label:not(:has(svg)) {
-        display: block;
+        display: block !important;
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
         overflow: visible;
@@ -459,13 +459,13 @@
     /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
     :host([shape="dot"]) {
       position: relative;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       flex: none;
       inline-size: var(--ui-badge-dot-size, var(--ui-space-2));
       block-size: var(--ui-badge-dot-size, var(--ui-space-2));
       min-inline-size: var(--ui-badge-dot-size, var(--ui-space-2));
       min-block-size: var(--ui-badge-dot-size, var(--ui-space-2));
-      padding: 0;
+      padding: 0 !important;
       border-radius: var(--ui-radius-round);
       text-box-trim: none;
     }
@@ -489,7 +489,7 @@
       border-color: transparent;
       border-radius: 0;
       background: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
-      padding-inline-end: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
+      padding-inline-end: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point)) !important;
       clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
     }
 
@@ -508,8 +508,8 @@
     }
 
     :host([shape="tag"]):dir(rtl) {
-      padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
-      padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
+      padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2)) !important;
+      padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point)) !important;
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
@@ -537,7 +537,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

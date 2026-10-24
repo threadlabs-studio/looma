@@ -62,28 +62,46 @@
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
-      --_ui-checkbox-size: var(--ui-checkbox-size);
+      --_ui-checkbox-size: var(--ui-checkbox-size, var(--ui-choice-mark-size));
       --_ui-checkbox-invalid-border: var(--ui-checkbox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
 
-      display: inline-flex;
-      align-items: flex-start;
-      gap: var(--ui-checkbox-gap, var(--ui-space-2));
+      display: inline-flex !important;
+      align-items: flex-start !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      justify-content: flex-start !important;
+      padding: 0 !important;
+      gap: var(--ui-checkbox-gap, var(--ui-space-2)) !important;
       max-inline-size: 100%;
       color: var(--ui-text-primary);
+      line-height: var(--ui-line-height-md) !important;
       cursor: pointer;
     }
 
     /* The label, and under it an optional line saying what the choice means. */
     .text {
-      display: flex;
-      flex-direction: column;
-      gap: var(--ui-space-1);
+      font: inherit !important;
+      align-self: auto !important;
+      order: 1 !important;
+      position: static !important;
+      transform: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: var(--ui-space-1) !important;
       min-inline-size: 0;
     }
 
     .label {
+      position: static !important;
+      transform: none !important;
+      margin: 0 !important;
+      padding-inline: 0 !important;
+      font: inherit !important;
       min-inline-size: 0;
-      line-height: var(--ui-line-height-md);
+      line-height: var(--ui-line-height-md) !important;
+      padding-block: max(0px, calc((var(--_ui-checkbox-size, 1.125rem) - 1lh) / 2)) !important;
     }
 
     .description {
@@ -93,19 +111,25 @@
     }
 
     .description:empty {
-      display: none;
+      display: none !important;
     }
 
     input {
       appearance: none;
       -webkit-appearance: none;
-      position: relative;
+      position: relative !important;
+      transform: none !important;
+      order: 0 !important;
+      box-sizing: border-box !important;
+      padding: 0 !important;
       flex: 0 0 auto;
-      inline-size: var(--_ui-checkbox-size, 1.125rem);
-      block-size: var(--_ui-checkbox-size, 1.125rem);
-      margin: 0.125em 0 0;
+      align-self: auto !important;
+      inline-size: var(--_ui-checkbox-size, 1.125rem) !important;
+      block-size: var(--_ui-checkbox-size, 1.125rem) !important;
+      font: inherit !important;
+      margin: max(0px, calc((1lh - var(--_ui-checkbox-size, 1.125rem)) / 2)) 0 0 !important;
       border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-radius-sm);
+      border-radius: min(var(--ui-radius-sm), calc(var(--_ui-checkbox-size, 1.125rem) / 4));
       background: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
       cursor: pointer;
@@ -119,7 +143,7 @@
       content: "";
       position: absolute;
       opacity: 0;
-      transition: opacity 120ms var(--ui-motion-ease);
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     input:checked,
@@ -132,22 +156,22 @@
     /* Centre the tick's box and lift it slightly for the rotated check shape. */
     input:checked::after {
       inset: 0;
-      margin: auto;
-      inline-size: 0.28rem;
-      block-size: 0.5rem;
+      margin: auto !important;
+      inline-size: calc(var(--_ui-checkbox-size) * 0.28 / 1.125);
+      block-size: calc(var(--_ui-checkbox-size) * 0.5 / 1.125);
       /* Longhands, not `border: solid var(...)`: lowering drops a shorthand that omits a
          component, which left the tick with no style and no colour. */
       border-style: solid;
       border-color: var(--ui-text-on-accent);
-      border-width: 0 0.125rem 0.125rem 0;
+      border-width: 0 calc(var(--_ui-checkbox-size) * 0.125 / 1.125) calc(var(--_ui-checkbox-size) * 0.125 / 1.125) 0;
       opacity: 1;
-      transform: translateY(-0.09rem) rotate(45deg);
-      animation: ui-checkbox-check 180ms var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+      transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg);
+      animation: ui-checkbox-check var(--ui-motion-base) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     input:indeterminate::after {
-      inset: 50% 0.23rem auto;
-      block-size: 0.125rem;
+      inset: 50% calc(var(--_ui-checkbox-size) * 0.23 / 1.125) auto;
+      block-size: calc(var(--_ui-checkbox-size) * 0.125 / 1.125);
       border-radius: var(--ui-radius-round);
       background: var(--ui-text-on-accent);
       opacity: 1;
@@ -157,15 +181,15 @@
     @keyframes ui-checkbox-check {
       from {
         opacity: 0;
-        transform: translateY(-0.09rem) rotate(45deg) scale(0.55);
+        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(0.55);
       }
       65% {
         opacity: 1;
-        transform: translateY(-0.09rem) rotate(45deg) scale(1.12);
+        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(1.12);
       }
       to {
         opacity: 1;
-        transform: translateY(-0.09rem) rotate(45deg) scale(1);
+        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(1);
       }
     }
 
@@ -220,12 +244,7 @@
     :host([size="lg"]) {
       --_line: calc(var(--_font) * var(--ui-line-height-md));
       font-size: var(--_font);
-      padding-block: calc((var(--_row) - var(--_line)) / 2);
-    }
-
-    :host([size="sm"]) input,
-    :host([size="lg"]) input {
-      margin-top: calc((var(--_line) - var(--_ui-checkbox-size, 1.125rem)) / 2);
+      padding-block: max(0px, calc((var(--_row) - max(var(--_line), var(--_ui-checkbox-size, 1.125rem))) / 2)) !important;
     }
 
     @media (pointer: coarse) {
@@ -236,7 +255,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

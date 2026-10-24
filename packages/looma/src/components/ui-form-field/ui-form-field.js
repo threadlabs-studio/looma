@@ -25,10 +25,15 @@ export function connect(host) {
   };
   const wire = () => {
     const label = element.querySelector('[slot="label"], label');
-    const input = element.querySelector("input, textarea, select");
+    const selector = "[data-ui-field-control], input:not([type=hidden]), textarea, select";
+    const target = label?.getAttribute("for") ? element.ownerDocument.getElementById(label.getAttribute("for")) : null;
+    const requested = target && element.contains(target) ? (target.matches(selector) ? target : target.querySelector(selector)) : null;
+    const input = requested ?? element.querySelector(selector);
     // A Vue named slot carries no slot attribute, so the help and error regions are read too.
-    const help = element.querySelector(':scope > .help > *, [slot="help"]');
-    const error = element.querySelector(':scope > .error > *, [slot="error"], [role="alert"]');
+    const helpRegion = element.querySelector(':scope > .help');
+    const help = element.querySelector(':scope > .help > *, [slot="help"]') ?? (helpRegion?.textContent.trim() ? helpRegion : null);
+    const errorRegion = element.querySelector(':scope > .error');
+    const error = element.querySelector(':scope > .error > *, [slot="error"], [role="alert"]') ?? (errorRegion?.textContent.trim() ? errorRegion : null);
     if (input !== activeInput) {
       removeOwned(activeInput);
       activeInput = input;
@@ -37,7 +42,7 @@ export function connect(host) {
     if (!input) return;
     if (DEV) warnOnce(warned, fieldProblems(label, input), element);
     if (!input.id) input.id = id("form-field-input");
-    if (label && !label.getAttribute("for")) label.setAttribute("for", input.id);
+    if (label && (!label.getAttribute("for") || target && target !== input && target.contains(input))) label.setAttribute("for", input.id);
     const external = descriptionIds(input).filter((value) => !owned.has(value));
     const described = [];
     if (help) {
@@ -53,6 +58,9 @@ export function connect(host) {
     if (next && input.getAttribute("aria-describedby") !== next) input.setAttribute("aria-describedby", next);
     else if (!next && input.hasAttribute("aria-describedby")) input.removeAttribute("aria-describedby");
     input.disabled = Boolean(host.props.disabled.value);
+    if (input.matches("[data-ui-field-control]")) {
+      for (const value of element.querySelectorAll("[data-ui-field-value]")) value.disabled = input.disabled;
+    }
     input.required = Boolean(host.props.required.value);
     input.setAttribute("aria-invalid", String(Boolean(host.props.invalid.value)));
   };

@@ -67,9 +67,9 @@
       --_ui-sidebar-expanded-width: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
 
       position: relative;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
       flex: none;
       inline-size: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
       max-inline-size: 100%;
@@ -145,7 +145,7 @@
     }
 
     .resizer[hidden] {
-      display: none;
+      display: none !important;
     }
 
     :host([side="end"]) .resizer {
@@ -197,8 +197,8 @@
       inset-block: 0;
       inset-inline-start: 0;
       inset-inline-end: auto;
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       inline-size: min(var(--_sidebar-width, var(--ui-sidebar-width, 280px)), 85vw);
       max-block-size: none;
       block-size: 100dvh;
@@ -213,7 +213,7 @@
 
     /* The author display above would otherwise override the UA rule that hides a closed popover. */
     :host[popover]:not(:popover-open) {
-      display: none;
+      display: none !important;
       transform: translateX(-100%);
     }
 
@@ -252,7 +252,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

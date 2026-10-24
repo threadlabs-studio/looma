@@ -59,10 +59,10 @@
   </div>
   <style>
     :host {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--ui-space-2);
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
       min-inline-size: 0;
       color: var(--ui-text-primary);
     }
@@ -70,7 +70,7 @@
     /* The value and the input share one grid cell with identical box metrics, so switching between
      * display and edit never changes the control's size or moves the text. */
     .field {
-      display: inline-grid;
+      display: inline-grid !important;
       min-inline-size: 8rem;
       max-inline-size: 100%;
     }
@@ -78,10 +78,10 @@
     .preview,
     .input {
       grid-area: 1 / 1;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       min-block-size: var(--ui-control-size-sm);
-      margin: 0;
-      padding: var(--ui-space-1) var(--ui-space-2);
+      margin: 0 !important;
+      padding: var(--ui-space-1) var(--ui-space-2) !important;
       border: var(--ui-border-width) solid transparent;
       border-radius: var(--ui-radius-md);
       font: inherit;
@@ -94,9 +94,9 @@
     }
 
     .preview {
-      display: inline-flex;
-      gap: var(--ui-space-2);
-      align-items: center;
+      display: inline-flex !important;
+      gap: var(--ui-space-2) !important;
+      align-items: center !important;
       background: transparent;
       text-align: start;
       cursor: pointer;
@@ -145,16 +145,16 @@
     }
 
     .actions {
-      display: none;
-      gap: var(--ui-space-1);
+      display: none !important;
+      gap: var(--ui-space-1) !important;
     }
     :host(:state(internalEdit)) .actions {
-      display: inline-flex;
+      display: inline-flex !important;
     }
 
     .actions button {
       min-block-size: var(--ui-control-size-sm);
-      padding: 0 var(--ui-space-3);
+      padding: 0 var(--ui-space-3) !important;
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       background: var(--ui-surface-elevated);
@@ -184,7 +184,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

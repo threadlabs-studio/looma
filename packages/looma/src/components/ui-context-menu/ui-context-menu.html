@@ -57,17 +57,17 @@
       --_ui-context-menu-shadow: var(--ui-context-menu-shadow);
       --_ui-context-menu-z-index: var(--ui-context-menu-z-index);
 
-      display: contents;
+      display: contents !important;
     }
 
     .menu {
       position: fixed;
       inset: auto;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
-      padding: var(--ui-space-1);
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-sizing: border-box !important;
+      padding: var(--ui-space-1) !important;
       background: var(--_ui-context-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       border: var(--ui-border-width) solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-context-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
@@ -88,7 +88,7 @@
     .menu hr {
       align-self: stretch;
       block-size: 0;
-      margin: var(--ui-space-1) 0;
+      margin: var(--ui-space-1) 0 !important;
       border: 0;
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
@@ -107,7 +107,7 @@
 
     .menu[hidden],
     .menu[popover]:not(:popover-open) {
-      display: none;
+      display: none !important;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -118,7 +118,7 @@
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>

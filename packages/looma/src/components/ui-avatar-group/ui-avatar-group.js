@@ -9,8 +9,9 @@ export function connect(host) {
     // Small avatars overlap less, so their initials stay clear of the next one.
     const overlap = { xs: "-0.1875rem", sm: "-0.25rem" }[host.props.size.value] ?? "-0.5rem";
     avatars.forEach((avatar, index) => {
-      avatar.style.display = index >= visible ? "none" : "";
-      avatar.style.marginInlineStart = index === 0 ? "0px" : overlap;
+      if (index >= visible) avatar.style.setProperty("display", "none", "important");
+      else avatar.style.removeProperty("display");
+      avatar.style.setProperty("margin-inline-start", index === 0 ? "0px" : overlap, "important");
       // Later avatars darken only their leading edge; the first overlaps nothing.
       avatar.style.boxShadow = index === 0
         ? "var(--ui-avatar-group-edge-ring, none)"

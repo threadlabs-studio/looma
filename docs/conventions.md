@@ -82,3 +82,25 @@ Use `concat()` for IDs, slot names, CSS values, and composed strings. Use Intl `
 - `ui-icon` derives its shapes from `name` in its template, so server-rendered and pre-upgrade HTML
   already carry the whole SVG; a component need not inline an icon's SVG to draw it before
   JavaScript. `tools/scripts/generate-icon-catalog.mjs` writes those shapes from `LOOMA_ICONS`.
+
+## Component-owned layout
+
+A component's alignment and spacing are library behavior. Declared display, flex
+flow, alignment, gaps, margins, padding and box sizing are protected with
+`!important`, including state-specific declarations. This stops ordinary host
+styles, high-specificity selectors and normal inline declarations from silently
+reconfiguring the component. Public token values stay ordinary custom properties;
+a protected declaration still resolves its supported token normally. An explicit
+consumer `!important` remains a deliberate CSS escape hatch, governed by normal
+cascade precedence. It is not the recommended implementation path.
+
+Do not protect custom-property declarations or keyframes. Internal controller writes
+to protected properties must deliberately use important priority, and remove those
+owned declarations when their state no longer applies. Do not turn a controller's
+transient state into a consumer CSS dependency.
+
+A Checkbox centres its box against the label's first line. Font metrics, wrapping
+and descriptions must not switch its alignment policy. A page may position the
+whole checkbox; it cannot use ordinary `align-items` to rearrange its input and
+label. If a supported change needs new behavior, add it to the responsible primitive
+and verify related consumers rather than compensating in application CSS.

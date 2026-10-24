@@ -44,12 +44,12 @@
       inset-block-start: 0;
       z-index: var(--ui-top-bar-z-index, 100);
       min-block-size: calc(var(--ui-top-bar-height, 56px) + env(safe-area-inset-top));
-      display: flex;
-      align-items: center;
-      gap: var(--ui-top-bar-gap, var(--ui-space-3));
-      padding-block-start: env(safe-area-inset-top);
-      padding-inline-start: max(var(--ui-top-bar-padding-inline, var(--ui-space-4)), env(safe-area-inset-left));
-      padding-inline-end: max(var(--ui-top-bar-padding-inline, var(--ui-space-4)), env(safe-area-inset-right));
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-top-bar-gap, var(--ui-space-3)) !important;
+      padding-block-start: env(safe-area-inset-top) !important;
+      padding-inline-start: max(var(--ui-top-bar-padding-inline, var(--ui-space-4)), env(safe-area-inset-left)) !important;
+      padding-inline-end: max(var(--ui-top-bar-padding-inline, var(--ui-space-4)), env(safe-area-inset-right)) !important;
       background: var(--ui-top-bar-surface, var(--ui-surface-elevated));
       border-block-end: var(--ui-border-width) solid var(--ui-top-bar-border, var(--ui-border-divider));
     }
@@ -57,13 +57,13 @@
     .leading,
     .search,
     .actions {
-      display: flex;
-      align-items: center;
+      display: flex !important;
+      align-items: center !important;
       flex-shrink: 0;
     }
 
     .actions {
-      gap: var(--_ui-top-bar-actions-gap, var(--ui-space-1));
+      gap: var(--_ui-top-bar-actions-gap, var(--ui-space-1)) !important;
     }
 
     .title {
@@ -75,12 +75,12 @@
     .leading:empty,
     .search:empty,
     .actions:empty {
-      display: none;
+      display: none !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
-      display: none;
+      display: none !important;
     }
   </style>
 </template>
