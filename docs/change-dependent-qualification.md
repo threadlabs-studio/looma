@@ -35,8 +35,12 @@ keeps the configured checks-to-publication path within fifteen minutes. Between 
 npm to serve the version in its own step with a ten-minute timeout (measured maximum
 311 seconds), so its job timeout is twelve minutes. If that wait times out, re-run the
 publish job: it skips the upload because npm has the version, waits again, and the
-tag is recorded after it succeeds. Docs deployment runs beside publication with a
-five-minute timeout. Trusted publishing, exact release-byte identity, packed consumers, public
+tag is recorded after it succeeds. Documentation builds have five minutes, followed
+by a separate two-minute Pages deployment job, alongside publication. In the first
+0.34 deployment the build took 3m51s and Pages needed another 26s; combining setup,
+build and publishing exhausted the former five-minute job as Pages finished. Separate
+jobs keep build time from consuming the deployment allowance. Trusted publishing,
+exact release-byte identity, packed consumers, public
 registry integrity/provenance and the public-registry consumer remain required.
 
 ## Selection and priority

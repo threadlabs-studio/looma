@@ -216,6 +216,20 @@ test("the public consumer command is a separate fail-closed registry gate", asyn
 });
 
 
+test("documentation building cannot consume the Pages deployment budget", async () => {
+  const docs = await readFile(path.join(repoRoot, ".github/workflows/docs.yml"), "utf8");
+  const build = docs.match(/\n  build:\n([\s\S]*?)(?=\n  deploy:\n)/)?.[1];
+  const deploy = docs.match(/\n  deploy:\n([\s\S]*)/)?.[1];
+  assert.ok(build, "build the site in its own job before publishing");
+  assert.ok(deploy);
+  assert.match(build, /name: Build docs/);
+  assert.match(build, /actions\/upload-pages-artifact@/);
+  assert.doesNotMatch(build, /actions\/deploy-pages@/);
+  assert.match(deploy, /needs: build/);
+  assert.match(deploy, /actions\/deploy-pages@/);
+  assert.doesNotMatch(deploy, /pnpm|name: Build/);
+});
+
 test("automatic checks and publication fit a 15-minute parallel critical path", async () => {
   const ci = await readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8");
   const release = await readFile(path.join(repoRoot, ".github/workflows/release.yml"), "utf8");
@@ -238,7 +252,7 @@ test("automatic checks and publication fit a 15-minute parallel critical path", 
   assert.ok(Number(npmWait[1]) <= 10);
   const runnerWork = jobMinutes(release).reduce((a, b) => a + b, 0) - Number(npmWait[1]);
   assert.ok(qualification + runnerWork <= 15);
-  assert.ok(qualification + Math.max(...minutes(docs)) <= 15);
+  assert.ok(qualification + jobMinutes(docs).reduce((a, b) => a + b, 0) <= 15);
   assert.ok(Math.max(...minutes(parity)) <= 15);
   assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
   assert.match(parity, /docs-parity:\n    runs-on: ubuntu-24\.04-arm\n/);
