@@ -8,6 +8,8 @@ const catalog = await readCatalog();
 test('directory cards and full reference come from the published component catalog', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/');
   await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => !component.navigationParent).length);
+  const layoutGrid = page.locator('[data-catalog-group="layout"] [data-component~="ui-grid"]');
+  await expect(layoutGrid.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'layout' && !component.navigationParent).length);
   for (const tag of ['ui-button', 'ui-stack', 'ui-color-picker']) {
     const card = page.locator(`[data-component-card="${tag}"]`);
     await expect(card.locator('h3')).toHaveText(catalog.components.find(component => component.tag === tag).title);
