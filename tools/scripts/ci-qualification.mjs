@@ -25,7 +25,7 @@ export function snapshot(revision, source = false) {
     return [match[4], `${match[1]}:${match[3]}`];
   }));
   if (!source) { snapshots.set(key, files); return files; }
-  const needed = Object.keys(files).filter((file) => /^(?:packages\/looma\/(?:src|tests)\/|tools\/scripts\/)/.test(file) && /\.(?:html|tsx?|js|mjs|mdx?|json)$/.test(file));
+  const needed = Object.keys(files).filter((file) => /^(?:packages\/looma\/(?:src|tests|tooling)\/|tools\/scripts\/)/.test(file) && /\.(?:html|tsx?|js|mjs|mdx?|json)$/.test(file));
   const batch = execFileSync("git", [...gitOwnership, "cat-file", "--batch"], { cwd: root, input: needed.map((file) => files[file].split(":")[1]).join("\n") + "\n", maxBuffer: 32 * 1024 ** 2 });
   let offset = 0;
   for (const file of needed) {
@@ -94,6 +94,8 @@ async function main() {
   }
   if (command !== "run") throw new Error("Choose plan or run quality/browser/package-consumer/docs");
   if (stage === "quality") {
+    const builtDocs = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/"));
+    if (builtDocs) run(["--filter", "@threadlabs/looma", "build"]);
     // Run the selected script files together instead of spawning Node once for every case/file.
     if (selection.scripts.length) {
       const result = spawnSync(process.execPath, ["--test", ...selection.scripts], { cwd: root, stdio: "inherit" });
@@ -101,7 +103,7 @@ async function main() {
       if (result.status !== 0) throw new Error("Selected script fixtures failed");
     }
     if (selection.source || Object.keys(selection.nativeTests).length) {
-      run(["--filter", "@threadlabs/looma", "build"]);
+      if (!builtDocs) run(["--filter", "@threadlabs/looma", "build"]);
       packageTests(selection.nativeTests);
     }
   } else if (stage === "browser") {
@@ -116,9 +118,10 @@ async function main() {
     run(["--filter", "@threadlabs/looma-docs", "build"]);
     run(["--filter", "@threadlabs/looma-docs", "typecheck:tests"]);
     run(["--filter", "@threadlabs/looma-docs", "docs:coverage"]);
-    // The Markupress site (the migration's preview) builds, and its copied pages match apps/docs.
+    // Qualify the shipped documentation product and keep authored guidance equal to the legacy fixture.
     run(["--filter", "@threadlabs/looma-docs-next", "build"]);
     run(["--filter", "@threadlabs/looma-docs-next", "test"]);
+    run(["--filter", "@threadlabs/looma-docs-next", "test:parity"]);
   } else throw new Error(`Unknown stage: ${stage}`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

@@ -61,40 +61,66 @@ export async function discoverComponents({ root, directory, packageName, groups 
       const events = (definition.declarations ?? []).filter(item => item.kind === 'event').map(event => ({ name: event.name, detailType: event.shape ? typeScriptType(event.shape) : String(event.type), detailDocs: docs.events?.[event.name] ?? '' }));
       const slots = (definition.slots ?? []).map(slot => ({ name: slot.name ?? 'default', description: docs.slots?.[slot.name ?? 'default'] ?? '' }));
       const tokens = [...new Set([...definition.css.matchAll(/var\(\s*(--[\w-]+)/g)].map(match => match[1]))].sort();
-      components.push({ id, package: packageName, tag: contract.tag, title: docs.title ?? titleOf(contract.tag), description: docs.description ?? contract.summary ?? '', group: docs.group, ...(docs.navigationParent ? { navigationParent: docs.navigationParent } : {}), root: contract.nativeElement, source, resource: source, targets: ['html-next'], attributes, properties, events, slots, designTokens: { sources: [path.relative(root, source)], component: [], shared: tokens.map(name => ({ name, fallbacks: [] })) }, examples: await readExamples(path.join(path.dirname(source), 'examples'), id) });
+      components.push({ id, package: packageName, tag: contract.tag, title: docs.title ?? titleOf(contract.tag), description: docs.description ?? contract.summary ?? '', group: docs.group ?? 'project', ...(docs.navigationParent ? { navigationParent: docs.navigationParent } : {}), root: contract.nativeElement, source, resource: source, targets: ['html-next'], attributes, properties, events, slots, designTokens: { sources: [path.relative(root, source)], component: [], shared: tokens.map(name => ({ name, fallbacks: [] })) }, examples: await readExamples(path.join(path.dirname(source), 'examples'), id) });
     }
   }
-  return { schemaVersion: catalogVersion, package: packageName, groups, components };
+  const categories = components.some(component => component.group === 'project') && !groups.some(group => group.id === 'project') ? [...groups, { id: 'project', label: 'Project components' }] : groups;
+  return { schemaVersion: catalogVersion, package: packageName, groups: categories, components };
 }
 
 /** Merge deterministically, reporting both owners instead of silently shadowing resources. */
 export function mergeCatalogs(catalogs, { categories = {} } = {}) {
+  const resourceByTag = new Map();
+  const exampleOwners = new Map();
   const groups = new Map(); const byId = new Map(); const byTag = new Map();
   for (const catalog of catalogs) {
     if (catalog.schemaVersion !== catalogVersion) throw new Error(`Unsupported documentation catalog version ${catalog.schemaVersion} for ${catalog.package}.`);
     for (const group of catalog.groups ?? []) {
       const mapped = categories[group.id] ?? group.id;
+      if (typeof mapped !== 'string' || !/^[a-z][a-z0-9-]*$/.test(mapped)) throw new Error(`Invalid category identity ${JSON.stringify(mapped)} in ${catalog.package}.`);
       const previous = groups.get(mapped);
       if (previous && previous.label !== group.label && mapped === group.id) throw new Error(`Conflicting category ${mapped}: ${previous.label} and ${group.label}. Configure a category mapping explicitly.`);
       if (!previous) groups.set(mapped, { ...group, id: mapped });
     }
     for (const entry of catalog.components) {
+      // HTML Next's public component-tag grammar also keeps generated filenames inside their tree.
+      if (typeof entry.tag !== 'string' || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/.test(entry.tag)) throw new Error(`Invalid component tag ${JSON.stringify(entry.tag)} in ${catalog.package}.`);
+      if (typeof entry.id !== 'string' || !entry.id) throw new Error(`Missing component identity for ${entry.tag} in ${catalog.package}.`);
       const component = { ...entry, group: categories[entry.group] ?? entry.group };
       const previous = byTag.get(component.tag) ?? byId.get(component.id);
       if (previous) throw new Error(`Duplicate component ${component.tag}: ${previous.id} (${previous.source ?? previous.resource}) and ${component.id} (${component.source ?? component.resource}).`);
       byId.set(component.id, component); byTag.set(component.tag, component);
+      if (!Array.isArray(component.examples)) throw new Error(`Component ${component.id} requires an examples array.`);
+      for (const example of component.examples) {
+        if (typeof example.id !== 'string' || !example.id || typeof example.markup !== 'string') throw new Error(`Invalid example identity or markup in ${component.id}.`);
+        if (!example.id.startsWith(component.id + '/')) throw new Error(`Example ${example.id} must belong to ${component.id}.`);
+        const previous = exampleOwners.get(example.id);
+        if (previous) throw new Error(`Duplicate example ${example.id}: ${previous} and ${component.id}.`);
+        exampleOwners.set(example.id, component.id);
+      }
+    }
+    for (const entry of [...catalog.resources ?? [], ...catalog.components]) {
+      const previous = resourceByTag.get(entry.tag);
+      if (previous && (previous.package !== entry.package || previous.resource !== entry.resource)) throw new Error(`Conflicting resource ${entry.tag}: ${previous.resource} and ${entry.resource}.`);
+      resourceByTag.set(entry.tag, { tag: entry.tag, package: entry.package, resource: entry.resource });
     }
   }
+  const ownerOf = (component, trail = []) => {
+    if (trail.includes(component.id)) throw new Error(`Compound parent cycle: ${[...trail, component.id].join(' → ')}.`);
+    if (!component.navigationParent) return component;
+    const parent = byId.get(component.navigationParent) ?? byTag.get(component.navigationParent);
+    if (!parent) throw new Error(`Missing compound parent ${component.navigationParent} for ${component.id}.`);
+    return ownerOf(parent, [...trail, component.id]);
+  };
   for (const component of byId.values()) {
     if (component.navigationParent) {
-      const parent = byId.get(component.navigationParent) ?? byTag.get(component.navigationParent);
-      if (!parent) throw new Error(`Missing compound parent ${component.navigationParent} for ${component.id}.`);
-      component.navigationParent = parent.tag;
-      component.group = parent.group;
+      const owner = ownerOf(component);
+      component.navigationParent = owner.tag;
+      component.group = owner.group;
     }
     if (!groups.has(component.group)) throw new Error(`Unknown category ${component.group} for ${component.id}. Declare its category or map it to an existing one.`);
   }
-  return { schemaVersion: catalogVersion, groups: [...groups.values()], components: [...byId.values()].sort((a, b) => a.id.localeCompare(b.id)) };
+  return { schemaVersion: catalogVersion, resources: [...resourceByTag.values()], groups: [...groups.values()], components: [...byId.values()].sort((a, b) => a.id.localeCompare(b.id)) };
 }
 
 /** Read a published catalog without importing the optional documentation server. */

@@ -84,8 +84,9 @@ test("docs deploy to Pages after CI passes on main", () => {
   afterGreenMain(docsWorkflow);
   assert.match(docsWorkflow, /pages: write/);
   const packageBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma build");
-  const docsBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma-docs build");
+  const docsBuild = docsWorkflow.indexOf("run: pnpm --filter @threadlabs/looma-docs-next build");
   assert.ok(packageBuild >= 0 && docsBuild > packageBuild, "docs must build the package first");
+  assert.match(docsWorkflow, /path: apps\/docs-next\/site/);
   assert.match(docsWorkflow, /actions\/deploy-pages@/);
 });
 

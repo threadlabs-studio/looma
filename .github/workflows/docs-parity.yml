@@ -19,6 +19,9 @@ jobs:
   docs-parity:
     runs-on: ubuntu-latest
     timeout-minutes: 9
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -42,7 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Run docs checks
         run: node tools/scripts/ci-qualification.mjs run docs
-      # A preview of the Markupress site at /looma-next/; docs.yml deploys only Docusaurus.
+      # Preview the same package-generated Markupress site deployed by docs.yml.
       - name: Upload the Markupress site
         if: steps.select.outputs.docs == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

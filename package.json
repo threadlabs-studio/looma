@@ -25,11 +25,11 @@
   },
   "scripts": {
     "build": "pnpm --filter @threadlabs/looma build && pnpm -r --filter './apps/**' run build",
-    "build:docs": "pnpm --filter @threadlabs/looma-docs build",
+    "build:docs": "pnpm --filter @threadlabs/looma-docs-next build",
     "build:storybook": "pnpm --filter @threadlabs/looma-storybook build",
     "check:code-documentation": "node ./tools/scripts/check-code-documentation.mjs --check",
     "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
-    "dev:docs": "pnpm --filter @threadlabs/looma-docs dev",
+    "dev:docs": "pnpm --filter @threadlabs/looma-docs-next dev",
     "dev:storybook": "pnpm --filter @threadlabs/looma-storybook dev",
     "docker:clean": "docker container prune --force --filter label=com.threadlabs.tool=looma && docker volume prune --all --force --filter label=com.threadlabs.tool=looma",
     "format": "dprint fmt",
