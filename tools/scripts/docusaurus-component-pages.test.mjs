@@ -28,6 +28,9 @@ test("files one page per published component in its group's folder, and parts un
   assert.deepEqual([...pages.keys()].sort(), published.map(([tag]) => tag).sort());
   for (const [tag, value] of published) {
     assert.equal(path.relative(docsRoot, path.dirname(pages.get(tag))), expectedDirectory(value), tag);
+    const source = await readFile(pages.get(tag), "utf8");
+    const section = value.group === "editor" && !value.navigationParent ? "editor" : "components";
+    assert.ok(source.includes(`slug: /${section}/${tag}\n`), `${tag}: canonical reference route belongs to ${section}`);
   }
 });
 
