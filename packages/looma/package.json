@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.37.1",
+  "version": "0.38.0",
   "type": "module",
   "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
@@ -126,7 +126,7 @@
     "lowlight": "^3.3.0",
     "markdown-it": "14.3.1",
     "lucide": "~0.554.0",
-    "expressmark": "0.1.6"
+    "expressmark": ">=0.2.0 <1"
   },
   "peerDependencies": {
     "@nextwebwg/html-next": "1.0.0-alpha.69",
@@ -134,8 +134,8 @@
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
     "vue": "^3.5.43",
-    "markupress": "^0.8.7 || ^0.9.0",
-    "@nextwebwg/htmlkit": "1.0.0-alpha.69",
+    "markupress": ">=0.10.0 <1",
+    "@threadlabs/markupkit": ">=0.2.0 <1",
     "vite": "^8.3.4"
   },
   "peerDependenciesMeta": {
@@ -154,7 +154,7 @@
     "markupress": {
       "optional": true
     },
-    "@nextwebwg/htmlkit": {
+    "@threadlabs/markupkit": {
       "optional": true
     },
     "vite": {

@@ -20,7 +20,7 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest, 
     name: 'looma-documentation-consumer', private: true, type: 'module',
     dependencies: {
       '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
-      '@nextwebwg/htmlkit': manifest.peerDependencies['@nextwebwg/htmlkit'], markupress, vite: manifest.peerDependencies.vite,
+      '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress, vite: manifest.peerDependencies.vite,
     },
   });
   await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline'], directory);

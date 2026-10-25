@@ -2,11 +2,17 @@
 
 ## Next release
 
+- Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
+
 - Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
 
 - Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 
 - Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
+
+- Allow compatible later pre-1.0 minor releases of Threadlabs dependencies instead of restricting consumers to individual minor versions. Lockfiles retain the tested versions.
+
+- Use MarkupKit 0.2 and Markupress 0.10 in the documentation generator and public docs, including the `mk:` HTML API.
 
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 
@@ -83,7 +89,7 @@
 
 ## v0.33.1
 
-- Ship the Markupress/HTMLKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
+- Ship the Markupress/MarkupKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
 
 ## v0.33.0
 

@@ -12,7 +12,7 @@ product_contract_source: ce-plan-bootstrap
 
 **Objective:** A project can start with Looma, customize its shared theme, add HTML Next components, and browse one documented design system. Threadlabs publishes its own documentation with exactly this shipped product.
 
-**Means:** Package-owned documentation/catalog tooling, Markupress on HTMLKit, reusable isolated example cards, and a shared theme-editor contract with public-download and local-save adapters.
+**Means:** Package-owned documentation/catalog tooling, Markupress on MarkupKit, reusable isolated example cards, and a shared theme-editor contract with public-download and local-save adapters.
 
 **Completion signal:** The public site and an isolated installed-package consumer generate the same reference/customizer product; saving a local theme and adding a differently prefixed component update that consumer's documentation and application without changing installed dependencies.
 
@@ -27,7 +27,7 @@ Production documentation currently uses Docusaurus. The Markupress migration gen
 ### Requirements
 
 - R1. Ship the generator, versioned component catalog, authored examples, theme-editor schema and documentation/customizer UI with `@threadlabs/looma`. A tarball installation must work without repository tools or apps.
-- R2. Threadlabs public documentation dogfoods that product on Markupress/HTMLKit, including all published component pages, API contracts, compound parts, authored guidance, interactive/resizable examples and existing useful routes or redirects.
+- R2. Threadlabs public documentation dogfoods that product on Markupress/MarkupKit, including all published component pages, API contracts, compound parts, authored guidance, interactive/resizable examples and existing useful routes or redirects.
 - R3. The customizer shows selectable actual documentation example cards. A single example identity and renderer serve both reference pages and customizer. Theme changes visibly affect the selected cards together; costly examples load on demand.
 - R4. Use Looma controls and semantic theme inputs. Preserve the twenty-decision authoring model, intuitive families, independent size/spacing growth, native CSS units, first-line choice alignment and shared boxed-control heights. No private-component styling or bespoke copies of controls.
 - R5. The public customizer previews themes and downloads portable CSS plus an editable recipe. It exposes no local writer.
@@ -55,22 +55,22 @@ The work includes the whole current proposal and production migration. It does n
 
 ### Key Technical Decisions
 
-- KTD1. Keep Markupress as documentation engine and HTMLKit as renderer/server. Ship the Looma plugin and CLI as optional tooling entrypoints in the existing package; lazily import tooling peers. The public app is configuration and authored content. This follows the explicit dogfooding directive; a second public-only generator would fail R1/R2.
+- KTD1. Keep Markupress as documentation engine and MarkupKit as renderer/server. Ship the Looma plugin and CLI as optional tooling entrypoints in the existing package; lazily import tooling peers. The public app is configuration and authored content. This follows the explicit dogfooding directive; a second public-only generator would fail R1/R2.
 - KTD2. Component summaries/groups/parents move beside definitions as documented inert namespaced resource metadata or colocated documentation manifests; prop descriptions remain authored in definitions. Confirm the installed HTML Next parser's metadata support before choosing syntax. Release classification retains release status only; it no longer owns duplicated documentation prose.
 - KTD3. Build a versioned published catalog from the existing API extractor and examples; no installed invocation imports repository tools. Use HTML Next's public parser for opted-in external source resources. Catalog schema version, package identity and example identity are explicit. Retain authored framework snippets; derive Vue snippets only when the catalog declares that target.
 - KTD4. Generate a disposable documentation tree under `.looma/`, combining package reference and project Markdown. Shared category IDs are labels-independent. Preserve canonical existing component routes and alias previous migration routes. Markupress versions use the project's installed dependency lockfile and saved theme; no invented snapshot dependency freezer.
-- KTD5. Render documentation cards from a single catalog-based stage. Isolate previews in compiled HTMLKit pages/iframes with scripts allowed but no same-origin privilege. Theme CSS crosses a narrow typed message channel; local writer capabilities never enter previews. Mount overlay/editor examples on demand and keep accessible fallback/example source visible without JS.
+- KTD5. Render documentation cards from a single catalog-based stage. Isolate previews in compiled MarkupKit pages/iframes with scripts allowed but no same-origin privilege. Theme CSS crosses a narrow typed message channel; local writer capabilities never enter previews. Mount overlay/editor examples on demand and keep accessible fallback/example source visible without JS.
 - KTD6. The recipe is versioned structured values with one schema/validation/serialization implementation. CSS is the portable output. The customizer initially themes examples; saved theme themes the whole documentation site. The documentation shell remains readable during unsaved experiments. Custom overrides remain a separate explicit file, loaded after generated CSS.
 - KTD7. A local CLI-owned loopback service supplies a session capability, validates host/origin and JSON input, restricts output to configured in-project non-symlink paths, checks a loaded revision, and atomically saves owned recipe/CSS files. Static/public builds omit this capability and endpoint. Initialization creates a theme entry rather than silently editing an existing application; it shows the exact import the app needs.
 - KTD8. Use one bounded review with feasibility, security, design and scope lenses and the current session model; no cross-model escalation. Qualify browser tests with one worker and no overlapping local runners.
 
 ### Existing Evidence
 
-`apps/docs-next/htmlkit.config.js` documents only Stack; `apps/docs-next/scripts/component-reference.mjs` rejects behavior/resizing and assumes `ui-` and Vue. `tools/scripts/component-api-generator.mjs` and `declarative-contracts.mjs` extract current contracts; `tools/data/component-release-classification.json` currently owns summary/category data. `packages/looma/build.mjs` assembles the package but exports no docs tooling. `.github/workflows/docs.yml` deploys Docusaurus. Installed Markupress 0.5.0 exposes `markupress`, `siteOptions`, `buildSite` and `devSite`; HTMLKit plugins support configuration, generated page directories and build hooks. These public hooks avoid a second docs engine.
+`apps/docs-next/markupkit.config.js` documents only Stack; `apps/docs-next/scripts/component-reference.mjs` rejects behavior/resizing and assumes `ui-` and Vue. `tools/scripts/component-api-generator.mjs` and `declarative-contracts.mjs` extract current contracts; `tools/data/component-release-classification.json` currently owns summary/category data. `packages/looma/build.mjs` assembles the package but exports no docs tooling. `.github/workflows/docs.yml` deploys Docusaurus. Installed Markupress 0.5.0 exposes `markupress`, `siteOptions`, `buildSite` and `devSite`; MarkupKit plugins support configuration, generated page directories and build hooks. These public hooks avoid a second docs engine.
 
 ### Assumptions
 
-The request to finish all proposed work authorizes normal implementation, testing, PR publication and delivery through the existing shipping process. The existing earlier instruction to test and merge remains the desired delivery endpoint for this continuation. Naming, configuration fields and the unsaved-preview scope are implementation choices, not additional user constraints. No unrelated library upgrades or new repositories are required. Installed Markupress 0.5.0 pins Looma 0.30.0 and HTML Next/HTMLKit alpha.58; qualify a compatible published peer contract in the owning Markupress project before strict installed-consumer proof, using the smallest compatible change. If a concrete missing platform hook proves necessary, make the smallest owning-project change and verify that integration.
+The request to finish all proposed work authorizes normal implementation, testing, PR publication and delivery through the existing shipping process. The existing earlier instruction to test and merge remains the desired delivery endpoint for this continuation. Naming, configuration fields and the unsaved-preview scope are implementation choices, not additional user constraints. No unrelated library upgrades or new repositories are required. Installed Markupress 0.5.0 pins Looma 0.30.0 and HTML Next/MarkupKit alpha.58; qualify a compatible published peer contract in the owning Markupress project before strict installed-consumer proof, using the smallest compatible change. If a concrete missing platform hook proves necessary, make the smallest owning-project change and verify that integration.
 
 ---
 
@@ -93,7 +93,7 @@ The request to finish all proposed work authorizes normal implementation, testin
 
 **Verification:** Catalog and discovery tests pass; the built package contains every referenced asset and imports docs tooling without browser globals or optional server peers.
 
-### U2. Shared reference/card generator on Markupress and HTMLKit
+### U2. Shared reference/card generator on Markupress and MarkupKit
 
 **Requirements:** R1, R2, R3, R8, R9. **Dependencies:** U1.
 
@@ -150,7 +150,7 @@ The request to finish all proposed work authorizes normal implementation, testin
 
 **Files:** `apps/docs-next/` configuration/content/tests, `.github/workflows/docs.yml`, `.github/workflows/docs-parity.yml`, root scripts, documentation references.
 
-**Approach:** Make the public app a configuration-only consumer of the package entrypoint. Migrate remaining authored guidance/editor pages and landing content, generate all component pages and preserve legacy routes. Replace the production docs build/artifact with this HTMLKit site. Retain Docusaurus as a migration comparison fixture until complete checks establish parity; do not ship a second active generator.
+**Approach:** Make the public app a configuration-only consumer of the package entrypoint. Migrate remaining authored guidance/editor pages and landing content, generate all component pages and preserve legacy routes. Replace the production docs build/artifact with this MarkupKit site. Retain Docusaurus as a migration comparison fixture until complete checks establish parity; do not ship a second active generator.
 
 **Test scenarios:**
 
@@ -186,4 +186,4 @@ Start with schema/discovery/persistence tests, then a small installed consumer b
 
 ## Definition of Done
 
-All R1–R10 acceptance flows work in both Threadlabs configuration and an independent packed consumer. One shipped renderer/catalog/customizer serves both. Documentation accurately distinguishes generated/reference content, authored guidance and external token adoption. Required CI passes, delivery is merged, and the deployed public HTMLKit site is checked. Any optional future enhancements are explicitly distinguished from requested unfinished work; none of the requested proposal is silently deferred.
+All R1–R10 acceptance flows work in both Threadlabs configuration and an independent packed consumer. One shipped renderer/catalog/customizer serves both. Documentation accurately distinguishes generated/reference content, authored guidance and external token adoption. Required CI passes, delivery is merged, and the deployed public MarkupKit site is checked. Any optional future enhancements are explicitly distinguished from requested unfinished work; none of the requested proposal is silently deferred.

@@ -83,4 +83,4 @@ apps/docs/static/preview-runtime/
 # Package-owned documentation artifacts.
 /packages/looma/docs/
 .looma/
-.htmlkit-build-*/
+.markupkit-build-*/
