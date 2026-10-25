@@ -1,0 +1,78 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "emphasis: normal",
+    "props": {
+      "emphasis": "normal"
+    },
+    "example": 0
+  },
+  {
+    "name": "emphasis: strong",
+    "props": {
+      "emphasis": "strong"
+    },
+    "example": 0
+  },
+  {
+    "name": "orientation: horizontal",
+    "props": {
+      "orientation": "horizontal"
+    },
+    "example": 0
+  },
+  {
+    "name": "orientation: vertical",
+    "props": {
+      "orientation": "vertical"
+    },
+    "example": 0
+  },
+  {
+    "name": "selectable: false",
+    "props": {
+      "selectable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "selectable: true",
+    "props": {
+      "selectable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: false",
+    "props": {
+      "selected": false
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: true",
+    "props": {
+      "selected": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default-horizontal",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-orientation-vertical",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-strong",
+    "props": {},
+    "example": 2
+  }
+]

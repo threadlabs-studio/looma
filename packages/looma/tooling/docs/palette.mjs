@@ -51,9 +51,9 @@ export function paletteSeeds(values) {
       if (tint) l = clamp(l, .08 * tint, 1 - .03 * tint);
       if (relationship !== 'preserve') { h = brandHue + (relationship === 'neighboring' ? 30 : 180); c = Math.max(c, .018); }
       if (warmth !== 0) {
-        const target = warmth > 0 ? 85 : 255;
-        const delta = ((target - h + 540) % 360) - 180;
-        h += delta * Math.abs(warmth); c = Math.max(c, .035 * Math.abs(warmth));
+        const strength = Math.abs(warmth);
+        const target = fromLch([l, warmth > 0 ? .025 : .018, warmth > 0 ? 85 : 255]);
+        [l, c, h] = toLch(mixColour(fromLch([l, c, h]), target, 1 - strength));
       }
     }
     return [key, fromLch([l, c * intensity, h])];

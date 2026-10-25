@@ -3,7 +3,7 @@ import { mixColour as mix, paletteSeeds, companionSurface, toLch, fromLch } from
 
 const bounds = {
   'text-size': [14, 24], 'control-roominess': [2, 4], 'corner-roundness': [0, 32],
-  'line-weight': [.5, 3], spacing: [.75, 1.5], 'scale-contrast': [1, 1.5],
+  'line-weight': [.5, 3], rhythm: [.75, 1.5], spacing: [.75, 1.5], 'scale-contrast': [1, 1.5],
   'space-curve': [.5, 2], 'text-weight': [400, 700], 'outer-depth': [0, 2], 'inner-depth': [0, 2],
   'response-time': [0, 600],
 };
@@ -16,12 +16,13 @@ export const themeFields = [
   ['Colour', 'text', 'Text', '--ui-text', 'colour', '#1a1a1a', 'Readable content; supporting text follows this and Surface.'],
   ['Colour', 'warmth', 'Surface warmth', null, 'fraction', '0.5', '0% cool, 50% original, 100% warm paper and ink; your brand hue stays independent.'],
   ['Colour', 'color-intensity', 'Color intensity', null, 'fraction', '0.5', '0% quiet, 50% original, 100% vivid, coordinated across surfaces, actions and status colors.'],
-  ['Colour', 'palette-relationship', 'Palette relationship', null, 'choice', 'preserve', 'Keep seed hues, or relate quiet surfaces to the brand through neighboring or complementary hues.'],
-  ['Type', 'body-font', 'Body font', '--ui-font-sans', 'font', 'system-ui, sans-serif', 'The shared interface typeface.'],
-  ['Type', 'display-font', 'Display font', '--ui-font-display', 'font', 'system-ui, sans-serif', 'The heading typeface.'],
+  ['Colour', 'palette-relationship', 'Palette relationship', null, 'choice', 'preserve', 'Keep base hues, or relate quiet surfaces to the brand through neighboring or complementary hues.'],
+  ['Type', 'body-font', 'Font', '--ui-font-sans', 'font', 'system-ui, sans-serif', 'The shared interface typeface.'],
+  ['Type', 'display-font', 'Heading font', '--ui-font-display', 'font', 'system-ui, sans-serif', 'The heading typeface.'],
   ['Type', 'text-size', 'Base text size', '--ui-font-size', 'positive-length', '16px', 'Sets the document root in px. Type, spacing and layout use rem relationships and scale from this base once.'],
   ['Type', 'text-weight', 'Emphasis weight', '--ui-font-medium', 'weight', '500', 'Control-label emphasis; body and headings keep their roles.'],
   ['Size & spacing', 'control-roominess', 'Control roominess', '--ui-control-roominess', 'positive', '2.5', 'Shared control height as a multiple of base text size; buttons, fields and swatches stay aligned.'],
+  ['Size & spacing', 'rhythm', 'Rhythm', '--ui-rhythm', 'positive', '1', 'More or less breathing room between lines and groups. Spacing fine-tunes gaps independently.'],
   ['Size & spacing', 'spacing', 'Spacing', '--ui-spacing', 'positive', '1', 'More or less breathing room throughout the interface.'],
   ['Size & spacing', 'scale-contrast', 'Size ratio', '--ui-scale-ratio', 'ratio', '1.2', 'The multiplier between small, medium and large controls. At 1 the sizes are equal; higher values separate them.'],
   ['Size & spacing', 'space-curve', 'Spacing curve', '--ui-space-curve', 'nonnegative', '1', 'Spacing growth: 1 is linear, 2 is quadratic. Independent of control sizes.'],
@@ -31,7 +32,7 @@ export const themeFields = [
   ['Material', 'inner-depth', 'Inner depth', '--ui-inner-depth', 'nonnegative', '0.3', 'How strongly fields and pressed controls sit into their surface.'],
   ['Material', 'glassiness', 'Glassiness', '--ui-glassiness', 'fraction', '0', 'Clear through richly frosted: the upper range adds stronger blur, saturation and glass edges. Content stays readable.'],
   ['Material', 'surface-separation', 'Surface separation', '--ui-surface-separation', 'fraction', '0', 'One material offset, scaled by popup purpose and actual size: quiet tooltips through substantial dialogs.'],
-  ['Material', 'translucency', 'Overlay translucency', '--ui-overlay-translucency', 'fraction', '0', 'How much background comes through floating surfaces.'],
+  ['Material', 'translucency', 'Overlay translucency', '--ui-overlay-translucency', 'fraction', '0', 'How much background comes through floating material around opaque content.'],
   ['Material', 'edge-light', 'Edge light', '--ui-edge-light', 'fraction', '0', 'Light caught by surface edges, independent of depth.'],
   ['Material', 'finish', 'Finish', '--ui-finish', 'fraction', '0', 'Matte through polished: how strongly the material catches a reflection.'],
   ['Material', 'glow', 'Glow', '--ui-glow', 'fraction', '0', 'Reflected light beyond a surface, from a quiet halo to a vivid bloom at the upper end.'],
@@ -47,11 +48,11 @@ export const defaultRecipe = () => ({ schemaVersion: 1, values: Object.fromEntri
 const starting = values => ({ schemaVersion: 1, values: { ...defaultRecipe().values, ...values } });
 export const startingPoints = {
   clear: defaultRecipe(),
-  bookish: starting({ action: '#2e1228', canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c', 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9', 'response-time': '150ms', 'response-curve': 'ease' }),
-  wiki: starting({ action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.85', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
-  editorial: starting({ action: '#182c24', canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24', 'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'line-weight': '2px', 'response-time': '90ms', 'response-curve': 'linear' }),
-  night: starting({ action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
-  garden: starting({ action: '#256342', canvas: '#eef5e7', surface: '#fcfff6', text: '#173121', 'corner-roundness': '22px', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05', 'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)' }),
+  bookish: starting({ rhythm: '1.05', action: '#2e1228', canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c', 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9', 'response-time': '150ms', 'response-curve': 'ease' }),
+  wiki: starting({ rhythm: '0.8', 'text-weight': '400', 'space-curve': '0.8', action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.85', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
+  editorial: starting({ rhythm: '1.3', 'text-size': '17px', spacing: '1.12', 'space-curve': '1.4', 'scale-contrast': '1.3', action: '#182c24', canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24', 'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'line-weight': '2px', 'response-time': '90ms', 'response-curve': 'linear' }),
+  night: starting({ rhythm: '0.9', 'display-font': 'ui-monospace, monospace', 'text-weight': '600', 'control-roominess': '2.375', spacing: '0.9', 'scale-contrast': '1.25', 'space-curve': '1.2', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25', 'light-x': '0.25', 'light-spread': '0.65', action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
+  garden: starting({ rhythm: '1.2', 'body-font': 'ui-rounded, system-ui, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'space-curve': '1.15', finish: '0.15', 'light-spread': '1', action: '#256342', canvas: '#f4edda', surface: '#fff8e7', text: '#173121', 'corner-roundness': '22px', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05', 'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)' }),
 };
 export const startingPointLabels = { clear: 'Clear', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
 const paletteKeys = themeFields.filter(field => field.family === 'Colour').map(field => field.id);

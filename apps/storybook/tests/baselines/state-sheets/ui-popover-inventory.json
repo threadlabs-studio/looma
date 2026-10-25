@@ -1,0 +1,168 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "bare: false",
+    "props": {
+      "bare": false
+    },
+    "example": 0
+  },
+  {
+    "name": "bare: true",
+    "props": {
+      "bare": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top",
+    "props": {
+      "placement": "top"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-start",
+    "props": {
+      "placement": "top-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-end",
+    "props": {
+      "placement": "top-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom",
+    "props": {
+      "placement": "bottom"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-start",
+    "props": {
+      "placement": "bottom-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-end",
+    "props": {
+      "placement": "bottom-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left",
+    "props": {
+      "placement": "left"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left-start",
+    "props": {
+      "placement": "left-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left-end",
+    "props": {
+      "placement": "left-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right",
+    "props": {
+      "placement": "right"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right-start",
+    "props": {
+      "placement": "right-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right-end",
+    "props": {
+      "placement": "right-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: content",
+    "props": {
+      "size": "content"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-trigger-binding",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-placement-top-end",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-side-placement-and-offset",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "open anchored popover",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

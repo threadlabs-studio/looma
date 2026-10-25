@@ -1,0 +1,59 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "color: neutral",
+    "props": {
+      "color": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "color: blue",
+    "props": {
+      "color": "blue"
+    },
+    "example": 0
+  },
+  {
+    "name": "color: green",
+    "props": {
+      "color": "green"
+    },
+    "example": 0
+  },
+  {
+    "name": "color: yellow",
+    "props": {
+      "color": "yellow"
+    },
+    "example": 0
+  },
+  {
+    "name": "color: red",
+    "props": {
+      "color": "red"
+    },
+    "example": 0
+  },
+  {
+    "name": "color: purple",
+    "props": {
+      "color": "purple"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-chip",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-new-chip",
+    "props": {},
+    "example": 1
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: info",
+    "props": {
+      "tone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: success",
+    "props": {
+      "tone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: warning",
+    "props": {
+      "tone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-authored",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-danger",
+    "props": {},
+    "example": 1
+  }
+]

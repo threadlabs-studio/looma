@@ -117,6 +117,10 @@ jobs:
   visual:
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -124,7 +128,16 @@ jobs:
       # The runner script only needs Node; it installs and builds inside the
       # pinned Playwright image so CI renders exactly like the local baselines.
       - name: Storybook visual regression
-        run: node apps/storybook/scripts/run-storywright-docker.mjs test
+        run: node apps/storybook/scripts/run-storywright-docker.mjs test --shard=${{ matrix.shard }}/8
+      - name: Preserve visual differences
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: component-state-differences-${{ matrix.shard }}
+          path: |
+            apps/storybook/test-results/
+            apps/storybook/playwright-report/
+          if-no-files-found: ignore
 
   verify:
     if: always()

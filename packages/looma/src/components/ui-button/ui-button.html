@@ -24,7 +24,7 @@
       keep their normal layout.</prop>
     <prop name="shape" type="keyword" values="rounded, pill" default="rounded"
     >rounded uses the theme's action radius; pill rounds the ends fully, for a compact choice such as a status or a person.</prop>
-    <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="accent"
+    <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="neutral"
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour. The field
       variant always uses neutral field colors.</prop>
@@ -375,13 +375,18 @@
       background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
     }
 
-    /* A neutral card encloses content quietly; ordinary outlines keep their action-tone edge. */
     :host[data-appearance="card"][data-tone="neutral"] {
       border-color: var(--ui-button-border, var(--ui-border));
     }
 
     :host[data-appearance="card"][data-tone="neutral"]:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--ui-border-strong));
+    }
+
+    :host[data-appearance="card"][aria-pressed="true"] {
+      background-color: var(--ui-selection-surface);
+      border-color: var(--ui-selection-border);
+      color: var(--ui-selection-text);
     }
 
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
@@ -430,6 +435,18 @@
       border-color: var(--ui-button-border, var(--ui-control-border));
       background-color: var(--ui-button-surface, var(--ui-neutral-surface));
       color: var(--ui-button-text, var(--ui-text));
+    }
+    :host[data-tone="neutral"][data-appearance="outline"] {
+      border-color: var(--ui-button-border, var(--ui-control-border));
+      background-color: var(--ui-button-surface, transparent);
+    }
+    :host[data-tone="neutral"][data-appearance="outline"]:hover:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border)));
+      background-color: var(--ui-button-hover-surface, var(--ui-neutral-hover));
+    }
+    :host[data-tone="neutral"][data-appearance="outline"]:active:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border)));
+      background-color: var(--ui-button-active-surface, var(--ui-neutral-active));
     }
     :host[data-tone="neutral"][data-appearance="solid"]:hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-hover-surface, var(--ui-neutral-hover));
@@ -518,10 +535,8 @@
       border-color: transparent;
     }
 
-    /* Pressed, or holding its menu open, a ghost button sinks slightly: a light surface with a faint
-       edge and a soft inner shadow. Lighter than hover, so an open menu's trigger never reads as heavy. */
     :host[data-appearance="ghost"]:is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
-      background-color: var(--ui-button-ghost-active-surface, color-mix(in oklch, var(--ui-surface), var(--_tone) 3%));
+      background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 18%));
       border-color: transparent;
       box-shadow: inset 0 0 0 1px oklch(from var(--_tone) l c h / 10%), inset 0 1px 2px oklch(from var(--_tone) l c h / 8%);
     }

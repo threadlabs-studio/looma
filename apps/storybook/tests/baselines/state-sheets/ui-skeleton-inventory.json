@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "animated: false",
+    "props": {
+      "animated": false
+    },
+    "example": 0
+  },
+  {
+    "name": "animated: true",
+    "props": {
+      "animated": true
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: text",
+    "props": {
+      "shape": "text"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: circle",
+    "props": {
+      "shape": "circle"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: rectangle",
+    "props": {
+      "shape": "rectangle"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-text",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-shapes",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-loading-card",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-animation",
+    "props": {},
+    "example": 3
+  }
+]

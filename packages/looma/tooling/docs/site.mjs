@@ -178,7 +178,7 @@ export function documentationPlugin(site) {
 export async function documentationOptions(site) {
   const { siteOptions } = await tool('markupress', site.root);
   const styles = ['tokens.css', 'theme-light.css', 'theme-dark.css', 'theme-system.css'].map(file => fileURLToPath(import.meta.resolve(`@threadlabs/looma/${file}`)));
-  const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
+  const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', headerNotice: 'Custom theme', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
   const savedTheme = path.join(site.generated, 'saved-theme.css');
   await writeFile(savedTheme, site.config.themeCSSContents ?? themeCSS(site.config.recipe ?? defaultRecipe()));
   const themeStyles = [savedTheme, ...await portableThemeStyles(site)];
