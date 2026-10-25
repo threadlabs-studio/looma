@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
 import { afterFormReset } from "../shared/form-reset.js";
 import { closeOverlay, createAnchoredSurface, openOverlay } from "../shared/overlay.js";
 
@@ -107,6 +108,7 @@ export function connect(host) {
     lookup = undefined;
   };
   const close = () => {
+    cancelActiveItemReveal(popup);
     host.state.expanded = false;
     host.state.active = -1;
     cancelLookup();
@@ -326,7 +328,7 @@ export function connect(host) {
     const current = indices.indexOf(host.state.active);
     const next = key === "Home" ? 0 : key === "End" ? indices.length - 1 : key === "ArrowDown" ? Math.min(current + 1, indices.length - 1) : current < 0 ? indices.length - 1 : Math.max(0, current - 1);
     host.state.active = indices[next];
-    requestAnimationFrame(() => document.getElementById(`${uid}-option-${host.state.active}`)?.scrollIntoView({ block: "nearest" }));
+    revealActiveItem(popup, () => document.getElementById(`${uid}-option-${host.state.active}`));
   };
   const validateCurrent = async () => {
     validationRun?.abort();

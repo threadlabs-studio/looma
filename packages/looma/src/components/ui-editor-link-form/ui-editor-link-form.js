@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-item-reveal.js";
 // Gives each form its own field ids, reports field changes and choices, saves on Enter in a field,
 // closes on Escape, and moves between the search field and its results with the arrow keys.
 export function connect(host) {
@@ -26,7 +27,7 @@ export function connect(host) {
   const moveFocus = (event, offset) => {
     const results = [...element.querySelectorAll("[data-link-result]")];
     const next = results[results.indexOf(event.target) + offset];
-    if (next) next.focus();
+    if (next) focusAndRevealItem(element, next);
     else if (offset < 0) element.querySelector("[data-link-search]")?.focus();
     else return;
     event.preventDefault();
@@ -57,6 +58,7 @@ export function connect(host) {
   element.addEventListener("keydown", onKeyDown);
   element.addEventListener("submit", onSubmit);
   return () => {
+    cancelActiveItemReveal(element);
     element.removeEventListener("input", onInput);
     element.removeEventListener("change", onChange);
     element.removeEventListener("click", onClick);

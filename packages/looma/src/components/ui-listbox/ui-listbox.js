@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
 let nextId = 0;
 
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -79,7 +80,7 @@ export function connect(host) {
     if (index < 0 || options[index]?.disabled || !options[index]) return;
     host.state.active = index;
     render();
-    element.querySelector(`[data-index="${index}"]`)?.scrollIntoView({ block: "nearest" });
+    revealActiveItem(element, () => element.querySelector(`[data-index="${host.state.active}"]`));
   };
   const choose = (index, trigger) => {
     const option = options[index];
@@ -158,6 +159,7 @@ export function connect(host) {
   form?.addEventListener("reset", onReset);
   validity.addEventListener("invalid", onInvalid);
   return () => {
+    cancelActiveItemReveal(element);
     stop();
     observer.disconnect();
     authored.disabled = host.props.disabled.value;
