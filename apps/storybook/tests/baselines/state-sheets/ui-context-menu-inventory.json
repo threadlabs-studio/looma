@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-target-binding",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-disabled-items",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-checkable",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "keyboard-open context menu",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

@@ -15,8 +15,9 @@ must be confirmed after rollout.
 | `quality` | Selected tooling tests, package build and affected unit/SSR tests | 6 minutes |
 | `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 6 minutes |
 | `release-package` | Package-only build, tarball integrity, packed component and documentation consumer matrix | 6 minutes |
+| `visual` | Storybook build and compact component state comparisons in the pinned rendering container | 6 minutes |
 | `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 10 minutes |
-| `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
+| `verify` | Require successful quality, browser, package and visual checks | 1 minute after CI jobs |
 
 On the 0.37 integration, all 56 documentation browser checks and the site artifact upload finished before the former nine-minute limit, but dependency-cache cleanup exhausted it. Documentation parity now has ten minutes, retaining the same checks and remaining within its fifteen-minute policy ceiling.
 
@@ -25,9 +26,7 @@ The first four jobs run independently. `quality`, `release-package`, `verify`, a
 inputs reports its selection and succeeds without installing dependencies.
 The package build checks source types and generated Vue declarations; repeating
 lint/typecheck adds no proof. Style-source restrictions remain enforced by that build.
-Formatting, comment documentation checks, Storybook builds, documentation browser
-parity, full screenshot/axe sweeps, Firefox and WebKit are outside automatic release
-qualification. Package packing builds only the published package.
+Compact component state screenshots run automatically; they replace the redundant full-viewport Storywright gallery. Every published component has light/dark state coverage, and core controls also cover each starter theme. Formatting, comment documentation checks, exhaustive documentation page screenshot/axe sweeps, Firefox and WebKit remain outside automatic release qualification. Package packing builds only the published package.
 
 Release preparation has six minutes of runner work for the complete packed
 consumer matrix, publication has two minutes, and recording the tag has one minute.

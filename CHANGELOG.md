@@ -2,9 +2,22 @@
 
 ## Next release
 
+### Neutral controls, rhythm and state coverage
+
+- Buttons and IconButtons now default to neutral. Use `tone="accent"` or `preset="primary"` for accent emphasis. IconButton’s superseded `auto` tone is removed; select an explicit tone. This changes existing unqualified action colors and is released on the 0.38 line.
+- Coordinate gaps and unitless tight/body/relaxed line-height multipliers through `--ui-rhythm`. Starter themes demonstrate distinct typography, geometry, material, motion and rhythm.
+- Use subtle accent for menu hover and the shared selection surface for checked rows. Ghost pressed/open backgrounds strengthen their tone wash instead of becoming lighter than hover.
+- Keep Base colors visible; explain color relationships with selectable cards and color previews; compare compact light/dark samples. Main and optional heading fonts can be shared or selected separately. Theme changes groups Undo/Redo/Reset; Reset restores the selected starter, while removing the Custom theme header chip clears the browser override. Inherited palette/material selections use muted selected-value emphasis through Select’s and Combobox’s `muted` option. Starting-point, palette, material and nearby-style choices use the styled dropdown; palette choices show four color swatches in the list and selected field.
+- Replace redundant full-viewport component gallery captures with compact state sheets and inventories, including finite prop values, authored examples, pointer/keyboard states and authored interactions. Core controls also run through every starter palette in both modes.
+
+- Search the full component catalog from the theme customizer, with nine previews initially and a Show more action; explicitly added examples remain alongside existing choices. Include typography in the compact sampler, give starting themes broader type/spacing/material/motion identities, and pair Forest & cream with warm cream surfaces and neutral fills.
+- Give neutral-outline text and icon actions the same restrained border and transparent resting surface, with shared neutral hover/pressed fills. The sampler compares solid accent, outline accent, solid neutral, outline neutral, icon and ghost in that order.
+
 - Show the editor writing prompt only while the whole document is empty, including when an empty first line precedes text, an image or a divider.
 
 - Use the shared Markupress appearance control to cycle Automatic, Light and Dark from one button; local setup guidance selects the corresponding documentation theme. Correct field and choice descriptions so they no longer promise a visible touch-size floor.
+
+- Documentation customization requires Markupress 0.9.1 for the shared removable header status chip. Sidebar navigation examples render real links.
 
 ### Expressive materials and compact controls
 
@@ -24,11 +37,11 @@
 
 ### Relational theme editing and reversible exploration
 
-- Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch lifts the whole small/medium/large family instead of flattening small and medium to the same minimum.
+- Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch retains the visible small/medium/large ladder; adjustable hit areas remain separate.
 - Rename recipe `density` and CSS `--ui-density` to `spacing` and `--ui-spacing`, matching the direction of the control: increasing it adds space. These pre-1.0 replacements have no compatibility aliases. `--ui-control-size` remains a derived height role.
 - Generate coordinated warmth, intensity and neighboring/complementary surface relationships with perceptual color operations and gamut/readability bounds. Both color modes retain the palette identity; disabled roles stay distinct. These palette transformations are recipe inputs, compiled into resolved color roles rather than inert CSS properties.
 - Preserve finger grab offsets in LightEditor, support background placement and directional presets, and restore the gesture start on Escape or pointer cancellation. LightEditor adds a `cancel` event with restored x/y coordinates; CurveEditor shares the same grab-offset and cancellation contract, reporting its restored value. Frame-coalesced previews avoid storage writes during a drag; release commits one undoable decision.
-- Add undo/redo, comparison with the entry theme, retained starting-point identity, and preview/apply/cancel for nearby variations with palette, material and type/spacing locks.
+- Add undo/redo, reset to the retained starting point, and preview/apply/cancel for nearby variations with palette, material and type/spacing locks.
 - Explain material dependencies and reuse documentation cards in the focused material and paired palette editors. Geometry shows aligned size samples and spacing progression; motion includes an interactive documentation example.
 - Add searchable Google font selection and actual face loading for body/display roles, with the operating system's font as the default. Optional recipe `fonts` provenance travels with JSON; downloaded CSS and locally saved CSS include Google Fonts imports before rules. Self-hosted/custom stacks remain an advanced option.
 - Organize the complete theme-property reference by palette, type, geometry, material, illumination and motion, distinguishing generator inputs, live CSS levers and derived roles.

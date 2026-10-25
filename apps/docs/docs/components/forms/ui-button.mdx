@@ -45,8 +45,9 @@ fields and content that intentionally expands have their own geometry.
 Use `variant="card"` for one whole-card action. It reuses Button's `tone`, loading, disabled,
 link and form behavior. Its uniform border and equal inline padding use the standard Button
 palette and spacing; there is no emphasized side edge.
-With `tone="neutral"`, the card uses the standard decorative neutral border while ordinary outline
-actions retain their tone-colored edge.
+Neutral cards use the standard decorative border. Neutral outline actions share fields’
+control border; accent and other intent outlines use their tone-colored edge. Buttons
+default to neutral; choose `tone="accent"` or `preset="primary"` for emphasis.
 
 Put arbitrary decorative content in the `icon` slot. Icon and main content align at the top;
 the grid row centers within spare height so single-line labels look vertically centered, and

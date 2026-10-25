@@ -1,0 +1,123 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "density: comfortable",
+    "props": {
+      "density": "comfortable"
+    },
+    "example": 1
+  },
+  {
+    "name": "density: compact",
+    "props": {
+      "density": "compact"
+    },
+    "example": 1
+  },
+  {
+    "name": "icons: false",
+    "props": {
+      "icons": false
+    },
+    "example": 1
+  },
+  {
+    "name": "icons: true",
+    "props": {
+      "icons": true
+    },
+    "example": 1
+  },
+  {
+    "name": "inline: false",
+    "props": {
+      "inline": false
+    },
+    "example": 1
+  },
+  {
+    "name": "inline: true",
+    "props": {
+      "inline": true
+    },
+    "example": 1
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 1
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 1
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 1
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 1
+  },
+  {
+    "name": "Example: 01-open",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-for",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-disabled-items",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-placement-top-end",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-groups-links",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 06-checkable",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "Example: 07-small",
+    "props": {},
+    "example": 6
+  },
+  {
+    "name": "Example: 08-icon-columns",
+    "props": {},
+    "example": 7
+  },
+  {
+    "name": "checkable open menu",
+    "props": {},
+    "example": 5,
+    "interaction": "authored"
+  }
+]

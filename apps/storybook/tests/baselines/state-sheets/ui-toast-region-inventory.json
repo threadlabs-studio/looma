@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "placement: top",
+    "props": {
+      "placement": "top"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-start",
+    "props": {
+      "placement": "top-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-end",
+    "props": {
+      "placement": "top-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom",
+    "props": {
+      "placement": "bottom"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-start",
+    "props": {
+      "placement": "bottom-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-end",
+    "props": {
+      "placement": "bottom-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default-closed",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-multiple-messages",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-auto-and-duration-3000",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "notification shown on demand",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

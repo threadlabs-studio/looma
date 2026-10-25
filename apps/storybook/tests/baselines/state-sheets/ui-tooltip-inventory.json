@@ -1,0 +1,177 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "inverse: false",
+    "props": {
+      "inverse": false
+    },
+    "example": 0
+  },
+  {
+    "name": "inverse: true",
+    "props": {
+      "inverse": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top",
+    "props": {
+      "placement": "top"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-start",
+    "props": {
+      "placement": "top-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: top-end",
+    "props": {
+      "placement": "top-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom",
+    "props": {
+      "placement": "bottom"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-start",
+    "props": {
+      "placement": "bottom-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: bottom-end",
+    "props": {
+      "placement": "bottom-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left",
+    "props": {
+      "placement": "left"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left-start",
+    "props": {
+      "placement": "left-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: left-end",
+    "props": {
+      "placement": "left-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right",
+    "props": {
+      "placement": "right"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right-start",
+    "props": {
+      "placement": "right-start"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: right-end",
+    "props": {
+      "placement": "right-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "trigger: hover",
+    "props": {
+      "trigger": "hover"
+    },
+    "example": 0
+  },
+  {
+    "name": "trigger: click",
+    "props": {
+      "trigger": "click"
+    },
+    "example": 0
+  },
+  {
+    "name": "trigger: focus",
+    "props": {
+      "trigger": "focus"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-target-binding",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-placement-and-delays",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-inverse",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-side-placement",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-shortcut",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "visible pointer help",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  },
+  {
+    "name": "visible keyboard help",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

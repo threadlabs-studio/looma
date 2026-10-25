@@ -231,18 +231,26 @@ at `1` and spacing/curve/depth at `0` where needed.
 | `--ui-font-size` | `16px` | Sets the document root’s font size. The customizer accepts 14–24px; type steps, choice marks, controls and rem-based page layout derive from that root once. |
 | `--ui-font-medium` | `500` | Emphasis weight, 400–700; body and heading weights retain their separate roles. |
 | `--ui-control-roominess` | `2.5` | Unitless height multiplier, 2–4 times base text size. Derives `--ui-control-size`; it is not a length. |
+| `--ui-rhythm` | `1` | Unitless compact-to-airy multiplier, 0.75–1.5. Coordinates layout gaps with bounded line-height ratios; rows, clusters and text respond together. |
 | `--ui-spacing` | `1` | Unitless space multiplier, 0.75–1.5. Changes gaps and horizontal action insets without changing control heights. |
 | `--ui-scale-ratio` | `1.2` | Small/medium/large control ratio, 1–1.5; 1 deliberately makes the sizes equal. |
 | `--ui-space-curve` | `1` | Spacing curve, 0.5–2; 1 is linear and 2 bends the interior steps quadratically, keeping the endpoints fixed. |
 | `--ui-radius-md` | `0.5rem` in base tokens; `8px` in generated themes | Corner seed, 0–32px or equivalent. Derives small, large, action, field and overlay radii; explicit round shapes stay round. |
 | `--ui-border-width` | `1px` | Line weight, 0.5–3px or equivalent; derives emphasis edges. Generated themes give focus a separate minimum of 2px. |
 
-For base text size `f`, roominess `q`, ratio `r`, spacing `s` and curve `c`, the
+For base text size `f`, roominess `q`, ratio `r`, spacing `s`, rhythm `t` and curve `c`, the
 medium height is `h = f × q`; control heights are `h/r`, `h`, `h×r`.
-The spacing unit is `u = f × s / 4`, so changing control roominess does not change page rhythm. The first and last spacing steps stay at
+The spacing unit is `u = f × s × t / 4`, so changing control roominess does not change page rhythm. The first and last spacing steps stay at
 `u` and `8u`; interior steps use `u × (1 + 7 × (k/7)^c)`, with `k = 1, 2, 3, 5`
 for steps 2–5. Step 0.5 is half of step 1. Changing the control ratio does not
 change spacing. Spacing follows base text independently of control roominess.
+
+Line heights are always **unitless multipliers** of each role’s own font size.
+Rhythm derives `--ui-line-height-tight = clamp(1.1, 1.2 + (t − 1) × 0.2, 1.3)`
+and `--ui-line-height = clamp(1.35, 1.4 + (t − 1) × 0.4, 1.6)`.
+`--ui-line-height-md` follows the latter; `--ui-line-height-relaxed` is that ratio
+times `1.15`. No px or rem line heights are generated. Use Rhythm to coordinate
+text and layout; use Spacing to refine gaps without changing text ratios.
 
 Pointer capability does not change the visible size ladder. Small, medium and
 large retain the theme’s proportions on touch. Hit-area guidance is a separate,

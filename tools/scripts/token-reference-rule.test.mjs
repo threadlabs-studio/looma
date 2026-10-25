@@ -86,3 +86,19 @@ test("group tokens stay optional and shared across components", async () => {
     assert.ok(users.length >= 2, `${token} should theme a group, not only ${users.join(", ")}`);
   }
 });
+
+test("line-height declarations and shared leading tokens stay unitless", async () => {
+  const files = [
+    ...(await readdir(tokensRoot)).filter(file => file.endsWith('.css')).map(file => path.join(tokensRoot,file)),
+    ...(await readdir(componentsRoot)).filter(tag => tag.startsWith('ui-')).map(tag => path.join(componentsRoot,tag,`${tag}.html`)),
+    editorStyles,
+  ];
+  const violations = [];
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    for (const [,property,value] of source.matchAll(/(?:^|[;{\s])(line-height|--ui-line-height[\w-]*)\s*:\s*([^;}]+)/gm)) {
+      if (/\d(?:%|(?:px|r?em|r?ex|r?ch|r?cap|r?ic|r?lh|in|cm|mm|q|pt|pc|[sld]?v(?:w|h|i|b|min|max)|cq(?:w|h|i|b|min|max))\b)/i.test(value)) violations.push(`${path.relative(repoRoot,file)}: ${property}: ${value.trim()}`);
+    }
+  }
+  assert.deepEqual(violations, [], 'Leading must follow each text role through unitless multipliers, not inherited lengths.');
+});

@@ -1,0 +1,147 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "autosize: false",
+    "props": {
+      "autosize": false
+    },
+    "example": 0
+  },
+  {
+    "name": "autosize: true",
+    "props": {
+      "autosize": true
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: false",
+    "props": {
+      "invalid": false
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: true",
+    "props": {
+      "invalid": true
+    },
+    "example": 0
+  },
+  {
+    "name": "readonly: false",
+    "props": {
+      "readonly": false
+    },
+    "example": 0
+  },
+  {
+    "name": "readonly: true",
+    "props": {
+      "readonly": true
+    },
+    "example": 0
+  },
+  {
+    "name": "required: false",
+    "props": {
+      "required": false
+    },
+    "example": 0
+  },
+  {
+    "name": "required: true",
+    "props": {
+      "required": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-rows-invalid-and-readonly",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-disabled-and-required",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-size",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-autosize",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "editable multiline value",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

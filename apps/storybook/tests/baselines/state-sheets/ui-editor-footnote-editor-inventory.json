@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "editable: false",
+    "props": {
+      "editable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "editable: true",
+    "props": {
+      "editable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-note",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-formatted-note",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-label-in-use",
+    "props": {},
+    "example": 2
+  }
+]

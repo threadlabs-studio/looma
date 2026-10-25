@@ -1,3 +1,4 @@
+import { chooseOption } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -5,7 +6,7 @@ const session = page => page.evaluate(() => window[Symbol.for('looma.documentati
 const enter = async (page, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await page.getByRole('combobox', {name:'Starting point',exact:true}).selectOption('bookish');
+  await chooseOption(page.getByRole('combobox', {name:'Starting point',exact:true}), 'bookish');
   return errors;
 };
 
@@ -20,7 +21,7 @@ test('completed edits undo and redo persist without an ambiguous comparison mode
   await expect.poll(() => card.evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
   await page.getByRole('button',{name:'Upper left',exact:true}).click();
   expect((await session(page)).values['light-x']).toBe('0.15');
-  await expect(page.locator('[data-theme-origin]')).toHaveText('Bookish · customized');
+  await expect(page.locator('[data-theme-origin]')).toHaveCount(0);
   await page.getByRole('button',{name:'Undo',exact:true}).click();
   expect((await session(page)).values['light-x']).toBe('0.5');
   await page.getByRole('button',{name:'Redo',exact:true}).click();
@@ -57,11 +58,17 @@ test('palette transformations change both mode specimens, keep geometry and surv
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
   await palette.getByRole('slider',{name:'Surface warmth',exact:true}).press('End');
   await expect.poll(colors).not.toEqual(before);
-  await palette.getByRole('combobox',{name:'Palette relationship',exact:true}).selectOption('neighboring');
+  await palette.getByRole('button',{name:/Related colors/}).click();
+  const related=palette.getByRole('button',{name:/Related colors/}), preserved=palette.getByRole('button',{name:/Keep my colors/});
+  await expect(related).toHaveAttribute('aria-pressed','true');
+  await expect(preserved).toHaveAttribute('aria-pressed','false');
+  expect(await related.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe(await preserved.evaluate(el=>getComputedStyle(el).backgroundColor));
   expect((await session(page)).values['control-roominess']).toBe(geometry);
   expect((await session(page)).values['palette-relationship']).toBe('neighboring');
-  await expect(palette.locator('[data-theme="light"] [data-example-card]')).toBeVisible();
-  await expect(palette.locator('[data-theme="dark"] [data-example-card]')).toBeVisible();
+  const header=await page.locator('[data-component~="markupress-header"]').boundingBox();
+  for(const mode of ['light','dark']) {const box=await palette.locator(`[data-theme="${mode}"]`).boundingBox();expect(box.y).toBeGreaterThanOrEqual(header.y+header.height);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize().height);}
+  await expect(palette.locator('[data-theme="light"]')).toBeVisible();
+  await expect(palette.locator('[data-theme="dark"]')).toBeVisible();
   const remembered=await session(page); await page.goto(info.config.metadata.markupress+'components/ui-button/');
   expect(await session(page)).toEqual(remembered); expect(errors).toEqual([]);
 });
@@ -105,7 +112,7 @@ test('Google selection loads actual font faces, exports its import, and system f
   const errors=await enter(page,info);
   await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
   await page.getByText('Type',{exact:true}).click();
-  const font=page.getByRole('combobox',{name:'Body font',exact:true});
+  const font=page.getByRole('combobox',{name:'Font',exact:true});
   await font.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
   await expect(page.locator('[data-font-status="body-font"]')).toContainText('Inter loaded',{timeout:30000});
   expect(await page.evaluate(()=>[...document.fonts].some(face=>face.family.replaceAll('"','')==='Inter'&&face.status==='loaded'))).toBe(true);
@@ -134,10 +141,10 @@ test('overlapping font selections finish the status for both roles', async ({pag
     await route.continue();
   });
   try {
-    const body = page.getByRole('combobox',{name:'Body font',exact:true});
+    const body = page.getByRole('combobox',{name:'Font',exact:true});
     await body.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
     await expect(page.locator('[data-font-status="body-font"]')).toContainText('Loading Inter');
-    const display = page.getByRole('combobox',{name:'Display font',exact:true});
+    const display = page.getByRole('combobox',{name:'Heading font',exact:true});
     await display.fill('Lora'); await page.getByRole('option',{name:'Lora',exact:true}).click();
     await expect(page.locator('[data-font-status="display-font"]')).toContainText('Lora loaded',{timeout:30000});
     await expect(page.locator('[data-font-status="body-font"]')).toContainText('Inter loaded');
@@ -175,15 +182,19 @@ test('the compact documentation sampler stays visible across screen sizes and fo
     await page.setViewportSize({width,height:900});await enter(page,info);
     const sampler=page.locator('[data-theme-sampler]');
     const frame=sampler.locator('iframe').contentFrame();
-    const action=frame.getByRole('button',{name:'Send memo',exact:true});
+    const action=frame.getByRole('button',{name:'Solid accent',exact:true});
     await expect(action).toBeVisible();
     await expect(frame.getByRole('textbox',{name:'Search office',exact:true})).toBeVisible();
     await expect(frame.getByRole('checkbox',{name:'Notify Sam',exact:true})).toBeVisible();
     await expect(frame.getByRole('switch',{name:'Available',exact:true})).toBeVisible();
+    const icon=frame.getByRole('button',{name:'Acknowledge memo',exact:true}),outline=frame.getByRole('button',{name:'Outline neutral',exact:true});
+    expect(Math.abs((await icon.boundingBox()).height-(await outline.boundingBox()).height)).toBeLessThan(.1);
+    const paint=field=>field.evaluate(el=>{const s=getComputedStyle(el);return [s.borderTopColor,s.backgroundColor];});
+    expect(await paint(icon)).toEqual(await paint(outline));
     await expect(sampler.locator('.body')).toHaveCount(0);
     const bounds=await sampler.boundingBox(),controls=await page.getByRole('complementary',{name:'Theme controls',exact:true}).boundingBox();
     if(width<640) expect(bounds.y).toBeLessThan(controls.y);else expect(bounds.x).toBeGreaterThan(controls.x);
-    await page.getByRole('combobox',{name:'Starting point',exact:true}).selectOption('wiki');
+    await chooseOption(page.getByRole('combobox',{name:'Starting point',exact:true}), 'wiki');
     await expect.poll(()=>action.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(79, 70, 229)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   }
@@ -192,7 +203,7 @@ test('the compact documentation sampler stays visible across screen sizes and fo
 test('sidebar fields reserve space for their focus treatment inside clipping containers', async ({page},info) => {
   await enter(page,info);
   await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();await page.getByText('Type',{exact:true}).click();
-  for(const field of [page.getByRole('combobox',{name:'Body font',exact:true}),page.getByRole('spinbutton',{name:'Base text size',exact:true})]) {
+  for(const field of [page.getByRole('combobox',{name:'Font',exact:true}),page.getByRole('spinbutton',{name:'Base text size',exact:true})]) {
     await field.focus();
     const clipped=await field.evaluate(input=>{
       const painted=input.closest('.field')??input,box=painted.getBoundingClientRect(),outset=parseFloat(getComputedStyle(input).getPropertyValue('--ui-focus-width'))*1.5;
@@ -206,4 +217,94 @@ test('sidebar fields reserve space for their focus treatment inside clipping con
     });
     expect(clipped).toEqual([]);
   }
+});
+
+test('starter rhythm changes sampler gaps and unitless text ratios together', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  const preset=page.getByRole('combobox',{name:'Starting point',exact:true});
+  const sampler=page.locator('[data-theme-sampler] iframe').contentFrame();
+  const measure=()=>sampler.locator('[data-component="ui-card"] [data-component="ui-stack"]').first().evaluate(el=>{
+    const root=getComputedStyle(document.documentElement), s=getComputedStyle(el), heading=getComputedStyle(document.querySelector('h3'));
+    return {gap:parseFloat(s.rowGap),headingRatio:parseFloat(heading.lineHeight)/parseFloat(heading.fontSize),bodyRatio:root.getPropertyValue('--ui-line-height').trim()};
+  });
+  await chooseOption(preset, 'wiki');
+  await expect(sampler.getByRole('heading',{name:'Second breakfast, sorted.',exact:true})).toBeVisible();
+  const compact=await measure();
+  await chooseOption(preset, 'editorial');
+  await expect.poll(async()=>(await measure()).gap).toBeGreaterThan(compact.gap);
+  expect((await measure()).headingRatio).toBeGreaterThan(compact.headingRatio);
+  expect((await measure()).bodyRatio).not.toMatch(/px|rem|em/);
+});
+
+test('palette and material defaults are muted until their family is overridden', async ({page},info) => {
+  await enter(page,info);
+  const palette=page.getByRole('combobox',{name:'Palette preset',exact:true});
+  const material=page.getByRole('combobox',{name:'Material preset',exact:true});
+  const supporting=field=>field.evaluate(el=>{const probe=document.createElement('span');probe.style.color='var(--ui-text-secondary)';el.parentElement.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color;});
+  await expect.poll(()=>palette.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(palette));
+  await expect.poll(()=>material.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(material));
+  const inherited=await palette.evaluate(el=>getComputedStyle(el).color);
+  await chooseOption(palette, 'garden');
+  await expect.poll(()=>palette.evaluate(el=>getComputedStyle(el).color)).not.toBe(await supporting(palette));
+  await expect.poll(()=>material.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(material));
+  expect(await palette.evaluate(el=>getComputedStyle(el).color)).not.toBe(inherited);
+  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await expect(palette).toHaveValue('Plum & paper');
+  await expect.poll(()=>palette.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(palette));
+});
+
+test('one main font also styles headings until an optional heading font is chosen', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await chooseOption(page.getByRole('combobox',{name:'Starting point',exact:true}), 'clear');
+  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
+  await page.getByText('Type',{exact:true}).click();
+  const font=page.getByRole('combobox',{name:'Font',exact:true});
+  const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
+  await font.fill('Inter');await page.getByRole('option',{name:'Inter',exact:true}).click();
+  await expect.poll(async()=>(await session(page)).values['display-font']).toBe('"Inter", sans-serif');
+  await heading.fill('Lora');await page.getByRole('option',{name:'Lora',exact:true}).click();
+  expect((await session(page)).values['body-font']).toBe('"Inter", sans-serif');
+  expect((await session(page)).values['display-font']).toBe('"Lora", serif');
+  await heading.fill('Same');await page.getByRole('option',{name:'Same as main font',exact:true}).click();
+  expect((await session(page)).values['display-font']).toBe('"Inter", sans-serif');
+});
+
+for (const width of [1280,390]) test(`styled palette choices show four swatches in the popup and selected field at ${width}px`, async ({page},info) => {
+  await page.setViewportSize({width,height:844});
+  const errors = await enter(page,info);
+  const palette = page.locator('[data-customizer-overview] [data-refinement-preset="palette"]');
+  const field = palette.getByRole('combobox',{name:'Palette preset',exact:true});
+  await expect(palette.locator('[data-selected-palette] .palette-swatches > span')).toHaveCount(4);
+  await expect(palette.locator('[data-selected-palette] .palette-swatches')).toBeVisible();
+  await field.click();
+  await field.fill('');
+  const alpha = await palette.locator('[popover]').evaluate(element => {
+    const canvas=document.createElement('canvas'),context=canvas.getContext('2d');
+    context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
+    return context.getImageData(0,0,1,1).data[3];
+  });
+  expect(alpha).toBe(255);
+  const forest = palette.getByRole('option',{name:'Forest & cream',exact:true});
+  await expect(forest.locator('.palette-swatches > span')).toHaveCount(4);
+  await expect(forest.locator('.palette-swatches')).toBeVisible();
+  const sizes = await forest.locator('.palette-swatches > span').evaluateAll(nodes => nodes.map(node => { const rect=node.getBoundingClientRect();return [rect.width,rect.height]; }));
+  for (const [width,height] of sizes) { expect(width).toBeGreaterThan(4);expect(Math.abs(width-height)).toBeLessThan(0.1); }
+  const colors = await forest.locator('.palette-swatches > span').evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor));
+  expect(new Set(colors).size).toBe(4);
+  await palette.getByRole('listbox').screenshot({path:info.outputPath(`palette-options-${width}.png`)});
+  await forest.click();
+  await expect(field).toHaveValue('Forest & cream');
+  const geometry = await palette.evaluate(element => {
+    const field=element.querySelector('.field').getBoundingClientRect(),swatches=element.querySelector('[data-selected-palette] .palette-swatches').getBoundingClientRect();
+    return {inset:swatches.left-field.left,offset:Math.abs((swatches.top+swatches.height/2)-(field.top+field.height/2))};
+  });
+  expect(geometry.inset).toBeGreaterThan(3);
+  expect(geometry.offset).toBeLessThan(2);
+  expect((await session(page)).presets.palette).toBe('garden');
+  await palette.screenshot({path:info.outputPath(`palette-selected-${width}.png`)});
+  await field.press('ArrowDown');
+  await expect(palette.getByRole('listbox')).toBeVisible();
+  await field.press('Escape');
+  await expect(palette.getByRole('listbox')).toBeHidden();
+  expect(errors).toEqual([]);
 });
