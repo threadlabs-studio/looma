@@ -1,0 +1,4 @@
+{
+  "description": "Reserve the shape of incoming content without announcing each placeholder. Text follows the surrounding line metrics; circles and rectangles stand in for avatars and media. Use one status message and aria-busy on the loading region, then replace the placeholders with real content. Keep existing content visible during refresh when possible. Animation is optional and respects reduced motion.",
+  "group": "display"
+}
