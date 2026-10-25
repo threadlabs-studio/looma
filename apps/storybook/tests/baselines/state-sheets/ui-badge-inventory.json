@@ -1,0 +1,197 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "shape: pill",
+    "props": {
+      "shape": "pill"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: tag",
+    "props": {
+      "shape": "tag"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: dot",
+    "props": {
+      "shape": "dot"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: square",
+    "props": {
+      "shape": "square"
+    },
+    "example": 0
+  },
+  {
+    "name": "shape: circle",
+    "props": {
+      "shape": "circle"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: xs",
+    "props": {
+      "size": "xs"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: accent",
+    "props": {
+      "tone": "accent"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: info",
+    "props": {
+      "tone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: success",
+    "props": {
+      "tone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: warning",
+    "props": {
+      "tone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: solid",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: subtle",
+    "props": {
+      "variant": "subtle"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: outline",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: inverse",
+    "props": {
+      "variant": "inverse"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: overlay",
+    "props": {
+      "variant": "overlay"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-variant-solid-and-tone",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-variant-subtle-and-tone",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-shape",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-outline",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 06-color",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "Example: 07-dot",
+    "props": {},
+    "example": 6
+  },
+  {
+    "name": "Example: 07-icon",
+    "props": {},
+    "example": 7
+  },
+  {
+    "name": "Example: 08-square",
+    "props": {},
+    "example": 8
+  },
+  {
+    "name": "Example: 09-circle",
+    "props": {},
+    "example": 9
+  }
+]

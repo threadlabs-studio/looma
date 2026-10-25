@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "checked: false",
+    "props": {
+      "checked": false
+    },
+    "example": 0
+  },
+  {
+    "name": "checked: true",
+    "props": {
+      "checked": true
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "indeterminate: false",
+    "props": {
+      "indeterminate": false
+    },
+    "example": 0
+  },
+  {
+    "name": "indeterminate: true",
+    "props": {
+      "indeterminate": true
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: false",
+    "props": {
+      "invalid": false
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: true",
+    "props": {
+      "invalid": true
+    },
+    "example": 0
+  },
+  {
+    "name": "required: false",
+    "props": {
+      "required": false
+    },
+    "example": 0
+  },
+  {
+    "name": "required: true",
+    "props": {
+      "required": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-checked-indeterminate-and-disabled",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 02-checked-indeterminate-and-disabled.snippet",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 03-multi-line-label",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 04-name-value-and-required",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 05-with-description",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "Example: 06-size",
+    "props": {},
+    "example": 6
+  },
+  {
+    "name": "Example: 07-invalid",
+    "props": {},
+    "example": 7
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "checked by keyboard",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

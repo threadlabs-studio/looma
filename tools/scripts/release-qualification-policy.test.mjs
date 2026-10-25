@@ -269,3 +269,20 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   assert.match(packaging, /\["--filter", "@threadlabs\/looma", "build"\]/);
   assert.doesNotMatch(packaging, /\["build"\]/);
 });
+
+
+test("component state sheets shard every case while keeping one browser worker per runner", async () => {
+  const [workflow, config, runner] = await Promise.all([
+    readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
+    readFile(path.join(repoRoot, "apps/storybook/state-sheets.config.ts"), "utf8"),
+    readFile(path.join(repoRoot, "apps/storybook/scripts/run-storywright-docker.mjs"), "utf8"),
+  ]);
+  const visual = workflow.match(/\n  visual:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/)?.[0] ?? "";
+  assert.match(visual, /fail-fast: false/);
+  assert.match(visual, /shard: \[1, 2, 3, 4, 5, 6, 7, 8\]/);
+  assert.match(visual, /--shard=\$\{\{ matrix.shard \}\}\/8/);
+  assert.match(visual, /component-state-differences-\$\{\{ matrix.shard \}\}/);
+  assert.match(config, /fullyParallel: true/);
+  assert.match(config, /workers: 1/);
+  assert.match(runner, /shellQuote\(shardArgument\)/);
+});

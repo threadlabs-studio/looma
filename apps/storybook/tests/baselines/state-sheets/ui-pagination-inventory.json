@@ -1,0 +1,114 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "has-next: false",
+    "props": {
+      "hasNext": false
+    },
+    "example": 0
+  },
+  {
+    "name": "has-next: true",
+    "props": {
+      "hasNext": true
+    },
+    "example": 0
+  },
+  {
+    "name": "has-previous: false",
+    "props": {
+      "hasPrevious": false
+    },
+    "example": 0
+  },
+  {
+    "name": "has-previous: true",
+    "props": {
+      "hasPrevious": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-numbered",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-native-links",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-unknown-total",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-table",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "keyboard page navigation",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

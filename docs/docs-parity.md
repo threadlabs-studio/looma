@@ -42,7 +42,7 @@ browser run checks the inventory after building; it never updates it.
 | Code controls | Copy requests the displayed snippet, mobile wrapping preserves it, existing overflow and authored-code assertions | Code panes on guide pages |
 | Catalog | Existing count/category/query assertions, keyboard search, empty results | Complete catalog, filtered results, empty state |
 | Native fields and selection | Keyboard checkbox/switch, radio exclusivity, required validation, text/textarea editing, native select, editable commit/cancel, listbox and combobox selection | Authored disabled/invalid/readonly states; changed field and selection states |
-| Overlays and navigation components | Context menu, checkable menu, dialog close/focus, popover, toggletip dismissal, toast commands, docked/mobile sidebar, disclosure groups, tabs and tree keyboard actions | Authored states and the resulting states in `interaction-cases.ts` |
+| Overlays and navigation components | Context menu, checkable menu, dialog close/focus, popover, toggletip dismissal, toast commands, docked/mobile sidebar, disclosure groups, tabs and tree keyboard actions | Authored states and the resulting states in `interaction-cases.mts` |
 | Editor guides | Existing toolbar placement, selection, mentions, HTML language menu, table capability and tree reorder assertions | Complete guide pages and authored editor-component examples |
 | Accessibility and layout | Existing zero-violation/contrast/reflow/geometry assertions in all three browsers; reviewed axe finding sets for every route/viewport/theme in the visual suite | Finding snapshots retain existing debt instead of suppressing rules |
 
@@ -50,7 +50,7 @@ browser run checks the inventory after building; it never updates it.
 and `visual.spec.ts` derives its route and image matrix from the same entries.
 The component-page entries also receive example-by-example checks and one image
 per example stage. `reader-journeys.spec.ts` covers the shared shell and code controls;
-`interaction-cases.ts` names the additional component/state pairs used by
+`interaction-cases.mts` names the additional component/state pairs used by
 `component-interactions.spec.ts` and visual checks. `release-docs.spec.ts` and
 `interactive-guides.spec.ts` retain the existing focused assertions, including
 geometry, disabled controls, catalog categories, tree behavior, and editor tools.
@@ -61,9 +61,37 @@ asserted on the relevant controls and owning compound components. This inventory
 is a migration coverage contract, not a claim that all possible application
 compositions, inputs, or accessibility concerns are exhausted.
 
-## Content boundaries at this revision
+## Compact component state sheets
 
-The package builds 73 components; the sidebar/catalog has 71 component pages.
+`apps/storybook/tests/state-sheets.spec.ts` derives a screenshot inventory from
+every published component in `generated/component-api.json`. Each inventory
+includes its finite public boolean and keyword choices, authored examples,
+applicable pointer and keyboard states, and the shared authored interaction
+cases. Button variants also receive hover, focus and pressed captures. Floating
+surface choices are opened through their real triggers so placement and size
+checks cannot pass with only an image of a closed trigger. Authored example
+behavior modules run with the same setup and cleanup as the documentation. The
+inventory JSON is itself a reviewed snapshot, so a new component or finite
+choice cannot silently disappear from coverage.
+
+Each state is cropped to its visible component, text and open overlays, with a small allowance for focus outlines, arrows and shadows. Empty layout wrappers do not enlarge the capture. Small controls retain their natural size, and the sheet itself is cropped to its content rather than a page viewport. State labels stay compact. The pinned renderer compares with zero differing pixels above a small color tolerance; there is no sheet-wide percentage allowance that could hide a broken small control inside a large sheet.
+
+Each component has a compact sheet in both light and dark. Core controls and
+surfaces also run through every starter theme. The fixture uses the real
+components and real pointer/keyboard input; it does not substitute CSS classes
+for browser states. Internal implementation parts and deferred components are
+outside this published-component inventory and remain covered by their owners.
+This is a finite state contract, not every possible combination of application
+content and component properties.
+
+`pnpm --dir apps/storybook visual:update` updates these sheets in the pinned rendering container. They cover every published component and its authored examples, including newly added components such as Pagination. The default qualification captures the state sheets once rather than also taking redundant 1280×800 gallery images. CI distributes sheets across eight jobs, each with one browser worker. Inspect changed images and their inventory before committing them. `visual:test` compares the sheets against those references, using one browser worker locally.
+
+## Original migration inventory
+
+These counts describe the original migration fixture. The current published
+component inventory comes from `generated/component-api.json`.
+
+The original package built 73 components; the sidebar/catalog had 71 component pages.
 `ui-icon` and `ui-floating-action-button` have no standalone docs route or authored
 scenario directory. Icons appear in other covered demos. Standalone documentation
 for these two primitives is an existing content gap.

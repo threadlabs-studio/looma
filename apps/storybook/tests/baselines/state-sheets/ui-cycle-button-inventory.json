@@ -1,0 +1,158 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: ghost",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: outline",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: solid",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-appearance",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "ghost: hover",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "ghost: focus",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "ghost: pressed",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "outline: hover",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "outline: focus",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "outline: pressed",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "solid: hover",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "solid: focus",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "solid: pressed",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  }
+]

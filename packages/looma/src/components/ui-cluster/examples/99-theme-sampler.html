@@ -1,24 +1,25 @@
 <!--
 title: Theme sampler
-bind: items=availabilityStates
 description: A compact collection of real controls and a surface for judging a shared theme together.
 -->
-<ui-card treatment="expressive" padding="sm"><ui-stack gap="xs">
+<ui-card treatment="expressive" padding="sm"><ui-stack gap="s">
     <ui-cluster gap="xs" justify="between"><ui-text variant="eyebrow">Fellowship office</ui-text><ui-badge tone="success">Ready</ui-badge></ui-cluster>
-    <ui-cluster gap="xs"><ui-button size="sm" preset="primary">Send memo</ui-button><ui-button size="sm" preset="standard">Save draft</ui-button><ui-button
-        size="sm"
-        variant="outline"
-      >Archive</ui-button><ui-cycle-button
-        id="sampler-availability"
-        size="sm"
-        label="Availability"
-        items='[{"value":"available","label":"Available","icon":"circle-check"},{"value":"busy","label":"Busy","icon":"circle-dot"},{"value":"away","label":"Away","icon":"moon"}]'
-      ></ui-cycle-button></ui-cluster>
+    <ui-text variant="heading" as="h3">Second breakfast, sorted.</ui-text>
+    <ui-text>Frodo plans. Sam follows through.</ui-text>
+    <ui-text variant="caption">Briefing at nine · Bring the maps.</ui-text>
+    <ui-cluster gap="s">
+      <ui-button size="sm" variant="solid" tone="accent">Solid accent</ui-button>
+      <ui-button size="sm" variant="outline" tone="accent">Outline accent</ui-button>
+      <ui-button size="sm" variant="solid" tone="neutral">Solid neutral</ui-button>
+      <ui-button size="sm" variant="outline" tone="neutral">Outline neutral</ui-button>
+      <ui-icon-button size="sm" variant="outline" tone="neutral" match-button label="Acknowledge memo"><ui-icon name="circle-check"></ui-icon></ui-icon-button>
+      <ui-button size="sm" variant="ghost" tone="neutral">Ghost</ui-button>
+    </ui-cluster>
     <ui-input-group><ui-icon slot="prefix" name="search"></ui-icon><ui-input
         size="sm"
         aria-label="Search office"
         placeholder="Search Fellowship office"
       ></ui-input></ui-input-group>
-    <ui-cluster gap="xs"><ui-checkbox size="sm" checked>Notify Sam</ui-checkbox><ui-switch size="sm" checked>Available</ui-switch><ui-badge tone="accent"
+    <ui-cluster gap="s"><ui-checkbox size="sm" checked>Notify Sam</ui-checkbox><ui-switch size="sm" checked>Available</ui-switch><ui-badge tone="accent"
       >Draft</ui-badge></ui-cluster>
   </ui-stack></ui-card>
