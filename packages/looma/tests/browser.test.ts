@@ -56,6 +56,24 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Pagination", () => {
+  it("keeps native HTML page requests controlled and preserves keyboard focus at 375px", async () => {
+    const path = await bundle("pagination-html", `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.requests = []; document.addEventListener("navigate", event => { window.requests.push(event.detail); componentRegistry.update(event.target, { page: event.detail.page }); });`);
+    const page = await open(path, `<main style="font-family:var(--ui-font-family-sans)"><ui-pagination id="pager" page="2" has-previous has-next pages='[{"value":1},{"value":2},{"value":3}]'></ui-pagination></main>`, [join(root, "tokens.css")], { viewport: { width: 375, height: 240 } });
+    try {
+      const next = page.getByRole("button", { name: "Next", exact: true });
+      await next.click();
+      await page.waitForFunction(() => document.querySelector('[aria-current="page"]')?.textContent?.trim() === "3");
+      assert.equal(await next.evaluate(element => element === document.activeElement), true);
+      await page.getByRole("button", { name: "Page 1", exact: true }).press("Space");
+      await page.waitForFunction(() => document.querySelector('[aria-current="page"]')?.textContent?.trim() === "1");
+      assert.equal(await page.getByRole("button", { name: "Previous", exact: true }).isDisabled(), true);
+      assert.deepEqual(await page.evaluate(() => (window as any).requests), [{ page: 3, previousPage: 2, trigger: "pointer" }, { page: 1, previousPage: 3, trigger: "keyboard" }]);
+      await page.screenshot({ path: join(root, "../../.context/pagination-native-mobile.png") });
+    } finally { await page.close(); }
+  });
+});
+
 describe("Reactive form-field control state", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`updates disabled, required and invalid on a nested textarea in ${adapter}`, async () => {
