@@ -75,11 +75,17 @@ import {
   UserRound,
   Users,
   X,
+  Monitor,
+  Sun,
+  Moon,
   type IconNode,
 } from 'lucide';
 
 /** The opinionated Lucide set used by Looma's shipped interaction surfaces. */
 export const LOOMA_ICONS = {
+  monitor: Monitor,
+  sun: Sun,
+  moon: Moon,
   'align-center': AlignCenter,
   'align-left': AlignLeft,
   'align-right': AlignRight,

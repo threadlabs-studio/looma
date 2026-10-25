@@ -137,7 +137,7 @@
     /* Purpose and measured size shape one shared separation lever. The content plane stays opaque;
        transparency, saturation and edge light belong to the surrounding decorative material. */
     .surface {
-      --_ui-material-glassiness: clamp(0, var(--ui-glassiness, 0), 1);
+      --_ui-material-glassiness: calc(clamp(0, var(--ui-glassiness, 0), 1) + 2 * pow(clamp(0, var(--ui-glassiness, 0), 1), 4));
       --_ui-material-separation: clamp(0, var(--ui-surface-separation, 0), 1);
       --_ui-material-active: clamp(0, calc((var(--_ui-material-glassiness) + var(--_ui-material-separation)) * 100000), 1);
       --_ui-material-rim: calc((var(--_ui-material-separation) + var(--_ui-material-glassiness) * 0.25) * var(--_ui-material-scale, 0.08) * 8px);

@@ -100,16 +100,6 @@
       min-block-size: var(--ui-control-size-lg);
     }
 
-    @media (pointer: coarse) {
-      :host {
-        min-block-size: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
-      }
-
-      :host:has(.field [data-ui-input-state~="size=sm"]) {
-        min-block-size: var(--ui-control-min-block-size);
-      }
-    }
-
     :host:hover:not(:has(:is(input, textarea):focus, :is(input, textarea):disabled, :is(input, textarea):read-only, [aria-invalid="true"], :user-invalid)) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }

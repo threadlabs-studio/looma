@@ -429,6 +429,11 @@
           "id": "05-wrap-nowrap",
           "title": "wrap=\"nowrap\"",
           "behavior": false
+        },
+        {
+          "id": "99-theme-sampler",
+          "title": "Theme sampler",
+          "behavior": false
         }
       ]
     },
@@ -576,6 +581,19 @@
         {
           "id": "01-editing",
           "title": "Exact and visual editing",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-cycle-button",
+      "title": "Cycle Button",
+      "source": "apps/docs/docs/components/forms/ui-cycle-button.mdx",
+      "component": "ui-cycle-button",
+      "examples": [
+        {
+          "id": "01-appearance",
+          "title": "Cycling appearance",
           "behavior": false
         }
       ]
