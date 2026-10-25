@@ -6,7 +6,7 @@ try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: { root: { type: 'string' }, port: { type: 'string' }, title: { type: 'string' }, help: { type: 'boolean', short: 'h' } } });
   const [command = 'help'] = positionals;
   if (values.help || command === 'help') {
-    console.log('looma-docs init | dev | build | preview\n\n  --root <project>  Project directory\n  --port <number>   Local server port (default 3000)\n  --title <name>    Documentation title for init\n\nInstall the optional documentation peers: markupress, @nextwebwg/htmlkit and vite.');
+    console.log('looma-docs init | dev | build | preview\n\n  --root <project>  Project directory\n  --port <number>   Local server port (default 3000)\n  --title <name>    Documentation title for init\n\nInstall the optional documentation peers: markupress, @threadlabs/markupkit and vite.');
   } else {
     const options = { ...(values.root ? { root: values.root } : {}), ...(values.title ? { title: values.title } : {}) };
     if (values.port) { const port = Number(values.port); if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Port must be an integer from 0 to 65535.'); options.port = port; }

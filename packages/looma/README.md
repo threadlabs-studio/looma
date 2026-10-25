@@ -67,7 +67,7 @@ The package includes the documentation generator and theme customizer used by Lo
 Install the optional documentation tools, then initialize your project:
 
 ```sh
-pnpm add -D markupress @nextwebwg/htmlkit@1.0.0-alpha.69 vite
+pnpm add -D markupress @threadlabs/markupkit@0.2.0 vite
 pnpm exec looma-docs init
 pnpm exec looma-docs dev
 ```

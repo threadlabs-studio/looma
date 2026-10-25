@@ -2,6 +2,11 @@
 
 ## Next release
 
+- Admit Vite 7 and 8 for the optional documentation tooling peer after installed documentation build and local-writer verification.
+
+- Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
+
+
 ### Focused theme customization
 
 - Start customization on a dashboard of current theme decisions. Open Palette, Material & light, Typography, Size & spacing, or Motion as separate editors, with relevant live samples beside their controls. Editor links support reload and browser navigation; Overview restores the dashboard position and focus.
@@ -22,9 +27,15 @@
 - Give neutral-outline text and icon actions the same restrained border and transparent resting surface, with shared neutral hover/pressed fills. The sampler compares solid accent, outline accent, solid neutral, outline neutral, icon and ghost in that order.
 - Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
 
+- Skeleton now shimmers from left to right by default instead of remaining static or fading in and out. The previous default made pending content look like a static placeholder; the travelling highlight now communicates loading on every ordinary Skeleton. Reduced-motion preferences still keep it static. To retain a static placeholder, pass `animated: false` in Vue or `from:animated="false"` in HTML Next. This default change is a pre-1.0 breaking minor.
+
 - Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 
 - Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
+
+- Allow compatible later pre-1.0 minor releases of Threadlabs dependencies instead of restricting consumers to individual minor versions. Lockfiles retain the tested versions.
+
+- Use MarkupKit 0.2 and Markupress 0.10 in the documentation generator and public docs, including the `mk:` HTML API.
 
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 
@@ -103,7 +114,7 @@
 
 ## v0.33.1
 
-- Ship the Markupress/HTMLKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
+- Ship the Markupress/MarkupKit documentation generator and Looma theme customizer through `@threadlabs/looma/docs` and `looma-docs`. The public site uses the same component catalog and live example cards as project documentation. Export a formula-based CSS theme, save it locally with conflict detection, and discover project HTML Next components in shared categories.
 
 ## v0.33.0
 

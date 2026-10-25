@@ -8,6 +8,7 @@ overrides:
   prosemirror-model: 1.25.11
   prosemirror-transform: 1.12.0
   prosemirror-view: 1.42.3
+  markupress: file:tests/release/bootstrap/markupress-0.10.0.tgz
 
 importers:
 
@@ -77,12 +78,12 @@ importers:
       '@nextwebwg/html-next':
         specifier: 1.0.0-alpha.69
         version: 1.0.0-alpha.69
-      '@nextwebwg/htmlkit':
-        specifier: 1.0.0-alpha.69
-        version: 1.0.0-alpha.69(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       '@threadlabs/looma':
         specifier: workspace:*
         version: link:../../packages/looma
+      '@threadlabs/markupkit':
+        specifier: '>=0.2.0 <1'
+        version: 0.2.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -93,8 +94,8 @@ importers:
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@6.0.3))
       markupress:
-        specifier: ~0.9.1
-        version: 0.9.1(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: file:../../tests/release/bootstrap/markupress-0.10.0.tgz
+        version: file:tests/release/bootstrap/markupress-0.10.0.tgz(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       vite:
         specifier: 8.3.4
         version: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
@@ -154,15 +155,15 @@ importers:
 
   packages/looma:
     dependencies:
-      '@nextwebwg/htmlkit':
-        specifier: 1.0.0-alpha.69
-        version: 1.0.0-alpha.69(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+      '@threadlabs/markupkit':
+        specifier: '>=0.2.0 <1'
+        version: 0.2.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: 0.1.6
-        version: 0.1.6
+        specifier: '>=0.2.0 <1'
+        version: 0.2.0
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -176,8 +177,8 @@ importers:
         specifier: 14.3.1
         version: 14.3.1
       markupress:
-        specifier: ^0.9.1
-        version: 0.9.1(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: file:../../tests/release/bootstrap/markupress-0.10.0.tgz
+        version: file:tests/release/bootstrap/markupress-0.10.0.tgz(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
     devDependencies:
       '@nextwebwg/html-next':
         specifier: 1.0.0-alpha.69
@@ -2197,11 +2198,6 @@ packages:
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
-  '@nextwebwg/htmlkit@1.0.0-alpha.69':
-    resolution: {integrity: sha512-7Ik5fkUDac47v5GDJFnJ99apPcOGDxQHt9depYKyO5GcRXKekPeRnWFTgGQY0bLU/YYY6sR7qa7Lo8osQMhf4g==}
-    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
-    hasBin: true
-
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
@@ -3103,6 +3099,11 @@ packages:
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
+
+  '@threadlabs/markupkit@0.2.0':
+    resolution: {integrity: sha512-Vyb6TebrAIlgQZXodbDWB429H/iMzQP1stdau+5D6b5EnP8vU1z7vJ9R5MlrdLiJ8rV5FKrTn+iHaS7JAMvk/g==}
+    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
+    hasBin: true
 
   '@tiptap/core@2.27.2':
     resolution: {integrity: sha512-ABL1N6eoxzDzC1bYvkMbvyexHacszsKdVPYqhl5GwHLOvpZcv9VE9QaKwDILTyz5voCA0lGcAAXZp+qnXOk5lQ==}
@@ -4947,8 +4948,8 @@ packages:
     resolution: {integrity: sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==}
     engines: {node: '>= 0.10.0'}
 
-  expressmark@0.1.6:
-    resolution: {integrity: sha512-b8Fnj86DaHPrv0aKPhIfux7vEKM3hyJKMhiDrkNtpvYRcoGAaJve5U2vb+PR8qxpvwogIEe+y0oxoj+mM+PVgg==}
+  expressmark@0.2.0:
+    resolution: {integrity: sha512-guprkGpG8vJ+W2emrxxlrD4+Md7zqwOPApJp4CBWFhmrLsIi7sR7YLJlaUPE+k+CEeiTpYwbk3/LKgV7nV1I7g==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -5958,8 +5959,8 @@ packages:
     resolution: {integrity: sha512-4Ej49aYTDFIQ+uBkfX8GBvJGccoARxxPep+7aWTs55ozbjQJpW9M26Fe53vnGgvLeVzva/amzjQQaQu9w0vMhA==}
     hasBin: true
 
-  markdown-it@15.0.2:
-    resolution: {integrity: sha512-q4IGxMv56jCqT4OCRCADBoDP3LO4MhmTXjFbphHPXs4g3j9Xg5RDnxqN8IF/3vIWEU+VCnUq+7JUg/cfy2E6Qw==}
+  markdown-it@15.0.3:
+    resolution: {integrity: sha512-+Az7Ojz3iRGu8KYMvJ6xVhvrxP3eE+vEtJX75Ow88XBpcQNV/0lGX5ZynIIBftREo4DC2jsveAMDaeltmm8QvQ==}
     hasBin: true
 
   markdown-table@2.0.0:
@@ -5968,13 +5969,14 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  markupress@0.9.1:
-    resolution: {integrity: sha512-sxLljrmlzM/Kmu4uCZ4rgyeFoSqIdHYjlDZ8FUqpZ7I628M6CNhsS0D3+nGVOlkbLsUJVUMqC1wHw8B0LT/gqg==}
+  markupress@file:tests/release/bootstrap/markupress-0.10.0.tgz:
+    resolution: {integrity: sha512-wrtx0txY/EV09aDmFSKrOn7PUtLBrVVfwJU58cIs+50H47O2WL7aWjqu/jIXeiFI8yNaFhBmMlol2cndkh686w==, tarball: file:tests/release/bootstrap/markupress-0.10.0.tgz}
+    version: 0.10.0
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
-      '@threadlabs/looma': ^0.37.1 || ^0.38.0
+      '@threadlabs/looma': '>=0.37.1 <1'
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -6494,8 +6496,8 @@ packages:
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
 
-  parseman@0.54.0:
-    resolution: {integrity: sha512-axAkINMNllfz1IRxKhI6qm3GVcBvvTVxnjvIo+kKCmL9PWYeK1XYQO/121uYuEsTvsw1QXpT5wTUyZmu+xTfcQ==}
+  parseman@0.55.2:
+    resolution: {integrity: sha512-FmRj2BmiK08Ey6i4tK8XJPV7JARytnnxLnuozCeyPUVtSgWQ/qolx3zUNXpmjTY5Qz5WKMS/kzc8ui7tYzVDGQ==}
     engines: {node: ^20.19.0 || >=22.13.0}
     hasBin: true
 
@@ -11079,28 +11081,6 @@ snapshots:
       - '@noble/hashes'
       - canvas
 
-  '@nextwebwg/htmlkit@1.0.0-alpha.69(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
-    dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.69
-      parse5: 8.0.1
-      typescript-compiler: '@typescript/typescript6@6.0.2'
-      vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
-    transitivePeerDependencies:
-      - '@noble/hashes'
-      - '@types/node'
-      - '@vitejs/devtools'
-      - canvas
-      - esbuild
-      - jiti
-      - less
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - terser
-      - tsx
-      - yaml
-
   '@noble/hashes@1.4.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -11887,6 +11867,28 @@ snapshots:
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.1)':
     dependencies:
       '@testing-library/dom': 10.4.1
+
+  '@threadlabs/markupkit@0.2.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
+    dependencies:
+      '@nextwebwg/html-next': 1.0.0-alpha.69
+      parse5: 8.0.1
+      typescript-compiler: '@typescript/typescript6@6.0.2'
+      vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - '@types/node'
+      - '@vitejs/devtools'
+      - canvas
+      - esbuild
+      - jiti
+      - less
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - terser
+      - tsx
+      - yaml
 
   '@tiptap/core@2.27.2(@tiptap/pm@2.27.2)':
     dependencies:
@@ -14113,11 +14115,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expressmark@0.1.6:
+  expressmark@0.2.0:
     dependencies:
       htmlparser2: 12.0.0
-      markdown-it: 15.0.2
-      parseman: 0.54.0
+      markdown-it: 15.0.3
+      parseman: 0.55.2
       sanitize-html: 2.18.1
       yaml: 2.9.1
 
@@ -15223,7 +15225,7 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  markdown-it@15.0.2:
+  markdown-it@15.0.3:
     dependencies:
       argparse: 3.0.3
       entities: 8.1.0
@@ -15238,11 +15240,11 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.9.1(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@file:tests/release/bootstrap/markupress-0.10.0.tgz(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
-      '@nextwebwg/htmlkit': 1.0.0-alpha.69(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       '@threadlabs/looma': link:packages/looma
+      '@threadlabs/markupkit': 0.2.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       parse5: 8.0.1
       postcss: 8.5.30
       postcss-value-parser: 4.2.0
@@ -16098,7 +16100,7 @@ snapshots:
     dependencies:
       entities: 8.1.0
 
-  parseman@0.54.0:
+  parseman@0.55.2:
     dependencies:
       linecraft: 0.2.6
       magic-string: 0.30.21

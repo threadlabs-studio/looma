@@ -17,7 +17,7 @@ async function body(request) {
 /** Local capabilities stay in the parent editor; opaque example frames receive only theme CSS. */
 export async function serveLocalDocumentation({ upstream, store, base = '/', port = 0, onSaved = async () => {} }) {
   const target = new URL(upstream);
-  if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1') throw new Error('The documentation upstream must be a loopback HTMLKit server.');
+  if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1') throw new Error('The documentation upstream must be a loopback MarkupKit server.');
   const capability = randomBytes(32).toString('hex');
   let origin;
   const json = (response, status, data) => {

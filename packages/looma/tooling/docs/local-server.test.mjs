@@ -10,12 +10,12 @@ import { startingPoints } from './theme.mjs';
 
 test('loopback editor protects the writer from cross-origin requests, stale sessions and host rebinding', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'looma-local-'));
-  const upstream = createServer((request, response) => { response.setHeader('Content-Security-Policy', "script-src 'self'"); response.end('<html>HTMLKit documentation</html>'); });
+  const upstream = createServer((request, response) => { response.setHeader('Content-Security-Policy', "script-src 'self'"); response.end('<html>MarkupKit documentation</html>'); });
   await new Promise(resolve => upstream.listen(0, '127.0.0.1', resolve));
   let rebuilt = 0;
   const server = await serveLocalDocumentation({ upstream: `http://127.0.0.1:${upstream.address().port}/`, base: '/system/', store: await createThemeStore({ root }), onSaved: async () => { rebuilt++; } });
   try {
-    assert.match(await (await fetch(server.url)).text(), /HTMLKit/);
+    assert.match(await (await fetch(server.url)).text(), /MarkupKit/);
     const preview = await fetch(server.url + '_looma/preview/example/');
     assert.match(preview.headers.get('content-security-policy'), /sandbox allow-scripts/);
     assert.match(preview.headers.get('content-security-policy'), /script-src 'self'/);
