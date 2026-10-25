@@ -1555,6 +1555,34 @@
       ]
     },
     {
+      "path": "components/ui-skeleton",
+      "title": "Skeleton",
+      "source": "apps/docs/docs/components/display/ui-skeleton.mdx",
+      "component": "ui-skeleton",
+      "examples": [
+        {
+          "id": "01-text",
+          "title": "Text lines",
+          "behavior": false
+        },
+        {
+          "id": "02-shapes",
+          "title": "Avatar and media shapes",
+          "behavior": false
+        },
+        {
+          "id": "03-loading-card",
+          "title": "Loading a profile",
+          "behavior": false
+        },
+        {
+          "id": "04-animation",
+          "title": "Optional motion",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-slider",
       "title": "Slider",
       "source": "apps/docs/docs/components/forms/ui-slider.mdx",
