@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-labelledby="title desc">
 <title id="title">Pagination design mockup</title><desc id="desc">Light and dark result panels with compact previous and next controls, numbered pages, a current-page highlight and an ellipsis. The same controls fit a narrow mobile container.</desc>
 <rect width="900" height="430" fill="#f5f5f8"/>
-<g font-family="system-ui, sans-serif"><text x="36" y="46" font-size="26" font-weight="650" fill="#282632">Pagination</text><text x="36" y="73" font-size="14" fill="#686473">Compact controls from the shared Button and Cluster primitives</text>
+<g font-family="system-ui, sans-serif"><text x="36" y="46" font-size="26" font-weight="650" fill="#282632">Pagination</text><text x="36" y="73" font-size="14" fill="#686473">Equal square minimum sizes for numbered and navigation actions</text>
 <rect x="36" y="98" width="396" height="288" rx="12" fill="#fff"/>
 <text x="60" y="132" font-size="17" font-weight="600" fill="#2c2834">Light · results</text>
 <path d="M60 176h348" stroke="#78717e" opacity=".2"/><text x="60" y="165" font-size="13" fill="#78717e">Result 1</text><text x="366" y="165" font-size="13" fill="#78717e">12</text>
@@ -16,7 +16,7 @@
 <text x="286" y="299" text-anchor="middle" font-size="13" fill="#2c2834">…</text>
 <text x="328" y="299" text-anchor="middle" font-size="13" fill="#2c2834">10</text>
 <svg x="362" y="286" width="16" height="16" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" fill="none" stroke="#2c2834" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<text x="60" y="344" font-size="12" fill="#78717e">Current page 3 · native tab order · wraps when needed</text>
+<text x="60" y="344" font-size="12" fill="#78717e">Current page 3 · square minimum boxes · longer values can grow</text>
 <rect x="468" y="98" width="396" height="288" rx="12" fill="#1b1b20"/>
 <text x="492" y="132" font-size="17" font-weight="600" fill="#eeeaf5">Dark · results</text>
 <path d="M492 176h348" stroke="#b1aabf" opacity=".2"/><text x="492" y="165" font-size="13" fill="#b1aabf">Result 1</text><text x="798" y="165" font-size="13" fill="#b1aabf">12</text>
@@ -31,5 +31,5 @@
 <text x="718" y="299" text-anchor="middle" font-size="13" fill="#eeeaf5">…</text>
 <text x="760" y="299" text-anchor="middle" font-size="13" fill="#eeeaf5">10</text>
 <svg x="794" y="286" width="16" height="16" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" fill="none" stroke="#eeeaf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<text x="492" y="344" font-size="12" fill="#b1aabf">Current page 3 · native tab order · wraps when needed</text>
+<text x="492" y="344" font-size="12" fill="#b1aabf">Current page 3 · square minimum boxes · longer values can grow</text>
 <text x="36" y="414" font-size="12" fill="#686473">Design mockup. See the component examples for the working control, native links and unknown totals.</text></g></svg>

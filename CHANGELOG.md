@@ -2,7 +2,7 @@
 
 ## Next release
 
-- Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals.
+- Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
 
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 

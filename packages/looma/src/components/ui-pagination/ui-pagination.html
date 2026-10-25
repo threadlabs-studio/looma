@@ -32,6 +32,7 @@
   <nav from:aria-label="$label">
     <ui-cluster gap="xs">
       <ui-button
+        square
         variant="ghost"
         tone="neutral"
         from:size="$size"
@@ -44,6 +45,7 @@
       <template $each="item, index of $pages">
         <span $if="$index > 0 and $item.value > $pages[$index - 1].value + 1" aria-hidden="true">&hellip;</span>
         <ui-button
+          square
           from:variant="{ true: 'solid', false: 'ghost' }[concat($item.value = $page)]"
           from:tone="{ true: 'accent', false: 'neutral' }[concat($item.value = $page)]"
           from:size="$size"
@@ -56,6 +58,7 @@
         >{format($item.value, 'number')}</ui-button>
       </template>
       <ui-button
+        square
         variant="ghost"
         tone="neutral"
         from:size="$size"
