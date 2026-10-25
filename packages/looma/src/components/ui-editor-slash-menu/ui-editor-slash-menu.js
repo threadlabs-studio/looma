@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
 import { createViewportSurface } from "../shared/overlay.js";
 import { normalizeAnchor, positionMenu } from "../shared/editor.js";
 
@@ -33,8 +34,13 @@ export function connect(host) {
     const visible = Boolean(host.props.open.value && normalizeAnchor(host.props.anchorRect.value)
       && (rows.length > 0 || host.refs.empty.children.length));
     if (host.state.visible !== visible) host.state.visible = visible;
-    if (visible) surface.show();
-    else surface.hide();
+    if (visible) {
+      surface.show();
+      revealActiveItem(element, rows[active]);
+    } else {
+      cancelActiveItemReveal(element);
+      surface.hide();
+    }
   };
   const stop = host.effect(() => {
     const items = Array.isArray(host.props.items.value) ? host.props.items.value : [];
@@ -64,6 +70,7 @@ export function connect(host) {
   element.addEventListener("click", onClick);
   element.addEventListener("mouseover", onMouseover);
   return () => {
+    cancelActiveItemReveal(element);
     stop();
     surface.destroy();
     observer.disconnect();
