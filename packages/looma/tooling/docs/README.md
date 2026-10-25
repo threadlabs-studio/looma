@@ -12,12 +12,12 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D markupress @nextwebwg/htmlkit@1.0.0-alpha.69 vite
+pnpm add -D markupress@^0.9.0 @nextwebwg/htmlkit@1.0.0-alpha.69 vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies (Markupress 0.8.7 or newer on the supported 0.8 line). Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.9 supplies the current documentation theme, including one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
@@ -28,6 +28,8 @@ Initialization creates three project-owned files:
 | `looma.theme.css` | Generated theme, including the shared derivation rules. |
 
 Import `./looma.theme.css` after Looma's tokens and palette in your application's entry point. The initializer prints that import; it leaves existing application files intact. Commit the configuration, recipe and CSS. Add `.looma/` to your project's ignore file: it contains disposable generated documentation and tooling files.
+
+The CSS includes generated derivation rules as well as values. Re-export or save your recipe after a Looma upgrade to adopt updated rules.
 
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
 
