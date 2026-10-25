@@ -6,13 +6,13 @@
     >The surface. outlined is a bordered panel on the page; subtle is a quiet filled one with no border, for supporting details set apart from the flow;
       elevated adds a subtle lift above the page, for a view's one card, such as sign-in. Treatment independently controls decorative material.</prop>
     <prop name="treatment" type="keyword" values="standard, expressive" default="standard"
-    >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material treatment.
-      This does not add elevation or require glass.</prop>
+    >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material
+      treatment. This does not add elevation or require glass.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
-    >accent, info, success, warning and danger add a quiet semantic surface without changing card geometry. Row highlights follow the
-      surface hue; action controls retain their own intent.</prop>
+    >accent, info, success, warning and danger add a quiet semantic surface without changing card geometry. Row highlights follow the surface hue; action
+      controls retain their own intent.</prop>
     <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
@@ -68,7 +68,7 @@
     }
 
     :host([treatment="expressive"]) {
-      --_ui-panel-glass: clamp(0, var(--ui-glassiness, 0), 1);
+      --_ui-panel-glass: calc(clamp(0, var(--ui-glassiness, 0), 1) + 2 * pow(clamp(0, var(--ui-glassiness, 0), 1), 4));
       --_ui-panel-separation: clamp(0, var(--ui-surface-separation, 0), 1);
       --_ui-panel-rim: calc((var(--_ui-panel-separation) + var(--_ui-panel-glass) * 0.25) * 0.65 * 8px);
       border-width: calc(var(--ui-border-width) + var(--_ui-panel-rim));

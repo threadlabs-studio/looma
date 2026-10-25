@@ -56,6 +56,30 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Cycling state button", () => {
+  for(const adapter of ['html','vue']) it(`cycles named icon states without moving focus in ${adapter}`, async () => {
+    const items=[{value:'automatic',label:'Automatic',icon:'monitor'},{value:'light',label:'Light',icon:'sun'},{value:'dark',label:'Dark',icon:'moon'}];
+    const path=await bundle('cycle-state-'+adapter,adapter==='html'?`import '@threadlabs/looma';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.changes=[];document.addEventListener('change',event=>window.changes.push(event.detail));window.selectCycle=()=>componentRegistry.update(document.getElementById('cycle'),{index:2});window.disableCycle=()=>componentRegistry.update(document.getElementById('cycle'),{disabled:true});`:`import {createApp,h,ref} from 'vue';import {CycleButton} from '@threadlabs/looma/vue';const index=ref(0),disabled=ref(false);window.changes=[];window.selectCycle=()=>index.value=2;window.disableCycle=()=>disabled.value=true;createApp({render:()=>h(CycleButton,{id:'cycle',label:'Appearance',items:${JSON.stringify(items)},index:index.value,disabled:disabled.value,'onUpdate:index':value=>index.value=value,onChange:event=>window.changes.push(event.detail)})}).mount('#app');`);
+    const page=await open(path,adapter==='html'?`<ui-cycle-button id="cycle" label="Appearance" items='${JSON.stringify(items)}'></ui-cycle-button>`:'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try {
+      const button=page.locator('#cycle button');
+      await page.addStyleTag({content:'#cycle {display:block;align-items:stretch;justify-content:start;padding:20px;gap:30px}'});
+      assert.deepEqual(await page.locator('#cycle').evaluate(el=>{const s=getComputedStyle(el);return [s.display,s.alignItems,s.justifyContent,s.padding,s.gap];}),['inline-flex','center','center','0px','0px'],'application styles do not change the control’s internal layout');
+      assert.equal(await button.evaluate(el=>el.tagName),'BUTTON');
+      assert.equal(await button.getAttribute('aria-label'),'Appearance: Automatic');
+      assert.ok(await button.locator('svg path,svg rect').count());
+      await button.click();
+      assert.equal(await button.getAttribute('aria-label'),'Appearance: Light');
+      await button.press('Enter');assert.equal(await button.getAttribute('aria-label'),'Appearance: Dark');
+      await button.press('Space');assert.equal(await button.getAttribute('aria-label'),'Appearance: Automatic');
+      assert.equal(await button.evaluate(el=>el===document.activeElement),true);
+      assert.deepEqual(await page.evaluate(()=>(window as any).changes.map((entry:any)=>entry.value)),['light','dark','automatic']);
+      await page.evaluate(()=>(window as any).selectCycle());await page.waitForFunction(()=>document.querySelector('#cycle button')?.getAttribute('aria-label')==='Appearance: Dark');
+      await page.evaluate(()=>(window as any).disableCycle());await page.waitForFunction(()=>(document.querySelector('#cycle button') as HTMLButtonElement).disabled);
+    } finally {await page.close();}
+  });
+});
+
 describe("Pressed icon controls and circular marks", () => {
   it("keeps card corner geometry consistent when changing danger tone in either writing direction", async () => {
     const path = await bundle('card-tone-geometry', 'import "@threadlabs/looma";');
@@ -3295,7 +3319,7 @@ describe("Shared action edges", () => {
       const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
       try {
         const heights = await touch.locator('#primary-0, #more-0').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
-        assert.deepEqual(heights, [44, 44], "the shared edge preserves touch-sized primary and companion controls");
+        assert.deepEqual(heights, [32, 32], "primary and companion retain the same compact visible geometry on touch");
       } finally { await touch.close(); }
     });
   }
@@ -3348,7 +3372,7 @@ describe("Button layout", () => {
           await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
           for (const size of ["sm", "md"]) {
             const heights = await touch.evaluate(size => ["ordinary", "counted", "more"].map(id => document.getElementById(size + "-" + id)!.getBoundingClientRect().height), size);
-            assert.ok(heights.every(height => Math.abs(height - (size === "sm" ? 44 : 52.8)) < .05), "matching sizes share the touch family without collapsing small and medium");
+            assert.ok(heights.every(height => Math.abs(height - (size === "sm" ? 32 : 40)) < .05), "matching sizes retain the declared family on touch");
           }
         } finally { await touch.close(); }
       } finally { await page.close(); }
@@ -4562,7 +4586,7 @@ describe("Form control sizes", () => {
             const style = getComputedStyle(element);
             return { height: element.getBoundingClientRect().height, border: style.borderTopColor, shadow: style.boxShadow };
           }));
-          const expected = touch ? ({sm:44, md:52.8, lg:63.36})[size] : size === "lg" ? 48 : size === "sm" ? 32 : 40;
+          const expected = size === "lg" ? 48 : size === "sm" ? 32 : 40;
           for (const look of looks) assert.ok(Math.abs(look.height - expected) < .05, `${adapter}/${theme}/${size}/${touch}: ${JSON.stringify(looks)}`);
           for (const look of looks) assert.equal(look.border, looks[0].border, "all fields share their quiet outline");
           assert.match(looks[0].shadow, /inset/, "text input is slightly inset");
@@ -4642,7 +4666,7 @@ describe("Form control sizes", () => {
     await page.close();
   });
 
-  it("grow small controls to the touch minimum under a coarse pointer, with body-size field text", async () => {
+  it("keep small control geometry on touch, with body-size native field text", async () => {
     const path = await bundle("html-form-sizes-touch", `import "@threadlabs/looma";`);
     const context = await browser.newContext({ hasTouch: true, isMobile: true });
     const page = await context.newPage();
@@ -4652,8 +4676,8 @@ describe("Form control sizes", () => {
     await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), true);
     const sizes = await measure(page);
-    // Affordances fit inside the shared 44px outer frame.
-    assert.deepEqual(sizes.heights, { input: 44, select: 44, combobox: 44, multiple: 44, button: 44, checkbox: 44, radio: 44, switch: 44 });
+    // Pointer capability does not silently enlarge compact controls.
+    assert.deepEqual(sizes.heights, { input: 32, select: 32, combobox: 32, multiple: 32, button: 32, checkbox: 32, radio: 32, switch: 32 });
     assert.deepEqual(sizes.labels, [0, 0, 0]);
     assert.equal(sizes.fontSize, "16px");
     await context.close();
@@ -10559,6 +10583,24 @@ describe("Shared choice geometry", () => {
 
 
 describe("Optional semantic theme recipe", () => {
+  it('preserves compact visible control proportions on touch without imposing a target-size floor', async () => {
+    const {startingPoints, themeCSS} = await import('../tooling/docs/theme.mjs');
+    const path=await bundle('compact-visible-touch','import "@threadlabs/looma";');
+    const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
+    for(const touch of [false,true]) {
+      const page=await open(path,['sm','md','lg'].map(size=>`<ui-button id="compact-button-${size}" size="${size}">Solid</ui-button><ui-input id="compact-input-${size}" size="${size}" value="Frodo"></ui-input><ui-color-picker id="compact-color-${size}" size="${size}"></ui-color-picker>`).join(''),[join(root,'tokens.css')],{hasTouch:touch,isMobile:touch,viewport:{width:390,height:850}});
+      try {
+        await page.addStyleTag({content:themeCSS(startingPoints.wiki,system)});
+        for(const [size,height] of [['sm',34/1.15],['md',34],['lg',34*1.15]] as const) {
+          const heights=await page.locator(`#compact-button-${size},#compact-input-${size},#compact-color-${size} button`).evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().height));
+          assert.ok(heights.every(value=>Math.abs(value-height)<.1),JSON.stringify({touch,size,height,heights}));
+        }
+        await page.addStyleTag({content:':root {--ui-control-min-block-size:60px}'});
+        assert.ok(Math.abs((await page.locator('#compact-button-md').boundingBox())!.height-34)<.1,'target preference does not change painted geometry');
+      } finally {await page.close();}
+    }
+  });
+
   it('makes the base type token set the document root without multiplying rem twice', async () => {
     const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
     const path = await bundle('root-type-scale', 'import "@threadlabs/looma";');
@@ -10723,6 +10765,21 @@ describe("Bounded value editors", () => {
 
 
 describe("Shared readable material planes", () => {
+  it('lets glass and glow reach expressive maxima', async () => {
+    const {defaultRecipe,themeCSS}=await import('../tooling/docs/theme.mjs');
+    const path=await bundle('expressive-material-ceiling','import "@threadlabs/looma";');
+    const page=await open(path,'<ui-button id="strong-action" preset="primary">Share route</ui-button><ui-card id="strong-panel" treatment="expressive">Fellowship office</ui-card>',[join(root,'tokens.css')]);
+    try {
+      const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
+      const recipe=defaultRecipe();Object.assign(recipe.values,{glow:'1',glassiness:'1','light-strength':'1'});
+      await page.addStyleTag({content:themeCSS(recipe,system)});
+      await page.waitForFunction(()=>[...getComputedStyle(document.querySelector('#strong-action')!).boxShadow.matchAll(/([.\d]+)px/g)].some(match=>Number(match[1])>=53.9));
+      const actual=await page.evaluate(()=>({shadow:getComputedStyle(document.querySelector('#strong-action')!).boxShadow,filter:getComputedStyle(document.querySelector('#strong-panel')!).backdropFilter}));
+      assert.ok([...actual.shadow.matchAll(/(?:rgba\([^)]*,\s*|\/\s*)([.\d]+)\)/g)].some(match=>Number(match[1])>=.53),actual.shadow);
+      assert.ok(parseFloat(actual.filter.match(/blur\(([.\d]+)px\)/)?.[1]??'0')>=35,actual.filter);
+    } finally {await page.close();}
+  });
+
   for (const adapter of ['html','vue']) it(`edits a bounded light position by keyboard, pointer and exact entry in ${adapter}`, async () => {
     const path = await bundle(adapter + '-light-position', adapter === 'html' ? `
       import '@threadlabs/looma'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
@@ -10790,6 +10847,7 @@ describe("Shared readable material planes", () => {
       assert.match(paint['material-select'].image, /radial-gradient/);
       for (const choice of await page.locator('#material-check input, #material-switch input').all()) assert.equal(await choice.evaluate(element => getComputedStyle(element).backgroundColor), paint.primary.fill, 'checked choices keep their accent fill beneath the reflection');
       assert.notEqual(paint.neutral.fill, paint.neutral.text);
+      assert.doesNotMatch(paint.primary.shadow, /inset/, 'edge light follows the outer silhouette rather than drawing an inner frame');
       assert.equal(paint.standard.blur, 'none');
       assert.notEqual(paint.expressive.blur, 'none');
       assert.notEqual(paint.primary.shadow, 'none');

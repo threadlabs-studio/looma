@@ -22,8 +22,7 @@ export function connect(host) {
   let alive = true;
   let selectedExample = '';
   let refinementTrigger;
-  let previewFrame = 0, pending = false, comparing = false, candidate, gestureStart;
-  const entryRecipe = structuredClone(recipe);
+  let previewFrame = 0, pending = false, candidate, gestureStart;
   const abort = new AbortController();
   const say = (text, error = false) => { message.textContent = text; message.setAttribute('role', error ? 'alert' : 'status'); };
   const sayApplied = text => say(theme?.storageAvailable ? text : 'Theme applies to this page. Browser storage is unavailable; download CSS or a recipe to keep it.');
@@ -106,16 +105,15 @@ export function connect(host) {
     changed = JSON.stringify(recipe) !== JSON.stringify(saved);
     paint();
   };
-  const clearComparison = () => {
-    if (!comparing && !candidate) return;
-    comparing = false; candidate = undefined; theme?.compare();
-    root.querySelector('[data-action="compare"]').setAttribute('aria-pressed', 'false');
+  const clearPreview = () => {
+    if (!candidate) return;
+    candidate = undefined; theme?.compare();
     root.querySelector('[data-variation-confirm]').hidden = true;
   };
   const preview = next => {
     const validated = validateRecipe(next);
     if (JSON.stringify(validated.values) === JSON.stringify(recipe.values)) return;
-    clearComparison();
+    clearPreview();
     if (!pending) gestureStart = structuredClone(recipe);
     recipe = validated; pending = true;
     if (!previewFrame) previewFrame = view.requestAnimationFrame(() => {
@@ -189,17 +187,13 @@ export function connect(host) {
     if (!button) { view.requestAnimationFrame(paint); return; }
     if (button.dataset.action === 'save' && saving) return;
     flush();
-    if (!['compare', 'preview-variation', 'apply-variation', 'cancel-variation'].includes(button.dataset.action)) clearComparison();
+    if (!['preview-variation', 'apply-variation', 'cancel-variation'].includes(button.dataset.action)) clearPreview();
     try {
       switch (button.dataset.action) {
         case 'undo': case 'redo':
           theme?.[button.dataset.action](); show(theme?.recipe ?? recipe, false); sayApplied('Previous theme decision restored.'); break;
-        case 'compare':
-          candidate = undefined; comparing = !comparing; theme?.compare(comparing ? entryRecipe : undefined);
-          button.setAttribute('aria-pressed', String(comparing)); root.querySelector('[data-variation-confirm]').hidden = true;
-          say(comparing ? 'Comparing with the theme when you entered. Your edits remain intact. Choose Compare again to return.' : 'Back to your edited theme.'); break;
         case 'preview-variation': {
-          clearComparison();
+          clearPreview();
           const locks = [...root.querySelectorAll('[data-family-lock]')].filter(control => control.querySelector('input')?.checked).map(control => control.dataset.familyLock);
           candidate = nearbyVariation(recipe, root.querySelector('[data-variation-choice]').value, locks);
           theme?.compare(candidate); root.querySelector('[data-variation-confirm]').hidden = false;
@@ -208,10 +202,10 @@ export function connect(host) {
           break;
         }
         case 'apply-variation': {
-          const selected = candidate; clearComparison();
+          const selected = candidate; clearPreview();
           if (selected) show(selected); sayApplied('Variation applied. Undo returns to your previous theme.'); break;
         }
-        case 'cancel-variation': clearComparison(); paint(); say('Variation cancelled; your theme is unchanged.'); break;
+        case 'cancel-variation': clearPreview(); paint(); say('Variation cancelled; your theme is unchanged.'); break;
         case 'light-top': case 'light-left': case 'light-center': {
           const positions = { 'light-top': [.5, 0], 'light-left': [.15, .15], 'light-center': [.5, .5] };
           const [x, y] = positions[button.dataset.action];
@@ -275,7 +269,7 @@ export function connect(host) {
     if (event.target.matches('[data-light-editor]') || event.target.closest?.('[data-token]')) {
       input(event); flush(); sayApplied('Theme remembered in this browser. Undo restores the previous decision.'); return;
     }
-    flush(); clearComparison();
+    flush(); clearPreview();
     if (event.target.matches('[data-unit-for]')) {
       const field = fields.get(event.target.dataset.unitFor);
       try {
@@ -303,7 +297,7 @@ export function connect(host) {
   const cancel = event => { if (event.target.matches('[data-light-editor], [data-editor-kind="curve"]')) { flush(false); say('Drag cancelled; the previous value is restored.'); } };
   const keyboard = event => {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.target.closest?.('input,textarea,select,[contenteditable="true"]')) return;
-    event.preventDefault(); flush(); clearComparison(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
+    event.preventDefault(); flush(); clearPreview(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
   };
   const ready = event => {
     if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
@@ -312,7 +306,7 @@ export function connect(host) {
   let fontRequest = 0;
   const selectFont = async event => {
     const control = event.target.closest?.('[data-font-picker]'); if (!control) return;
-    flush(); clearComparison();
+    flush(); clearPreview();
     const id = control.dataset.fontPicker, family = event.detail.value;
     const fonts = { ...recipe.fonts };
     if (family === 'system') delete fonts[id]; else fonts[id] = family;
@@ -358,5 +352,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearComparison(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
+  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearPreview(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
 }

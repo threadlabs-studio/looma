@@ -196,12 +196,6 @@
       padding-block: max(0px, calc((var(--_row) - max(var(--_line), var(--_ui-switch-track-height, 1.5rem))) / 2)) !important;
     }
 
-    @media (pointer: coarse) {
-      :host([size="sm"]) {
-        --_row: var(--ui-control-min-block-size);
-      }
-    }
-
     /* A component that sets its display still honours the hidden attribute on its root. */
     :host[hidden] {
       display: none !important;
