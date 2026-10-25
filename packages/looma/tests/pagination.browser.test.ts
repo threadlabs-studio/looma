@@ -82,3 +82,23 @@ it("lets long page numbers grow beyond the square minimum without clipping", asy
   expect(bounds.width).toBeGreaterThan(bounds.height);
   expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
 });
+it("keeps focus on the activated page when the visible window changes", async () => {
+  const current = ref(3);
+  const host = document.createElement("div");
+  document.body.append(host);
+  app = createApp({
+    render: () => h(Pagination, {
+      page: current.value,
+      hasPrevious: true,
+      hasNext: true,
+      pages: [...new Set([1, current.value - 1, current.value, current.value + 1, 10])]
+        .sort((a, b) => a - b).map(value => ({ value })),
+      onNavigate: (event: CustomEvent) => { current.value = event.detail.page; },
+    }),
+  });
+  app.mount(host);
+  const fourth = host.querySelector<HTMLButtonElement>('[aria-label="Page 4"]')!;
+  await userEvent.click(fourth);
+  await vi.waitFor(() => expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe("4"));
+  expect(document.activeElement).toBe(host.querySelector('[aria-label="Page 4"]'));
+});

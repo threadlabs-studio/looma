@@ -42,7 +42,7 @@
         from:aria-label="$previousLabel"
         from:data-pagination-page="$page - 1"
       ><ui-icon name="chevron-left"></ui-icon></ui-button>
-      <template $each="item, index of $pages">
+      <template $each="item, index of $pages" $key="$item.value">
         <span $if="$index > 0 and $item.value > $pages[$index - 1].value + 1" aria-hidden="true">&hellip;</span>
         <ui-button
           square
