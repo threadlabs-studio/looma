@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-item-reveal.js";
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
 import { menuItemFrom, menuItems, navigateMenu } from "../shared/menu-navigation.js";
 
@@ -19,7 +20,7 @@ export function connect(host) {
   host.state.internalOpen = lastOpenProp;
 
   const items = () => menuItems(element);
-  const focusFirst = () => requestAnimationFrame(() => items()[0]?.focus());
+  const focusFirst = () => requestAnimationFrame(() => focusAndRevealItem(element, items()[0]));
   const targetEvents = { contextmenu: onContextMenu, keydown: onTargetKeydown, pointerdown: onPointerdown, pointerup: endPress, pointercancel: endPress };
   const detach = () => {
     for (const [type, listener] of Object.entries(targetEvents)) target?.removeEventListener(type, listener);
@@ -37,6 +38,7 @@ export function connect(host) {
   // Light dismiss leaves focus where the user pointed instead of pulling it back to the target.
   const close = (reason, input, returnFocus = reason !== "light-dismiss") => {
     if (!host.state.internalOpen) return;
+    cancelActiveItemReveal(element);
     host.state.internalOpen = false;
     endPress();
     host.dispatch("close", { open: false, reason, trigger: input });
@@ -147,6 +149,7 @@ export function connect(host) {
   const stop = host.effect(apply);
   apply();
   return () => {
+    cancelActiveItemReveal(element);
     stop();
     ids.stop();
     observer.disconnect();
