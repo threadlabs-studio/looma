@@ -245,6 +245,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-pagination": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-popover": {
       "status": "published",
       "package": "@threadlabs/looma"

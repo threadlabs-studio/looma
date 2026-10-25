@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     include: [
+      "tests/pagination.browser.test.ts",
       "tests/badge-overlay.browser.test.ts",
       "tests/compact-editor.browser.test.ts",
       "tests/looma-editor-selection-actions.browser.test.ts",
