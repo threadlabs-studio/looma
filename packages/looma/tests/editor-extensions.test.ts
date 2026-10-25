@@ -26,6 +26,36 @@ import {
 } from "../src/editor/extensions";
 
 describe("editor extension contract", () => {
+  it.each([
+    "<p></p><p>Existing writing</p>",
+    "<p></p><hr>",
+    '<p></p><img src="https://example.com/picture.png">',
+  ])("does not mark an empty first paragraph as an empty document: %s", (content) => {
+    const element = document.createElement("div");
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content });
+    expect(editor.isEmpty).toBe(false);
+    expect(element.querySelector("p")?.classList.contains("is-editor-empty")).toBe(false);
+    editor.destroy();
+  });
+
+  it("restores the empty-document prompt when the last content is deleted or undone", () => {
+    const element = document.createElement("div");
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    const prompt = () => element.querySelector(".is-editor-empty")?.getAttribute("data-placeholder");
+    expect(prompt()).toContain("Type");
+    editor.commands.insertContent("Writing");
+    expect(prompt()).toBeUndefined();
+    editor.commands.undo();
+    expect(prompt()).toContain("Type");
+    editor.commands.redo();
+    expect(prompt()).toBeUndefined();
+    editor.commands.clearContent();
+    expect(prompt()).toContain("Type");
+    editor.setEditable(false);
+    expect(prompt()).toBeUndefined();
+    editor.destroy();
+  });
+
   it("highlights only configured code languages while preserving code block content", () => {
     const content = '<pre><code class="language-sql">SELECT name FROM people WHERE id = 1</code></pre>';
     const plainElement = document.createElement("div");
