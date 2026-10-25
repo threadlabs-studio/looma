@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Use published Markupress 0.10 instead of a bootstrap tarball for corrected header alignment, themed home actions, and live hero content.
+- Rework the public homepage around a live component showcase and clearer paths to building and theming. Center the documentation header while preserving its text baseline, and give home actions an explicit themed accent.
 - Admit Vite 7 and 8 for the optional documentation tooling peer after installed documentation build and local-writer verification.
 
 - Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.

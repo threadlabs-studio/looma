@@ -58,8 +58,7 @@
     "overrides": {
       "prosemirror-model": "1.25.11",
       "prosemirror-transform": "1.12.0",
-      "prosemirror-view": "1.42.3",
-      "markupress": "file:tests/release/bootstrap/markupress-0.10.0.tgz"
+      "prosemirror-view": "1.42.3"
     }
   }
 }
