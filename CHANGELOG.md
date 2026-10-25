@@ -1,16 +1,20 @@
 # Changelog
 
-## Next release
+## v0.37.0
 
 ### Document-root theme scale
-
 - `--ui-font-size` sets the document root in px (16px by default); type, choice geometry, spacing and control roominess derive from `1rem` so they scale once. Base text editing accepts 14–24px, with arithmetic calculated on entry. Other length editors retain px/rem conversion, and visible size samples show actual rem/px heights.
 - This changes the scope of customized base type: ordinary rem-based page layout now scales too. Set the seed on `:root`, rather than nested theme boundaries. Replace relative recipe `text-size` values with an explicit px base; for example, `1.0625rem` under the former 16px root becomes `17px`. No compatibility conversion guesses a previous root.
 - Keep document-root font sizing free of registered relative-length dependency cycles; derived type roles and geometry read the resolved root.
 - Allow six minutes for the public docs build: measured build/setup/upload work exceeded the former five-minute cutoff despite completing its steps.
+- The starting-point API uses `bookish`; remove uses of the obsolete `library` name.
+### Material and palette refinement
+- IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
+### Improvements
+
+## v0.36.0
 
 ### Relational theme editing and reversible exploration
-
 - Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch lifts the whole small/medium/large family instead of flattening small and medium to the same minimum.
 - Rename recipe `density` and CSS `--ui-density` to `spacing` and `--ui-spacing`, matching the direction of the control: increasing it adds space. These pre-1.0 replacements have no compatibility aliases. `--ui-control-size` remains a derived height role.
 - Generate coordinated warmth, intensity and neighboring/complementary surface relationships with perceptual color operations and gamut/readability bounds. Both color modes retain the palette identity; disabled roles stay distinct. These palette transformations are recipe inputs, compiled into resolved color roles rather than inert CSS properties.
@@ -20,8 +24,9 @@
 - Add searchable Google font selection and actual face loading for body/display roles, with the operating system's font as the default. Optional recipe `fonts` provenance travels with JSON; downloaded CSS and locally saved CSS include Google Fonts imports before rules. Self-hosted/custom stacks remain an advanced option.
 - Organize the complete theme-property reference by palette, type, geometry, material, illumination and motion, distinguishing generator inputs, live CSS levers and derived roles.
 
-### Documentation workspaces and control polish
+## v0.35.1
 
+### Documentation workspaces and control polish
 - Customize uses its Starting point, Palette and Material controls as its sidebar. Detailed decisions, example selection and export tools open on demand; the Editor playground also leaves out documentation navigation while editor reference pages keep their own section.
 - Shared catalog cards use Stack spacing for their content and the directory groups. Keep the directory's cards inside Grid through Markdown rendering, restoring columns and gaps. Separator examples use Stack and Cluster spacing rather than adding component margins.
 - Vertical wheel gestures over Tabs scroll the page instead of being captured by the tab strip. Horizontal gestures retain native strip scrolling.
@@ -29,15 +34,12 @@
 - Reel examples have enough items to show meaningful overflow and use native item wrappers for scroll snapping without reaching into component roots.
 - Derive a distinct placeholder color against the field surface, so hints stay readable and visibly quieter than entered text in paired themes.
 
-### Migration: semantic surface treatment
+## v0.35.0
 
+### Migration: semantic surface treatment
 - Replace Card `variant="glass"` with `treatment="expressive"`; add `variant="elevated"` only when the surface also needs a lift. Standard elevated cards retain their subtle treatment. The removed glass value has no compatibility alias on this pre-1.0 release line.
 - Card danger tone now changes only its palette. The previous squared corners and leading stripe made a danger card a different shape from other cards, even when the theme reduced the stripe to an ordinary border. Alerts retain their own accent treatment.
 - Solid neutral Button and IconButton use calm surface fills in both modes instead of text-color fills. Appearance remains independent of tone; existing solid neutral actions keep their labels and behavior.
-- The starting-point API uses `bookish`; remove uses of the obsolete `library` name.
-
-### Material and palette refinement
-
 - Add focused Material and Palette views backed by the same persistent recipe as the main customizer. Presets retain their identity after refinement, show customized status, and restore one family without discarding other decisions.
 - Add LightEditor with pointer, touch, keyboard and exact coordinate editing. Shared relative light position, spread, strength, finish and glow generate material responses across controls, fields, expressive cards and floating surfaces. Bookish uses a top-centre radial reflection; edge lighting remains present when a theme supplies action shadows.
 - Bound reflection peaks and neutral fills for readable text in the generated light/dark pair. Export the complete formula-based theme, including reduced-transparency behavior and the optional preset identities in recipes.
@@ -47,11 +49,8 @@
 - Keep editor references in the Editor section rather than appending them to the general Components navigation.
 - Keep shared depth, spacing and light response consistent between the documentation shell and isolated examples when a remembered theme restores before baseline styles.
 - Bundle independent preview entries with bounded concurrency and overlap isolated consumer checks with the installed documentation build; retain the complete qualification matrix and its time limits.
-- IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
-
-### Improvements
-
 - Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
 ## v0.34.0
 
 ### Migration: readable theme recipes
