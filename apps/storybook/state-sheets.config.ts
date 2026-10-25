@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 import { assertCanonicalStorywrightRuntime } from './scripts/storywright-runtime.mjs';
 assertCanonicalStorywrightRuntime({ argv: ['test'] });
 export default defineConfig({
+  fullyParallel: true,
   testDir: './tests', testMatch: 'state-sheets.spec.ts', workers: 1, retries: 0, maxFailures: 1,
   timeout: 180000, reporter: [['list'], ['html', { open: 'never' }]],
   snapshotPathTemplate: '{testDir}/baselines/state-sheets/{arg}{ext}',
