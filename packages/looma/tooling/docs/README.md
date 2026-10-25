@@ -12,7 +12,7 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D markupress@^0.9.0 @nextwebwg/htmlkit@1.0.0-alpha.69 vite
+pnpm add -D markupress@^0.9.1 @nextwebwg/htmlkit@1.0.0-alpha.69 vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
@@ -32,6 +32,12 @@ Import `./looma.theme.css` after Looma's tokens and palette in your application'
 The CSS includes generated derivation rules as well as values. Re-export or save your recipe after a Looma upgrade to adopt updated rules.
 
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
+
+Starting points set a complete identity across color, typography, shape, spacing,
+material and motion. Palette and material refinements then change only their own
+families. The compact sampler includes heading, body and supporting text beside
+the controls. Search components searches your whole discovered catalog; nine
+previews render initially, and **Show more components** reveals the next group.
 
 ```sh
 pnpm exec looma-docs build
@@ -74,15 +80,15 @@ under `theme`; changing a site title does not require renaming those files.
 
 ## Change the rule, keep the family consistent
 
-The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: control roominess relative to text, spacing, corners, inner and outer depth, and response pace.
+The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: control roominess relative to text, rhythm, spacing, corners, inner and outer depth, and response pace.
 
-The generated values follow rules. The medium control height is base text size times control roominess; small and large heights follow the size ratio. Touch does not inflate the visible size ladder. Hit-area guidance is contextual and adjustable; 44px is a comfort preference for expanded targets, not a mandatory visible height. Invisible targets must not steal neighbouring controls. Spacing derives from base text independently of control roominess and follows its own curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
+The generated values follow rules. The medium control height is base text size times control roominess; small and large heights follow the size ratio. Touch does not inflate the visible size ladder. Hit-area guidance is contextual and adjustable; 44px is a comfort preference for expanded targets, not a mandatory visible height. Invisible targets must not steal neighbouring controls. Rhythm coordinates gaps and unitless line-height multipliers. Spacing fine-tunes gaps independently of text ratios. Spacing derives from base text independently of control roominess and follows its own curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
 
-Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Tonal keeps seed hues; neighboring and complementary relate quiet hues to the action hue. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four color seeds remain available for precise edits; the light/dark range previews and resolved values explain adjustments.
+Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Keep my colors preserves the base hues; Related colors and Contrasting colors tint quiet surfaces toward neighboring and opposite hues. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four Base colors remain visible for precise edits; the light/dark range previews and resolved values explain adjustments.
 
 The customizer uses Starting point, Palette and Material as its controls sidebar, with documentation navigation left out of this workspace. Detailed type, size and motion controls, example selection and exports open when needed.
 
-The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four color seeds. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
+The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four Base colors. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
 
 A refined preset keeps its name with “customized” beside it. **Restore material preset** resets only material and light; **Restore palette preset** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
@@ -92,9 +98,14 @@ Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The dow
 
 Undo and Redo move through accepted recipe changes. There is no page-entry comparison state: reopening the customizer does not create a hidden before/after reference. **Explore nearby styles** previews Warmer, Quieter, More expressive or More compact before you apply it. Palette, Material and Type & spacing locks preserve those families during variations. Cancel preview returns to the current recipe.
 
-Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset returns to the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
+Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset restores the selected starting theme’s values and remains undoable. Removing the header’s Custom theme chip instead clears the browser override and restores the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
 
-Text offers body, display, heading, label, caption, eyebrow and code roles. Choose a heading's document level with `as` independently from its visual role. Button and IconButton keep appearance and tone independent, with four optional shortcuts: primary (solid accent), standard (solid neutral), quiet (ghost neutral) and destructive (solid danger). A named preset takes precedence over the separate choices; `preset="none"` preserves their existing defaults.
+Text offers body, display, heading, label, caption, eyebrow and code roles. Choose a heading's document level with `as` independently from its visual role. Button and IconButton keep appearance and tone independent, with four optional shortcuts: primary (solid accent), standard (solid neutral), quiet (ghost neutral) and destructive (solid danger). A named preset takes precedence over the separate choices; `preset="none"` uses the separate choices. Both default to neutral; choose `tone="accent"` or `preset="primary"` explicitly for emphasis.
+
+**Font** sets body text and controls. Headings follow it while **Heading font** is
+**Same as main font**; choose a second face there for headings and display text.
+Google selections preview real faces and include their import in downloaded or
+locally saved CSS. System font uses the operating system and needs no download.
 
 ## Theme decisions and public properties
 
@@ -102,10 +113,10 @@ The [public token reference](https://github.com/threadlabs-studio/looma/blob/mai
 
 | Family | Recipe decisions → CSS properties |
 | --- | --- |
-| Palette seeds | `action` → `--ui-accent`; `canvas` → `--ui-surface`; `surface` → `--ui-surface-raised`; `text` → `--ui-text` |
+| Base colors | `action` → `--ui-accent`; `canvas` → `--ui-surface`; `surface` → `--ui-surface-raised`; `text` → `--ui-text` |
 | Palette generation (recipe only) | `warmth`, `color-intensity`, `palette-relationship`; compiled into resolved color roles, with no matching CSS custom properties |
 | Type | `body-font` → `--ui-font-sans`; `display-font` → `--ui-font-display`; `text-size` → `--ui-font-size`; `text-weight` → `--ui-font-medium` |
-| Size & spacing | `control-roominess` → `--ui-control-roominess`; `spacing` → `--ui-spacing`; `scale-contrast` → `--ui-scale-ratio`; `space-curve` → `--ui-space-curve`; `corner-roundness` → `--ui-radius-md`; `line-weight` → `--ui-border-width` |
+| Rhythm & spacing | `rhythm` → `--ui-rhythm`; `control-roominess` → `--ui-control-roominess`; `spacing` → `--ui-spacing`; `scale-contrast` → `--ui-scale-ratio`; `space-curve` → `--ui-space-curve`; `corner-roundness` → `--ui-radius-md`; `line-weight` → `--ui-border-width` |
 | Depth and transmission | `outer-depth` → `--ui-outer-depth`; `inner-depth` → `--ui-inner-depth`; `glassiness` → `--ui-glassiness`; `surface-separation` → `--ui-surface-separation`; `translucency` → `--ui-overlay-translucency` |
 | Finish and illumination | `finish` → `--ui-finish`; `edge-light` → `--ui-edge-light`; `glow` → `--ui-glow`; `light-x` → `--ui-light-x`; `light-y` → `--ui-light-y`; `light-spread` → `--ui-light-spread`; `light-strength` → `--ui-light-strength` |
 | Motion | `response-time` → `--ui-motion-fast`; `response-curve` → `--ui-motion-ease` |
@@ -140,7 +151,7 @@ To add a sample to the preview, search **Choose a component example**, select a 
 
 ## Use light, dark, or both
 
-Every generated theme includes a coordinated light/dark pair. The type, geometry and motion decisions stay shared. Both palettes derive readable text, outlines, focus and action states from the same identity; the generator may adjust requested color seeds to maintain contrast.
+Every generated theme includes a coordinated light/dark pair. The type, geometry and motion decisions stay shared. Both palettes derive readable text, outlines, focus and action states from the same identity; the generator may adjust requested base colors to maintain contrast.
 
 Load the generated CSS after Looma's tokens and palette. Choose how it runs:
 
@@ -237,3 +248,5 @@ Use the `@threadlabs/looma/docs` entrypoint for programmatic discovery, catalog 
 The local editor writes only the configured recipe and CSS inside the project. It rejects symlink paths, generated or dependency directories, cross-origin save requests and stale file revisions. A competing edit leaves your unsaved preview in place; reload and reconcile it before saving again. Examples run in isolated frames and receive theme CSS, never the local editing capability.
 
 The writer stages complete files, serializes saves with a project lock, and rolls back the recipe if replacing the CSS fails. If a process stops during a save or build, close the old editor before removing its `.looma/theme-write.lock` or `.looma/docs-build.lock`; restart and save the loaded recipe to regenerate a consistent pair. Change the server base, output directory or theme-file paths by restarting `dev`.
+
+Preset choices use the styled, searchable dropdown already used for fonts and component examples. Palette choices include four color swatches for the accent, neutral fill, canvas and text; the selected field previews the current theme. An inherited default keeps muted text while its options remain readable.

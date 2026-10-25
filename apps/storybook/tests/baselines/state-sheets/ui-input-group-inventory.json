@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "action-position: below",
+    "props": {
+      "actionPosition": "below"
+    },
+    "example": 0
+  },
+  {
+    "name": "action-position: top-end",
+    "props": {
+      "actionPosition": "top-end"
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "multiline: false",
+    "props": {
+      "multiline": false
+    },
+    "example": 0
+  },
+  {
+    "name": "multiline: true",
+    "props": {
+      "multiline": true
+    },
+    "example": 0
+  },
+  {
+    "name": "prefix-kind: text",
+    "props": {
+      "prefixKind": "text"
+    },
+    "example": 0
+  },
+  {
+    "name": "prefix-kind: icon",
+    "props": {
+      "prefixKind": "icon"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: outline",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: subtle",
+    "props": {
+      "variant": "subtle"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-suffix",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-prefix-and-suffix",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-action",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-icon-prefix",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-multiline",
+    "props": {},
+    "example": 4
+  }
+]

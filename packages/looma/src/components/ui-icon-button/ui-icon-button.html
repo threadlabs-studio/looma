@@ -4,7 +4,6 @@
     <prop name="preset" type="keyword" values="none, primary, standard, quiet, destructive" default="none"
     >The same shortcuts as Button: primary is solid accent, standard is solid neutral, quiet is ghost neutral, and destructive is solid danger. A named preset
       wins over variant and tone; none preserves independent choices.</prop>
-    <!-- Computed maps read every member in HTML Next. auto keeps an omitted tone concrete so the preset map can resolve, while retaining the existing variant-dependent appearance. -->
     <computed name="appearance" from="{ none: $variant, primary: 'solid', standard: 'solid', quiet: 'ghost', destructive: 'solid' }[$preset]"></computed>
     <computed name="colorTone" from="{ none: $tone, primary: 'accent', standard: 'neutral', quiet: 'neutral', destructive: 'danger' }[$preset]"></computed>
     <prop name="disabled" type="boolean" default="false"
@@ -21,12 +20,12 @@
     >Matches a boxed Button of the same size when the two share a flex row. Uses the control-size theme tokens and stretches to the row's height, on mouse and
       touch alike. Leave it off for compact toolbar and inline icon buttons.</prop>
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
-    >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
-      accent colour, for the one primary action in a group.</prop>
-    <prop name="tone" type="keyword" values="auto, accent, neutral, danger, success, warning, info" default="auto"
-    >Colour for every variant. auto preserves the existing variant-specific default. When omitted, ghost and outline keep their neutral appearance and solid
-      keeps its accent fill. Set accent for a coloured action or neutral for a quiet one. danger, success, warning and info share Button's intent colors. Native
-      aria-pressed="true" keeps an outline toggle visibly pressed; the consumer owns that state.</prop>
+    >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with its
+      chosen tone.</prop>
+    <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="neutral"
+    >Colour for every variant. The default neutral shares the quiet control family with fields and text buttons. Choose accent explicitly for a coloured action,
+      or primary for solid accent. danger, success, warning and info share Button's intent colors. Native aria-pressed="true" keeps an outline toggle visibly
+      pressed; the consumer owns that state.</prop>
     <prop name="anticipatory" type="boolean" default="false"
     >Keeps the button out of sight until it is wanted: at rest a fine pointer sees only a small guide dot, and the button appears on hover, on focus, or when
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
@@ -217,10 +216,14 @@
       color: var(--_icon-button-text);
     }
 
-    /* Omitted tone retains the existing accent solid; explicit neutral is additive. */
+    /* Neutral actions share the same quiet surface and border roles as fields. */
     :host[data-tone="neutral"] {
       --_tone-highlight: var(--ui-neutral-highlight, none);
       --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
+      --_icon-button-outline-surface: transparent;
+      --_icon-button-border: var(--ui-control-border);
+      --_icon-button-hover-border: var(--ui-control-border-hover, var(--ui-control-border));
+      --_icon-button-text: var(--ui-text);
       --_icon-button-solid-surface: var(--ui-neutral-surface);
       --_icon-button-solid-hover-surface: var(--ui-neutral-hover);
       --_icon-button-solid-text: var(--ui-text);
@@ -407,6 +410,12 @@
 
     :host[data-appearance="outline"]:hover:enabled:not([aria-disabled="true"]) {
       border-color: var(--ui-icon-button-hover-border, var(--_icon-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border))));
+    }
+    :host[data-tone="neutral"][data-appearance="outline"]:hover:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-hover-surface, var(--ui-neutral-hover));
+    }
+    :host[data-tone="neutral"][data-appearance="outline"]:active:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-active-surface, var(--ui-neutral-active));
     }
 
     :host[data-appearance="solid"]:hover:enabled:not([aria-disabled="true"]) {

@@ -1,0 +1,73 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "placement: block",
+    "props": {
+      "placement": "block"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: center",
+    "props": {
+      "placement": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: wrap-left",
+    "props": {
+      "placement": "wrap-left"
+    },
+    "example": 0
+  },
+  {
+    "name": "placement: wrap-right",
+    "props": {
+      "placement": "wrap-right"
+    },
+    "example": 0
+  },
+  {
+    "name": "resizable: false",
+    "props": {
+      "resizable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "resizable: true",
+    "props": {
+      "resizable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: false",
+    "props": {
+      "selected": false
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: true",
+    "props": {
+      "selected": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-image",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-selected",
+    "props": {},
+    "example": 1
+  }
+]

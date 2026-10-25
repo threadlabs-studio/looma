@@ -1,7 +1,7 @@
 import { googleFontStack, systemFont, loadGoogleFonts } from './fonts.mjs';
 import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme, startingPointLabels, nearbyVariation } from './theme.mjs';
+import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme, nearbyVariation } from './theme.mjs';
 
 import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
@@ -21,6 +21,9 @@ export function connect(host) {
   let saving = false;
   let alive = true;
   let selectedExample = '';
+  const catalogExamples = [...root.querySelectorAll('[data-add-example] option[data-example]')].map(option => JSON.parse(option.dataset.example));
+  const removedExamples = new Set();
+  let previewQuery = '', previewLimit = 9;
   let refinementTrigger;
   let previewFrame = 0, pending = false, candidate, gestureStart;
   const abort = new AbortController();
@@ -31,6 +34,7 @@ export function connect(host) {
   const editorFor = (field, value) => valueEditor(field, value, { remPixels: parseFloat(recipe.values['text-size']) });
   let boundsBase;
   const updateControl = (element, value) => {
+    if (element.matches('[data-choice]')) element.dataset.selectedValue = value;
     const field = fields.get(element.dataset.token);
     if (!field || !element.dataset.editorKind) { componentRegistry.update(element, { value }); return; }
     const editor = editorFor(field, value);
@@ -71,23 +75,34 @@ export function connect(host) {
     for (const family of ['material','palette']) {
       const state = refinementState(recipe, family), presets = family === 'material' ? materialPresets : themePalettes;
       for (const select of root.querySelectorAll(`[data-refinement-preset="${family}"]`)) {
-        for (const option of select.options) if (presets[option.value]) option.textContent = presets[option.value].label + (state.id === option.value && state.customized ? ' · customized' : '');
+        for (const option of select.querySelectorAll('option')) if (presets[option.value]) {
+          const label = presets[option.value].label + (state.id === option.value && state.customized ? ' · customized' : '');
+          if (option.textContent !== label) option.textContent = label;
+        }
         updateControl(select, state.id);
+        const origin = startingPoints[recipe.origin ?? startingPointFor(recipe)];
+        const muted = Boolean(origin && themeFields.filter(field => field.family === (family === 'palette' ? 'Colour' : 'Material')).every(field => origin.values[field.id] === recipe.values[field.id]));
+        componentRegistry.update(select, { muted });
       }
       componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
     }
-    for (const control of root.querySelectorAll('[data-font-picker]')) componentRegistry.update(control, { value: recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
+    for (const control of root.querySelectorAll('[data-font-picker]')) componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
     componentRegistry.update(root.querySelector('[data-light-editor]'), { x: Number(recipe.values['light-x']), y: Number(recipe.values['light-y']) });
     const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
     const report = root.querySelector('[data-palette-adjustments]');
-    report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your seed colors stay editable; resolved values are shown below.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
-    root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Seed colors remain editable.' : 'Both ranges preserve your seeds with readable text and essential outlines.';
+    report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your base colors stay editable; resolved values are shown below.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
+    root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Base colors remain editable.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
     for (const card of root.querySelectorAll('[data-example-card]')) if (card.getClientRects().length) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
     const cssControl = root.querySelector('[data-css]');
     if (cssControl.getClientRects().length) updateControl(cssControl, css);
     for (const action of ['undo','redo']) componentRegistry.update(root.querySelector(`[data-action="${action}"]`), { disabled: !theme?.[action === 'undo' ? 'canUndo' : 'canRedo'] });
-    const origin = recipe.origin ?? startingPointFor(recipe);
-    root.querySelector('[data-theme-origin]').textContent = startingPointLabels[origin] ? `${startingPointLabels[origin]}${startingPointFor(recipe) === origin ? '' : ' · customized'}` : 'Your theme';
+    for (const button of root.querySelectorAll('[data-relationship]')) button.setAttribute('aria-pressed', String(button.dataset.relationship === recipe.values['palette-relationship']));
+    for (const sample of root.querySelectorAll('[data-relationship-preview]')) {
+      if (!sample.getClientRects().length) continue;
+      const tokens = deriveTheme({ ...recipe, values: { ...recipe.values, 'palette-relationship': sample.dataset.relationshipPreview } }, { mode: 'light' }).tokens;
+      for (const [role, token] of [['canvas','--ui-surface'],['content','--ui-surface-raised'],['action','--ui-accent']]) sample.style.setProperty('--_palette-' + role, tokens[token]);
+    }
+    for (const indicator of root.querySelectorAll('[data-relationship-selected]')) indicator.hidden = indicator.dataset.relationshipSelected !== recipe.values['palette-relationship'];
     root.querySelector('[data-material-dependencies]').textContent = Number(recipe.values['light-strength']) === 0
       ? 'Light strength is zero: reflections, glow and bright edge catches are off. Depth shadows and the dark edge remain; depth still follows the source direction.'
       : Number(recipe.values.finish) === 0 ? 'This material is matte: light spread has no reflection to shape. Raise Finish or choose Polished to see it; depth and illuminated edges remain independent.'
@@ -133,17 +148,25 @@ export function connect(host) {
     gestureStart = undefined;
   };
   const filterExamples = () => {
-    const words = root.querySelector('[data-example-query]').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-    let visible = 0;
-    for (const card of root.querySelectorAll('[data-customizer-overview] .examples [data-example-card]')) {
-      const matches = words.every(word => card.textContent.toLocaleLowerCase().includes(word) || card.dataset.componentCard.includes(word));
-      card.closest('section').hidden = !matches;
-      if (matches) visible++;
-    }
-    root.querySelector('[data-example-count]').textContent = visible ? `${visible} example${visible === 1 ? '' : 's'} in preview` : 'No previews match. Clear the filter or add another example.';
+    const query = root.querySelector('[data-example-query]').value.toLocaleLowerCase().trim();
+    if (query !== previewQuery) { previewQuery = query; previewLimit = 9; }
+    const words = query.split(/\s+/).filter(Boolean), seen = new Set(), identities = new Set(), matches = [];
+    const include = (example, chosen = false) => {
+      const text = [example.title, example.tag, example.description, example.exampleTitle, example.category].join(' ').toLocaleLowerCase();
+      if (removedExamples.has(example.id) || identities.has(example.id) || (!chosen && seen.has(example.tag)) || !words.every(word => text.includes(word))) return;
+      identities.add(example.id); seen.add(example.tag); matches.push(example);
+    };
+    host.state.cards.forEach(example => include(example, true));
+    catalogExamples.forEach(example => include(example));
+    host.state.previews = matches.slice(0, previewLimit);
+    const visible = Math.min(matches.length, previewLimit);
+    root.querySelector('[data-example-count]').textContent = visible ? `Showing ${visible} of ${matches.length} preview${matches.length === 1 ? '' : 's'}` : 'No components match. Try another name, tag or purpose.';
+    root.querySelector('[data-action="more-examples"]').hidden = visible >= matches.length;
+    view.requestAnimationFrame(paint);
     componentRegistry.update(root.querySelector('[data-action="add"]'), { disabled: !selectedExample || host.state.cards.some(item => item.id === selectedExample) });
   };
   const refinedRecipe = values => {
+    if (recipe.values['display-font'] === recipe.values['body-font'] && values['display-font'] === recipe.values['display-font']) values = { ...values, 'display-font': values['body-font'] };
     const presets = { ...recipe.presets };
     for (const family of ['material', 'palette']) {
       const state = refinementState(recipe, family);
@@ -195,7 +218,7 @@ export function connect(host) {
         case 'preview-variation': {
           clearPreview();
           const locks = [...root.querySelectorAll('[data-family-lock]')].filter(control => control.querySelector('input')?.checked).map(control => control.dataset.familyLock);
-          candidate = nearbyVariation(recipe, root.querySelector('[data-variation-choice]').value, locks);
+          candidate = nearbyVariation(recipe, root.querySelector('[data-variation-choice]').dataset.selectedValue, locks);
           theme?.compare(candidate); root.querySelector('[data-variation-confirm]').hidden = false;
           const differences = themeFields.filter(field => recipe.values[field.id] !== candidate.values[field.id]);
           root.querySelector('[data-variation-description]').textContent = differences.length ? differences.map(field => `${field.label}: ${recipe.values[field.id]} → ${candidate.values[field.id]}`).join('; ') : 'No changes: the relevant families are locked or already at their bounds.';
@@ -235,10 +258,14 @@ export function connect(host) {
           if (!option) break;
           const selected = JSON.parse(option.dataset.example);
           const card = Object.fromEntries(['id','title','description','exampleTitle','src','resizable','category','tag','nativeRoot','href','packageName'].map(key => [key, selected[key]]));
-          if (!host.state.cards.some(item => item.id === card.id)) host.state.cards = [...host.state.cards, card];
+          removedExamples.delete(card.id);
+          if (!host.state.cards.some(item => item.id === card.id)) host.state.cards = [card, ...host.state.cards];
+          updateControl(root.querySelector('[data-example-query]'), ''); previewQuery = '';
+          previewLimit = Math.max(previewLimit, host.state.cards.length);
           say(`${card.title} · ${card.exampleTitle} added to preview.`);
           view.requestAnimationFrame(() => { paint(); filterExamples(); }); break;
         }
+        case 'more-examples': previewLimit += 9; filterExamples(); break;
         case 'css': {
           const response = await fetch(root.dataset.base + '_looma/theme-system.css', { signal: abort.signal });
           if (!response.ok) throw new Error('Could not load the shared theme recipe.');
@@ -246,7 +273,12 @@ export function connect(host) {
         }
         case 'recipe': download(JSON.stringify(recipe, null, 2) + '\n', 'looma.theme.json', 'application/json'); say('Editable recipe downloaded.'); break;
         case 'import': file.click(); break;
-        case 'reset': show(theme?.reset() ?? structuredClone(saved), false); say(theme?.storageAvailable ? 'Browser customization reset to the saved theme.' : 'Changes reset for this page. Browser storage is unavailable, so a previous browser theme may return after reload.'); break;
+        case 'reset': {
+          const origin = recipe.origin ?? startingPointFor(recipe);
+          show(startingPoints[origin] ? { ...structuredClone(startingPoints[origin]), origin } : structuredClone(saved));
+          sayApplied('Restored this theme’s starting values. Undo brings your changes back.'); break;
+        }
+        case 'palette-relationship': show(refinedRecipe({ ...recipe.values, 'palette-relationship': button.dataset.relationship })); sayApplied('Color relationship applied to both modes.'); break;
         case 'save': {
           if (!capability) throw new Error('Repository saving is available only in the local documentation server.');
           const submitted = structuredClone(recipe);
@@ -266,6 +298,7 @@ export function connect(host) {
     finally { if (button.dataset.action === 'save') saving = false; }
   };
   const change = async event => {
+    const value = event.detail?.value ?? event.target.value;
     if (event.target.matches('[data-light-editor]') || event.target.closest?.('[data-token]')) {
       input(event); flush(); sayApplied('Theme remembered in this browser. Undo restores the previous decision.'); return;
     }
@@ -282,15 +315,20 @@ export function connect(host) {
     }
     if (event.target.matches('[data-refinement-preset]')) {
       const family = event.target.dataset.refinementPreset;
-      show(applyRefinement(recipe, family, event.target.value));
+      show(applyRefinement(recipe, family, value));
       sayApplied(`${family === 'material' ? 'Material' : 'Coordinated palette'} preset applied and remembered in both modes.`);
     }
-    if (event.target.matches('[data-preset]')) { show({ ...structuredClone(startingPoints[event.target.value]), origin: event.target.value }); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
+    if (event.target.matches('[data-preset]')) { show({ ...structuredClone(startingPoints[value]), origin: value }); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
     if (event.target === file && file.files[0]) {
       try { show(JSON.parse(await file.files[0].text())); sayApplied('Recipe applied throughout the documentation and remembered in this browser.'); }
       catch (error) { say(error.message, true); }
       file.value = '';
     }
+  };
+  const choose = event => {
+    if (!event.target.matches('[data-choice]') || event.detail.kind !== 'selection') return;
+    event.target.dataset.selectedValue = event.detail.value;
+    if (!event.target.matches('[data-variation-choice]')) change(event);
   };
   const blur = event => { const control = event.target; if (control.closest?.('[data-token]')) queueMicrotask(() => { if (alive && control.validity?.customError) say(control.validationMessage, true); }); };
   const synchronize = () => { if (!pending && theme && JSON.stringify(recipe) !== JSON.stringify(theme.recipe)) show(theme.recipe, false); };
@@ -302,17 +340,29 @@ export function connect(host) {
   const ready = event => {
     if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
   };
-  const remove = event => { host.state.cards = host.state.cards.filter(card => card.id !== event.detail.id); view.requestAnimationFrame(filterExamples); };
+  const remove = event => {
+    const example = catalogExamples.find(card => card.id === event.detail.id);
+    const chosen = host.state.cards.some(card => card.id === event.detail.id);
+    host.state.cards = host.state.cards.filter(card => card.id !== event.detail.id);
+    const siblingRemains = host.state.cards.some(card => card.tag === example?.tag);
+    for (const card of catalogExamples) if (card.tag === example?.tag && (!siblingRemains || card.id === event.detail.id)) removedExamples.add(card.id);
+    if (chosen) previewLimit = Math.max(9, previewLimit - 1);
+    view.requestAnimationFrame(filterExamples);
+  };
   let fontRequest = 0;
   const selectFont = async event => {
     const control = event.target.closest?.('[data-font-picker]'); if (!control) return;
     flush(); clearPreview();
     const id = control.dataset.fontPicker, family = event.detail.value;
     const fonts = { ...recipe.fonts };
-    if (family === 'system') delete fonts[id]; else fonts[id] = family;
-    const next = { ...refinedRecipe({ ...recipe.values, [id]: family === 'system' ? systemFont : googleFontStack(family) }), fonts };
+    if (family === 'system' || family === 'inherit') delete fonts[id]; else fonts[id] = family;
+    const value = family === 'inherit' ? recipe.values['body-font'] : family === 'system' ? systemFont : googleFontStack(family);
+    const linked = recipe.values['display-font'] === recipe.values['body-font'];
+    if (id === 'body-font' && linked) delete fonts['display-font'];
+    const next = { ...refinedRecipe({ ...recipe.values, [id]: value }), fonts };
+    if (id === 'display-font' && family === 'inherit' && fonts['body-font']) next.fonts['display-font'] = fonts['body-font'];
     const status = root.querySelector(`[data-font-status="${id}"]`), request = ++fontRequest;
-    show(next); status.textContent = family === 'system' ? 'Using your operating system’s native font.' : `Loading ${family} from Google Fonts…`;
+    show(next); status.textContent = family === 'inherit' ? 'Headings use the main font.' : family === 'system' ? 'Using your operating system’s native font.' : `Loading ${family} from Google Fonts…`;
     try {
       await loadGoogleFonts(document, fonts);
       if (alive && request === fontRequest) for (const [field, selected] of Object.entries(fonts)) {
@@ -332,6 +382,7 @@ export function connect(host) {
   root.addEventListener('input', input);
   root.addEventListener('cancel', cancel);
   root.addEventListener('keydown', keyboard);
+  root.addEventListener('value-change', choose);
   root.addEventListener('value-change', selectExample);
   root.addEventListener('value-change', selectFont);
   root.addEventListener('blur', blur, true);
@@ -352,5 +403,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearPreview(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
+  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearPreview(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
 }

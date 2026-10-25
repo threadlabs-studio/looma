@@ -1,6 +1,6 @@
 import { test, expect, ready, screenshot } from "./docs-fixture";
 import coverage from "./coverage.json";
-import { interactionCases } from "./interaction-cases";
+import { interactionCases } from "./interaction-cases.mts";
 import { accessibilityFindings } from "./accessibility";
 
 // The docs shell shared by every page: navbar items, sidebar, previous/next links, and footer.

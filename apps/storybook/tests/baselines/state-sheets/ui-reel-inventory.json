@@ -1,0 +1,87 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "gap: xs",
+    "props": {
+      "gap": "xs"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: s",
+    "props": {
+      "gap": "s"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: m",
+    "props": {
+      "gap": "m"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: l",
+    "props": {
+      "gap": "l"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: xl",
+    "props": {
+      "gap": "xl"
+    },
+    "example": 0
+  },
+  {
+    "name": "item-width: sm",
+    "props": {
+      "itemWidth": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "item-width: md",
+    "props": {
+      "itemWidth": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "item-width: lg",
+    "props": {
+      "itemWidth": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "snap: start",
+    "props": {
+      "snap": "start"
+    },
+    "example": 0
+  },
+  {
+    "name": "snap: center",
+    "props": {
+      "snap": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-gap-item-width-and-snap",
+    "props": {},
+    "example": 1
+  }
+]

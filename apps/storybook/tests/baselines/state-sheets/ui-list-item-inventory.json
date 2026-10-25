@@ -1,0 +1,116 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "align: center",
+    "props": {
+      "align": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: title",
+    "props": {
+      "align": "title"
+    },
+    "example": 0
+  },
+  {
+    "name": "current: false",
+    "props": {
+      "current": false
+    },
+    "example": 0
+  },
+  {
+    "name": "current: true",
+    "props": {
+      "current": true
+    },
+    "example": 0
+  },
+  {
+    "name": "highlighted: false",
+    "props": {
+      "highlighted": false
+    },
+    "example": 0
+  },
+  {
+    "name": "highlighted: true",
+    "props": {
+      "highlighted": true
+    },
+    "example": 0
+  },
+  {
+    "name": "leading-interactive: false",
+    "props": {
+      "leadingInteractive": false
+    },
+    "example": 0
+  },
+  {
+    "name": "leading-interactive: true",
+    "props": {
+      "leadingInteractive": true
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: row",
+    "props": {
+      "variant": "row"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: card",
+    "props": {
+      "variant": "card"
+    },
+    "example": 0
+  },
+  {
+    "name": "wrap: false",
+    "props": {
+      "wrap": false
+    },
+    "example": 0
+  },
+  {
+    "name": "wrap: true",
+    "props": {
+      "wrap": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-link",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-trailing",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-card-and-current",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 05-highlighted",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 06-wrapping",
+    "props": {},
+    "example": 4
+  }
+]

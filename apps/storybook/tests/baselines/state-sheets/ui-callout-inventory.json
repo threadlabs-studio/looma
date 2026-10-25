@@ -1,0 +1,85 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "tone: info",
+    "props": {
+      "tone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: note",
+    "props": {
+      "tone": "note"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: tip",
+    "props": {
+      "tone": "tip"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: important",
+    "props": {
+      "tone": "important"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: warning",
+    "props": {
+      "tone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: caution",
+    "props": {
+      "tone": "caution"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: success",
+    "props": {
+      "tone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default-tone",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-tone-values",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-heading",
+    "props": {},
+    "example": 2
+  }
+]

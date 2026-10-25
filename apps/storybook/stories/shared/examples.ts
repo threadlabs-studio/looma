@@ -10,6 +10,7 @@ const sources = import.meta.glob("../../../../packages/looma/src/components/*/ex
 }) as Record<string, string>;
 
 interface Example {
+  file: string;
   title: string;
   description: string;
   html: string;
@@ -19,18 +20,17 @@ export function componentExamples(tag: string): Example[] {
   return Object.entries(sources)
     .filter(([file]) => file.includes(`/components/${tag}/examples/`))
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, source]) => {
+    .map(([file, source]) => {
       const front = source.match(/^\s*<!--([\s\S]*?)-->/);
       const field = (name: string) => front?.[1].match(new RegExp(`^\\s*${name}:\\s*(.+)$`, "m"))?.[1].trim() ?? "";
-      return { title: field("title"), description: field("description"), html: source.replace(/^\s*<!--[\s\S]*?-->\s*/, "") };
+      return { file, title: field("title"), description: field("description"), html: source.replace(/^\s*<!--[\s\S]*?-->\s*/, "") };
     });
 }
 
 const kebab = (name: string) => name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 
-/** The component's first example, with the story's args set on the component. */
-export function renderExample(tag: string, args: Record<string, unknown> = {}): DocumentFragment {
-  const [example] = componentExamples(tag);
+export function renderExample(tag: string, args: Record<string, unknown> = {}, exampleIndex = 0): DocumentFragment {
+  const example = componentExamples(tag)[exampleIndex];
   const template = document.createElement("template");
   template.innerHTML = example?.html ?? `<${tag}></${tag}>`;
   const root = template.content.querySelector(tag);

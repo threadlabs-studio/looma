@@ -1,5 +1,5 @@
 import { test, ready } from "./docs-fixture";
-import { interactionCases } from "./interaction-cases";
+import { interactionCases } from "./interaction-cases.mts";
 
 for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 }]) {
   test.describe(`${viewport.width}px reader actions`, () => {

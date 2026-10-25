@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 01-form-footer",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-dialog-footer",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-narrow",
+    "props": {},
+    "example": 2
+  }
+]

@@ -98,6 +98,28 @@ test('saved and imported recipes identify their starting point without claiming 
 const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(s => s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
 
+test('Forest & cream pairs a forest accent with cream light neutrals', () => {
+  const recipe = applyRefinement(defaultRecipe(), 'palette', 'garden');
+  const { tokens } = deriveTheme(recipe, { mode: 'light' });
+  const rgb = name => [1, 3, 5].map(i => parseInt(tokens[name].slice(i, i + 2), 16));
+  for (const name of ['--ui-surface', '--ui-surface-raised', '--ui-neutral-surface']) {
+    const [r, g, b] = rgb(name);
+    assert.ok(r > g && g > b, `${name} should be warm cream, received ${tokens[name]}`);
+  }
+  const [r, g] = rgb('--ui-accent');
+  assert.ok(g > r, 'accent remains forest green');
+});
+
+test('starter rhythm is independent from gap spacing and exports a unitless seed', () => {
+  assert.ok(Number(startingPoints.wiki.values.rhythm) < Number(startingPoints.clear.values.rhythm));
+  assert.ok(Number(startingPoints.editorial.values.rhythm) > Number(startingPoints.clear.values.rhythm));
+  const recipe = structuredClone(startingPoints.wiki);
+  recipe.values.rhythm = '1.5';
+  assert.equal(deriveTheme(recipe).tokens['--ui-rhythm'], '1.5');
+  assert.equal(recipe.values.spacing, startingPoints.wiki.values.spacing);
+  assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, rhythm: '1.5rem' } }));
+});
+
 test('neutral fills stay in the surface family and reflection peaks remain readable in both modes', () => {
   for (const recipe of Object.values(startingPoints)) for (const mode of ['light', 'dark']) {
     const { tokens } = deriveTheme(recipe, { mode });

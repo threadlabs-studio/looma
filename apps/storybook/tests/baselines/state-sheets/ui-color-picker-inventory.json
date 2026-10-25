@@ -1,0 +1,85 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "round: false",
+    "props": {
+      "round": false
+    },
+    "example": 0
+  },
+  {
+    "name": "round: true",
+    "props": {
+      "round": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-shapes-and-sizes",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "toggle color editor",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]
