@@ -197,7 +197,7 @@ custom properties, with no component selectors or runtime script.
 @import "@threadlabs/looma/theme-system.css";
 
 :root {
-  --ui-font-size: 1rem;
+  --ui-font-size: 16px;
   --ui-font-display: Georgia, serif;
   --ui-control-roominess: 2.75;
   --ui-spacing: 1.05;
@@ -228,7 +228,7 @@ at `1` and spacing/curve/depth at `0` where needed.
 | --- | --- | --- |
 | `--ui-font-sans` | `system-ui, sans-serif` in generated themes | Body/interface font stack; System font uses the operating system's native face. |
 | `--ui-font-display` | `system-ui, sans-serif` in generated themes | Display/heading font stack. |
-| `--ui-font-size` | `1rem` | Base text size; 14–24px for px inputs, with 0.875–1.5rem bounds for relative lengths so root preferences remain effective. Relative lengths retain their units. Type steps, choice marks and control heights follow it. |
+| `--ui-font-size` | `16px` | Sets the document root’s font size. The customizer accepts 14–24px; type steps, choice marks, controls and rem-based page layout derive from that root once. |
 | `--ui-font-medium` | `500` | Emphasis weight, 400–700; body and heading weights retain their separate roles. |
 | `--ui-control-roominess` | `2.5` | Unitless height multiplier, 2–4 times base text size. Derives `--ui-control-size`; it is not a length. |
 | `--ui-spacing` | `1` | Unitless space multiplier, 0.75–1.5. Changes gaps and horizontal action insets without changing control heights. |
@@ -251,6 +251,35 @@ when the ratio exceeds 1. Single-line editing/action insets
 (`--ui-control-inset-block-sm`, `-md`, `-lg`) fit their box and typography;
 multiline content can still grow. Horizontal `--ui-action-inset-sm`, `-md`, `-lg`
 follow spacing steps 2–4. Choice marks follow type rather than the row size.
+
+### Choosing units
+
+The base is a pixel value: `:root { --ui-font-size: 18px; }` sets the document
+root to 18px. Normal text is `1rem`, a `2.5rem` control is 45px, and `2rem`
+of layout space is 36px. Derived type and geometry use the root, rather than
+multiplying the authored base value again. The size samples show the actual
+rendered control height in both rem and px; no mental conversion is needed.
+
+| Unit | Use |
+| --- | --- |
+| `px` | The root base; deliberately fixed details such as thin borders and focus strokes; minimum touch target dimensions; pointer coordinates. These are CSS pixels and still follow browser zoom. |
+| `rem` | Type roles, text-related gaps, padding and layout dimensions that should grow with the root. Corners may also use rem when their shape should scale with the interface. |
+| `em` | Inline details that should follow their own text size rather than the document base. |
+| Unitless | Line height, size ratios, roominess and spacing multipliers. |
+
+Base text size is explicitly px-based. Other length editors can switch px/rem
+while preserving the resolved quantity, including minimum and maximum values.
+Their ranges convert through the current root; generated CSS keeps the documented
+pixel bounds, so relative lengths grow with the root until those limits apply. At an 18px root, `9px` becomes `0.5rem`;
+increasing the root to 20px then makes that relative value 10px. Switching units
+alone does not resize it. A 10px root is not needed for arithmetic: the tool
+shows the resolved values while normal text remains `1rem`.
+
+The `--ui-font-size` seed is set on `:root`, not on a nested mode boundary.
+Mode boundaries change the palette without establishing a second rem root.
+Old recipes that stored relative `text-size` values must choose an explicit px
+base (for example, `1.0625rem` at the former 16px root becomes `17px`). There is
+no compatibility conversion that guesses the original root.
 
 ### Material and light inputs
 
@@ -365,9 +394,9 @@ Before 1.0, renamed decisions have no compatibility aliases. Replace recipe
 old length-valued recipe `control-size` with numeric `control-roominess`: divide
 the desired medium height by the base text size (for example, `40px / 16px = 2.5`).
 With the shared recipe, author `--ui-control-roominess`; `--ui-control-size`
-remains a derived public height role. Relative length inputs remain relative;
-when their value cannot be checked as an absolute length, generated bounds use
-`rem` endpoints so the root font preference still scales them.
+remains a derived public height role. Relative geometry inputs keep their units;
+generated guards retain the same documented pixel limits as absolute inputs.
+Recipe `text-size` is now an explicit px base for the document root.
 
 ## Group values
 
@@ -449,12 +478,14 @@ beats the component's own default, and where the component documents it, its pro
 Global theme values inherit on purpose. Set global seeds on `:root` or a `[data-theme]` theme
 boundary: `tokens.css` computes the derived values at those boundaries. A seed set on an arbitrary
 subtree without a theme boundary will not recompute derived values inherited from above it. Use a
-theme boundary for a local palette and group values for a local family change. The editor's
+theme boundary for a local palette and group values for a local family change.
+`--ui-font-size` is a root-only seed: mode boundaries share its resolved rem base. The editor's
 `--ui-editor-*` hooks inherit too: the editor is one surface whose parts are separate elements, and
 editors do not nest.
 
 | Kind | Names | Inherits | Set it on |
 | --- | --- | --- | --- |
+| Root type base | `--ui-font-size` | yes | `:root`; sets the document root font size |
 | Global theme value | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root` or a `[data-theme]` boundary for a coherent derived palette |
 | Group value | `--ui-field-radius`, `--ui-overlay-surface` … | yes | An ancestor of the participating components |
 | Component hook | `--ui-<component>-*` | no | the component itself, through a class of your own |
@@ -554,7 +585,7 @@ size. The optional shared recipe gives `--ui-font-size-xs` a `12px` floor.
 `--ui-control-min-block-size` is `44px` to keep the comfortable touch-target floor
 in CSS pixels when the root font is smaller.
 
-A theme sets one size, `--ui-font-size`, for body copy; every step derives from it, so the scale
+A theme sets one root size, `--ui-font-size`; every type step derives from that resolved root, so the scale
 moves as a whole:
 
 | Step | Multiple | Used for |

@@ -25,6 +25,9 @@
     --ui-text: #1a1a1a;
     --ui-focus-halo: 0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
 
+    /* The base type token owns the document root; rem-based roles scale from it once. */
+    font-size: var(--ui-font-size);
+
     /* Type. */
     --ui-font-sans:
       system-ui,
@@ -38,7 +41,7 @@
       "Apple Color Emoji",
       "Segoe UI Emoji";
     --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    --ui-font-size: 1rem;
+    --ui-font-size: 16px;
     --ui-font-medium: 500;
     --ui-line-height: 1.4;
 
@@ -92,14 +95,14 @@
     --ui-accent-line-width: var(--ui-border-width);
 
     /* Type scale, from the base size. */
-    --ui-font-size-2xs: calc(var(--ui-font-size) * 0.6875);
-    --ui-font-size-xs: calc(var(--ui-font-size) * 0.75);
+    --ui-font-size-2xs: calc(1rem * 0.6875);
+    --ui-font-size-xs: calc(1rem * 0.75);
     /* Dense text: controls, labels, and metadata. Two steps below body copy, never one pixel. */
-    --ui-font-size-sm: calc(var(--ui-font-size) * 0.875);
-    --ui-font-size-md: var(--ui-font-size);
-    --ui-font-size-lg: calc(var(--ui-font-size) * 1.125);
-    --ui-font-size-xl: calc(var(--ui-font-size) * 1.25);
-    --ui-font-size-2xl: calc(var(--ui-font-size) * 1.5);
+    --ui-font-size-sm: calc(1rem * 0.875);
+    --ui-font-size-md: 1rem;
+    --ui-font-size-lg: calc(1rem * 1.125);
+    --ui-font-size-xl: calc(1rem * 1.25);
+    --ui-font-size-2xl: calc(1rem * 1.5);
     --ui-line-height-tight: 1.2;
     --ui-line-height-md: var(--ui-line-height);
     /* Prose, not controls: the editor's document body reads at a looser line height. */
@@ -260,14 +263,14 @@
     --ui-control-size-lg: calc(var(--ui-control-size) * 1.2);
 
     /* Choice marks follow typography; row heights follow the shared control scale. */
-    --ui-choice-mark-size: calc(var(--ui-font-size) * 1.125);
-    --ui-choice-track-height: calc(var(--ui-font-size) * 1.5);
-    --ui-choice-track-width: calc(var(--ui-font-size) * 2.5);
+    --ui-choice-mark-size: calc(1rem * 1.125);
+    --ui-choice-track-height: calc(1rem * 1.5);
+    --ui-choice-track-width: calc(1rem * 2.5);
 
     /* Icon sizes, used by icon buttons and field affordances. */
-    --ui-icon-size-sm: var(--ui-font-size);
-    --ui-icon-size-md: calc(var(--ui-font-size) * 1.25);
-    --ui-icon-size-lg: calc(var(--ui-font-size) * 1.5);
+    --ui-icon-size-sm: 1rem;
+    --ui-icon-size-md: calc(1rem * 1.25);
+    --ui-icon-size-lg: calc(1rem * 1.5);
 
     /* Anticipatory interaction: guide → near → direct. */
     --ui-affordance-guide-size: var(--ui-space-1);
@@ -392,7 +395,7 @@
     background-color: var(--ui-control-surface);
     background-repeat: no-repeat;
     background-position: center;
-    background-size: calc(var(--ui-font-size) * 0.7);
+    background-size: calc(1rem * 0.7);
   }
 
   [data-ui-choice-option][data-multiple][aria-selected="true"]::before {

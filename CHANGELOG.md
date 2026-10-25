@@ -2,6 +2,13 @@
 
 ## Next release
 
+### Document-root theme scale
+
+- `--ui-font-size` sets the document root in px (16px by default); type, choice geometry, spacing and control roominess derive from `1rem` so they scale once. Base text editing accepts 14–24px, with arithmetic calculated on entry. Other length editors retain px/rem conversion, and visible size samples show actual rem/px heights.
+- This changes the scope of customized base type: ordinary rem-based page layout now scales too. Set the seed on `:root`, rather than nested theme boundaries. Replace relative recipe `text-size` values with an explicit px base; for example, `1.0625rem` under the former 16px root becomes `17px`. No compatibility conversion guesses a previous root.
+- Keep document-root font sizing free of registered relative-length dependency cycles; derived type roles and geometry read the resolved root.
+- Allow six minutes for the public docs build: measured build/setup/upload work exceeded the former five-minute cutoff despite completing its steps.
+
 ### Relational theme editing and reversible exploration
 
 - Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch lifts the whole small/medium/large family instead of flattening small and medium to the same minimum.

@@ -320,12 +320,21 @@ test('shared number, slider and curve controls calculate, convert, constrain and
   const action = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(42.5);
   await page.getByText('Type', { exact: true }).click();
-  const textSize = page.getByRole('spinbutton', { name: 'Text size', exact: true });
-  await page.getByRole('combobox', { name: 'Text size unit', exact: true }).selectOption('px');
+  const textSize = page.getByRole('spinbutton', { name: 'Base text size', exact: true });
   await textSize.fill('18px'); await textSize.press('Enter');
-  await page.getByRole('combobox', { name: 'Text size unit', exact: true }).selectOption('rem');
-  await expect(textSize).toHaveValue('1.125rem');
+  await expect(textSize).toHaveValue('18px');
+  await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).fontSize)).toBe('18px');
   await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(45);
+  const corners = page.getByRole('spinbutton', { name: 'Corner roundness', exact: true });
+  await corners.fill('9px'); await corners.press('Enter');
+  await page.getByRole('combobox', { name: 'Corner roundness unit', exact: true }).selectOption('rem');
+  await expect(corners).toHaveValue('0.5rem');
+  await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).getPropertyValue('--ui-radius-md').trim())).toBe('9px');
+  await textSize.fill('20px'); await textSize.press('Enter');
+  await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).fontSize)).toBe('20px');
+  await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).getPropertyValue('--ui-radius-md').trim())).toBe('10px');
+  await expect(page.locator('[data-size-sample="md"] [data-size-readout]')).toContainText('2.5rem (50px)');
+
   const density = page.getByRole('slider', { name: 'Spacing', exact: true });
   await density.press('End'); await expect(density).toHaveValue('150');
   await expect.poll(() => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-spacing').trim())).toBe('1.5');
