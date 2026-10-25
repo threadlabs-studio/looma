@@ -1,0 +1,26 @@
+<!--
+title: Beside a results table
+description: Table owns its rows, Pagination owns page controls, and Stack owns their spacing. Data retrieval and sorting stay with the application.
+-->
+<ui-stack gap="m">
+  <ui-table density="compact"><table>
+      <caption>Catalog results</caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Field guide</th>
+          <td>Available</td>
+        </tr>
+        <tr>
+          <th scope="row">Trail notes</th>
+          <td>Available</td>
+        </tr>
+      </tbody>
+    </table></ui-table>
+  <ui-pagination page="1" has-next pages='[{"value":1},{"value":2},{"value":3}]'></ui-pagination>
+</ui-stack>

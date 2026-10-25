@@ -28,6 +28,10 @@ Tabs and Radio Group report `{ value, previousValue, trigger }`. Menu and Contex
 `{ ids: string[], trigger }`: the requested selected IDs in tree order. Tree Item `selected` remains
 consumer controlled. Editor suggestion menus report `{ index, value }`.
 
+### navigate
+
+Pagination reports `{ page: number, previousPage: number, trigger }` for an enabled page activation. The consumer updates `page`; links keep native navigation and modified clicks do not request an in-place update.
+
 ### activate
 
 Tree in single-selection mode reports `{ id: string, trigger: 'keyboard' | 'pointer' }`
