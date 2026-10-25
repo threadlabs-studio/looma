@@ -47,11 +47,11 @@ export async function buildProjectDocumentation({ root = process.cwd(), config, 
 }
 export async function previewProjectDocumentation({ root = process.cwd(), config, port = 3000 } = {}) {
   if (!config) ({ root, config } = await readConfiguration(root));
-  const { previewApplication } = await tool('@nextwebwg/htmlkit', root);
+  const { previewApplication } = await tool('@threadlabs/markupkit', root);
   return previewApplication({ root, outDir: config.outDir ?? '.looma/site', base: config.base ?? '/', host: '127.0.0.1', port });
 }
 
-/** HTMLKit serves the build; this local-only gateway adds the constrained repository writer. */
+/** MarkupKit serves the build; this local-only gateway adds the constrained repository writer. */
 export async function devProjectDocumentation({ root = process.cwd(), config, catalog, port = 3000, onError = console.error } = {}) {
   const configured = Boolean(config);
   if (!config) ({ root, config } = await readConfiguration(root));

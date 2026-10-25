@@ -39,9 +39,9 @@ export function discoverComponents(input: DiscoveryRoot & { root: string }): Pro
 export function mergeCatalogs(catalogs: DocumentationCatalog[], options?: { categories?: Record<string, string> }): DocumentationCatalog;
 export function prepareDocumentation(input: DocumentationInput & { root: string }): Promise<DocumentationSite>;
 export function buildDocumentation(input?: DocumentationInput): Promise<DocumentationBuild>;
-/** Optional HTMLKit integration; server tooling peers are loaded only when invoked. */
-export function documentationOptions(site: DocumentationSite): Promise<import('@nextwebwg/htmlkit').ApplicationOptions>;
-export function documentationPlugin(site: DocumentationSite): import('@nextwebwg/htmlkit').HtmlKitPlugin;
+/** Optional MarkupKit integration; server tooling peers are loaded only when invoked. */
+export function documentationOptions(site: DocumentationSite): Promise<import('@threadlabs/markupkit').ApplicationOptions>;
+export function documentationPlugin(site: DocumentationSite): import('@threadlabs/markupkit').MarkupKitPlugin;
 export function initializeDocumentation(input?: { root?: string; title?: string }): Promise<{ config: DocumentationConfiguration; files: string[]; applicationImport: string }>;
 export function readConfiguration(root?: string): Promise<{ root: string; config: DocumentationConfiguration }>;
 export function buildProjectDocumentation(input?: DocumentationInput): Promise<DocumentationBuild>;

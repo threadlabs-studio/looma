@@ -11,6 +11,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 const facadeRoot = path.join(repoRoot, "packages/looma");
 const releaseConsumerRoot = path.join(repoRoot, "tests/release/consumer");
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const markupressCandidate = `file:${path.join(repoRoot, "tests/release/bootstrap/markupress-0.10.0.tgz")}`;
 
 async function run(command, args, cwd) {
   await new Promise((resolve, reject) => {
@@ -94,7 +95,7 @@ async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
   assert.equal(installed.name, "@threadlabs/looma");
   await assertPackagesAbsent(
     directory,
-    ["vue", "valibot", "@tiptap/core", "prosemirror-tables", "markupress", "@nextwebwg/htmlkit", "vite"],
+    ["vue", "valibot", "@tiptap/core", "prosemirror-tables", "markupress", "@threadlabs/markupkit", "vite"],
     "a core-only consumer",
   );
 }
@@ -160,6 +161,7 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
       "@threadlabs/looma": `file:${tarball}`,
       "@tiptap/vue-3": "^2.11.5",
       ...facadeManifest.peerDependencies,
+      markupress: markupressCandidate,
     },
   });
   await writeFile(
@@ -246,7 +248,7 @@ async function main() {
         await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
         await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
       })(),
-      verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest),
+      verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest, markupressCandidate),
     ]);
     const failed = consumers.find(consumer => consumer.status === "rejected");
     if (failed) throw failed.reason;

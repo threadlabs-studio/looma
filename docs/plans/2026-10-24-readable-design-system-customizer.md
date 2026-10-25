@@ -13,7 +13,7 @@ execution: code
 
 People can weave a coherent, readable design system in the documentation, keep it while browsing, and use the same theme in their own repository.
 
-Means: shared semantic recipes, reusable Looma editing controls, and the existing package-owned HTMLKit documentation generator (KTD1–KTD5).
+Means: shared semantic recipes, reusable Looma editing controls, and the existing package-owned MarkupKit documentation generator (KTD1–KTD5).
 
 The executor owns implementation, local verification, review, PR, merge, automatic release, and public verification. User requirements govern product behavior; repository contracts govern component ownership and delivery. Completion requires the Definition of Done below.
 
@@ -50,7 +50,7 @@ Preview themes currently disappear on navigation. The customizer omits search an
 
 #### Rendered migration parity and site theming
 
-- R14. Checkpoint the in-progress work, check out the last pre-HTMLKit documentation revision separately, and capture its actual rendered appearance before changing the replacement shell.
+- R14. Checkpoint the in-progress work, check out the last pre-MarkupKit documentation revision separately, and capture its actual rendered appearance before changing the replacement shell.
 - R15. Capture screenshots and computed styles across the prior site's UI, navigation and component examples, including applicable hover, keyboard focus, pressed, selected, expanded and disabled states, desktop, intermediate and mobile layouts, and light/dark themes.
 - R16. Restore the Markupress implementation and match the captured baseline's visual hierarchy, typography, colors, spacing, sidebar structure, navigation affordances and interaction states; record intentional content differences separately from styling regressions.
 - R17. Give Markupress a natural, pleasing default theme distinct from Looma's default, and apply the Looma documentation theme consistently across the complete Looma site.
@@ -78,7 +78,7 @@ R14–R20 are explicit user-directed requirements. The stated capture-before-res
 - KTD4. Build value editors as package components using established HTMLNext contracts, metadata, examples, adapters and source ownership. Arithmetic evaluates on entry and displays the resulting value, as the user selected. Use a restricted unit-aware parser; never execute expressions as code. Parser design and unit compatibility rules are engineering choices (R9).
 - KTD5. Retain existing independent button variant/tone and text APIs, adding missing bounded presets and role coverage through their owning components. Use public shared seeds for Bookish and Wiki; include no downstream private source or assets (R5, R8, R10).
 - KTD6. Use the parent of the documentation migration commit as the rendered reference, with dependencies reused in a detached scratch checkout. Record source revision, route, viewport, theme, state, selector, screenshot path and computed-style values in a machine-readable capture inventory. Restore the current checkout only after this inventory is complete; do not infer parity from source CSS or successful navigation (R14–R16).
-- KTD7. Keep the shared Markupress shell's component behavior and theme inputs reusable. Put Looma's site identity in a site-wide semantic theme rather than hardcoded sidebar-only paint. Prefer existing Looma navigation primitives; any HTMLKit navigation renderer must consume public Looma semantics and own its own internal styles (R17–R18).
+- KTD7. Keep the shared Markupress shell's component behavior and theme inputs reusable. Put Looma's site identity in a site-wide semantic theme rather than hardcoded sidebar-only paint. Prefer existing Looma navigation primitives; any MarkupKit navigation renderer must consume public Looma semantics and own its own internal styles (R17–R18).
 - KTD8. A theme recipe describes one identity with two resolved color-mode palettes. Share geometry, typography and motion across modes, derive both readable palettes in the canonical generator, and emit explicit mode selectors plus a system-preference default. Keep mode selection separate from theme selection; remove superseded pre-1.0 API names without aliases (R19).
 - KTD9. Use the existing public `data-theme="light"` / `data-theme="dark"` DOM boundary convention, with inherited `color-scheme` and semantic roles recomputed at each boundary. Avoid root-only mode rules and ancestor selector specificity that overrides a nearer boundary. Preserve the originating boundary when rendering any floating surface that changes DOM placement (R20).
 

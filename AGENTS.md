@@ -9,7 +9,7 @@ This file is the canonical guidance for AI coding agents in this repository.
   (`@threadlabs/looma`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.
-- `apps/docs-next` is the public HTMLKit/Markupress site at `/looma/`; it consumes
+- `apps/docs-next` is the public MarkupKit/Markupress site at `/looma/`; it consumes
   the same package-shipped documentation generator as downstream projects.
   `apps/docs` is the retained Docusaurus parity fixture. Both and `apps/storybook`
   are private workspaces.
@@ -156,7 +156,7 @@ from 1.0; it must not be used to recreate compatibility layers before then.
   never receives that commit, so shipped entries can linger under Next release
   there; the next release files them under their versions. Optionally, to tidy
   main, run `git fetch --tags` and `node tools/scripts/release-commit.mjs --changelog`.
-- Every green `main` redeploys the package-generated HTMLKit docs site
+- Every green `main` redeploys the package-generated MarkupKit docs site
   (`.github/workflows/docs.yml`, `apps/docs-next/site`).
 - Documentation metadata and examples live beside their component definitions.
   The package owns the renderer, reusable cards and customizer in
@@ -184,3 +184,5 @@ This repository and its docs are public.
 
 - Branch from `main`; commit or push only when asked.
 - Use Conventional Commit messages (`feat(scope): ...`, `fix(scope): ...`).
+
+- Use minimum-version ranges for compatible Threadlabs dependencies across pre-1.0 minor releases; lockfiles record exact tested resolutions. Raise a minimum or add an exclusion for an actual API requirement or verified incompatibility, and record the reason. Keep experimental upstream artifact pins where required.
