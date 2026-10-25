@@ -105,7 +105,7 @@ because each is mixed from it.
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
 | `--ui-disabled-surface`, `--ui-disabled-text`, `--ui-disabled-border` | sunken surface, ink + page | flat surface, pale ink, and a low-contrast edge distinguish a disabled control from every enabled tone |
-| `--ui-disabled-filter` | `none` | compatibility hook for custom disabled treatments |
+| `--ui-disabled-filter` | `none` | optional hook for custom disabled treatments |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 | `--ui-warning-subtle-text` | warning + ink | 55% warning toward the ink. Amber is the lightest intent, so it takes more ink to read at 4.5:1, and a theme can keep a bright, saturated warning for tints, borders, and icons |
 
@@ -114,7 +114,7 @@ In a dark theme the ink is light, so the same mix brightens where it darkened in
 one set of rules serves both.
 
 A disabled Button or Icon Button uses the shared neutral surface, text, and border instead of its
-active tone. Its shadow and highlight disappear. The compatibility filter hook remains available
+active tone. Its shadow and highlight disappear. The optional filter hook is available
 through `--ui-button-disabled-filter` and `--ui-icon-button-disabled-filter`.
 
 ### The rest of the contract
@@ -191,9 +191,9 @@ sizes to give actions more room without changing fields' editing insets.
 ## Optional semantic theme recipe
 
 Import `@threadlabs/looma/theme-system.css` after `tokens.css` and your palette to
-express a theme through shared scales and material decisions. It is opt-in:
-existing themes keep their current defaults when this file is absent. The recipe
-contains only custom properties, with no component selectors or runtime script.
+express a theme through shared type, geometry, material and motion decisions. It
+is opt-in: themes without it retain the base token defaults. The CSS recipe uses
+custom properties, with no component selectors or runtime script.
 
 ```css
 @import "@threadlabs/looma/tokens.css";
@@ -201,11 +201,10 @@ contains only custom properties, with no component selectors or runtime script.
 @import "@threadlabs/looma/theme-system.css";
 
 :root {
-  --ui-accent: #3859b8;
-  --ui-on-accent: #ffffff;
+  --ui-font-size: 1rem;
   --ui-font-display: Georgia, serif;
-  --ui-control-size: 2.75rem;
-  --ui-density: 1.05;
+  --ui-control-roominess: 2.75;
+  --ui-spacing: 1.05;
   --ui-scale-ratio: 1.2;
   --ui-space-curve: 1;
   --ui-radius-md: 0.5rem;
@@ -218,80 +217,161 @@ contains only custom properties, with no component selectors or runtime script.
 ```
 
 Use unlayered declarations, as above, to override the recipe's `theme` layer.
-Lengths, font families, weights, easing functions and durations use native CSS
-syntax. For example, `2rem` remains a relative length and `0.15s` remains a time;
-there is no JavaScript number parser or separate generated theme to synchronize.
-The recipe re-evaluates at `:root`, `[data-theme]` and `[data-contrast]` boundaries.
-Set a local seed on such a boundary when its descendants need a distinct theme.
-A class by itself is not a recomputation boundary.
+Lengths, font families, weights, easing functions and durations use CSS syntax.
+The recipe recomputes at `:root`, `[data-theme]` and `[data-contrast]` boundaries;
+a class alone does not recompute inherited derived values.
 
-### New semantic levers
+### Typography, geometry and spacing inputs
 
-| Property | Default | Meaning and range |
+These defaults describe the shared recipe with the base tokens. The bounds in
+this table are the documentation customizer's authoring limits. Hand-written CSS
+is not validated by that authoring tool; the CSS recipe only guards size ratios
+at `1` and spacing/curve/depth at `0` where needed.
+
+| Property | Default | Customizer range and effect |
 | --- | --- | --- |
-| `--ui-density` | `1` | Spacing unit relative to control size. Nonnegative number; `0` removes the spacing unit. |
-| `--ui-scale-ratio` | `1.2` | Multiplier between small, medium and large boxed controls. Values below `1` behave as `1`. |
-| `--ui-space-curve` | `1` | Exponent for spacing steps. `0` gives equal steps, `1` linear growth, `2` quadratic growth. Negative values behave as `0`. |
-| `--ui-outer-depth` | `0.6` | Strength of raised and floating elevation. `0` is flat; larger nonnegative numbers increase shadow distance and spread. |
-| `--ui-inner-depth` | `0.3` | Strength of recessed field and pressed-control shadows. `0` removes recession. Does not change animation scale. |
-| `--ui-edge-light` | `0` | Edge highlight on actions and recessed controls. Clamped to `0`–`1`; separate from elevation. |
-| `--ui-overlay-translucency` | `0` | Transparency of participating floating surfaces. Clamped to `0`–`1`: `0` opaque, `1` transparent. Inverse tooltips keep their own surface. |
+| `--ui-font-sans` | `system-ui, sans-serif` in generated themes | Body/interface font stack; System font uses the operating system's native face. |
+| `--ui-font-display` | `system-ui, sans-serif` in generated themes | Display/heading font stack. |
+| `--ui-font-size` | `1rem` | Base text size; 14–24px for px inputs, with 0.875–1.5rem bounds for relative lengths so root preferences remain effective. Relative lengths retain their units. Type steps, choice marks and control heights follow it. |
+| `--ui-font-medium` | `500` | Emphasis weight, 400–700; body and heading weights retain their separate roles. |
+| `--ui-control-roominess` | `2.5` | Unitless height multiplier, 2–4 times base text size. Derives `--ui-control-size`; it is not a length. |
+| `--ui-spacing` | `1` | Unitless space multiplier, 0.75–1.5. Changes gaps and horizontal action insets without changing control heights. |
+| `--ui-scale-ratio` | `1.2` | Small/medium/large control ratio, 1–1.5; 1 deliberately makes the sizes equal. |
+| `--ui-space-curve` | `1` | Spacing curve, 0.5–2; 1 is linear and 2 bends the interior steps quadratically, keeping the endpoints fixed. |
+| `--ui-radius-md` | `0.5rem` in base tokens; `8px` in generated themes | Corner seed, 0–32px or equivalent. Derives small, large, action, field and overlay radii; explicit round shapes stay round. |
+| `--ui-border-width` | `1px` | Line weight, 0.5–3px or equivalent; derives emphasis edges. Generated themes give focus a separate minimum of 2px. |
 
-These names describe shared decisions, not individual shadow strings. They derive
-existing roles: `--ui-shadow-xs` through `-xl`, `--ui-elevation-*`,
-`--ui-action-shadow`, `--ui-raised`, `--ui-pressed`, `--ui-control-inset`,
-`--ui-action-edge` and `--ui-overlay-surface`. A component with an explicit hook
-or a specialized surface recipe retains that more specific treatment.
+For base text size `f`, roominess `q`, ratio `r`, spacing `s` and curve `c`, the
+medium height is `h = f × q`; control heights are `h/r`, `h`, `h×r`.
+The spacing unit is `u = f × s / 4`, so changing control roominess does not change page rhythm. The first and last spacing steps stay at
+`u` and `8u`; interior steps use `u × (1 + 7 × (k/7)^c)`, with `k = 1, 2, 3, 5`
+for steps 2–5. Step 0.5 is half of step 1. Changing the control ratio does not
+change spacing. Spacing follows base text independently of control roominess.
 
-### Existing names remain canonical
+On coarse pointers, the small size is at least `--ui-control-min-block-size`
+(default `44px`). Medium and large derive successively from that raised small
+size using the same ratio, so the touch minimum does not collapse distinct sizes
+when the ratio exceeds 1. Single-line editing/action insets
+(`--ui-control-inset-block-sm`, `-md`, `-lg`) fit their box and typography;
+multiline content can still grow. Horizontal `--ui-action-inset-sm`, `-md`, `-lg`
+follow spacing steps 2–4. Choice marks follow type rather than the row size.
 
-| Family | Shared inputs |
+### Material and light inputs
+
+All fraction inputs below run from 0 to 1 in the customizer. They represent
+separate aspects of one material: depth controls elevation/recession, finish
+controls reflection, and transmission controls the decorative background plane.
+
+| Property | Default | Effect and dependencies |
+| --- | --- | --- |
+| `--ui-outer-depth` | `0.6` | 0–2 authoring range. Raised and floating shadow distance/blur; 0 is flat. Light position supplies shadow direction. |
+| `--ui-inner-depth` | `0.3` | 0–2 authoring range. Recessed field and pressed-control shadows; 0 removes recession. |
+| `--ui-glassiness` | `0` | Frosted backdrop blur, saturation and a light-catching rim on participating surfaces. Visible transmission needs a scene behind the decorative plane. |
+| `--ui-surface-separation` | `0` | Decorative rim/offset around participating surfaces; scaled by popup purpose and rendered size. It can appear with glassiness at 0. |
+| `--ui-overlay-translucency` | `0` | Transparency of the shared overlay fill and decorative glass color; 0 is opaque for the overlay fill, 1 transparent. Material content remains on an opaque plane. |
+| `--ui-finish` | `0` | Matte (0) through polished (1). Reflection strength also depends on light strength and the generated readable reflection colors. |
+| `--ui-edge-light` | `0` | Illuminated boundary, independent of depth. Bright edge strength also depends on light strength. |
+| `--ui-glow` | `0` | Soft tone-derived light beyond a surface. Radius depends on glow; visible strength also depends on light strength. |
+| `--ui-light-x` | `0.5` | Source position left (0) to right (1), relative to each surface. |
+| `--ui-light-y` | `0` | Source position top (0) to bottom (1); `(0.5, 0)` is top center. |
+| `--ui-light-spread` | `0.5` | Concentrated spot (0) through broad reflection (1). Requires finish and illumination to show a reflection. |
+| `--ui-light-strength` | `0.65` | Shared illumination response. Does not set elevation or remove depth shadows at 0. |
+
+Finish at 0 removes reflections even when the light is strong. Glow and edge
+light can still respond independently. Glassiness and separation create the
+ornamental outer treatment; raising overlay translucency alone does not make an
+opaque material content plane transparent. A feature's visible effect depends
+on the participating surface and its surroundings. Standard Cards keep their
+quiet treatment; `treatment="expressive"` opts into the theme's material.
+
+| Derived family | Public outputs |
 | --- | --- |
-| Colour | `--ui-accent`, `--ui-surface`, `--ui-surface-raised`, `--ui-text` |
-| Typography | `--ui-font-sans`, `--ui-font-display`, `--ui-font-size`, `--ui-font-medium` |
-| Geometry | `--ui-control-size`, `--ui-radius-md`, `--ui-border-width` |
-| Motion | `--ui-motion-fast`, `--ui-motion-ease` |
+| Elevation | `--ui-shadow-xs`, `-sm`, `-md`, `-lg`, `-xl`; `--ui-raised`; `--ui-elevation-tooltip`, `-overlay`, `-dialog` |
+| Control response | `--ui-action-edge`, `--ui-action-shadow`, `--ui-control-inset`, `--ui-pressed` |
+| Material planes | `--ui-overlay-surface`, `--ui-material-content`, `--ui-material-glass`, `--ui-material-edge` |
+| Reflections | `--ui-surface-highlight`, `--ui-neutral-highlight`, `--ui-accent-highlight`, `--ui-danger-highlight`, `--ui-success-highlight`, `--ui-warning-highlight`, `--ui-info-highlight`; `--ui-raised-highlight` uses the surface highlight |
+| Glow | `--ui-material-glow`, `--ui-neutral-glow`, `--ui-accent-glow`, `--ui-danger-glow`, `--ui-success-glow`, `--ui-warning-glow`, `--ui-info-glow` |
 
-Together with the seven new levers, these are twenty useful authoring decisions,
-not twenty additional aliases or a claim of a universal minimum. The medium font
-weight controls emphasis in participating controls; normal body and semibold
-heading weights retain their separate semantic roles. There is no second
-ornamental accent colour. Focus continues to derive from `--ui-accent` unless
-`--ui-focus-ring` is explicitly set.
+Generated themes also supply bounded reflection colors `--ui-surface-reflection`,
+`--ui-neutral-reflection` and `--ui-{accent,danger,success,warning,info}-reflection`.
+Their brightest stops preserve readable foregrounds. Reduced-transparency and
+forced-color preferences disable ornamental reflection/glow; participating
+components also remove backdrop blur and decorative transmission.
 
-The existing danger, success, warning, info, readable foreground and focus roles
-remain available. The four colour inputs above do not replace the intent palette
-or guarantee contrast. Check text against each actual surface and intent state;
-set `--ui-on-accent`, `--ui-on-danger` and intent shades when needed. Translucent
-surfaces also need checks against the content behind them.
+### Motion inputs and outputs
 
-### Independent scales and deliberate overrides
+| Property | Default | Customizer range and effect |
+| --- | --- | --- |
+| `--ui-motion-fast` | `120ms` | Feedback pace, 0–600ms; accepts `ms` or `s`. |
+| `--ui-motion-ease` | `cubic-bezier(0.2, 0, 0.2, 1)` | Shared acceleration/settling; CSS easing keywords or a cubic Bézier curve. Customizer x coordinates are 0–1, y coordinates −1–2. |
 
-For control height `h`, size ratio `r`, density `d` and spacing curve `c`, the
-recipe uses control sizes `h/r`, `h`, `h*r`, and spacing step `n` is
-`(h*d/10) * n^c`. Steps 1–4 use `n=1,2,3,4`; steps 5 and 6 use `n=6,8`.
-Changing the size ratio leaves the spacing curve unchanged. Native [CSS `pow()`](https://www.w3.org/TR/css-values-4/#exponent-funcs)
-implements the spacing progression. Large values can produce impractical layouts;
-these are authoring controls, not an automatic fit or accessibility guarantee.
+The recipe sets `--ui-motion-press` to the fast duration, `--ui-motion-base` to
+1.5 times it, and `--ui-motion-ease-out` to the chosen curve. Feedback, reveal and
+layout roles derive as fast, base and 1.5 times base, with corresponding
+`--ui-motion-feedback-ease`, `--ui-motion-reveal-ease` and
+`--ui-motion-layout-ease`. Activation scale (`--ui-press-scale`, `0.98`) is
+independent of depth. Reduced motion removes press/reveal timing and activation
+scale; components retain their own reduced-motion handling. Explicit timing
+or scale overrides should also respect that preference.
 
-Single-line Button, Input, Select and Combobox editing areas read derived
-`--ui-control-inset-block-sm`, `-md` and `-lg`. Their vertical padding fits the
-shared height and typography instead of taking page spacing steps. Multi-line
-content may still grow intrinsically, and coarse pointers retain the minimum
-touch target. Horizontal action insets follow size and density. Choice marks
-follow typography; their rows align with the shared heights.
+### Palette generation decisions
 
-Radius steps derive from `--ui-radius-md`; explicit round shapes keep their
-shape. Press timing is one third of `--ui-motion-fast`, reveal timing is 1.2
-times it, and both use `--ui-motion-ease`. Activation scale is a separate derived
-role (`--ui-press-scale: 0.98`), independent of depth. Reduced motion removes that
-scale and the recipe's press/reveal timing. Components retain their own
-reduced-motion behavior; custom timing overrides should also respect the preference.
+The documentation customizer adds a generation step to the CSS recipe. Four
+six-digit hex seeds (`action`, `canvas`, `surface`, `text`) feed the paired
+light/dark palette. Seed defaults below are the customizer's Clear starting point;
+other starting points supply their own values. Resolved outputs may be repaired
+for the requested mode and contrast.
 
-A direct role override still wins. For example, an application can set
-`--ui-shadow-lg` or `--ui-action-inset-md` without replacing the recipe, or set a
-supported group/component hook. The recipe never selects private inputs or labels
-to achieve a theme.
+| Recipe field | Public output | Default seed |
+| --- | --- | --- |
+| `action` | `--ui-accent` | `#5b55d6` |
+| `canvas` | `--ui-surface` | `#f6f6f8` |
+| `surface` | `--ui-surface-raised` | `#ffffff` |
+| `text` | `--ui-text` | `#1a1a1a` |
+
+These generation decisions retain one identity across both modes:
+
+| Recipe field | Default | Range and meaning |
+| --- | --- | --- |
+| `warmth` | `0.5` | 0–1; cool through neutral to warm surfaces and ink. Leaves the action hue independent. |
+| `color-intensity` | `0.5` | 0–1; quiet through vivid chroma across surfaces, action and status colors. 0.5 retains original seed intensity before readability repair. |
+| `palette-relationship` | `preserve` | `preserve` keeps seed hues; `neighboring` relates quiet hues to the action hue +30°; `complementary` uses the action hue +180°, before warmth shifts. |
+
+These three fields are recipe-only generator decisions, with no corresponding
+CSS custom properties. Edit the JSON recipe and regenerate to produce the
+resolved colors. The generator uses Oklab mixing
+and OKLCH hue/chroma adjustments, reduces out-of-gamut chroma while preserving
+hue/lightness, and repairs readable surfaces, text, action foregrounds, borders,
+focus and reflection peaks. Resolved colors may differ from requested seeds.
+Generated CSS includes both palettes and mode boundaries; use `data-theme` to
+choose a mode or leave it unset on the root to follow the system.
+
+The existing intent colors and readable foregrounds remain public. Custom CSS,
+component overrides and arbitrary content still need contrast checks on their
+actual surfaces. A direct supported role or component hook can override a
+derived value without replacing the recipe; the recipe never selects private
+inputs or labels to achieve a theme.
+
+### Recipe files, fonts and migration
+
+The customizer's schema-version-1 JSON stores string decisions in `values`.
+Unknown decision names are rejected, omitted decisions take defaults, and the
+optional `presets` mapping records Palette/Material provenance. An optional
+`fonts` mapping associates `body-font` and/or `display-font` with a curated Google
+Fonts family, while `values` retains the matching CSS font stacks. The System
+font choice needs no download; selected Google faces load in previews and add a
+Google Fonts `@import` before rules in downloaded and locally saved CSS. Advanced
+custom stacks are for already loaded or self-hosted faces; a stack alone does
+not download a font.
+
+Before 1.0, renamed decisions have no compatibility aliases. Replace recipe
+`density` with `spacing` and CSS `--ui-density` with `--ui-spacing`. Replace the
+old length-valued recipe `control-size` with numeric `control-roominess`: divide
+the desired medium height by the base text size (for example, `40px / 16px = 2.5`).
+With the shared recipe, author `--ui-control-roominess`; `--ui-control-size`
+remains a derived public height role. Relative length inputs remain relative;
+when their value cannot be checked as an absolute length, generated bounds use
+`rem` endpoints so the root font preference still scales them.
 
 ## Group values
 
@@ -473,9 +553,10 @@ Its fixed-width content canvas avoids wrapping navigation text during collapse.
 
 ## Typography
 
-Font sizes are `rem`, so a host scales them from the root font size. One exception:
-`--ui-control-min-block-size` is `44px`, because WCAG's touch-target minimum counts CSS pixels and
-must not shrink with a smaller root font.
+Font sizes derive from a `rem` base, so a host scales them from the root font
+size. The optional shared recipe gives `--ui-font-size-xs` a `12px` floor.
+`--ui-control-min-block-size` is `44px` to keep the comfortable touch-target floor
+in CSS pixels when the root font is smaller.
 
 A theme sets one size, `--ui-font-size`, for body copy; every step derives from it, so the scale
 moves as a whole:

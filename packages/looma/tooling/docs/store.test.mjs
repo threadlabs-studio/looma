@@ -46,3 +46,15 @@ test('serializes concurrent saves and leaves the winning recipe and CSS coherent
   const css = await readFile(path.join(root, 'looma.theme.css'), 'utf8');
   assert.ok(/--ui-surface: light-dark\((#[\da-f]+), (#[\da-f]+)\)/i.exec(css).slice(1).includes(current.recipe.values.canvas));
 }));
+
+
+test('local saves attach the selected Google import to the generated CSS', () => fixture(async root => {
+  const store = await createThemeStore({ root });
+  const recipe = defaultRecipe();
+  recipe.values['display-font'] = '"Lora", serif'; recipe.fonts = { 'display-font': 'Lora' };
+  await store.save({ recipe, revision: (await store.read()).revision });
+  const css = await readFile(path.join(root, 'looma.theme.css'), 'utf8');
+  assert.match(css, /@import url\("https:\/\/fonts.googleapis.com\/css2\?family=Lora:wght@400;500;600;700&display=swap"\);/);
+  assert.ok(css.indexOf('@import') < css.indexOf('@layer'));
+  assert.deepEqual((await (await createThemeStore({ root })).read()).recipe.fonts, recipe.fonts);
+}));

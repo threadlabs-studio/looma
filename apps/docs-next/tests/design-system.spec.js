@@ -91,7 +91,7 @@ test('customizer gives its controls the sidebar and keeps previews visible witho
   await page.getByRole('searchbox', { name: 'Filter previews', exact: true }).fill('checkbox');
   await expect(page.locator('[data-example-count]')).toHaveText('1 example in preview');
   await page.getByRole('searchbox', { name: 'Filter previews', exact: true }).clear();
-  const first = page.locator('[data-example-card]').first();
+  const first = page.locator('[data-customizer-overview] .examples [data-example-card]').first();
   expect((await first.boundingBox()).y).toBeLessThan(650);
   const stack = first.locator('.body [data-component="ui-stack"]');
   expect(await stack.evaluate(element => getComputedStyle(element).display)).toBe('flex');
@@ -133,9 +133,9 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await expect(page.locator('[data-example-card]')).toHaveCount(9);
+  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(9);
   await page.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption('night');
-  for (const iframe of await page.locator('[data-example-card] iframe').all()) {
+  for (const iframe of await page.locator('[data-customizer-overview] .examples [data-example-card] iframe').all()) {
     const frame = iframe.contentFrame();
     await expect.poll(() => frame.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
     expect(await frame.locator('html').evaluate(() => { try { void parent.document; return false; } catch { return true; } })).toBe(true);
@@ -145,18 +145,18 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   await page.getByRole('combobox', { name: 'Choose a component example', exact: true }).fill(`Button · ${extra.title}`);
   await page.getByRole('option', { name: `Button · ${extra.title}`, exact: true }).click();
   await page.getByRole('button', { name: 'Add to preview', exact: true }).click();
-  await expect(page.locator('[data-example-card]')).toHaveCount(10);
+  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(10);
   const added = page.locator(`[data-example-card="${extra.id}"]`);
   await expect.poll(() => added.locator('iframe').contentFrame().locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
   await added.getByRole('button', { name: 'Remove', exact: true }).click();
-  await expect(page.locator('[data-example-card]')).toHaveCount(9);
+  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(9);
   await page.getByRole('button', { name: 'Export & save', exact: true }).click();
   const cssReady = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download CSS', exact: true }).click();
   const css = await readFile(await (await cssReady).path(), 'utf8');
   expect(css).toMatch(/--ui-surface: light-dark\([^,]+, #11141c\);/);
   expect(css).toContain('pow(1 / 7, var(--_ui-theme-curve))');
-  const buttonFrame = page.locator('[data-component-card="ui-button"] iframe').first();
+  const buttonFrame = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').first();
   const appearance = element => {
     const style = getComputedStyle(element);
     return Object.fromEntries(['color', 'backgroundColor', 'borderRadius', 'height', 'padding', 'boxShadow', 'transitionDuration'].map(property => [property, style[property]]));
@@ -217,16 +217,16 @@ test('customizer stays within a narrow screen and the published editor playgroun
 test('one shared size lever derives matching field and action geometry', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(info.config.metadata.markupress + 'customize/');
-  const defaultButton = page.locator('[data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
-  await expect.poll(() => defaultButton.evaluate(element => ({ padding: getComputedStyle(element).paddingRight, motion: getComputedStyle(element).transitionDuration }))).toEqual({ padding: '12px', motion: '0.12s, 0.12s, 0.12s, 0.12s, 0.18s' });
+  const defaultButton = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
+  await expect.poll(() => defaultButton.evaluate(element => ({ padding: getComputedStyle(element).paddingRight, motion: getComputedStyle(element).transitionDuration }))).toEqual({ padding: '12.75px', motion: '0.12s, 0.12s, 0.12s, 0.12s, 0.18s' });
   await page.getByRole('button', { name: 'Type, size & motion', exact: true }).click();
   await page.getByText('Size & spacing', { exact: true }).click();
-  await page.getByRole('spinbutton', { name: 'Control size', exact: true }).fill('48px');
-  await page.getByRole('spinbutton', { name: 'Control size', exact: true }).press('Enter');
-  const button = page.locator('[data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
-  const field = page.locator('[data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
-  await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(48);
-  await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(48);
+  await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).fill('3');
+  await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).press('Enter');
+  const button = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
+  const field = page.locator('[data-customizer-overview] [data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
+  await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
+  await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
 });
 
 
@@ -247,12 +247,12 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   const baselineAction = await action();
   await page.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption('bookish');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
-  const buttonCard = page.locator('[data-component-card="ui-button"]');
+  const buttonCard = page.locator('[data-customizer-overview] [data-component-card="ui-button"]');
   const solid = buttonCard.locator('iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => solid.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, height: element.getBoundingClientRect().height }))).toEqual({ background: 'rgb(46, 18, 40)', height: 42 });
   await page.getByRole('searchbox', { name: 'Filter previews', exact: true }).fill('button');
   await expect(buttonCard).toBeVisible();
-  await expect(page.locator('[data-component-card="ui-input"]')).toBeHidden();
+  await expect(page.locator('[data-customizer-overview] [data-component-card="ui-input"]')).toBeHidden();
   await buttonCard.getByRole('link', { name: 'View component', exact: true }).click();
   await expect(page).toHaveURL(base + 'components/ui-button/');
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
@@ -272,7 +272,7 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
 
 test('opposite mode boundaries reach the isolated preview without changing siblings or the page', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  const cards = page.locator('[data-example-card]');
+  const cards = page.locator('[data-customizer-overview] .examples [data-example-card]');
   const first = cards.first(); const second = cards.nth(1);
   await expect.poll(() => first.locator('iframe').contentFrame().locator('html').getAttribute('data-theme')).toBe('light');
   const previewSurface = () => first.locator('iframe').contentFrame().locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
@@ -293,7 +293,7 @@ test('browser storage failures keep editing usable and explain that changes cann
   await page.goto(info.config.metadata.markupress + 'customize/');
   await page.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption('bookish');
   await expect(page.locator('[data-message]')).toContainText('Browser storage is unavailable');
-  await expect.poll(() => page.locator('[data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
+  await expect.poll(() => page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
 });
 
 test('other tabs keep the customizer controls and active theme synchronized', async ({ page, context }, info) => {
@@ -314,17 +314,21 @@ test('shared number, slider and curve controls calculate, convert, constrain and
   await page.goto(info.config.metadata.markupress + 'customize/');
   await page.getByRole('button', { name: 'Type, size & motion', exact: true }).click();
   await page.getByText('Size & spacing', { exact: true }).click();
-  const size = page.getByRole('spinbutton', { name: 'Control size', exact: true });
-  await size.fill('42px / 1.2'); await size.press('Enter');
-  await expect(size).toHaveValue('35px');
-  const action = page.locator('[data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
-  await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(35);
-  await page.getByRole('combobox', { name: 'Control size unit', exact: true }).selectOption('rem');
-  await expect(size).toHaveValue('2.1875rem');
-  await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(35);
-  const density = page.getByRole('slider', { name: 'Density', exact: true });
+  const size = page.getByRole('spinbutton', { name: 'Control roominess', exact: true });
+  await size.fill('3 / 1.2'); await size.press('Enter');
+  await expect(size).toHaveValue('2.5');
+  const action = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
+  await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(42.5);
+  await page.getByText('Type', { exact: true }).click();
+  const textSize = page.getByRole('spinbutton', { name: 'Text size', exact: true });
+  await page.getByRole('combobox', { name: 'Text size unit', exact: true }).selectOption('px');
+  await textSize.fill('18px'); await textSize.press('Enter');
+  await page.getByRole('combobox', { name: 'Text size unit', exact: true }).selectOption('rem');
+  await expect(textSize).toHaveValue('1.125rem');
+  await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(45);
+  const density = page.getByRole('slider', { name: 'Spacing', exact: true });
   await density.press('End'); await expect(density).toHaveValue('150');
-  await expect.poll(() => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-density').trim())).toBe('1.5');
+  await expect.poll(() => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-spacing').trim())).toBe('1.5');
   await page.getByText('Motion', { exact: true }).click();
   const time = page.getByRole('spinbutton', { name: 'Response time', exact: true });
   await time.fill('150ms * 2'); await time.press('Enter'); await expect(time).toHaveValue('300ms');
@@ -358,7 +362,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await page.getByText('Resolved palette values', { exact: true }).click();
   await expect(page.locator('[data-palette-adjustment-details]')).toContainText('dark');
   await page.getByRole('button', { name: 'Back to customization', exact: true }).click();
-  const text = page.locator('[data-component-card="ui-text"] iframe').contentFrame();
+  const text = page.locator('[data-customizer-overview] [data-component-card="ui-text"] iframe').contentFrame();
   await expect(text.getByRole('heading', { name: 'There and back by Friday', level: 1 })).toBeVisible();
   const displaySize = await text.getByRole('heading', { level: 1 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   const headingSize = await text.getByRole('heading', { level: 2 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
@@ -435,6 +439,7 @@ test('starting theme refinements remember their material and palette without res
   await material.getByRole('button', { name: 'Back to customization', exact: true }).click();
   await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
   const palette = page.locator('[data-refinement-view="palette"]');
+  await palette.getByText('Precise color seeds', {exact:true}).click();
   await palette.getByRole('textbox', { name: 'Action', exact: true }).fill('#442244');
   await expect(palette.locator('[data-refinement-preset] option:checked')).toHaveText('Plum & paper · customized');
   await page.reload();
@@ -449,6 +454,7 @@ test('palette refinement persists its origin and restoring it leaves material re
   await page.getByRole('combobox', { name: 'Palette preset', exact: true }).selectOption('bookish');
   await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
   const palette = page.locator('[data-refinement-view="palette"]');
+  await palette.getByText('Precise color seeds', {exact:true}).click();
   await palette.getByRole('textbox', { name: 'Action', exact: true }).fill('#442244');
   await expect(palette.locator('[data-refinement-preset] option:checked')).toHaveText('Plum & paper · customized');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'palette-light.png'), fullPage: false });
@@ -456,6 +462,7 @@ test('palette refinement persists its origin and restoring it leaves material re
   await expect(page.getByRole('combobox', { name: 'Palette preset', exact: true }).locator('option:checked')).toHaveText('Plum & paper · customized');
   await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
   await palette.getByRole('button', { name: 'Restore palette preset', exact: true }).click();
+  await palette.getByText('Precise color seeds', {exact:true}).click();
   await expect(palette.getByRole('textbox', { name: 'Action', exact: true })).toHaveValue('#2e1228');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe('34px');
 });
