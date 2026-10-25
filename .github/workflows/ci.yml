@@ -87,7 +87,7 @@ jobs:
           if-no-files-found: ignore
 
   release-package:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     # Includes a fresh installed docs build and the local save/discovery flow.
     timeout-minutes: 6
     steps:
