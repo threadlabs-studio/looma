@@ -56,6 +56,53 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Reactive form-field control state", () => {
+  for (const adapter of ["HTML", "Vue"] as const) {
+    it(`updates disabled, required and invalid on a nested textarea in ${adapter}`, async () => {
+      const path = await bundle(`form-field-state-${adapter}`, adapter === "HTML" ? `
+        import "@threadlabs/looma";
+        import { componentRegistry } from "@nextwebwg/html-next/runtime";
+        window.updateField = value => componentRegistry.update(document.querySelector("#field"), value);
+        window.addControl = () => document.querySelector("#control-slot").innerHTML = '<textarea id="message"></textarea>';
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { FormField, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        const state = ref({ disabled: true, required: true, invalid: true }), visible = ref(false);
+        window.updateField = value => { state.value = value; };
+        window.addControl = () => { visible.value = true; };
+        createApp({ render: () => h(FormField, { id: "field", ...state.value }, {
+          label: () => h("label", { for: "message" }, "Message"),
+          default: () => h(InputGroup, { multiline: true }, () => visible.value ? h(Textarea, { id: "message", rows: 3 }) : null),
+        }) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "HTML" ? `
+        <ui-form-field id="field" disabled required invalid>
+          <label slot="label" for="message">Message</label>
+          <ui-input-group multiline><div id="control-slot"></div></ui-input-group>
+        </ui-form-field>` : '<div id="app"></div>', []);
+      try {
+        await page.evaluate(() => (window as unknown as { addControl: () => void }).addControl());
+        for (const state of [
+          { disabled: true, required: true, invalid: true },
+          { disabled: false, required: true, invalid: true },
+          { disabled: false, required: false, invalid: true },
+          { disabled: false, required: false, invalid: false },
+          { disabled: true, required: true, invalid: true },
+          { disabled: false, required: false, invalid: false },
+        ]) {
+          await page.evaluate(state => (window as unknown as { updateField: (value: object) => void }).updateField(state), state);
+          await page.waitForFunction(state => {
+            const control = document.querySelector<HTMLTextAreaElement>("#message");
+            return control?.disabled === state.disabled && control.required === state.required && control.getAttribute("aria-invalid") === String(state.invalid);
+          }, state, { timeout: 2_000 });
+        }
+        await page.getByRole("textbox", { name: "Message" }).fill("The field is editable again.");
+        assert.equal(await page.locator("#message").inputValue(), "The field is editable again.");
+      } finally { await page.close(); }
+    });
+  }
+});
+
 describe("Cycling state button", () => {
   for(const adapter of ['html','vue']) it(`cycles named icon states without moving focus in ${adapter}`, async () => {
     const items=[{value:'automatic',label:'Automatic',icon:'monitor'},{value:'light',label:'Light',icon:'sun'},{value:'dark',label:'Dark',icon:'moon'}];
