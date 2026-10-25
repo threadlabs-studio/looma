@@ -12,12 +12,12 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D markupress@^0.9.1 @nextwebwg/htmlkit@1.0.0-alpha.69 vite
+pnpm add -D 'markupress@>=0.10.0 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.9 supplies the current documentation theme, including one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.10 and later compatible 0.x releases supply the current documentation theme, including one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
@@ -44,7 +44,7 @@ pnpm exec looma-docs build
 pnpm exec looma-docs preview
 ```
 
-`build` produces a static HTMLKit site in the configured output directory. `preview` serves that output without a repository writer. All commands accept `--root`; `dev` and `preview` also accept `--port`.
+`build` produces a static MarkupKit site in the configured output directory. `preview` serves that output without a repository writer. All commands accept `--root`; `dev` and `preview` also accept `--port`.
 
 ## Name your local design system
 

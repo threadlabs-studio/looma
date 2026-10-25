@@ -14,12 +14,12 @@
   },
   "dependencies": {
     "@nextwebwg/html-next": "1.0.0-alpha.69",
-    "@nextwebwg/htmlkit": "1.0.0-alpha.69",
+    "@threadlabs/markupkit": ">=0.2.0 <1",
     "@threadlabs/looma": "workspace:*",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "@tiptap/vue-3": "^2.11.5",
-    "markupress": "~0.9.1",
+    "markupress": ">=0.10.0 <1",
     "vite": "8.3.4",
     "vue": "^3.5.43"
   },

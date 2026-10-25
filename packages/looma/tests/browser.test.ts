@@ -59,16 +59,18 @@ afterAll(async () => {
 describe("Skeleton", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`matches content geometry and respects motion preferences in ${adapter}`, async () => {
-      const path = await bundle(`skeleton-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
-        import { createApp, h } from "vue";
+      const path = await bundle(`skeleton-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.stopSkeleton = () => componentRegistry.update(document.querySelector("#still"), { animated: false }); window.addLateSkeleton = () => { const late = document.createElement("ui-skeleton"); late.id = "late"; late.setAttribute("width", "35%"); const surface = document.createElement("div"); surface.style.cssText = "transform:translateX(32px) scale(0.9);transform-origin:0 0"; surface.append(late); document.querySelector("main").append(surface); };` : `
+        import { createApp, h, ref } from "vue";
         import { Skeleton, Text, Avatar } from "@threadlabs/looma/vue";
+        const late = ref(false); window.addLateSkeleton = () => { late.value = true; };
         createApp({ render: () => [
+          late.value ? h("div", { style: { transform: "translateX(32px) scale(0.9)", transformOrigin: "0 0" } }, h(Skeleton, { id: "late", width: "35%" })) : null,
           h(Text, { id: "reference" }, () => "One line of text"),
           h(Skeleton, { id: "line" }),
           h(Avatar, { id: "avatar", name: "Ada Lovelace", decorative: true }),
           h(Skeleton, { id: "circle", shape: "circle" }),
           h(Skeleton, { id: "media", shape: "rectangle", width: "600px", height: "80px" }),
-          h(Skeleton, { id: "pulse", animated: true, width: "75%" }),
+          h(Skeleton, { id: "still", animated: false, width: "75%" }),
           h(Skeleton, { id: "hidden", hidden: true }),
         ] }).mount("#app");
       `);
@@ -78,11 +80,11 @@ describe("Skeleton", () => {
         <ui-avatar id="avatar" name="Ada Lovelace" decorative></ui-avatar>
         <ui-skeleton id="circle" shape="circle"></ui-skeleton>
         <ui-skeleton id="media" shape="rectangle" width="600px" height="80px"></ui-skeleton>
-        <ui-skeleton id="pulse" animated width="75%"></ui-skeleton>
+        <ui-skeleton id="still" from:animated="false" width="75%"></ui-skeleton>
         <ui-skeleton id="hidden" hidden></ui-skeleton>` : '<div id="app"></div>'}</main>`, [
         join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"),
         ...(adapter === "Vue" ? [join(root, "vue/components.css")] : []),
-      ], { viewport: { width: 375, height: 400 } });
+      ], { viewport: { width: 375, height: 400 } }, page => page.emulateMedia({ reducedMotion: "no-preference" }));
       try {
         for (const theme of ["light", "dark"]) {
           await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
@@ -102,13 +104,57 @@ describe("Skeleton", () => {
             return { color: style.backgroundColor, animation: style.animationName };
           });
           assert.notEqual(paint.color, "rgba(0, 0, 0, 0)");
-          assert.equal(paint.animation, "none");
+          assert.notEqual(paint.animation, "none", "a default Skeleton shimmers without an opt-in");
+          const motion = await page.locator("#line").evaluate(element => {
+            const animation = element.getAnimations({ subtree: true })[0]!;
+            const duration = Number(animation.effect!.getTiming().duration);
+            animation.pause();
+            const sample = (fraction: number) => {
+              animation.currentTime = duration * fraction;
+              const style = getComputedStyle(element, "::before");
+              const imageWidth = parseFloat(style.backgroundSize);
+              const offset = parseFloat(style.backgroundPositionX);
+              return { highlightCenter: offset + imageWidth / 2, opacity: style.opacity, image: style.backgroundImage };
+            };
+            const left = sample(0.4), right = sample(0.6);
+            animation.play();
+            animation.startTime = 0;
+            return { left, right };
+          });
+          assert.ok(motion.right.highlightCenter > motion.left.highlightCenter, "the highlight travels left to right");
+          assert.equal(motion.left.opacity, "1", "the whole placeholder must not pulse");
+          assert.equal(motion.right.opacity, "1");
+          assert.notEqual(motion.left.image, "none");
+          const circleGradient = await page.locator("#circle").evaluate(element => getComputedStyle(element, "::before").backgroundSize);
+          const lineGradient = await page.locator("#line").evaluate(element => getComputedStyle(element, "::before").backgroundSize);
+          assert.equal(circleGradient, lineGradient, "gradient width is shared across differently sized placeholders");
           if (adapter === "HTML") await page.screenshot({ path: join(root, `../../.context/skeleton-${theme}-mobile.png`) });
         }
+        await page.evaluate(async () => {
+          (window as unknown as { addLateSkeleton: () => void }).addLateSkeleton();
+          await new Promise(requestAnimationFrame);
+          await new Promise(requestAnimationFrame);
+        });
+        const phases = await page.evaluate(() => ["line", "circle", "media", "late"].map(id => {
+          const element = document.getElementById(id)!;
+          const style = getComputedStyle(element, "::before");
+          const bounds = element.getBoundingClientRect();
+          const scale = bounds.width / parseFloat(getComputedStyle(element).width);
+          return { id, rawSize: style.backgroundSize, rawPosition: style.backgroundPositionX, scale, position: parseFloat(style.backgroundPositionX) * scale + bounds.left, gradientWidth: parseFloat(style.backgroundSize) * scale };
+        }));
+        for (const phase of phases) {
+          assert.ok(Math.abs(phase.gradientWidth - 375) < 0.1, "the gradient keeps its viewport width through transforms: " + JSON.stringify(phases));
+          assert.ok(Math.abs(phase.position - phases[0]!.position) < 0.1, "the gradient shares one viewport position, including transformed surfaces");
+        }
+        if (adapter === "HTML") await page.evaluate(() => (window as unknown as { stopSkeleton: () => void }).stopSkeleton());
+        assert.equal(await page.locator("#still").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
         await page.emulateMedia({ reducedMotion: "no-preference" });
-        assert.notEqual(await page.locator("#pulse").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
+        assert.notEqual(await page.locator("#line").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
         await page.emulateMedia({ reducedMotion: "reduce" });
-        assert.equal(await page.locator("#pulse").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
+        assert.equal(await page.locator("#line").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
+        assert.equal(await page.locator("#line").evaluate(element => getComputedStyle(element, "::before").backgroundImage), "none");
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.waitForFunction(() => document.getElementById("line")!.getAnimations({ subtree: true }).some(animation => animation.playState === "running"));
         await page.addStyleTag({ content: "#line { display:flex; margin:20px; }" });
         assert.deepEqual(await page.locator("#line").evaluate(element => { const style = getComputedStyle(element); return [style.display, style.margin]; }), ["block", "0px"]);
       } finally { await page.close(); }

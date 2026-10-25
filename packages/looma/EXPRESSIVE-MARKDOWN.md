@@ -25,6 +25,8 @@ const markdown = stringify(ast);
 const restoredEditorJson = expressmarkToEditorDocument(parse(markdown));
 ```
 
+Editor Markdown import and export explicitly select Expressmark’s `compatible` syntax (CommonMark/GFM with expressive extensions), preserving the existing interchange format as Expressmark’s defaults evolve. Pass `syntax` in conversion options when selecting another supported reading; content outside the editor schema still raises a conversion error.
+
 The editor continues to save Tiptap JSON. Expressive Markdown is an interchange
 format; it does not replace your saved document, history or application metadata.
 See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and

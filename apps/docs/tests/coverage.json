@@ -1577,7 +1577,7 @@
         },
         {
           "id": "04-animation",
-          "title": "Optional motion",
+          "title": "Shared shimmer",
           "behavior": false
         }
       ]
