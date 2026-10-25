@@ -84,7 +84,7 @@ outside this published-component inventory and remain covered by their owners.
 This is a finite state contract, not every possible combination of application
 content and component properties.
 
-`pnpm --dir apps/storybook visual:update` updates these sheets in the pinned rendering container. They cover the same 86 components and authored examples as the former full-viewport Storywright gallery, so the default qualification captures the state sheets once rather than also taking redundant 1280×800 gallery images. Inspect changed images and their inventory before committing them. `visual:test` compares the sheets against those references, using one browser worker locally.
+`pnpm --dir apps/storybook visual:update` updates these sheets in the pinned rendering container. They cover every published component and its authored examples, including newly added components such as Pagination. The default qualification captures the state sheets once rather than also taking redundant 1280×800 gallery images. CI distributes sheets across eight jobs, each with one browser worker. Inspect changed images and their inventory before committing them. `visual:test` compares the sheets against those references, using one browser worker locally.
 
 ## Original migration inventory
 

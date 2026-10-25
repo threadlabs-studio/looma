@@ -9,6 +9,16 @@ export const interactionCases: {
   run: (page: Page, scenario: Locator) => Promise<void>;
 }[] = [
   {
+    component: "ui-pagination", example: "01-numbered", name: "keyboard page navigation",
+    async run(page, scenario) {
+      const next = scenario.getByRole("button", {name:"Next",exact:true});
+      await next.focus();
+      await page.keyboard.press("Enter");
+      await expect(scenario.getByRole("button", {name:"Page 4",exact:true})).toHaveAttribute("aria-current", "page");
+      await expect(next).toBeFocused();
+    }
+  },
+  {
     component: "ui-tooltip", example: "01-target-binding", name: "visible pointer help",
     async run(_page, scenario) {
       await scenario.getByRole("button", {name:"Help",exact:true}).hover();

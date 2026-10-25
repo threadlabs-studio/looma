@@ -152,6 +152,20 @@
     "example": 0
   },
   {
+    "name": "square: false",
+    "props": {
+      "square": false
+    },
+    "example": 0
+  },
+  {
+    "name": "square: true",
+    "props": {
+      "square": true
+    },
+    "example": 0
+  },
+  {
     "name": "stretch: false",
     "props": {
       "stretch": false
@@ -328,19 +342,24 @@
     "example": 9
   },
   {
-    "name": "Example: 10-card",
+    "name": "Example: 09-square",
     "props": {},
     "example": 10
   },
   {
-    "name": "Example: 11-field",
+    "name": "Example: 10-card",
     "props": {},
     "example": 11
   },
   {
-    "name": "Example: 12-tones",
+    "name": "Example: 11-field",
     "props": {},
     "example": 12
+  },
+  {
+    "name": "Example: 12-tones",
+    "props": {},
+    "example": 13
   },
   {
     "name": "hover",
