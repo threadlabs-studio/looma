@@ -4,6 +4,7 @@
 
 ### Neutral controls, rhythm and state coverage
 
+- Open all choices from a committed Combobox label, preserve actual search drafts, and let the disclosure button close without focus reopening the popup.
 - Buttons and IconButtons now default to neutral. Use `tone="accent"` or `preset="primary"` for accent emphasis. IconButton’s superseded `auto` tone is removed; select an explicit tone. This changes existing unqualified action colors and is released on the 0.38 line.
 - Coordinate gaps and unitless tight/body/relaxed line-height multipliers through `--ui-rhythm`. Starter themes demonstrate distinct typography, geometry, material, motion and rhythm.
 - Use subtle accent for menu hover and the shared selection surface for checked rows. Ghost pressed/open backgrounds strengthen their tone wash instead of becoming lighter than hover.

@@ -2931,6 +2931,37 @@ describe("Combobox option modes", () => {
     await page.close();
   });
 
+  for (const adapter of ["html", "vue"]) it(`opens committed choices and toggles disclosure without reopening in ${adapter}`, async () => {
+    const path = await bundle(`${adapter}-combobox-committed-opening`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const options = () => [h("option", {value:"apple"}, "Apple"), h("option", {value:"pear"}, "Pear")];
+      createApp({render:()=>h("div", [
+        h(Combobox, {id:"fruit",label:"Fruit",value:"apple",openOnFocus:true,disclosure:true},options),
+        h(Combobox, {id:"draft",label:"Draft",value:"apple",query:"Ap",openOnFocus:true},options)
+      ])}).mount("#app");
+    `);
+    const options = '<option value="apple">Apple</option><option value="pear">Pear</option>';
+    const page = await open(path, adapter === "html" ? `<ui-combobox id="fruit" label="Fruit" value="apple" open-on-focus disclosure>${options}</ui-combobox><ui-combobox id="draft" label="Draft" value="apple" query="Ap" open-on-focus>${options}</ui-combobox>` : '<div id="app"></div>', [join(root,"tokens.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])]);
+    try {
+      const input = page.locator('#fruit input[role="combobox"]');
+      await input.click();
+      await page.waitForFunction(()=>document.querySelectorAll('#fruit [role="option"]').length === 2);
+      await page.locator("#fruit").getByRole("button", {name:"Show suggestions",exact:true}).click();
+      assert.equal(await input.getAttribute("aria-expanded"), "false", "explicit close survives returned input focus");
+      await input.click();
+      assert.equal(await input.getAttribute("aria-expanded"), "true", "click reopens a still-focused field");
+      assert.equal(await page.locator('#fruit [role="option"]').count(), 2);
+      await input.fill("Pe");
+      await page.waitForFunction(()=>document.querySelectorAll('#fruit [role="option"]').length === 1);
+      assert.equal((await page.locator('#fruit [role="option"]').textContent())?.trim(), "Pear", "typing filters after the full selection list");
+      await input.press("Escape");
+      await page.locator('#draft input[role="combobox"]').click();
+      await page.waitForFunction(()=>document.querySelectorAll('#draft [role="option"]').length === 1);
+      assert.equal((await page.locator('#draft [role="option"]').textContent())?.trim(), "Apple", "an explicit query remains filtered on entry");
+    } finally { await page.close(); }
+  });
+
   it("renders each option and chosen item through one scoped slot in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.

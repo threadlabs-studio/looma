@@ -81,7 +81,7 @@
       when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
     <prop name="invalid" type="boolean" default="false"
     >Exposes an externally validated error on the input and field. It remains until the consumer clears it, independently of native validation.</prop>
-    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus, before typing.</prop>
+    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus or is clicked. A committed selection shows all choices until typing filters them; an explicitly supplied query keeps its filtering.</prop>
     <prop name="loading" type="boolean" default="false"
     >Marks the suggestion list busy while the consumer loads options. It announces loading and suppresses the empty state and create offer until cleared.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md"

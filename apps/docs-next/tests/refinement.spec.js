@@ -277,6 +277,12 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
   await expect(palette.locator('[data-selected-palette] .palette-swatches > span')).toHaveCount(4);
   await expect(palette.locator('[data-selected-palette] .palette-swatches')).toBeVisible();
   await field.click();
+  const forest = palette.getByRole('option',{name:'Forest & cream',exact:true});
+  await expect(forest).toBeVisible();
+  await palette.getByRole('button',{name:'Show suggestions',exact:true}).click();
+  await expect(palette.getByRole('listbox')).toBeHidden();
+  await field.click();
+  await expect(forest).toBeVisible();
   await field.fill('');
   const alpha = await palette.locator('[popover]').evaluate(element => {
     const canvas=document.createElement('canvas'),context=canvas.getContext('2d');
@@ -284,7 +290,6 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
     return context.getImageData(0,0,1,1).data[3];
   });
   expect(alpha).toBe(255);
-  const forest = palette.getByRole('option',{name:'Forest & cream',exact:true});
   await expect(forest.locator('.palette-swatches > span')).toHaveCount(4);
   await expect(forest.locator('.palette-swatches')).toBeVisible();
   const sizes = await forest.locator('.palette-swatches > span').evaluateAll(nodes => nodes.map(node => { const rect=node.getBoundingClientRect();return [rect.width,rect.height]; }));
