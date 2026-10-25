@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Use the shared Markupress appearance control to cycle Automatic, Light and Dark from one button; local setup guidance selects the corresponding documentation theme. Correct field and choice descriptions so they no longer promise a visible touch-size floor.
+
 ### Expressive materials and compact controls
 
 - Keep the theme's visible control sizes on touch instead of raising the whole family from a 44px floor. Buttons, fields, swatches and companion icon buttons retain matching sizes. Hit-area dimensions remain adjustable and separate from visible geometry; compact choices are valid.
