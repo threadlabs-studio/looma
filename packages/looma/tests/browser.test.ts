@@ -56,6 +56,66 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Skeleton", () => {
+  for (const adapter of ["HTML", "Vue"] as const) {
+    it(`matches content geometry and respects motion preferences in ${adapter}`, async () => {
+      const path = await bundle(`skeleton-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Skeleton, Text, Avatar } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(Text, { id: "reference" }, () => "One line of text"),
+          h(Skeleton, { id: "line" }),
+          h(Avatar, { id: "avatar", name: "Ada Lovelace", decorative: true }),
+          h(Skeleton, { id: "circle", shape: "circle" }),
+          h(Skeleton, { id: "media", shape: "rectangle", width: "600px", height: "80px" }),
+          h(Skeleton, { id: "pulse", animated: true, width: "75%" }),
+          h(Skeleton, { id: "hidden", hidden: true }),
+        ] }).mount("#app");
+      `);
+      const page = await open(path, `<main style="font:16px/1.5 system-ui">${adapter === "HTML" ? `
+        <ui-text id="reference">One line of text</ui-text>
+        <ui-skeleton id="line"></ui-skeleton>
+        <ui-avatar id="avatar" name="Ada Lovelace" decorative></ui-avatar>
+        <ui-skeleton id="circle" shape="circle"></ui-skeleton>
+        <ui-skeleton id="media" shape="rectangle" width="600px" height="80px"></ui-skeleton>
+        <ui-skeleton id="pulse" animated width="75%"></ui-skeleton>
+        <ui-skeleton id="hidden" hidden></ui-skeleton>` : '<div id="app"></div>'}</main>`, [
+        join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"),
+        ...(adapter === "Vue" ? [join(root, "vue/components.css")] : []),
+      ], { viewport: { width: 375, height: 400 } });
+      try {
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+          const boxes = await page.evaluate(() => {
+            const bounds = (id: string) => { const box = document.getElementById(id)!.getBoundingClientRect(); return { width: box.width, height: box.height }; };
+            return { line: bounds("line"), reference: bounds("reference"), circle: bounds("circle"), avatar: bounds("avatar"), media: bounds("media"), main: document.querySelector("main")!.clientWidth };
+          });
+          assert.equal(boxes.line.height, boxes.reference.height);
+          assert.equal(boxes.circle.width, boxes.avatar.width);
+          assert.equal(boxes.circle.height, boxes.avatar.height);
+          assert.equal(boxes.media.width, boxes.main);
+          assert.equal(boxes.media.height, 80);
+          assert.equal(await page.locator("#hidden").isVisible(), false);
+          assert.equal(await page.locator("#line").getAttribute("aria-hidden"), "true");
+          const paint = await page.locator("#line").evaluate(element => {
+            const style = getComputedStyle(element, "::before");
+            return { color: style.backgroundColor, animation: style.animationName };
+          });
+          assert.notEqual(paint.color, "rgba(0, 0, 0, 0)");
+          assert.equal(paint.animation, "none");
+          if (adapter === "HTML") await page.screenshot({ path: join(root, `../../.context/skeleton-${theme}-mobile.png`) });
+        }
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        assert.notEqual(await page.locator("#pulse").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        assert.equal(await page.locator("#pulse").evaluate(element => getComputedStyle(element, "::before").animationName), "none");
+        await page.addStyleTag({ content: "#line { display:flex; margin:20px; }" });
+        assert.deepEqual(await page.locator("#line").evaluate(element => { const style = getComputedStyle(element); return [style.display, style.margin]; }), ["block", "0px"]);
+      } finally { await page.close(); }
+    });
+  }
+});
+
 describe("Pagination", () => {
   it("keeps native HTML page requests controlled and preserves keyboard focus at 375px", async () => {
     const path = await bundle("pagination-html", `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.requests = []; document.addEventListener("navigate", event => { window.requests.push(event.detail); const page = event.detail.page; const pages = [...new Set([1, page - 1, page, page + 1, 10])].filter(value => value >= 1 && value <= 10).sort((a, b) => a - b).map(value => ({ value })); componentRegistry.update(event.target, { page, pages }); });`);
