@@ -19,6 +19,9 @@
     >Height, padding, and type size. xs is 1.5rem with the smallest text, for a control inside a line of small text; sm is the small control height (2rem by
       default) with tighter padding and smaller text, md is the standard control height (2.5rem), and lg is taller (3rem) with roomier padding. Visible sizes
       stay the same on touch. Inline xs and link actions can gain an adjustable invisible hit area.</prop>
+    <prop name="square" type="boolean" default="false"
+    >Gives short labels and icons the same square minimum footprint at each size. Longer labels grow naturally. Applies to boxed actions; link and card variants
+      keep their normal layout.</prop>
     <prop name="shape" type="keyword" values="rounded, pill" default="rounded"
     >rounded uses the theme's action radius; pill rounds the ends fully, for a compact choice such as a status or a person.</prop>
     <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="neutral"
@@ -233,6 +236,7 @@
     }
 
     :host {
+      --_button-square-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       appearance: none;
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       border-style: solid;
@@ -297,6 +301,7 @@
     }
 
     :host([size="xs"]) {
+      --_button-square-size: 1.5rem;
       min-block-size: 1.5rem;
       padding: calc(var(--ui-space-0-5) * 1.5) calc(var(--ui-space-1) * 1.25) !important;
       font-size: var(--ui-font-size-xs);
@@ -307,15 +312,23 @@
     }
 
     :host([size="sm"]) {
+      --_button-square-size: var(--ui-control-size-sm);
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-action-inset-sm, var(--ui-space-2)) !important;
       font-size: var(--ui-font-size-sm);
     }
 
     :host([size="lg"]) {
+      --_button-square-size: var(--ui-control-size-lg);
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-action-inset-lg, var(--ui-space-4)) !important;
       font-size: var(--ui-font-size-md);
+    }
+
+    /* Short numeric and icon actions share a minimum box; large values remain readable. */
+    :host([square]):not([data-appearance="link"], [data-appearance="card"]) {
+      min-inline-size: var(--_button-square-size);
+      padding-inline: var(--ui-space-1) !important;
     }
 
     /* Card actions inherit Button's palette and behavior; only their shared layout changes.

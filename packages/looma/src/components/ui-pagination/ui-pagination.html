@@ -1,0 +1,74 @@
+<link rel="component" href="../ui-button/ui-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<template component="ui-pagination" module="./ui-pagination.js">
+  <defs>
+    <prop name="page" type="number" default="1"
+    >Current one-based page. The consumer updates it after a navigate request; activation never changes it internally.</prop>
+    <prop name="pages" type="list" default="[]">Visible numbered pages in ascending order. Omit for previous/next navigation without a known total. Gaps between
+      numbers show an ellipsis. Supply href to keep a numbered page usable as a native link before JavaScript.
+      <prop type="object"><prop name="value" type="number" required></prop><prop name="href" type="string"></prop></prop>
+    </prop>
+    <prop name="hasPrevious" type="boolean" default="false">Whether a preceding page is available. Previous is always unavailable on page one.</prop>
+    <prop name="hasNext" type="boolean" default="false">Whether another page is available. The component does not infer a total.</prop>
+    <prop name="previousHref" type="string" default="">Optional native destination for Previous. Empty renders a request button.</prop>
+    <prop name="nextHref" type="string" default="">Optional native destination for Next. Empty renders a request button.</prop>
+    <prop name="label" type="string" default="Results pages">Accessible name for the navigation landmark.</prop>
+    <prop name="previousLabel" type="string" default="Previous">Accessible label for the preceding page action.</prop>
+    <prop name="nextLabel" type="string" default="Next">Accessible label for the following page action.</prop>
+    <prop name="pageLabel" type="string" default="Page">Prefix for each numbered page's accessible name, followed by its localized number.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="sm"
+    >Uses Button's shared size scale. Narrow groups wrap without enlarging compact controls.</prop>
+    <prop name="disabled" type="boolean" default="false">Makes all page controls unavailable while keeping the current page visible.</prop>
+    <event name="navigate" type="object">
+      <prop name="page" type="number" required></prop><prop name="previousPage" type="number" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop>
+    </event>
+  </defs>
+  <nav from:aria-label="$label">
+    <ui-cluster gap="xs">
+      <ui-button
+        square
+        variant="ghost"
+        tone="neutral"
+        from:size="$size"
+        from:disabled="$disabled or not $hasPrevious or $page &lt;= 1"
+        from:as="{ true: 'a', false: 'button' }[concat($previousHref != '')]"
+        from:href="$previousHref"
+        from:aria-label="$previousLabel"
+        from:data-pagination-page="$page - 1"
+      ><ui-icon name="chevron-left"></ui-icon></ui-button>
+      <template $each="item, index of $pages" $key="$item.value">
+        <span $if="$index > 0 and $item.value > $pages[$index - 1].value + 1" aria-hidden="true">&hellip;</span>
+        <ui-button
+          square
+          from:variant="{ true: 'solid', false: 'ghost' }[concat($item.value = $page)]"
+          from:tone="{ true: 'accent', false: 'neutral' }[concat($item.value = $page)]"
+          from:size="$size"
+          from:disabled="$disabled"
+          from:as="{ true: 'a', false: 'button' }[concat(default($item.href, '') != '')]"
+          from:href="$item.href"
+          from:data-pagination-page="$item.value"
+          from:aria-label="concat($pageLabel, ' ', format($item.value, 'number'))"
+          from:aria-current="{ true: 'page', false: null }[concat($item.value = $page)]"
+        >{format($item.value, 'number')}</ui-button>
+      </template>
+      <ui-button
+        square
+        variant="ghost"
+        tone="neutral"
+        from:size="$size"
+        from:disabled="$disabled or not $hasNext"
+        from:as="{ true: 'a', false: 'button' }[concat($nextHref != '')]"
+        from:href="$nextHref"
+        from:aria-label="$nextLabel"
+        from:data-pagination-page="$page + 1"
+      ><ui-icon name="chevron-right"></ui-icon></ui-button>
+      <slot></slot>
+    </ui-cluster>
+  </nav>
+</template>
