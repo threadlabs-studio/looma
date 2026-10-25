@@ -114,6 +114,7 @@
     "packages/looma/src/components/ui-sidebar/ui-sidebar.html",
     "packages/looma/src/components/ui-sidebar/ui-sidebar.js",
     "packages/looma/src/components/ui-skeleton/ui-skeleton.html",
+    "packages/looma/src/components/ui-skeleton/ui-skeleton.js",
     "packages/looma/src/components/ui-slider/ui-slider.html",
     "packages/looma/src/components/ui-slider/ui-slider.js",
     "packages/looma/src/components/ui-spinner/ui-spinner.html",

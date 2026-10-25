@@ -4,6 +4,8 @@
 
 - Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
 
+- Skeleton now shimmers from left to right by default instead of remaining static or fading in and out. The previous default made pending content look like a static placeholder; the travelling highlight now communicates loading on every ordinary Skeleton. Reduced-motion preferences still keep it static. To retain a static placeholder, pass `animated: false` in Vue or `from:animated="false"` in HTML Next. This default change is a pre-1.0 breaking minor.
+
 - Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 
 - Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
