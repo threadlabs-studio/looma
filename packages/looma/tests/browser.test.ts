@@ -10538,7 +10538,7 @@ describe("Shared choice geometry", () => {
     try {
       await page.addStyleTag({content: '[id^="choice-"] { max-width:180px; }'});
       for (const font of [12, 16, 24]) {
-        await page.evaluate(value => { document.body.setAttribute('data-theme', 'test'); document.body.style.setProperty('--ui-font-size', value + 'px'); }, font);
+        await page.evaluate(value => { document.documentElement.style.setProperty('--ui-font-size', value + 'px'); }, font);
         for (const kind of [0, 1, 2]) for (const size of ['sm', 'md', 'lg']) {
           const metrics = await page.locator('#choice-' + kind + '-' + size).evaluate(el => {
             const input = el.querySelector('input')!, label = el.querySelector('.label')!;
@@ -10559,6 +10559,44 @@ describe("Shared choice geometry", () => {
 
 
 describe("Optional semantic theme recipe", () => {
+  it('makes the base type token set the document root without multiplying rem twice', async () => {
+    const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
+    const path = await bundle('root-type-scale', 'import "@threadlabs/looma";');
+    const page = await open(path, '<ui-button id="root-action">Action</ui-button><ui-input id="root-field" value="Sam"></ui-input><div id="root-rem">Root-relative layout</div>', [join(root,'tokens.css')]);
+    try {
+      await page.addStyleTag({content:'#root-rem {inline-size:2rem;border:1px solid;padding:1rem}'});
+      const system = await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
+      const theme = await page.addStyleTag({content:'/* Root scale fixture */'});
+      for (const value of ['20px','18px','20px']) {
+        const recipe=defaultRecipe(); recipe.values['text-size']=value;
+        await theme.evaluate((element,css)=>element.textContent=css,themeCSS(recipe,system));
+        const actual = await page.evaluate(()=>{
+          const style = (id:string)=>getComputedStyle(document.querySelector(id)!);
+          return {root:style('html').fontSize,text:style('#root-field').fontSize,height:document.querySelector('#root-action')!.getBoundingClientRect().height,width:style('#root-rem').width,padding:style('#root-rem').paddingTop,border:style('#root-rem').borderTopWidth};
+        });
+        const size=parseFloat(value);
+        assert.deepEqual(actual,{root:value,text:value,height:size*2.5,width:size*2+'px',padding:value,border:'1px'}, JSON.stringify({value,...actual}));
+      }
+    } finally {await page.close();}
+  });
+
+  it('preserves relative length boundary values when the pixel root changes', async () => {
+    const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
+    const {convertValueUnit} = await import('../tooling/docs/value-editors.mjs');
+    const path=await bundle('root-length-boundaries','import "@threadlabs/looma";');
+    const page=await open(path,'<ui-button>Action</ui-button>',[join(root,'tokens.css')]);
+    try {
+      const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
+      const style=await page.addStyleTag({content:'/* Length boundary fixture */'});
+      for (const [base,id,pixels,property] of [[18,'line-weight',.5,'--ui-border-width'],[14,'corner-roundness',32,'--ui-radius-md']] as const) {
+        const recipe=defaultRecipe();recipe.values['text-size']=base+'px';recipe.values[id]=convertValueUnit(pixels+'px','rem',{remPixels:base});
+        await style.evaluate((el,css)=>el.textContent=css,themeCSS(recipe,system));
+        const actual=await page.locator('html').evaluate((el,property)=>parseFloat(getComputedStyle(el).getPropertyValue(property)),property);
+        assert.ok(Math.abs(actual-pixels)<.0001,JSON.stringify({base,id,pixels,actual}));
+      }
+    } finally {await page.close();}
+  });
+
   it('relates shared control boxes to user-relative type rather than fixed pixel ceilings', async () => {
     const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
     const path = await bundle('relative-type-layout', 'import "@threadlabs/looma";');

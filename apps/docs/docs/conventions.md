@@ -97,7 +97,7 @@ To give a page Looma's type, set it on the page itself:
 ```css
 body {
   font-family: var(--ui-font-sans);
-  font-size: var(--ui-font-size);
+  font-size: var(--ui-font-size-md);
   line-height: var(--ui-line-height);
   color: var(--ui-text);
 }

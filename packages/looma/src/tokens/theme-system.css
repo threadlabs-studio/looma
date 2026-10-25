@@ -5,7 +5,8 @@
 /* Reserve the same order when the remembered theme arrives before baseline CSS. */
 @layer tokens, base, theme, components;
 
-@property --ui-font-size { syntax: "<length>"; inherits: true; initial-value: 16px; }
+/* Keep the root font seed unregistered: a registered rem length used by root
+   font-size creates a dependency cycle (CSS Properties and Values API 2.7.2). */
 @property --ui-control-size { syntax: "<length>"; inherits: true; initial-value: 40px; }
 @property --ui-radius-md { syntax: "<length>"; inherits: true; initial-value: 8px; }
 @property --ui-border-width { syntax: "<length>"; inherits: true; initial-value: 1px; }
@@ -33,9 +34,9 @@
   :where(:root, [data-theme], [data-contrast]) {
     /* Controls use a ratio. Spacing uses an independent curve, so increasing the size
        contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
-    --ui-control-size: calc(var(--ui-font-size) * var(--ui-control-roominess));
+    --ui-control-size: calc(1rem * var(--ui-control-roominess));
     --_ui-theme-ratio: max(1, var(--ui-scale-ratio));
-    --_ui-theme-unit: calc(var(--ui-font-size) * 0.25 * max(0, var(--ui-spacing)));
+    --_ui-theme-unit: calc(1rem * 0.25 * max(0, var(--ui-spacing)));
     --_ui-theme-curve: max(0, var(--ui-space-curve));
     --ui-control-size-sm: calc(var(--ui-control-size) / var(--_ui-theme-ratio));
     --ui-control-size-md: var(--ui-control-size);
@@ -53,7 +54,7 @@
     --ui-control-inset-block-sm: max(0px, calc((var(--ui-control-size-sm) - var(--ui-font-size-sm) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
     --ui-control-inset-block-md: max(0px, calc((var(--ui-control-size-md) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
     --ui-control-inset-block-lg: max(0px, calc((var(--ui-control-size-lg) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
-    --ui-font-size-xs: max(12px, calc(var(--ui-font-size) * 0.75));
+    --ui-font-size-xs: max(12px, calc(1rem * 0.75));
     --ui-action-inset-sm: var(--ui-space-2);
     --ui-action-inset-md: var(--ui-space-3);
     --ui-action-inset-lg: var(--ui-space-4);

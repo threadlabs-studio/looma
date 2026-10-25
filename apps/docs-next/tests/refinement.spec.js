@@ -146,3 +146,29 @@ test('overlapping font selections finish the status for both roles', async ({pag
     await expect(page.locator('[data-font-status="body-font"]')).toContainText('Inter loaded');
   } finally { release(); }
 });
+
+test('size specimens stay readable and unclipped at the largest root on a narrow touch screen', async ({browser},info) => {
+  const context=await browser.newContext({viewport:{width:375,height:850},hasTouch:true,isMobile:true});
+  const page=await context.newPage();
+  try {
+    await enter(page,info);
+    await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
+    await page.getByText('Type',{exact:true}).click();
+    const base=page.getByRole('spinbutton',{name:'Base text size',exact:true});
+    await base.fill('24px');await base.press('Enter');
+    await page.getByText('Size & spacing',{exact:true}).click();
+    for (const size of ['sm','md','lg']) {
+      const row=page.locator(`[data-size-sample="${size}"]`);
+      expect(await row.evaluate(el=>{
+        const bounds=el.getBoundingClientRect();
+        return [...el.querySelectorAll('button,input')].filter(control=>control.getClientRects().length).every(control=>{const box=control.getBoundingClientRect();return box.x>=bounds.x-1&&box.right<=bounds.right+1;});
+      })).toBe(true);
+      expect(await row.locator(`input[label="${size} size sample"]`).evaluate(input=>{
+        const style=getComputedStyle(input),context=document.createElement('canvas').getContext('2d');
+        context.font=style.font;
+        return context.measureText(input.value).width<=input.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+      })).toBe(true);
+      await expect(row.locator('[data-size-readout]')).toContainText('rem');
+    }
+  } finally {await context.close();}
+});

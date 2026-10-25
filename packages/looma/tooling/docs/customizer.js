@@ -29,10 +29,12 @@ export function connect(host) {
   const sayApplied = text => say(theme?.storageAvailable ? text : 'Theme applies to this page. Browser storage is unavailable; download CSS or a recipe to keep it.');
   const fields = new Map(themeFields.map(field => [field.id, field]));
   const unitContext = () => ({ remPixels: parseFloat(view.getComputedStyle(document.documentElement).fontSize) });
+  const editorFor = (field, value) => valueEditor(field, value, { remPixels: parseFloat(recipe.values['text-size']) });
+  let boundsBase;
   const updateControl = (element, value) => {
     const field = fields.get(element.dataset.token);
     if (!field || !element.dataset.editorKind) { componentRegistry.update(element, { value }); return; }
-    const editor = valueEditor(field, value);
+    const editor = editorFor(field, value);
     if (element.dataset.editorKind === 'curve') {
       element.closest('[data-curve-for]').hidden = editor.kind !== 'curve';
       if (editor.kind === 'curve') componentRegistry.update(element, { value });
@@ -40,13 +42,33 @@ export function connect(host) {
   };
   const updateUnits = () => {
     for (const control of root.querySelectorAll('[data-unit-for]')) {
-      const field = fields.get(control.dataset.unitFor), editor = valueEditor(field, recipe.values[field.id]);
+      const field = fields.get(control.dataset.unitFor), editor = editorFor(field, recipe.values[field.id]);
       if (![...control.options].some(option => option.value === editor.unit)) control.add(new view.Option(editor.unit, editor.unit));
       componentRegistry.update(control, { value: editor.unit });
     }
   };
+  const updateSizes = () => {
+    const samples = [...root.querySelectorAll('[data-size-sample]')].filter(sample => sample.getClientRects().length);
+    if (!samples.length) return;
+    const base = parseFloat(view.getComputedStyle(document.documentElement).fontSize);
+    const rounded = value => Number(value.toFixed(2));
+    for (const sample of samples) {
+      const button = sample.querySelector('button');
+      if (button) {
+        const height = button.getBoundingClientRect().height;
+        sample.querySelector('[data-size-readout]').textContent = ` · ${rounded(height / base)}rem (${rounded(height)}px)`;
+      }
+    }
+  };
   const paint = () => {
     const css = theme?.css || themeCSS(recipe);
+    if (boundsBase !== recipe.values['text-size']) {
+      boundsBase = recipe.values['text-size'];
+      for (const control of root.querySelectorAll('[data-token]')) {
+        const field = fields.get(control.dataset.token);
+        if (field?.type.includes('length') && field.id !== 'text-size') updateControl(control, recipe.values[field.id]);
+      }
+    }
     for (const family of ['material','palette']) {
       const state = refinementState(recipe, family), presets = family === 'material' ? materialPresets : themePalettes;
       for (const select of root.querySelectorAll(`[data-refinement-preset="${family}"]`)) {
@@ -73,6 +95,7 @@ export function connect(host) {
       : 'Finish catches the light. Spread shapes its reflection; strength affects reflection, edge light and glow together.';
     const gaps = root.querySelector('[data-spacing-samples]');
     gaps.setAttribute('aria-label', `Spacing progression with curve ${recipe.values['space-curve']}`);
+    updateSizes();
   };
   const show = (next, persist = true) => {
     recipe = validateRecipe(next);
@@ -310,6 +333,7 @@ export function connect(host) {
     selectedExample = event.detail.value ?? '';
     filterExamples();
   };
+  root.addEventListener('toggle', updateSizes, true);
   root.addEventListener('looma-example-remove', remove);
   root.addEventListener('input', input);
   root.addEventListener('cancel', cancel);
@@ -334,5 +358,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { flush(); clearComparison(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
+  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearComparison(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
 }
