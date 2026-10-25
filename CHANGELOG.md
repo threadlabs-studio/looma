@@ -12,6 +12,8 @@
 
 - Search the full component catalog from the theme customizer, with nine previews initially and a Show more action; explicitly added examples remain alongside existing choices. Include typography in the compact sampler, give starting themes broader type/spacing/material/motion identities, and pair Forest & cream with warm cream surfaces and neutral fills.
 - Give neutral-outline text and icon actions the same restrained border and transparent resting surface, with shared neutral hover/pressed fills. The sampler compares solid accent, outline accent, solid neutral, outline neutral, icon and ghost in that order.
+- Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
+
 - Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 
 - Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.

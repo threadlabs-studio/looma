@@ -1,0 +1,32 @@
+<!--
+title: Loading a profile
+description: One status describes the work; the section stays busy until the application replaces its decorative placeholders. Compare the loaded card's avatar and text metrics.
+-->
+<ui-stack gap="m">
+  <ui-status-message kind="loading">Loading a profile…</ui-status-message>
+  <ui-grid>
+    <ui-card as="section" aria-label="Profile" aria-busy="true">
+      <ui-cluster gap="s">
+        <ui-skeleton shape="circle"></ui-skeleton>
+        <ui-stack fill gap="none">
+          <ui-skeleton width="65%"></ui-skeleton>
+          <ui-skeleton width="45%"></ui-skeleton>
+        </ui-stack>
+      </ui-cluster>
+      <ui-stack gap="none">
+        <ui-skeleton></ui-skeleton>
+        <ui-skeleton width="80%"></ui-skeleton>
+      </ui-stack>
+    </ui-card>
+    <ui-card as="section" aria-label="Loaded profile">
+      <ui-cluster gap="s">
+        <ui-avatar name="Ada Lovelace" decorative></ui-avatar>
+        <ui-stack fill gap="none">
+          <ui-text weight="semibold">Ada Lovelace</ui-text>
+          <ui-text tone="secondary">Mathematician</ui-text>
+        </ui-stack>
+      </ui-cluster>
+      <ui-text>Notes on an analytical engine and the possibilities of computation.</ui-text>
+    </ui-card>
+  </ui-grid>
+</ui-stack>
