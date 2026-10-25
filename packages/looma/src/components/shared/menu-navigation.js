@@ -1,3 +1,5 @@
+import { focusAndRevealItem } from "./active-item-reveal.js";
+
 const itemSelector = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
 const searches = new WeakMap();
 
@@ -44,6 +46,6 @@ export function navigateMenu(event, menu) {
     }
   }
   event.preventDefault();
-  if (next >= 0) items[next].focus();
+  if (next >= 0) focusAndRevealItem(menu, items[next]);
   return true;
 }
