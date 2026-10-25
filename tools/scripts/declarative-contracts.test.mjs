@@ -33,7 +33,8 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 89);
+  const folders = (await readdir(new URL("../../packages/looma/src/components/", import.meta.url))).filter(name => name.startsWith("ui-")).sort();
+  assert.deepEqual(groups.flatMap(({ contracts }) => Object.keys(contracts)).sort(), folders);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
