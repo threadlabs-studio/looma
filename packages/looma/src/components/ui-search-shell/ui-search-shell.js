@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-item-reveal.js";
 import { closeDialog, closeOverlay, openOverlay, showDialog } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
@@ -19,6 +20,7 @@ export function connect(host) {
   };
   const closeNative = () => {
     suppressNativeClose = true;
+    cancelActiveItemReveal(dialog);
     closeDialog(dialog);
     suppressNativeClose = false;
   };
@@ -63,10 +65,10 @@ export function connect(host) {
     const index = rows.indexOf(target.closest?.(".body button[aria-current]"));
     if (!fromSearch && index < 0) return;
     event.preventDefault();
-    if (event.key === "Home") rows[0].focus();
-    else if (event.key === "End") rows.at(-1).focus();
-    else if (event.key === "ArrowDown") rows[fromSearch ? 0 : (index + 1) % rows.length].focus();
-    else rows[fromSearch ? rows.length - 1 : (index - 1 + rows.length) % rows.length].focus();
+    if (event.key === "Home") focusAndRevealItem(dialog, rows[0]);
+    else if (event.key === "End") focusAndRevealItem(dialog, rows.at(-1));
+    else if (event.key === "ArrowDown") focusAndRevealItem(dialog, rows[fromSearch ? 0 : (index + 1) % rows.length]);
+    else focusAndRevealItem(dialog, rows[fromSearch ? rows.length - 1 : (index - 1 + rows.length) % rows.length]);
   };
   const onClick = (event) => {
     if (host.props.dismissible.value && event.target === dialog) dispatchClose("light-dismiss", trigger());
@@ -83,6 +85,7 @@ export function connect(host) {
   dialog.addEventListener("click", onClick);
   dialog.addEventListener("close", onClose);
   return () => {
+    cancelActiveItemReveal(dialog);
     stop();
     stopTracking();
     dialog.removeEventListener("cancel", onCancel);
