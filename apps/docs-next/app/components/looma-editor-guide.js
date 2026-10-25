@@ -2,7 +2,7 @@ import { createApp, h, ref } from 'vue';
 import { LoomaEditor } from '@threadlabs/looma/vue/editor';
 import '@threadlabs/looma/vue.css';
 
-/** The same published editor used by applications; HTMLKit owns this demo's lifecycle. */
+/** The same published editor used by applications; MarkupKit owns this demo's lifecycle. */
 export function connect(host) {
   const content = ref({ type: 'doc', content: [
     { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'The Fellowship office' }] },
