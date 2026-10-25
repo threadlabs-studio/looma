@@ -11156,6 +11156,7 @@ describe("Keyboard item reveal", () => {
           const port = page.locator(viewport(kind));
           await port.waitFor({ state: "visible" });
           await port.evaluate(element => { element.scrollTop = 0; });
+          if (["slash", "mention"].includes(kind)) await port.locator('[role="option"]').first().hover();
           const before = await page.evaluate(() => window.scrollY);
           await port.evaluate(element => {
             const sample = { positions: [element.scrollTop], running: true };
@@ -11183,6 +11184,7 @@ describe("Keyboard item reveal", () => {
           assert.ok(sample.positions.some(position => position > 0 && position < sample.final - 1), "normal-motion reveal has intermediate frames rather than an instant jump");
           assert.equal(await page.evaluate(() => window.scrollY), before, "the document keeps its reading position");
           assert.equal(await target.count(), 1);
+          if (["slash", "mention"].includes(kind)) assert.equal(await target.getAttribute("aria-selected"), "true", "scrolling beneath a stationary pointer keeps the keyboard selection");
         } finally { await page.close(); }
       });
     }
