@@ -1,0 +1,10 @@
+<!--
+title: Cycling appearance
+bind: items=appearanceStates
+description: One native button cycles Automatic, Light and Dark while preserving keyboard focus.
+-->
+<ui-cluster gap="s"><ui-text>Appearance</ui-text><ui-cycle-button
+    id="appearance-cycle"
+    label="Appearance"
+    items='[{"value":"automatic","label":"Automatic","icon":"monitor"},{"value":"light","label":"Light","icon":"sun"},{"value":"dark","label":"Dark","icon":"moon"}]'
+  ></ui-cycle-button></ui-cluster>
