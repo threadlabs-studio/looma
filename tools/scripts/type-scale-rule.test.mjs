@@ -20,12 +20,13 @@ test("components take their font sizes from the scale, so a theme's base size mo
   assert.deepEqual(offenders, []);
 });
 
-test("every step of the type scale derives from the one base size", async () => {
+test("every step of the type scale derives from the root set by the base token", async () => {
   const css = await readFile(tokens, "utf8");
   const steps = [...css.matchAll(/--ui-font-size-([a-z0-9]+):\s*([^;]+);/g)];
   assert.ok(steps.length >= 7);
+  assert.match(css, /font-size:\s*var\(--ui-font-size\)/);
   for (const [, step, value] of steps) {
-    assert.match(value, /var\(--ui-font-size\)/, `--ui-font-size-${step} must derive from --ui-font-size`);
+    assert.match(value, /1rem/, `--ui-font-size-${step} must derive from the document root`);
   }
   assert.doesNotMatch(css, /--ui-font-size-ui\b/);
 });
