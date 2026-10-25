@@ -1,0 +1,7 @@
+{
+  "purpose": "Temporary paired-release consumer input; remove after Markupress 0.10 is available from npm. The installed consumer still validates peers strictly.",
+  "package": "markupress",
+  "version": "0.10.0",
+  "source": "https://github.com/threadlabs-studio/markupress/commit/f4e81a5",
+  "sha256": "f8380f850011ad60a70c1c83e2e8b11c40fb1a7f13b261ead955f037e9c1c305"
+}

@@ -13,7 +13,7 @@ import { cacheDirectory, rejectSymlink, withBuildLock } from './workspace.mjs';
 const own = name => fileURLToPath(new URL(name, import.meta.url));
 /** Resolve import-only optional tooling peers in the consumer's ESM package scope. */
 export async function tool(name, root) {
-  if (!['markupress', '@nextwebwg/htmlkit', 'vite'].includes(name)) throw new Error(`Unknown documentation tool ${name}.`);
+  if (!['markupress', '@threadlabs/markupkit', 'vite'].includes(name)) throw new Error(`Unknown documentation tool ${name}.`);
   const directory = await cacheDirectory(root, 'tooling');
   const file = path.join(directory, name.replaceAll('/', '-').replace('@', '') + '.mjs');
   await rejectSymlink(file);
@@ -89,7 +89,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
   const examples = [];
-  // HTMLKit route groups retain their labels/order in navigation without changing public URLs.
+  // MarkupKit route groups retain their labels/order in navigation without changing public URLs.
   const groupDirectories = new Map(combined.groups.map((group, index) => [group.id,
     `${String(index + 1).padStart(2, '0')}.(${group.label.replace(/[\\/()]/g, '-')})`]));
   const generatedReferences = new Set();
@@ -114,7 +114,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       const setup = path.join(previews, key + '.js');
       const behavior = example.behavior;
       await write(setup, `import { connect as connectPreview } from '../preview.js';\n${behavior ? `import setupExample from ${JSON.stringify(behavior)};\n` : ''}export function connect(host) { const stopPreview = connectPreview(host); ${behavior ? 'const stopExample = setupExample(host.element);' : ''} return () => { ${behavior ? 'stopExample?.();' : ''} stopPreview(); }; }\n`);
-      await write(file, ` ${links}\n<template component="looma-preview-${key}" module="./${key}.js"><defs><meta name="hk:navigation" content="hidden"><title>${escapeHtml(example.title)}</title></defs><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${example.markup}${anchors}</div></template>\n`);
+      await write(file, ` ${links}\n<template component="looma-preview-${key}" module="./${key}.js"><defs><meta name="mk:navigation" content="hidden"><title>${escapeHtml(example.title)}</title></defs><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${example.markup}${anchors}</div></template>\n`);
       examples.push({ ...example, file, component: component.id, path: base + previewPath(example).slice(1) });
     }
   }
@@ -155,7 +155,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   return { root, config, base, catalog: combined, examples, generated, content, previews, redirects };
 }
 
-/** Bundle validated theme restoration into HTMLKit's before-paint head hook. */
+/** Bundle validated theme restoration into MarkupKit's before-paint head hook. */
 async function themeBootstrap(site) {
   const { build } = await tool('vite', site.root);
   const entry = path.join(site.generated, 'theme-bootstrap.mjs');
@@ -210,11 +210,11 @@ async function portableThemeStyles(site) {
   return styles;
 }
 
-/** Build through HTMLKit, then make opaque preview scripts portable to static hosts without CORS. */
+/** Build through MarkupKit, then make opaque preview scripts portable to static hosts without CORS. */
 export async function buildDocumentation({ root = process.cwd(), config = {}, catalog } = {}) {
   return withBuildLock(root, async () => {
     const site = await prepareDocumentation({ root, config, catalog });
-    const { buildApplication } = await tool('@nextwebwg/htmlkit', site.root);
+    const { buildApplication } = await tool('@threadlabs/markupkit', site.root);
     const built = await buildApplication(await documentationOptions(site));
     return { ...built, site };
   });

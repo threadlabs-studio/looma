@@ -77,7 +77,7 @@ it("excludes headings inside authored TOCs from other generated navigation", () 
 });
 
 it("keeps authored TOC navigation instead of replacing it with generated links", () => {
-  const ast = { type: "document" as const, version: 1 as const, body: [{ type: "container", subType: "toc", attributes: { depth: "2", format: "bulleted" }, body: [{ type: "paragraph", children: [{ type: "link", url: "/other-page", value: "Read next" }] }] }] };
+  const ast = { type: "document" as const, version: 1 as const, syntax: "compatible" as const, body: [{ type: "container", subType: "toc", attributes: { depth: "2", format: "bulleted" }, body: [{ type: "paragraph", children: [{ type: "link", url: "/other-page", value: "Read next" }] }] }] };
   expect(editorDocumentToExpressmark(expressmarkToEditorDocument(ast))).toEqual(ast);
 });
 

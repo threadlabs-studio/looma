@@ -59,14 +59,14 @@ function safeBackground(value: unknown, path: string) {
   // HTML policy decides which color values can actually enter native CSS.
   if ((value as string).includes(";")) fail(path, "table background containing declarations");
   const style = `background-color:${value}`;
-  const probe = parse(stringify({ type: "document", version: 1, body: [{ type: "paragraph", value: "color", attributes: { style } }] }));
+  const probe = parse(stringify({ type: "document", version: 1, body: [{ type: "paragraph", value: "color", attributes: { style } }] }), { syntax: "compatible" });
   const accepted = findNode(probe, node => typeof node.attributes?.style === "string")?.attributes?.style;
   if (typeof accepted !== "string" || accepted.replace(/\s/g, "").replace(/;$/, "") !== style.replace(/\s/g, "")) fail(path, "unsafe or unsupported table background");
 }
 function safeNavigation(value: unknown, image: boolean, path: string) {
   if (typeof value !== "string") fail(path, "nonstring navigation URL");
   const target: Node = image ? { type: "image", url: value as string, alt: "image" } : { type: "link", url: value as string, value: "link" };
-  const probe = parse(stringify({ type: "document", version: 1, body: [{ type: "paragraph", children: [target] }] }));
+  const probe = parse(stringify({ type: "document", version: 1, body: [{ type: "paragraph", children: [target] }] }), { syntax: "compatible" });
   const node = findNode(probe, child => child.type === (image ? "image" : "link"));
   if (node?.url !== value) fail(path, "unsafe or unsupported navigation URL");
 }
@@ -300,7 +300,7 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Edit
     if (automaticToc && heading.node) headingIds.set(heading.node, candidate);
   }
   const context = { headings, headingIds, references: options.references ?? {} };
-  return { type: "document", version: 1, body: (document.content ?? []).map((node, index) => { const child = toNode(node, `document.body[${index}]`, context); return child.type === "image" ? { type: "paragraph", children: [child] } : child; }) };
+  return { type: "document", version: 1, syntax: options.syntax ?? "compatible", body: (document.content ?? []).map((node, index) => { const child = toNode(node, `document.body[${index}]`, context); return child.type === "image" ? { type: "paragraph", children: [child] } : child; }) };
 }
 
 function fromNode(node: Node, path: string, marks: NonNullable<JSONContent["marks"]> = []): JSONContent[] {
@@ -477,7 +477,8 @@ export function expressmarkToEditorDocument(document: Document): JSONContent {
  * @failure Unsupported editor data raises EditorMarkdownConversionError before any input is changed.
  */
 export function editorDocumentToMarkdown(document: JSONContent, options: EditorMarkdownConversionOptions = {}): string {
-  return stringify(editorDocumentToExpressmark(document, options), options);
+  const conversion = { syntax: "compatible" as const, ...options };
+  return stringify(editorDocumentToExpressmark(document, conversion), conversion);
 }
 
 /**
@@ -493,5 +494,5 @@ export function editorToMarkdown(editor: Editor, options: ConversionOptions = {}
  * @failure Unsupported content or root metadata stops conversion instead of being silently flattened.
  */
 export function markdownToEditorDocument(markdown: string, options: ConversionOptions = {}): JSONContent {
-  return expressmarkToEditorDocument(parse(markdown, options));
+  return expressmarkToEditorDocument(parse(markdown, { syntax: "compatible", ...options }));
 }

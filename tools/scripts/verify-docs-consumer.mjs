@@ -20,7 +20,7 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest, 
     name: 'looma-documentation-consumer', private: true, type: 'module',
     dependencies: {
       '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
-      '@nextwebwg/htmlkit': manifest.peerDependencies['@nextwebwg/htmlkit'], markupress, vite: manifest.peerDependencies.vite,
+      '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress, vite: manifest.peerDependencies.vite,
     },
   });
   await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline'], directory);
@@ -33,7 +33,17 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest, 
   await json(path.join(directory, 'app/components/office-status/docs.json'), { title: 'Office status', description: 'A Fellowship office status.', group: 'display' });
   await mkdir(path.join(directory, 'docs'));
   await writeFile(path.join(directory, 'docs/index.md'), '# The Fellowship desk\n\n<link rel="component" href="../app/components/office-status/office-status.html">\n\n<office-status label="Ready for second breakfast"></office-status>\n');
-  await run(pnpm, ['exec', 'looma-docs', 'build'], directory);
+  // The docs job builds the complete catalog; this install proves the public builder
+  // and authored discovery with one shipped component inside the package job's budget.
+  await writeFile(path.join(directory, 'verify-build.mjs'), `
+import { readFile } from 'node:fs/promises';
+import { readCatalog, buildProjectDocumentation } from '@threadlabs/looma/docs';
+const catalog = await readCatalog();
+catalog.components = catalog.components.filter(component => component.tag === 'ui-button').map(component => ({ ...component, examples: component.examples.slice(0, 1) }));
+const config = JSON.parse(await readFile('looma.docs.json', 'utf8'));
+await buildProjectDocumentation({ root: process.cwd(), config, catalog });
+`);
+  await run(process.execPath, ['verify-build.mjs'], directory);
   const output = path.join(directory, '.looma/site');
   assert.match(await readFile(path.join(output, 'index.html'), 'utf8'), /Ready for second breakfast/);
   const reference = await readFile(path.join(output, 'components/office-status/index.html'), 'utf8');
