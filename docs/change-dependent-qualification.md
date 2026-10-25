@@ -41,8 +41,10 @@ by a separate two-minute Pages deployment job, alongside publication. In the fir
 build and publishing exhausted the former five-minute job as Pages finished. Separate
 jobs keep build time from consuming the deployment allowance.
 
-Documentation building and release preparation use the Ubuntu 24.04 ARM runner
-already qualifying documentation parity. On the 0.35 source, the 483-route build
+Documentation building, CI package-consumer checks and release preparation use the Ubuntu 24.04 ARM runner
+already qualifying documentation parity. The 0.37 x64 package-consumer check repeatedly reached its six-minute
+job limit during or just after the full documentation consumer flow; CI now uses the same runner as release
+preparation. The complete matrix and six-minute limit remain in place. On the 0.35 source, the 483-route build
 measured 3m56s there versus 4m26s on x64; the package build measured 15s versus 22s.
 The x64 jobs finished their work just after the five-minute deadline, before
 artifact upload. Documentation retains its five-minute limit. Release preparation
