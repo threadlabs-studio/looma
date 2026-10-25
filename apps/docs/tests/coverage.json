@@ -289,6 +289,11 @@
           "behavior": false
         },
         {
+          "id": "09-square",
+          "title": "Square minimum size",
+          "behavior": false
+        },
+        {
           "id": "10-card",
           "title": "card action",
           "behavior": false
@@ -1274,6 +1279,34 @@
         {
           "id": "02-centered",
           "title": "Centered, with an eyebrow",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-pagination",
+      "title": "Pagination",
+      "source": "apps/docs/docs/components/display/ui-pagination.mdx",
+      "component": "ui-pagination",
+      "examples": [
+        {
+          "id": "01-numbered",
+          "title": "Numbered pages",
+          "behavior": true
+        },
+        {
+          "id": "02-native-links",
+          "title": "Native links",
+          "behavior": false
+        },
+        {
+          "id": "03-unknown-total",
+          "title": "Unknown total",
+          "behavior": false
+        },
+        {
+          "id": "04-table",
+          "title": "Beside a results table",
           "behavior": false
         }
       ]
