@@ -1,0 +1,128 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: false",
+    "props": {
+      "invalid": false
+    },
+    "example": 0
+  },
+  {
+    "name": "invalid: true",
+    "props": {
+      "invalid": true
+    },
+    "example": 0
+  },
+  {
+    "name": "muted: false",
+    "props": {
+      "muted": false
+    },
+    "example": 0
+  },
+  {
+    "name": "muted: true",
+    "props": {
+      "muted": true
+    },
+    "example": 0
+  },
+  {
+    "name": "required: false",
+    "props": {
+      "required": false
+    },
+    "example": 0
+  },
+  {
+    "name": "required: true",
+    "props": {
+      "required": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-value-required-and-invalid",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-disabled",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-size",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "native option selection",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

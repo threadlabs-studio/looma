@@ -57,6 +57,26 @@ afterAll(async () => {
 });
 
 describe("Cycling state button", () => {
+  it("shares restrained neutral outlines between actions and fields", async () => {
+    for (const adapter of ['html', 'vue']) {
+      const path = await bundle('neutral-outline-' + adapter, adapter === 'html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {Button,IconButton,Input,Select} from '@threadlabs/looma/vue';createApp({render:()=>[h(Input,{id:'field',value:'Frodo'}),h(Select,{id:'select'},()=>h('option',{},'Sam')),h(Button,{id:'text',variant:'outline',tone:'neutral'},()=>'Archive'),h(IconButton,{id:'icon',variant:'outline',tone:'neutral',label:'Archive'}),h(Button,{id:'accent',variant:'outline',tone:'accent'},()=>'Accent')]}).mount('#app');`);
+      const page = await open(path, adapter === 'html' ? '<ui-input id="field" value="Frodo"></ui-input><ui-select id="select"><option>Sam</option></ui-select><ui-button id="text" variant="outline" tone="neutral">Archive</ui-button><ui-icon-button id="icon" variant="outline" tone="neutral" label="Archive"></ui-icon-button><ui-button id="accent" variant="outline" tone="accent">Accent</ui-button>' : '<div id="app"></div>', [join(root,'tokens.css'), ...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])]);
+      const paint = (id: string) => page.locator(id).evaluate(el => { const s=getComputedStyle(el); return {border:s.borderColor,surface:s.backgroundColor,text:s.color}; });
+      try {
+        for (const mode of ['light','dark']) {
+          await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
+          await page.mouse.move(500,300);
+          await page.waitForTimeout(200);
+          assert.deepEqual(await paint('#text'), await paint('#icon'), `${adapter}/${mode}: shared rest treatment`);
+          assert.notEqual((await paint('#text')).border, (await paint('#accent')).border);
+          for(const id of ['#field','#select']) assert.equal((await paint(id)).border,(await paint('#text')).border,`${adapter}/${mode}: ${id} shares the neutral border`);
+          await page.locator('#text').hover(); await page.waitForTimeout(200); const hover=await paint('#text');
+          await page.locator('#icon').hover(); await page.waitForTimeout(200);
+          assert.deepEqual(hover, await paint('#icon'), `${adapter}/${mode}: shared hover treatment`);
+        }
+      } finally { await page.close(); }
+    }
+  });
   for(const adapter of ['html','vue']) it(`cycles named icon states without moving focus in ${adapter}`, async () => {
     const items=[{value:'automatic',label:'Automatic',icon:'monitor'},{value:'light',label:'Light',icon:'sun'},{value:'dark',label:'Dark',icon:'moon'}];
     const path=await bundle('cycle-state-'+adapter,adapter==='html'?`import '@threadlabs/looma';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.changes=[];document.addEventListener('change',event=>window.changes.push(event.detail));window.selectCycle=()=>componentRegistry.update(document.getElementById('cycle'),{index:2});window.disableCycle=()=>componentRegistry.update(document.getElementById('cycle'),{disabled:true});`:`import {createApp,h,ref} from 'vue';import {CycleButton} from '@threadlabs/looma/vue';const index=ref(0),disabled=ref(false);window.changes=[];window.selectCycle=()=>index.value=2;window.disableCycle=()=>disabled.value=true;createApp({render:()=>h(CycleButton,{id:'cycle',label:'Appearance',items:${JSON.stringify(items)},index:index.value,disabled:disabled.value,'onUpdate:index':value=>index.value=value,onChange:event=>window.changes.push(event.detail)})}).mount('#app');`);
@@ -3177,7 +3197,7 @@ describe("Vue components", () => {
     // Converted Vue marks the component root with its tag as a class, beside the consumer's own.
     assert.equal(await button.getAttribute("class"), "ui-button consumer");
     assert.equal(await button.getAttribute("data-appearance"), "solid");
-    assert.equal(await button.getAttribute("data-tone"), "accent");
+    assert.equal(await button.getAttribute("data-tone"), "neutral");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -5981,7 +6001,7 @@ describe("Small pill button and small menu", () => {
     await page.close();
   });
 
-  it("holds an open menu's ghost trigger lighter than its hover", async () => {
+  it("holds an open menu's ghost trigger stronger than its hover", async () => {
     const path = await bundle("html-ghost-open", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <ui-button id="hovered" variant="ghost" tone="neutral">Hovered</ui-button>
@@ -5991,12 +6011,14 @@ describe("Small pill button and small menu", () => {
     await page.waitForTimeout(300);
     const lightness = (id: string) => page.evaluate((selector) => {
       const canvas = document.createElement("canvas").getContext("2d")!;
+      canvas.fillStyle = "white";
+      canvas.fillRect(0, 0, 1, 1);
       canvas.fillStyle = getComputedStyle(document.querySelector(selector)!).backgroundColor;
       canvas.fillRect(0, 0, 1, 1);
       const [r, g, b] = canvas.getImageData(0, 0, 1, 1).data;
       return r + g + b;
     }, id);
-    assert.ok(await lightness("#open") > await lightness("#hovered"), "the open trigger is lighter than hover");
+    assert.ok(await lightness("#open") < await lightness("#hovered"), "the open trigger is stronger than hover");
     await page.close();
   });
 
@@ -6952,10 +6974,10 @@ describe("Button tone and disabled", () => {
       import { Button } from "@threadlabs/looma/vue";
       createApp({
         render: () => h("div", [
-          h(Button, { id: "accent" }, () => "Review"),
+          h(Button, { id: "accent", tone: "accent" }, () => "Review"),
           h(Button, { id: "danger", tone: "danger" }, () => "Delete"),
           h(Button, { id: "neutral", tone: "neutral" }, () => "Cancel"),
-          h(Button, { id: "solid", variant: "solid" }, () => "Save"),
+          h(Button, { id: "solid", variant: "solid", tone: "accent" }, () => "Save"),
           h(Button, { id: "off", disabled: true }, () => "Save"),
           h(Button, { id: "off-danger", tone: "danger", disabled: true }, () => "Delete"),
           h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
@@ -10981,6 +11003,65 @@ describe("Nested portable theme boundaries", () => {
       await page.locator('#inner-action').focus();
       assert.equal(await page.locator('#inner-action').evaluate(element=>element.matches(':focus-visible')),true);
       assert.equal((await paint('#inner-action'))[3],'light');
+    } finally {await page.close();}
+  });
+});
+
+describe('Shared interaction paint', () => {
+  it('keeps menu selection visible and makes ghost press stronger than hover in every starter mode', async () => {
+    const {startingPoints,themeCSS}=await import('../tooling/docs/theme.mjs');
+    const path=await bundle('interaction-paint',`import '@threadlabs/looma';`);
+    const page=await open(path,'<ui-button id="ghost" variant="ghost">Ghost</ui-button><ui-menu-item id="menu">Read memo</ui-menu-item><ui-menu-item id="selected" type="checkbox" checked>Notify Sam</ui-menu-item>',[join(root,'tokens.css'),join(root,'theme-system.css')],{reducedMotion:'reduce'});
+    try {
+      for(const [name,recipe] of Object.entries(startingPoints)) for(const mode of ['light','dark']) {
+        await page.locator('html').evaluate((el,mode)=>el.setAttribute('data-theme',mode),mode);
+        await page.evaluate(css=>{let style=document.querySelector('#theme-paint');if(!style){style=document.createElement('style');style.id='theme-paint';document.head.append(style);}style.textContent=css;},themeCSS(recipe));
+        const paint=(selector:string)=>page.locator(selector).evaluate(el=>{
+          const style=getComputedStyle(el),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d')!;
+          ctx.fillStyle=style.backgroundColor;ctx.fillRect(0,0,1,1);
+          return {surface:style.backgroundColor,alpha:ctx.getImageData(0,0,1,1).data[3]};
+        });
+        await page.mouse.move(600,400);const idle=await paint('#menu');
+        await page.locator('#menu').hover();const hover=await paint('#menu');
+        assert.notEqual(hover.surface,idle.surface,`${name}/${mode}: menu hover`);
+        assert.notEqual((await paint('#selected')).surface,idle.surface,`${name}/${mode}: checked menu`);
+        await page.locator('#ghost').hover();const ghostHover=await paint('#ghost');
+        await page.mouse.down();const ghostPress=await paint('#ghost');
+        assert.ok(ghostPress.alpha>ghostHover.alpha,`${name}/${mode}: ghost press ${ghostPress.alpha} > hover ${ghostHover.alpha}`);
+        await page.mouse.move(600,400);await page.mouse.up();
+      }
+    } finally {await page.close();}
+  });
+});
+
+describe('Muted inherited choices', () => {
+  for(const adapter of ['html','vue']) it(`keeps selected defaults muted and option text normal in ${adapter}`, async () => {
+    const path=await bundle('muted-select-'+adapter,adapter==='html'?`import '@threadlabs/looma';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.unmute=()=>componentRegistry.update(document.getElementById('choice'),{muted:false});`:`import {createApp,h,ref} from 'vue';import {Select} from '@threadlabs/looma/vue';const muted=ref(true);window.unmute=()=>muted.value=false;createApp({render:()=>h(Select,{id:'choice',muted:muted.value},()=>[h('option',{},'Default palette'),h('optgroup',{label:'Other'},[h('option',{},'Alternative')])])}).mount('#app');`);
+    const page=await open(path,adapter==='html'?'<ui-select id="choice" muted><option>Default palette</option><optgroup label="Other"><option>Alternative</option></optgroup></ui-select>':'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try {
+      await page.addStyleTag({content:':root {--ui-text-primary:rgb(20,30,40);--ui-text-secondary:rgb(90,100,110)}'});
+      assert.equal(await page.locator('#choice').evaluate(el=>getComputedStyle(el).color),'rgb(90, 100, 110)');
+      assert.deepEqual(await page.locator('#choice option,#choice optgroup').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).color)),Array(3).fill('rgb(20, 30, 40)'));
+      await page.evaluate(()=>(window as any).unmute());
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#choice')!).color==='rgb(20, 30, 40)');
+    } finally {await page.close();}
+  });
+});
+
+describe('Readable overlay content', () => {
+  it('keeps notification and choice content opaque at every translucency extreme', async () => {
+    const path=await bundle('opaque-overlay-content',`import '@threadlabs/looma';`);
+    const page=await open(path,'<ui-toast id="notice" tone="info">Frodo saved the agenda.</ui-toast><ui-combobox id="choices" label="Colleague" value="sam" disclosure><option value="sam">Sam</option></ui-combobox>',[join(root,'tokens.css'),join(root,'theme-light.css'),join(root,'theme-dark.css'),join(root,'theme-system.css')]);
+    try {
+      for (const mode of ['light','dark']) for (const translucency of [0,0.5,1]) {
+        await page.evaluate(({mode,translucency})=>{document.documentElement.dataset.theme=mode;document.documentElement.style.setProperty('--ui-overlay-translucency',String(translucency));},{mode,translucency});
+        const alphas=await page.locator('#notice,#choices [popover]').evaluateAll(elements=>elements.map(element=>{
+          const canvas=document.createElement('canvas'),context=canvas.getContext('2d')!;
+          context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
+          return context.getImageData(0,0,1,1).data[3];
+        }));
+        assert.deepEqual(alphas,[255,255],`${mode}/${translucency}: decorative transparency must not transmit through readable content`);
+      }
     } finally {await page.close();}
   });
 });

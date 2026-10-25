@@ -1,0 +1,64 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "dismissible: false",
+    "props": {
+      "dismissible": false
+    },
+    "example": 0
+  },
+  {
+    "name": "dismissible: true",
+    "props": {
+      "dismissible": true
+    },
+    "example": 0
+  },
+  {
+    "name": "modal: false",
+    "props": {
+      "modal": false
+    },
+    "example": 0
+  },
+  {
+    "name": "modal: true",
+    "props": {
+      "modal": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-open",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-label-dismissible-status-and-footer",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 02-label-dismissible-status-and-footer.snippet",
+    "props": {},
+    "example": 2
+  }
+]

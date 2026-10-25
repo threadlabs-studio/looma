@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: plain",
+    "props": {
+      "variant": "plain"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: card",
+    "props": {
+      "variant": "card"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: divided",
+    "props": {
+      "variant": "divided"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-plain",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-card-and-danger",
+    "props": {},
+    "example": 1
+  }
+]

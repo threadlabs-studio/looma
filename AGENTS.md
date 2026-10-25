@@ -55,6 +55,7 @@ executable inputs need an owner mapping. See
 - Importing public entry points during SSR must not touch `window`, `document`,
   `HTMLElement`, or a custom-element registry at module evaluation.
 - Components never set external margins; layout primitives own spacing.
+- Line heights use unitless multipliers of each text role’s font size, never px or rem lengths. Shared rhythm coordinates leading and layout gaps; spacing can refine gaps independently.
 - Visible control proportions and hit areas are separate. Touch-size guidance is contextual and adjustable; do not impose a 44px floor by inflating the visible size ladder. Compact controls stay compact on touch. Enlarge invisible targets only where they fit without stealing neighbouring controls; do not turn recommendations into universal layout invariants.
 - Composition over configuration; no global magical state.
 - Framework adapters translate conventions only; they must not diverge in

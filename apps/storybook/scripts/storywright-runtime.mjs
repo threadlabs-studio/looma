@@ -12,7 +12,7 @@ export function assertCanonicalStorywrightRuntime({
   }
 
   throw new Error(
-    `Direct Storywright ${command} is blocked because it can produce non-canonical visual results. `
+    `Direct component visual ${command} is blocked because it can produce non-canonical visual results. `
       + `Use "node ./scripts/run-storywright-docker.mjs ${command}" instead.`,
   )
 }

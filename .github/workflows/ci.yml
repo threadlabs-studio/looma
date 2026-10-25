@@ -125,6 +125,15 @@ jobs:
       # pinned Playwright image so CI renders exactly like the local baselines.
       - name: Storybook visual regression
         run: node apps/storybook/scripts/run-storywright-docker.mjs test
+      - name: Preserve visual differences
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: component-state-differences
+          path: |
+            apps/storybook/test-results/
+            apps/storybook/playwright-report/
+          if-no-files-found: ignore
 
   verify:
     if: always()

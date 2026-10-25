@@ -1,0 +1,148 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "alert: false",
+    "props": {
+      "alert": false
+    },
+    "example": 0
+  },
+  {
+    "name": "alert: true",
+    "props": {
+      "alert": true
+    },
+    "example": 0
+  },
+  {
+    "name": "closedby: any",
+    "props": {
+      "closedby": "any"
+    },
+    "example": 0
+  },
+  {
+    "name": "closedby: closerequest",
+    "props": {
+      "closedby": "closerequest"
+    },
+    "example": 0
+  },
+  {
+    "name": "closedby: none",
+    "props": {
+      "closedby": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "modal: false",
+    "props": {
+      "modal": false
+    },
+    "example": 0
+  },
+  {
+    "name": "modal: true",
+    "props": {
+      "modal": true
+    },
+    "example": 0
+  },
+  {
+    "name": "modeless: false",
+    "props": {
+      "modeless": false
+    },
+    "example": 0
+  },
+  {
+    "name": "modeless: true",
+    "props": {
+      "modeless": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: fullscreen",
+    "props": {
+      "size": "fullscreen"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-modal",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-dismissible",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-long-content",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-alert",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 06-sizes",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "open dialog and restored focus",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
+  }
+]

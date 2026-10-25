@@ -12,6 +12,17 @@ function browser(storage = new Map()) {
 }
 const config = { base: '/looma/', baseline: defaultRecipe(), systemCSS: '/* shared derivation */' };
 
+test('removing the header theme notice clears the browser override and retains undo', () => {
+  const storage = new Map(), view = browser(storage), session = createThemeSession(view, config);
+  session.apply(startingPoints.bookish);
+  view.dispatchEvent(new Event('markupress-header-notice-dismiss'));
+  assert.equal(session.hasOverride, false);
+  assert.equal(storage.size, 0);
+  assert.deepEqual(session.recipe, config.baseline);
+  session.undo();
+  assert.deepEqual(session.recipe, startingPoints.bookish);
+});
+
 test('a browser theme survives a fresh document, stays scoped, and resets to the project baseline', () => {
   const storage = new Map();
   const first = createThemeSession(browser(storage), config);

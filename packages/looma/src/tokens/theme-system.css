@@ -14,6 +14,7 @@
 @layer theme {
   :root {
     --ui-spacing: 1;
+    --ui-rhythm: 1;
     --ui-control-roominess: 2.5;
     --ui-scale-ratio: 1.2;
     --ui-space-curve: 1;
@@ -36,7 +37,11 @@
        contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
     --ui-control-size: calc(1rem * var(--ui-control-roominess));
     --_ui-theme-ratio: max(1, var(--ui-scale-ratio));
-    --_ui-theme-unit: calc(1rem * 0.25 * max(0, var(--ui-spacing)));
+    --_ui-theme-unit: calc(1rem * 0.25 * max(0, var(--ui-spacing)) * clamp(0.75, var(--ui-rhythm), 1.5));
+    --ui-line-height-tight: clamp(1.1, calc(1.2 + (var(--ui-rhythm) - 1) * 0.2), 1.3);
+    --ui-line-height: clamp(1.35, calc(1.4 + (var(--ui-rhythm) - 1) * 0.4), 1.6);
+    --ui-line-height-md: var(--ui-line-height);
+    --ui-line-height-relaxed: calc(var(--ui-line-height) * 1.15);
     --_ui-theme-curve: max(0, var(--ui-space-curve));
     --ui-control-size-sm: calc(var(--ui-control-size) / var(--_ui-theme-ratio));
     --ui-control-size-md: var(--ui-control-size);
@@ -89,7 +94,7 @@
     --ui-elevation-dialog: var(--ui-shadow-lg);
     --ui-control-inset: inset calc(var(--_ui-light-inline) * var(--_ui-theme-inner)) calc(var(--_ui-light-block) * var(--_ui-theme-inner)) calc(3px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.15), inset calc(-1 * var(--_ui-light-inline)) calc(-1 * var(--_ui-light-block)) 0 rgb(255 255 255 / calc(var(--_ui-theme-edge) * var(--ui-light-strength) * 0.18)), var(--ui-material-glow);
     --ui-pressed: inset calc(2 * var(--_ui-light-inline) * var(--_ui-theme-inner)) calc(2 * var(--_ui-light-block) * var(--_ui-theme-inner)) calc(4px * var(--_ui-theme-inner)) rgb(0 0 0 / 0.2);
-    --ui-overlay-surface: color-mix(in srgb, var(--ui-surface-raised) calc((1 - clamp(0, var(--ui-overlay-translucency), 1)) * 100%), transparent);
+    --ui-overlay-surface: var(--ui-surface-raised);
     /* Decorative outer material is allowed to transmit the scene. Content keeps
        its own opaque plane; changing the scene cannot undermine text contrast. */
     --ui-material-content: var(--ui-surface-raised);

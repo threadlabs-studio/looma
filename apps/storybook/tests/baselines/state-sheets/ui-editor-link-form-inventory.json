@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "existing: false",
+    "props": {
+      "existing": false
+    },
+    "example": 0
+  },
+  {
+    "name": "existing: true",
+    "props": {
+      "existing": true
+    },
+    "example": 0
+  },
+  {
+    "name": "mode: url",
+    "props": {
+      "mode": "url"
+    },
+    "example": 0
+  },
+  {
+    "name": "mode: target",
+    "props": {
+      "mode": "target"
+    },
+    "example": 0
+  },
+  {
+    "name": "new-tab: false",
+    "props": {
+      "newTab": false
+    },
+    "example": 0
+  },
+  {
+    "name": "new-tab: true",
+    "props": {
+      "newTab": true
+    },
+    "example": 0
+  },
+  {
+    "name": "searchable: false",
+    "props": {
+      "searchable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "searchable: true",
+    "props": {
+      "searchable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "text-editable: false",
+    "props": {
+      "textEditable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "text-editable: true",
+    "props": {
+      "textEditable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-address",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-search",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-new-link-text",
+    "props": {},
+    "example": 2
+  }
+]
