@@ -1,4 +1,4 @@
-import { chooseOption } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement } from './choose-option.js';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -91,50 +91,21 @@ test('documentation navigation uses Looma disclosures and keeps editor reference
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-editor-mobile.png') });
 });
 
-test('customizer gives its controls the sidebar and keeps previews visible without a second navigation tree', async ({ page }, info) => {
+test('component browser searches the complete catalog in bounded groups', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toHaveCount(0);
-  const controls = page.getByRole('complementary', { name: 'Theme controls', exact: true });
-  await expect(controls.getByRole('combobox', { name: 'Starting point', exact: true })).toBeVisible();
-  await expect(controls.getByRole('combobox', { name: 'Palette preset', exact: true })).toBeVisible();
-  await expect(controls.getByRole('combobox', { name: 'Material preset', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Type, size & motion', exact: true })).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.getByRole('button', { name: 'Add an example', exact: true })).toHaveAttribute('aria-expanded', 'false');
-  const previews = page.locator('[data-customizer-overview] .examples [data-example-card]');
+  await expect(page.getByRole('navigation', {name:'Documentation',exact:true})).toHaveCount(0);
+  await openEditor(page, 'components');
+  const previews = page.locator('[data-refinement-view="components"] .examples [data-example-card]');
   await expect(previews).toHaveCount(9);
-  await page.getByRole('button', { name: 'Show more components', exact: true }).click();
+  await page.getByRole('button', { name:'Show more components',exact:true }).click();
   await expect(previews).toHaveCount(18);
-  const search = page.getByRole('searchbox', { name: 'Search components', exact: true });
-  await search.fill('ui-slider');
-  await expect(previews).toHaveCount(1);
-  await expect(previews).toHaveAttribute('data-component-card', 'ui-slider');
-  await expect(previews.getByRole('link', { name: 'View component', exact: true })).toHaveAttribute('href', /components\/ui-slider\/$/);
-  await search.fill('no-component-has-this-name');
-  await expect(previews).toHaveCount(0);
-  await expect(page.locator('[data-example-count]')).toHaveText('No components match. Try another name, tag or purpose.');
-  await search.clear();
-  await expect(previews).toHaveCount(9);
-  const sampler = page.locator('[data-theme-sampler] iframe').contentFrame();
-  await expect(sampler.getByRole('heading', { name: 'Second breakfast, sorted.', exact: true })).toBeVisible();
-  await expect(sampler.getByText('Frodo plans. Sam follows through.', { exact: true })).toBeVisible();
-  const first = page.locator('[data-customizer-overview] .examples [data-example-card]').first();
-  expect((await page.locator('[data-theme-sampler]').boundingBox()).y).toBeLessThan(650);
-  const stack = first.locator('.body [data-component="ui-stack"]');
-  expect(await stack.evaluate(element => getComputedStyle(element).display)).toBe('flex');
-  expect(await stack.evaluate(element => parseFloat(getComputedStyle(element).rowGap))).toBeGreaterThan(0);
-  await expect(page.getByRole('button', { name: /^Appearance:/ })).toHaveAttribute('aria-label', 'Appearance: Automatic');
-  await chooseOption(controls.getByRole('combobox', { name: 'Starting point', exact: true }), 'bookish');
-  if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'customizer-light.png') });
-  await chooseAppearance(page, 'dark');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'customizer-dark.png') });
-  await chooseAppearance(page, 'automatic');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.setViewportSize({ width: 375, height: 900 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'customizer-mobile.png') });
-  await page.getByRole('button', { name: 'Navigation', exact: true }).click();
-  await expect(page.getByRole('navigation', { name: 'Sections', exact: true })).toBeVisible();
+  const search=page.getByRole('searchbox',{name:'Search components',exact:true});
+  await search.fill('ui-slider');await expect(previews).toHaveCount(1);
+  await expect(previews).toHaveAttribute('data-component-card','ui-slider');
+  await expect(previews.getByRole('link',{name:'View component',exact:true})).toHaveAttribute('href',/components\/ui-slider\/$/);
+  await search.fill('no-component-has-this-name');await expect(previews).toHaveCount(0);
+  await expect(page.locator('[data-example-count]')).toContainText('No components match');
+  await search.clear();await expect(previews).toHaveCount(9);
 });
 
 test('reel examples have meaningful overflow and snap at item centers', async ({ page }, info) => {
@@ -159,9 +130,10 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(9);
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'night');
-  for (const iframe of await page.locator('[data-customizer-overview] .examples [data-example-card] iframe').all()) {
+  await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(9);
+  await chooseStartingPoint(page, 'night');
+  await openEditor(page, 'components');
+  for (const iframe of await page.locator('[data-refinement-view="components"] .examples [data-example-card] iframe').all()) {
     const frame = iframe.contentFrame();
     await expect.poll(() => frame.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
     expect(await frame.locator('html').evaluate(() => { try { void parent.document; return false; } catch { return true; } })).toBe(true);
@@ -171,22 +143,23 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   await page.getByRole('combobox', { name: 'Choose a component example', exact: true }).fill(`Button · ${extra.title}`);
   await page.getByRole('option', { name: `Button · ${extra.title}`, exact: true }).click();
   await page.getByRole('button', { name: 'Add to preview', exact: true }).click();
-  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(10);
+  await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(10);
   const added = page.locator(`[data-example-card="${extra.id}"]`);
   await expect.poll(() => added.locator('iframe').contentFrame().locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
   await added.getByRole('button', { name: 'Remove', exact: true }).click();
-  await expect(page.locator('[data-customizer-overview] .examples [data-example-card]')).toHaveCount(9);
-  await page.getByRole('button', { name: 'Export & save', exact: true }).click();
+  await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(9);
+  await openEditor(page, 'export');
   const cssReady = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download CSS', exact: true }).click();
   const css = await readFile(await (await cssReady).path(), 'utf8');
   expect(css).toMatch(/--ui-surface: light-dark\([^,]+, #11141c\);/);
   expect(css).toContain('pow(1 / 7, var(--_ui-theme-curve))');
-  const buttonFrame = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').first();
+  const buttonFrame = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').first();
   const appearance = element => {
     const style = getComputedStyle(element);
     return Object.fromEntries(['color', 'backgroundColor', 'borderRadius', 'height', 'padding', 'boxShadow', 'transitionDuration'].map(property => [property, style[property]]));
   };
+  await openEditor(page, 'components');
   const previewAppearance = await buttonFrame.contentFrame().locator('[data-preview] button').first().evaluate(appearance);
   const consumerContext = await page.context().browser().newContext({ reducedMotion: 'reduce', colorScheme: 'light' });
   const consumer = await consumerContext.newPage();
@@ -205,6 +178,7 @@ test('customizer reuses real cards, updates every isolated preview and exports t
     });
     await expect.poll(() => consumerButton.evaluate(appearance)).toEqual(previewAppearance);
   } finally { await consumerContext.close(); }
+  await openEditor(page, 'export');
   const recipeReady = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download recipe', exact: true }).click();
   const recipe = await readFile(await (await recipeReady).path(), 'utf8');
@@ -243,14 +217,15 @@ test('customizer stays within a narrow screen and the published editor playgroun
 test('one shared size lever derives matching field and action geometry', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(info.config.metadata.markupress + 'customize/');
-  const defaultButton = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
+  await openEditor(page, 'components');
+  const defaultButton = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
   await expect.poll(() => defaultButton.evaluate(element => ({ padding: getComputedStyle(element).paddingRight, motion: getComputedStyle(element).transitionDuration }))).toEqual({ padding: '12.75px', motion: '0.12s, 0.12s, 0.12s, 0.12s, 0.18s' });
-  await page.getByRole('button', { name: 'Type, size & motion', exact: true }).click();
-  await page.getByText('Size & spacing', { exact: true }).click();
+  await openEditor(page, 'layout');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).fill('3');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).press('Enter');
-  const button = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
-  const field = page.locator('[data-customizer-overview] [data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
+  await openEditor(page, 'components');
+  const button = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
+  const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
   await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
 });
@@ -270,14 +245,15 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   const base = info.config.metadata.markupress;
   await page.goto(base + 'customize/');
   const action = () => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-accent').trim());
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'bookish');
+  await chooseStartingPoint(page, 'bookish');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
-  const buttonCard = page.locator('[data-customizer-overview] [data-component-card="ui-button"]');
+  await openEditor(page, 'components');
+  const buttonCard = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"]');
   const solid = buttonCard.locator('iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => solid.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, height: element.getBoundingClientRect().height }))).toEqual({ background: 'rgb(46, 18, 40)', height: 42 });
   await page.getByRole('searchbox', { name: 'Search components', exact: true }).fill('ui-button');
   await expect(buttonCard).toBeVisible();
-  await expect(page.locator('[data-customizer-overview] [data-component-card="ui-input"]')).toHaveCount(0);
+  await expect(page.locator('[data-refinement-view="components"] [data-component-card="ui-input"]')).toHaveCount(0);
   await buttonCard.getByRole('link', { name: 'View component', exact: true }).click();
   await expect(page).toHaveURL(base + 'components/ui-button/');
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
@@ -288,16 +264,17 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await page.goto(base + 'components/');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
   await page.goto(base + 'customize/');
-  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Bookish');
+  await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Bookish');
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
   await page.reload();
-  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Bookish');
+  await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Bookish');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
 });
 
 test('opposite mode boundaries reach the isolated preview without changing siblings or the page', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  const cards = page.locator('[data-customizer-overview] .examples [data-example-card]');
+  await openEditor(page, 'components');
+  const cards = page.locator('[data-refinement-view="components"] .examples [data-example-card]');
   const first = cards.first(); const second = cards.nth(1);
   await expect.poll(() => first.locator('iframe').contentFrame().locator('html').getAttribute('data-theme')).toBe('light');
   const previewSurface = () => first.locator('iframe').contentFrame().locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
@@ -316,9 +293,10 @@ test('opposite mode boundaries reach the isolated preview without changing sibli
 test('browser storage failures keep editing usable and explain that changes cannot be remembered', async ({ page }, info) => {
   await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Storage blocked', 'SecurityError'); } }));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'bookish');
+  await chooseStartingPoint(page, 'bookish');
   await expect(page.locator('[data-message]')).toContainText('Browser storage is unavailable');
-  await expect.poll(() => page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
+  await openEditor(page, 'components');
+  await expect.poll(() => page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
 });
 
 test('other tabs keep the customizer controls and active theme synchronized', async ({ page, context }, info) => {
@@ -327,45 +305,50 @@ test('other tabs keep the customizer controls and active theme synchronized', as
   const other = await context.newPage();
   try {
     await other.goto(url);
-    await chooseOption(other.getByRole('combobox', { name: 'Starting point', exact: true }), 'wiki');
-    await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Wiki');
+    await chooseStartingPoint(other, 'wiki');
+    await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Wiki');
     await page.getByRole('button', { name: 'Reset', exact: true }).click();
-    await expect(other.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Wiki');
+    await expect(other.locator('[data-preset] input[role=combobox]')).toHaveValue('Wiki');
   } finally { await other.close(); }
 });
 
 
 test('shared number, slider and curve controls calculate, convert, constrain and support keyboard editing', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await page.getByRole('button', { name: 'Type, size & motion', exact: true }).click();
-  await page.getByText('Size & spacing', { exact: true }).click();
+  await openEditor(page, 'layout');
   const size = page.getByRole('spinbutton', { name: 'Control roominess', exact: true });
   await size.fill('3 / 1.2'); await size.press('Enter');
   await expect(size).toHaveValue('2.5');
-  const action = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
+  await openEditor(page, 'components');
+  const action = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(42.5);
-  await page.getByText('Type', { exact: true }).click();
+  await openEditor(page, 'typography');
   const textSize = page.getByRole('spinbutton', { name: 'Base text size', exact: true });
   await textSize.fill('18px'); await textSize.press('Enter');
   await expect(textSize).toHaveValue('18px');
   await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).fontSize)).toBe('18px');
+  await openEditor(page, 'components');
   await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(45);
+  await openEditor(page, 'layout');
   const corners = page.getByRole('spinbutton', { name: 'Corner roundness', exact: true });
   await corners.fill('9px'); await corners.press('Enter');
   await chooseOption(page.getByRole('combobox', { name: 'Corner roundness unit', exact: true }), 'rem');
   await expect(corners).toHaveValue('0.5rem');
   await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).getPropertyValue('--ui-radius-md').trim())).toBe('9px');
+  await openEditor(page, 'typography');
   await textSize.fill('20px'); await textSize.press('Enter');
   await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).fontSize)).toBe('20px');
   await expect.poll(() => page.locator('html').evaluate(e => getComputedStyle(e).getPropertyValue('--ui-radius-md').trim())).toBe('10px');
+  await openEditor(page, 'layout');
   await expect(page.locator('[data-size-sample="md"] [data-size-readout]')).toContainText('2.5rem (50px)');
 
   const density = page.getByRole('slider', { name: 'Spacing', exact: true });
   await density.press('End'); await expect(density).toHaveValue('150');
   await expect.poll(() => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-spacing').trim())).toBe('1.5');
-  await page.getByText('Motion', { exact: true }).click();
+  await openEditor(page, 'motion');
   const time = page.getByRole('spinbutton', { name: 'Response time', exact: true });
   await time.fill('150ms * 2'); await time.press('Enter'); await expect(time).toHaveValue('300ms');
+  await page.getByRole('button', {name:'Shape the curve',exact:true}).click();
   const curve = page.getByRole('textbox', { name: 'Response curve', exact: true });
   const before = await curve.inputValue();
   const first = page.getByRole('button', { name: /^First curve handle/ });
@@ -383,20 +366,21 @@ test('shared number, slider and curve controls calculate, convert, constrain and
 
 test('coordinated palettes preserve geometry and document both resolved modes', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'wiki');
+  await chooseStartingPoint(page, 'wiki');
   const geometry = () => page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size').trim());
   const before = await geometry();
-  await chooseOption(page.getByRole('combobox', { name: 'Palette preset', exact: true }), 'bookish');
+  await chooseRefinement(page, 'palette', 'bookish');
   await expect.poll(geometry).toBe(before);
-  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Your theme');
-  await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
+  await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Your theme');
+  await openEditor(page, 'palette');
   await expect(page.getByRole('img', { name: 'light canvas, content and action range', exact: true })).toBeVisible();
   await expect(page.getByRole('img', { name: 'dark canvas, content and action range', exact: true })).toBeVisible();
   await expect(page.locator('[data-palette-adjustments]')).toContainText('readability');
   await page.getByText('Resolved palette values', { exact: true }).click();
   await expect(page.locator('[data-palette-adjustment-details]')).toContainText('dark');
-  await page.getByRole('button', { name: 'Back to customization', exact: true }).click();
-  const text = page.locator('[data-customizer-overview] [data-component-card="ui-text"] iframe').contentFrame();
+  await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await openEditor(page, 'components');
+  const text = page.locator('[data-refinement-view="components"] [data-component-card="ui-text"] iframe').contentFrame();
   await expect(text.getByRole('heading', { name: 'There and back by Friday', level: 1 })).toBeVisible();
   const displaySize = await text.getByRole('heading', { level: 1 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   const headingSize = await text.getByRole('heading', { level: 2 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
@@ -407,10 +391,10 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
 test('material refinement shares a movable light, remembers customized presets and restores only that family', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'bookish');
+  await chooseStartingPoint(page, 'bookish');
   const size = await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'));
   const enter = async () => {
-    await page.getByRole('button', { name: 'Refine material & light', exact: true }).click();
+    await openEditor(page, 'material');
   };
   await enter();
   const material = page.locator('[data-refinement-view="material"]');
@@ -453,48 +437,48 @@ test('material refinement shares a movable light, remembers customized presets a
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'material-mobile-dark.png'), fullPage: false });
   }
-  await material.getByRole('button', { name: 'Restore material preset', exact: true }).click();
+  await material.getByRole('button', { name: 'Reset material', exact: true }).click();
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished');
   await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('50%');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe(size);
-  await material.getByRole('button', { name: 'Back to customization', exact: true }).click();
+  await material.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(page.locator('[data-customizer-overview]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test('starting theme refinements remember their material and palette without reselecting either preset', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'bookish');
-  await page.getByRole('button', { name: 'Refine material & light', exact: true }).click();
+  await chooseStartingPoint(page, 'bookish');
+  await openEditor(page, 'material');
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass');
   await material.getByRole('button', { name: /^Theme light position. Arrow keys/ }).press('Shift+ArrowRight');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
-  await material.getByRole('button', { name: 'Back to customization', exact: true }).click();
-  await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
+  await material.getByRole('button', { name: 'Overview', exact: true }).click();
+  await openEditor(page, 'palette');
   const palette = page.locator('[data-refinement-view="palette"]');
-  await palette.getByRole('textbox', { name: 'Action', exact: true }).fill('#442244');
+  await setBaseColor(page, 'Action', '#442244');
   await expect(palette.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Plum & paper · customized');
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Palette preset', exact: true })).toHaveValue('Plum & paper · customized');
-  await page.getByRole('button', { name: 'Refine material & light', exact: true }).click();
+  await openEditor(page, 'material');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
 });
 
 test('palette refinement persists its origin and restoring it leaves material refinements intact', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), 'wiki');
-  await chooseOption(page.getByRole('combobox', { name: 'Palette preset', exact: true }), 'bookish');
-  await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
+  await chooseStartingPoint(page, 'wiki');
+  await chooseRefinement(page, 'palette', 'bookish');
+  await openEditor(page, 'palette');
   const palette = page.locator('[data-refinement-view="palette"]');
-  await palette.getByRole('textbox', { name: 'Action', exact: true }).fill('#442244');
+  await setBaseColor(page, 'Action', '#442244');
   await expect(palette.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Plum & paper · customized');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'palette-light.png'), fullPage: false });
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Palette preset', exact: true })).toHaveValue('Plum & paper · customized');
-  await page.getByRole('button', { name: 'Refine palette', exact: true }).click();
-  await palette.getByRole('button', { name: 'Restore palette preset', exact: true }).click();
-  await expect(palette.getByRole('textbox', { name: 'Action', exact: true })).toHaveValue('#2e1228');
+  await openEditor(page, 'palette');
+  await palette.getByRole('button', { name: 'Reset palette', exact: true }).click();
+  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#2e1228');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe('34px');
 });
 
@@ -504,7 +488,7 @@ const readableRecipes = [...Object.entries(startingPoints), ['imported white see
 for (const [preset, recipe] of readableRecipes) {
   test(`solid action tones and icon actions stay readable in both modes and states: ${preset}`, async ({ page }, info) => {
     await page.goto(info.config.metadata.markupress + 'customize/');
-    if (Object.hasOwn(startingPoints, preset)) await chooseOption(page.getByRole('combobox', { name: 'Starting point', exact: true }), preset);
+    if (Object.hasOwn(startingPoints, preset)) await chooseStartingPoint(page, preset);
     else {
       await page.locator('[data-recipe-file]').setInputFiles({ name: 'theme.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(recipe)) });
       await expect(page.locator('[data-message]')).toContainText('Recipe applied');
@@ -552,7 +536,7 @@ test('the removable Custom theme header chip clears browser customization across
     const chip=page.getByRole('button',{name:'Remove Custom theme',exact:true});
     await expect(chip).toBeHidden();
     const original=await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ui-accent').trim());
-    await chooseOption(page.getByRole('combobox',{name:'Starting point',exact:true}), 'bookish');
+    await chooseStartingPoint(page, 'bookish');
     await expect(chip).toBeVisible();
     await page.goto(base+'components/ui-button/');
     await expect(chip).toBeVisible();

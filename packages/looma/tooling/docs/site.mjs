@@ -144,7 +144,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   const customizer = path.join(generated, 'customizer.html');
   await write(customizer, customizerResource({ catalog: combined, config, base }, config.recipe));
   const customizerPage = path.join(content, 'customize.md');
-  await write(customizerPage, `---\ntitle: Customize\nsidebar: false\noutline: false\nprevious: false\nnext: false\n---\n\n# Weave your design system\n\n<link rel="component" href="${relativeHref(customizerPage, customizer)}">\n<looma-customizer></looma-customizer>\n`);
+  await write(customizerPage, `---\ntitle: Customize\nsidebar: false\noutline: false\nprevious: false\nnext: false\n---\n\n# Customize your theme\n\n<link rel="component" href="${relativeHref(customizerPage, customizer)}">\n<looma-customizer></looma-customizer>\n`);
   await write(path.join(generated, 'catalog.json'), JSON.stringify(combined));
   const redirects = {};
   for (const component of combined.components) {

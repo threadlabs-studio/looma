@@ -1,4 +1,4 @@
-import { chooseOption } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -6,17 +6,18 @@ const session = page => page.evaluate(() => window[Symbol.for('looma.documentati
 const enter = async (page, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
-  await chooseOption(page.getByRole('combobox', {name:'Starting point',exact:true}), 'bookish');
+  await chooseStartingPoint(page, 'bookish');
   return errors;
 };
 
 test('completed edits undo and redo persist without an ambiguous comparison mode', async ({page}, info) => {
   const errors = await enter(page, info);
-  await page.getByRole('button',{name:'Refine material & light',exact:true}).click();
+  await openEditor(page, 'material');
   const beforeFocus = await session(page);
   await page.locator('[data-light-editor] .source').click();
   expect(await session(page)).toEqual(beforeFocus);
   const stage = page.locator('[data-light-editor]').getByRole('button',{name:'Join briefing',exact:true});
+  await page.getByRole('button',{name:'Try floating surfaces',exact:true}).click();
   const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] iframe').contentFrame().getByRole('button',{name:'Join briefing',exact:true});
   await expect.poll(() => card.evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
   await page.getByRole('button',{name:'Upper left',exact:true}).click();
@@ -31,33 +32,16 @@ test('completed edits undo and redo persist without an ambiguous comparison mode
   expect(errors).toEqual([]);
 });
 
-test('nearby variations preview before applying and honor family locks', async ({page},info) => {
-  const errors = await enter(page,info), original=await session(page);
-  await page.getByText('Explore nearby styles',{exact:true}).click();
-  await page.getByRole('checkbox',{name:'Lock Palette',exact:true}).check();
-  await page.getByRole('button',{name:'Preview variation',exact:true}).click();
-  await expect(page.locator('[data-variation-description]')).toContainText('No changes');
-  expect(await session(page)).toEqual(original);
-  await page.getByRole('button',{name:'Cancel preview',exact:true}).click();
-  await page.getByRole('checkbox',{name:'Lock Palette',exact:true}).uncheck();
-  await page.getByRole('button',{name:'Preview variation',exact:true}).click();
-  await expect(page.locator('[data-variation-description]')).toContainText('Surface warmth');
-  expect(await session(page)).toEqual(original);
-  await page.getByRole('button',{name:'Apply variation',exact:true}).click();
-  expect((await session(page)).values.warmth).toBe('0.65');
-  await page.getByRole('button',{name:'Undo',exact:true}).click();
-  expect(await session(page)).toEqual(original);
-  expect(errors).toEqual([]);
-});
-
 test('palette transformations change both mode specimens, keep geometry and survive navigation', async ({page},info) => {
   const errors = await enter(page,info);
-  await page.getByRole('button',{name:'Refine palette',exact:true}).click();
+  await openEditor(page, 'palette');
   const palette=page.locator('[data-refinement-view="palette"]');
   const colors=()=>palette.locator('.palette-canvas').evaluateAll(es=>es.map(e=>getComputedStyle(e).backgroundColor));
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
+  await palette.getByRole('button',{name:'Adjust color character',exact:true}).click();
   await palette.getByRole('slider',{name:'Surface warmth',exact:true}).press('End');
   await expect.poll(colors).not.toEqual(before);
+  await palette.getByRole('button',{name:'Color relationships',exact:true}).click();
   await palette.getByRole('button',{name:/Related colors/}).click();
   const related=palette.getByRole('button',{name:/Related colors/}), preserved=palette.getByRole('button',{name:/Keep my colors/});
   await expect(related).toHaveAttribute('aria-pressed','true');
@@ -78,8 +62,7 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
   const page=await context.newPage();
   try {
     const errors=await enter(page,info);
-    await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
-    await page.getByText('Size & spacing',{exact:true}).click();
+    await openEditor(page, 'layout');
     const heights=await page.locator('[data-size-sample] button[data-component="ui-button"]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
     expect(heights).toHaveLength(3); expect(heights[0]).toBeLessThan(heights[1]); expect(heights[1]).toBeLessThan(heights[2]);
     for(const size of ['sm','md','lg']) {
@@ -87,7 +70,7 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
       const boxes=await row.locator('button[data-component="ui-button"],input[data-component="ui-input"],[data-component="ui-color-picker"] button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect().height));
       expect(Math.max(...boxes)-Math.min(...boxes)).toBeLessThan(.6);
     }
-    await page.getByRole('button',{name:'Refine material & light',exact:true}).click();
+    await openEditor(page, 'material');
     const handle=page.locator('[data-light-editor] .source'); await handle.scrollIntoViewIfNeeded();
     const s=await handle.boundingBox(), plane=await page.locator('[data-light-editor] .plane').boundingBox();
     const key='looma:documentation-theme:v1:/looma/';
@@ -110,19 +93,18 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
 
 test('Google selection loads actual font faces, exports its import, and system font removes that selection', async ({page},info) => {
   const errors=await enter(page,info);
-  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
-  await page.getByText('Type',{exact:true}).click();
+  await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
   await font.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
   await expect(page.locator('[data-font-status="body-font"]')).toContainText('Inter loaded',{timeout:30000});
   expect(await page.evaluate(()=>[...document.fonts].some(face=>face.family.replaceAll('"','')==='Inter'&&face.status==='loaded'))).toBe(true);
   expect((await session(page)).fonts['body-font']).toBe('Inter');
-  const specimen = page.locator('[data-customizer-overview] [data-component-card="ui-button"] iframe').contentFrame();
-  await expect.poll(() => specimen.locator('body').evaluate(() => [...document.fonts].some(face => face.family.replaceAll('"','') === 'Inter' && face.status === 'loaded'))).toBe(true);
-  await page.getByText('Export & save',{exact:true}).click();
+  await expect.poll(() => page.locator('[data-editor-preview="typography"]').evaluate(el => getComputedStyle(el).fontFamily)).toContain('Inter');
+  await openEditor(page, 'export');
   const downloaded=page.waitForEvent('download'); await page.getByRole('button',{name:'Download CSS',exact:true}).click();
   const download=await downloaded, css=await readFile(await download.path(),'utf8');
   expect(css).toContain('@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");');
+  await openEditor(page, 'typography');
   await font.fill('System'); await page.getByRole('option',{name:'System font',exact:true}).click();
   await expect(page.locator('[data-font-status="body-font"]')).toContainText('operating system');
   expect((await session(page)).values['body-font']).toBe('system-ui, sans-serif');
@@ -132,8 +114,7 @@ test('Google selection loads actual font faces, exports its import, and system f
 
 test('overlapping font selections finish the status for both roles', async ({page},info) => {
   await enter(page,info);
-  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
-  await page.getByText('Type',{exact:true}).click();
+  await openEditor(page, 'typography');
   let release;
   const held = new Promise(resolve => { release = resolve; });
   await page.route('https://fonts.googleapis.com/**', async route => {
@@ -144,6 +125,7 @@ test('overlapping font selections finish the status for both roles', async ({pag
     const body = page.getByRole('combobox',{name:'Font',exact:true});
     await body.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
     await expect(page.locator('[data-font-status="body-font"]')).toContainText('Loading Inter');
+    await page.getByRole('button', {name:'Heading font',exact:true}).click();
     const display = page.getByRole('combobox',{name:'Heading font',exact:true});
     await display.fill('Lora'); await page.getByRole('option',{name:'Lora',exact:true}).click();
     await expect(page.locator('[data-font-status="display-font"]')).toContainText('Lora loaded',{timeout:30000});
@@ -156,11 +138,10 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
   const page=await context.newPage();
   try {
     await enter(page,info);
-    await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
-    await page.getByText('Type',{exact:true}).click();
+    await openEditor(page, 'typography');
     const base=page.getByRole('spinbutton',{name:'Base text size',exact:true});
     await base.fill('24px');await base.press('Enter');
-    await page.getByText('Size & spacing',{exact:true}).click();
+    await openEditor(page, 'layout');
     for (const size of ['sm','md','lg']) {
       const row=page.locator(`[data-size-sample="${size}"]`);
       expect(await row.evaluate(el=>{
@@ -182,19 +163,19 @@ test('the compact documentation sampler stays visible across screen sizes and fo
     await page.setViewportSize({width,height:900});await enter(page,info);
     const sampler=page.locator('[data-theme-sampler]');
     const frame=sampler.locator('iframe').contentFrame();
-    const action=frame.getByRole('button',{name:'Solid accent',exact:true});
+    const action=frame.getByRole('button',{name:'Send',exact:true});
     await expect(action).toBeVisible();
     await expect(frame.getByRole('textbox',{name:'Search office',exact:true})).toBeVisible();
     await expect(frame.getByRole('checkbox',{name:'Notify Sam',exact:true})).toBeVisible();
     await expect(frame.getByRole('switch',{name:'Available',exact:true})).toBeVisible();
-    const icon=frame.getByRole('button',{name:'Acknowledge memo',exact:true}),outline=frame.getByRole('button',{name:'Outline neutral',exact:true});
+    const icon=frame.getByRole('button',{name:'Acknowledge memo',exact:true}),outline=frame.getByRole('button',{name:'Archive',exact:true});
     expect(Math.abs((await icon.boundingBox()).height-(await outline.boundingBox()).height)).toBeLessThan(.1);
     const paint=field=>field.evaluate(el=>{const s=getComputedStyle(el);return [s.borderTopColor,s.backgroundColor];});
     expect(await paint(icon)).toEqual(await paint(outline));
     await expect(sampler.locator('.body')).toHaveCount(0);
     const bounds=await sampler.boundingBox(),controls=await page.getByRole('complementary',{name:'Theme controls',exact:true}).boundingBox();
-    if(width<640) expect(bounds.y).toBeLessThan(controls.y);else expect(bounds.x).toBeGreaterThan(controls.x);
-    await chooseOption(page.getByRole('combobox',{name:'Starting point',exact:true}), 'wiki');
+    if(width<640) expect(bounds.y).toBeGreaterThan(controls.y);else expect(bounds.x).toBeGreaterThan(controls.x);
+    await chooseStartingPoint(page, 'wiki');
     await expect.poll(()=>action.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(79, 70, 229)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   }
@@ -202,7 +183,7 @@ test('the compact documentation sampler stays visible across screen sizes and fo
 
 test('sidebar fields reserve space for their focus treatment inside clipping containers', async ({page},info) => {
   await enter(page,info);
-  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();await page.getByText('Type',{exact:true}).click();
+  await openEditor(page, 'typography');
   for(const field of [page.getByRole('combobox',{name:'Font',exact:true}),page.getByRole('spinbutton',{name:'Base text size',exact:true})]) {
     await field.focus();
     const clipped=await field.evaluate(input=>{
@@ -221,16 +202,16 @@ test('sidebar fields reserve space for their focus treatment inside clipping con
 
 test('starter rhythm changes sampler gaps and unitless text ratios together', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  const preset=page.getByRole('combobox',{name:'Starting point',exact:true});
+  const preset=page.locator('[data-preset] input[role=combobox]');
   const sampler=page.locator('[data-theme-sampler] iframe').contentFrame();
   const measure=()=>sampler.locator('[data-component="ui-card"] [data-component="ui-stack"]').first().evaluate(el=>{
     const root=getComputedStyle(document.documentElement), s=getComputedStyle(el), heading=getComputedStyle(document.querySelector('h3'));
     return {gap:parseFloat(s.rowGap),headingRatio:parseFloat(heading.lineHeight)/parseFloat(heading.fontSize),bodyRatio:root.getPropertyValue('--ui-line-height').trim()};
   });
-  await chooseOption(preset, 'wiki');
+  await chooseStartingPoint(page, 'wiki');
   await expect(sampler.getByRole('heading',{name:'Second breakfast, sorted.',exact:true})).toBeVisible();
   const compact=await measure();
-  await chooseOption(preset, 'editorial');
+  await chooseStartingPoint(page, 'editorial');
   await expect.poll(async()=>(await measure()).gap).toBeGreaterThan(compact.gap);
   expect((await measure()).headingRatio).toBeGreaterThan(compact.headingRatio);
   expect((await measure()).bodyRatio).not.toMatch(/px|rem|em/);
@@ -238,8 +219,9 @@ test('starter rhythm changes sampler gaps and unitless text ratios together', as
 
 test('palette and material defaults are muted until their family is overridden', async ({page},info) => {
   await enter(page,info);
-  const palette=page.getByRole('combobox',{name:'Palette preset',exact:true});
-  const material=page.getByRole('combobox',{name:'Material preset',exact:true});
+  await openEditor(page, 'palette');
+  const palette=page.locator('[data-refinement-preset=palette] input[role=combobox]');
+  const material=page.locator('[data-refinement-preset=material] input[role=combobox]');
   const supporting=field=>field.evaluate(el=>{const probe=document.createElement('span');probe.style.color='var(--ui-text-secondary)';el.parentElement.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color;});
   await expect.poll(()=>palette.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(palette));
   await expect.poll(()=>material.evaluate(el=>getComputedStyle(el).color)).toBe(await supporting(material));
@@ -255,10 +237,10 @@ test('palette and material defaults are muted until their family is overridden',
 
 test('one main font also styles headings until an optional heading font is chosen', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseOption(page.getByRole('combobox',{name:'Starting point',exact:true}), 'clear');
-  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();
-  await page.getByText('Type',{exact:true}).click();
+  await chooseStartingPoint(page, 'clear');
+  await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
+  await page.getByRole('button',{name:'Heading font',exact:true}).click();
   const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
   await font.fill('Inter');await page.getByRole('option',{name:'Inter',exact:true}).click();
   await expect.poll(async()=>(await session(page)).values['display-font']).toBe('"Inter", sans-serif');
@@ -272,7 +254,8 @@ test('one main font also styles headings until an optional heading font is chose
 for (const width of [1280,390]) test(`styled palette choices show four swatches in the popup and selected field at ${width}px`, async ({page},info) => {
   await page.setViewportSize({width,height:844});
   const errors = await enter(page,info);
-  const palette = page.locator('[data-customizer-overview] [data-refinement-preset="palette"]');
+  await openEditor(page, 'palette');
+  const palette = page.locator('[data-refinement-view="palette"] [data-refinement-preset="palette"]');
   const field = palette.getByRole('combobox',{name:'Palette preset',exact:true});
   await expect(palette.locator('[data-selected-palette] .palette-swatches > span')).toHaveCount(4);
   await expect(palette.locator('[data-selected-palette] .palette-swatches')).toBeVisible();

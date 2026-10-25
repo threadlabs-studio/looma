@@ -353,9 +353,12 @@
   }
 
   [data-ui-choice-option]:is(:hover, .active) {
-    background: var(--ui-surface-muted);
+    background: var(--ui-accent-subtle);
+  }
+
+  [data-ui-choice-option]:focus-visible {
     outline: var(--ui-focus-width) solid var(--ui-focus-ring);
-    outline-offset: calc(-1 * var(--ui-border-width));
+    outline-offset: calc(-1 * var(--ui-focus-width));
   }
 
   [data-ui-choice-option][aria-disabled="true"],
@@ -403,6 +406,10 @@
   }
 
   @media (forced-colors: active) {
+    [data-ui-choice-option].active {
+      outline: var(--ui-focus-width) solid Highlight;
+      outline-offset: calc(-1 * var(--ui-focus-width));
+    }
     [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]):not(.active) {
       outline: var(--ui-focus-width) solid Highlight;
       outline-offset: calc(-1 * var(--ui-border-width));

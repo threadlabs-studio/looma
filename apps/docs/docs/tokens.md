@@ -137,6 +137,11 @@ readable accent text, and medium radius. The default tint on neutral surfaces is
 resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
 radius override.
 
+Choice rows use `--ui-accent-subtle` for hover and active-option feedback. Hover
+does not draw a keyboard focus ring. Focus stays on the owning field for an
+active-descendant combobox, or on the row when the row itself receives focus.
+Forced-color mode preserves a visible active-option indicator.
+
 List rows, surface navigation and tree highlights use `--ui-selection-border` for
 a faint continuous inset edge. Its default mixes 20% accent into the page surface,
 giving pale fills definition on softly toned panels without changing row size.
