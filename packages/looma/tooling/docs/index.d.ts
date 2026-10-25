@@ -17,8 +17,8 @@ export interface DocumentationCatalog {
   resources?: { tag: string; package: string; resource: string }[]; components: DocumentationComponent[];
 }
 export interface DiscoveryRoot { directory: string; packageName: string; groups?: DocumentationGroup[] }
-export interface ThemeRecipe { schemaVersion: 1; values: Record<string, string>; presets?: Partial<Record<'material' | 'palette', string>> }
-export interface ThemeField { family: string; id: string; label: string; property: string; type: string; defaultValue: string; description: string; min?: number; max?: number }
+export interface ThemeRecipe { schemaVersion: 1; values: Record<string, string>; origin?: string; fonts?: Partial<Record<'body-font' | 'display-font', string>>; presets?: Partial<Record<'material' | 'palette', string>> }
+export interface ThemeField { family: string; id: string; label: string; property: string | null; type: string; defaultValue: string; description: string; min?: number; max?: number; choices?: Record<string, string> }
 export interface DocumentationConfiguration {
   title?: string; base?: string; origin?: string; outDir?: string; content?: string;
   logo?: string | { light: string; dark?: string }; nav?: { label: string; href: string }[];

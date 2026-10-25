@@ -84,10 +84,12 @@
       --_ui-select-highlight: var(--ui-surface-highlight, linear-gradient(transparent, transparent));
       appearance: none;
       padding-inline-end: calc(var(--ui-space-3) + 1.5rem) !important;
-      background-image: var(
-        --ui-select-chevron,
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c58' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-      ), var(--_ui-select-highlight);
+      background-image:
+        var(
+          --ui-select-chevron,
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c58' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+        ),
+        var(--_ui-select-highlight);
       background-repeat: no-repeat;
       background-position: right var(--ui-space-3) center, center;
       background-size: 1.125rem 1.125rem, 100% 100%;
@@ -134,7 +136,9 @@
       padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
       padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1)) !important;
       background-position: right var(--ui-space-2) center, center;
-      background-size: var(--ui-icon-size-sm) var(--ui-icon-size-sm), 100% 100%;
+      background-size:
+        var(--ui-icon-size-sm) var(--ui-icon-size-sm),
+        100% 100%;
       font-size: var(--ui-font-size-sm);
     }
 
@@ -154,7 +158,7 @@
       }
 
       :host([size="sm"]) {
-        min-block-size: var(--ui-control-min-block-size);
+        min-block-size: max(var(--ui-control-size-sm), var(--ui-control-min-block-size));
         font-size: inherit;
       }
     }

@@ -283,6 +283,15 @@
       --ui-motion-fast: 0ms;
     }
   }
+  /* Raise the family together on touch, so the minimum does not collapse sm and md. */
+  @media (pointer: coarse) {
+    :root, :where([data-theme], [data-contrast]) {
+      --ui-control-size-sm: max(calc(var(--ui-control-size) / 1.2), var(--ui-control-min-block-size));
+      --ui-control-size-md: calc(var(--ui-control-size-sm) * 1.2);
+      --ui-control-size-lg: calc(var(--ui-control-size-md) * 1.2);
+    }
+  }
+
 }
 
 /* The scroll fade every Looma scroller uses (see ui-scroll-area). Scroll-driven animations grow each
@@ -409,4 +418,5 @@
     color: var(--ui-disabled-text);
     cursor: not-allowed;
   }
+
 }

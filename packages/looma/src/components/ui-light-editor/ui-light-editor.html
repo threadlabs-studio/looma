@@ -1,3 +1,4 @@
+<link rel="component" href="../ui-icon/ui-icon.html">
 <link rel="component" href="../ui-number-input/ui-number-input.html">
 <template component="ui-light-editor" module="./ui-light-editor.js">
   <defs>
@@ -10,36 +11,159 @@
     <prop name="disabled" type="boolean" default="false">Prevents pointer, keyboard and exact edits.</prop>
     <event name="input" type="object"><prop name="x" type="number" required></prop><prop name="y" type="number" required></prop></event>
     <event name="change" type="object"><prop name="x" type="number" required></prop><prop name="y" type="number" required></prop></event>
+    <event name="cancel" type="object"><prop name="x" type="number" required></prop><prop name="y" type="number" required></prop></event>
   </defs>
   <span>
     <span class="stage" from:aria-label="$label" role="group">
       <span class="plane" $ref="plane">
         <svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 H100 M50 0 V60"></path></svg>
         <span class="specimen"><slot></slot></span>
-        <button type="button" class="source" $ref="source" from:disabled="$disabled" from:aria-label="concat($label, '. Arrow keys move the source; Shift moves faster.')"></button>
+        <button
+          type="button"
+          class="source"
+          $ref="source"
+          from:disabled="$disabled"
+          from:aria-label="concat($label, '. Arrow keys move the source; Shift moves faster.')"
+        >
+          <span class="source-glyph"><ui-icon name="lightbulb"></ui-icon></span>
+        </button>
       </span>
     </span>
     <span class="coordinates">
-      <ui-number-input data-coordinate="x" from:value="$horizontal" min="0" max="100" step="1" unit="%" label="Light horizontal position" from:size="$size" from:disabled="$disabled"></ui-number-input>
-      <ui-number-input data-coordinate="y" from:value="$vertical" min="0" max="100" step="1" unit="%" label="Light vertical position" from:size="$size" from:disabled="$disabled"></ui-number-input>
+      <ui-number-input
+        data-coordinate="x"
+        from:value="$horizontal"
+        min="0"
+        max="100"
+        step="1"
+        unit="%"
+        label="Light horizontal position"
+        from:size="$size"
+        from:disabled="$disabled"
+      ></ui-number-input>
+      <ui-number-input
+        data-coordinate="y"
+        from:value="$vertical"
+        min="0"
+        max="100"
+        step="1"
+        unit="%"
+        label="Light vertical position"
+        from:size="$size"
+        from:disabled="$disabled"
+      ></ui-number-input>
     </span>
-    <span class="hint">Drag the light, use arrow keys, or enter its position. Top centre is 50%, 0%.</span>
+    <span class="hint">Drag the light, tap the background, use arrow keys, or enter its position. Escape cancels a drag. Top centre is 50%, 0%.</span>
   </span>
   <style>
-    :host { display: grid !important; gap: var(--ui-space-3) !important; min-inline-size: 0; padding: 0 !important; margin: 0 !important; }
-    .stage { box-sizing: border-box !important; display: block !important; block-size: 13rem; padding: calc(var(--ui-control-min-block-size) / 2) !important; border: var(--ui-border-width) solid var(--ui-control-border); border-radius: var(--ui-field-radius, var(--ui-radius-md)); background: var(--ui-neutral-surface, var(--ui-surface)); }
-    .plane { position: relative; display: block !important; inline-size: 100%; block-size: 100%; }
-    svg { inline-size: 100%; block-size: 100%; overflow: visible; }
-    path { fill: none; stroke: var(--ui-border); stroke-width: 1; vector-effect: non-scaling-stroke; }
-    .specimen { position: absolute; inset: 0; display: grid !important; place-items: center !important; }
-    .source { position: absolute; left: 50%; top: 0; translate: -50% -50%; display: grid !important; place-items: center !important; inline-size: max(2rem, var(--ui-control-min-block-size)); block-size: max(2rem, var(--ui-control-min-block-size)); padding: 0 !important; margin: 0 !important; border: 0; border-radius: 50%; background: transparent; cursor: grab; touch-action: none; }
-    .source::after { content: ""; inline-size: 1rem; block-size: 1rem; border: var(--ui-border-width) solid var(--ui-accent); border-radius: 50%; background: var(--ui-surface-raised); box-shadow: 0 0 0 var(--ui-space-2) color-mix(in srgb, var(--ui-accent) 12%, transparent), var(--ui-shadow-sm); }
-    .source:active { cursor: grabbing; }
-    .source:focus-visible { outline: var(--ui-focus-width) solid var(--ui-focus-ring); outline-offset: var(--ui-space-1); }
-    .source:disabled { cursor: not-allowed; }
-    .source:disabled::after { background: var(--ui-disabled-surface); border-color: var(--ui-disabled-border); box-shadow: none; }
-    .coordinates { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ui-space-2) !important; }
-    .hint { font-size: var(--ui-font-size-sm); color: var(--ui-text-secondary); }
-    @media (forced-colors: active) { .source::after { background: Canvas; border-color: CanvasText; } .source:focus-visible { outline-color: Highlight; } }
+    :host {
+      display: grid !important;
+      gap: var(--ui-space-3) !important;
+      min-inline-size: 0;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .stage {
+      box-sizing: border-box !important;
+      display: block !important;
+      block-size: 13rem;
+      padding: calc(var(--ui-control-min-block-size) / 2) !important;
+      border: var(--ui-border-width) solid var(--ui-control-border);
+      border-radius: var(--ui-field-radius, var(--ui-radius-md));
+      background: var(--ui-neutral-surface, var(--ui-surface));
+    }
+    .plane {
+      position: relative;
+      display: block !important;
+      inline-size: 100%;
+      block-size: 100%;
+    }
+    svg {
+      inline-size: 100%;
+      block-size: 100%;
+      overflow: visible;
+    }
+    path {
+      fill: none;
+      stroke: var(--ui-border);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+    .specimen {
+      position: absolute;
+      inset: 0;
+      display: grid !important;
+      place-items: center !important;
+    }
+    .source {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      translate: -50% -50%;
+      display: grid !important;
+      place-items: center !important;
+      inline-size: max(2rem, var(--ui-control-min-block-size));
+      block-size: max(2rem, var(--ui-control-min-block-size));
+      padding: 0 !important;
+      margin: 0 !important;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: grab;
+      touch-action: none;
+    }
+    .source-glyph {
+      position: relative;
+      z-index: 1;
+      display: inline-flex !important;
+      color: var(--ui-accent);
+      font-size: var(--ui-font-size-lg);
+    }
+    .source::after {
+      content: "";
+      position: absolute;
+      inline-size: 2rem;
+      block-size: 2rem;
+      border: var(--ui-border-width) solid var(--ui-accent);
+      border-radius: 50%;
+      background: var(--ui-surface-raised);
+      box-shadow: 0 0 0 var(--ui-space-2) color-mix(in srgb, var(--ui-accent) 12%, transparent), var(--ui-shadow-sm);
+    }
+    .source:active {
+      cursor: grabbing;
+    }
+    .source:focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-space-1);
+    }
+    .source:disabled {
+      cursor: not-allowed;
+    }
+    .source:disabled::after {
+      background: var(--ui-disabled-surface);
+      border-color: var(--ui-disabled-border);
+      box-shadow: none;
+    }
+    .coordinates {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--ui-space-2) !important;
+    }
+    .hint {
+      font-size: var(--ui-font-size-sm);
+      color: var(--ui-text-secondary);
+    }
+    @media (forced-colors: active) {
+      .source-glyph {
+        color: CanvasText;
+      }
+      .source::after {
+        background: Canvas;
+        border-color: CanvasText;
+      }
+      .source:focus-visible {
+        outline-color: Highlight;
+      }
+    }
   </style>
 </template>
