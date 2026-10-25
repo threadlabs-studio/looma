@@ -56,3 +56,20 @@ test('cross-tab changes and clearing storage restore the appropriate recipe', ()
   change(null, null);
   assert.deepEqual(session.recipe, config.baseline);
 });
+
+test('previews do not write storage; completed gestures undo, redo and compare without losing edits', () => {
+  const storage = new Map(), session = createThemeSession(browser(storage), config);
+  session.preview(startingPoints.bookish);
+  assert.equal(storage.size, 0);
+  assert.deepEqual(session.recipe, startingPoints.bookish);
+  session.commit();
+  const remembered = storage.get('looma:documentation-theme:v1:/looma/');
+  session.preview(startingPoints.wiki); session.preview(startingPoints.night);
+  assert.equal(storage.get('looma:documentation-theme:v1:/looma/'), remembered);
+  session.cancel(); assert.deepEqual(session.recipe, startingPoints.bookish);
+  session.apply(startingPoints.garden);
+  session.compare(startingPoints.clear); assert.deepEqual(session.recipe, startingPoints.garden);
+  session.compare(); session.undo(); assert.deepEqual(session.recipe, startingPoints.bookish);
+  session.redo(); assert.deepEqual(session.recipe, startingPoints.garden);
+  assert.deepEqual(createThemeSession(browser(storage), config).recipe, startingPoints.garden);
+});

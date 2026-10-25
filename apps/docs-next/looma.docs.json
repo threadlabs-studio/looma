@@ -30,8 +30,8 @@
       "text": "#2b2538",
       "body-font": "\"Manrope\", system-ui, sans-serif",
       "display-font": "\"Manrope\", system-ui, sans-serif",
-      "text-size": "17px",
-      "control-size": "40px",
+      "text-size": "1.0625rem",
+      "control-roominess": "2.5",
       "text-weight": "500",
       "response-time": "120ms"
     }

@@ -12,7 +12,8 @@
 
 @layer theme {
   :root {
-    --ui-density: 1;
+    --ui-spacing: 1;
+    --ui-control-roominess: 2.5;
     --ui-scale-ratio: 1.2;
     --ui-space-curve: 1;
     --ui-outer-depth: 0.6;
@@ -32,8 +33,9 @@
   :where(:root, [data-theme], [data-contrast]) {
     /* Controls use a ratio. Spacing uses an independent curve, so increasing the size
        contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
+    --ui-control-size: calc(var(--ui-font-size) * var(--ui-control-roominess));
     --_ui-theme-ratio: max(1, var(--ui-scale-ratio));
-    --_ui-theme-unit: calc(var(--ui-control-size) * 0.1 * max(0, var(--ui-density)));
+    --_ui-theme-unit: calc(var(--ui-font-size) * 0.25 * max(0, var(--ui-spacing)));
     --_ui-theme-curve: max(0, var(--ui-space-curve));
     --ui-control-size-sm: calc(var(--ui-control-size) / var(--_ui-theme-ratio));
     --ui-control-size-md: var(--ui-control-size);
@@ -114,6 +116,16 @@
     --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
     --ui-motion-ease-out: var(--ui-motion-ease);
     --ui-press-scale: 0.98;
+  }
+
+  @media (pointer: coarse) {
+    :where(:root, [data-theme], [data-contrast]) {
+      --ui-control-size-sm: max(calc(var(--ui-control-size) / var(--_ui-theme-ratio)), var(--ui-control-min-block-size));
+      --ui-control-size-md: calc(var(--ui-control-size-sm) * var(--_ui-theme-ratio));
+      --ui-control-size-lg: calc(var(--ui-control-size-md) * var(--_ui-theme-ratio));
+      /* Small native fields use body-size text on touch to avoid focus zoom. */
+      --ui-control-inset-block-sm: max(0px, calc((var(--ui-control-size-sm) - var(--ui-font-size-md) * var(--ui-line-height-tight) - 2 * var(--ui-border-width)) / 2));
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

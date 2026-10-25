@@ -150,7 +150,10 @@
       }
 
       :host([size="sm"]) {
-        min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-min-block-size)));
+        min-block-size: var(
+          --ui-input-min-block-size,
+          var(--_ui-default-input-min-block-size, max(var(--ui-control-size-sm), var(--ui-control-min-block-size)))
+        );
       }
     }
 

@@ -13,6 +13,7 @@
     <prop name="disabled" type="boolean" default="false">Prevents typing, stepping and pointer or keyboard changes while keeping the value visible.</prop>
     <event name="input" type="object"><prop name="value" type="string" required></prop></event>
     <event name="change" type="object"><prop name="value" type="string" required></prop></event>
+    <event name="cancel" type="object"><prop name="value" type="string" required></prop></event>
   </defs>
   <span>
     <span class="plot-frame" from:aria-label="$label" role="group"><span class="plot" $ref="plot">
