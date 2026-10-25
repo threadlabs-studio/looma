@@ -60,7 +60,7 @@ export type LoomaCodeLanguages = NonNullable<Parameters<typeof createLowlight>[0
 export interface DefaultEditorExtensionsOptions {
   /** Replaceable display data; updating it must use setReferenceDisplay, never setContent. */
   references?: LoomaReferenceMap;
-  /** Placeholder shown only for empty paragraphs, not every empty node type. */
+  /** Writing prompt displayed in an empty paragraph only while the document is empty. */
   placeholder?: string;
   /** Passed to Tiptap Link; defaults false to keep editing clicks in the editor. */
   linkOpenOnClick?: boolean;
@@ -239,7 +239,6 @@ export function getDefaultEditorExtensions(
     Placeholder.configure({
       placeholder: ({ node }) =>
         node.type.name === "paragraph" ? placeholder : "",
-      emptyNodeClass: "is-editor-empty",
     }),
     ...(mention ? [mention] : []),
     LoomaTableKit,
