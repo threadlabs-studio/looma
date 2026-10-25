@@ -19,10 +19,7 @@ apps/docs/test-results/
 packages/looma/test-results/
 apps/storybook/storybook-static/
 apps/storybook/test-results/
-# Storywright: commit accepted baselines, ignore transient runs/reports
-apps/storybook/.storywright/tmp/
-apps/storybook/.storywright/report/
-apps/storybook/.storywright/review/
+apps/storybook/playwright-report/
 .release/
 .qualification/
 

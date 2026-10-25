@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "guide: dot",
+    "props": {
+      "guide": "dot"
+    },
+    "example": 0
+  },
+  {
+    "name": "guide: none",
+    "props": {
+      "guide": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default-radius",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-near-radius-8",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-guide-none",
+    "props": {},
+    "example": 2
+  }
+]

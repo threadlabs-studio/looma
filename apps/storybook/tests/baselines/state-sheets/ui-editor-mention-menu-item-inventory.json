@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 01-person",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-avatar",
+    "props": {},
+    "example": 1
+  }
+]

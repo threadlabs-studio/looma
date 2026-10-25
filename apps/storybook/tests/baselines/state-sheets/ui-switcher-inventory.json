@@ -1,0 +1,113 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "align: start",
+    "props": {
+      "align": "start"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: center",
+    "props": {
+      "align": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: end",
+    "props": {
+      "align": "end"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: stretch",
+    "props": {
+      "align": "stretch"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: xs",
+    "props": {
+      "gap": "xs"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: s",
+    "props": {
+      "gap": "s"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: m",
+    "props": {
+      "gap": "m"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: l",
+    "props": {
+      "gap": "l"
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: xl",
+    "props": {
+      "gap": "xl"
+    },
+    "example": 0
+  },
+  {
+    "name": "threshold: xs",
+    "props": {
+      "threshold": "xs"
+    },
+    "example": 0
+  },
+  {
+    "name": "threshold: sm",
+    "props": {
+      "threshold": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "threshold: md",
+    "props": {
+      "threshold": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "threshold: lg",
+    "props": {
+      "threshold": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-gap-threshold-and-alignment",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-item-limit",
+    "props": {},
+    "example": 2
+  }
+]

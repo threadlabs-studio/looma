@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "cell-alignment: left",
+    "props": {
+      "cellAlignment": "left"
+    },
+    "example": 0
+  },
+  {
+    "name": "cell-alignment: center",
+    "props": {
+      "cellAlignment": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "cell-alignment: right",
+    "props": {
+      "cellAlignment": "right"
+    },
+    "example": 0
+  },
+  {
+    "name": "header-column: false",
+    "props": {
+      "headerColumn": false
+    },
+    "example": 0
+  },
+  {
+    "name": "header-column: true",
+    "props": {
+      "headerColumn": true
+    },
+    "example": 0
+  },
+  {
+    "name": "header-row: false",
+    "props": {
+      "headerRow": false
+    },
+    "example": 0
+  },
+  {
+    "name": "header-row: true",
+    "props": {
+      "headerRow": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-open",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-actions",
+    "props": {},
+    "example": 1
+  }
+]
