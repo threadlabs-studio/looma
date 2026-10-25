@@ -14,7 +14,7 @@ Deliver each component in its own PR, with review, visual evidence or a testable
 - R1. Render a named native navigation landmark and native page controls before JavaScript. Optional hrefs produce real links, usable without an upgrade.
 - R2. The consumer owns the positive one-based `page`, the visible page records, and whether previous/next are available. No fabricated total or automatic data fetching. Numbered records contain `value` and optional `href`; gaps between supplied numbers render a noninteractive ellipsis.
 - R3. Emit `navigate` with requested `page`, `previousPage`, and interaction `trigger`. Emit no request for current, disabled or invalid targets. Preserve native link behavior and modified clicks.
-- R4. Reuse Button, Icon and Cluster options. Current page uses a solid accent action; other pages use quiet neutral actions. Match shared sm/md/lg sizes, preserve native tab order, and wrap at narrow widths. No new stylesheet or allowlist expansion.
+- R4. Reuse Button, Icon and Cluster options. Current page uses a solid accent action; other pages use quiet neutral actions. Use Button’s opt-in square minimum footprint for both numbers and navigation; longer numbers may grow. Match shared sm/md/lg sizes, preserve native tab order, and wrap at narrow widths. No new stylesheet or allowlist expansion.
 - R5. Localize the landmark, previous/next accessible labels and page label prefix through string props. Expose the current page with aria-current. Provide unknown-total and routed-link examples.
 - R6. Every PR carries an app-agnostic SVG design mockup and local interactive-preview instructions. Screenshots remain under .context. Complete focused SSR/interaction/browser checks and review before merge.
 

@@ -44,6 +44,8 @@ it("blocks unavailable directions and disabled controls, and ignores modified li
   expect(buttons[0]!.disabled).toBe(true);
   expect(buttons.at(-1)!.disabled).toBe(true);
   const link = host.querySelector<HTMLAnchorElement>("a")!;
+  // Stop browser navigation after the component has seen the click, keeping the test runner in one tab.
+  host.addEventListener("click", event => { expect(event.defaultPrevented).toBe(false); event.preventDefault(); });
   link.dispatchEvent(new MouseEvent("click", { bubbles: true, ctrlKey: true, cancelable: true }));
   expect(events).toHaveLength(0);
   disabled.value = true; await nextTick();
@@ -63,8 +65,20 @@ it("keeps every compact control reachable in a narrow container in light and dar
       expect(bounds.left).toBeGreaterThanOrEqual(edge.left);
       expect(bounds.right).toBeLessThanOrEqual(edge.right + 1);
       expect(bounds.height).toBeGreaterThan(20);
+      expect(Math.abs(bounds.width - bounds.height)).toBeLessThan(1);
     }
     await page.screenshot({ element: host, path: `../../../.context/pagination-${theme}-mobile.png` });
     app.unmount(); host.remove();
   }
+});
+
+
+it("lets long page numbers grow beyond the square minimum without clipping", async () => {
+  const host = document.createElement("div"); document.body.append(host);
+  app = createApp({ render: () => h(Pagination, { page: 99999999, pages: [{ value: 99999999 }] }) });
+  app.mount(host); await nextTick();
+  const button = host.querySelector<HTMLButtonElement>('[aria-current="page"]')!;
+  const bounds = button.getBoundingClientRect();
+  expect(bounds.width).toBeGreaterThan(bounds.height);
+  expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
 });
