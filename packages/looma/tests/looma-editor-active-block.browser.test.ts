@@ -110,6 +110,26 @@ describe("active block marker", () => {
     expect(marker.width).toBe("1px");
   });
 
+  it("keeps the page prompt hidden on an empty line above existing content", async () => {
+    const { editor, host } = await mountEditor({
+      type: "doc",
+      content: [
+        { type: "paragraph" },
+        { type: "paragraph", content: [{ type: "text", text: "Existing writing" }] },
+      ],
+    });
+    editor.commands.focus("start");
+    await flushBrowser();
+    const first = host.querySelector<HTMLElement>(".ProseMirror > p")!;
+    expect(first.classList.contains("is-editor-empty")).toBe(false);
+    expect(getComputedStyle(first, "::before").content).not.toContain("Type");
+    expect(getComputedStyle(first, "::before").width).toBe("1px");
+
+    editor.commands.clearContent();
+    await flushBrowser();
+    expect(getComputedStyle(host.querySelector(".ProseMirror > p")!, "::before").content).toContain("Type");
+  });
+
   it("keeps the focused empty-editor placeholder at readable width", async () => {
     const { editor, host } = await mountEditor({
       type: "doc",
