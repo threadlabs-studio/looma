@@ -86,6 +86,7 @@ test("the required verify result gates unit tests, browser regressions, release 
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
   assert.match(releasePackagingJob, /ci-qualification\.mjs run package-consumer/);
+  assert.match(releasePackagingJob, /runs-on: ubuntu-24\.04-arm/);
   assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
   assert.match(verifyJob, /needs: \[quality, browser, release-package, visual\]/);
