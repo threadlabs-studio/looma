@@ -2,6 +2,15 @@
 
 ## Next release
 
+### Expressive materials and compact controls
+
+- Keep the theme's visible control sizes on touch instead of raising the whole family from a 44px floor. Buttons, fields, swatches and companion icon buttons retain matching sizes. Hit-area dimensions remain adjustable and separate from visible geometry; compact choices are valid.
+- Let glassiness and glow reach a richer upper response while retaining gentle lower settings, opaque readable content planes and reduced-transparency behavior. Action edge light follows the outer silhouette instead of drawing an inner frame.
+- Add CycleButton, a compact reusable icon control that cycles named states without replacing its native button or moving keyboard focus. It uses IconButton's existing visual semantics.
+- Put a dense live documentation sampler in the customizer on desktop and mobile, reserve sidebar space for focus treatment, and remove the ambiguous page-entry theme comparison. Undo/Redo and staged nearby-style previews remain available.
+- Explain local design-system naming, logo configuration, HTML Next component discovery, categories and ownership attribution.
+
+
 ### Document-root theme scale
 
 - `--ui-font-size` sets the document root in px (16px by default); type, choice geometry, spacing and control roominess derive from `1rem` so they scale once. Base text editing accepts 14–24px, with arithmetic calculated on entry. Other length editors retain px/rem conversion, and visible size samples show actual rem/px heights.

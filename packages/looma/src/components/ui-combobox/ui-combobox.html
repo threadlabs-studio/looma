@@ -872,20 +872,8 @@
       white-space: nowrap;
     }
     @media (pointer: coarse) {
-      :host {
-        --_row: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
-      }
-      button {
-        min-inline-size: 2.75rem;
-        min-block-size: calc(var(--_row) - 2 * var(--ui-border-width));
-      }
-      /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
-         body-size text: below 16px, iOS zooms the page into the focused field. */
-      :host([size="sm"]) {
-        --_row: max(var(--ui-control-size-sm), var(--ui-control-min-block-size));
-      }
       :host([size="sm"]) input {
-        font-size: inherit;
+        font-size: var(--ui-font-size-md);
       }
     }
     @media (forced-colors: active) {

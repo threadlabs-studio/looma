@@ -248,13 +248,16 @@ The spacing unit is `u = f × s / 4`, so changing control roominess does not cha
 for steps 2–5. Step 0.5 is half of step 1. Changing the control ratio does not
 change spacing. Spacing follows base text independently of control roominess.
 
-On coarse pointers, the small size is at least `--ui-control-min-block-size`
-(default `44px`). Medium and large derive successively from that raised small
-size using the same ratio, so the touch minimum does not collapse distinct sizes
-when the ratio exceeds 1. Single-line editing/action insets
+Pointer capability does not change the visible size ladder. Small, medium and
+large retain the theme’s proportions on touch. Hit-area guidance is a separate,
+context-dependent decision: `--ui-control-min-block-size` is an adjustable
+comfort preference for components that offer expanded targets, not a mandatory
+visible height or universal accessibility rule. Small secondary controls can
+remain deliberately compact. Invisible extensions must not steal neighbouring
+controls. Single-line editing/action insets
 (`--ui-control-inset-block-sm`, `-md`, `-lg`) fit their box and typography;
 multiline content can still grow. Horizontal `--ui-action-inset-sm`, `-md`, `-lg`
-follow spacing steps 2–4. Choice marks follow type rather than the row size.
+follow spacing steps 2–4, with a minimum equal to the matching vertical inset so increasing roominess cannot pinch the label horizontally. Choice marks follow type rather than the row size.
 
 ### Choosing units
 
@@ -266,7 +269,7 @@ rendered control height in both rem and px; no mental conversion is needed.
 
 | Unit | Use |
 | --- | --- |
-| `px` | The root base; deliberately fixed details such as thin borders and focus strokes; minimum touch target dimensions; pointer coordinates. These are CSS pixels and still follow browser zoom. |
+| `px` | The root base; deliberately fixed details such as thin borders and focus strokes; hit-area dimensions chosen for the control’s context; pointer coordinates. These are CSS pixels and still follow browser zoom. |
 | `rem` | Type roles, text-related gaps, padding and layout dimensions that should grow with the root. Corners may also use rem when their shape should scale with the interface. |
 | `em` | Inline details that should follow their own text size rather than the document base. |
 | Unitless | Line height, size ratios, roominess and spacing multipliers. |
@@ -305,6 +308,13 @@ controls reflection, and transmission controls the decorative background plane.
 | `--ui-light-y` | `0` | Source position top (0) to bottom (1); `(0.5, 0)` is top center. |
 | `--ui-light-spread` | `0.5` | Concentrated spot (0) through broad reflection (1). Requires finish and illumination to show a reflection. |
 | `--ui-light-strength` | `0.65` | Shared illumination response. Does not set elevation or remove depth shadows at 0. |
+
+The low end of glassiness and glow stays gentle; their upper range deliberately
+allows a richer frosted material and a vivid bloom. The response is curved:
+`g + 2g⁴`, so 30% remains close to its quiet setting while 100% reaches three
+times the former linear response. This is an ornamental range, not a
+readability constraint. Content planes stay opaque and reflection colours
+remain readable; reduced-transparency preferences still remove the effects.
 
 Finish at 0 removes reflections even when the light is strong. Glow and edge
 light can still respond independently. Glassiness and separation create the
@@ -586,8 +596,9 @@ Its fixed-width content canvas avoids wrapping navigation text during collapse.
 
 Font sizes derive from a `rem` base, so a host scales them from the root font
 size. The optional shared recipe gives `--ui-font-size-xs` a `12px` floor.
-`--ui-control-min-block-size` is `44px` to keep the comfortable touch-target floor
-in CSS pixels when the root font is smaller.
+`--ui-control-min-block-size` defaults to `44px` as an adjustable touch-area
+comfort preference. It does not enlarge the shared visible control geometry;
+choose target dimensions in context rather than treating this default as law.
 
 A theme sets one root size, `--ui-font-size`; every type step derives from that resolved root, so the scale
 moves as a whole:
