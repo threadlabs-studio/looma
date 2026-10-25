@@ -18,7 +18,7 @@ env:
 jobs:
   docs-parity:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 9
+    timeout-minutes: 10
     container:
       image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
       options: --ipc=host --init

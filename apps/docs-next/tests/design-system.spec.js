@@ -5,6 +5,18 @@ import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma/d
 
 const catalog = await readCatalog();
 
+async function chooseAppearance(page, choice) {
+  const button = page.getByRole('button', { name: /^Appearance:/ });
+  const desired = `Appearance: ${choice.charAt(0).toUpperCase()}${choice.slice(1)}`;
+  for (let step = 0; step < 3; step++) {
+    const before = await button.getAttribute('aria-label');
+    if (before === desired) return;
+    await button.click();
+    await expect(button).not.toHaveAttribute('aria-label', before);
+  }
+  await expect(button).toHaveAttribute('aria-label', desired);
+}
+
 test('directory cards and full reference come from the published component catalog', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/');
   await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => !component.navigationParent).length);
@@ -96,13 +108,13 @@ test('customizer gives its controls the sidebar and keeps previews visible witho
   const stack = first.locator('.body [data-component="ui-stack"]');
   expect(await stack.evaluate(element => getComputedStyle(element).display)).toBe('flex');
   expect(await stack.evaluate(element => parseFloat(getComputedStyle(element).rowGap))).toBeGreaterThan(0);
-  await expect(page.getByRole('button', { name: 'Automatic appearance', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /^Appearance:/ })).toHaveAttribute('aria-label', 'Appearance: Automatic');
   await controls.getByRole('combobox', { name: 'Starting point', exact: true }).selectOption('bookish');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'customizer-light.png') });
-  await page.getByRole('button', { name: 'Dark appearance', exact: true }).click();
+  await chooseAppearance(page, 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'customizer-dark.png') });
-  await page.getByRole('button', { name: 'Automatic appearance', exact: true }).click();
+  await chooseAppearance(page, 'automatic');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.setViewportSize({ width: 375, height: 900 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -421,7 +433,7 @@ test('material refinement shares a movable light, remembers customized presets a
     };
     await captureStyles('light');
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'material-light.png'), fullPage: false });
-    await page.getByRole('button', { name: 'Dark appearance', exact: true }).click();
+    await chooseAppearance(page, 'dark');
     await captureStyles('dark');
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'material-dark.png'), fullPage: false });
     await page.setViewportSize({ width: 375, height: 900 });
