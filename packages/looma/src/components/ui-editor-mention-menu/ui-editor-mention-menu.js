@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
 import { createViewportSurface } from "../shared/overlay.js";
 import { normalizeAnchor, positionMenu } from "../shared/editor.js";
 
@@ -25,8 +26,13 @@ export function connect(host) {
     const visible = Boolean(host.props.open.value && normalizeAnchor(host.props.anchorRect.value)
       && (host.props.loading.value || rows.length > 0 || empty));
     if (host.state.visible !== visible) host.state.visible = visible;
-    if (visible) surface.show();
-    else surface.hide();
+    if (visible) {
+      surface.show();
+      revealActiveItem(element, rows[active]);
+    } else {
+      cancelActiveItemReveal(element);
+      surface.hide();
+    }
   };
   const stop = host.effect(() => {
     if (!authoredLabel) element.setAttribute("aria-label", String(host.props.label.value || "Mentions"));
@@ -43,7 +49,7 @@ export function connect(host) {
     const row = rowOf(event);
     if (row) host.dispatch("select", { index: Number(row.dataset.index), value: row.dataset.value ?? "" });
   };
-  const onMouseover = (event) => {
+  const onMousemove = (event) => {
     const row = rowOf(event);
     if (!row) return;
     const index = Number(row.dataset.index);
@@ -56,13 +62,14 @@ export function connect(host) {
   observer.observe(element, { childList: true, subtree: true });
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
-  element.addEventListener("mouseover", onMouseover);
+  element.addEventListener("mousemove", onMousemove);
   return () => {
+    cancelActiveItemReveal(element);
     stop();
     surface.destroy();
     observer.disconnect();
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
-    element.removeEventListener("mouseover", onMouseover);
+    element.removeEventListener("mousemove", onMousemove);
   };
 }
