@@ -15,8 +15,10 @@ must be confirmed after rollout.
 | `quality` | Selected tooling tests, package build and affected unit/SSR tests | 6 minutes |
 | `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 6 minutes |
 | `release-package` | Package-only build, tarball integrity, packed component and documentation consumer matrix | 6 minutes |
-| `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 9 minutes |
+| `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 10 minutes |
 | `verify` | Require successful quality, browser and package checks | 1 minute after CI jobs |
+
+On the 0.37 integration, all 56 documentation browser checks and the site artifact upload finished before the former nine-minute limit, but dependency-cache cleanup exhausted it. Documentation parity now has ten minutes, retaining the same checks and remaining within its fifteen-minute policy ceiling.
 
 The first four jobs run independently. `quality`, `release-package`, `verify`, and
 `docs-parity` retain their branch-protection check names. A stage with no affected
