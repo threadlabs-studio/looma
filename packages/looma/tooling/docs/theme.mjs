@@ -19,7 +19,7 @@ export const themeFields = [
   ['Colour', 'palette-relationship', 'Palette relationship', null, 'choice', 'preserve', 'Keep seed hues, or relate quiet surfaces to the brand through neighboring or complementary hues.'],
   ['Type', 'body-font', 'Body font', '--ui-font-sans', 'font', 'system-ui, sans-serif', 'The shared interface typeface.'],
   ['Type', 'display-font', 'Display font', '--ui-font-display', 'font', 'system-ui, sans-serif', 'The heading typeface.'],
-  ['Type', 'text-size', 'Text size', '--ui-font-size', 'positive-length', '1rem', 'Base type and choice-mark size. Accepts native CSS lengths, such as 1rem.'],
+  ['Type', 'text-size', 'Base text size', '--ui-font-size', 'positive-length', '16px', 'Sets the document root in px. Type, spacing and layout use rem relationships and scale from this base once.'],
   ['Type', 'text-weight', 'Emphasis weight', '--ui-font-medium', 'weight', '500', 'Control-label emphasis; body and headings keep their roles.'],
   ['Size & spacing', 'control-roominess', 'Control roominess', '--ui-control-roominess', 'positive', '2.5', 'Shared control height as a multiple of base text size; buttons, fields and swatches stay aligned.'],
   ['Size & spacing', 'spacing', 'Spacing', '--ui-spacing', 'positive', '1', 'More or less breathing room throughout the interface.'],
@@ -161,6 +161,7 @@ export function validateRecipe(input) {
         if (field.type === 'weight') valid &&= number >= 1 && number <= 1000;
       }
     }
+    if (field.id === 'text-size' && valid && !value.endsWith('px')) throw new Error('Base text size: enter a px value for the document root.');
     if (!valid) throw new Error(`${field.label}: enter a valid ${field.type.replaceAll('-', ' ')} value.`);
     if (Object.hasOwn(bounds, field.id)) {
       const number = boundedNumber(field, value), [min, max] = bounds[field.id];
@@ -210,7 +211,7 @@ export function deriveTheme(input, { mode } = {}) {
   const tokens = Object.fromEntries(themeFields.filter(field => field.property).map(field => [field.property, values[field.id]]));
   for (const field of themeFields.filter(field => field.type.includes('length') && Object.hasOwn(bounds, field.id))) {
     if (boundedNumber(field, values[field.id]) === undefined) {
-      const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min / 16}rem, ${values[field.id]}, ${max / 16}rem)`;
+      const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
     }
   }
   const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key])]);

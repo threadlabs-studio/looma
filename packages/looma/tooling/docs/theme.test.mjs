@@ -33,7 +33,7 @@ test('shared decisions round-trip without truncating native lengths or times', (
   assert.ok(themeFields.some(field => field.id === 'glassiness'));
   assert.ok(themeFields.some(field => field.id === 'surface-separation'));
   const recipe = defaultRecipe();
-  Object.assign(recipe.values, { 'control-roominess': '2.5', 'text-size': '1rem', 'response-time': '0.15s', 'space-curve': '2', 'scale-contrast': '1.25' });
+  Object.assign(recipe.values, { 'control-roominess': '2.5', 'text-size': '16px', 'response-time': '0.15s', 'space-curve': '2', 'scale-contrast': '1.25' });
   const parsed = validateRecipe(JSON.parse(JSON.stringify(recipe)));
   assert.deepEqual(parsed, recipe);
   const css = themeCSS(parsed);
@@ -71,8 +71,10 @@ test('all authoring paths share readable numeric bounds and retain useful native
     assert.throws(() => validateRecipe(recipe), undefined, `${key}: ${value}`);
     assert.throws(() => themeCSS(recipe), undefined, `export ${key}: ${value}`);
   }
-  const responsive = defaultRecipe(); responsive.values['text-size'] = '2vw';
-  assert.match(themeCSS(responsive), /--ui-font-size: clamp\(0\.875rem, 2vw, 1\.5rem\)/);
+  for (const value of ['1rem', '2vw']) {
+    const relativeBase = defaultRecipe(); relativeBase.values['text-size'] = value;
+    assert.throws(() => validateRecipe(relativeBase), /px value for the document root/);
+  }
 });
 
 test('starting points change shared surfaces and depth never adds motion amplitude', () => {
@@ -169,13 +171,13 @@ test('coordinated palettes identify their four seeds independently from geometry
   assert.equal(paletteFor(custom), 'custom');
 });
 
-test('relative type and shared control roominess export relationships without fixed pixel ceilings', () => {
+test('relative geometry and shared control roominess derive from an explicit pixel root', () => {
   const recipe = defaultRecipe();
-  recipe.values['text-size'] = '1.125rem';
+  recipe.values['corner-roundness'] = '1.125rem';
   recipe.values['control-roominess'] = '2.5';
   recipe.values.spacing = '1.2';
   const css = themeCSS(recipe);
-  assert.match(css, /--ui-font-size: clamp\(0\.875rem, 1\.125rem, 1\.5rem\)/);
+  assert.match(css, /--ui-radius-md: clamp\(0px, 1\.125rem, 32px\)/);
   assert.match(css, /--ui-control-roominess: 2\.5/);
   assert.match(css, /--ui-spacing: 1\.2/);
   assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, density: '1' } }), /Unknown/);
@@ -220,4 +222,11 @@ test('palette transformations preserve readable roles at their extremes in both 
     }
     for (const tone of ['accent','danger','success','warning','info']) assert.ok(contrast(tokens[`--ui-${tone}`],tokens[`--ui-on-${tone}`]) >= 4.5, `${relationship}/${mode}/${tone}`);
   }
+});
+
+test('relative length guards retain the same pixel limits at every document root', () => {
+  const recipe=defaultRecipe(); recipe.values['text-size']='18px'; recipe.values['line-weight']='0.027778rem';
+  assert.match(themeCSS(recipe), /--ui-border-width: clamp\(0\.5px, 0\.027778rem, 3px\)/);
+  recipe.values['text-size']='14px'; recipe.values['corner-roundness']='2.285714rem';
+  assert.match(themeCSS(recipe), /--ui-radius-md: clamp\(0px, 2\.285714rem, 32px\)/);
 });
