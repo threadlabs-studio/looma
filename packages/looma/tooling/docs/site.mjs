@@ -86,7 +86,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   await cp(own('preview.js'), path.join(generated, 'preview.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
-  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs']) await cp(own(file), path.join(generated, file));
+  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
   const examples = [];
   // HTMLKit route groups retain their labels/order in navigation without changing public URLs.

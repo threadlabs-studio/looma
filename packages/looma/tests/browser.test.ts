@@ -3348,7 +3348,7 @@ describe("Button layout", () => {
           await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
           for (const size of ["sm", "md"]) {
             const heights = await touch.evaluate(size => ["ordinary", "counted", "more"].map(id => document.getElementById(size + "-" + id)!.getBoundingClientRect().height), size);
-            assert.deepEqual(heights, [44, 44, 44], "all three controls retain the standard touch height");
+            assert.ok(heights.every(height => Math.abs(height - (size === "sm" ? 44 : 52.8)) < .05), "matching sizes share the touch family without collapsing small and medium");
           }
         } finally { await touch.close(); }
       } finally { await page.close(); }
@@ -4562,8 +4562,8 @@ describe("Form control sizes", () => {
             const style = getComputedStyle(element);
             return { height: element.getBoundingClientRect().height, border: style.borderTopColor, shadow: style.boxShadow };
           }));
-          const expected = size === "lg" ? 48 : touch ? 44 : size === "sm" ? 32 : 40;
-          for (const look of looks) assert.equal(look.height, expected, `${adapter}/${theme}/${size}/${touch}: ${JSON.stringify(looks)}`);
+          const expected = touch ? ({sm:44, md:52.8, lg:63.36})[size] : size === "lg" ? 48 : size === "sm" ? 32 : 40;
+          for (const look of looks) assert.ok(Math.abs(look.height - expected) < .05, `${adapter}/${theme}/${size}/${touch}: ${JSON.stringify(looks)}`);
           for (const look of looks) assert.equal(look.border, looks[0].border, "all fields share their quiet outline");
           assert.match(looks[0].shadow, /inset/, "text input is slightly inset");
           assert.match(looks[3].shadow, /inset/, "grouped text stays inset");
@@ -6133,6 +6133,8 @@ describe("Text tokens", () => {
         }));
       }, { texts, surfaces });
       texts.forEach((text, row) => surfaces.forEach((surface, column) => {
+        // Field hints resolve against their field, rather than every unrelated tinted surface.
+        if (text === "--ui-control-placeholder" && surface !== "--ui-control-surface") return;
         const ratio = ratios[row]![column]!;
         if (ratio < 4.5) failures.push(`${theme.name}: ${text} on ${surface} is ${ratio.toFixed(2)}:1`);
       }));
@@ -10557,6 +10559,22 @@ describe("Shared choice geometry", () => {
 
 
 describe("Optional semantic theme recipe", () => {
+  it('relates shared control boxes to user-relative type rather than fixed pixel ceilings', async () => {
+    const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
+    const path = await bundle('relative-type-layout', 'import "@threadlabs/looma";');
+    const page = await open(path, '<ui-button id="relative-action">Action</ui-button><ui-input id="relative-field" value="Frodo"></ui-input><ui-color-picker id="relative-swatch"></ui-color-picker>', [join(root,'tokens.css')]);
+    try {
+      const system = await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
+      await page.addStyleTag({content:themeCSS(defaultRecipe(),system)});
+      for (const size of [16,24,32]) {
+        await page.locator('html').evaluate((element,size)=>element.style.fontSize=size+'px',size);
+        const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
+        assert.ok(boxes.every(height=>Math.abs(height-size*2.5)<.1), `all controls grow with root type at ${size}px: ${boxes}`);
+        assert.equal(await page.locator('#relative-field').evaluate(e=>getComputedStyle(e).fontSize),size+'px');
+      }
+    } finally {await page.close();}
+  });
+
   for (const adapter of ['html', 'vue']) it(`shares native CSS units, independent scales and material roles in ${adapter}`, async () => {
     const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@threadlabs/looma';` : `
       import {createApp,h} from 'vue';import {Button,Input,Switch,ColorPicker} from '@threadlabs/looma/vue';
@@ -10569,17 +10587,17 @@ describe("Optional semantic theme recipe", () => {
     try {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),32,'legacy sizing stays unchanged without the optional recipe');
       await page.addStyleTag({path:join(root,'theme-system.css')});
-      await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-density:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
+      await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-spacing:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
       for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','colour']) {
         const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button':'');
         assert.ok(Math.abs((await page.locator(selector).boundingBox())!.height-height)<.6,selector);
       }
       assert.equal(await page.locator('#nested-action').evaluate(el=>el.getBoundingClientRect().height),32);
       await page.addStyleTag({content:'body {padding-left:var(--ui-space-4)} #nested {display:grid;gap:var(--ui-space-4)}'});
-      assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).paddingLeft),'19.2px','size ratio does not change the linear spacing curve');
-      assert.ok(Math.abs(await page.locator('#nested').evaluate(el=>parseFloat(getComputedStyle(el).gap)) - 7.3142857) < .01, 'quadratic spacing bends a fixed range independently of control size');
+      assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).paddingLeft),'16px','size ratio does not change the linear spacing curve');
+      assert.ok(Math.abs(await page.locator('#nested').evaluate(el=>parseFloat(getComputedStyle(el).gap)) - 9.1428571) < .01, 'quadratic spacing bends a fixed range independently of control size');
       await page.addStyleTag({content:'#nested {padding-inline-start:var(--ui-space-1);padding-inline-end:var(--ui-space-6)}'});
-      assert.deepEqual(await page.locator('#nested').evaluate(el=>[getComputedStyle(el).paddingInlineStart,getComputedStyle(el).paddingInlineEnd]),['3.2px','25.6px'],'the spacing curve keeps its endpoints');
+      assert.deepEqual(await page.locator('#nested').evaluate(el=>[getComputedStyle(el).paddingInlineStart,getComputedStyle(el).paddingInlineEnd]),['4px','32px'],'the spacing curve keeps its endpoints');
       assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).scale),'none');
       await page.locator('#recipe-action-md').evaluate(async element => {
         getComputedStyle(element).boxShadow;
@@ -10592,7 +10610,7 @@ describe("Optional semantic theme recipe", () => {
       await page.addStyleTag({content: ':root {--ui-action-inset-md:9px;--ui-control-size-sm:35px;}'});
       assert.equal(await page.locator('#recipe-action-md').evaluate(el=>getComputedStyle(el).paddingLeft),'9px','explicit derived role still wins');
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),35);
-      await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-density:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
+      await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-spacing:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
       for (const size of ['sm','md','lg']) {
         const heights = await Promise.all(['action','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
         assert.ok(Math.max(...heights)-Math.min(...heights)<.6, 'large typography and curved page spacing preserve shared boxes: '+heights.join(','));
@@ -10644,6 +10662,10 @@ describe("Bounded value editors", () => {
       await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await client.detach();
       assert.notEqual(await page.locator('#curve output').textContent(),before);
+      const gestureStart = await page.locator('#curve output').textContent();
+      await handle.hover(); await page.mouse.down(); await page.mouse.move(bounds.x+10,bounds.y+10);
+      await handle.press('Escape'); await page.mouse.up();
+      assert.equal(await page.locator('#curve output').textContent(),gestureStart,'curve drags cancel consistently with the light editor');
       const x = page.getByRole('spinbutton',{name:'First handle X',exact:true});
       await x.fill('2'); await x.press('Enter'); assert.equal(await x.inputValue(),'1');
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -10688,11 +10710,19 @@ describe("Shared readable material planes", () => {
       assert.equal(await x.inputValue(),'100%'); assert.equal(await y.inputValue(),'0%');
       await handle.press('Home'); assert.equal(await x.inputValue(),'50%');
       const touch=(await handle.boundingBox())!, client=await page.context().newCDPSession(page);
-      await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:touch.x+touch.width/2,y:touch.y+touch.height/2}]});
-      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:plane.x+plane.width*.75,y:plane.y+plane.height*.5}]});
+      await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:touch.x+touch.width/2+12,y:touch.y+touch.height/2}]});
+      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:touch.x+touch.width/2+13,y:touch.y+touch.height/2+1}]});
+      assert.ok(Math.abs(parseFloat(await x.inputValue())-50)<=1, 'an off-center grab preserves its offset instead of jumping under the finger');
+      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:plane.x+plane.width*.75+12,y:plane.y+plane.height*.5}]});
       await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await client.detach();
       assert.ok(Math.abs(parseFloat(await x.inputValue())-75)<=1);
       assert.ok(Math.abs(parseFloat(await y.inputValue())-50)<=1);
+      const beforeCancel = [await x.inputValue(), await y.inputValue()];
+      await handle.hover(); await page.mouse.down(); await page.mouse.move(plane.x+20,plane.y+20);
+      await handle.press('Escape'); await page.mouse.up();
+      assert.deepEqual([await x.inputValue(), await y.inputValue()], beforeCancel, 'Escape restores the gesture start');
+      await page.locator('#light .plane').click({position:{x:plane.width*.1,y:plane.height*.9}});
+      assert.ok(Math.abs(parseFloat(await x.inputValue())-10)<=1, 'tapping the stage places the light');
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
       await page.evaluate(()=>(window as any).disableLight());
       assert.equal(await handle.isDisabled(),true); assert.equal(await x.isDisabled(),true);

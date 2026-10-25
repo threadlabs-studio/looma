@@ -36,6 +36,7 @@ test('generates full portable reference and the same isolated cards, including b
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
     assert.match(customizer, /loading="eager"/);
     assert.match(customizer, /removable/);
+    for (const file of ['palette.mjs', 'fonts.mjs']) assert.ok((await readFile(path.join(site.generated, file), 'utf8')).length > 0);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

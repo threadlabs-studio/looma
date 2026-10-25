@@ -10,6 +10,7 @@ export function connect(host) {
   const documentTheme = () => { theme = documentationTheme(view)?.css ?? ''; send(); };
   const preference = view.matchMedia('(prefers-color-scheme: dark)');
   const send = () => {
+    if (!host.element.getClientRects().length) return;
     const scheme = view.getComputedStyle(host.element).colorScheme;
     const mode = scheme === 'dark' || (scheme.includes('dark') && scheme.includes('light') && preference.matches) ? 'dark' : 'light';
     frame.contentWindow?.postMessage({ type: 'looma-theme', css: theme, mode, reference: Boolean(host.props.reference.value) }, '*');
