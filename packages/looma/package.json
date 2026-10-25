@@ -134,7 +134,7 @@
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
     "vue": "^3.5.43",
-    "markupress": "^0.8.5",
+    "markupress": "^0.8.6",
     "@nextwebwg/htmlkit": "1.0.0-alpha.69",
     "vite": "^8.3.4"
   },

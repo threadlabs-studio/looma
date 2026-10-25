@@ -93,8 +93,8 @@ importers:
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@6.0.3))
       markupress:
-        specifier: ~0.8.5
-        version: 0.8.5(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: ~0.8.6
+        version: 0.8.6(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       vite:
         specifier: 8.3.4
         version: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
@@ -179,8 +179,8 @@ importers:
         specifier: 14.3.1
         version: 14.3.1
       markupress:
-        specifier: ^0.8.5
-        version: 0.8.5(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: ^0.8.6
+        version: 0.8.6(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
     devDependencies:
       '@nextwebwg/html-next':
         specifier: 1.0.0-alpha.69
@@ -6050,13 +6050,13 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  markupress@0.8.5:
-    resolution: {integrity: sha512-A8HGIDgv4HDGw/0M9qENTa3KxoNPo8FReSXnOjmoGxpqROTQmLmd6UZGuC0U3STaXGDqqC43gQuBbrMWsb/KjQ==}
+  markupress@0.8.6:
+    resolution: {integrity: sha512-0dKCCWVhoJQSjQnY6e6frOV/+vkYSmoEMqFV/fZWTRnmxaQTqPHWwoxbDGHl7MDP2yL1FXM08VwsTU//DPg8qw==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
-      '@threadlabs/looma': ^0.33.0 || ^0.34.0 || ^0.35.0
+      '@threadlabs/looma': ^0.33.0 || ^0.34.0 || ^0.35.0 || ^0.36.0
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -15411,7 +15411,7 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.8.5(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@0.8.6(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
       '@nextwebwg/htmlkit': 1.0.0-alpha.69(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
