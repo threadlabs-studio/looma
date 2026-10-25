@@ -1,3 +1,4 @@
+import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-item-reveal.js";
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
 import { menuItemFrom, menuItems, navigateMenu } from "../shared/menu-navigation.js";
 
@@ -30,11 +31,12 @@ export function connect(host) {
     else {
       host.state.internalOpen = true;
       host.dispatch("open", { open: true, reason: "action", trigger });
-      requestAnimationFrame(() => items()[0]?.focus());
+      requestAnimationFrame(() => focusAndRevealItem(element, items()[0]));
     }
   };
   const close = (reason, trigger) => {
     if (!host.state.internalOpen) return;
+    cancelActiveItemReveal(element);
     host.state.internalOpen = false;
     host.dispatch("close", { open: false, reason, trigger });
     if (reason === "escape") anchor?.focus();
@@ -102,6 +104,7 @@ export function connect(host) {
     host.dispatch("select", { value, trigger });
     if (host.props.inline.value) return;
     host.dispatch("close", { open: false, reason: "action", trigger });
+    cancelActiveItemReveal(element);
     host.state.internalOpen = false;
   };
   const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
@@ -130,6 +133,7 @@ export function connect(host) {
   const stop = host.effect(apply);
   apply();
   return () => {
+    cancelActiveItemReveal(element);
     stop();
     ids.stop();
     element.removeEventListener("click", onClick);
