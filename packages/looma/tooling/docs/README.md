@@ -40,11 +40,11 @@ pnpm exec looma-docs preview
 
 ## Change the rule, keep the family consistent
 
-The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: a control size, spaciousness, corners, inner and outer depth, and response pace.
+The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: control roominess relative to text, spacing, corners, inner and outer depth, and response pace.
 
-The generated values follow rules. Small and large control heights follow a ratio around the shared control size. Spacing follows an independent curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
+The generated values follow rules. The medium control height is base text size times control roominess; small and large heights follow the size ratio. On touch, small rises to at least the comfortable 44px floor and medium/large grow from it, preserving the ratio. Spacing derives from base text independently of control roominess and follows its own curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
 
-Choose a coordinated palette to change related paper, ink and action seeds together without changing geometry or motion. Palette seeds remain available for precise edits; the light/dark range previews and resolved values explain readability adjustments.
+Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Tonal keeps seed hues; neighboring and complementary relate quiet hues to the action hue. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four color seeds remain available for precise edits; the light/dark range previews and resolved values explain adjustments.
 
 The customizer uses Starting point, Palette and Material as its controls sidebar, with documentation navigation left out of this workspace. Detailed type, size and motion controls, example selection and exports open when needed.
 
@@ -52,19 +52,45 @@ The main customizer offers Material and Palette presets. **Refine material & lig
 
 A refined preset keeps its name with “customized” beside it. **Restore material preset** resets only material and light; **Restore palette preset** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
-Number controls accept arithmetic such as `42px / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates.
+Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
 
-Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared recipe as well as your inputs. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
+Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared CSS derivation rules as well as resolved theme values. Download JSON separately to retain editable decisions and font/preset provenance. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
+
+Undo and Redo move through accepted recipe changes. **Compare entry theme** temporarily previews the theme present when this customizer opened; it does not replace your edits. **Explore nearby styles** previews Warmer, Quieter, More expressive or More compact before you apply it. Palette, Material and Type & spacing locks preserve those families during variations. Cancel preview returns to the current recipe.
 
 Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset returns to the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
 
 Text offers body, display, heading, label, caption, eyebrow and code roles. Choose a heading's document level with `as` independently from its visual role. Button and IconButton keep appearance and tone independent, with four optional shortcuts: primary (solid accent), standard (solid neutral), quiet (ghost neutral) and destructive (solid danger). A named preset takes precedence over the separate choices; `preset="none"` preserves their existing defaults.
 
+## Theme decisions and public properties
+
+The [public token reference](https://github.com/threadlabs-studio/looma/blob/main/apps/docs-next/docs/03.%28Foundations%29/tokens.md#optional-semantic-theme-recipe) lists defaults, customizer ranges, dependencies and derived outputs for every family. The recipe's `values` keys map to public CSS properties or generator decisions as follows. Values are strings; omitted keys take defaults and unknown keys are rejected.
+
+| Family | Recipe decisions → CSS properties |
+| --- | --- |
+| Palette seeds | `action` → `--ui-accent`; `canvas` → `--ui-surface`; `surface` → `--ui-surface-raised`; `text` → `--ui-text` |
+| Palette generation (recipe only) | `warmth`, `color-intensity`, `palette-relationship`; compiled into resolved color roles, with no matching CSS custom properties |
+| Type | `body-font` → `--ui-font-sans`; `display-font` → `--ui-font-display`; `text-size` → `--ui-font-size`; `text-weight` → `--ui-font-medium` |
+| Size & spacing | `control-roominess` → `--ui-control-roominess`; `spacing` → `--ui-spacing`; `scale-contrast` → `--ui-scale-ratio`; `space-curve` → `--ui-space-curve`; `corner-roundness` → `--ui-radius-md`; `line-weight` → `--ui-border-width` |
+| Depth and transmission | `outer-depth` → `--ui-outer-depth`; `inner-depth` → `--ui-inner-depth`; `glassiness` → `--ui-glassiness`; `surface-separation` → `--ui-surface-separation`; `translucency` → `--ui-overlay-translucency` |
+| Finish and illumination | `finish` → `--ui-finish`; `edge-light` → `--ui-edge-light`; `glow` → `--ui-glow`; `light-x` → `--ui-light-x`; `light-y` → `--ui-light-y`; `light-spread` → `--ui-light-spread`; `light-strength` → `--ui-light-strength` |
+| Motion | `response-time` → `--ui-motion-fast`; `response-curve` → `--ui-motion-ease` |
+
+Palette generation decisions exist only in the JSON recipe; edit it and regenerate to change resolved colors. Geometry, material and motion properties feed the included CSS recipe. `--ui-control-size` remains a derived public height role: author numeric roominess (default 2.5, range 2–4) instead of an absolute control size. Spacing (default 1, range 0.75–1.5) changes space without changing heights. Base text defaults to `1rem`. Relative length bounds use `rem` endpoints in generated CSS.
+
+Before 1.0 there are no compatibility aliases. Migrate recipe `density` to `spacing` and CSS `--ui-density` to `--ui-spacing`. Replace length-valued recipe `control-size` with numeric `control-roominess` by dividing the desired medium height by base text size: `40px / 16px` becomes `2.5`.
+
+## Choose fonts
+
+**System font** is the default and uses the operating system's native `system-ui` face without a download. Search the curated Google Fonts collection for body and display roles; selected faces load in the previews. Generated/downloaded CSS and locally saved CSS include the selected Google Fonts `@import` before rules, so the consuming application loads the same faces.
+
+An optional recipe `fonts` mapping records Google family names by `body-font` and/or `display-font`, while `values` keeps their matching CSS stacks. Import/export preserves both. The advanced **Custom font stack** field is for already loaded or self-hosted faces; it does not download fonts. Load those faces in the consuming application.
+
 ## Describe material and light
 
 Light position is relative to each surface: horizontal and vertical positions run from 0 to 1, with 0.5, 0 at top centre. Drag the source, use its arrow keys (Shift moves faster), or enter exact percentages. Home returns it to top centre. Spread runs from a concentrated spot to broad illumination; strength controls its intensity. The source influences reflections, illuminated edges and the direction of depth shadows throughout the theme.
 
-Finish controls how strongly a material catches a reflection, from matte to polished. Edge light catches its boundary; glow spills softly beyond it. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
+Depth controls elevation and recession independently from finish, transmission and motion. Finish controls how strongly a material catches a reflection, from matte to polished; it needs nonzero light strength. Light spread shapes that reflection, while position also directs shadows. A light strength of zero does not remove depth shadows. Edge light catches its boundary; glow spills softly beyond it. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Overlay translucency changes the shared overlay fill and decorative glass; it does not turn material content transparent. Separation can create a rim even with glassiness at zero. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
 
 Card keeps surface structure and decorative treatment independent:
 
@@ -118,7 +144,7 @@ Opt into source directories in `looma.docs.json`:
 }
 ```
 
-`content` and `overrides` are optional. Create files you configure before building. Markdown guidance supplements the generated reference; it cannot replace an API page. Relative component and asset dependencies keep their original project locations, and code examples remain literal. Local web fonts referenced by override CSS are embedded in the documentation's theme stylesheet so isolated examples render the same fonts on static hosts. Load your chosen web fonts in the consuming application; downloaded theme CSS selects their font families.
+`content` and `overrides` are optional. Create files you configure before building. Markdown guidance supplements the generated reference; it cannot replace an API page. Relative component and asset dependencies keep their original project locations, and code examples remain literal. Local web fonts referenced by override CSS are embedded in the documentation's theme stylesheet so isolated examples render the same fonts on static hosts. Google font selections travel in the generated CSS import. Load custom or self-hosted faces in the consuming application; their stacks only select families.
 
 A resource can use any valid HTML Next component tag:
 

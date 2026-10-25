@@ -249,7 +249,9 @@
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-action-inset-md, var(--ui-space-3)) !important;
       background-image: var(--ui-surface-highlight, none);
-      box-shadow: var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))), var(--_tone-glow);
+      box-shadow:
+        var(--ui-button-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
+        var(--_tone-glow);
       cursor: pointer;
       transition:
         scale var(--ui-motion-press, var(--ui-motion-fast)) var(--ui-motion-ease),
@@ -382,7 +384,9 @@
       background-color: var(--_tone);
       color: var(--_on-tone);
       background-image: var(--_tone-highlight);
-      box-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))), var(--_tone-glow);
+      box-shadow:
+        var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
+        var(--_tone-glow);
     }
 
     :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
@@ -552,8 +556,11 @@
 
     /* The size states outrank :host, so sm is named too, or a small button would stay small. */
     @media (pointer: coarse) {
-      :host, :host([size="sm"]) {
-        min-block-size: var(--ui-control-min-block-size);
+      :host {
+        min-block-size: max(var(--ui-control-size-md), var(--ui-control-min-block-size));
+      }
+      :host([size="sm"]) {
+        min-block-size: max(var(--ui-control-size-sm), var(--ui-control-min-block-size));
       }
     }
 

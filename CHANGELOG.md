@@ -2,6 +2,17 @@
 
 ## Next release
 
+### Relational theme editing and reversible exploration
+
+- Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch lifts the whole small/medium/large family instead of flattening small and medium to the same minimum.
+- Rename recipe `density` and CSS `--ui-density` to `spacing` and `--ui-spacing`, matching the direction of the control: increasing it adds space. These pre-1.0 replacements have no compatibility aliases. `--ui-control-size` remains a derived height role.
+- Generate coordinated warmth, intensity and neighboring/complementary surface relationships with perceptual color operations and gamut/readability bounds. Both color modes retain the palette identity; disabled roles stay distinct. These palette transformations are recipe inputs, compiled into resolved color roles rather than inert CSS properties.
+- Preserve finger grab offsets in LightEditor, support background placement and directional presets, and restore the gesture start on Escape or pointer cancellation. LightEditor adds a `cancel` event with restored x/y coordinates; CurveEditor shares the same grab-offset and cancellation contract, reporting its restored value. Frame-coalesced previews avoid storage writes during a drag; release commits one undoable decision.
+- Add undo/redo, comparison with the entry theme, retained starting-point identity, and preview/apply/cancel for nearby variations with palette, material and type/spacing locks.
+- Explain material dependencies and reuse documentation cards in the focused material and paired palette editors. Geometry shows aligned size samples and spacing progression; motion includes an interactive documentation example.
+- Add searchable Google font selection and actual face loading for body/display roles, with the operating system's font as the default. Optional recipe `fonts` provenance travels with JSON; downloaded CSS and locally saved CSS include Google Fonts imports before rules. Self-hosted/custom stacks remain an advanced option.
+- Organize the complete theme-property reference by palette, type, geometry, material, illumination and motion, distinguishing generator inputs, live CSS levers and derived roles.
+
 ### Documentation workspaces and control polish
 
 - Customize uses its Starting point, Palette and Material controls as its sidebar. Detailed decisions, example selection and export tools open on demand; the Editor playground also leaves out documentation navigation while editor reference pages keep their own section.

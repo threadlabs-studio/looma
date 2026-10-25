@@ -6,14 +6,14 @@ test('material presets retain their identity through refinement, reload and scop
   assert.deepEqual(refinementState(startingPoints.bookish, 'material'), { id: 'glass', customized: false });
   const recipe = applyRefinement(startingPoints.wiki, 'material', 'polished');
   assert.equal(recipe.values.action, startingPoints.wiki.values.action);
-  assert.equal(recipe.values['control-size'], startingPoints.wiki.values['control-size']);
+  assert.equal(recipe.values['control-roominess'], startingPoints.wiki.values['control-roominess']);
   assert.deepEqual(refinementState(recipe, 'material'), { id: 'polished', customized: false });
   recipe.values['light-x'] = '.2';
   const reloaded = validateRecipe(JSON.parse(JSON.stringify(recipe)));
   assert.deepEqual(refinementState(reloaded, 'material'), { id: 'polished', customized: true });
   const restored = applyRefinement(reloaded, 'material', 'polished');
   assert.equal(restored.values['light-x'], materialPresets.polished.values['light-x']);
-  assert.equal(restored.values['control-size'], startingPoints.wiki.values['control-size']);
+  assert.equal(restored.values['control-roominess'], startingPoints.wiki.values['control-roominess']);
   assert.equal(refinementState(restored, 'material').customized, false);
 });
 
@@ -33,11 +33,11 @@ test('shared decisions round-trip without truncating native lengths or times', (
   assert.ok(themeFields.some(field => field.id === 'glassiness'));
   assert.ok(themeFields.some(field => field.id === 'surface-separation'));
   const recipe = defaultRecipe();
-  Object.assign(recipe.values, { 'control-size': '2.5rem', 'text-size': '1rem', 'response-time': '0.15s', 'space-curve': '2', 'scale-contrast': '1.25' });
+  Object.assign(recipe.values, { 'control-roominess': '2.5', 'text-size': '1rem', 'response-time': '0.15s', 'space-curve': '2', 'scale-contrast': '1.25' });
   const parsed = validateRecipe(JSON.parse(JSON.stringify(recipe)));
   assert.deepEqual(parsed, recipe);
   const css = themeCSS(parsed);
-  assert.match(css, /--ui-control-size: clamp\(32px, 2\.5rem, 64px\)/);
+  assert.match(css, /--ui-control-roominess: 2\.5/);
   assert.match(css, /--ui-motion-fast: 0\.15s/);
   assert.match(css, /--ui-space-curve: 2/);
   assert.match(css, /--ui-scale-ratio: 1\.25/);
@@ -53,11 +53,11 @@ test('material customization uses shared levers and exposes only current startin
   assert.equal(startingPointFor(startingPoints.bookish), 'bookish');
   assert.equal(Object.hasOwn(startingPoints, 'library'), false);
   assert.equal(startingPointFor(startingPoints.wiki), 'wiki');
-  assert.ok(parseFloat(startingPoints.wiki.values['control-size']) < parseFloat(startingPoints.clear.values['control-size']));
+  assert.ok(parseFloat(startingPoints.wiki.values['control-roominess']) < parseFloat(startingPoints.clear.values['control-roominess']));
 });
 
 test('rejects invalid recipes and CSS injection rather than producing partial styles', () => {
-  for (const [key, value] of [['action', 'red; color:blue'], ['body-font', 'sans-serif;}body{color:red'], ['body-font', 'Arial /*'], ['body-font', '"Unclosed font'], ['control-size', '9'.repeat(400) + 'px'], ['control-size', '2rem trailing'], ['scale-contrast', '0'], ['translucency', '2'], ['response-curve', 'cubic-bezier(2,0,1,1)']]) {
+  for (const [key, value] of [['action', 'red; color:blue'], ['body-font', 'sans-serif;}body{color:red'], ['body-font', 'Arial /*'], ['body-font', '"Unclosed font'], ['control-roominess', '9'.repeat(400) + 'px'], ['control-roominess', '2rem trailing'], ['scale-contrast', '0'], ['translucency', '2'], ['response-curve', 'cubic-bezier(2,0,1,1)']]) {
     const recipe = defaultRecipe(); recipe.values[key] = value;
     assert.throws(() => validateRecipe(recipe), undefined, key);
   }
@@ -66,13 +66,13 @@ test('rejects invalid recipes and CSS injection rather than producing partial st
 });
 
 test('all authoring paths share readable numeric bounds and retain useful native units', () => {
-  for (const [key, value] of [['density', '.05'], ['scale-contrast', '12'], ['space-curve', '20'], ['text-size', '1px'], ['control-size', '8px'], ['response-time', '12s'], ['line-weight', '0px'], ['text-weight', '10']]) {
+  for (const [key, value] of [['spacing', '.05'], ['scale-contrast', '12'], ['space-curve', '20'], ['text-size', '1px'], ['control-roominess', '1.9'], ['response-time', '12s'], ['line-weight', '0px'], ['text-weight', '10']]) {
     const recipe = defaultRecipe(); recipe.values[key] = value;
     assert.throws(() => validateRecipe(recipe), undefined, `${key}: ${value}`);
     assert.throws(() => themeCSS(recipe), undefined, `export ${key}: ${value}`);
   }
   const responsive = defaultRecipe(); responsive.values['text-size'] = '2vw';
-  assert.match(themeCSS(responsive), /--ui-font-size: clamp\(14px, 2vw, 24px\)/);
+  assert.match(themeCSS(responsive), /--ui-font-size: clamp\(0\.875rem, 2vw, 1\.5rem\)/);
 });
 
 test('starting points change shared surfaces and depth never adds motion amplitude', () => {
@@ -89,7 +89,7 @@ test('starting points change shared surfaces and depth never adds motion amplitu
 
 test('saved and imported recipes identify their starting point without claiming a different preset', () => {
   assert.equal(startingPointFor(startingPoints.night), 'night');
-  const recipe = defaultRecipe(); recipe.values.density = '1.17';
+  const recipe = defaultRecipe(); recipe.values.spacing = '1.17';
   assert.equal(startingPointFor(recipe), 'custom');
 });
 
@@ -118,7 +118,7 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
     const recipe = { ...defaultRecipe(), values: { ...defaultRecipe().values, ...colors } };
     const { tokens, adjustments } = deriveTheme(recipe);
     const surfaces = ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken'].map(name => tokens[name]);
-    for (const name of ['--ui-text', '--ui-text-secondary', '--ui-text-muted', '--ui-disabled-text']) {
+    for (const name of ['--ui-text', '--ui-text-secondary', '--ui-text-muted']) {
       for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= 4.5, `${name} on ${surface}`);
     }
     for (const name of ['--ui-control-border', '--ui-focus-ring']) {
@@ -157,9 +157,9 @@ test('every recipe exports a coordinated pair and both resolved palettes remain 
 test('coordinated palettes identify their four seeds independently from geometry', () => {
   for (const [id, palette] of Object.entries(themePalettes)) {
     const recipe = defaultRecipe();
-    Object.assign(recipe.values, palette.values, { 'control-size': '56px', 'inner-depth': '1.7' });
+    Object.assign(recipe.values, palette.values, { 'control-roominess': '3.5', 'inner-depth': '1.7' });
     assert.equal(paletteFor(recipe), id);
-    assert.equal(validateRecipe(recipe).values['control-size'], '56px');
+    assert.equal(validateRecipe(recipe).values['control-roominess'], '3.5');
     for (const mode of ['light', 'dark']) {
       const { tokens } = deriveTheme(recipe, { mode });
       assert.ok(contrast(tokens['--ui-text'], tokens['--ui-surface-raised']) >= 4.5);
@@ -167,4 +167,57 @@ test('coordinated palettes identify their four seeds independently from geometry
   }
   const custom = defaultRecipe(); custom.values.action = '#019283';
   assert.equal(paletteFor(custom), 'custom');
+});
+
+test('relative type and shared control roominess export relationships without fixed pixel ceilings', () => {
+  const recipe = defaultRecipe();
+  recipe.values['text-size'] = '1.125rem';
+  recipe.values['control-roominess'] = '2.5';
+  recipe.values.spacing = '1.2';
+  const css = themeCSS(recipe);
+  assert.match(css, /--ui-font-size: clamp\(0\.875rem, 1\.125rem, 1\.5rem\)/);
+  assert.match(css, /--ui-control-roominess: 2\.5/);
+  assert.match(css, /--ui-spacing: 1\.2/);
+  assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, density: '1' } }), /Unknown/);
+});
+
+test('palette relationships change coordinated surfaces without changing geometry or abandoning paired identity', () => {
+  const recipe = structuredClone(startingPoints.bookish);
+  Object.assign(recipe.values, { warmth: '.8', 'color-intensity': '.7', 'palette-relationship': 'neighboring' });
+  const warmer = deriveTheme(recipe, { mode: 'light' }).tokens;
+  const base = deriveTheme(startingPoints.bookish, { mode: 'light' }).tokens;
+  assert.notEqual(warmer['--ui-surface'], base['--ui-surface']);
+  assert.equal(warmer['--ui-control-roominess'], base['--ui-control-roominess']);
+  for (const mode of ['light', 'dark']) {
+    const { tokens } = deriveTheme(recipe, { mode });
+    assert.ok(contrast(tokens['--ui-text'], tokens['--ui-surface']) >= 4.5);
+    assert.ok(contrast(tokens['--ui-control-border'], tokens['--ui-surface']) >= 3);
+    assert.notEqual(tokens['--ui-disabled-text'], tokens['--ui-text-secondary']);
+  }
+  recipe.values['palette-relationship'] = 'arbitrary';
+  assert.throws(() => validateRecipe(recipe));
+});
+
+test('selected Google fonts travel in the exported CSS and recipe while system fonts need no import', () => {
+  const recipe = defaultRecipe(); recipe.values['body-font'] = '"Inter", sans-serif'; recipe.fonts = { 'body-font': 'Inter' };
+  const exported = themeCSS(recipe, '@layer theme { :root { --test: 1; } }');
+  assert.match(exported, /@import url\("https:\/\/fonts.googleapis.com\/css2\?family=Inter:wght@400;500;600;700&display=swap"\);/);
+  assert.ok(exported.indexOf('@import') < exported.indexOf('@layer'));
+  assert.deepEqual(validateRecipe(JSON.parse(JSON.stringify(recipe))), recipe);
+  assert.ok(!themeCSS(defaultRecipe()).includes('fonts.googleapis.com'));
+  recipe.fonts['body-font'] = 'Inter";}body{color:red';
+  assert.throws(() => validateRecipe(recipe));
+});
+
+test('palette transformations preserve readable roles at their extremes in both modes', () => {
+  for (const warmth of ['0','1']) for (const intensity of ['0','1']) for (const relationship of ['preserve','neighboring','complementary']) for (const starting of [startingPoints.bookish, startingPoints.garden, startingPoints.night]) for (const mode of ['light','dark']) {
+    const recipe = structuredClone(starting);
+    Object.assign(recipe.values, {warmth, 'color-intensity':intensity, 'palette-relationship':relationship});
+    const {tokens} = deriveTheme(recipe, {mode});
+    for (const surface of ['--ui-surface','--ui-surface-raised','--ui-surface-sunken']) {
+      assert.ok(contrast(tokens['--ui-text'],tokens[surface]) >= 4.5, `${relationship}/${mode} body`);
+      assert.ok(contrast(tokens['--ui-control-border'],tokens[surface]) >= 3, `${relationship}/${mode} boundary`);
+    }
+    for (const tone of ['accent','danger','success','warning','info']) assert.ok(contrast(tokens[`--ui-${tone}`],tokens[`--ui-on-${tone}`]) >= 4.5, `${relationship}/${mode}/${tone}`);
+  }
 });

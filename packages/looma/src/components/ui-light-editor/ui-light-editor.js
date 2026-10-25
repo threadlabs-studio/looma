@@ -2,7 +2,7 @@ const coordinate = value => Number.isFinite(Number(value)) ? Math.round(Math.max
 
 export function connect(host) {
   const { plane, source } = host.refs;
-  let x = coordinate(host.props.x.value), y = coordinate(host.props.y.value), drag;
+  let x = coordinate(host.props.x.value), y = coordinate(host.props.y.value), drag, suppressClick = false;
   const listeners = [];
   const listen = (element, type, fn) => { element.addEventListener(type, fn); listeners.push(() => element.removeEventListener(type, fn)); };
   const paint = () => {
@@ -14,21 +14,38 @@ export function connect(host) {
   const emit = type => host.dispatch(type, { x, y });
   listen(source, 'pointerdown', event => {
     if (host.props.disabled.value || event.button !== 0) return;
-    event.preventDefault(); source.focus(); drag = event.pointerId; source.setPointerCapture(drag);
+    event.preventDefault(); source.focus();
+    const rect = plane.getBoundingClientRect();
+    drag = { id: event.pointerId, x, y, offsetX: event.clientX - rect.left - x * rect.width, offsetY: event.clientY - rect.top - y * rect.height };
+    source.setPointerCapture(drag.id);
   });
   listen(source, 'pointermove', event => {
-    if (drag !== event.pointerId || host.props.disabled.value) return;
+    if (drag?.id !== event.pointerId || host.props.disabled.value) return;
     const rect = plane.getBoundingClientRect(); if (!rect.width || !rect.height) return;
-    x = (event.clientX - rect.left) / rect.width; y = (event.clientY - rect.top) / rect.height;
+    x = (event.clientX - rect.left - drag.offsetX) / rect.width; y = (event.clientY - rect.top - drag.offsetY) / rect.height;
     paint(); emit('input');
   });
   const end = event => {
-    if (drag !== event.pointerId) return;
-    drag = undefined;
-    if (source.hasPointerCapture(event.pointerId)) source.releasePointerCapture(event.pointerId);
-    if (!host.props.disabled.value) emit('change');
+    if (drag?.id !== event.pointerId) return;
+    const start = drag; drag = undefined; suppressClick = true;
+    if (source.hasPointerCapture(start.id)) source.releasePointerCapture(start.id);
+    if (event.type !== 'pointerup' || host.props.disabled.value) {
+      x = start.x; y = start.y; paint(); emit('input'); emit('cancel');
+    } else if (!host.props.disabled.value) emit('change');
   };
   listen(source, 'pointerup', end); listen(source, 'pointercancel', end); listen(source, 'lostpointercapture', end);
+  listen(source, 'keydown', event => {
+    if (event.key === 'Escape' && drag) { event.preventDefault(); end({ pointerId: drag.id, type: 'cancel' }); }
+  });
+  // A background tap is deliberate placement; scrolling and specimen controls keep native gestures.
+  listen(plane, 'pointerdown', () => { suppressClick = false; });
+  listen(plane, 'click', event => {
+    if (suppressClick) { suppressClick = false; return; }
+    if (host.props.disabled.value || event.target.closest('button,input,select,textarea,a,[role="button"]')) return;
+    const rect = plane.getBoundingClientRect(); if (!rect.width || !rect.height) return;
+    x = (event.clientX - rect.left) / rect.width; y = (event.clientY - rect.top) / rect.height;
+    paint(); emit('input'); emit('change');
+  });
   listen(source, 'keydown', event => {
     if (host.props.disabled.value || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
     event.preventDefault(); const step = event.shiftKey ? .1 : .01;
@@ -49,5 +66,5 @@ export function connect(host) {
     });
   }
   const stop = host.effect(() => { x = coordinate(host.props.x.value); y = coordinate(host.props.y.value); paint(); });
-  return () => { stop(); listeners.forEach(cleanup => cleanup()); if (drag !== undefined && source.hasPointerCapture(drag)) source.releasePointerCapture(drag); };
+  return () => { stop(); listeners.forEach(cleanup => cleanup()); if (drag && source.hasPointerCapture(drag.id)) source.releasePointerCapture(drag.id); };
 }
