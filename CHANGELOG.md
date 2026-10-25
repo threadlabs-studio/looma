@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals.
+
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 
 - Show the editor writing prompt only while the whole document is empty, including when an empty first line precedes text, an image or a divider.
