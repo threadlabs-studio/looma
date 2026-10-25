@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 01-address",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-resolved",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-without-open-link",
+    "props": {},
+    "example": 2
+  }
+]

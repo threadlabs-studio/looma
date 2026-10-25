@@ -6,8 +6,9 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 // Every committed reference image stays in git history forever, so every clone pays for each revision.
-// Raising this needs a reason; prefer smaller captures (one example, no full pages, no shared shell).
-const budgetMB = 75;
+// Layout references and compact state sheets share this limit. Full state coverage replaces
+// the old gallery; tighter crops and packing avoid capturing a page shell for every state.
+const budgetMB = 100;
 
 function megabytes(directory) {
   return readdirSync(directory, { recursive: true })
@@ -16,6 +17,6 @@ function megabytes(directory) {
 }
 
 test("visual reference images stay within their size budget", () => {
-  const total = megabytes(path.join(root, "apps/docs/tests/baselines")) + megabytes(path.join(root, "apps/storybook/.storywright/accepted"));
+  const total = megabytes(path.join(root, "apps/docs/tests/baselines")) + megabytes(path.join(root, "apps/storybook/tests/baselines"));
   assert.ok(total <= budgetMB, `Visual references total ${total.toFixed(1)} MB, over the ${budgetMB} MB budget`);
 });

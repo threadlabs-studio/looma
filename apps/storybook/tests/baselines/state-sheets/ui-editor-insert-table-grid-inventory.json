@@ -1,0 +1,45 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "header-row: false",
+    "props": {
+      "headerRow": false
+    },
+    "example": 0
+  },
+  {
+    "name": "header-row: true",
+    "props": {
+      "headerRow": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-open-and-grid-limits",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-max-rows-6-max-cols-6-and-header-row",
+    "props": {},
+    "example": 1
+  }
+]

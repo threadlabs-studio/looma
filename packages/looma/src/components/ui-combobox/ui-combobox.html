@@ -5,6 +5,8 @@
     <prop name="label" type="string" default=""
     >The field's label, tied to its input and shown above it; required adds an asterisk. It also names the suggestion list. Pair it with
       labelVisibility="sr-only" when the context already labels the field visibly.</prop>
+    <prop name="muted" type="boolean" default="false"
+    >Shows the selected field value with supporting-text emphasis, for an inherited or default choice. Suggestions keep normal emphasis and the field stays interactive.</prop>
     <prop name="placeholder" type="string" default=""
     >Hint text shown in the empty input, as on a native input. It disappears as the user types, so it never replaces label.</prop>
     <prop name="name" type="string" default=""
@@ -79,7 +81,7 @@
       when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
     <prop name="invalid" type="boolean" default="false"
     >Exposes an externally validated error on the input and field. It remains until the consumer clears it, independently of native validation.</prop>
-    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus, before typing.</prop>
+    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus or is clicked. A committed selection shows all choices until typing filters them; an explicitly supplied query keeps its filtering.</prop>
     <prop name="loading" type="boolean" default="false"
     >Marks the suggestion list busy while the consumer loads options. It announces loading and suppresses the empty state and create offer until cleared.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md"
@@ -423,7 +425,7 @@
     <div class="control">
       <div class="field" $ref="field">
         <div class="entry">
-          <slot name="start"></slot>
+          <span class="start"><slot name="start"></slot></span>
           <template $if="$multiple">
             <button
               $each="item, index of $internalItems"
@@ -698,6 +700,21 @@
       flex: 1 1 auto;
       min-inline-size: 0;
     }
+    .start {
+      display: flex !important;
+      align-items: center !important;
+      flex: none;
+      padding-inline-start: var(--ui-space-3) !important;
+    }
+    .start:empty {
+      display: none !important;
+    }
+    :host([size="sm"]) .start {
+      padding-inline-start: var(--ui-space-2) !important;
+    }
+    :host([size="lg"]) .start {
+      padding-inline-start: var(--ui-space-4) !important;
+    }
     /* A ghost icon button: the affordance is the mark, not a box around it. */
     .help {
       flex: none;
@@ -734,6 +751,10 @@
     .help-icon {
       inline-size: var(--ui-icon-size-sm);
       block-size: var(--ui-icon-size-sm);
+    }
+
+    :host([muted]) input:not(:disabled) {
+      color: var(--ui-text-secondary);
     }
 
     input::selection {
@@ -820,7 +841,7 @@
       padding: var(--ui-space-1) !important;
       border: var(--ui-border-width) solid var(--_ui-combobox-popup-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-combobox-popup-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
-      background: var(--_ui-combobox-popup-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      background: var(--_ui-combobox-popup-surface, var(--ui-material-content, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
       box-shadow: var(--_ui-combobox-popup-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
     }

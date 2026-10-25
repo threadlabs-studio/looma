@@ -181,7 +181,12 @@
     }
 
     :host:is(:hover, :focus-visible):not([aria-disabled="true"]) {
-      background: var(--ui-menu-item-hover-surface, var(--ui-surface-subtle));
+      background: var(--ui-menu-item-hover-surface, var(--ui-accent-subtle));
+    }
+
+    :host[aria-checked="true"]:not([aria-disabled="true"]) {
+      background: var(--ui-selection-surface);
+      color: var(--ui-selection-text);
     }
 
     :host:focus-visible {

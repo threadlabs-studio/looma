@@ -27,8 +27,8 @@ feedback composes with positioning transforms instead of replacing them.
 ## Tones and toggle state
 
 Set `tone="accent"` for an accent-coloured action or `tone="neutral"` for a neutral one.
-The tone applies to every variant. Omitting it preserves the existing defaults: neutral
-ghost and outline controls, and an accent-filled solid control.
+The tone applies to every variant and defaults to neutral, including solid controls.
+Use `tone="accent"` or `preset="primary"` for accent emphasis.
 
 An outline button with native `aria-pressed="true"` retains a light wash and inset shadow
 after release. It keeps its outline instead of becoming a solid button. Set `aria-pressed`

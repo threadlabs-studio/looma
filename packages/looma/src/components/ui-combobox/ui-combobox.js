@@ -35,6 +35,7 @@ export function connect(host) {
   let composing = false;
   let alive = true;
   let fullSet = false;
+  let suppressFocusOpening = false;
   let initialRaw = "";
   let awaitingLabel = null;
   let proposedChange;
@@ -461,14 +462,28 @@ export function connect(host) {
       else if (config().allowFreeText) { event.preventDefault(); commit(null, host.state.raw, null, "free-entry", "keyboard"); close(); }
     }
   };
+  const openFromField = () => {
+    const selected = config().options?.find(option => option.value === host.state.selected) ?? knownOptions.get(host.state.selected);
+    // A committed label is a selection, not a search draft. Typing still filters.
+    open(host.props.query.value == null && selected?.label === host.state.raw ? "disclosure" : "input");
+  };
   const onClick = (event) => {
     const option = event.target.closest?.('[role="option"][data-index]');
     if (option) { choose(Number(option.dataset.index), "pointer"); return; }
     const action = event.target.closest?.("[data-combobox-action]")?.dataset.comboboxAction;
     if (action && (host.props.disabled.value || host.props.readonly.value)) return;
     if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input.focus(); }
-    else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input.focus(); }
-    else if (field.contains(event.target) && !event.target.closest?.("button")) input.focus();
+    else if (action === "disclosure") {
+      const expanded = host.state.expanded;
+      // Returning focus must not undo an explicit request to close the list.
+      suppressFocusOpening = true;
+      try { input.focus(); } finally { suppressFocusOpening = false; }
+      expanded ? close() : open("disclosure");
+    }
+    else if (field.contains(event.target) && !event.target.closest?.("button")) {
+      if (host.props.openOnFocus.value && !host.state.expanded) openFromField();
+      input.focus();
+    }
   };
   const onPointerdown = (event) => { if (event.target.closest?.('[role="option"]')) event.preventDefault(); };
   const onFocusout = (event) => {
@@ -481,7 +496,7 @@ export function connect(host) {
     void validateCurrent();
   };
   const onFocusin = (event) => {
-    if (event.target === input && host.props.openOnFocus.value && !host.state.expanded) open();
+    if (event.target === input && host.props.openOnFocus.value && !host.state.expanded && !suppressFocusOpening) openFromField();
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
