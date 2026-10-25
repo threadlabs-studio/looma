@@ -17,7 +17,7 @@ pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies (Markupress 0.8.5 or newer on the supported 0.8 line). Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies (Markupress 0.8.7 or newer on the supported 0.8 line). Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
@@ -38,11 +38,43 @@ pnpm exec looma-docs preview
 
 `build` produces a static HTMLKit site in the configured output directory. `preview` serves that output without a repository writer. All commands accept `--root`; `dev` and `preview` also accept `--port`.
 
+## Name your local design system
+
+`looma-docs init --title "Fellowship UI"` sets your site's name. To rename an
+existing local documentation site, edit `title` in `looma.docs.json`; the local
+server rebuilds the header, generated landing page and page titles with that
+name. You do not need to fork Looma or change component imports.
+
+You can also supply your logo and navigation:
+
+```json
+{
+  "title": "Fellowship UI",
+  "logo": {
+    "light": "/assets/fellowship-light.svg",
+    "dark": "/assets/fellowship-dark.svg"
+  },
+  "nav": [{ "label": "Our application", "href": "https://example.com" }]
+}
+```
+
+Merge these fields into your existing configuration. Serve the logo URLs from
+your application's public assets, such as `public/assets/`. Leave `logo` unset
+for a text-only brand. To author your own introduction, set `content` to your
+Markdown directory and add its `index.md`; it replaces the generated landing
+page without replacing component reference pages.
+
+The site name is yours. Component ownership stays accurate: built-in cards
+still identify `@threadlabs/looma`, while your discovered components identify
+the `packageName` you configure below. That is package attribution, not the
+name of your design system. Shared CSS and recipe filenames are configured
+under `theme`; changing a site title does not require renaming those files.
+
 ## Change the rule, keep the family consistent
 
 The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: control roominess relative to text, spacing, corners, inner and outer depth, and response pace.
 
-The generated values follow rules. The medium control height is base text size times control roominess; small and large heights follow the size ratio. On touch, small rises to at least the comfortable 44px floor and medium/large grow from it, preserving the ratio. Spacing derives from base text independently of control roominess and follows its own curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
+The generated values follow rules. The medium control height is base text size times control roominess; small and large heights follow the size ratio. Touch does not inflate the visible size ladder. Hit-area guidance is contextual and adjustable; 44px is a comfort preference for expanded targets, not a mandatory visible height. Invisible targets must not steal neighbouring controls. Spacing derives from base text independently of control roominess and follows its own curve: linear at 1, increasingly curved toward 2, with stable endpoints so the largest gaps do not grow without bound. Depth generates families of shadows; it does not add motion amplitude. Fields and buttons with the same size setting use the same box height, while content can still grow when it needs more room.
 
 Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Tonal keeps seed hues; neighboring and complementary relate quiet hues to the action hue. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four color seeds remain available for precise edits; the light/dark range previews and resolved values explain adjustments.
 
@@ -56,7 +88,7 @@ Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate
 
 Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared CSS derivation rules as well as resolved theme values. Download JSON separately to retain editable decisions and font/preset provenance. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
 
-Undo and Redo move through accepted recipe changes. **Compare entry theme** temporarily previews the theme present when this customizer opened; it does not replace your edits. **Explore nearby styles** previews Warmer, Quieter, More expressive or More compact before you apply it. Palette, Material and Type & spacing locks preserve those families during variations. Cancel preview returns to the current recipe.
+Undo and Redo move through accepted recipe changes. There is no page-entry comparison state: reopening the customizer does not create a hidden before/after reference. **Explore nearby styles** previews Warmer, Quieter, More expressive or More compact before you apply it. Palette, Material and Type & spacing locks preserve those families during variations. Cancel preview returns to the current recipe.
 
 Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset returns to the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
 
@@ -90,7 +122,7 @@ An optional recipe `fonts` mapping records Google family names by `body-font` an
 
 Light position is relative to each surface: horizontal and vertical positions run from 0 to 1, with 0.5, 0 at top centre. Drag the source, use its arrow keys (Shift moves faster), or enter exact percentages. Home returns it to top centre. Spread runs from a concentrated spot to broad illumination; strength controls its intensity. The source influences reflections, illuminated edges and the direction of depth shadows throughout the theme.
 
-Depth controls elevation and recession independently from finish, transmission and motion. Finish controls how strongly a material catches a reflection, from matte to polished; it needs nonzero light strength. Light spread shapes that reflection, while position also directs shadows. A light strength of zero does not remove depth shadows. Edge light catches its boundary; glow spills softly beyond it. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Overlay translucency changes the shared overlay fill and decorative glass; it does not turn material content transparent. Separation can create a rim even with glassiness at zero. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
+Depth controls elevation and recession independently from finish, transmission and motion. Finish controls how strongly a material catches a reflection, from matte to polished; it needs nonzero light strength. Light spread shapes that reflection, while position also directs shadows. A light strength of zero does not remove depth shadows. Edge light catches its boundary; glow spills beyond it. Glassiness and glow use a gently increasing lower range and an expressive upper response (`g + 2g⁴`), so the maximum can be exuberant without raising restrained defaults. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Overlay translucency changes the shared overlay fill and decorative glass; it does not turn material content transparent. Separation can create a rim even with glassiness at zero. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
 
 Card keeps surface structure and decorative treatment independent:
 
@@ -128,9 +160,16 @@ Use the public semantic color properties inside those regions. A floating surfac
 
 ## Add your components
 
-Build your design-system components in HTML Next. Their definitions, description attributes, controllers and HTML examples are the source for the generated documentation and customizer cards. Use Looma’s public semantic properties to make your components respond to the same theme.
+Build your design-system components in HTML Next. Their definitions, description attributes, modules and HTML examples are the source for the generated documentation and customizer cards. Use Looma’s public semantic properties to make your components respond to the same theme.
 
-Opt into source directories in `looma.docs.json`:
+1. Create a directory for your HTML Next component resources, such as `app/components`.
+2. Opt that directory into `components` in `looma.docs.json`, with your package's name.
+3. Put `docs.json` and an `examples/` directory beside each resource, as shown below.
+4. Run `looma-docs dev`. Your components appear beside Looma's in the reference,
+   search and customizer example picker. Resources under registered directories
+   are rediscovered when the local server rebuilds.
+
+The configuration can combine your name, authored guides and discovery roots:
 
 ```json
 {

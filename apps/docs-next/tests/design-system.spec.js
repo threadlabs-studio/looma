@@ -92,7 +92,7 @@ test('customizer gives its controls the sidebar and keeps previews visible witho
   await expect(page.locator('[data-example-count]')).toHaveText('1 example in preview');
   await page.getByRole('searchbox', { name: 'Filter previews', exact: true }).clear();
   const first = page.locator('[data-customizer-overview] .examples [data-example-card]').first();
-  expect((await first.boundingBox()).y).toBeLessThan(650);
+  expect((await page.locator('[data-theme-sampler]').boundingBox()).y).toBeLessThan(650);
   const stack = first.locator('.body [data-component="ui-stack"]');
   expect(await stack.evaluate(element => getComputedStyle(element).display)).toBe('flex');
   expect(await stack.evaluate(element => parseFloat(getComputedStyle(element).rowGap))).toBeGreaterThan(0);

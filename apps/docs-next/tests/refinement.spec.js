@@ -9,7 +9,7 @@ const enter = async (page, info) => {
   return errors;
 };
 
-test('completed edits undo and redo, comparison preserves the edited recipe, and origin remains visible', async ({page}, info) => {
+test('completed edits undo and redo persist without an ambiguous comparison mode', async ({page}, info) => {
   const errors = await enter(page, info);
   await page.getByRole('button',{name:'Refine material & light',exact:true}).click();
   const beforeFocus = await session(page);
@@ -25,10 +25,7 @@ test('completed edits undo and redo, comparison preserves the edited recipe, and
   expect((await session(page)).values['light-x']).toBe('0.5');
   await page.getByRole('button',{name:'Redo',exact:true}).click();
   const edited = await session(page);
-  await page.getByRole('button',{name:'Compare entry theme',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Compare entry theme',exact:true})).toHaveAttribute('aria-pressed','true');
-  expect(await session(page)).toEqual(edited);
-  await page.getByRole('button',{name:'Compare entry theme',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Compare entry theme',exact:true})).toHaveCount(0);
   await page.reload(); expect(await session(page)).toEqual(edited);
   expect(errors).toEqual([]);
 });
@@ -171,4 +168,42 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
       await expect(row.locator('[data-size-readout]')).toContainText('rem');
     }
   } finally {await context.close();}
+});
+
+test('the compact documentation sampler stays visible across screen sizes and follows the shared theme', async ({page},info) => {
+  for(const width of [1440,390]) {
+    await page.setViewportSize({width,height:900});await enter(page,info);
+    const sampler=page.locator('[data-theme-sampler]');
+    const frame=sampler.locator('iframe').contentFrame();
+    const action=frame.getByRole('button',{name:'Send memo',exact:true});
+    await expect(action).toBeVisible();
+    await expect(frame.getByRole('textbox',{name:'Search office',exact:true})).toBeVisible();
+    await expect(frame.getByRole('checkbox',{name:'Notify Sam',exact:true})).toBeVisible();
+    await expect(frame.getByRole('switch',{name:'Available',exact:true})).toBeVisible();
+    await expect(sampler.locator('.body')).toHaveCount(0);
+    const bounds=await sampler.boundingBox(),controls=await page.getByRole('complementary',{name:'Theme controls',exact:true}).boundingBox();
+    if(width<640) expect(bounds.y).toBeLessThan(controls.y);else expect(bounds.x).toBeGreaterThan(controls.x);
+    await page.getByRole('combobox',{name:'Starting point',exact:true}).selectOption('wiki');
+    await expect.poll(()=>action.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(79, 70, 229)');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  }
+});
+
+test('sidebar fields reserve space for their focus treatment inside clipping containers', async ({page},info) => {
+  await enter(page,info);
+  await page.getByRole('button',{name:'Type, size & motion',exact:true}).click();await page.getByText('Type',{exact:true}).click();
+  for(const field of [page.getByRole('combobox',{name:'Body font',exact:true}),page.getByRole('spinbutton',{name:'Base text size',exact:true})]) {
+    await field.focus();
+    const clipped=await field.evaluate(input=>{
+      const painted=input.closest('.field')??input,box=painted.getBoundingClientRect(),outset=parseFloat(getComputedStyle(input).getPropertyValue('--ui-focus-width'))*1.5;
+      const problems=[];
+      for(let node=painted.parentElement;node;node=node.parentElement) {
+        const style=getComputedStyle(node);if(!['hidden','auto','scroll','clip'].includes(style.overflowX))continue;
+        const clip=node.getBoundingClientRect(),left=clip.left+node.clientLeft,right=left+node.clientWidth;
+        if(box.left-outset<left-.5||box.right+outset>right+.5)problems.push(node.tagName+'.'+node.className);
+      }
+      return problems;
+    });
+    expect(clipped).toEqual([]);
+  }
 });

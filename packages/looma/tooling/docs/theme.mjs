@@ -29,12 +29,12 @@ export const themeFields = [
   ['Size & spacing', 'line-weight', 'Line weight', '--ui-border-width', 'length', '1px', 'Shared edge weight; focus stays independently visible.'],
   ['Material', 'outer-depth', 'Outer depth', '--ui-outer-depth', 'nonnegative', '0.6', 'How strongly controls and floating surfaces rise above the page.'],
   ['Material', 'inner-depth', 'Inner depth', '--ui-inner-depth', 'nonnegative', '0.3', 'How strongly fields and pressed controls sit into their surface.'],
-  ['Material', 'glassiness', 'Glassiness', '--ui-glassiness', 'fraction', '0', 'Frosted blur, richer background colour and light-catching glass edges. Content stays readable.'],
+  ['Material', 'glassiness', 'Glassiness', '--ui-glassiness', 'fraction', '0', 'Clear through richly frosted: the upper range adds stronger blur, saturation and glass edges. Content stays readable.'],
   ['Material', 'surface-separation', 'Surface separation', '--ui-surface-separation', 'fraction', '0', 'One material offset, scaled by popup purpose and actual size: quiet tooltips through substantial dialogs.'],
   ['Material', 'translucency', 'Overlay translucency', '--ui-overlay-translucency', 'fraction', '0', 'How much background comes through floating surfaces.'],
   ['Material', 'edge-light', 'Edge light', '--ui-edge-light', 'fraction', '0', 'Light caught by surface edges, independent of depth.'],
   ['Material', 'finish', 'Finish', '--ui-finish', 'fraction', '0', 'Matte through polished: how strongly the material catches a reflection.'],
-  ['Material', 'glow', 'Glow', '--ui-glow', 'fraction', '0', 'Soft reflected light beyond a surface, derived from its tone.'],
+  ['Material', 'glow', 'Glow', '--ui-glow', 'fraction', '0', 'Reflected light beyond a surface, from a quiet halo to a vivid bloom at the upper end.'],
   ['Material', 'light-x', 'Light horizontal position', '--ui-light-x', 'fraction', '0.5', 'The light source from left to right, relative to each surface.'],
   ['Material', 'light-y', 'Light vertical position', '--ui-light-y', 'fraction', '0', 'The light source from top to bottom, relative to each surface.'],
   ['Material', 'light-spread', 'Light spread', '--ui-light-spread', 'fraction', '0.5', 'A concentrated spot through broad illumination.'],
@@ -187,7 +187,7 @@ const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.
 // fill cannot wash out the label, even at maximum finish and light strength.
 function reflection(fill, text) {
   const labels = Array.isArray(text) ? text : [text];
-  let amount = .32;
+  let amount = .6;
   while (amount > 0 && labels.some(label => contrast(mix('#ffffff', fill, amount), label) < 4.5)) amount = Math.max(0, amount - .005);
   return mix('#ffffff', fill, amount);
 }

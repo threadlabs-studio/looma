@@ -1,0 +1,4 @@
+{
+  "description": "One compact native button that cycles an ordered set of named icon states without moving focus.",
+  "group": "forms"
+}
