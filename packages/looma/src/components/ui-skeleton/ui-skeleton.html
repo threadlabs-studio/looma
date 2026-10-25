@@ -1,4 +1,4 @@
-<template component="ui-skeleton">
+<template component="ui-skeleton" module="./ui-skeleton.js">
   <defs>
     <prop name="shape" type="keyword" values="text, circle, rectangle" default="text"
     >The content's silhouette. text reserves one inherited line box with a shorter bar inside it; circle matches a medium Avatar; rectangle reserves a media
@@ -8,8 +8,12 @@
       Avatar's outer size for circles.</prop>
     <prop name="height" type="string" default=""
     >Block size as a CSS length. Empty reserves one line for text, a square for circles, or 8rem for rectangles. Set only width to keep a circle square.</prop>
-    <prop name="animated" type="boolean" default="false"
-    >Gently pulses the placeholder. Off by default, and always still when the reader requests reduced motion.</prop>
+    <prop
+      name="animated"
+      type="boolean"
+      default="true"
+      default-true-reason="A travelling highlight identifies pending content by default; reduced-motion preferences always keep it static."
+    >Moves a subtle highlight from left to right. On by default; pass false to keep it static. Reduced-motion preferences always disable the shimmer.</prop>
   </defs>
   <span aria-hidden="true" style:--ui-skeleton-width="$width" style:--ui-skeleton-height="$height"></span>
   <style>
@@ -22,8 +26,20 @@
       syntax: "*";
       inherits: false;
     }
+    @property --_ui-skeleton-viewport-x {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+    @property --_ui-skeleton-viewport-scale {
+      syntax: "<number>";
+      inherits: false;
+      initial-value: 1;
+    }
 
     :host {
+      --_ui-skeleton-paint-x: var(--_ui-skeleton-viewport-x);
+      --_ui-skeleton-paint-scale: var(--_ui-skeleton-viewport-scale);
       display: block !important;
       position: relative;
       box-sizing: border-box !important;
@@ -65,23 +81,36 @@
     }
 
     :host([animated])::before {
-      animation: ui-skeleton-pulse 1.6s ease-in-out infinite;
+      background-image: linear-gradient(
+        90deg,
+        transparent,
+        light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.14)) 50%,
+        transparent
+      );
+      background-size: calc(100vw / var(--_ui-skeleton-paint-scale)) 100%;
+      background-position: calc(0vw - var(--_ui-skeleton-paint-x)) 0;
+      background-repeat: repeat-x;
+      animation: ui-skeleton-shimmer 3s linear infinite;
     }
-    @keyframes ui-skeleton-pulse {
-      50% {
-        opacity: 0.45;
+    @keyframes ui-skeleton-shimmer {
+      to {
+        background-position: calc(100vw / var(--_ui-skeleton-paint-scale) - var(--_ui-skeleton-paint-x)) 0;
       }
     }
     @media (prefers-reduced-motion: reduce) {
       :host([animated])::before {
         animation: none;
+        background-image: none;
       }
     }
     @media (forced-colors: active) {
       :host::before {
         background: CanvasText;
         opacity: 0.2;
+      }
+      :host([animated])::before {
         animation: none;
+        background-image: none;
       }
     }
     :host[hidden] {

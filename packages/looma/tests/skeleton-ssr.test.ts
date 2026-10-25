@@ -12,6 +12,7 @@ describe("Skeleton before upgrade", () => {
     expect(element.tagName).toBe("SPAN");
     expect(element.getAttribute("aria-hidden")).toBe("true");
     expect(element.textContent).toBe("");
+    expect(html).toMatch(/data-ui-skeleton-state="[^"]*\banimated\b/);
     expect(element.hasAttribute("tabindex")).toBe(false);
     expect(element.hasAttribute("role")).toBe(false);
     expect(element.hasAttribute("aria-live")).toBe(false);
