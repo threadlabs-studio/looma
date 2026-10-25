@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-open-with-geometry",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-hovered-cell-geometry",
+    "props": {},
+    "example": 1
+  }
+]

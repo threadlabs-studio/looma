@@ -1,0 +1,394 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "anticipatory: false",
+    "props": {
+      "anticipatory": false
+    },
+    "example": 0
+  },
+  {
+    "name": "anticipatory: true",
+    "props": {
+      "anticipatory": true
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "guide: dot",
+    "props": {
+      "guide": "dot"
+    },
+    "example": 0
+  },
+  {
+    "name": "guide: bar",
+    "props": {
+      "guide": "bar"
+    },
+    "example": 0
+  },
+  {
+    "name": "loading: false",
+    "props": {
+      "loading": false
+    },
+    "example": 0
+  },
+  {
+    "name": "loading: true",
+    "props": {
+      "loading": true
+    },
+    "example": 0
+  },
+  {
+    "name": "match-button: false",
+    "props": {
+      "matchButton": false
+    },
+    "example": 0
+  },
+  {
+    "name": "match-button: true",
+    "props": {
+      "matchButton": true
+    },
+    "example": 0
+  },
+  {
+    "name": "pending: false",
+    "props": {
+      "pending": false
+    },
+    "example": 0
+  },
+  {
+    "name": "pending: true",
+    "props": {
+      "pending": true
+    },
+    "example": 0
+  },
+  {
+    "name": "preset: none",
+    "props": {
+      "preset": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "preset: primary",
+    "props": {
+      "preset": "primary"
+    },
+    "example": 0
+  },
+  {
+    "name": "preset: standard",
+    "props": {
+      "preset": "standard"
+    },
+    "example": 0
+  },
+  {
+    "name": "preset: quiet",
+    "props": {
+      "preset": "quiet"
+    },
+    "example": 0
+  },
+  {
+    "name": "preset: destructive",
+    "props": {
+      "preset": "destructive"
+    },
+    "example": 0
+  },
+  {
+    "name": "revealed: false",
+    "props": {
+      "revealed": false
+    },
+    "example": 0
+  },
+  {
+    "name": "revealed: true",
+    "props": {
+      "revealed": true
+    },
+    "example": 0
+  },
+  {
+    "name": "round: false",
+    "props": {
+      "round": false
+    },
+    "example": 0
+  },
+  {
+    "name": "round: true",
+    "props": {
+      "round": true
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: accent",
+    "props": {
+      "tone": "accent"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: success",
+    "props": {
+      "tone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: warning",
+    "props": {
+      "tone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: info",
+    "props": {
+      "tone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: ghost",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: outline",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0
+  },
+  {
+    "name": "variant: solid",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-size-and-variant",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-round",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-disabled",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-help-toggletip",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 06-loading",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "Example: 07-match-button",
+    "props": {},
+    "example": 6
+  },
+  {
+    "name": "Example: 08-toggle",
+    "props": {},
+    "example": 7
+  },
+  {
+    "name": "Example: 09-anticipatory",
+    "props": {},
+    "example": 8
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "ghost: hover",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "ghost: focus",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "ghost: pressed",
+    "props": {
+      "variant": "ghost"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "outline: hover",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "outline: focus",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "outline: pressed",
+    "props": {
+      "variant": "outline"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "solid: hover",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "solid: focus",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "solid: pressed",
+    "props": {
+      "variant": "solid"
+    },
+    "example": 0,
+    "interaction": "pressed"
+  },
+  {
+    "name": "selected toggle",
+    "props": {
+      "aria-pressed": "true"
+    },
+    "example": 0
+  },
+  {
+    "name": "open ghost trigger",
+    "props": {
+      "variant": "ghost",
+      "aria-expanded": "true"
+    },
+    "example": 0
+  },
+  {
+    "name": "open help toggletip",
+    "props": {},
+    "example": 4,
+    "interaction": "authored"
+  }
+]

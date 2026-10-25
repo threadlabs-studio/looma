@@ -1,0 +1,85 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "header-column: false",
+    "props": {
+      "headerColumn": false
+    },
+    "example": 0
+  },
+  {
+    "name": "header-column: true",
+    "props": {
+      "headerColumn": true
+    },
+    "example": 0
+  },
+  {
+    "name": "header-row: false",
+    "props": {
+      "headerRow": false
+    },
+    "example": 0
+  },
+  {
+    "name": "header-row: true",
+    "props": {
+      "headerRow": true
+    },
+    "example": 0
+  },
+  {
+    "name": "open: false",
+    "props": {
+      "open": false
+    },
+    "example": 0
+  },
+  {
+    "name": "open: true",
+    "props": {
+      "open": true
+    },
+    "example": 0
+  },
+  {
+    "name": "scope: cell",
+    "props": {
+      "scope": "cell"
+    },
+    "example": 0
+  },
+  {
+    "name": "scope: row",
+    "props": {
+      "scope": "row"
+    },
+    "example": 0
+  },
+  {
+    "name": "scope: column",
+    "props": {
+      "scope": "column"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-open",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-actions",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-row-scope",
+    "props": {},
+    "example": 2
+  }
+]

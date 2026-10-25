@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "fill: false",
+    "props": {
+      "fill": false
+    },
+    "example": 0
+  },
+  {
+    "name": "fill: true",
+    "props": {
+      "fill": true
+    },
+    "example": 0
+  },
+  {
+    "name": "orientation: vertical",
+    "props": {
+      "orientation": "vertical"
+    },
+    "example": 0
+  },
+  {
+    "name": "orientation: horizontal",
+    "props": {
+      "orientation": "horizontal"
+    },
+    "example": 0
+  },
+  {
+    "name": "padding: none",
+    "props": {
+      "padding": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "padding: xs",
+    "props": {
+      "padding": "xs"
+    },
+    "example": 0
+  },
+  {
+    "name": "padding: sm",
+    "props": {
+      "padding": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "padding: md",
+    "props": {
+      "padding": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "padding: lg",
+    "props": {
+      "padding": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: content",
+    "props": {
+      "size": "content"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: sm",
+    "props": {
+      "size": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: md",
+    "props": {
+      "size": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "size: lg",
+    "props": {
+      "size": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "trim: false",
+    "props": {
+      "trim": false
+    },
+    "example": 0
+  },
+  {
+    "name": "trim: true",
+    "props": {
+      "trim": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-horizontal",
+    "props": {},
+    "example": 1
+  }
+]

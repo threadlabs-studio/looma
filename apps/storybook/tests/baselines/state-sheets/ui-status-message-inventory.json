@@ -1,0 +1,59 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "kind: empty",
+    "props": {
+      "kind": "empty"
+    },
+    "example": 0
+  },
+  {
+    "name": "kind: loading",
+    "props": {
+      "kind": "loading"
+    },
+    "example": 0
+  },
+  {
+    "name": "kind: error",
+    "props": {
+      "kind": "error"
+    },
+    "example": 0
+  },
+  {
+    "name": "layout: inline",
+    "props": {
+      "layout": "inline"
+    },
+    "example": 0
+  },
+  {
+    "name": "layout: panel",
+    "props": {
+      "layout": "panel"
+    },
+    "example": 0
+  },
+  {
+    "name": "layout: fill",
+    "props": {
+      "layout": "fill"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-kinds",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-panel",
+    "props": {},
+    "example": 1
+  }
+]

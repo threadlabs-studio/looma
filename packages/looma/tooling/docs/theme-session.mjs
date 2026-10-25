@@ -59,6 +59,7 @@ export function createThemeSession(view, { base, baseline, systemCSS, historyLim
     if (event.newValue !== null && !next) return;
     selected = next; draft = comparison = undefined; past.length = future.length = 0; paint();
   });
+  view.addEventListener('markupress-header-notice-dismiss', () => session.reset());
   paint();
   return session;
 }

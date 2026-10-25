@@ -1,3 +1,5 @@
+:root { --markupress-header-notice-display: none; }
+:root[data-looma-documentation-theme] { --markupress-header-notice-display: inline-flex; }
 /* Documentation presentation owns only its native preview frame and code overflow. Controls use Looma. */
 [data-example-card] iframe { display: block; max-inline-size: 100%; border: 0; background: transparent; }
 [data-example-card] pre { overflow: auto; }

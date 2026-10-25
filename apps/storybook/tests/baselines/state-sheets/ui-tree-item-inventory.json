@@ -1,0 +1,167 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "actions-visible: false",
+    "props": {
+      "actionsVisible": false
+    },
+    "example": 0
+  },
+  {
+    "name": "actions-visible: true",
+    "props": {
+      "actionsVisible": true
+    },
+    "example": 0
+  },
+  {
+    "name": "container: false",
+    "props": {
+      "container": false
+    },
+    "example": 0
+  },
+  {
+    "name": "container: true",
+    "props": {
+      "container": true
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "expanded: false",
+    "props": {
+      "expanded": false
+    },
+    "example": 0
+  },
+  {
+    "name": "expanded: true",
+    "props": {
+      "expanded": true
+    },
+    "example": 0
+  },
+  {
+    "name": "lazy: false",
+    "props": {
+      "lazy": false
+    },
+    "example": 0
+  },
+  {
+    "name": "lazy: true",
+    "props": {
+      "lazy": true
+    },
+    "example": 0
+  },
+  {
+    "name": "marquee: false",
+    "props": {
+      "marquee": false
+    },
+    "example": 0
+  },
+  {
+    "name": "marquee: true",
+    "props": {
+      "marquee": true
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: false",
+    "props": {
+      "selected": false
+    },
+    "example": 0
+  },
+  {
+    "name": "selected: true",
+    "props": {
+      "selected": true
+    },
+    "example": 0
+  },
+  {
+    "name": "sortable: false",
+    "props": {
+      "sortable": false
+    },
+    "example": 0
+  },
+  {
+    "name": "sortable: true",
+    "props": {
+      "sortable": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-container",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-disabled",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 04-actions-slot",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 05-lazy",
+    "props": {},
+    "example": 4
+  },
+  {
+    "name": "Example: 06-persistent-actions",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "hover",
+    "props": {},
+    "example": 0,
+    "interaction": "hover"
+  },
+  {
+    "name": "focus",
+    "props": {},
+    "example": 0,
+    "interaction": "focus"
+  },
+  {
+    "name": "pressed",
+    "props": {},
+    "example": 0,
+    "interaction": "pressed"
+  }
+]

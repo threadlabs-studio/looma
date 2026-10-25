@@ -19,6 +19,9 @@ if (!existsSync(resolve(repoRoot, '.git'))) {
 
 const args = process.argv.slice(2)
 const storywrightArgs = args.length > 0 ? args : ['test']
+const shardArgument = storywrightArgs.find(argument => argument.startsWith('--shard='))
+if (shardArgument && !/^--shard=[1-9]\d*\/[1-9]\d*$/.test(shardArgument)) throw new Error('Use --shard=current/total with positive integers.')
+if (!['test', 'update'].includes(storywrightArgs[0])) throw new Error('Choose test or update; use visual:report for the HTML report.')
 // Keep this tag in lockstep with the pinned @playwright/test version in
 // package.json — a mismatch makes the preinstalled browser build unresolvable.
 // The digest pins the linux/amd64 image the baselines were rendered in, as the
@@ -149,7 +152,7 @@ function restoreWorkspaceOwnership(dockerEnv) {
   }
 
   // The container runs as root and package builds write dist, storybook-static,
-  // and .storywright output on the bind mount. Chown the workspace tree back so
+  // and visual-test output on the bind mount. Chown the workspace tree back so
   // host tooling keeps write access. (node_modules and the pnpm store are
   // volumes.)
   const generatedPaths = [
@@ -201,8 +204,6 @@ function usesExistingStorybookBuild() {
 }
 
 if (storywrightArgs[0] === 'test' || storywrightArgs[0] === 'update') {
-  rmSync(resolve(appRoot, '.storywright/tmp'), { recursive: true, force: true })
-  rmSync(resolve(appRoot, '.storywright/report'), { recursive: true, force: true })
   if (!usesExistingStorybookBuild()) {
     rmSync(resolve(appRoot, 'storybook-static'), { recursive: true, force: true })
   }
@@ -214,7 +215,8 @@ const buildCommand = (appDir) => [
   'corepack enable',
   'pnpm config set store-dir /pnpm/store',
   'pnpm install --frozen-lockfile',
-  `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec storywright ${storywrightArgs.map(shellQuote).join(' ')}`,
+  ...(!usesExistingStorybookBuild() ? [`pnpm --dir ${shellQuote(appDir)} run build:visual`] : []),
+  `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec playwright test --config state-sheets.config.ts --workers=1${shardArgument ? ` ${shellQuote(shardArgument)}` : ''}${storywrightArgs[0] === 'update' ? ' --update-snapshots' : ''}`,
 ].join(' && ')
 
 const command = buildCommand(appDirFromRepo)
