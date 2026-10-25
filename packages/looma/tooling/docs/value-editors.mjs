@@ -3,14 +3,15 @@ const lengthUnits = { px: 1, rem: 16, em: 16, cm: 96 / 2.54, mm: 96 / 25.4, Q: 9
 const timeUnits = { ms: 1, s: 1000 };
 const rounded = value => String(Number(Number(value).toFixed(6)));
 
-export function valueEditor(field, value) {
+export function valueEditor(field, value, { remPixels = 16 } = {}) {
+  if (field.id === 'text-size') return { kind: 'number', value, unit: 'px', min: field.min, max: field.max, step: 1 };
   if (field.type === 'choice') return { kind: 'choice', value };
   if (field.type === 'easing') return { kind: /^step-/.test(value) ? 'text' : 'curve', value };
   if (['colour', 'font'].includes(field.type)) return { kind: 'text', value };
   if (field.type.includes('length') || field.type === 'time') {
     const unit = value.match(/[a-z]+$/i)?.[0] ?? 'px';
-    // Relative limits stay root-scaled when the user enlarges their default font.
-    const units = field.type === 'time' ? timeUnits : lengthUnits;
+    // Convert authoring limits against the same root as the displayed quantity.
+    const units = field.type === 'time' ? timeUnits : { ...lengthUnits, rem: remPixels };
     const factor = units[unit];
     return { kind: 'number', value: value === '0' ? '0px' : value, unit,
       min: factor ? field.min / factor : .001, max: factor ? field.max / factor : 1000000,
