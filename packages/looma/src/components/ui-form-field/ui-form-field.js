@@ -74,7 +74,13 @@ export function connect(host) {
   };
   const observer = new MutationObserver(schedule);
   observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-describedby", "slot", "id", "role"] });
-  const stop = host.effect(schedule);
+  // Track props before deferred rewiring, even when no control is mounted yet.
+  const stop = host.effect(() => {
+    void host.props.disabled.value;
+    void host.props.required.value;
+    void host.props.invalid.value;
+    schedule();
+  });
   wire();
   return () => {
     stop();

@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
+
 - Show the editor writing prompt only while the whole document is empty, including when an empty first line precedes text, an image or a divider.
 
 - Use the shared Markupress appearance control to cycle Automatic, Light and Dark from one button; local setup guidance selects the corresponding documentation theme. Correct field and choice descriptions so they no longer promise a visible touch-size floor.
