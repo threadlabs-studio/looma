@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Admit Vite 7 and 8 for the optional documentation tooling peer after installed documentation build and local-writer verification.
+
 - Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
 
 - Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
