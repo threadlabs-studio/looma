@@ -4,6 +4,8 @@
 
 - Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 
+- Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
+
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 
 - Show the editor writing prompt only while the whole document is empty, including when an empty first line precedes text, an image or a divider.
