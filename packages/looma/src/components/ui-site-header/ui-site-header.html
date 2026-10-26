@@ -46,7 +46,7 @@
       flex-wrap: wrap !important;
       align-items: center !important;
       align-content: center !important;
-      gap: var(--ui-space-2) var(--ui-space-4) !important;
+      gap: var(--ui-space-2) !important;
       min-inline-size: 0;
       min-block-size: var(--ui-site-header-compact-height, 3.75rem);
       padding: var(--ui-space-2) var(--ui-site-header-padding-inline, var(--ui-space-4)) !important;
@@ -124,6 +124,7 @@
     @media (min-width: 40rem) {
       :host([breakpoint="sm"]) {
         min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
       }
       :host([breakpoint="sm"]) .navigation:not(:empty) {
         display: flex !important;
@@ -135,6 +136,7 @@
     @media (min-width: 48rem) {
       :host([breakpoint="md"]) {
         min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
       }
       :host([breakpoint="md"]) .navigation:not(:empty) {
         display: flex !important;
@@ -146,6 +148,7 @@
     @media (min-width: 64rem) {
       :host([breakpoint="lg"]) {
         min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
       }
       :host([breakpoint="lg"]) .navigation:not(:empty) {
         display: flex !important;

@@ -1,15 +1,24 @@
 <!--
 title: Site navigation
-description: The header owns alignment and responsive regions. The application supplies destinations, current-page state, actions, and its menu or drawer trigger.
+description: A full-width header keeps its logo visible, places desktop navigation beside it, and puts search and account controls at the trailing edge. On mobile, the navigation moves into the menu.
 -->
 <ui-site-header>
-  <a slot="brand" href="#">Fellowship</a>
+  <a slot="brand" href="#home" aria-label="Folio home"><ui-icon name="compass"></ui-icon>Folio</a>
   <a slot="navigation" href="#guide" aria-current="page">Guide</a>
   <a slot="navigation" href="#components">Components</a>
-  <ui-button id="site-header-menu-trigger" slot="menu" variant="ghost" tone="neutral" aria-label="Open navigation"><ui-icon name="menu"></ui-icon></ui-button>
-  <ui-cluster slot="actions" gap="xs"><ui-button variant="outline" tone="neutral">Sign in</ui-button><ui-button variant="solid" tone="accent"
-    >Get started</ui-button></ui-cluster>
+  <a slot="navigation" href="#journal">Journal</a>
+  <ui-icon-button id="site-header-menu-trigger" slot="menu" size="sm" label="Open navigation"><ui-icon name="panel-left"></ui-icon></ui-icon-button>
+  <ui-cluster slot="actions" gap="xs">
+    <ui-icon-button id="site-header-search-trigger" size="sm" label="Search pages"><ui-icon name="search"></ui-icon></ui-icon-button>
+    <ui-icon-button id="site-header-account-trigger" size="sm" label="Account"><ui-icon name="user-round"></ui-icon></ui-icon-button>
+  </ui-cluster>
 </ui-site-header>
 <ui-popover for="site-header-menu-trigger"><nav aria-label="Compact navigation">
-    <ui-stack gap="s"><a href="#guide">Guide</a><a href="#components">Components</a></ui-stack>
+    <ui-stack gap="s"><a href="#guide" aria-current="page">Guide</a><a href="#components">Components</a><a href="#journal">Journal</a></ui-stack>
+  </nav></ui-popover>
+<ui-popover for="site-header-search-trigger"><ui-form-field>
+    <label slot="label" for="site-header-search">Search pages</label><ui-input id="site-header-search" type="search" placeholder="Find a page"></ui-input>
+  </ui-form-field></ui-popover>
+<ui-popover for="site-header-account-trigger"><nav aria-label="Account">
+    <ui-stack gap="s"><a href="#profile">Your profile</a><a href="#settings">Settings</a></ui-stack>
   </nav></ui-popover>
