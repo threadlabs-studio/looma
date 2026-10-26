@@ -4,7 +4,7 @@
   :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-component]) {
     white-space: normal;
   }
-  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-slotted]:not([data-component])) {
+  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-looma-editor-content]) {
     white-space: break-spaces;
   }
 }

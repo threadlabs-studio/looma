@@ -95,6 +95,16 @@ export interface DefaultEditorExtensionsOptions {
   calloutNodeView?: NodeViewRenderer;
 }
 
+/** Marks ProseMirror-owned content inside a composed block; surrounding slots may also contain UI.
+ * The marker lives with the node view's contentDOM and never enters the saved document. */
+function documentContentNodeView(renderer: NodeViewRenderer): NodeViewRenderer {
+  return props => {
+    const view = renderer(props);
+    view.contentDOM?.setAttribute("data-looma-editor-content", "");
+    return view;
+  };
+}
+
 const LoomaCodeBlock = CodeBlockLowlight.extend({
   addAttributes() {
     return {
@@ -208,13 +218,13 @@ export function getDefaultEditorExtensions(
     TaskList,
     LoomaTaskItem.configure({ nested: false }),
     Blockquote,
-    calloutNodeView ? LoomaCallout.extend({ addNodeView: () => calloutNodeView }) : LoomaCallout,
+    calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
     LoomaChip,
     LoomaTabs,
     LoomaTab,
     // A figure holds a block image, so it exists only when images are blocks.
     ...(imageInline ? [] : [LoomaFigure, LoomaFigcaption]),
-    LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
+    LoomaExpand.configure({ nodeView: expandNodeView ? documentContentNodeView(expandNodeView) : null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
     LoomaFootnoteReference,
     LoomaFootnotes,
