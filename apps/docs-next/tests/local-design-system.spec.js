@@ -1,4 +1,4 @@
-import { chooseOption } from './choose-option.js';
+import { chooseStartingPoint, openEditor } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -18,16 +18,16 @@ test('local saving preserves newer edits and directly opened examples remain iso
       await route.fulfill({ response, body: (await response.text()).replace('data-mode="public"', 'data-mode="local"') });
     });
     await page.goto(server.url + 'customize/');
-    await page.getByRole('button', { name: 'Export & save', exact: true }).click();
+    await chooseStartingPoint(page, 'night');
+    await openEditor(page, 'export');
     await expect(page.locator('[data-action="save"]')).toBeVisible();
-    await chooseOption(page.locator('[data-preset]'), 'night');
     const submitted = page.waitForRequest(request => request.method() === 'POST' && request.url().endsWith('/_looma/theme'));
     await page.locator('[data-action="save"]').click();
     await submitted;
-    await chooseOption(page.locator('[data-preset]'), 'garden');
+    await chooseStartingPoint(page, 'garden');
     releaseSave();
     await expect(page.locator('[data-message]')).toContainText('newer edits');
-    await expect(page.locator('[data-preset]').getByRole('combobox')).toHaveValue('Garden');
+    await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Garden');
     expect(JSON.parse(await readFile(path.join(root, 'looma.theme.json'), 'utf8')).values.canvas).toBe('#11141c');
     const frame = await page.locator('iframe').first().getAttribute('src');
     await page.goto(new URL(frame, server.url).href);

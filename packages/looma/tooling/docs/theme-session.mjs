@@ -7,7 +7,7 @@ export const themeEvent = 'looma-documentation-theme';
 export function createThemeSession(view, { base, baseline, systemCSS, historyLimit = 100 }) {
   const key = `looma:documentation-theme:v1:${base}`;
   let original = validateRecipe(baseline);
-  let selected, draft, comparison;
+  let selected, draft;
   const past = [], future = [];
   let portableCSS = '';
   let storageAvailable = true;
@@ -17,7 +17,7 @@ export function createThemeSession(view, { base, baseline, systemCSS, historyLim
   const read = value => { try { return value ? validateRecipe(JSON.parse(value)) : undefined; } catch { return undefined; } };
   try { selected = read(view.localStorage.getItem(key)); } catch { storageAvailable = false; }
   const paint = () => {
-    const displayed = comparison ?? draft ?? selected;
+    const displayed = draft ?? selected;
     portableCSS = displayed ? themeCSS(displayed, systemCSS) : '';
     view.document.documentElement.toggleAttribute('data-looma-documentation-theme', Boolean(displayed));
     style.textContent = displayed ? themeCSS(displayed, systemCSS, { scope: 'documentation' }) : '';
@@ -42,22 +42,21 @@ export function createThemeSession(view, { base, baseline, systemCSS, historyLim
     preview(recipe) { draft = validateRecipe(recipe); paint(); },
     commit() { if (draft) session.apply(draft); },
     cancel() { draft = undefined; paint(); },
-    compare(recipe) { comparison = recipe === undefined ? undefined : validateRecipe(recipe); paint(); },
-    undo() { if (!past.length) return; future.push(structuredClone(selected)); selected = past.pop(); draft = comparison = undefined; persist(); },
-    redo() { if (!future.length) return; past.push(structuredClone(selected)); selected = future.pop(); draft = comparison = undefined; persist(); },
+    undo() { if (!past.length) return; future.push(structuredClone(selected)); selected = past.pop(); draft = undefined; persist(); },
+    redo() { if (!future.length) return; past.push(structuredClone(selected)); selected = future.pop(); draft = undefined; persist(); },
     apply(recipe) {
       const next = validateRecipe(recipe);
       if (JSON.stringify(next) !== JSON.stringify(selected)) remember();
-      selected = next; draft = comparison = undefined; persist();
+      selected = next; draft = undefined; persist();
     },
-    reset() { if (selected !== undefined) remember(); selected = draft = comparison = undefined; persist(); return structuredClone(original); },
+    reset() { if (selected !== undefined) remember(); selected = draft = undefined; persist(); return structuredClone(original); },
     baseline(recipe) { original = validateRecipe(recipe); },
   };
   view.addEventListener('storage', event => {
     if (event.key !== key && event.key !== null) return;
     const next = read(event.newValue);
     if (event.newValue !== null && !next) return;
-    selected = next; draft = comparison = undefined; past.length = future.length = 0; paint();
+    selected = next; draft = undefined; past.length = future.length = 0; paint();
   });
   view.addEventListener('markupress-header-notice-dismiss', () => session.reset());
   paint();

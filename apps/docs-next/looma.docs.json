@@ -28,12 +28,16 @@
       "canvas": "#fbf9f4",
       "surface": "#fffdf8",
       "text": "#2b2538",
-      "body-font": "\"Manrope\", system-ui, sans-serif",
-      "display-font": "\"Manrope\", system-ui, sans-serif",
+      "body-font": "\"Manrope\", sans-serif",
+      "display-font": "\"Manrope\", sans-serif",
       "text-size": "17px",
       "control-roominess": "2.5",
       "text-weight": "500",
       "response-time": "120ms"
+    },
+    "fonts": {
+      "body-font": "Manrope",
+      "display-font": "Manrope"
     }
   }
 }

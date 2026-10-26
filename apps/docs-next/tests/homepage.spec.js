@@ -99,7 +99,7 @@ test('homepage actions reach their documentation destinations', async ({ page },
   const base = info.config.metadata.markupress;
   for (const [name, heading] of [
     ['Start building', /Getting started/i],
-    ['Make it yours', /Weave your design system/],
+    ['Make it yours', /^Customize your theme$/],
     ['Explore Looma', /^Components$/],
   ]) {
     await page.goto(base);

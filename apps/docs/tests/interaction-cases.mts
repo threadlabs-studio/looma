@@ -9,6 +9,14 @@ export const interactionCases: {
   run: (page: Page, scenario: Locator) => Promise<void>;
 }[] = [
   {
+    component: "ui-light-editor", example: "01-position", name: "exact position entry",
+    async run(_page, scenario) {
+      await scenario.getByRole("button", {name:"Exact position",exact:true}).click();
+      await expect(scenario.getByRole("spinbutton", {name:"Light horizontal position",exact:true})).toBeVisible();
+      await expect(scenario.getByRole("spinbutton", {name:"Light vertical position",exact:true})).toBeVisible();
+    }
+  },
+  {
     component: "ui-pagination", example: "01-numbered", name: "keyboard page navigation",
     async run(page, scenario) {
       const next = scenario.getByRole("button", {name:"Next",exact:true});
