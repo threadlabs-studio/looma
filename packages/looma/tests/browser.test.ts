@@ -3307,6 +3307,36 @@ describe("Loading actions", () => {
   });
 });
 
+describe("Disabled link activation", () => {
+  it("blocks Vue click consumers until disabled is cleared", async () => {
+    const path = await bundle("vue-disabled-link-consumer", `
+      import { createApp, h, ref } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      const disabled = ref(true);
+      window.activations = 0;
+      window.enableLink = () => { disabled.value = false; };
+      createApp({ render: () => h(Button, {
+        id: "link", href: "#target", disabled: disabled.value,
+        onClick: event => { event.preventDefault(); window.activations++; },
+      }, () => "Open") }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const link = page.locator("#link");
+    assert.equal(await link.evaluate(element => element.localName), "a");
+    assert.equal(await link.getAttribute("href"), null);
+    const box = await link.boundingBox();
+    assert.ok(box);
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await link.evaluate(element => (element as HTMLElement).click());
+    assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0, "disabled links cannot notify routing or action consumers");
+    await page.evaluate(() => (window as unknown as { enableLink: () => void }).enableLink());
+    await link.click();
+    assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 1);
+    assert.equal(await link.getAttribute("href"), "#target");
+    await page.close();
+  });
+});
+
 describe("Disabled action appearance", () => {
   it("uses a flat neutral palette instead of retaining active button tones", async () => {
     const path = await bundle("html-disabled-actions", `import "@threadlabs/looma";`);
