@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
+
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
 
 - Schedule customizer preview layout outside resize notification delivery, preventing intermittent Safari ResizeObserver loop warnings while preserving preview sizing.

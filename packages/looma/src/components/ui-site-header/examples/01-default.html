@@ -1,0 +1,15 @@
+<!--
+title: Site navigation
+description: The header owns alignment and responsive regions. The application supplies destinations, current-page state, actions, and its menu or drawer trigger.
+-->
+<ui-site-header>
+  <a slot="brand" href="#">Fellowship</a>
+  <a slot="navigation" href="#guide" aria-current="page">Guide</a>
+  <a slot="navigation" href="#components">Components</a>
+  <ui-button id="site-header-menu-trigger" slot="menu" variant="ghost" tone="neutral" aria-label="Open navigation"><ui-icon name="menu"></ui-icon></ui-button>
+  <ui-cluster slot="actions" gap="xs"><ui-button variant="outline" tone="neutral">Sign in</ui-button><ui-button variant="solid" tone="accent"
+    >Get started</ui-button></ui-cluster>
+</ui-site-header>
+<ui-popover for="site-header-menu-trigger"><nav aria-label="Compact navigation">
+    <ui-stack gap="s"><a href="#guide">Guide</a><a href="#components">Components</a></ui-stack>
+  </nav></ui-popover>
