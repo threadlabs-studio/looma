@@ -1,3 +1,14 @@
+/* Document whitespace belongs to projected content, not the component templates around it.
+   A low-priority layer preserves each component's explicit wrapping rules. */
+@layer looma-editor-whitespace {
+  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-component]) {
+    white-space: normal;
+  }
+  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-slotted]:not([data-component])) {
+    white-space: break-spaces;
+  }
+}
+
 /* The editor surface owns its renderer canvas. Existing hooks retain their defaults. */
 /* Native TOC wrappers position the composed control beyond the active-block guide.
    The IconButton itself owns its dot, motion, focus and touch treatment. */
