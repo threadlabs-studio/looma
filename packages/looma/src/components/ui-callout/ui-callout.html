@@ -118,7 +118,7 @@
       --_ui-callout-icon: var(--ui-callout-icon);
       --_ui-callout-icon-size: var(--ui-callout-icon-size);
 
-      --_callout-surface: color-mix(in srgb, var(--_callout-border) 19%, var(--ui-surface-default));
+      --_callout-surface: oklch(from var(--_callout-border) l c h / 10%);
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
