@@ -1002,14 +1002,13 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   await expect(page.getByRole("heading", { level: 2, name: "Attributes" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Framework props" })).toBeVisible();
 
-  // Each option carries its authored description, including the polymorphic `as` root.
+  // Link semantics come from href, without a separate root-selection prop.
   const attributes = page.locator(".looma-api-table").filter({ has: page.getByRole("columnheader", { name: "Property" }) });
   await expect(attributes.getByRole("columnheader", { name: "Description" })).toBeVisible();
   const asRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "as", exact: true }) });
-  await expect(asRow).toContainText("keyword");
-  await expect(asRow).toContainText("button, a");
+  await expect(asRow).toHaveCount(0);
   const hrefRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "href", exact: true }) });
-  await expect(hrefRow).toContainText("Pair it with as=\"a\"");
+  await expect(hrefRow).toContainText("Supplying href automatically renders a native link");
 });
 
 test("code panes scroll inside the example and expose readable authored IDs", async ({ page }) => {
