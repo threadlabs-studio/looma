@@ -293,6 +293,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-site-header": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-skeleton": {
       "status": "published",
       "package": "@threadlabs/looma"

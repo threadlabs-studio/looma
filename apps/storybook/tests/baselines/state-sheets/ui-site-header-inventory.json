@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "breakpoint: sm",
+    "props": {
+      "breakpoint": "sm"
+    },
+    "example": 0
+  },
+  {
+    "name": "breakpoint: md",
+    "props": {
+      "breakpoint": "md"
+    },
+    "example": 0
+  },
+  {
+    "name": "breakpoint: lg",
+    "props": {
+      "breakpoint": "lg"
+    },
+    "example": 0
+  },
+  {
+    "name": "sticky: false",
+    "props": {
+      "sticky": false
+    },
+    "example": 0
+  },
+  {
+    "name": "sticky: true",
+    "props": {
+      "sticky": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Mobile header",
+    "props": {},
+    "example": 0,
+    "viewport": {
+      "width": 375,
+      "height": 480
+    }
+  },
+  {
+    "name": "Mobile navigation open",
+    "props": {},
+    "example": 0,
+    "interaction": "authored",
+    "viewport": {
+      "width": 375,
+      "height": 480
+    }
+  }
+]
