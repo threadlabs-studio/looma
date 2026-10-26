@@ -131,6 +131,7 @@ export function connect(host) {
       componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
     }
     componentRegistry.update(root.querySelector('[data-light-editor]'), { x: Number(recipe.values['light-x']), y: Number(recipe.values['light-y']) });
+    root.querySelector('[data-glass-hint]').hidden = !(Number(recipe.values.glassiness) > 0 && Number(recipe.values.translucency) === 0);
     const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
     const report = root.querySelector('[data-palette-adjustments]');
     report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your base colors stay editable; resolved values are shown below.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
@@ -283,6 +284,7 @@ export function connect(host) {
           break;
         }
         case 'back': navigate(''); break;
+        case 'use-glass': show(applyRefinement(recipe, 'material', 'glass')); sayApplied('Frosted glass applied. Your colors and type are unchanged.'); break;
         case 'restore-material': case 'restore-palette': {
           const family = button.dataset.action.slice(8), state = refinementState(recipe, family);
           if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${family === 'material' ? 'Material' : 'Palette'} preset restored; other theme decisions are unchanged.`); }

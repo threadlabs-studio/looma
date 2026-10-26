@@ -7,7 +7,7 @@
       elevated adds a subtle lift above the page, for a view's one card, such as sign-in. Treatment independently controls decorative material.</prop>
     <prop name="treatment" type="keyword" values="standard, expressive" default="standard"
     >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material
-      treatment. This does not add elevation or require glass.</prop>
+      treatment. Its glass rim can transmit and frost the surrounding scene while content remains opaque. Surface separation controls the rim, independently of frosting. This does not add elevation or require glass.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
@@ -68,9 +68,9 @@
     }
 
     :host([treatment="expressive"]) {
-      --_ui-panel-glass: calc(clamp(0, var(--ui-glassiness, 0), 1) + 2 * pow(clamp(0, var(--ui-glassiness, 0), 1), 4));
+      --_ui-panel-glass: clamp(0, var(--ui-glassiness, 0), 1);
       --_ui-panel-separation: clamp(0, var(--ui-surface-separation, 0), 1);
-      --_ui-panel-rim: calc((var(--_ui-panel-separation) + var(--_ui-panel-glass) * 0.25) * 0.65 * 8px);
+      --_ui-panel-rim: calc(var(--_ui-panel-separation) * 8px);
       border-width: calc(var(--ui-border-width) + var(--_ui-panel-rim));
       border-color: transparent;
       background:
@@ -82,8 +82,8 @@
         var(--_ui-card-elevation),
         var(--ui-material-glow, 0 0 transparent),
         inset 0 0 0 var(--ui-border-width) var(--ui-material-edge, var(--ui-border-strong));
-      backdrop-filter: blur(calc(var(--_ui-panel-glass) * 0.65 * 18px)) saturate(calc(1 + var(--_ui-panel-glass) * 0.65 * 0.18));
-      -webkit-backdrop-filter: blur(calc(var(--_ui-panel-glass) * 0.65 * 18px)) saturate(calc(1 + var(--_ui-panel-glass) * 0.65 * 0.18));
+      -webkit-backdrop-filter: blur(calc(var(--_ui-panel-glass) * 32px));
+      backdrop-filter: blur(calc(var(--_ui-panel-glass) * 32px));
     }
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
       :host([treatment="expressive"]) {
@@ -95,8 +95,8 @@
         background: var(--_ui-card-surface);
         border-width: var(--ui-border-width);
         border-color: var(--ui-border-strong);
-        backdrop-filter: none;
         -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
     }
     @media (forced-colors: active) {
@@ -105,8 +105,8 @@
         color: CanvasText;
         border: var(--ui-border-width) solid CanvasText;
         box-shadow: none;
-        backdrop-filter: none;
         -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
     }
 

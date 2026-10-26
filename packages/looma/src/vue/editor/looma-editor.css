@@ -256,7 +256,6 @@
   border: var(--ui-accent-line-width) dashed var(--ui-accent-solid);
   border-radius: var(--ui-radius-md);
   background: color-mix(in srgb, var(--ui-accent-soft) 92%, transparent);
-  color: var(--ui-accent-active);
   font-size: var(--ui-font-size-sm);
   font-weight: var(--ui-font-semibold);
   pointer-events: none;

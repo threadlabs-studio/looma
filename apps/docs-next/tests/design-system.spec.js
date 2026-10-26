@@ -400,13 +400,14 @@ test('material refinement shares a movable light, remembers customized presets a
   await chooseStartingPoint(page, 'bookish');
   const size = await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'));
   const enter = async () => {
-    await openEditor(page, 'material');
+    const material = await openEditor(page, 'material');
+    await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   };
   await enter();
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material).toBeVisible(); await expect(page.locator('[data-customizer-overview]')).toBeHidden();
   await chooseOption(material.getByRole('combobox', { name: 'Material preset', exact: true }), 'polished');
-  const sample = material.locator('[data-light-editor]').getByRole('button', { name: 'Join briefing', exact: true });
+  const sample = material.locator('[data-light-editor]').getByRole('button', { name: 'Material response', exact: true });
   const before = await sample.evaluate(element => getComputedStyle(element).backgroundImage);
   const shadowBefore = await sample.evaluate(element => getComputedStyle(element).getPropertyValue('--ui-shadow-sm'));
   const handle = material.getByRole('button', { name: /^Theme light position. Arrow keys/ });
@@ -558,4 +559,22 @@ test('the removable Custom theme header chip clears browser customization across
     await expect(page.getByRole('button',{name:'Search',exact:true})).toBeFocused();
     await page.reload();await expect(chip).toBeHidden();
   }
+});
+
+test('Starting point defaults to Looma and Gold applies and survives a reload', async ({ page }, info) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const themes = await openEditor(page, 'themes');
+  await expect(themes.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Looma');
+  await chooseStartingPoint(page, 'gold');
+  const material = await openEditor(page, 'material');
+  const primary = material.getByRole('button', { name: 'Send briefing', exact: true });
+  await expect(primary).toHaveCSS('background-color', 'rgb(255, 184, 77)');
+  await expect(primary).toHaveCSS('font-family', /Lato/);
+  await expect(page.locator('[data-looma-customizer]')).toHaveCSS('background-attachment', /^fixed(?:,\s*fixed)*$/);
+  await page.reload();
+  await openEditor(page, 'themes');
+  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Gold');
+  expect(errors).toEqual([]);
 });
