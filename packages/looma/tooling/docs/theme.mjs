@@ -10,7 +10,7 @@ const bounds = {
 
 /** The shared authoring schema; ids remain stable in saved recipes. */
 export const themeFields = [
-  ['Colour', 'action', 'Action', '--ui-accent', 'colour', '#5b55d6', 'Primary commands and selected controls.'],
+  ['Colour', 'action', 'Action', '--ui-accent', 'colour', '#5b55d6', 'Primary fill; readable labels and contextual action text are derived separately.'],
   ['Colour', 'canvas', 'Canvas', '--ui-surface', 'colour', '#f6f6f8', 'The ground behind surfaces.'],
   ['Colour', 'surface', 'Surface', '--ui-surface-raised', 'colour', '#ffffff', 'Fields, cards and floating surfaces.'],
   ['Colour', 'text', 'Text', '--ui-text', 'colour', '#1a1a1a', 'Readable content; supporting text follows this and Surface.'],
@@ -30,12 +30,13 @@ export const themeFields = [
   ['Size & spacing', 'line-weight', 'Line weight', '--ui-border-width', 'length', '1px', 'Shared edge weight; focus stays independently visible.'],
   ['Material', 'outer-depth', 'Outer depth', '--ui-outer-depth', 'nonnegative', '0.6', 'How strongly controls and floating surfaces rise above the page.'],
   ['Material', 'inner-depth', 'Inner depth', '--ui-inner-depth', 'nonnegative', '0.3', 'How strongly fields and pressed controls sit into their surface.'],
-  ['Material', 'glassiness', 'Glassiness', '--ui-glassiness', 'fraction', '0', 'Clear through richly frosted: the upper range adds stronger blur, saturation and glass edges. Content stays readable.'],
+  ['Material', 'glassiness', 'Frosting', '--ui-glassiness', 'fraction', '0', 'Backdrop blur on decorative glass, from none to frosted. Content remains opaque.'],
   ['Material', 'surface-separation', 'Surface separation', '--ui-surface-separation', 'fraction', '0', 'One material offset, scaled by popup purpose and actual size: quiet tooltips through substantial dialogs.'],
-  ['Material', 'translucency', 'Overlay translucency', '--ui-overlay-translucency', 'fraction', '0', 'How much background comes through floating material around opaque content.'],
+  ['Material', 'translucency', 'Transparency', '--ui-overlay-translucency', 'fraction', '0', 'How much of the scene comes through decorative glass rims, from opaque to clear. Content remains opaque.'],
   ['Material', 'edge-light', 'Edge light', '--ui-edge-light', 'fraction', '0', 'Light caught by surface edges, independent of depth.'],
   ['Material', 'finish', 'Finish', '--ui-finish', 'fraction', '0', 'Matte through polished: how strongly the material catches a reflection.'],
   ['Material', 'glow', 'Glow', '--ui-glow', 'fraction', '0', 'Reflected light beyond a surface, from a quiet halo to a vivid bloom at the upper end.'],
+  ['Material', 'light-color', 'Light color', '--ui-light-color', 'colour', '#ffffff', 'The reflected environment, independent of object pigment. Neutral white by default; reflected hues remain readable.'],
   ['Material', 'light-x', 'Light horizontal position', '--ui-light-x', 'fraction', '0.5', 'The light source from left to right, relative to each surface.'],
   ['Material', 'light-y', 'Light vertical position', '--ui-light-y', 'fraction', '0', 'The light source from top to bottom, relative to each surface.'],
   ['Material', 'light-spread', 'Light spread', '--ui-light-spread', 'fraction', '0.5', 'A concentrated spot through broad illumination.'],
@@ -44,21 +45,25 @@ export const themeFields = [
   ['Motion', 'response-curve', 'Response curve', '--ui-motion-ease', 'easing', 'cubic-bezier(0.2,0,0.2,1)', 'How movement accelerates and settles.'],
 ].map(([family, id, label, property, type, defaultValue, description]) => Object.freeze({ family, id, label, property, type, defaultValue, description, ...(type === 'choice' ? { choices: { preserve: 'Preserve seed hues', neighboring: 'Neighboring hues', complementary: 'Complementary hues' } } : {}), ...(bounds[id] ? { min: bounds[id][0], max: bounds[id][1] } : type === 'fraction' ? { min: 0, max: 1 } : {}) }));
 
-export const defaultRecipe = () => ({ schemaVersion: 1, values: Object.fromEntries(themeFields.map(field => [field.id, field.defaultValue])) });
-const starting = values => ({ schemaVersion: 1, values: { ...defaultRecipe().values, ...values } });
+const baseRecipe = () => ({ schemaVersion: 1, values: Object.fromEntries(themeFields.map(field => [field.id, field.defaultValue])) });
+const starting = values => ({ schemaVersion: 1, values: { ...baseRecipe().values, ...values } });
+/** The documentation starts with Looma's coordinated identity; Clear keeps the neutral baseline. */
+export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#fffdf8', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
 export const startingPoints = {
-  clear: defaultRecipe(),
+  looma: defaultRecipe(),
+  clear: baseRecipe(),
+  gold: { ...starting({ action: '#ffb84d', canvas: '#ffffff', surface: '#ffffff', text: '#171717', 'body-font': googleFontStack('Lato'), 'display-font': googleFontStack('Fraunces'), 'text-size': '17px', 'corner-roundness': '16px', finish: '0.55', 'light-x': '0' }), fonts: { 'body-font': 'Lato', 'display-font': 'Fraunces' } },
   bookish: starting({ rhythm: '1.05', action: '#2e1228', canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c', 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9', 'response-time': '150ms', 'response-curve': 'ease' }),
   wiki: starting({ rhythm: '0.95', 'text-weight': '400', 'space-curve': '0.8', action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.95', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
   editorial: starting({ rhythm: '1.3', 'text-size': '17px', spacing: '1.12', 'space-curve': '1.4', 'scale-contrast': '1.3', action: '#182c24', canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24', 'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'line-weight': '2px', 'response-time': '90ms', 'response-curve': 'linear' }),
   night: starting({ rhythm: '1.05', 'display-font': 'ui-monospace, monospace', 'text-weight': '500', 'control-roominess': '2.375', spacing: '1.05', 'scale-contrast': '1.25', 'space-curve': '1', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25', 'light-x': '0.25', 'light-spread': '0.65', action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
   garden: starting({ rhythm: '1.2', 'body-font': 'ui-rounded, system-ui, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'space-curve': '1.15', finish: '0.15', 'light-spread': '1', action: '#256342', canvas: '#f4edda', surface: '#fff8e7', text: '#173121', 'corner-roundness': '22px', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05', 'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)' }),
 };
-export const startingPointLabels = { clear: 'Clear', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
+export const startingPointLabels = { looma: 'Looma', clear: 'Clear', gold: 'Gold', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
 const paletteKeys = themeFields.filter(field => field.family === 'Colour').map(field => field.id);
 // Palette choices move only the shared color seeds; size, material and motion stay independent.
 export const themePalettes = Object.fromEntries([
-  ['clear', 'Indigo & mist'], ['bookish', 'Plum & paper'], ['wiki', 'Indigo & chalk'],
+  ['looma', 'Looma'], ['clear', 'Indigo & mist'], ['gold', 'Gold'], ['bookish', 'Plum & paper'], ['wiki', 'Indigo & chalk'],
   ['editorial', 'Ink & parchment'], ['night', 'Midnight'], ['garden', 'Forest & cream'],
 ].map(([id, label]) => [id, { label, values: Object.fromEntries(paletteKeys.map(key => [key, startingPoints[id].values[key]])) }]));
 
@@ -124,7 +129,8 @@ export function validateRecipe(input) {
   if (!input || input.schemaVersion !== 1 || !input.values || typeof input.values !== 'object' || Array.isArray(input.values)) throw new Error('Unsupported theme recipe version or values.');
   const known = new Set(themeFields.map(field => field.id));
   for (const key of Object.keys(input.values)) if (!known.has(key)) throw new Error(`Unknown theme decision ${key}.`);
-  const values = { ...defaultRecipe().values, ...input.values };
+  const defaults = defaultRecipe();
+  const values = { ...defaults.values, ...input.values };
   for (const field of themeFields) {
     const value = values[field.id];
     let valid = typeof value === 'string' && value.length > 0;
@@ -153,8 +159,10 @@ export function validateRecipe(input) {
   }
   if (input.presets !== undefined && (!input.presets || typeof input.presets !== 'object' || Array.isArray(input.presets) || Object.entries(input.presets).some(([family, id]) => !Object.hasOwn(refinementPresets(family) ?? {}, id)))) throw new Error('Unknown refinement preset.');
   if (input.fonts !== undefined && (!input.fonts || typeof input.fonts !== 'object' || Array.isArray(input.fonts) || Object.entries(input.fonts).some(([key, family]) => !['body-font', 'display-font'].includes(key) || !Object.hasOwn(googleFonts, family) || values[key] !== googleFontStack(family)))) throw new Error('Choose a Google font with its matching font stack.');
+  const inheritedFonts = Object.fromEntries(Object.entries(defaults.fonts ?? {}).filter(([role]) => !Object.hasOwn(input.values, role)));
+  const fonts = { ...inheritedFonts, ...input.fonts };
   if (input.origin !== undefined && !Object.hasOwn(startingPoints, input.origin)) throw new Error('Unknown theme origin.');
-  return { schemaVersion: 1, values, ...(input.fonts === undefined ? {} : { fonts: { ...input.fonts } }), ...(input.origin === undefined ? {} : { origin: input.origin }), ...(input.presets === undefined ? {} : { presets: { ...input.presets } }) };
+  return { schemaVersion: 1, values, ...(input.fonts === undefined && !Object.keys(fonts).length ? {} : { fonts }), ...(input.origin === undefined ? {} : { origin: input.origin }), ...(input.presets === undefined ? {} : { presets: { ...input.presets } }) };
 }
 
 /** Match presets by their complete semantic recipe, including locally saved themes. */
@@ -164,15 +172,51 @@ export function startingPointFor(input) {
 }
 
 const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
-const luminance = hex => rgb(hex).map(n => { const s = n / 255; return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4; }).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
-const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
-// The brightest reflection stop is itself readable. Interpolating it over a readable
-// fill cannot wash out the label, even at maximum finish and light strength.
-function reflection(fill, text) {
-  const labels = Array.isArray(text) ? text : [text];
-  let amount = .6;
-  while (amount > 0 && labels.some(label => contrast(mix('#ffffff', fill, amount), label) < 4.5)) amount = Math.max(0, amount - .005);
-  return mix('#ffffff', fill, amount);
+const channelLuminance = channels => channels.map(n => { const s = n / 255; return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4; }).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
+const luminance = hex => channelLuminance(rgb(hex));
+const alphaSurface = (fill, background, alpha) => {
+  const a = rgb(fill), b = rgb(background);
+  return '#' + a.map((n, i) => Math.round(n * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('');
+};
+const luminanceContrast = (a, b) => (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+const contrast = (a, b) => luminanceContrast(luminance(a), luminance(b));
+// Bound both material stops for opaque ink. The shade scales each sRGB channel
+// down, so the darkest mixtures lie on its segment with the reflected light.
+function materialLuminances(start, end) {
+  const a = rgb(start), b = rgb(end);
+  const at = t => channelLuminance(a.map((n, i) => n + (b[i] - n) * t));
+  let low = 0, high = 1;
+  for (let step = 0; step < 24; step++) {
+    const left = (2 * low + high) / 3, right = (low + 2 * high) / 3;
+    if (at(left) < at(right)) high = right; else low = left;
+  }
+  return [Math.min(at(0), at(1), at((low + high) / 2)), Math.max(at(0), at(1))];
+}
+function materialContrast(start, end, ink) {
+  const [minimum, maximum] = materialLuminances(start, end);
+  return ink < minimum ? luminanceContrast(minimum, ink) : ink > maximum ? luminanceContrast(maximum, ink) : 1;
+}
+function materialColours(fill, text, light, minimum = 4.55) {
+  const labels = (Array.isArray(text) ? text : [text]).map(label => typeof label === 'number' ? label : luminance(label));
+  const [l, c, h] = toLch(fill), [lightness] = toLch(light);
+  // Recede perceptually while retaining relative saturation and hue. Scaling
+  // L and C together scales linear RGB, keeping every shade channel <= fill.
+  let depth = .05;
+  const shaded = amount => amount === 0 ? fill : fromLch([Math.max(0, l - amount), c * Math.max(0, l - amount) / (l || 1), h]);
+  while (depth > 0 && labels.some(label => luminanceContrast(luminance(shaded(depth)), label) < minimum)) depth = Math.max(0, depth - .001);
+  const shade = shaded(depth);
+  // Environment influences reflected hue, not the pigment's saturation. Neutral
+  // light lifts lightness without the broad white mixture that washes colour out.
+  const [, tintChroma, tintHue] = toLch(mix(light, fill, .18));
+  const target = fromLch([l + (lightness - l) * .16, Math.max(c * .95, tintChroma), tintHue]);
+  let amount = 1;
+  while (amount > 0 && labels.some(label => materialContrast(mix(target, fill, amount), shade, label) < minimum)) amount = Math.max(0, amount - .005);
+  const reflection = mix(target, fill, amount);
+  // A tiny specular peak is allowed to brighten separately from the chromatic
+  // body reflection. Keep the same quantization margin as every material stop.
+  let glare = .55 * lightness;
+  while (glare > 0 && labels.some(label => luminanceContrast(luminance(alphaSurface('#ffffff', reflection, glare)), label) < minimum)) glare = Math.max(0, glare - .005);
+  return { reflection, shade, specular: alphaSurface('#ffffff', reflection, glare) };
 }
 const foreground = (fill, light, dark) => [light, dark, '#ffffff', '#000000'].sort((a, b) => contrast(fill, b) - contrast(fill, a))[0];
 
@@ -187,6 +231,20 @@ function readableColour(seed, surfaces, minimum, endpoint) {
 }
 
 /** Resolve editable colour seeds into a coordinated set of readable semantic roles. */
+// Perceptual distance in Cartesian Oklab, including chroma-only separation.
+const colourDistance = (a, b) => {
+  const [l1, c1, h1] = toLch(a), [l2, c2, h2] = toLch(b);
+  return Math.sqrt((l1 - l2) ** 2 + (c1 - c2) ** 2 + 2 * c1 * c2 * (1 - Math.cos((h1 - h2) * Math.PI / 180)));
+};
+const surfaceOffset = (surface, ink, distance) => mix(ink, surface, Math.min(1, distance / Math.max(.001, colourDistance(surface, ink))));
+const actionBoundary = (fill, surfaces, ink, amplitude) => {
+  const distance = Math.min(...surfaces.map(surface => colourDistance(fill, surface)));
+  const shortfall = Math.max(0, 1 - distance / amplitude);
+  // Blend assistance in continuously. Searching for an exact distance along an
+  // ink path can jump when that path initially reduces chroma separation.
+  return mix(surfaceOffset(surfaces[1], ink, amplitude), fill, shortfall ** 2);
+};
+
 const paletteCache = new Map();
 export function deriveTheme(input, { mode } = {}) {
   if (mode !== undefined && !['light', 'dark'].includes(mode)) throw new Error('Unknown theme color mode.');
@@ -197,7 +255,7 @@ export function deriveTheme(input, { mode } = {}) {
       const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
     }
   }
-  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key])]);
+  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key]), values['light-color']]);
   if (paletteCache.has(cacheKey)) {
     const cached = paletteCache.get(cacheKey);
     return { tokens: { ...tokens, ...cached.tokens }, adjustments: cached.adjustments.map(item => ({ ...item })) };
@@ -219,29 +277,73 @@ export function deriveTheme(input, { mode } = {}) {
   for (const [tone, original] of Object.entries(tones)) {
     const [l, c, h] = toLch(original);
     const seed = tone === 'accent' ? original : fromLch([l, c * (.6 + Number(values['color-intensity']) * .8), h]);
-    const fill = readableColour(seed, surfaces, 5, ink);
+    const fill = seed;
+    const onFill = foreground(fill, '#ffffff', '#000000');
     tokens[`--ui-${tone}`] = fill;
-    tokens[`--ui-on-${tone}`] = foreground(fill, '#ffffff', '#000000');
-    tokens[`--ui-${tone}-on-strong`] = tokens[`--ui-on-${tone}`];
-    tokens[`--ui-${tone}-reflection`] = reflection(fill, tokens[`--ui-on-${tone}`]);
-    tokens[`--ui-${tone}-hover`] = mix(fill, ink, .86);
-    tokens[`--ui-${tone}-active`] = mix(fill, ink, .74);
+    tokens[`--ui-on-${tone}`] = onFill;
+    tokens[`--ui-${tone}-on-strong`] = onFill;
+    for (const [part, colour] of Object.entries(materialColours(fill, onFill, values['light-color']))) tokens[`--ui-${tone}-${part}`] = colour;
+    const stateTarget = onFill === '#000000' ? '#ffffff' : '#000000';
+    tokens[`--ui-${tone}-hover`] = mix(fill, stateTarget, .86);
+    tokens[`--ui-${tone}-active`] = mix(fill, stateTarget, .74);
     tokens[`--ui-${tone}-soft`] = mix(fill, tokens['--ui-surface-raised'], .08);
   }
-  // Readable roles cover the quiet tinted surfaces as well as the neutral family.
-  const readingSurfaces = [...surfaces, ...Object.keys(tones).flatMap(tone => surfaces.map(background => mix(tokens[`--ui-${tone}`], background, .12)))];
+  // Quiet fills are actual alpha composites. At an extreme light/dark flip,
+  // reduce their shared tint before it would leave no readable contextual ink.
+  const quietSurfaces = strength => [...surfaces, ...Object.keys(tones).flatMap(tone => surfaces.flatMap(background => [
+    mix(tokens[`--ui-${tone}`], background, .12 * strength),
+    ...[.05, .12, .18].map(alpha => alphaSurface(tokens[`--ui-${tone}`], background, alpha * strength)),
+  ]))];
+  let tonalOpacity = 1;
+  while (tonalOpacity > 0 && quietSurfaces(tonalOpacity).some(background => contrast(ink, background) < 4.5)) tonalOpacity = Math.max(0, tonalOpacity - .01);
+  tokens['--ui-tonal-opacity'] = String(Number(tonalOpacity.toFixed(2)));
+  const readingSurfaces = quietSurfaces(tonalOpacity);
   for (const tone of Object.keys(tones)) {
     tokens[`--ui-${tone}-subtle-text`] = readableColour(tokens[`--ui-${tone}`], readingSurfaces, 4.5, ink);
   }
+  // Existing validation/editor hooks must receive a contextual text role, never
+  // a pressed fill. Preserve consumer overrides at their established boundaries.
+  tokens['--ui-field-danger'] = tokens['--ui-danger-subtle-text'];
+  for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) tokens[`--ui-editor-${hook}`] = tokens['--ui-accent-subtle-text'];
   const textSeed = nativeInk === ink ? seeds.text : mix(seeds.text, ink, .08);
   tokens['--ui-text'] = readableColour(textSeed, readingSurfaces, 4.5, ink);
   tokens['--ui-text-secondary'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .72), readingSurfaces, 4.5, ink);
   tokens['--ui-text-muted'] = tokens['--ui-text-secondary'];
-  for (const [state, amount] of [['surface', .06], ['hover', .1], ['active', .14]]) {
-    tokens[`--ui-neutral-${state}`] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], amount), [tokens['--ui-text']], 4.5, paper);
+  // One continuous action-family range: primary pigment determines the neutral
+  // companion and their boundaries. These are design calibration values, not an
+  // empirical attention score. A floor preserves near-surface action boundaries.
+  const separation = Math.min(...surfaces.map(surface => colourDistance(tokens['--ui-accent'], surface)));
+  const amplitude = .10 + .16 * separation / (separation + .20);
+  for (const tone of Object.keys(tones)) for (const state of ['', '-hover', '-active']) {
+    tokens[`--ui-${tone}${state}-border`] = actionBoundary(tokens[`--ui-${tone}${state}`], surfaces, ink, amplitude);
   }
-  tokens['--ui-surface-reflection'] = reflection(tokens['--ui-surface-raised'], [tokens['--ui-text'], tokens['--ui-text-secondary'], ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-subtle-text`])]);
-  tokens['--ui-neutral-reflection'] = reflection(tokens['--ui-neutral-surface'], tokens['--ui-text']);
+  // Keep secondary contours quieter than the weakest resolved primary edge,
+  // including warm surfaces where an assisted edge can approach its backdrop.
+  const familyRange = Math.min(amplitude, ...['', '-hover', '-active'].flatMap(state => surfaces.map(surface =>
+    colourDistance(tokens[`--ui-accent${state}-border`], surface),
+  )));
+  for (const [state, fillScale, edgeScale] of [['surface', .25, .45], ['hover', .35, .55], ['active', .45, .65]]) {
+    tokens[`--ui-neutral-${state}`] = readableColour(surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * fillScale), [tokens['--ui-text']], 4.5, paper);
+    tokens[`--ui-neutral-${state === 'surface' ? '' : state + '-'}border`] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * edgeScale);
+  }
+  // Enclosure lines describe regions; native field affordances retain their
+  // independently resolved control border below.
+  tokens['--ui-border'] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * .20);
+  tokens['--ui-border-strong'] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * .35);
+  for (const [role, fill, labels] of [
+    ['surface', tokens['--ui-surface-raised'], [tokens['--ui-text'], tokens['--ui-text-secondary'], ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-subtle-text`])]],
+    ['neutral', tokens['--ui-neutral-surface'], tokens['--ui-text']],
+  ]) for (const [part, colour] of Object.entries(materialColours(fill, labels, values['light-color']))) tokens[`--ui-${role}-${part}`] = colour;
+  // Knobs are painted foreground surfaces, not text. Bound them against the
+  // continuous track luminance range, not just its colored endpoints (3:1).
+  for (const [role, fill, track, trackFill] of [
+    ['knob', tokens['--ui-text-secondary'], 'surface', tokens['--ui-surface-raised']],
+    ['knob-on-accent', tokens['--ui-on-accent'], 'accent', tokens['--ui-accent']],
+  ]) {
+    const [low, high] = materialLuminances(tokens[`--ui-${track}-reflection`], tokens[`--ui-${track}-shade`]);
+    const range = [Math.min(low, luminance(trackFill)), Math.max(high, luminance(trackFill), luminance(tokens[`--ui-${track}-specular`]))];
+    for (const [part, colour] of Object.entries(materialColours(fill, range, values['light-color'], 3.05))) tokens[`--ui-${role}-${part}`] = colour;
+  }
   tokens['--ui-selection-surface'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .1);
   tokens['--ui-selection-text'] = tokens['--ui-accent-subtle-text'];
   tokens['--ui-selection-border'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .2);
@@ -250,14 +352,13 @@ export function deriveTheme(input, { mode } = {}) {
   tokens['--ui-control-placeholder'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-control-surface'], .5), [tokens['--ui-control-surface']], 4.5, ink);
   tokens['--ui-control-border'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .43), readingSurfaces, 3, ink);
   tokens['--ui-control-border-hover'] = tokens['--ui-control-border'];
-  tokens['--ui-border-strong'] = tokens['--ui-control-border'];
   tokens['--ui-disabled-text'] = mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .45);
   tokens['--ui-disabled-surface'] = tokens['--ui-surface-sunken'];
   tokens['--ui-disabled-border'] = mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .2);
   tokens['--ui-focus-ring'] = readableColour(tokens['--ui-accent'], readingSurfaces, 3, ink);
   tokens['--ui-focus-width'] = 'max(2px, calc(var(--ui-border-width) * 2))';
   tokens['color-scheme'] = ink === '#000000' ? 'light' : 'dark';
-  for (const [id, property] of [['action', '--ui-accent'], ['canvas', '--ui-surface'], ['surface', '--ui-surface-raised'], ['text', '--ui-text']]) {
+  for (const [id, property] of [['canvas', '--ui-surface'], ['surface', '--ui-surface-raised'], ['text', '--ui-text']]) {
     if (tokens[property].toLowerCase() !== values[id].toLowerCase()) adjustments.push({ id, requested: values[id], resolved: tokens[property], reason: 'Adjusted to keep the shared palette readable.' });
   }
   const colors = Object.fromEntries(Object.entries(tokens).filter(([key]) => !geometry.has(key) || /^#[\da-f]{6}$/i.test(tokens[key])));
@@ -285,7 +386,7 @@ export function themeCSS(input, systemCSS = '', { scope = 'portable' } = {}) {
     if (/^#[\da-f]{6}$/i.test(value)) palette.push(`  ${name}: light-dark(${value}, ${dark[name]});`);
     else {
       const relative = relativeLengths.get(name);
-      const resolved = relative ? value.replace(relative, `calc(${parseFloat(relative)} * var(--_ui-root-font-unit, 1rem))`) : value;
+      const resolved = name === '--ui-tonal-opacity' ? Math.min(Number(value), Number(dark[name])) : relative ? value.replace(relative, `calc(${parseFloat(relative)} * var(--_ui-root-font-unit, 1rem))`) : value;
       geometry.push(`  ${name}: ${resolved};`);
     }
   }
