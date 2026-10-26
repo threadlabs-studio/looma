@@ -29,8 +29,8 @@
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour. The field
       variant always uses neutral field colors.</prop>
     <prop name="disabled" type="boolean" default="false"
-    >Makes the button unavailable: it cannot be pressed, uses a flat neutral palette, and loses its raised look. A disabled link (as="a" with href) drops its
-      href and states aria-disabled="true" instead, because a link has no native disabled state.</prop>
+    >Makes the button unavailable: it cannot be pressed, uses a flat neutral palette, and loses its raised look. A disabled link (with href) drops its href and
+      states aria-disabled="true" instead, because a link has no native disabled state.</prop>
     <prop name="loading" type="boolean" default="false"
     >Keeps the action focusable and its label visible while work is in progress. It shows a decorative spinner, states aria-disabled and aria-busy, and prevents
       activation or form submission until cleared.</prop>
@@ -41,12 +41,10 @@
     <prop name="type" type="keyword" values="button, submit, reset" default="button"
     >The button's type, as on a native button. button by default, so it never submits a form by accident. A link has no type.</prop>
     <prop name="href" type="string"
-    >The link's destination. Pair it with as="a" so the button renders as a real link that navigates. A disabled link drops its href and states
-      aria-disabled="true", so it cannot be followed.</prop>
-    <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
-    <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <prop name="as" type="keyword" values="button, a" default="button"
-    >The native element the button renders: a button, or a link (a) that navigates to href.</prop>
+    >The link's destination. Supplying href automatically renders a native link instead of a button, including an empty href for the current document. A
+      disabled link drops its href and states aria-disabled="true", so it cannot be followed.</prop>
+    <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with href.</prop>
+    <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with href.</prop>
     <!-- Each root carries only its own attributes: a link has no type or disabled, and a disabled link
          loses its href and states aria-disabled instead. The language has no conditional expression, so a
          table keyed by a boolean's text picks each value, and null leaves the attribute off. -->
@@ -55,7 +53,7 @@
     <a
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
-      $when="$appearance = 'card' and $as = 'a'"
+      $when="$appearance = 'card' and $href != null"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
       from:target="$target"
       from:rel="$rel"
@@ -87,7 +85,7 @@
     <a
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
-      $when="$as = 'a'"
+      $when="$href != null"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
       from:target="$target"
       from:rel="$rel"
