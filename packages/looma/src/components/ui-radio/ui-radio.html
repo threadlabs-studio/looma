@@ -94,8 +94,38 @@
       inline-size: var(--_ui-radio-size, 1.125rem);
       block-size: var(--_ui-radio-size, 1.125rem);
       margin: max(0px, calc((1lh - var(--_ui-radio-size, 1.125rem)) / 2)) 0 0 !important;
-      accent-color: var(--ui-accent-solid);
+      -webkit-appearance: none;
+      appearance: none;
+      position: relative;
+      border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
+      border-radius: var(--ui-radius-round);
+      background-color: var(--ui-control-surface, var(--ui-surface-default));
+      background-image: var(--ui-surface-highlight, none);
+      box-shadow: var(--ui-control-inset);
       cursor: pointer;
+    }
+
+    /* The native radio retains grouping, validation and keyboard behavior.
+       Its empty well recedes; the filled selection and its dot stay crisp. */
+    input::after {
+      content: "";
+      position: absolute;
+      inset: 28%;
+      border-radius: var(--ui-radius-round);
+      background-color: var(--ui-text-on-accent);
+      opacity: 0;
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    input:checked {
+      background-color: var(--ui-accent-solid);
+      background-image: var(--ui-accent-highlight, none);
+      border-color: var(--ui-accent-solid);
+      box-shadow: none;
+    }
+
+    input:checked::after {
+      opacity: 1;
     }
 
     input:focus-visible {
@@ -111,7 +141,29 @@
       color: var(--ui-disabled-text);
     }
     :host([disabled]) input {
+      border-color: var(--ui-disabled-border);
+      background-color: var(--ui-disabled-surface);
+      background-image: none;
+      box-shadow: none;
       cursor: not-allowed;
+    }
+
+    :host([disabled]) input::after {
+      background-color: var(--ui-disabled-text);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      input::after { transition: none; }
+    }
+
+    @media (forced-colors: active) {
+      input {
+        -webkit-appearance: auto;
+        appearance: auto;
+        background: none;
+        box-shadow: none;
+      }
+      input::after { display: none !important; }
     }
 
     /* A sized choice keeps its box and aligns instead: the label takes that size's field type size,

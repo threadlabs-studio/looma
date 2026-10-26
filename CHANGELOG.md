@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Start the shared customizer with the Looma identity and add Gold as a complete selectable theme with portable Lato/Fraunces fonts. Keep Clear as an explicit neutral starting point; move standalone LightEditor documentation into Extras.
+- Derive filled-action colors, readable labels and quieter secondary edges as a shared family. Preserve chromatic reflections and separate decorative glass transparency from frosting while keeping content plates opaque.
+- Give switch thumbs and empty checkbox/radio frames the shared material lighting and inset depth. Keep the current Safari preview, selection and control geometry fixes throughout theme customization.
+
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
 
 - Schedule customizer preview layout outside resize notification delivery, preventing intermittent Safari ResizeObserver loop warnings while preserving preview sizing.

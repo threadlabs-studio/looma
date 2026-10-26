@@ -129,7 +129,8 @@
       width: var(--_thumb);
       height: var(--_thumb);
       border-radius: var(--ui-radius-round);
-      background: var(--ui-text-secondary);
+      background-color: var(--ui-text-secondary);
+      background-image: var(--ui-knob-highlight, none);
       box-shadow: var(--ui-shadow-xs);
       transition: transform var(--ui-motion-base) var(--ui-motion-ease), background-color var(--ui-motion-base) var(--ui-motion-ease);
     }
@@ -142,7 +143,8 @@
 
     input:checked::after {
       transform: translateX(calc(var(--_ui-switch-track-width) - var(--_ui-switch-track-height)));
-      background: var(--ui-text-on-accent);
+      background-color: var(--ui-text-on-accent);
+      background-image: var(--ui-knob-on-accent-highlight, none);
     }
 
     input:focus-visible {
@@ -167,6 +169,7 @@
 
     :host([disabled]) input::after {
       background-color: var(--ui-disabled-text);
+      background-image: none;
       box-shadow: none;
     }
 
