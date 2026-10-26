@@ -17,7 +17,12 @@ for (const width of [390, 1280]) test(`dashboard opens only the requested editor
     await expect(editor).toBeVisible();
     await expect(page.locator('[data-refinement-view]:visible')).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    if (width === 390 && ['typography','layout','motion','material','palette'].includes(family)) {
+      const preview = editor.locator('[data-editor-preview], .palette-preview');
+      expect(await preview.evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+    }
     if (family === 'typography') {
+      await expect(editor.getByText('Font', {exact:true})).toHaveCount(1);
       await expect(editor.getByRole('heading', { name: 'There and back again.', exact: true })).toBeVisible();
       await expect(page).toHaveURL(/#typography$/);
       await page.goBack(); await expect(overview).toBeVisible();
@@ -53,9 +58,13 @@ test('motion study uses the edited duration and curve and respects reduced motio
   const timing = await study.evaluate(el => el.getAnimations()[0].effect.getTiming());
   expect(timing.duration).toBe(900);
   expect(timing.easing).toBe('linear');
+  await curve.fill('cubic-bezier(0.5,2,0.5,2)'); await curve.press('Tab');
+  await editor.locator('[data-action="replay-motion"]').click();
+  await study.evaluate(el => { const animation=el.getAnimations()[0];animation.pause();animation.currentTime=Number(animation.effect.getTiming().duration)*.58; });
+  expect(await study.evaluate(el => { const marker=el.getBoundingClientRect(),track=el.parentElement.getBoundingClientRect();return marker.left>=track.left&&marker.right<=track.right; })).toBe(true);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect.poll(() => study.evaluate(el => el.getAnimations().length)).toBe(0);
   await expect(page.locator('[data-motion-preference]')).toContainText('Reduced motion is on');
-  await editor.locator('[data-action="replay-motion"]').click();
+  await expect(editor.locator('[data-action="replay-motion"]')).toBeDisabled();
   expect(await study.evaluate(el => el.getAnimations().length)).toBe(0);
 });
