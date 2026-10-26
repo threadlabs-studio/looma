@@ -3243,7 +3243,7 @@ describe("Loading actions", () => {
     const page = await open(path, `
       <form id="form"><ui-button id="save" type="submit" loading><span>Save</span></ui-button></form>
       <ui-icon-button id="more" label="More" loading><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
-      <ui-button id="link" as="a" href="#target" loading>Open</ui-button>
+      <ui-button id="link" href="#target" loading>Open</ui-button>
     `, [join(root, "tokens.css")]);
     await page.evaluate(() => {
       (window as unknown as { activations: number }).activations = 0;
@@ -3613,7 +3613,7 @@ describe("Shared action edges", () => {
           h(Button, { id: "outline" }, () => "View changes"),
           h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
           h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
-          h(Button, { id: "link", variant: "link", as: "a", href: "#" }, () => "Link"),
+          h(Button, { id: "link", variant: "link", href: "#" }, () => "Link"),
           h(IconButton, { id: "ghost-icon", label: "Quiet" }, icon),
           h(Button, { id: "disabled", variant: "solid", disabled: true }, () => "Disabled"),
           h(IconButton, { id: "disabled-icon", variant: "solid", disabled: true, label: "Disabled" }, icon),
@@ -3627,7 +3627,7 @@ describe("Shared action edges", () => {
         <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="outline">View changes</ui-button>
         <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
-        <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" as="a" href="#">Link</ui-button>
+        <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" href="#">Link</ui-button>
         <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="disabled" variant="solid" disabled>Disabled</ui-button><ui-icon-button id="disabled-icon" variant="solid" disabled label="Disabled"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
       const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
@@ -3793,6 +3793,62 @@ const look = (page: Page, selector: string) => page.locator(selector).evaluate((
 }, LOOK as unknown as string[]);
 
 describe("Button as a link", () => {
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`switches Button roots when href changes in ${adapter}`, async () => {
+      const path = await bundle(`button-href-${adapter}`, adapter === "HTML" ? `
+        import "@threadlabs/looma";
+        import { componentRegistry } from "@nextwebwg/html-next/runtime";
+        window.setButtonProps = (props) => {
+          for (const id of ["regular", "card"]) componentRegistry.update(document.getElementById(id), props);
+        };
+      ` : `
+        import { createApp, h, ref } from "vue";
+        import { Button } from "@threadlabs/looma/vue";
+        const props = ref({});
+        window.setButtonProps = (next) => { props.value = { ...props.value, ...next }; };
+        createApp({ render: () => ["regular", "card"].map(id => h(Button, {
+          id, variant: id === "card" ? "card" : "solid", ...props.value,
+        }, () => "Guide")) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "HTML" ? `
+        <ui-button id="regular" variant="solid">Guide</ui-button>
+        <ui-button id="card" variant="card">Guide</ui-button>
+      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])]);
+      try {
+        for (const props of [
+          { href: "/guide" }, { href: "" }, { loading: true },
+          { loading: false, disabled: true }, { disabled: false }, { href: null },
+        ]) {
+          await page.evaluate(props => (window as unknown as { setButtonProps: (props: Record<string, unknown>) => void }).setButtonProps(props), props);
+          const tag = props.href === null ? "button" : "a";
+          await page.waitForSelector(`#regular:is(${tag})`);
+          for (const id of ["regular", "card"]) {
+            const control = page.locator(`#${id}`);
+            assert.equal(await control.evaluate(element => element.localName), tag);
+            if (tag === "button") {
+              assert.equal(await control.getAttribute("type"), "button");
+              assert.equal(await control.getAttribute("href"), null);
+            } else {
+              assert.equal(await control.getAttribute("type"), null);
+              assert.equal(await control.getAttribute("disabled"), null);
+              assert.equal(await control.getAttribute("href"), props.loading || props.disabled ? null : props.href ?? "");
+              if (props.loading) {
+                assert.equal(await control.getAttribute("aria-busy"), "true");
+                await control.focus();
+                assert.equal(await page.evaluate(() => document.activeElement?.id), id);
+                assert.equal(await control.evaluate(element => element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))), false);
+              }
+              if (props.disabled) assert.equal(await control.getAttribute("aria-disabled"), "true");
+            }
+            assert.match(await control.textContent() ?? "", /Guide/);
+          }
+        }
+      } finally {
+        await page.close();
+      }
+    });
+  }
+
   it("renders a real link that looks and responds exactly like the button", async () => {
     const variants = ["outline", "solid", "danger", "ghost", "link"];
     const path = await bundle("vue-button-link", `
@@ -3800,7 +3856,7 @@ describe("Button as a link", () => {
       import { Button } from "@threadlabs/looma/vue";
       const pair = (id, props) => [
         h(Button, { id: id + "-button", ...props }, () => "Go"),
-        h(Button, { id: id + "-link", as: "a", href: "#next", ...props }, () => "Go"),
+        h(Button, { id: id + "-link", href: "#next", ...props }, () => "Go"),
       ];
       createApp({
         render: () => h("div", [
@@ -3808,7 +3864,7 @@ describe("Button as a link", () => {
           ...pair("large", { size: "lg", tone: "success" }),
           ...pair("off", { variant: "solid", disabled: true }),
           ...pair("off-ghost", { variant: "ghost", disabled: true }),
-          h(Button, { id: "new-tab", as: "a", href: "https://example.com/", target: "_blank", rel: "noreferrer" }, () => "Docs"),
+          h(Button, { id: "new-tab", href: "https://example.com/", target: "_blank", rel: "noreferrer" }, () => "Docs"),
           h(Button, { id: "submit", type: "submit" }, () => "Send"),
         ]),
       }).mount("#app");
@@ -3872,8 +3928,8 @@ describe("Button as a link", () => {
     const path = await bundle("html-button-link", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <ui-button id="button" variant="solid">Go</ui-button>
-      <ui-button id="link" as="a" href="#next" variant="solid">Go</ui-button>
-      <ui-button id="off" as="a" href="#next" variant="solid" disabled>Go</ui-button>
+      <ui-button id="link" href="#next" variant="solid">Go</ui-button>
+      <ui-button id="off" href="#next" variant="solid" disabled>Go</ui-button>
       <ui-button id="submit" type="submit">Send</ui-button>
     `, [join(root, "tokens.css")]);
     await page.waitForSelector('#off:is([data-component~="ui-button"], .ui-button)');
@@ -11055,10 +11111,10 @@ describe("Optional semantic theme recipe", () => {
     const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@threadlabs/looma';` : `
       import {createApp,h} from 'vue';import {Button,Input,Switch,ColorPicker} from '@threadlabs/looma/vue';
       createApp({render:()=>h('div',{},[
-        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Button,{id:'recipe-link-'+size,size,as:'a',href:'#next'},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
+        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Button,{id:'recipe-link-'+size,size,href:'#next'},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
         h(Switch,{id:'recipe-switch',checked:true},()=> 'A switch'),h('div',{'data-theme':'nested',id:'nested'},[h(Button,{id:'nested-action'},()=> 'Nested action')])
       ])}).mount('#app');`);
-    const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-button id="recipe-link-${size}" size="${size}" as="a" href="#next">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
+    const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-button id="recipe-link-${size}" size="${size}" href="#next">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
     const page = await open(path, body, [join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
     try {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),32,'legacy sizing stays unchanged without the optional recipe');

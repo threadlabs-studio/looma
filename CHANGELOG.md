@@ -3,6 +3,8 @@
 ## Next release
 
 - Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
+- **Breaking:** Button now renders a native link whenever `href` is supplied, including `href=""`, and a native button otherwise. Remove Button's `as` prop: replace `as="a" href="…"` with `href="…"`; omit `href` for button actions. Disabled and loading links retain their navigation guards.
+
 - Use a lighter relative-color wash for colored callout backgrounds, deriving the hue from their tone while preserving borders, text and document spacing.
 
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
