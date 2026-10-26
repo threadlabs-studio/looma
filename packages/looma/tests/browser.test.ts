@@ -85,6 +85,7 @@ describe("SiteHeader", () => {
         }
       }
       await page.setViewportSize({width:375,height:800});
+      assert.equal(await page.locator('#brand').isVisible(),true,'the brand stays visible when navigation collapses');
       assert.equal(await page.locator('#destination').isVisible(),false);
       assert.equal(await page.locator('#menu').isVisible(),true);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
