@@ -94,11 +94,11 @@ export function customizerResource(site, input = defaultRecipe()) {
   <style>
     [data-customizer-overview][hidden], [data-refinement-view][hidden] { display: none !important; }
     .customizer-layout { display: grid !important; grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr); gap: var(--ui-space-6) !important; align-items: start !important; }
-    aside { grid-row: 1 / span 2; position: sticky; inset-block-start: 5rem; max-block-size: calc(100dvh - 6rem); overflow: auto; padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)) !important; scroll-padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)); }
+    aside { grid-row: 1 / span 2; position: sticky; inset-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); max-block-size: calc(100dvh - var(--_editor-chrome-height, 4.25rem) - var(--ui-space-4)); overflow: auto; padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)) !important; scroll-padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)); }
     .examples { min-inline-size: 0; }
     .refinement-layout { display: grid !important; grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr); gap: var(--ui-space-6) !important; align-items: start !important; }
-    [data-refinement-view] { scroll-margin-block-start: 5rem; }
-    .palette-preview, .editor-preview { position: sticky; inset-block-start: 5rem; max-block-size: calc(100dvh - 6rem); overflow: auto; padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)) !important; }
+    [data-refinement-view] { scroll-margin-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); }
+    .palette-preview, .editor-preview { position: sticky; inset-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); max-block-size: calc(100dvh - var(--_editor-chrome-height, 4.25rem) - var(--ui-space-4)); overflow: auto; padding: max(var(--ui-space-2), calc(var(--ui-focus-width) * 2)) !important; }
     .spacing-samples { display: flex !important; align-items: center !important; gap: 0 !important; padding-block: var(--ui-space-3) !important; }
     .spacing-samples > span { display: block !important; block-size: var(--ui-space-1); inline-size: var(--ui-space-1); border-radius: 50%; background: var(--ui-accent); }
     .spacing-samples > span:nth-child(2) { margin-inline-start: var(--ui-space-2) !important; }
@@ -114,7 +114,7 @@ export function customizerResource(site, input = defaultRecipe()) {
     .palette-action { background: var(--_palette-action, var(--ui-accent)); }
     .motion-track { overflow: clip; display: flex; align-items: center; block-size: 5rem; padding: var(--ui-space-3); border-radius: var(--ui-radius-md); background: var(--ui-surface-muted); }
     [data-motion-object] { display: block; inline-size: 2rem; block-size: 2rem; border-radius: var(--ui-radius-sm); background: var(--ui-accent-solid); box-shadow: var(--ui-action-shadow); }
-    @media (max-width: 64rem) { .customizer-layout, .refinement-layout { grid-template-columns: minmax(0, 1fr); } aside { grid-row: auto; order: 1; position: static; max-block-size: none; } .palette-preview, .editor-preview { position: sticky; inset-block-start: 4rem; z-index: 1; background: var(--ui-surface); max-block-size: none; overflow: visible; padding: 0 !important; } [data-theme-sampler] { order: 2; } .examples { order: 3; } }
-    @media (max-width: 64rem) and (max-height: 40rem) { .palette-preview, .editor-preview { position: static; } }
+    @media (max-width: 64rem) { .customizer-layout, .refinement-layout { grid-template-columns: minmax(0, 1fr); } aside { grid-row: auto; order: 1; position: static; max-block-size: none; } .palette-preview, .editor-preview { position: sticky; inset-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); z-index: 1; background: var(--ui-surface); max-block-size: none; overflow: visible; padding: 0 !important; } [data-theme-sampler] { order: 2; } .examples { order: 3; } }
+    @media (max-width: 64rem) { .palette-preview[data-page-flow], .editor-preview[data-page-flow] { position: static; } }
   </style></template>`;
 }

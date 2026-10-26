@@ -99,9 +99,9 @@ to protected properties must deliberately use important priority, and remove tho
 owned declarations when their state no longer applies. Do not turn a controller's
 transient state into a consumer CSS dependency.
 
-Boxed Buttons centre the label’s cap-height/baseline text box. Descenders remain
-visible; inline link actions retain normal inline flow. Do not compensate for
-font metrics with page-level translations.
+Boxed Buttons centre the label’s cap-height/baseline text box. Button and link
+roots share border-box geometry. Descenders remain visible; inline link actions
+retain normal inline flow. Do not compensate for font metrics with page-level translations.
 
 A Checkbox centres its mark by painted geometry, independently of font metrics.
 It centres its box against the label's first line. Font metrics, wrapping
