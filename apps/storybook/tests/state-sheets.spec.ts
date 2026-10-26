@@ -47,7 +47,7 @@ for (const component of api.components) {
     states.push({ name: interaction.name, props: {}, example, run: interaction.run });
     if (component.tag === 'ui-sidebar') states.push({ name: 'Mobile drawer', props: {}, example, run: interaction.run, viewport: { width: 320, height: 480 } });
   }
-  const themes = themed.has(component.tag) ? ['clear', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
+  const themes = themed.has(component.tag) ? ['looma', 'clear', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
   for (const theme of themes)
     for (const mode of ['light', 'dark'])
       test(`${component.tag} ${theme} ${mode}: complete state sheet`, async ({ page, context }) => {

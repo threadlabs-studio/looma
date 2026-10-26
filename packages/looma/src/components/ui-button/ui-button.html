@@ -426,7 +426,8 @@
         var(--_tone-glow);
     }
 
-    :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="solid"]:hover:not(:disabled, [aria-disabled="true"]),
+    :host[data-appearance="danger"]:hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-hover);
       border-color: var(--ui-button-hover-border, var(--_tone-hover-border));
     }
