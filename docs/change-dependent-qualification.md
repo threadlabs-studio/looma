@@ -95,7 +95,7 @@ One engine is sufficient for routine qualification. Firefox/WebKit remain useful
 for platform-specific CSS, focus, selection and editing changes; run them explicitly
 when a change needs that evidence. The manual **Extended verification** workflow
 runs the complete package suite and documentation behavior in Chromium, Firefox
-and WebKit, the Markupress site's text and JavaScript-off checks against the Docusaurus
+and WebKit, the Markupress customizer with Safari touch input, the Markupress site's text and JavaScript-off checks against the Docusaurus
 pages, and canonical visual comparisons. It has no push, PR or schedule
 trigger and does not block routine publication.
 
@@ -105,6 +105,7 @@ Local commands remain available:
 pnpm --filter @threadlabs/looma build
 pnpm --filter @threadlabs/looma test:browser
 pnpm --filter @threadlabs/looma-docs test:parity
+pnpm --filter @threadlabs/looma-docs-next test:safari
 pnpm --filter @threadlabs/looma-docs test:visual
 ```
 

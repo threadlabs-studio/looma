@@ -485,7 +485,8 @@ export function connect(host) {
       input.focus();
     }
   };
-  const onPointerdown = (event) => { if (event.target.closest?.('[role="option"]')) event.preventDefault(); };
+  // Keep input focus through selection without cancelling Safari's touch-generated click.
+  const onMousedown = (event) => { if (event.target.closest?.('[role="option"]')) event.preventDefault(); };
   const onFocusout = (event) => {
     if (event.relatedTarget instanceof Node && element.contains(event.relatedTarget)) return;
     close();
@@ -529,7 +530,7 @@ export function connect(host) {
   const onValidate = (event) => {
     if (event.target === element) void validateCurrent();
   };
-  const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusin: onFocusin, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose, command: onCommand, validate: onValidate };
+  const listeners = { input: onInput, keydown: onKeydown, click: onClick, mousedown: onMousedown, focusin: onFocusin, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose, command: onCommand, validate: onValidate };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
   // then shows its current label, unless the user is editing the text.
