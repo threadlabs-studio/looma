@@ -6869,19 +6869,21 @@ describe("Overlays", () => {
     await page.close();
   });
 
-  it("give the dialog close button a touch target once touch is used", async () => {
+  it("keeps dialog close visuals equal to a shared small IconButton when touch is used", async () => {
     const path = await bundle("vue-dialog-touch", `
       import { createApp, h } from "vue";
-      import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
+      import { Dialog, IconButton, Icon, trackInputModality } from "@threadlabs/looma/vue";
       trackInputModality(document);
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => [h(IconButton, { id: "reference", size: "sm", round: true, label: "Reference" }, () => h(Icon, {name:"x"})), h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body")] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
-    const close = page.locator("#dialog .close");
+    const close = page.locator("#dialog").getByRole("button", {name:"Close",exact:true});
     const size = () => close.evaluate((element) => (element as HTMLElement).offsetWidth);
-    assert.equal(await size(), 32);
+    const reference = await page.locator("#reference").evaluate(element => (element as HTMLElement).offsetWidth);
+    assert.equal(await size(), reference);
     await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
-    assert.equal(await size(), 44);
+    assert.equal(await size(), reference, "touch does not enlarge the visible control or its focus ring");
+    assert.equal(await close.locator("svg").count(), 1, "close uses the shared icon rather than CSS strokes");
     await page.close();
   });
 });

@@ -1,6 +1,6 @@
 import { cp, mkdir, readFile, readdir, realpath, rename, rm, symlink, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { discoverComponents, escapeHtml, mergeCatalogs, readCatalog, readJson } from './catalog.mjs';
@@ -220,7 +220,7 @@ export async function buildDocumentation({ root = process.cwd(), config = {}, ca
   });
 }
 
-async function isolatePreviewScripts(site, { outDir, writeFile: writeOutput }) {
+async function isolatePreviewScripts(site, { outDir }) {
   const { build } = await tool('vite', site.root);
   // Preview entries and outputs are independent. Keep compiler memory bounded
   // and retain the build lock until every in-flight bundle has settled.
@@ -236,9 +236,13 @@ async function isolatePreviewScripts(site, { outDir, writeFile: writeOutput }) {
           const input = path.join(outDir, url.slice(site.base.length));
           const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
           const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
-          const name = `${exampleKey(example.id)}.js`;
-          await writeOutput('_looma/runtime/' + name, code);
-          html = html.replace(tag, `<script src="${site.base}_looma/runtime/${name}" defer></script>`);
+          // A sandbox has an opaque origin: Safari cannot authorize this runtime via 'self'.
+          // Hash the exact inline bytes and run after the preview DOM, preserving isolation.
+          const script = code.replace(/<\/script/gi, '<\\/script');
+          const hash = createHash('sha256').update(script).digest('base64');
+          if (!/<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*content="[^"]*\bscript-src\b/.test(html)) throw new Error(`Missing script policy for isolated preview ${example.id}.`);
+          html = html.replace(/(<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*content="[^"]*\bscript-src)\b/, `$1 'sha256-${hash}'`);
+          html = html.replace(tag, '').replace('</body>', () => `<script>${script}</script></body>`);
         }
         html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
         await writeFile(htmlFile, html);

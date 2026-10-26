@@ -8,11 +8,14 @@
 /* Keep the root font seed unregistered: a registered rem length used by root
    font-size creates a dependency cycle (CSS Properties and Values API 2.7.2). */
 @property --ui-control-size { syntax: "<length>"; inherits: true; initial-value: 40px; }
+@property --_ui-root-font-unit { syntax: "<length>"; inherits: true; initial-value: 16px; }
 @property --ui-radius-md { syntax: "<length>"; inherits: true; initial-value: 8px; }
 @property --ui-border-width { syntax: "<length>"; inherits: true; initial-value: 1px; }
 
 @layer theme {
   :root {
+    /* Resolve once on the root: WebKit can resolve registered rem lengths against the initial font size. */
+    --_ui-root-font-unit: 1em;
     --ui-spacing: 1;
     --ui-rhythm: 1;
     --ui-control-roominess: 2.5;
@@ -35,7 +38,7 @@
   :where(:root, [data-theme], [data-contrast]) {
     /* Controls use a ratio. Spacing uses an independent curve, so increasing the size
        contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
-    --ui-control-size: calc(1rem * var(--ui-control-roominess));
+    --ui-control-size: calc(var(--_ui-root-font-unit) * var(--ui-control-roominess));
     --_ui-theme-ratio: max(1, var(--ui-scale-ratio));
     --_ui-theme-unit: calc(1rem * 0.25 * max(0, var(--ui-spacing)) * clamp(0.75, var(--ui-rhythm), 1.5));
     --ui-line-height-tight: clamp(1.1, calc(1.2 + (var(--ui-rhythm) - 1) * 0.2), 1.3);

@@ -762,10 +762,12 @@
       color: inherit;
     }
     input {
+      --_ui-combobox-inset-block: var(--ui-control-inset-block-md, var(--ui-space-2));
       appearance: none;
       width: 100%;
       min-inline-size: 0;
       min-block-size: calc(var(--_row) - 2 * var(--ui-border-width));
+      block-size: max(calc(var(--_row) - 2 * var(--ui-border-width)), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-combobox-inset-block)));
       box-sizing: border-box !important;
       border: 0;
       border-radius: inherit;
@@ -773,7 +775,7 @@
       color: inherit;
       font: inherit;
       line-height: var(--ui-line-height-tight);
-      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-space-3) !important;
+      padding: var(--_ui-combobox-inset-block) var(--ui-space-3) !important;
       margin: 0 !important;
       outline: none;
     }
@@ -781,14 +783,16 @@
       --_row: var(--ui-control-size-sm);
     }
     :host([size="sm"]) input {
-      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
+      --_ui-combobox-inset-block: var(--ui-control-inset-block-sm, var(--ui-space-1));
+      padding: var(--_ui-combobox-inset-block) var(--ui-space-2) !important;
       font-size: var(--ui-font-size-sm);
     }
     :host([size="lg"]) {
       --_row: var(--ui-control-size-lg);
     }
     :host([size="lg"]) input {
-      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-space-4) !important;
+      --_ui-combobox-inset-block: var(--ui-control-inset-block-lg, var(--ui-space-3));
+      padding: var(--_ui-combobox-inset-block) var(--ui-space-4) !important;
       font-size: var(--ui-font-size-md);
     }
     button {
@@ -923,6 +927,7 @@
       display: none !important;
     }
     :host([multiple]) input {
+      block-size: auto;
       flex: 1 0 var(--_ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;

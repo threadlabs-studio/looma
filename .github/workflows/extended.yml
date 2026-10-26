@@ -51,6 +51,8 @@ jobs:
       - run: pnpm --filter @threadlabs/looma-docs-next build
       - name: Compare the Markupress site with Docusaurus, and render it without JavaScript
         run: pnpm --filter @threadlabs/looma-docs-next test:parity
+      - name: Check the Markupress customizer with Safari and touch input
+        run: pnpm --filter @threadlabs/looma-docs-next test:safari
       - name: Check full behavior in three engines
         run: pnpm --filter @threadlabs/looma-docs exec playwright test --workers=1 --retries=0 --project=chromium --project=firefox --project=webkit
       - name: Compare reviewed visuals
@@ -62,6 +64,8 @@ jobs:
         if: failure()
         with:
           name: extended-docs-failures
+          include-hidden-files: true
           path: |
             apps/docs/test-results/
             apps/docs/playwright-report/
+            .context/safari-tests/

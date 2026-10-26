@@ -1,4 +1,4 @@
-import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, followDocumentationLink } from './choose-option.js';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -72,12 +72,12 @@ test('documentation navigation uses Looma disclosures and keeps editor reference
     await writeFile(join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-states.json'), JSON.stringify(states, null, 2) + '\n');
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-light.png') });
   }
-  await page.locator('[data-component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }).click();
+  await followDocumentationLink(page, page.locator('[data-component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }), 'Editor');
   await expect(page).toHaveURL(/\/editor\/$/);
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toHaveCount(0);
   const toolbar = page.getByRole('link', { name: 'Editor Toolbar', exact: true });
   await expect(toolbar).toHaveAttribute('href', /\/editor\/ui-editor-toolbar\/$/);
-  await toolbar.click(); await expect(page.getByRole('heading', { level: 1, name: 'Editor Toolbar', exact: true })).toBeVisible();
+  await followDocumentationLink(page, toolbar, 'Editor Toolbar'); await expect(page.getByRole('heading', { level: 1, name: 'Editor Toolbar', exact: true })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 900 });
   await page.getByRole('button', { name: 'Navigation', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toBeVisible();
@@ -228,6 +228,12 @@ test('one shared size lever derives matching field and action geometry', async (
   const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
   await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
+  for (const component of ['ui-select', 'ui-input-group', 'ui-combobox']) {
+    await page.getByRole('searchbox', {name:'Search components',exact:true}).fill(component);
+    const frame = page.locator(`[data-refinement-view="components"] [data-component-card="${component}"] iframe`).contentFrame();
+    const control = frame.locator(`[data-component="${component}"]${component === 'ui-combobox' ? ' .field' : ''}`).first();
+    await expect.poll(() => control.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
+  }
 });
 
 
@@ -254,8 +260,8 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await page.getByRole('searchbox', { name: 'Search components', exact: true }).fill('ui-button');
   await expect(buttonCard).toBeVisible();
   await expect(page.locator('[data-refinement-view="components"] [data-component-card="ui-input"]')).toHaveCount(0);
-  await buttonCard.getByRole('link', { name: 'View component', exact: true }).click();
-  await expect(page).toHaveURL(base + 'components/ui-button/');
+  await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'View component', exact: true }), 'Button');
+  await expect(page).toHaveURL(/\/components\/ui-button\/$/);
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
   await expect.poll(() => page.getByRole('heading', { name: 'Button', exact: true, level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).toContain('Georgia');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
@@ -410,7 +416,7 @@ test('material refinement shares a movable light, remembers customized presets a
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished · customized');
   await page.reload(); await enter();
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished · customized');
-  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toBeHidden();
+  await expect.poll(() => material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true }).evaluate(element => element.checkVisibility())).toBe(false);
   await material.getByRole('button', { name: 'Exact position', exact: true }).click();
   await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('60%');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) {

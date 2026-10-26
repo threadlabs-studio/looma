@@ -10,6 +10,32 @@ const enter = async (page, info) => {
   return errors;
 };
 
+test('touch taps commit starting theme, palette, material and font selections', async ({browser}, info) => {
+  const context = await browser.newContext({ viewport: {width:390,height:844}, isMobile:true, hasTouch:true });
+  try {
+    const page = await context.newPage();
+    await page.goto(info.config.metadata.markupress + 'customize/');
+    const select = async (family, label, option) => {
+      const editor = await openEditor(page, family);
+      const input = editor.getByRole('combobox', {name:label,exact:true});
+      const control = input.locator('xpath=ancestor::*[@data-choice or @data-font-picker][1]');
+      await input.tap();
+      if (await input.getAttribute('aria-expanded') !== 'true') await control.getByRole('button', {name:'Show suggestions',exact:true}).tap();
+      await control.getByRole('option', {name:option,exact:true}).tap();
+      await expect(input).toHaveValue(option);
+    };
+    await select('themes', 'Starting point', 'Bookish');
+    expect((await session(page)).origin).toBe('bookish');
+    await select('palette', 'Palette preset', 'Forest & cream');
+    expect((await session(page)).presets.palette).toBe('garden');
+    await select('material', 'Material preset', 'Polished');
+    expect((await session(page)).presets.material).toBe('polished');
+    await select('typography', 'Font', 'System font');
+    expect((await session(page)).fonts?.['body-font']).toBeUndefined();
+    expect((await session(page)).values['body-font']).toContain('system-ui');
+  } finally { await context.close(); }
+});
+
 test('completed edits undo and redo persist without an ambiguous comparison mode', async ({page}, info) => {
   const errors = await enter(page, info);
   await openEditor(page, 'material');
@@ -19,7 +45,7 @@ test('completed edits undo and redo persist without an ambiguous comparison mode
   const stage = page.locator('[data-light-editor]').getByRole('button',{name:'Join briefing',exact:true});
   await page.getByRole('button',{name:'Try floating surfaces',exact:true}).click();
   const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] iframe').contentFrame().getByRole('button',{name:'Join briefing',exact:true});
-  await expect.poll(() => card.evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
+  await expect(card).toHaveCSS('background-color', await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
   await page.locator('[data-light-editor] .source').press('Shift+ArrowLeft');
   expect((await session(page)).values['light-x']).toBe('0.4');
   await expect(page.locator('[data-theme-origin]')).toHaveCount(0);
@@ -57,7 +83,32 @@ test('palette transformations change both mode specimens, keep geometry and surv
   expect(await session(page)).toEqual(remembered); expect(errors).toEqual([]);
 });
 
-test('touch sizing preserves the ladder and finger drags preserve the grab offset without persisting each move', async ({browser},info) => {
+test('touch light placement persists and can be refined with the keyboard or undone', async ({browser},info) => {
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  try {
+    const page=await context.newPage();
+    const errors=await enter(page,info);
+    const editor=await openEditor(page,'material');
+    const plane=editor.locator('[data-light-editor] .plane');
+    await plane.scrollIntoViewIfNeeded();
+    const box=await plane.boundingBox();
+    await page.touchscreen.tap(box.x+box.width*.8,box.y+box.height*.9);
+    await expect.poll(async()=>Number((await session(page)).values['light-x'])).toBeCloseTo(.8,1);
+    await expect.poll(async()=>Number((await session(page)).values['light-y'])).toBeCloseTo(.9,1);
+    const placed=(await session(page)).values;
+    await page.reload();
+    await expect.poll(async()=>[(await session(page)).values['light-x'],(await session(page)).values['light-y']]).toEqual([placed['light-x'],placed['light-y']]);
+    const handle=editor.locator('[data-light-editor] .source');
+    await handle.press('Shift+ArrowLeft');
+    await expect.poll(async()=>Number((await session(page)).values['light-x'])).toBeCloseTo(Number(placed['light-x'])-.1,2);
+    await page.getByRole('button',{name:'Undo',exact:true}).tap();
+    await expect.poll(async()=>(await session(page)).values['light-x']).toBe(placed['light-x']);
+    expect(errors).toEqual([]);
+  } finally {await context.close();}
+});
+
+test('touch sizing preserves the ladder and finger drags preserve the grab offset without persisting each move', async ({browser,browserName},info) => {
+  test.skip(browserName !== 'chromium', 'Native finger-drag injection uses CDP; real touch taps are covered in every engine.');
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const page=await context.newPage();
   try {

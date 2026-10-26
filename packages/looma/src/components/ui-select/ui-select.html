@@ -60,13 +60,16 @@
     }
 
     :host {
+      --_ui-select-size: var(--ui-control-size-md);
+      --_ui-select-inset-block: var(--ui-control-inset-block-md, var(--ui-space-2));
       box-sizing: border-box !important;
       display: inline-block !important;
       inline-size: var(--ui-select-inline-size, 100%);
       min-inline-size: 0;
+      block-size: max(var(--_ui-select-size), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-select-inset-block) + 2 * var(--ui-border-width)));
       min-block-size: var(--ui-control-size-md);
       margin: 0 !important;
-      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-space-3) !important;
+      padding: var(--_ui-select-inset-block) var(--ui-space-3) !important;
       border: var(--ui-border-width) solid var(--ui-select-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-select-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background-color: var(--ui-select-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
@@ -144,8 +147,10 @@
     }
 
     :host([size="sm"]) {
+      --_ui-select-size: var(--ui-control-size-sm);
+      --_ui-select-inset-block: var(--ui-control-inset-block-sm, var(--ui-space-1));
       min-block-size: var(--ui-control-size-sm);
-      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
+      padding: var(--_ui-select-inset-block) var(--ui-space-2) !important;
       padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1)) !important;
       background-position: right var(--ui-space-2) center, center;
       background-size:
@@ -155,8 +160,10 @@
     }
 
     :host([size="lg"]) {
+      --_ui-select-size: var(--ui-control-size-lg);
+      --_ui-select-inset-block: var(--ui-control-inset-block-lg, var(--ui-space-3));
       min-block-size: var(--ui-control-size-lg);
-      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-space-4) !important;
+      padding: var(--_ui-select-inset-block) var(--ui-space-4) !important;
       padding-inline-end: calc(var(--ui-space-4) + 1.5rem) !important;
       background-position: right var(--ui-space-4) center, center;
       font-size: var(--ui-font-size-md);

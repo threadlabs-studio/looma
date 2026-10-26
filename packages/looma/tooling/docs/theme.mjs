@@ -273,15 +273,21 @@ export function themeCSS(input, systemCSS = '', { scope = 'portable' } = {}) {
   const selector = scope === 'documentation'
     ? ':root[data-looma-documentation-theme], :root[data-looma-documentation-theme] [data-theme], :root[data-looma-documentation-theme] [data-contrast]'
     : ':root, [data-theme], [data-contrast]';
-  const fontURL = googleFontURL(validateRecipe(input).fonts);
+  const recipe = validateRecipe(input);
+  const fontURL = googleFontURL(recipe.fonts);
   const imports = fontURL ? `@import url("${fontURL}");\n` : '';
   const light = deriveTheme(input, { mode: 'light' }).tokens;
   const dark = deriveTheme(input, { mode: 'dark' }).tokens;
   const palette = [], geometry = [];
+  const relativeLengths = new Map(themeFields.filter(field => field.property && field.type.includes('length') && recipe.values[field.id].endsWith('rem')).map(field => [field.property, recipe.values[field.id]]));
   for (const [name, value] of Object.entries(light)) {
     if (name === 'color-scheme') continue;
     if (/^#[\da-f]{6}$/i.test(value)) palette.push(`  ${name}: light-dark(${value}, ${dark[name]});`);
-    else geometry.push(`  ${name}: ${value};`);
+    else {
+      const relative = relativeLengths.get(name);
+      const resolved = relative ? value.replace(relative, `calc(${parseFloat(relative)} * var(--_ui-root-font-unit, 1rem))`) : value;
+      geometry.push(`  ${name}: ${resolved};`);
+    }
   }
   const geometrySelector = scope === 'documentation' ? ':root[data-looma-documentation-theme]' : ':root';
   const chevron = color => `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${color.replace('#', '%23')}' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`;

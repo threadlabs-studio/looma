@@ -199,7 +199,7 @@ test('relative geometry and shared control roominess derive from an explicit pix
   recipe.values['control-roominess'] = '2.5';
   recipe.values.spacing = '1.2';
   const css = themeCSS(recipe);
-  assert.match(css, /--ui-radius-md: clamp\(0px, 1\.125rem, 32px\)/);
+  assert.match(css, /--ui-radius-md: clamp\(0px, calc\(1\.125 \* var\(--_ui-root-font-unit, 1rem\)\), 32px\)/);
   assert.match(css, /--ui-control-roominess: 2\.5/);
   assert.match(css, /--ui-spacing: 1\.2/);
   assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, density: '1' } }), /Unknown/);
@@ -248,7 +248,7 @@ test('palette transformations preserve readable roles at their extremes in both 
 
 test('relative length guards retain the same pixel limits at every document root', () => {
   const recipe=defaultRecipe(); recipe.values['text-size']='18px'; recipe.values['line-weight']='0.027778rem';
-  assert.match(themeCSS(recipe), /--ui-border-width: clamp\(0\.5px, 0\.027778rem, 3px\)/);
+  assert.match(themeCSS(recipe), /--ui-border-width: clamp\(0\.5px, calc\(0\.027778 \* var\(--_ui-root-font-unit, 1rem\)\), 3px\)/);
   recipe.values['text-size']='14px'; recipe.values['corner-roundness']='2.285714rem';
-  assert.match(themeCSS(recipe), /--ui-radius-md: clamp\(0px, 2\.285714rem, 32px\)/);
+  assert.match(themeCSS(recipe), /--ui-radius-md: clamp\(0px, calc\(2\.285714 \* var\(--_ui-root-font-unit, 1rem\)\), 32px\)/);
 });
