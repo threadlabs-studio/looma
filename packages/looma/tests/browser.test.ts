@@ -1649,6 +1649,64 @@ describe("Expressive Markdown editor integration", () => {
 });
 
 describe("Editor callouts", () => {
+  async function openCalloutFixture() {
+    const path = await bundle("vue-editor-callout-layout", `
+      import { createApp, h, ref } from "vue";
+      import { Badge } from "@threadlabs/looma/vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const tone = ref("success");
+      window.setBadgeTone = value => { tone.value = value; };
+      createApp({ render: () => h("div", [
+        h(Badge, { id: "subtle-reference", variant: "subtle", tone: tone.value }, () => "Reference"),
+        h(LoomaEditor, { onReady: editor => { window.fixtureEditor = editor; } }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), join(root, "vue/components.css")]);
+    await page.waitForFunction(() => "fixtureEditor" in window);
+    return page;
+  }
+
+  it("keeps callout first lines aligned without collapsing authored whitespace", async () => {
+    const page = await openCalloutFixture();
+    const text = "Keep  both spaces.\nAnd this line.";
+    for (const width of [375, 1280]) for (const heading of ["", "Before you start"]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(({ text, heading }) => {
+        (window as unknown as { fixtureEditor: Editor }).fixtureEditor.commands.setContent({ type: "doc", content: [
+          { type: "loomaCallout", attrs: { tone: "tip", heading }, content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
+        ] });
+      }, { text, heading });
+      const callout = page.locator('.ProseMirror [data-component~="ui-callout"]');
+      await callout.waitFor();
+      const layout = await callout.evaluate(element => {
+        const icon = element.querySelector(".icon")!.getBoundingClientRect();
+        const body = element.querySelector<HTMLElement>("[data-looma-callout-body]")!;
+        const first = element.querySelector(".heading") ?? body.querySelector("p")!;
+        return { gap: Math.abs(icon.top - first.getBoundingClientRect().top), text: body.textContent, whiteSpace: getComputedStyle(body).whiteSpace };
+      });
+      assert.ok(layout.gap < 1, `callout icon and first line align at ${width}px (gap ${layout.gap})`);
+      assert.equal(layout.text, text);
+      assert.equal(layout.whiteSpace, "break-spaces", "document whitespace stays editable and preserved");
+    }
+    await page.close();
+  });
+
+  it("uses the tone's subtle surface in light and dark editor callouts", async () => {
+    const page = await openCalloutFixture();
+    for (const theme of ["light", "dark"]) for (const [tone, badgeTone] of Object.entries({ info: "info", tip: "success", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
+      await page.evaluate(({ theme, tone, badgeTone }) => {
+        document.documentElement.dataset.theme = theme;
+        const fixture = window as unknown as { fixtureEditor: Editor; setBadgeTone: (value: string) => void };
+        fixture.setBadgeTone(badgeTone);
+        fixture.fixtureEditor.commands.setContent({ type: "doc", content: [{ type: "loomaCallout", attrs: { tone }, content: [{ type: "paragraph", content: [{ type: "text", text: "A notice." }] }] }] });
+      }, { theme, tone, badgeTone });
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const surfaces = await page.evaluate(() => ({ callout: getComputedStyle(document.querySelector('.ProseMirror [data-component~="ui-callout"]')!).backgroundColor, subtle: getComputedStyle(document.querySelector("#subtle-reference")!).backgroundColor }));
+      assert.equal(surfaces.callout, surfaces.subtle, `${theme} ${tone} shares the subtle tone surface`);
+    }
+    await page.close();
+  });
+
   it("draws editor callouts, older asides included, with Callout and saves them as Callout", async () => {
     const path = await bundle("vue-editor-callout", `
       import { createApp, h } from "vue";
