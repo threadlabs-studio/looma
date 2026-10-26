@@ -9,6 +9,7 @@
 - Derive filled-action colors, readable labels and quieter secondary edges as a shared family. Preserve chromatic reflections and separate decorative glass transparency from frosting while keeping content plates opaque.
 - Give switch thumbs and empty checkbox/radio frames the shared material lighting and inset depth. Keep the current Safari preview, selection and control geometry fixes throughout theme customization.
 - Suppress disabled link activation before application click handlers, including router callbacks, and restore it when disabled is cleared.
+- Keep single-column editor specimens in page flow on narrow screens so tall material samples cannot cover controls being touched or dragged.
 
 - Use a lighter relative-color wash for colored callout backgrounds, deriving the hue from their tone while preserving borders, text and document spacing.
 

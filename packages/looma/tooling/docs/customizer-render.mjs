@@ -118,7 +118,7 @@ export function customizerResource(site, input = defaultRecipe()) {
     .palette-action { background: var(--_palette-action, var(--ui-accent)); }
     .motion-track { overflow: clip; display: flex; align-items: center; block-size: 5rem; padding: var(--ui-space-3); border-radius: var(--ui-radius-md); background: var(--ui-surface-muted); }
     [data-motion-object] { display: block; inline-size: 2rem; block-size: 2rem; border-radius: var(--ui-radius-sm); background: var(--ui-accent-solid); box-shadow: var(--ui-action-shadow); }
-    @media (max-width: 64rem) { .customizer-layout, .refinement-layout { grid-template-columns: minmax(0, 1fr); } aside { grid-row: auto; order: 1; position: static; max-block-size: none; } .palette-preview, .editor-preview { position: sticky; inset-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); z-index: 1; background: var(--ui-surface); max-block-size: none; overflow: visible; padding: 0 !important; } [data-theme-sampler] { order: 2; } .examples { order: 3; } }
+    @media (max-width: 64rem) { .customizer-layout, .refinement-layout { grid-template-columns: minmax(0, 1fr); } aside { grid-row: auto; order: 1; position: static; max-block-size: none; } .palette-preview, .editor-preview { position: sticky; inset-block-start: calc(var(--_editor-chrome-height, 4.25rem) + var(--ui-space-2)); z-index: 1; background: var(--ui-surface); max-block-size: none; overflow: visible; padding: 0 !important; } .editor-preview { position: static; } [data-theme-sampler] { order: 2; } .examples { order: 3; } }
     @media (max-width: 64rem) { .palette-preview[data-page-flow], .editor-preview[data-page-flow] { position: static; } }
   </style></template>`;
 }
