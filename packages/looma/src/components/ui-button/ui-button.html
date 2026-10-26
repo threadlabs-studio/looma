@@ -96,7 +96,7 @@
       from:tabindex="{ true: '0', false: null }[concat(($loading or $pending) and not $disabled)]"
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
-      <slot></slot>
+      <span class="label"><slot></slot></span>
       <span class="badge"><slot name="badge"></slot></span>
     </a>
     <button
@@ -109,7 +109,7 @@
       from:aria-busy="$loading or $pending"
     >
       <span $if="$loading or $pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
-      <slot></slot>
+      <span class="label"><slot></slot></span>
       <span class="badge"><slot name="badge"></slot></span>
     </button>
   </template>
@@ -237,6 +237,7 @@
 
     :host {
       --_button-square-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
+      box-sizing: border-box !important;
       appearance: none;
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       border-style: solid;
@@ -283,6 +284,21 @@
       padding-block: var(--ui-space-0-5) !important;
     }
 
+    /* Trim the text line itself: an anonymous flex item retains font-metric space in some fonts. */
+    .label {
+      display: block !important;
+      align-content: center !important;
+      min-inline-size: 0 !important;
+      min-block-size: 1lh !important;
+    }
+
+    .label:has(svg) {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      text-box-trim: none;
+    }
+
     .badge {
       display: inline-flex !important;
       align-items: center !important;
@@ -294,7 +310,7 @@
     }
 
     @supports (text-box-trim: trim-both) {
-      :host {
+      .label:not(:has(svg)) {
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
@@ -620,6 +636,11 @@
       text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
       text-underline-offset: 0.2em;
       transition: color var(--ui-motion-fast) var(--ui-motion-ease), text-decoration-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host[data-appearance="link"] .label {
+      display: inline !important;
+      text-box-trim: none;
     }
 
     :host[data-appearance="link"]:hover:not(:disabled, [aria-disabled="true"]) {

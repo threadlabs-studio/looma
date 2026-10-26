@@ -49,9 +49,9 @@ const starting = values => ({ schemaVersion: 1, values: { ...defaultRecipe().val
 export const startingPoints = {
   clear: defaultRecipe(),
   bookish: starting({ rhythm: '1.05', action: '#2e1228', canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c', 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9', 'response-time': '150ms', 'response-curve': 'ease' }),
-  wiki: starting({ rhythm: '0.8', 'text-weight': '400', 'space-curve': '0.8', action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.85', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
+  wiki: starting({ rhythm: '0.95', 'text-weight': '400', 'space-curve': '0.8', action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.95', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
   editorial: starting({ rhythm: '1.3', 'text-size': '17px', spacing: '1.12', 'space-curve': '1.4', 'scale-contrast': '1.3', action: '#182c24', canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24', 'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'line-weight': '2px', 'response-time': '90ms', 'response-curve': 'linear' }),
-  night: starting({ rhythm: '0.9', 'display-font': 'ui-monospace, monospace', 'text-weight': '600', 'control-roominess': '2.375', spacing: '0.9', 'scale-contrast': '1.25', 'space-curve': '1.2', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25', 'light-x': '0.25', 'light-spread': '0.65', action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
+  night: starting({ rhythm: '1.05', 'display-font': 'ui-monospace, monospace', 'text-weight': '500', 'control-roominess': '2.375', spacing: '1.05', 'scale-contrast': '1.25', 'space-curve': '1', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25', 'light-x': '0.25', 'light-spread': '0.65', action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
   garden: starting({ rhythm: '1.2', 'body-font': 'ui-rounded, system-ui, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'space-curve': '1.15', finish: '0.15', 'light-spread': '1', action: '#256342', canvas: '#f4edda', surface: '#fff8e7', text: '#173121', 'corner-roundness': '22px', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05', 'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)' }),
 };
 export const startingPointLabels = { clear: 'Clear', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
@@ -93,24 +93,6 @@ export function applyRefinement(input, family, id) {
 export function paletteFor(input) {
   const { values } = validateRecipe(input);
   return Object.entries(themePalettes).find(([, palette]) => paletteKeys.every(key => values[key].toLowerCase() === palette.values[key].toLowerCase()))?.[0] ?? 'custom';
-}
-
-export const themeVariations = { warmer: 'Warmer', quieter: 'Quieter', expressive: 'More expressive', compact: 'More compact' };
-/** Nearby choices reuse the same bounded semantics; locks protect whole decision families. */
-export function nearbyVariation(input, kind, locks = []) {
-  const recipe = validateRecipe(input);
-  if (!Object.hasOwn(themeVariations, kind)) throw new Error('Unknown theme variation.');
-  const deltas = {
-    warmer: { warmth: .15 }, quieter: { 'color-intensity': -.12, glow: -.1, 'outer-depth': -.15 },
-    expressive: { finish: .15, 'edge-light': .15, glow: .1 }, compact: { 'control-roominess': -.15, spacing: -.1 },
-  }[kind];
-  const values = { ...recipe.values };
-  for (const [id, delta] of Object.entries(deltas)) {
-    const field = themeFields.find(item => item.id === id);
-    const family = field.family === 'Colour' ? 'palette' : field.family === 'Material' ? 'material' : 'type';
-    if (!locks.includes(family)) values[id] = String(Number(Math.max(field.min, Math.min(field.max, Number(values[id]) + delta)).toFixed(3)));
-  }
-  return validateRecipe({ ...recipe, values });
 }
 
 const scalar = /^[+]?(?:\d+(?:\.\d*)?|\.\d+)$/;

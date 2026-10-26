@@ -9,6 +9,14 @@
 - Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
 
 
+### Focused theme customization
+
+- Start customization on a dashboard of current theme decisions. Open Palette, Material & light, Typography, Size & spacing, or Motion as separate editors, with relevant live samples beside their controls. Editor links support reload and browser navigation; Overview restores the dashboard position and focus.
+- Move the full component browser and export/save actions into their own destinations. Keep exact adjustments within their subject and remove nearby-style locks and the preview/apply/cancel workflow.
+- Keep LightEditor focused on direct manipulation and keyboard movement; open **Exact position** when coordinate entry is needed.
+- Centre Button label text using its own cap-height text box; keep inline link actions inline and boxed links the same height as buttons. Draw Checkbox ticks with a centred mask, independent of font metrics and the mixed-state bar.
+- Give choice hover a subtle accent fill without a focus-ring outline; preserve keyboard focus and forced-color indication. Relax Wiki and Night spacing defaults and give the sampler a clearer content hierarchy.
+
 ### Neutral controls, rhythm and state coverage
 
 - Open all choices from a committed Combobox label, preserve actual search drafts, and let the disclosure button close without focus reopening the popup.

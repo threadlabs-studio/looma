@@ -86,17 +86,28 @@ The generated values follow rules. The medium control height is base text size t
 
 Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Keep my colors preserves the base hues; Related colors and Contrasting colors tint quiet surfaces toward neighboring and opposite hues. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four Base colors remain visible for precise edits; the light/dark range previews and resolved values explain adjustments.
 
-The customizer uses Starting point, Palette and Material as its controls sidebar, with documentation navigation left out of this workspace. Detailed type, size and motion controls, example selection and exports open when needed.
+Documentation navigation stays out of the customization workspace. **Material & light** opens a movable light source, real component samples and bounded surface controls. **Palette** opens the coordinated light/dark ranges and their four Base colors. Each editor changes the same persistent theme. Returning to the overview, navigating to a component, or reloading keeps the result.
 
-The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four Base colors. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
+A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
-A refined preset keeps its name with “customized” beside it. **Restore material preset** resets only material and light; **Restore palette preset** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
-
-Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
+Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. LightEditor keeps its coordinate fields under **Exact position**. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
 
 Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared CSS derivation rules as well as resolved theme values. Download JSON separately to retain editable decisions and font/preset provenance. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
 
-Undo and Redo move through accepted recipe changes. There is no page-entry comparison state: reopening the customizer does not create a hidden before/after reference. **Explore nearby styles** previews Warmer, Quieter, More expressive or More compact before you apply it. Palette, Material and Type & spacing locks preserve those families during variations. Cancel preview returns to the current recipe.
+The customizer opens on a dashboard summarizing the current starting theme, palette,
+material, typography, spacing and motion. Open a summary to edit that subject; use
+**Overview** to return to the same dashboard position. Only the active editor shows
+its controls. Precise adjustments sit inside the relevant editor's detail sections.
+
+Typography pairs font selection with headings and body text. Size & spacing shows
+the shared control ladder and grouped content. Motion keeps a replayable study and
+a real popover beside duration and curve editing; the study follows the shared
+curve, travels at three times the feedback duration, and respects reduced motion.
+**Browse components** searches the complete catalog, with previews loaded in batches.
+**Export & save** contains downloads, recipe import and local repository saving.
+
+Edits apply immediately. Undo and Redo move through completed changes; Reset restores
+the current starting theme. There is no separate variation preview or apply step.
 
 Changes apply throughout the documentation and remain in this browser across navigation and reload until reset. Repository files change only when you save locally. Starting points update the shell and all selected cards. Reset restores the selected starting theme’s values and remains undoable. Removing the header’s Custom theme chip instead clears the browser override and restores the repository baseline. Invalid input keeps the last valid preview and explains which decision needs attention.
 

@@ -1,7 +1,7 @@
 import { googleFontStack, systemFont, loadGoogleFonts } from './fonts.mjs';
 import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme, nearbyVariation } from './theme.mjs';
+import { startingPoints, startingPointFor, startingPointLabels, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
 
 import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
@@ -13,6 +13,7 @@ export function connect(host) {
   const message = root.querySelector('[data-message]');
   const file = root.querySelector('[data-recipe-file]');
   const theme = documentationTheme(view);
+  const motionPreference = view.matchMedia('(prefers-reduced-motion: reduce)');
   let saved = validateRecipe(JSON.parse(root.dataset.recipe));
   let recipe = theme?.recipe ?? structuredClone(saved);
   let revision = root.dataset.revision;
@@ -24,8 +25,8 @@ export function connect(host) {
   const catalogExamples = [...root.querySelectorAll('[data-add-example] option[data-example]')].map(option => JSON.parse(option.dataset.example));
   const removedExamples = new Set();
   let previewQuery = '', previewLimit = 9;
-  let refinementTrigger;
-  let previewFrame = 0, pending = false, candidate, gestureStart;
+  let refinementTrigger, overviewScroll = 0, motionAnimation, motionSignature;
+  let previewFrame = 0, pending = false, gestureStart;
   const abort = new AbortController();
   const say = (text, error = false) => { message.textContent = text; message.setAttribute('role', error ? 'alert' : 'status'); };
   const sayApplied = text => say(theme?.storageAvailable ? text : 'Theme applies to this page. Browser storage is unavailable; download CSS or a recipe to keep it.');
@@ -63,7 +64,38 @@ export function connect(host) {
       }
     }
   };
+  const header = document.querySelector('[data-component~="markupress-header"]');
+  const previews = [...root.querySelectorAll('[data-editor-preview], .palette-preview')];
+  const updatePreviewLayout = () => {
+    const chrome = header?.getBoundingClientRect().height ?? 0;
+    root.style.setProperty('--_editor-chrome-height', `${chrome}px`);
+    for (const preview of previews) preview.toggleAttribute('data-page-flow', preview.offsetHeight > (view.innerHeight - chrome) / 2);
+  };
+  const replayMotion = () => {
+    const element = root.querySelector('[data-motion-object]');
+    const duration = parseFloat(convertValueUnit(recipe.values['response-time'], 'ms', unitContext()));
+    motionAnimation?.cancel();
+    const available = Math.max(0, element.parentElement.clientWidth - element.offsetWidth - 2 * parseFloat(view.getComputedStyle(element.parentElement).paddingInlineStart));
+    const start = available * .3, end = available * .7;
+    element.style.transform = `translateX(${start}px)`;
+    if (motionPreference.matches) return;
+    motionAnimation = element.animate([{ transform: `translateX(${start}px)` }, { transform: `translateX(${end}px)` }], { duration: Math.max(0, duration) * 3, easing: recipe.values['response-curve'], iterations: 2, direction: 'alternate', fill: 'none' });
+  };
   const paint = () => {
+    const values = recipe.values;
+    root.querySelector('[data-theme-summary]').textContent = startingPointLabels[recipe.origin ?? startingPointFor(recipe)] ?? 'Your theme';
+    const summaries = {
+      palette: `${themePalettes[refinementState(recipe, 'palette').id]?.label ?? 'Custom colors'} · Light & dark`,
+      material: `${materialPresets[refinementState(recipe, 'material').id]?.label ?? 'Custom material'}`,
+      typography: `${recipe.fonts?.['body-font'] ?? values['body-font'].split(',')[0]} · ${values['text-size']}`,
+      layout: `${Number(values.rhythm) * Number(values.spacing) < .95 ? 'Compact' : Number(values.rhythm) * Number(values.spacing) > 1.2 ? 'Relaxed' : 'Comfortable'} · ${parseFloat(values['corner-roundness']) === 0 ? 'Square' : 'Rounded'} corners`,
+      motion: `${values['response-time']} · ${values['response-curve'].startsWith('cubic-bezier') ? 'Custom curve' : values['response-curve']}`,
+    };
+    for (const [family, text] of Object.entries(summaries)) root.querySelector(`[data-summary="${family}"]`).textContent = text;
+    root.querySelector('[data-motion-readout]').textContent = `${values['response-time']} feedback · ${parseFloat(convertValueUnit(values['response-time'], 'ms', unitContext())) * 3}ms travel`;
+    componentRegistry.update(root.querySelector('[data-action="replay-motion"]'), { disabled: motionPreference.matches });
+    root.querySelector('[data-motion-preference]').textContent = motionPreference.matches ? 'Reduced motion is on. The study stays still.' : 'Travel is three times the feedback duration, like a larger surface transition.';
+
     const css = theme?.css || themeCSS(recipe);
     if (boundsBase !== recipe.values['text-size']) {
       boundsBase = recipe.values['text-size'];
@@ -86,13 +118,16 @@ export function connect(host) {
       }
       componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
     }
-    for (const control of root.querySelectorAll('[data-font-picker]')) componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
+    for (const control of root.querySelectorAll('[data-font-picker]')) {
+      control.querySelector('option[value=custom]').textContent = recipe.values[control.dataset.fontPicker].split(',')[0].replaceAll('"', '').trim();
+      componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
+    }
     componentRegistry.update(root.querySelector('[data-light-editor]'), { x: Number(recipe.values['light-x']), y: Number(recipe.values['light-y']) });
     const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
     const report = root.querySelector('[data-palette-adjustments]');
     report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your base colors stay editable; resolved values are shown below.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
     root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Base colors remain editable.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
-    for (const card of root.querySelectorAll('[data-example-card]')) if (card.getClientRects().length) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
+    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
     const cssControl = root.querySelector('[data-css]');
     if (cssControl.getClientRects().length) updateControl(cssControl, css);
     for (const action of ['undo','redo']) componentRegistry.update(root.querySelector(`[data-action="${action}"]`), { disabled: !theme?.[action === 'undo' ? 'canUndo' : 'canRedo'] });
@@ -110,6 +145,11 @@ export function connect(host) {
     const gaps = root.querySelector('[data-spacing-samples]');
     gaps.setAttribute('aria-label', `Spacing progression with curve ${recipe.values['space-curve']}`);
     updateSizes();
+    updatePreviewLayout();
+    const nextMotion = `${values['response-time']}/${values['response-curve']}`;
+    if (!root.querySelector('[data-refinement-view="motion"]').hidden && motionSignature !== nextMotion) {
+      motionSignature = nextMotion; replayMotion();
+    }
   };
   const show = (next, persist = true) => {
     recipe = validateRecipe(next);
@@ -120,15 +160,9 @@ export function connect(host) {
     changed = JSON.stringify(recipe) !== JSON.stringify(saved);
     paint();
   };
-  const clearPreview = () => {
-    if (!candidate) return;
-    candidate = undefined; theme?.compare();
-    root.querySelector('[data-variation-confirm]').hidden = true;
-  };
   const preview = next => {
     const validated = validateRecipe(next);
     if (JSON.stringify(validated.values) === JSON.stringify(recipe.values)) return;
-    clearPreview();
     if (!pending) gestureStart = structuredClone(recipe);
     recipe = validated; pending = true;
     if (!previewFrame) previewFrame = view.requestAnimationFrame(() => {
@@ -205,49 +239,42 @@ export function connect(host) {
     const link = document.createElement('a'); link.href = url; link.download = name; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
   };
+  const renderView = () => {
+    const family = view.location.hash.slice(1);
+    const section = [...root.querySelectorAll('[data-refinement-view]')].find(element => element.dataset.refinementView === family);
+    const overview = root.querySelector('[data-customizer-overview]');
+    if (section) refinementTrigger = root.querySelector(`[data-action="refine-${family}"]`);
+    for (const element of root.querySelectorAll('[data-refinement-view]')) element.hidden = element !== section;
+    overview.hidden = Boolean(section);
+    motionAnimation?.cancel();
+    if (family === 'motion') motionSignature = undefined;
+    paint();
+    if (section) { section.focus(); section.scrollIntoView({ block: 'start' }); }
+    else { refinementTrigger?.focus({ preventScroll: true }); view.scrollTo({ top: overviewScroll, behavior: 'instant' }); }
+  };
+  const navigate = family => {
+    flush();
+    view.history.pushState(null, '', view.location.pathname + view.location.search + (family ? '#' + family : ''));
+    renderView();
+  };
   const click = async event => {
     const button = event.target.closest?.('[data-action]');
     if (!button) { view.requestAnimationFrame(paint); return; }
     if (button.dataset.action === 'save' && saving) return;
+    if (button.matches('a')) event.preventDefault();
     flush();
-    if (!['preview-variation', 'apply-variation', 'cancel-variation'].includes(button.dataset.action)) clearPreview();
     try {
       switch (button.dataset.action) {
+        case 'replay-motion': replayMotion(); break;
         case 'undo': case 'redo':
           theme?.[button.dataset.action](); show(theme?.recipe ?? recipe, false); sayApplied('Previous theme decision restored.'); break;
-        case 'preview-variation': {
-          clearPreview();
-          const locks = [...root.querySelectorAll('[data-family-lock]')].filter(control => control.querySelector('input')?.checked).map(control => control.dataset.familyLock);
-          candidate = nearbyVariation(recipe, root.querySelector('[data-variation-choice]').dataset.selectedValue, locks);
-          theme?.compare(candidate); root.querySelector('[data-variation-confirm]').hidden = false;
-          const differences = themeFields.filter(field => recipe.values[field.id] !== candidate.values[field.id]);
-          root.querySelector('[data-variation-description]').textContent = differences.length ? differences.map(field => `${field.label}: ${recipe.values[field.id]} → ${candidate.values[field.id]}`).join('; ') : 'No changes: the relevant families are locked or already at their bounds.';
-          break;
-        }
-        case 'apply-variation': {
-          const selected = candidate; clearPreview();
-          if (selected) show(selected); sayApplied('Variation applied. Undo returns to your previous theme.'); break;
-        }
-        case 'cancel-variation': clearPreview(); paint(); say('Variation cancelled; your theme is unchanged.'); break;
-        case 'light-top': case 'light-left': case 'light-center': {
-          const positions = { 'light-top': [.5, 0], 'light-left': [.15, .15], 'light-center': [.5, .5] };
-          const [x, y] = positions[button.dataset.action];
-          show(refinedRecipe({ ...recipe.values, 'light-x': String(x), 'light-y': String(y) }));
-          sayApplied('Light direction applied throughout your theme.'); break;
-        }
-        case 'refine-material': case 'refine-palette': {
+        case 'refine-material': case 'refine-palette': case 'refine-typography': case 'refine-layout': case 'refine-motion': case 'refine-themes': case 'refine-export': case 'refine-components': {
           const family = button.dataset.action.slice(7);
-          refinementTrigger = button;
-          root.querySelector('[data-customizer-overview]').hidden = true;
-          for (const section of root.querySelectorAll('[data-refinement-view]')) section.hidden = section.dataset.refinementView !== family;
-          const section = root.querySelector(`[data-refinement-view="${family}"]`);
-          paint(); section.focus(); section.scrollIntoView({ block: 'start' });
+          refinementTrigger = button; overviewScroll = view.scrollY;
+          navigate(family);
           break;
         }
-        case 'back':
-          for (const section of root.querySelectorAll('[data-refinement-view]')) section.hidden = true;
-          root.querySelector('[data-customizer-overview]').hidden = false;
-          paint(); refinementTrigger?.focus(); break;
+        case 'back': navigate(''); break;
         case 'restore-material': case 'restore-palette': {
           const family = button.dataset.action.slice(8), state = refinementState(recipe, family);
           if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${family === 'material' ? 'Material' : 'Palette'} preset restored; other theme decisions are unchanged.`); }
@@ -302,7 +329,7 @@ export function connect(host) {
     if (event.target.matches('[data-light-editor]') || event.target.closest?.('[data-token]')) {
       input(event); flush(); sayApplied('Theme remembered in this browser. Undo restores the previous decision.'); return;
     }
-    flush(); clearPreview();
+    flush();
     if (event.target.matches('[data-unit-for]')) {
       const field = fields.get(event.target.dataset.unitFor);
       try {
@@ -328,14 +355,14 @@ export function connect(host) {
   const choose = event => {
     if (!event.target.matches('[data-choice]') || event.detail.kind !== 'selection') return;
     event.target.dataset.selectedValue = event.detail.value;
-    if (!event.target.matches('[data-variation-choice]')) change(event);
+    change(event);
   };
   const blur = event => { const control = event.target; if (control.closest?.('[data-token]')) queueMicrotask(() => { if (alive && control.validity?.customError) say(control.validationMessage, true); }); };
   const synchronize = () => { if (!pending && theme && JSON.stringify(recipe) !== JSON.stringify(theme.recipe)) show(theme.recipe, false); };
   const cancel = event => { if (event.target.matches('[data-light-editor], [data-editor-kind="curve"]')) { flush(false); say('Drag cancelled; the previous value is restored.'); } };
   const keyboard = event => {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.target.closest?.('input,textarea,select,[contenteditable="true"]')) return;
-    event.preventDefault(); flush(); clearPreview(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
+    event.preventDefault(); flush(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
   };
   const ready = event => {
     if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
@@ -352,7 +379,7 @@ export function connect(host) {
   let fontRequest = 0;
   const selectFont = async event => {
     const control = event.target.closest?.('[data-font-picker]'); if (!control) return;
-    flush(); clearPreview();
+    flush();
     const id = control.dataset.fontPicker, family = event.detail.value;
     const fonts = { ...recipe.fonts };
     if (family === 'system' || family === 'inherit') delete fonts[id]; else fonts[id] = family;
@@ -377,6 +404,11 @@ export function connect(host) {
     selectedExample = event.detail.value ?? '';
     filterExamples();
   };
+  const motionPreferenceChanged = () => { motionAnimation?.cancel(); paint(); };
+  const previewObserver = new view.ResizeObserver(updatePreviewLayout);
+  for (const element of [...previews, ...(header ? [header] : [])]) previewObserver.observe(element);
+  view.addEventListener('resize', updatePreviewLayout);
+  motionPreference.addEventListener('change', motionPreferenceChanged);
   root.addEventListener('toggle', updateSizes, true);
   root.addEventListener('looma-example-remove', remove);
   root.addEventListener('input', input);
@@ -389,9 +421,12 @@ export function connect(host) {
   root.addEventListener('change', change);
   root.addEventListener('click', click);
   view.addEventListener('message', ready);
+  view.addEventListener('popstate', renderView);
+  view.addEventListener('hashchange', renderView);
   view.addEventListener('beforeunload', flush);
   view.addEventListener(themeEvent, synchronize);
   show(recipe, false); filterExamples();
+  if (view.location.hash) renderView();
   if (theme?.storageAvailable === false) sayApplied('');
   if (root.dataset.mode === 'local') {
     fetch(root.dataset.base + '_looma/session', { signal: abort.signal }).then(async response => {
@@ -403,5 +438,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { root.removeEventListener('toggle', updateSizes, true); flush(); clearPreview(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener(themeEvent, synchronize); };
+  return () => { previewObserver.disconnect(); view.removeEventListener('resize', updatePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
 }

@@ -142,7 +142,8 @@
 
     input::after {
       content: "";
-      position: absolute;
+      position: absolute !important;
+      transform: none !important;
       opacity: 0;
       transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
     }
@@ -155,43 +156,44 @@
       box-shadow: var(--ui-control-inset);
     }
 
-    /* Centre the tick's box and lift it slightly for the rotated check shape. */
+    /* The SVG's painted bounds are centred in its viewBox, including its round stroke.
+       Centre that box directly; rotated border boxes do not centre the visible check. */
     input:checked::after {
-      inset: 0;
-      margin: auto !important;
-      inline-size: calc(var(--_ui-checkbox-size) * 0.28 / 1.125);
-      block-size: calc(var(--_ui-checkbox-size) * 0.5 / 1.125);
-      /* Longhands, not `border: solid var(...)`: lowering drops a shorthand that omits a
-         component, which left the tick with no style and no colour. */
-      border-style: solid;
-      border-color: var(--ui-text-on-accent);
-      border-width: 0 calc(var(--_ui-checkbox-size) * 0.125 / 1.125) calc(var(--_ui-checkbox-size) * 0.125 / 1.125) 0;
+      inset: 50% auto auto 50% !important;
+      inline-size: calc(var(--_ui-checkbox-size) * 0.7) !important;
+      block-size: calc(var(--_ui-checkbox-size) * 0.7) !important;
+      background: var(--ui-text-on-accent);
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 11.5 5 5 9-9'/%3E%3C/svg%3E")
+        center / contain no-repeat;
       opacity: 1;
-      transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg);
+      translate: -50% -50% !important;
       animation: ui-checkbox-check var(--ui-motion-base) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     input:indeterminate::after {
-      inset: 50% calc(var(--_ui-checkbox-size) * 0.23 / 1.125) auto;
-      block-size: calc(var(--_ui-checkbox-size) * 0.125 / 1.125);
+      mask: none;
+      animation: none;
+      inset: 50% calc(var(--_ui-checkbox-size) * 0.23 / 1.125) auto !important;
+      inline-size: auto !important;
+      block-size: calc(var(--_ui-checkbox-size) * 0.125 / 1.125) !important;
       border-radius: var(--ui-radius-round);
       background: var(--ui-text-on-accent);
       opacity: 1;
-      transform: translateY(-50%);
+      translate: 0 -50% !important;
     }
 
     @keyframes ui-checkbox-check {
       from {
         opacity: 0;
-        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(0.55);
+        scale: 0.55;
       }
       65% {
         opacity: 1;
-        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(1.12);
+        scale: 1.12;
       }
       to {
         opacity: 1;
-        transform: translateY(calc(var(--_ui-checkbox-size) * -0.09 / 1.125)) rotate(45deg) scale(1);
+        scale: 1;
       }
     }
 
@@ -199,6 +201,20 @@
       input::after {
         transition: none;
         animation: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      input:checked,
+      input:indeterminate {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+      }
+      input:checked::after,
+      input:indeterminate::after {
+        forced-color-adjust: none;
+        background: HighlightText;
       }
     }
 
