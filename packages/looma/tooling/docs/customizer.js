@@ -64,6 +64,13 @@ export function connect(host) {
       }
     }
   };
+  const header = document.querySelector('[data-component~="markupress-header"]');
+  const previews = [...root.querySelectorAll('[data-editor-preview], .palette-preview')];
+  const updatePreviewLayout = () => {
+    const chrome = header?.getBoundingClientRect().height ?? 0;
+    root.style.setProperty('--_editor-chrome-height', `${chrome}px`);
+    for (const preview of previews) preview.toggleAttribute('data-page-flow', preview.offsetHeight > (view.innerHeight - chrome) / 2);
+  };
   const replayMotion = () => {
     const element = root.querySelector('[data-motion-object]');
     const duration = parseFloat(convertValueUnit(recipe.values['response-time'], 'ms', unitContext()));
@@ -138,6 +145,7 @@ export function connect(host) {
     const gaps = root.querySelector('[data-spacing-samples]');
     gaps.setAttribute('aria-label', `Spacing progression with curve ${recipe.values['space-curve']}`);
     updateSizes();
+    updatePreviewLayout();
     const nextMotion = `${values['response-time']}/${values['response-curve']}`;
     if (!root.querySelector('[data-refinement-view="motion"]').hidden && motionSignature !== nextMotion) {
       motionSignature = nextMotion; replayMotion();
@@ -397,6 +405,9 @@ export function connect(host) {
     filterExamples();
   };
   const motionPreferenceChanged = () => { motionAnimation?.cancel(); paint(); };
+  const previewObserver = new view.ResizeObserver(updatePreviewLayout);
+  for (const element of [...previews, ...(header ? [header] : [])]) previewObserver.observe(element);
+  view.addEventListener('resize', updatePreviewLayout);
   motionPreference.addEventListener('change', motionPreferenceChanged);
   root.addEventListener('toggle', updateSizes, true);
   root.addEventListener('looma-example-remove', remove);
@@ -427,5 +438,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
+  return () => { previewObserver.disconnect(); view.removeEventListener('resize', updatePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
 }

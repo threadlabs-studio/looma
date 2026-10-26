@@ -3677,6 +3677,12 @@ describe("Button as a link", () => {
 
     for (const id of [...variants, "large"]) {
       assert.deepEqual(await look(page, `#${id}-link`), await look(page, `#${id}-button`), `${id} at rest`);
+      if (id !== 'link') {
+        const buttonBox = (await page.locator(`#${id}-button`).boundingBox())!;
+        const linkBox = (await page.locator(`#${id}-link`).boundingBox())!;
+        assert.ok(Math.abs(linkBox.height - buttonBox.height) < .6, `${id}: boxed link and button heights match`);
+        assert.ok(Math.abs(linkBox.width - buttonBox.width) < .6, `${id}: boxed link and button widths match`);
+      }
       await page.hover(`#${id}-button`);
       const hovered = await look(page, `#${id}-button`);
       await page.hover(`#${id}-link`);
@@ -10893,16 +10899,16 @@ describe("Optional semantic theme recipe", () => {
     const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@threadlabs/looma';` : `
       import {createApp,h} from 'vue';import {Button,Input,Switch,ColorPicker} from '@threadlabs/looma/vue';
       createApp({render:()=>h('div',{},[
-        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
+        ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Button,{id:'recipe-link-'+size,size,as:'a',href:'#next'},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
         h(Switch,{id:'recipe-switch',checked:true},()=> 'A switch'),h('div',{'data-theme':'nested',id:'nested'},[h(Button,{id:'nested-action'},()=> 'Nested action')])
       ])}).mount('#app');`);
-    const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
+    const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-button id="recipe-link-${size}" size="${size}" as="a" href="#next">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
     const page = await open(path, body, [join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
     try {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),32,'legacy sizing stays unchanged without the optional recipe');
       await page.addStyleTag({path:join(root,'theme-system.css')});
       await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-spacing:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
-      for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','colour']) {
+      for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','link','colour']) {
         const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button':'');
         assert.ok(Math.abs((await page.locator(selector).boundingBox())!.height-height)<.6,selector);
       }
@@ -10926,7 +10932,7 @@ describe("Optional semantic theme recipe", () => {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),35);
       await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-spacing:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
       for (const size of ['sm','md','lg']) {
-        const heights = await Promise.all(['action','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
+        const heights = await Promise.all(['action','link','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
         assert.ok(Math.max(...heights)-Math.min(...heights)<.6, 'large typography and curved page spacing preserve shared boxes: '+heights.join(','));
       }
       await page.emulateMedia({reducedMotion:'reduce'});
@@ -11029,6 +11035,8 @@ describe("Shared readable material planes", () => {
       const handle=page.getByRole('button',{name:/Light position. Arrow keys/});
       const x=page.getByRole('spinbutton',{name:'Light horizontal position',exact:true});
       const y=page.getByRole('spinbutton',{name:'Light vertical position',exact:true});
+      await x.waitFor({state:'hidden'});
+      await page.getByRole('button',{name:'Exact position',exact:true}).click();
       await handle.focus(); await handle.press('ArrowRight'); await handle.press('Shift+ArrowDown');
       assert.equal(await x.inputValue(),'51%'); assert.equal(await y.inputValue(),'30%');
       await x.fill('100 / 4'); await x.press('Enter'); assert.equal(await x.inputValue(),'25%');

@@ -1,5 +1,6 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <link rel="component" href="../ui-number-input/ui-number-input.html">
+<link rel="component" href="../ui-disclosure/ui-disclosure.html">
 <template component="ui-light-editor" module="./ui-light-editor.js">
   <defs>
     <state name="horizontal" type="string" value="50"></state>
@@ -29,31 +30,31 @@
         </button>
       </span>
     </span>
-    <span class="coordinates">
-      <ui-number-input
-        data-coordinate="x"
-        from:value="$horizontal"
-        min="0"
-        max="100"
-        step="1"
-        unit="%"
-        label="Light horizontal position"
-        from:size="$size"
-        from:disabled="$disabled"
-      ></ui-number-input>
-      <ui-number-input
-        data-coordinate="y"
-        from:value="$vertical"
-        min="0"
-        max="100"
-        step="1"
-        unit="%"
-        label="Light vertical position"
-        from:size="$size"
-        from:disabled="$disabled"
-      ></ui-number-input>
-    </span>
     <span class="hint">Drag or tap to move the light. Arrow keys adjust; Escape cancels.</span>
+    <ui-disclosure summary="Exact position"><span class="coordinates">
+        <ui-number-input
+          data-coordinate="x"
+          from:value="$horizontal"
+          min="0"
+          max="100"
+          step="1"
+          unit="%"
+          label="Light horizontal position"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input>
+        <ui-number-input
+          data-coordinate="y"
+          from:value="$vertical"
+          min="0"
+          max="100"
+          step="1"
+          unit="%"
+          label="Light vertical position"
+          from:size="$size"
+          from:disabled="$disabled"
+        ></ui-number-input>
+      </span></ui-disclosure>
   </span>
   <style>
     :host {

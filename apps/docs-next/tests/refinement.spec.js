@@ -148,6 +148,8 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
     const base=page.getByRole('spinbutton',{name:'Base text size',exact:true});
     await base.fill('24px');await base.press('Enter');
     await openEditor(page, 'layout');
+    await expect(page.locator('[data-editor-preview="layout"]')).toHaveCSS('position', 'static');
+    await page.getByRole('spinbutton', {name:'Control roominess',exact:true}).click();
     for (const size of ['sm','md','lg']) {
       const row=page.locator(`[data-size-sample="${size}"]`);
       expect(await row.evaluate(el=>{

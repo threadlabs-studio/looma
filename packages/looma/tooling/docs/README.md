@@ -90,7 +90,7 @@ Documentation navigation stays out of the customization workspace. **Material & 
 
 A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
-Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
+Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. LightEditor keeps its coordinate fields under **Exact position**. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
 
 Lengths retain their CSS units, such as `rem`; times retain `ms` or `s`. The downloaded CSS includes the canonical shared CSS derivation rules as well as resolved theme values. Download JSON separately to retain editable decisions and font/preset provenance. Import a downloaded JSON recipe to continue editing it. Keep hand-written CSS in a separate overrides file so regenerating the theme does not replace it.
 

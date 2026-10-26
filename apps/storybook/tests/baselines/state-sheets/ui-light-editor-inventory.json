@@ -61,5 +61,11 @@
     "props": {},
     "example": 0,
     "interaction": "pressed"
+  },
+  {
+    "name": "exact position entry",
+    "props": {},
+    "example": 0,
+    "interaction": "authored"
   }
 ]
