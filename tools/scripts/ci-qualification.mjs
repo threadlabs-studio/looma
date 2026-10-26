@@ -94,7 +94,7 @@ async function main() {
   }
   if (command !== "run") throw new Error("Choose plan or run quality/browser/package-consumer/docs");
   if (stage === "quality") {
-    const builtDocs = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/"));
+    const builtDocs = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/") || file.startsWith("apps/docs-next/"));
     if (builtDocs) run(["--filter", "@threadlabs/looma", "build"]);
     // Run the selected script files together instead of spawning Node once for every case/file.
     if (selection.scripts.length) {
