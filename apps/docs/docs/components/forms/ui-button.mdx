@@ -10,9 +10,13 @@ Essential button primitive that enhances semantic button markup and styling hook
 
 <ComponentExamplesApiTabs component="ui-button" />
 
+Supply `href` to render a native link automatically: `<ui-button href="/guide">Read the guide</ui-button>`
+or `<Button href="/guide">Read the guide</Button>` in Vue. Omit `href` for a native button.
+`target` and `rel` apply to links; `type` applies to buttons.
+
 Set `loading` while an action is running. The button keeps its label and keyboard focus, shows a
 spinner, exposes `aria-disabled` and `aria-busy`, and blocks clicks and form submission. Clear the
-prop when the action finishes. This also works with `as="a"`: the loading link keeps its focus
+prop when the action finishes. This also works with `href`: the loading link keeps its focus
 position but cannot navigate.
 
 Put a non-interactive count in the `badge` slot of a boxed Button sized `sm` or larger. The slot keeps a 24px Badge inside
