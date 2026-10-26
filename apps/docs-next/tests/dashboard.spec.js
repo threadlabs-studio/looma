@@ -28,7 +28,8 @@ for (const width of [390, 1280]) test(`dashboard opens only the requested editor
       await page.goBack(); await expect(overview).toBeVisible();
       await page.goForward(); await expect(editor).toBeVisible();
       await page.reload(); await expect(editor).toBeVisible();
-      await expect(editor.getByRole('combobox', { name: 'Heading font', exact: true })).toBeHidden();
+      // WebKit locator visibility overlooks a collapsed panel's content-visibility.
+      await expect.poll(() => editor.getByRole('combobox', { name: 'Heading font', exact: true }).evaluate(element => element.checkVisibility())).toBe(false);
     }
     if (family === 'themes') await chooseOption(editor.getByRole('combobox', { name: 'Starting point', exact: true }), 'garden');
     await editor.locator('[data-action="back"]').click();
@@ -51,15 +52,18 @@ test('motion study uses the edited duration and curve and respects reduced motio
   await duration.fill('0.3s'); await duration.press('Enter');
   await editor.getByRole('button', {name:'Shape the curve',exact:true}).click();
   const curve = editor.getByRole('textbox', {name:'Response curve',exact:true});
+  await expect.poll(() => curve.evaluate(element => element.checkVisibility())).toBe(true);
   await curve.fill('linear'); await curve.press('Tab');
   await editor.locator('[data-action="replay-motion"]').click();
   const study = page.locator('[data-motion-object]');
   await expect.poll(() => study.evaluate(el => el.getAnimations().length)).toBe(1);
-  const timing = await study.evaluate(el => el.getAnimations()[0].effect.getTiming());
-  expect(timing.duration).toBe(900);
-  expect(timing.easing).toBe('linear');
+  await expect.poll(() => study.evaluate(el => {
+    const timing=el.getAnimations()[0]?.effect.getTiming();
+    return {duration:timing?.duration,linear:['linear','cubic-bezier(0, 0, 1, 1)'].includes(timing?.easing)};
+  })).toEqual({duration:900,linear:true});
   await curve.fill('cubic-bezier(0.5,2,0.5,2)'); await curve.press('Tab');
   await editor.locator('[data-action="replay-motion"]').click();
+  await expect.poll(() => study.evaluate(el => el.getAnimations()[0]?.effect.getTiming().easing)).toBe('cubic-bezier(0.5, 2, 0.5, 2)');
   await study.evaluate(el => { const animation=el.getAnimations()[0];animation.pause();animation.currentTime=Number(animation.effect.getTiming().duration)*.58; });
   expect(await study.evaluate(el => { const marker=el.getBoundingClientRect(),track=el.parentElement.getBoundingClientRect();return marker.left>=track.left&&marker.right<=track.right; })).toBe(true);
   await page.emulateMedia({ reducedMotion: 'reduce' });

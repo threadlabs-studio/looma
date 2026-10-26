@@ -1,4 +1,6 @@
 <link rel="component" href="../ui-scroll-area/ui-scroll-area.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-dialog" module="./ui-dialog.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the dialog is open initially or when set externally.</prop>
@@ -39,7 +41,7 @@
   <dialog from:aria-label="$accessibleLabel">
     <header $ref="header">
       <h2 class="title" $if="$label">{$label}</h2>
-      <button class="close" $ref="close" type="button" aria-label="Close"></button>
+      <div class="close"><ui-icon-button $ref="close" size="sm" round label="Close"><ui-icon name="x"></ui-icon></ui-icon-button></div>
     </header>
     <div class="body" $ref="body"><ui-scroll-area from:trim="true"><slot></slot></ui-scroll-area></div>
     <footer $ref="footer"><slot name="actions"></slot></footer>
@@ -231,58 +233,10 @@
     }
 
     .close {
-      display: inline-grid !important;
-      place-items: center;
-      flex: none;
+      display: flex !important;
+      align-items: center !important;
+      flex: none !important;
       margin-inline-start: auto !important;
-      inline-size: var(--ui-control-size-sm);
-      block-size: var(--ui-control-size-sm);
-      padding: 0 !important;
-      border: 0;
-      border-radius: var(--ui-radius-round);
-      background: transparent;
-      color: var(--ui-text-secondary);
-      cursor: pointer;
-      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
-    }
-
-    /* A CSS-drawn X. */
-    .close::before,
-    .close::after {
-      content: "";
-      grid-area: 1 / 1;
-      inline-size: 0.875rem;
-      block-size: 1.5px;
-      border-radius: 1px;
-      background: currentColor;
-      transform: rotate(45deg);
-    }
-
-    .close::after {
-      transform: rotate(-45deg);
-    }
-
-    .close:hover {
-      background: var(--ui-surface-muted);
-      color: var(--ui-text-primary);
-    }
-
-    .close:focus-visible {
-      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
-      outline-offset: var(--ui-focus-width);
-    }
-
-    /* A touch target, like Button on coarse pointers. */
-    @media (pointer: coarse) {
-      .close {
-        inline-size: var(--ui-control-min-block-size);
-        block-size: var(--ui-control-min-block-size);
-      }
-    }
-
-    html[data-ui-input-modality="touch"] :host .close {
-      inline-size: var(--ui-control-min-block-size);
-      block-size: var(--ui-control-min-block-size);
     }
 
     .body {

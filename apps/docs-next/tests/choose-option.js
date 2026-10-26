@@ -38,3 +38,11 @@ export async function chooseRefinement(page, family, value) {
   const editor = await openEditor(page, family);
   await chooseOption(editor.getByRole('combobox', { name: `${family === 'palette' ? 'Palette' : 'Material'} preset`, exact: true }), value);
 }
+
+/** WebKit's driver misses intercepted Navigation API commits even when the document updates. */
+export async function followDocumentationLink(page, link, heading) {
+  const destination = await link.evaluate(element => element.href);
+  await link.click({noWaitAfter:true});
+  await page.waitForFunction(({destination,heading}) => location.href === destination && document.querySelector('h1')?.textContent.trim() === heading, {destination,heading});
+  if (page.context().browser().browserType().name() === 'webkit') await page.goto(destination);
+}

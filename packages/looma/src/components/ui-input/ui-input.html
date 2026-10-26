@@ -94,15 +94,26 @@
       syntax: "*";
       inherits: false;
     }
+    /* Normalize a unitless zero border to a length before the box calculation. */
+    @property --_ui-input-stroke {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 1px;
+    }
 
     :host {
+      --_ui-input-size: var(--ui-control-size-md);
+      --_ui-input-inset-block: var(--ui-control-inset-block-md, var(--ui-space-2));
+      --_ui-input-stroke: var(--ui-input-border-width, var(--_ui-default-input-border-width, var(--ui-border-width)));
       box-sizing: border-box !important;
       display: inline-block !important;
       inline-size: var(--ui-input-inline-size, 100%);
       min-inline-size: 0;
+      /* Safari's native text metrics can exceed line-height; the shared box owns this single line. */
+      block-size: max(calc(var(--_ui-input-size) - var(--_ui-default-input-frame-width, 0px)), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-input-inset-block) + 2 * var(--_ui-input-stroke)));
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-md)));
       margin: 0 !important;
-      padding: var(--ui-control-inset-block-md, var(--ui-space-2)) var(--ui-space-3) !important;
+      padding: var(--_ui-input-inset-block) var(--ui-space-3) !important;
       appearance: none;
       padding-inline-start: var(--_ui-default-input-padding-inline-start, var(--ui-space-3)) !important;
       border: var(--ui-input-border-width, var(--_ui-default-input-border-width, var(--ui-border-width))) solid
@@ -122,14 +133,18 @@
 
     /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */
     :host([size="sm"]) {
+      --_ui-input-size: var(--ui-control-size-sm);
+      --_ui-input-inset-block: var(--ui-control-inset-block-sm, var(--ui-space-1));
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-sm)));
-      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-space-2) !important;
+      padding: var(--_ui-input-inset-block) var(--ui-space-2) !important;
       font-size: var(--ui-font-size-sm);
     }
 
     :host([size="lg"]) {
+      --_ui-input-size: var(--ui-control-size-lg);
+      --_ui-input-inset-block: var(--ui-control-inset-block-lg, var(--ui-space-3));
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-lg)));
-      padding: var(--ui-control-inset-block-lg, var(--ui-space-3)) var(--ui-space-4) !important;
+      padding: var(--_ui-input-inset-block) var(--ui-space-4) !important;
       font-size: var(--ui-font-size-md);
     }
 
