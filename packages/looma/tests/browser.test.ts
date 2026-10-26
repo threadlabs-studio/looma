@@ -56,6 +56,49 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("SiteHeader", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`centers baseline-aligned branding and navigation beside growing actions in ${adapter}`, async () => {
+    const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      import { createApp, h } from "vue";
+      import { SiteHeader, Button } from "@threadlabs/looma/vue";
+      createApp({render:()=>h(SiteHeader,{id:"site",sticky:true},{
+        brand:()=>h("a",{href:"#home",id:"brand"},"Fellowship"),
+        navigation:()=>[h("a",{href:"#guide",id:"destination"},"Guide"),h("a",{href:"#components"},"Components")],
+        menu:()=>h(Button,{id:"menu",popovertarget:"drawer",tone:"neutral"},()=>"Menu"),
+        actions:()=>h(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
+      })}).mount("#app");
+    `);
+    const page=await open(path, `${adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="menu" id="menu" popovertarget="drawer" tone="neutral">Menu</ui-button><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>'}<nav id="drawer" popover>Mobile destinations</nav>`, [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
+    try {
+      for(const dir of ["ltr","rtl"]) {
+        await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
+        for(const height of [32,64]) {
+          await page.locator('#action').evaluate((el,height)=>(el as HTMLElement).style.setProperty('--ui-button-min-block-size',height+'px'),height);
+          const alignment=await page.locator('#site').evaluate(header=>{
+            const center=(el:Element)=>{const b=el.getBoundingClientRect();return b.y+b.height/2;};
+            const probes=[header.querySelector('#brand')!,header.querySelector('#destination')!].map(el=>{const p=document.createElement('span');p.style.cssText='display:inline-block;width:0;height:0;vertical-align:baseline';el.append(p);return p;});
+            const baseline=Math.abs(probes[0].getBoundingClientRect().y-probes[1].getBoundingClientRect().y);probes.forEach(p=>p.remove());
+            return {center:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),baseline};
+          });
+          assert.ok(alignment.center<1,`${dir}/${height}: action and text groups stay centred`);
+          assert.ok(alignment.baseline<1,`${dir}/${height}: brand and navigation share a baseline`);
+        }
+      }
+      await page.setViewportSize({width:375,height:800});
+      assert.equal(await page.locator('#brand').isVisible(),true,'the brand stays visible when navigation collapses');
+      assert.equal(await page.locator('#destination').isVisible(),false);
+      assert.equal(await page.locator('#menu').isVisible(),true);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      await page.locator('#menu').click();
+      assert.equal(await page.locator('#drawer').isVisible(),true);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('#drawer').isVisible(),false);
+      await page.locator('#menu').evaluate(element=>element.remove());
+      assert.equal(await page.locator('#destination').isVisible(),true,'destinations remain available without a menu trigger');
+    } finally {await page.close();}
+  });
+});
+
 describe("Skeleton", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`matches content geometry and respects motion preferences in ${adapter}`, async () => {
