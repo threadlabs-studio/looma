@@ -13,14 +13,14 @@ async function run(command, args, cwd) {
 const json = (file, value) => writeFile(file, JSON.stringify(value, null, 2) + '\n');
 
 /** Qualify the shipped product from an isolated install, including its real local writer and watcher. */
-export async function verifyDocumentationConsumer(directory, tarball, manifest, markupress = manifest.peerDependencies.markupress) {
+export async function verifyDocumentationConsumer(directory, tarball, manifest) {
   const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   await mkdir(directory, { recursive: true });
   await json(path.join(directory, 'package.json'), {
     name: 'looma-documentation-consumer', private: true, type: 'module',
     dependencies: {
       '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
-      '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress, vite: manifest.peerDependencies.vite,
+      '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
   });
   await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline'], directory);

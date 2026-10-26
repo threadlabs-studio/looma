@@ -1,63 +1,47 @@
 ---
 title: Looma
-description: Declarative components, woven into the web platform.
+description: Beautiful interfaces, built into the web. Accessible components, expressive themes, and a design system you can make your own.
 layout: home
 ---
 
-# Looma
-
-The UI library built on Declarative HTML Components. Write a component as markup, and ship it as real native HTML or as Vue components compiled from the same definition.
-
-[Get started](/getting-started/) · [Explore components](/components/) · [Weave your design system](/customize/)
-
-```bash
-pnpm add @threadlabs/looma
-```
-
 <link rel="component" href="@/app/components/looma-home-demo.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
 
+<div>
+<ui-text variant="eyebrow" tone="accent">Looma · A design system for the web</ui-text>
+</div>
+
+# Beautiful interfaces.<br>Built into the web.
+
+Thoughtful components. A theme that feels like you. Real HTML underneath it all.
+
+Build with accessible controls, expressive surfaces, and layout that works together—from your first button to your whole application.
+
+[Start building](/getting-started/)
+[Make it yours](/customize/)
+
+<div>
+<ui-text variant="code" size="sm" tone="secondary"><code>pnpm add @threadlabs/looma</code></ui-text>
+</div>
+
+<div data-hero-media>
 <looma-home-demo></looma-home-demo>
+</div>
 
-## One source, written as markup
+## Good design comes together.
 
-Looma is built on [Declarative HTML Components](https://nextwebwg.org/html-next/), a proposal to give HTML its own reactive component model. Every component is written once; the same definition ships as native HTML and Vue.
+Buttons, fields, navigation, dialogs, and writing tools share the same visual language. Compose a complete interface from pieces designed to belong together.
 
-::: code-group syntax
-```html title="HTML Next"
-<ui-button variant="solid">Save</ui-button>
-```
+[Explore the components](/components/)
 
-```html title="Native output"
-<button data-component="ui-button" data-ui-button-state="variant variant=solid">
-  Save
-</button>
-```
+## Your identity. Every detail.
 
-```vue title="Vue"
-<script setup lang="ts">
-import { Button } from "@threadlabs/looma/vue";
-</script>
+Start with a palette and a typeface. Shape the rhythm, corners, depth, and motion. Shared decisions carry through the whole system, in light and dark.
 
-<template>
-  <Button variant="solid">Save</Button>
-</template>
-```
-:::
+[Try the theme studio](/customize/)
 
-A page gets a real native button, with the browser's focus, forms and accessibility. A Vue application gets an ordinary Vue component compiled from the same definition.
+## Markup first. Platform native.
 
-## The platform does the work
+Author components in HTML Next. Ship semantic HTML or Vue from the same definition, with native focus, forms, and browser behavior at the foundation.
 
-Components lower to native elements, styles scope with CSS `@scope`, and validity uses the browser's constraint validation. The component definitions own layout and behavior; themes change supported semantic properties.
-
-## A few shared decisions, a complete design system
-
-Choose your palette, type, size, spaciousness, corners, depth and motion. Shared formulas derive consistent control sizes, spacing scales, surfaces and feedback. Try the [customizer](/customize/) on the same component cards used in the reference, then download your theme.
-
-Install the documentation generator with Looma to save that theme into your repository, document your own HTML Next components beside Looma's, and make these docs your design system.
-
-## Support you can inspect
-
-Read the [release support and limitations](/release-1-support/), the [component contract](/architecture/), and the [theme token reference](/tokens/).
-
-[View Looma on GitHub](https://github.com/threadlabs-studio/looma)
+[See how Looma works](/architecture/)
