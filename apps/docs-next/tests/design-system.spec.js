@@ -170,8 +170,9 @@ test('customizer reuses real cards, updates every isolated preview and exports t
     await expect.poll(() => consumer.locator('[data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
     const consumerButton = consumer.locator('[data-preview] button').first();
+    const lightCanvas = await consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
     await consumer.locator('html').evaluate(element => { element.dataset.theme = 'dark'; });
-    await expect.poll(() => consumerButton.evaluate(appearance)).not.toEqual(previewAppearance);
+    await expect.poll(() => consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor)).not.toEqual(lightCanvas);
     await consumerButton.evaluate(element => {
       const boundary = document.createElement('section'); boundary.dataset.theme = 'light';
       element.parentElement.insertBefore(boundary, element); boundary.append(element);
@@ -461,6 +462,7 @@ test('starting theme refinements remember their material and palette without res
   await openEditor(page, 'material');
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass');
+  await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   await material.getByRole('button', { name: /^Theme light position. Arrow keys/ }).press('Shift+ArrowRight');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
   await material.getByRole('button', { name: 'Overview', exact: true }).click();
