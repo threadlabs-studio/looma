@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Schedule customizer preview layout outside resize notification delivery, preventing intermittent Safari ResizeObserver loop warnings while preserving preview sizing.
+
 - Keep Combobox option taps working in Safari by retaining input focus during `mousedown` rather than cancelling touch `pointerdown`. Exercise theme, palette, material and font selection with real taps in the Safari audit.
 - Use the shared small IconButton for Dialog close actions, including its icon, visible sizing and focus treatment. Touch no longer enlarges the visible close control.
 - Authorize each isolated preview's bundled runtime by its content hash, so Safari runs interactive examples and applies live theme changes without granting previews access to their parent page.
