@@ -1308,7 +1308,7 @@ describe("Toast composition and placement", () => {
               const css = getComputedStyle(element);
               const probe = element.appendChild(document.createElement("span"));
               probe.style.backgroundColor = tone === "neutral" ? "var(--ui-surface-muted)"
-                : kind === "callout" ? `color-mix(in srgb, var(--ui-${tone}-solid) 19%, var(--ui-surface-default))`
+                : kind === "callout" ? `oklch(from var(--ui-${tone}-solid) l c h / 10%)`
                 : `var(--ui-${tone}-soft)`;
               probe.style.fontSize = "var(--ui-font-size-sm)";
               const expectedSurface = getComputedStyle(probe).backgroundColor;
@@ -1653,15 +1653,9 @@ describe("Expressive Markdown editor integration", () => {
 describe("Editor callouts", () => {
   async function openCalloutFixture() {
     const path = await bundle("vue-editor-callout-layout", `
-      import { createApp, h, ref } from "vue";
-      import { Badge } from "@threadlabs/looma/vue";
+      import { createApp, h } from "vue";
       import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-      const tone = ref("success");
-      window.setBadgeTone = value => { tone.value = value; };
-      createApp({ render: () => h("div", [
-        h(Badge, { id: "subtle-reference", variant: "subtle", tone: tone.value }, () => "Reference"),
-        h(LoomaEditor, { onReady: editor => { window.fixtureEditor = editor; } }),
-      ]) }).mount("#app");
+      createApp({ render: () => h(LoomaEditor, { onReady: editor => { window.fixtureEditor = editor; } }) }).mount("#app");
     `);
     const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), join(root, "vue/components.css")]);
     await page.waitForFunction(() => "fixtureEditor" in window);
@@ -1744,18 +1738,24 @@ describe("Editor callouts", () => {
     await page.close();
   });
 
-  it("uses the tone's subtle surface in light and dark editor callouts", async () => {
+  it("uses a light relative-color tone wash in light and dark editor callouts", async () => {
     const page = await openCalloutFixture();
-    for (const theme of ["light", "dark"]) for (const [tone, badgeTone] of Object.entries({ info: "info", tip: "success", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
-      await page.evaluate(({ theme, tone, badgeTone }) => {
+    for (const theme of ["light", "dark"]) for (const [tone, colorTone] of Object.entries({ info: "info", tip: "success", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
+      await page.evaluate(({ theme, tone }) => {
         document.documentElement.dataset.theme = theme;
-        const fixture = window as unknown as { fixtureEditor: Editor; setBadgeTone: (value: string) => void };
-        fixture.setBadgeTone(badgeTone);
+        const fixture = window as unknown as { fixtureEditor: Editor };
         fixture.fixtureEditor.commands.setContent({ type: "doc", content: [{ type: "loomaCallout", attrs: { tone }, content: [{ type: "paragraph", content: [{ type: "text", text: "A notice." }] }] }] });
-      }, { theme, tone, badgeTone });
+      }, { theme, tone });
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-      const surfaces = await page.evaluate(() => ({ callout: getComputedStyle(document.querySelector('.ProseMirror [data-component~="ui-callout"]')!).backgroundColor, subtle: getComputedStyle(document.querySelector("#subtle-reference")!).backgroundColor }));
-      assert.equal(surfaces.callout, surfaces.subtle, `${theme} ${tone} shares the subtle tone surface`);
+      const surfaces = await page.evaluate(colorTone => {
+        const probe = document.body.appendChild(document.createElement("span"));
+        probe.style.backgroundColor = `oklch(from var(--ui-${colorTone}-solid) l c h / 10%)`;
+        const expected = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return { callout: getComputedStyle(document.querySelector('.ProseMirror [data-component~="ui-callout"]')!).backgroundColor, expected };
+      }, colorTone);
+      assert.equal(surfaces.callout, surfaces.expected, `${theme} ${tone} derives a light wash from its own tone`);
+      assert.match(surfaces.callout, /\/ 0\.1\)$/u, "the background remains a light translucent wash");
     }
     await page.close();
   });
