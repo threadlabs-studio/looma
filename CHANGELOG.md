@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep SiteHeader full width in centered layouts and let long branding shrink within its mobile row, preserving the visible logo and trailing controls.
+
 - Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
 - **Breaking:** Button now renders a native link whenever `href` is supplied, including `href=""`, and a native button otherwise. Remove Button's `as` prop: replace `as="a" href="…"` with `href="…"`; omit `href` for button actions. Disabled and loading links retain their navigation guards.
 

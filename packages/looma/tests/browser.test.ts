@@ -70,6 +70,8 @@ describe("SiteHeader", () => {
     `);
     const page=await open(path, `${adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="menu" id="menu" popovertarget="drawer" tone="neutral">Menu</ui-button><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>'}<nav id="drawer" popover>Mobile destinations</nav>`, [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
     try {
+      await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
+      assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
       for(const dir of ["ltr","rtl"]) {
         await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
         for(const height of [32,64]) {
@@ -84,7 +86,17 @@ describe("SiteHeader", () => {
           assert.ok(alignment.baseline<1,`${dir}/${height}: brand and navigation share a baseline`);
         }
       }
+      await page.locator('#brand').evaluate(element=>{
+        const title=document.createElement('span'); title.textContent='Example documentation with a deliberately long product title';
+        title.style.cssText='min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'; element.replaceChildren(title);
+      });
       await page.setViewportSize({width:375,height:800});
+      const mobile=await page.locator('#site').evaluate(header=>{
+        const identity=header.querySelector('.identity')!.getBoundingClientRect(), actions=header.querySelector('.actions')!.getBoundingClientRect();
+        return {delta:Math.abs(identity.y+identity.height/2-actions.y-actions.height/2), width:identity.width};
+      });
+      assert.ok(mobile.delta<1,'long branding stays in the same mobile row as actions');
+      assert.ok(mobile.width>0,'branding retains visible space');
       assert.equal(await page.locator('#brand').isVisible(),true,'the brand stays visible when navigation collapses');
       assert.equal(await page.locator('#destination').isVisible(),false);
       assert.equal(await page.locator('#menu').isVisible(),true);
