@@ -1555,6 +1555,19 @@
       ]
     },
     {
+      "path": "components/ui-site-header",
+      "title": "Site Header",
+      "source": "apps/docs/docs/components/display/ui-site-header.mdx",
+      "component": "ui-site-header",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Site navigation",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-skeleton",
       "title": "Skeleton",
       "source": "apps/docs/docs/components/display/ui-skeleton.mdx",

@@ -47,6 +47,14 @@ for (const component of api.components) {
     states.push({ name: interaction.name, props: {}, example, run: interaction.run });
     if (component.tag === 'ui-sidebar') states.push({ name: 'Mobile drawer', props: {}, example, run: interaction.run, viewport: { width: 320, height: 480 } });
   }
+  if (component.tag === 'ui-site-header') {
+    states.push({ name: 'Mobile header', props: {}, example: 0, viewport: { width: 375, height: 480 } });
+    states.push({ name: 'Mobile navigation open', props: {}, example: 0, viewport: { width: 375, height: 480 }, run: async (_page, stage) => {
+      await expect(stage.getByRole('link', { name: 'Folio home' })).toBeVisible();
+      await stage.getByRole('button', { name: 'Open navigation' }).click();
+      await expect(stage.getByRole('navigation', { name: 'Compact navigation' })).toBeVisible();
+    } });
+  }
   const themes = themed.has(component.tag) ? ['looma', 'clear', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
   for (const theme of themes)
     for (const mode of ['light', 'dark'])
@@ -54,7 +62,7 @@ for (const component of api.components) {
         expect(JSON.stringify(states.map(({ name, props, example, interaction, run, viewport }) => ({ name, props, example, interaction, viewport, ...(run ? { interaction: 'authored' } : {}) })), null, 2)).toMatchSnapshot(`${component.tag}-inventory.json`);
         // A sidebar's resize and docked states need a desktop viewport; crop the
         // sidebar itself into a compact cell, and exercise the drawer separately.
-        const viewport = { width: component.tag === 'ui-sidebar' ? 960 : 320, height: 480 };
+        const viewport = { width: component.tag === 'ui-site-header' ? 1024 : component.tag === 'ui-sidebar' ? 960 : 320, height: 480 };
         await page.setViewportSize(viewport);
         await page.goto(`http://127.0.0.1:6020/iframe.html?id=visual-component-states--fixture&viewMode=story&component=${component.tag}&theme=${theme}&mode=${mode}`);
         await page.waitForFunction(() => typeof (window as unknown as {

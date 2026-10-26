@@ -1,0 +1,164 @@
+<template component="ui-site-header">
+  <defs>
+    <prop name="label" type="string" default="Main">Accessible name for the primary navigation region.</prop>
+    <prop name="sticky" type="boolean" default="false">Keeps the header at the top of its scrolling container.</prop>
+    <prop name="breakpoint" type="keyword" values="sm, md, lg" default="lg"
+    >The viewport width at which navigation replaces the menu trigger: sm is 40rem, md 48rem, and lg 64rem. The consumer owns the menu or drawer the trigger
+      opens.</prop>
+  </defs>
+  <header>
+    <span class="menu"><slot name="menu"></slot></span>
+    <div class="identity">
+      <div class="brand"><slot name="brand"></slot></div>
+      <nav class="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav>
+    </div>
+    <div class="actions"><slot name="actions"></slot></div>
+  </header>
+  <style>
+    @property --ui-site-header-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-site-header-compact-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-site-header-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-site-header-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-site-header-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-site-header-z-index {
+      syntax: "*";
+      inherits: false;
+    }
+
+    :host {
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      align-content: center !important;
+      gap: var(--ui-space-2) !important;
+      min-inline-size: 0;
+      min-block-size: var(--ui-site-header-compact-height, 3.75rem);
+      padding: var(--ui-space-2) var(--ui-site-header-padding-inline, var(--ui-space-4)) !important;
+      border-block-end: var(--ui-border-width) solid var(--ui-site-header-border, var(--ui-border));
+      background: var(--ui-site-header-surface, var(--ui-surface));
+      color: var(--ui-text-primary);
+    }
+    :host([sticky]) {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: var(--ui-site-header-z-index, 10);
+    }
+    .menu, .actions {
+      display: flex !important;
+      flex: none;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+    }
+    .actions {
+      flex-wrap: wrap !important;
+      margin-inline-start: auto !important;
+    }
+    /* Text shares a baseline inside one group; the group is centred beside any control height. */
+    .identity {
+      display: flex !important;
+      flex: 1 1 auto;
+      flex-wrap: wrap !important;
+      align-items: baseline !important;
+      gap: var(--ui-space-2) var(--ui-space-6) !important;
+      min-inline-size: 0;
+    }
+    .brand {
+      min-inline-size: 0;
+      font-size: var(--ui-font-size-lg);
+      font-weight: var(--ui-font-bold);
+    }
+    .brand > :slotted(a) {
+      display: inline-flex !important;
+      align-items: baseline !important;
+      gap: var(--ui-space-3) !important;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      color: inherit;
+      text-decoration: none;
+    }
+    .navigation {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: baseline !important;
+      gap: var(--ui-space-2) var(--ui-space-5) !important;
+      min-inline-size: 0;
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-semibold);
+    }
+    /* Without a supplied menu trigger, keep the destinations available on narrow screens. */
+    :host:has(> .menu:not(:empty)) .navigation {
+      display: none !important;
+    }
+    .navigation > :slotted(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+    .navigation > :slotted(a):is(:hover, [aria-current="page"], [aria-current="true"]) {
+      color: var(--ui-accent-active);
+    }
+    .brand > :slotted(a):focus-visible, .navigation > :slotted(a):focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
+    }
+    .menu:empty, .actions:empty, .brand:empty, .navigation:empty {
+      display: none !important;
+    }
+    @media (min-width: 40rem) {
+      :host([breakpoint="sm"]) {
+        min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
+      }
+      :host([breakpoint="sm"]) .navigation:not(:empty) {
+        display: flex !important;
+      }
+      :host([breakpoint="sm"]) .menu {
+        display: none !important;
+      }
+    }
+    @media (min-width: 48rem) {
+      :host([breakpoint="md"]) {
+        min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
+      }
+      :host([breakpoint="md"]) .navigation:not(:empty) {
+        display: flex !important;
+      }
+      :host([breakpoint="md"]) .menu {
+        display: none !important;
+      }
+    }
+    @media (min-width: 64rem) {
+      :host([breakpoint="lg"]) {
+        min-block-size: var(--ui-site-header-height, 4.25rem);
+        column-gap: var(--ui-space-4) !important;
+      }
+      :host([breakpoint="lg"]) .navigation:not(:empty) {
+        display: flex !important;
+      }
+      :host([breakpoint="lg"]) .menu {
+        display: none !important;
+      }
+    }
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>
