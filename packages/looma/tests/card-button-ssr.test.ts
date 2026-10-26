@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
@@ -27,7 +28,7 @@ describe("CardButton before upgrade", () => {
     expect(html).not.toMatch(/<button[^>]*\sdisabled(?:[= >])/);
   });
   it("retains Button's disabled link contract", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h(Button, { variant: "card", as: "a", href: "/guide", disabled: true }, () => "Guide") }));
+    const html = await renderToString(createSSRApp({ render: () => h(Button, { variant: "card", href: "/guide", disabled: true }, () => "Guide") }));
     expect(html).toMatch(/<a\b/);
     expect(html).not.toMatch(/<a[^>]*\shref="\/guide"/);
     expect(html).toContain('aria-disabled="true"');
@@ -51,5 +52,30 @@ describe("Button semantic presets before upgrade", () => {
     const html = await renderToString(createSSRApp({ render: () => h(Button, { variant: "outline", tone: "success" }, () => "Approve Sam's leave") }));
     expect(html).toContain('data-appearance="outline"');
     expect(html).toContain('data-tone="success"');
+  });
+});
+
+describe("Button link inference before upgrade", () => {
+  it.each(["outline", "card"])("uses href alone to select the %s root", async (variant) => {
+    for (const href of ["/guide", ""]) {
+      const html = await renderToString(createSSRApp({ render: () => h(Button, { variant, href, target: "_blank", rel: "noreferrer" }, () => "Guide") }));
+      expect(html).toMatch(/<a\b/);
+      expect(new JSDOM(html).window.document.querySelector("a")?.getAttribute("href")).toBe(href);
+      expect(html).toContain('target="_blank"');
+      expect(html).toContain('rel="noreferrer"');
+      expect(html).not.toMatch(/<a[^>]*\stype=/);
+    }
+    const html = await renderToString(createSSRApp({ render: () => h(Button, { variant, type: "submit" }, () => "Send") }));
+    expect(html).toMatch(/<button\b/);
+    expect(html).toContain('type="submit"');
+  });
+
+  it.each(["outline", "card"])("keeps a loading %s link focusable without navigation", async (variant) => {
+    const html = await renderToString(createSSRApp({ render: () => h(Button, { variant, href: "/guide", loading: true }, () => "Guide") }));
+    expect(html).toMatch(/<a\b/);
+    expect(html).not.toMatch(/<a[^>]*\shref=/);
+    expect(html).toContain('aria-disabled="true"');
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('tabindex="0"');
   });
 });
