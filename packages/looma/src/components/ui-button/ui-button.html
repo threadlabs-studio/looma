@@ -286,7 +286,16 @@
     /* Trim the text line itself: an anonymous flex item retains font-metric space in some fonts. */
     .label {
       display: block !important;
+      align-content: center !important;
       min-inline-size: 0;
+      min-block-size: 1lh;
+    }
+
+    .label:has(svg) {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      text-box-trim: none;
     }
 
     .badge {
@@ -300,7 +309,7 @@
     }
 
     @supports (text-box-trim: trim-both) {
-      .label {
+      .label:not(:has(svg)) {
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }

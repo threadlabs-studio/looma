@@ -68,9 +68,11 @@ export function connect(host) {
     const element = root.querySelector('[data-motion-object]');
     const duration = parseFloat(convertValueUnit(recipe.values['response-time'], 'ms', unitContext()));
     motionAnimation?.cancel();
+    const available = Math.max(0, element.parentElement.clientWidth - element.offsetWidth - 2 * parseFloat(view.getComputedStyle(element.parentElement).paddingInlineStart));
+    const start = available * .3, end = available * .7;
+    element.style.transform = `translateX(${start}px)`;
     if (motionPreference.matches) return;
-    const distance = element.parentElement.clientWidth - element.offsetWidth - 2 * parseFloat(view.getComputedStyle(element.parentElement).paddingInlineStart);
-    motionAnimation = element.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${Math.max(0, distance)}px)` }], { duration: Math.max(0, duration) * 3, easing: recipe.values['response-curve'], iterations: 2, direction: 'alternate', fill: 'none' });
+    motionAnimation = element.animate([{ transform: `translateX(${start}px)` }, { transform: `translateX(${end}px)` }], { duration: Math.max(0, duration) * 3, easing: recipe.values['response-curve'], iterations: 2, direction: 'alternate', fill: 'none' });
   };
   const paint = () => {
     const values = recipe.values;
@@ -84,6 +86,7 @@ export function connect(host) {
     };
     for (const [family, text] of Object.entries(summaries)) root.querySelector(`[data-summary="${family}"]`).textContent = text;
     root.querySelector('[data-motion-readout]').textContent = `${values['response-time']} feedback · ${parseFloat(convertValueUnit(values['response-time'], 'ms', unitContext())) * 3}ms travel`;
+    componentRegistry.update(root.querySelector('[data-action="replay-motion"]'), { disabled: motionPreference.matches });
     root.querySelector('[data-motion-preference]').textContent = motionPreference.matches ? 'Reduced motion is on. The study stays still.' : 'Travel is three times the feedback duration, like a larger surface transition.';
 
     const css = theme?.css || themeCSS(recipe);
@@ -108,7 +111,10 @@ export function connect(host) {
       }
       componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
     }
-    for (const control of root.querySelectorAll('[data-font-picker]')) componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
+    for (const control of root.querySelectorAll('[data-font-picker]')) {
+      control.querySelector('option[value=custom]').textContent = recipe.values[control.dataset.fontPicker].split(',')[0].replaceAll('"', '').trim();
+      componentRegistry.update(control, { value: control.dataset.fontPicker === 'display-font' && recipe.values['display-font'] === recipe.values['body-font'] ? 'inherit' : recipe.fonts?.[control.dataset.fontPicker] ?? (recipe.values[control.dataset.fontPicker] === systemFont ? 'system' : 'custom') });
+    }
     componentRegistry.update(root.querySelector('[data-light-editor]'), { x: Number(recipe.values['light-x']), y: Number(recipe.values['light-y']) });
     const adjustments = ['light', 'dark'].flatMap(mode => deriveTheme(recipe, { mode }).adjustments.map(item => ({ ...item, mode })));
     const report = root.querySelector('[data-palette-adjustments]');
@@ -254,12 +260,6 @@ export function connect(host) {
         case 'replay-motion': replayMotion(); break;
         case 'undo': case 'redo':
           theme?.[button.dataset.action](); show(theme?.recipe ?? recipe, false); sayApplied('Previous theme decision restored.'); break;
-        case 'light-top': case 'light-left': case 'light-center': {
-          const positions = { 'light-top': [.5, 0], 'light-left': [.15, .15], 'light-center': [.5, .5] };
-          const [x, y] = positions[button.dataset.action];
-          show(refinedRecipe({ ...recipe.values, 'light-x': String(x), 'light-y': String(y) }));
-          sayApplied('Light direction applied throughout your theme.'); break;
-        }
         case 'refine-material': case 'refine-palette': case 'refine-typography': case 'refine-layout': case 'refine-motion': case 'refine-themes': case 'refine-export': case 'refine-components': {
           const family = button.dataset.action.slice(7);
           refinementTrigger = button; overviewScroll = view.scrollY;

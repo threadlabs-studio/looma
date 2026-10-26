@@ -20,8 +20,8 @@ test('completed edits undo and redo persist without an ambiguous comparison mode
   await page.getByRole('button',{name:'Try floating surfaces',exact:true}).click();
   const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] iframe').contentFrame().getByRole('button',{name:'Join briefing',exact:true});
   await expect.poll(() => card.evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
-  await page.getByRole('button',{name:'Upper left',exact:true}).click();
-  expect((await session(page)).values['light-x']).toBe('0.15');
+  await page.locator('[data-light-editor] .source').press('Shift+ArrowLeft');
+  expect((await session(page)).values['light-x']).toBe('0.4');
   await expect(page.locator('[data-theme-origin]')).toHaveCount(0);
   await page.getByRole('button',{name:'Undo',exact:true}).click();
   expect((await session(page)).values['light-x']).toBe('0.5');
@@ -92,6 +92,12 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
 });
 
 test('Google selection loads actual font faces, exports its import, and system font removes that selection', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await openEditor(page, 'export');
+  const baselineDownload=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Download CSS',exact:true}).click();
+  const baselineCSS=await readFile(await (await baselineDownload).path(),'utf8');
+  expect(baselineCSS).toContain('family=Manrope:wght@400;500;600;700&display=swap');
   const errors=await enter(page,info);
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});

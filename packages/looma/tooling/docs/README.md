@@ -86,9 +86,7 @@ The generated values follow rules. The medium control height is base text size t
 
 Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Keep my colors preserves the base hues; Related colors and Contrasting colors tint quiet surfaces toward neighboring and opposite hues. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four Base colors remain visible for precise edits; the light/dark range previews and resolved values explain adjustments.
 
-The customizer uses Starting point, Palette and Material as its controls sidebar, with documentation navigation left out of this workspace. Detailed type, size and motion controls, example selection and exports open when needed.
-
-The main customizer offers Material and Palette presets. **Refine material & light** opens a focused view with a movable light source, real component samples and bounded surface controls. **Refine palette** opens the coordinated light/dark ranges and their four Base colors. Both views edit the same theme as the main customizer. Returning to the overview, navigating to a component, or reloading keeps the result.
+Documentation navigation stays out of the customization workspace. **Material & light** opens a movable light source, real component samples and bounded surface controls. **Palette** opens the coordinated light/dark ranges and their four Base colors. Each editor changes the same persistent theme. Returning to the overview, navigating to a component, or reloading keeps the result.
 
 A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
