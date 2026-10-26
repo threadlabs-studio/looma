@@ -8,7 +8,8 @@
     "build": "looma-docs build",
     "preview": "looma-docs preview",
     "lint": "echo \"docs-next: lint not configured\"",
-    "test": "node scripts/check-copies.mjs",
+    "test": "node scripts/check-copies.mjs && node --test scripts/*.test.mjs",
+    "test:homepage": "playwright test --config playwright.homepage.config.js --workers=1",
     "test:parity": "playwright test",
     "typecheck": "echo \"docs-next: typecheck not configured\""
   },
