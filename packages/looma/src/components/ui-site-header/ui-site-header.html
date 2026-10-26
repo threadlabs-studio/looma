@@ -47,6 +47,7 @@
       align-items: center !important;
       align-content: center !important;
       gap: var(--ui-space-2) !important;
+      inline-size: 100%;
       min-inline-size: 0;
       min-block-size: var(--ui-site-header-compact-height, 3.75rem);
       padding: var(--ui-space-2) var(--ui-site-header-padding-inline, var(--ui-space-4)) !important;
@@ -68,13 +69,16 @@
       max-inline-size: 100%;
     }
     .actions {
-      flex-wrap: wrap !important;
+      display: grid !important;
+      grid-auto-flow: column !important;
+      grid-auto-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+      justify-items: center !important;
       margin-inline-start: auto !important;
     }
     /* Text shares a baseline inside one group; the group is centred beside any control height. */
     .identity {
       display: flex !important;
-      flex: 1 1 auto;
+      flex: 1 1 0;
       flex-wrap: wrap !important;
       align-items: baseline !important;
       gap: var(--ui-space-2) var(--ui-space-6) !important;
