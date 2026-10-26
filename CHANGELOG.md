@@ -6,7 +6,7 @@
 - Use the shared small IconButton for Dialog close actions, including its icon, visible sizing and focus treatment. Touch no longer enlarges the visible close control.
 - Authorize each isolated preview's bundled runtime by its content hash, so Safari runs interactive examples and applies live theme changes without granting previews access to their parent page.
 - Resolve the actual root-font unit before deriving shared control heights, keeping Safari's registered lengths aligned with both the base-font token and direct root-font changes.
-- Keep single-line native fields inside the shared control box in Safari, including grouped fields, instead of letting native text metrics enlarge them beyond matching buttons.
+- Keep native text fields inside the shared control box in Safari, including grouped fields, instead of letting native text metrics enlarge them beyond matching buttons.
 
 - Use published Markupress 0.10 instead of a bootstrap tarball for corrected header alignment, themed home actions, and live hero content.
 - Rework the public homepage around a live component showcase and clearer paths to building and theming. Center the documentation header while preserving its text baseline, and give home actions an explicit themed accent.
