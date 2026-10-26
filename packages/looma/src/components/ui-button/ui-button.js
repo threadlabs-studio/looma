@@ -5,6 +5,9 @@ export function connect(host) {
     event.preventDefault();
     event.stopImmediatePropagation();
   };
-  host.element.addEventListener("click", onClick, true);
-  return () => host.element.removeEventListener("click", onClick, true);
+  return host.effect(() => {
+    const element = host.element;
+    element.addEventListener("click", onClick, true);
+    return () => element.removeEventListener("click", onClick, true);
+  });
 }

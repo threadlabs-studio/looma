@@ -32,7 +32,7 @@
       <p class="owner" $if="$packageName">{$packageName}</p>
       <p class="example-caption" $if="$exampleTitle">{$exampleTitle}</p>
 
-      <footer><ui-button $if="$href" as="a" from:href="$href" variant="link" size="sm">View component</ui-button><ui-button $if="$removable" $ref="remove" variant="ghost" size="sm">Remove</ui-button><slot name="actions"></slot></footer>
+      <footer><ui-button $if="$href" from:href="$href" variant="link" size="sm">View component</ui-button><ui-button $if="$removable" $ref="remove" variant="ghost" size="sm">Remove</ui-button><slot name="actions"></slot></footer>
     </ui-stack></div>
   </article>
   <style>

@@ -52,7 +52,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
     children: items.map(({ entry, children }) => {
       const item = document.createElement("li");
       const link: HTMLElement = createUiButton({
-        as: "a", href: `#${entry.id}`, variant: "link", tone: "neutral", size: "sm",
+        href: `#${entry.id}`, variant: "link", tone: "neutral", size: "sm",
         children: [element(createUiText({ as: "span", wrap: "anywhere", children: [entry.text] }))],
       });
       link.addEventListener("click", (event) => { event.preventDefault(); navigateTableOfContents(editor, entry.id); });
