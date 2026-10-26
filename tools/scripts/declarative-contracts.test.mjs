@@ -104,7 +104,7 @@ test("semantic controls lower directly to their native roots", async () => {
   );
 });
 
-test("a button renders as a link through its polymorphic root, not a second component", async () => {
+test("a button selects its native root from href without an as prop", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
   const source = await readFile(
@@ -112,10 +112,9 @@ test("a button renders as a link through its polymorphic root, not a second comp
     "utf8",
   );
 
-  // An `as` prop chooses between explicit native roots; the prop does not retag an element.
-  assert.equal(contracts["ui-button"].props.as?.type, "keyword");
-  assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
-  assert.match(source, /<a\s+[^>]*\$when="\$as = 'a'"/);
+  assert.equal(contracts["ui-button"].props.as, undefined);
+  assert.equal(contracts["ui-button"].props.href?.type, "string");
+  assert.match(source, /<a\s+[^>]*\$when="\$href != null"/);
   assert.match(source, /<button\s+[^>]*\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {
