@@ -1304,10 +1304,12 @@ describe("Toast composition and placement", () => {
         for (const width of [1280, 375]) {
           await page.setViewportSize({ width, height: 900 });
           for (const kind of ["callout", "toast", "generated"]) for (const tone of tones) {
-            const style = await page.locator(`#${kind}-${tone}`).evaluate((element, tone) => {
+            const style = await page.locator(`#${kind}-${tone}`).evaluate((element, { tone, kind }) => {
               const css = getComputedStyle(element);
               const probe = element.appendChild(document.createElement("span"));
-              probe.style.backgroundColor = `var(${tone === "neutral" ? "--ui-surface-muted" : `--ui-${tone}-soft`})`;
+              probe.style.backgroundColor = tone === "neutral" ? "var(--ui-surface-muted)"
+                : kind === "callout" ? `color-mix(in srgb, var(--ui-${tone}-solid) 19%, var(--ui-surface-default))`
+                : `var(--ui-${tone}-soft)`;
               probe.style.fontSize = "var(--ui-font-size-sm)";
               const expectedSurface = getComputedStyle(probe).backgroundColor;
               const expectedSize = getComputedStyle(probe).fontSize;
@@ -1316,7 +1318,7 @@ describe("Toast composition and placement", () => {
                 colors: [css.borderTopColor, css.borderRightColor, css.borderBottomColor, css.borderLeftColor],
                 radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color,
                 fontSize: css.fontSize, expectedSurface, expectedSize };
-            }, tone);
+            }, { tone, kind });
             assert.equal(new Set(style.widths).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: even border widths`);
             assert.ok(parseFloat(style.widths[0]) > 0, "notification outline remains visible");
             assert.equal(new Set(style.colors).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: one color around the rounded border`);
@@ -1649,6 +1651,115 @@ describe("Expressive Markdown editor integration", () => {
 });
 
 describe("Editor callouts", () => {
+  async function openCalloutFixture() {
+    const path = await bundle("vue-editor-callout-layout", `
+      import { createApp, h, ref } from "vue";
+      import { Badge } from "@threadlabs/looma/vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const tone = ref("success");
+      window.setBadgeTone = value => { tone.value = value; };
+      createApp({ render: () => h("div", [
+        h(Badge, { id: "subtle-reference", variant: "subtle", tone: tone.value }, () => "Reference"),
+        h(LoomaEditor, { onReady: editor => { window.fixtureEditor = editor; } }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), join(root, "vue/components.css")]);
+    await page.waitForFunction(() => "fixtureEditor" in window);
+    return page;
+  }
+
+  it("keeps callout first lines aligned without collapsing authored whitespace", async () => {
+    const page = await openCalloutFixture();
+    const text = "Keep  both spaces.\nAnd this line.";
+    for (const width of [375, 1280]) for (const heading of ["", "Before you start"]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(({ text, heading }) => {
+        (window as unknown as { fixtureEditor: Editor }).fixtureEditor.commands.setContent({ type: "doc", content: [
+          { type: "loomaCallout", attrs: { tone: "tip", heading }, content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
+        ] });
+      }, { text, heading });
+      const callout = page.locator('.ProseMirror [data-component~="ui-callout"]');
+      await callout.waitFor();
+      const layout = await callout.evaluate(element => {
+        const icon = element.querySelector(".icon")!.getBoundingClientRect();
+        const body = element.querySelector<HTMLElement>("[data-looma-callout-body]")!;
+        const first = element.querySelector(".heading") ?? body.querySelector("p")!;
+        return { gap: Math.abs(icon.top - first.getBoundingClientRect().top), text: body.textContent, whiteSpace: getComputedStyle(body).whiteSpace };
+      });
+      assert.ok(layout.gap < 1, `callout icon and first line align at ${width}px (gap ${layout.gap})`);
+      assert.equal(layout.text, text);
+      assert.equal(layout.whiteSpace, "break-spaces", "document whitespace stays editable and preserved");
+    }
+    await page.close();
+  });
+
+  it("isolates shared editor component chrome while preserving owned document whitespace", async () => {
+    const page = await openCalloutFixture();
+    const text = "Keep  both spaces.\nAnd this line.";
+    await page.evaluate(text => {
+      (window as unknown as { fixtureEditor: Editor }).fixtureEditor.commands.setContent({ type: "doc", content: [
+        { type: "loomaCallout", attrs: { tone: "tip" }, content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
+        { type: "loomaExpand", attrs: { summary: "Details", open: true }, content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
+      ] });
+    }, text);
+    const before = await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.getJSON());
+    for (const [tag, body] of [["ui-callout", "data-looma-callout-body"], ["ui-disclosure", "data-looma-expand-body"]]) {
+      const chrome = page.locator(`.ProseMirror [data-component~="${tag}"]`);
+      await chrome.waitFor();
+      const styles = await chrome.evaluate((element, body) => {
+        const content = element.querySelector(`[${body}]`)!;
+        return { chrome: getComputedStyle(element).whiteSpace, document: getComputedStyle(content).whiteSpace, text: content.textContent };
+      }, body);
+      assert.equal(styles.chrome, "normal", `${tag} isolates template whitespace at the shared editor boundary`);
+      assert.equal(styles.document, "break-spaces", `${tag} preserves projected document whitespace`);
+      assert.equal(styles.text, text);
+    }
+    assert.equal(await page.locator(".ProseMirror").evaluate(element => getComputedStyle(element).whiteSpace), "break-spaces");
+    const button = page.locator('.ProseMirror [data-component~="ui-button"]').first();
+    assert.equal(await button.evaluate(element => {
+      (element as HTMLElement).style.setProperty("--ui-button-white-space", "nowrap");
+      return getComputedStyle(element).whiteSpace;
+    }), "nowrap", "explicit component wrapping still wins over the shared default");
+    await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.setEditable(false));
+    for (const body of ["data-looma-callout-body", "data-looma-expand-body"]) {
+      assert.equal(await page.locator(`[${body}]`).evaluate(element => (element as HTMLElement).isContentEditable), false);
+    }
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.getJSON()), before);
+    await page.evaluate(text => {
+      const editor = (window as unknown as { fixtureEditor: Editor }).fixtureEditor;
+      editor.setEditable(true);
+      editor.commands.setContent({ type: "doc", content: [
+        { type: "loomaExpand", attrs: { summary: "Nested", open: true }, content: [
+          { type: "loomaCallout", attrs: { tone: "info" }, content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
+        ] },
+        { type: "codeBlock", content: [{ type: "text", text }] },
+      ] });
+    }, text);
+    const nested = page.locator('[data-looma-expand-body] [data-component~="ui-callout"]');
+    assert.equal(await nested.evaluate(element => getComputedStyle(element).whiteSpace), "normal");
+    assert.equal(await nested.locator("p").evaluate(element => getComputedStyle(element).whiteSpace), "break-spaces");
+    assert.equal(await nested.locator("p").textContent(), text);
+    assert.match(await page.locator(".ProseMirror pre").evaluate(element => getComputedStyle(element).whiteSpace), /^(pre|pre-wrap|break-spaces)$/);
+    assert.equal(await page.locator(".ProseMirror pre").textContent(), text);
+    await page.close();
+  });
+
+  it("uses the tone's subtle surface in light and dark editor callouts", async () => {
+    const page = await openCalloutFixture();
+    for (const theme of ["light", "dark"]) for (const [tone, badgeTone] of Object.entries({ info: "info", tip: "success", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
+      await page.evaluate(({ theme, tone, badgeTone }) => {
+        document.documentElement.dataset.theme = theme;
+        const fixture = window as unknown as { fixtureEditor: Editor; setBadgeTone: (value: string) => void };
+        fixture.setBadgeTone(badgeTone);
+        fixture.fixtureEditor.commands.setContent({ type: "doc", content: [{ type: "loomaCallout", attrs: { tone }, content: [{ type: "paragraph", content: [{ type: "text", text: "A notice." }] }] }] });
+      }, { theme, tone, badgeTone });
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const surfaces = await page.evaluate(() => ({ callout: getComputedStyle(document.querySelector('.ProseMirror [data-component~="ui-callout"]')!).backgroundColor, subtle: getComputedStyle(document.querySelector("#subtle-reference")!).backgroundColor }));
+      assert.equal(surfaces.callout, surfaces.subtle, `${theme} ${tone} shares the subtle tone surface`);
+    }
+    await page.close();
+  });
+
   it("draws editor callouts, older asides included, with Callout and saves them as Callout", async () => {
     const path = await bundle("vue-editor-callout", `
       import { createApp, h } from "vue";
