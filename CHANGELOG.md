@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep callout icons aligned with the first text line in editors that preserve whitespace, without collapsing authored spaces or line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
+
 - Schedule customizer preview layout outside resize notification delivery, preventing intermittent Safari ResizeObserver loop warnings while preserving preview sizing.
 
 - Keep Combobox option taps working in Safari by retaining input focus during `mousedown` rather than cancelling touch `pointerdown`. Exercise theme, palette, material and font selection with real taps in the Safari audit.

@@ -118,7 +118,7 @@
       --_ui-callout-icon: var(--ui-callout-icon);
       --_ui-callout-icon-size: var(--ui-callout-icon-size);
 
-      --_callout-surface: var(--ui-info-soft);
+      --_callout-surface: color-mix(in srgb, var(--_callout-border) 19%, var(--ui-surface-default));
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
@@ -168,6 +168,8 @@
     }
 
     .content {
+      /* Ignore template whitespace while projected editor text keeps its own whitespace rules. */
+      display: grid !important;
       min-inline-size: 0;
     }
 
@@ -186,31 +188,26 @@
     }
 
     :host([tone="tip"]) {
-      --_callout-surface: var(--ui-success-soft);
       --_callout-border: var(--ui-success-solid);
       --_callout-icon: var(--ui-success-solid);
     }
 
     :host([tone="important"]) {
-      --_callout-surface: var(--ui-accent-soft);
       --_callout-border: var(--ui-accent-solid);
       --_callout-icon: var(--ui-accent-solid);
     }
 
     :host([tone="warning"]) {
-      --_callout-surface: var(--ui-warning-soft);
       --_callout-border: var(--ui-warning-solid);
       --_callout-icon: var(--ui-warning-solid);
     }
 
     :host([tone="success"]) {
-      --_callout-surface: var(--ui-success-soft);
       --_callout-border: var(--ui-success-solid);
       --_callout-icon: var(--ui-success-solid);
     }
 
     :host([tone="danger"]), :host([tone="caution"]) {
-      --_callout-surface: var(--ui-danger-soft);
       --_callout-border: var(--ui-danger-solid);
       --_callout-icon: var(--ui-danger-solid);
     }
