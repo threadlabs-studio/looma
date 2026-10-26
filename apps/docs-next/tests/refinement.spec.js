@@ -38,11 +38,12 @@ test('touch taps commit starting theme, palette, material and font selections', 
 
 test('completed edits undo and redo persist without an ambiguous comparison mode', async ({page}, info) => {
   const errors = await enter(page, info);
-  await openEditor(page, 'material');
+  const material = await openEditor(page, 'material');
+  await material.getByRole('button', {name:'Advanced material',exact:true}).click();
   const beforeFocus = await session(page);
   await page.locator('[data-light-editor] .source').click();
   expect(await session(page)).toEqual(beforeFocus);
-  const stage = page.locator('[data-light-editor]').getByRole('button',{name:'Join briefing',exact:true});
+  const stage = page.locator('[data-light-editor]').getByRole('button',{name:'Material response',exact:true});
   await page.getByRole('button',{name:'Try floating surfaces',exact:true}).click();
   const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] iframe').contentFrame().getByRole('button',{name:'Join briefing',exact:true});
   await expect(card).toHaveCSS('background-color', await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
@@ -89,6 +90,7 @@ test('touch light placement persists and can be refined with the keyboard or und
     const page=await context.newPage();
     const errors=await enter(page,info);
     const editor=await openEditor(page,'material');
+    await editor.getByRole('button',{name:'Advanced material',exact:true}).tap();
     const plane=editor.locator('[data-light-editor] .plane');
     await plane.scrollIntoViewIfNeeded();
     const box=await plane.boundingBox();
@@ -98,6 +100,8 @@ test('touch light placement persists and can be refined with the keyboard or und
     const placed=(await session(page)).values;
     await page.reload();
     await expect.poll(async()=>[(await session(page)).values['light-x'],(await session(page)).values['light-y']]).toEqual([placed['light-x'],placed['light-y']]);
+    await openEditor(page,'material');
+    await editor.getByRole('button',{name:'Advanced material',exact:true}).tap();
     const handle=editor.locator('[data-light-editor] .source');
     await handle.press('Shift+ArrowLeft');
     await expect.poll(async()=>Number((await session(page)).values['light-x'])).toBeCloseTo(Number(placed['light-x'])-.1,2);
@@ -121,9 +125,11 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
       const boxes=await row.locator('button[data-component="ui-button"],input[data-component="ui-input"],[data-component="ui-color-picker"] button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect().height));
       expect(Math.max(...boxes)-Math.min(...boxes)).toBeLessThan(.6);
     }
-    await openEditor(page, 'material');
+    const material=await openEditor(page, 'material');
+    await material.getByRole('button',{name:'Advanced material',exact:true}).click();
     const handle=page.locator('[data-light-editor] .source'); await handle.scrollIntoViewIfNeeded();
     const s=await handle.boundingBox(), plane=await page.locator('[data-light-editor] .plane').boundingBox();
+    expect(await handle.evaluate((source, point) => source.contains(document.elementFromPoint(point.x, point.y)), {x:s.x+s.width/2+12,y:s.y+s.height/2}), 'the light handle remains touchable beside the mobile specimen').toBe(true);
     const key='looma:documentation-theme:v1:/looma/';
     const stored=await page.evaluate(key=>localStorage.getItem(key),key);
     const client=await context.newCDPSession(page);

@@ -197,12 +197,15 @@
         inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
       --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
+      --_tone-border: var(--ui-accent-border, var(--ui-accent));
+      --_tone-hover-border: var(--ui-accent-hover-border, var(--ui-accent-hover));
+      --_tone-active-border: var(--ui-accent-active-border, var(--ui-accent-active));
       --_tone-highlight: var(--ui-accent-highlight, none);
       --_tone-glow: var(--ui-accent-glow, 0 0 transparent);
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
       --_hue-active: var(--ui-accent-active);
-      --_hue-text: var(--ui-accent-active);
+      --_hue-text: var(--ui-accent-subtle-text);
       --_on-hue: var(--ui-on-accent);
 
       --_tone: var(--_hue);
@@ -240,9 +243,9 @@
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       border-style: solid;
       border-width: var(--ui-border-width);
-      border-color: var(--ui-button-border, var(--_tone));
+      border-color: var(--ui-button-border, var(--_tone-text));
       border-radius: var(--ui-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
-      background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / 5%));
+      background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / calc(5% * var(--ui-tonal-opacity, 1))));
       color: var(--ui-button-text, var(--_tone-text));
       font: inherit;
       font-weight: var(--ui-font-medium);
@@ -385,8 +388,8 @@
     /* A link is never :enabled, so interactive states test "not unavailable" instead: for a button that
        is exactly :enabled, at the same specificity, and it also matches a link that can be followed. */
     :host:hover:not(:disabled, [aria-disabled="true"]) {
-      border-color: var(--ui-button-hover-border, var(--_tone-hover));
-      background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
+      border-color: var(--ui-button-hover-border, var(--_tone-text));
+      background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / calc(12% * var(--ui-tonal-opacity, 1))));
     }
 
     :host[data-appearance="card"][data-tone="neutral"] {
@@ -406,13 +409,13 @@
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:not(:disabled, [aria-disabled="true"]) {
       scale: var(--ui-press-scale, 1);
-      background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
+      background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / calc(18% * var(--ui-tonal-opacity, 1))));
       background-image: none;
       box-shadow: var(--ui-pressed);
     }
 
     :host[data-appearance="solid"], :host[data-appearance="danger"] {
-      border-color: var(--_tone);
+      border-color: var(--ui-button-border, var(--_tone-border));
       background-color: var(--_tone);
       color: var(--_on-tone);
       background-image: var(--_tone-highlight);
@@ -421,14 +424,15 @@
         var(--_tone-glow);
     }
 
-    :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="solid"]:hover:not(:disabled, [aria-disabled="true"]),
+    :host[data-appearance="danger"]:hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-hover);
-      border-color: var(--_tone-hover);
+      border-color: var(--ui-button-hover-border, var(--_tone-hover-border));
     }
 
     :is(:host[data-appearance="solid"], :host[data-appearance="danger"]):active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-active);
-      border-color: var(--_tone-active);
+      border-color: var(--_tone-active-border);
       background-image: none;
       box-shadow: var(--ui-pressed);
     }
@@ -436,6 +440,9 @@
     /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
        destructive secondary action, not a special case. */
     :host[data-tone="neutral"] {
+      --_tone-border: var(--ui-neutral-border, var(--ui-neutral-surface));
+      --_tone-hover-border: var(--ui-neutral-hover-border, var(--ui-neutral-hover));
+      --_tone-active-border: var(--ui-neutral-active-border, var(--ui-neutral-active));
       --_tone-highlight: var(--ui-neutral-highlight, none);
       --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
       --_hue: var(--ui-text);
@@ -446,7 +453,7 @@
     }
 
     :host[data-tone="neutral"][data-appearance="solid"] {
-      border-color: var(--ui-button-border, var(--ui-control-border));
+      border-color: var(--ui-button-border, var(--_tone-border));
       background-color: var(--ui-button-surface, var(--ui-neutral-surface));
       color: var(--ui-button-text, var(--ui-text));
     }
@@ -463,13 +470,18 @@
       background-color: var(--ui-button-active-surface, var(--ui-neutral-active));
     }
     :host[data-tone="neutral"][data-appearance="solid"]:hover:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--ui-button-hover-border, var(--_tone-hover-border));
       background-color: var(--ui-button-hover-surface, var(--ui-neutral-hover));
     }
     :host[data-tone="neutral"][data-appearance="solid"]:active:not(:disabled, [aria-disabled="true"]) {
+      border-color: var(--_tone-active-border);
       background-color: var(--ui-button-active-surface, var(--ui-neutral-active));
     }
 
     :host[data-tone="danger"], :host[data-appearance="danger"] {
+      --_tone-border: var(--ui-danger-border, var(--ui-danger));
+      --_tone-hover-border: var(--ui-danger-hover-border, var(--ui-danger-hover));
+      --_tone-active-border: var(--ui-danger-active-border, var(--ui-danger-active));
       --_tone-highlight: var(--ui-danger-highlight, none);
       --_tone-glow: var(--ui-danger-glow, 0 0 transparent);
       --_hue: var(--ui-danger);
@@ -480,6 +492,9 @@
     }
 
     :host[data-tone="success"] {
+      --_tone-border: var(--ui-success-border, var(--ui-success));
+      --_tone-hover-border: var(--ui-success-hover-border, var(--ui-success-hover));
+      --_tone-active-border: var(--ui-success-active-border, var(--ui-success-active));
       --_tone-highlight: var(--ui-success-highlight, none);
       --_tone-glow: var(--ui-success-glow, 0 0 transparent);
       --_hue: var(--ui-success);
@@ -490,6 +505,9 @@
     }
 
     :host[data-tone="warning"] {
+      --_tone-border: var(--ui-warning-border, var(--ui-warning));
+      --_tone-hover-border: var(--ui-warning-hover-border, var(--ui-warning-hover));
+      --_tone-active-border: var(--ui-warning-active-border, var(--ui-warning-active));
       --_tone-highlight: var(--ui-warning-highlight, none);
       --_tone-glow: var(--ui-warning-glow, 0 0 transparent);
       --_hue: var(--ui-warning);
@@ -500,6 +518,9 @@
     }
 
     :host[data-tone="info"] {
+      --_tone-border: var(--ui-info-border, var(--ui-info));
+      --_tone-hover-border: var(--ui-info-hover-border, var(--ui-info-hover));
+      --_tone-active-border: var(--ui-info-active-border, var(--ui-info-active));
       --_tone-highlight: var(--ui-info-highlight, none);
       --_tone-glow: var(--ui-info-glow, 0 0 transparent);
       --_hue: var(--ui-info);
@@ -545,7 +566,7 @@
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
     :host[data-appearance="ghost"]:hover:not(:disabled, [aria-disabled="true"]) {
-      background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
+      background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / calc(10% * var(--ui-tonal-opacity, 1))));
       border-color: transparent;
     }
 

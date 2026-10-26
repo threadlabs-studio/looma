@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/web-components-vite';
 import { componentExamples, renderExample } from './examples';
 import { startingPoints, themeCSS } from '../../../../packages/looma/tooling/docs/theme.mjs';
+import { loadGoogleFonts } from '../../../../packages/looma/tooling/docs/fonts.mjs';
 import systemCSS from '@threadlabs/looma/theme-system.css?inline';
 const behaviors = import.meta.glob('../../../../packages/looma/src/components/*/examples/*.behavior.{ts,js}', {
   eager: true, import: 'default',
@@ -13,8 +14,10 @@ const meta = {
     const tag = query.get('component') ?? 'ui-button';
     const theme = query.get('theme') ?? 'clear';
     document.documentElement.dataset.theme = query.get('mode') ?? 'light';
+    const recipe = startingPoints[theme] ?? startingPoints.clear;
+    const fontsReady = loadGoogleFonts(document, recipe.fonts);
     const css = document.createElement('style');
-    css.textContent = themeCSS(startingPoints[theme] ?? startingPoints.clear, systemCSS) + '\nbody{margin:0;background:var(--ui-surface);color:var(--ui-text);font-family:var(--ui-font-sans)}#visual-state-stage{padding:16px;display:flow-root}*,*::before,*::after{animation:none!important;transition:none!important}';
+    css.textContent = themeCSS(recipe, systemCSS) + '\nbody{margin:0;background:var(--ui-surface);color:var(--ui-text);font-family:var(--ui-font-sans)}#visual-state-stage{padding:16px;display:flow-root}*,*::before,*::after{animation:none!important;transition:none!important}';
     const stage = document.createElement('section');
     stage.id = 'visual-state-stage';
     const mount = document.createElement('div');
@@ -22,6 +25,9 @@ const meta = {
     let cleanup: (() => void) | void, generation = 0;
     const renderVisualCase = async (props: Record<string, unknown>, example = 0) => {
       const current = ++generation;
+      // A stylesheet import may not have registered its faces when fonts.ready first resolves.
+      await fontsReady;
+      if (current !== generation) return;
       cleanup?.(); cleanup = undefined;
       stage.replaceChildren(renderExample(tag, props, example));
       await new Promise(resolve => requestAnimationFrame(resolve));

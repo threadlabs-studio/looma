@@ -8,6 +8,12 @@
 - Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
 - **Breaking:** Button now renders a native link whenever `href` is supplied, including `href=""`, and a native button otherwise. Remove Button's `as` prop: replace `as="a" href="…"` with `href="…"`; omit `href` for button actions. Disabled and loading links retain their navigation guards.
 
+- Start the shared customizer with the Looma identity and add Gold as a complete selectable theme with portable Lato/Fraunces fonts. Keep Clear as an explicit neutral starting point; move standalone LightEditor documentation into Extras.
+- Derive filled-action colors, readable labels and quieter secondary edges as a shared family. Preserve chromatic reflections and separate decorative glass transparency from frosting while keeping content plates opaque.
+- Give switch thumbs and empty checkbox/radio frames the shared material lighting and inset depth. Keep the current Safari preview, selection and control geometry fixes throughout theme customization.
+- Suppress disabled link activation before application click handlers, including router callbacks, and restore it when disabled is cleared.
+- Keep single-column editor specimens in page flow on narrow screens so tall material samples cannot cover controls being touched or dragged.
+
 - Use a lighter relative-color wash for colored callout backgrounds, deriving the hue from their tone while preserving borders, text and document spacing.
 
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.

@@ -34,7 +34,7 @@ The CSS includes generated derivation rules as well as values. Re-export or save
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
 
 Starting points set a complete identity across color, typography, shape, spacing,
-material and motion. Palette and material refinements then change only their own
+material and motion. Looma is the default identity; Gold pairs a warm action color with Lato/Fraunces and restrained polished surfaces. Clear remains a neutral starting point. Palette and material refinements then change only their own
 families. The compact sampler includes heading, body and supporting text beside
 the controls. Search components searches your whole discovered catalog; nine
 previews render initially, and **Show more components** reveals the next group.
@@ -87,6 +87,8 @@ The generated values follow rules. The medium control height is base text size t
 Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Keep my colors preserves the base hues; Related colors and Contrasting colors tint quiet surfaces toward neighboring and opposite hues. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four Base colors remain visible for precise edits; the light/dark range previews and resolved values explain adjustments.
 
 Documentation navigation stays out of the customization workspace. **Material & light** opens a movable light source, real component samples and bounded surface controls. **Palette** opens the coordinated light/dark ranges and their four Base colors. Each editor changes the same persistent theme. Returning to the overview, navigating to a component, or reloading keeps the result.
+
+Material starts with Finish, Transparency and Frosting. Advanced material contains the light source and its color, edge light, glow, depth and decorative rim extent. The quiet grid stays fixed across the customizer while the page scrolls; content plates remain opaque.
 
 A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
@@ -261,3 +263,5 @@ The local editor writes only the configured recipe and CSS inside the project. I
 The writer stages complete files, serializes saves with a project lock, and rolls back the recipe if replacing the CSS fails. If a process stops during a save or build, close the old editor before removing its `.looma/theme-write.lock` or `.looma/docs-build.lock`; restart and save the loaded recipe to regenerate a consistent pair. Change the server base, output directory or theme-file paths by restarting `dev`.
 
 Preset choices use the styled, searchable dropdown already used for fonts and component examples. Palette choices include four color swatches for the accent, neutral fill, canvas and text; the selected field previews the current theme. An inherited default keeps muted text while its options remain readable.
+
+Filled-action colors keep their supplied pigment. Readable on-fill ink is chosen independently from contextual text, outlines and focus. Primary and secondary action fills and edges are derived together from their separation against the declared surfaces; secondary actions occupy a quieter share of the same family range in both modes. Reflection preserves chromatic light and shade within that chosen foreground’s readability bounds.

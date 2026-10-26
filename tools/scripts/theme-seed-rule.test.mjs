@@ -11,7 +11,7 @@ const tokensRoot = path.join(repoRoot, "packages/looma/src/tokens");
 const SEEDS = new Set([
   "--ui-accent", "--ui-danger", "--ui-success", "--ui-warning", "--ui-info",
   "--ui-on-accent", "--ui-on-danger",
-  "--ui-surface", "--ui-surface-raised", "--ui-surface-sunken", "--ui-text"
+  "--ui-surface", "--ui-surface-raised", "--ui-surface-sunken", "--ui-text", "--ui-light-color"
 ]);
 
 async function declaredColours(file) {
