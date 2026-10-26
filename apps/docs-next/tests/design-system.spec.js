@@ -416,7 +416,7 @@ test('material refinement shares a movable light, remembers customized presets a
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished · customized');
   await page.reload(); await enter();
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished · customized');
-  await expect.poll(() => material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true }).evaluate(element => element.checkVisibility())).toBe(false);
+  await expect.poll(() => material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true, includeHidden: true }).evaluate(element => element.checkVisibility({visibilityProperty:true}))).toBe(false);
   await material.getByRole('button', { name: 'Exact position', exact: true }).click();
   await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('60%');
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) {

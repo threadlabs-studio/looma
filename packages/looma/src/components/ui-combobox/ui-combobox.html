@@ -767,7 +767,7 @@
       width: 100%;
       min-inline-size: 0;
       min-block-size: calc(var(--_row) - 2 * var(--ui-border-width));
-      block-size: max(calc(var(--_row) - 2 * var(--ui-border-width)), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-combobox-inset-block)));
+      max-block-size: max(calc(var(--_row) - 2 * var(--ui-border-width)), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-combobox-inset-block)));
       box-sizing: border-box !important;
       border: 0;
       border-radius: inherit;
@@ -927,7 +927,7 @@
       display: none !important;
     }
     :host([multiple]) input {
-      block-size: auto;
+      max-block-size: none;
       flex: 1 0 var(--_ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;

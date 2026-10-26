@@ -29,7 +29,7 @@ for (const width of [390, 1280]) test(`dashboard opens only the requested editor
       await page.goForward(); await expect(editor).toBeVisible();
       await page.reload(); await expect(editor).toBeVisible();
       // WebKit locator visibility overlooks a collapsed panel's content-visibility.
-      await expect.poll(() => editor.getByRole('combobox', { name: 'Heading font', exact: true }).evaluate(element => element.checkVisibility())).toBe(false);
+      await expect.poll(() => editor.getByRole('combobox', { name: 'Heading font', exact: true, includeHidden: true }).evaluate(element => element.checkVisibility({visibilityProperty:true}))).toBe(false);
     }
     if (family === 'themes') await chooseOption(editor.getByRole('combobox', { name: 'Starting point', exact: true }), 'garden');
     await editor.locator('[data-action="back"]').click();
@@ -52,7 +52,7 @@ test('motion study uses the edited duration and curve and respects reduced motio
   await duration.fill('0.3s'); await duration.press('Enter');
   await editor.getByRole('button', {name:'Shape the curve',exact:true}).click();
   const curve = editor.getByRole('textbox', {name:'Response curve',exact:true});
-  await expect.poll(() => curve.evaluate(element => element.checkVisibility())).toBe(true);
+  await expect.poll(() => curve.evaluate(element => element.checkVisibility({visibilityProperty:true}))).toBe(true);
   await curve.fill('linear'); await curve.press('Tab');
   await editor.locator('[data-action="replay-motion"]').click();
   const study = page.locator('[data-motion-object]');
