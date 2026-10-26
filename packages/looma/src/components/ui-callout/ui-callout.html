@@ -118,7 +118,11 @@
       --_ui-callout-icon: var(--ui-callout-icon);
       --_ui-callout-icon-size: var(--ui-callout-icon-size);
 
-      --_callout-surface: oklch(from var(--_callout-border) l c h / 10%);
+      /* Near white, sRGB retains more green chroma than blue/red; bound chroma by hue to avoid clipping. */
+      --_callout-surface: light-dark(
+        oklch(from var(--_callout-border) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h),
+        oklch(from var(--_callout-border) 25% min(c, 0.035) h)
+      );
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
