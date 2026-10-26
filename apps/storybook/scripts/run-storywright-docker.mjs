@@ -19,6 +19,7 @@ if (!existsSync(resolve(repoRoot, '.git'))) {
 
 const args = process.argv.slice(2)
 const storywrightArgs = args.length > 0 ? args : ['test']
+const grepArgument = storywrightArgs.find(argument => argument.startsWith('--grep='))
 const shardArgument = storywrightArgs.find(argument => argument.startsWith('--shard='))
 if (shardArgument && !/^--shard=[1-9]\d*\/[1-9]\d*$/.test(shardArgument)) throw new Error('Use --shard=current/total with positive integers.')
 if (!['test', 'update'].includes(storywrightArgs[0])) throw new Error('Choose test or update; use visual:report for the HTML report.')
@@ -216,7 +217,7 @@ const buildCommand = (appDir) => [
   'pnpm config set store-dir /pnpm/store',
   'pnpm install --frozen-lockfile',
   ...(!usesExistingStorybookBuild() ? [`pnpm --dir ${shellQuote(appDir)} run build:visual`] : []),
-  `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec playwright test --config state-sheets.config.ts --workers=1${shardArgument ? ` ${shellQuote(shardArgument)}` : ''}${storywrightArgs[0] === 'update' ? ' --update-snapshots' : ''}`,
+  `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec playwright test --config state-sheets.config.ts --workers=1${shardArgument ? ` ${shellQuote(shardArgument)}` : ''}${grepArgument ? ` ${shellQuote(grepArgument)}` : ''}${storywrightArgs[0] === 'update' ? ' --update-snapshots' : ''}`,
 ].join(' && ')
 
 const command = buildCommand(appDirFromRepo)
