@@ -69,7 +69,10 @@
       max-inline-size: 100%;
     }
     .actions {
-      flex-wrap: wrap !important;
+      display: grid !important;
+      grid-auto-flow: column !important;
+      grid-auto-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+      justify-items: center !important;
       margin-inline-start: auto !important;
     }
     /* Text shares a baseline inside one group; the group is centred beside any control height. */

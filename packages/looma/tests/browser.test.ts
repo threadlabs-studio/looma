@@ -111,6 +111,30 @@ describe("SiteHeader", () => {
   });
 });
 
+describe("SiteHeader action targets", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`reserves adjustable space for compact actions in ${adapter}`, async () => {
+    const path=await bundle(`site-header-targets-${adapter}`,adapter==="HTML"?'import "@threadlabs/looma";':`
+      import {createApp,h} from "vue"; import {SiteHeader,IconButton,Icon} from "@threadlabs/looma/vue";
+      createApp({render:()=>h(SiteHeader,{id:"targets"},{brand:()=>h("a",{href:"#home"},"Folio"),actions:()=>[
+        h(IconButton,{id:"first-target",size:"sm",label:"Search"},()=>h(Icon,{name:"search"})),
+        h(IconButton,{id:"second-target",size:"sm",label:"Account"},()=>h(Icon,{name:"user-round"}))
+      ]})}).mount("#app");`);
+    const page=await open(path,adapter==="HTML"?'<ui-site-header id="targets"><a slot="brand" href="#home">Folio</a><ui-icon-button slot="actions" id="first-target" size="sm" label="Search"><ui-icon name="search"></ui-icon></ui-icon-button><ui-icon-button slot="actions" id="second-target" size="sm" label="Account"><ui-icon name="user-round"></ui-icon></ui-icon-button></ui-site-header>':'<div id="app"></div>',[join(root,"tokens.css"),...(adapter==="Vue"?[join(root,"vue/components.css")]:[])],{viewport:{width:375,height:700},hasTouch:true});
+    try {
+      const widths=[];
+      for(const preferred of [44,30]) {
+        await page.locator('html').evaluate((element,value)=>(element as HTMLElement).style.setProperty('--ui-control-min-block-size',value+'px'),preferred);
+        const boxes=await page.evaluate(()=>['first-target','second-target'].map(id=>{const b=document.getElementById(id)!.getBoundingClientRect();return {x:b.x,width:b.width};}));
+        const distance=boxes[1].x+boxes[1].width/2-boxes[0].x-boxes[0].width/2;
+        assert.ok(distance >= (Math.max(boxes[0].width,preferred)+Math.max(boxes[1].width,preferred))/2,'neighboring invisible targets stay separate');
+        widths.push(distance);
+      }
+      assert.ok(widths[1]<widths[0],'the comfort preference adjusts spacing without enlarging the visible buttons');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    } finally {await page.close();}
+  });
+});
+
 describe("Skeleton", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`matches content geometry and respects motion preferences in ${adapter}`, async () => {
