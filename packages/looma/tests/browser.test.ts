@@ -1693,7 +1693,7 @@ describe("Editor callouts", () => {
     await page.close();
   });
 
-  it("isolates shared editor component chrome while preserving projected document whitespace", async () => {
+  it("isolates shared editor component chrome while preserving owned document whitespace", async () => {
     const page = await openCalloutFixture();
     const text = "Keep  both spaces.\nAnd this line.";
     await page.evaluate(text => {
