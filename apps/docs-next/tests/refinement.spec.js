@@ -65,6 +65,8 @@ test('palette transformations change both mode specimens, keep geometry and surv
   const palette=page.locator('[data-refinement-view="palette"]');
   const colors=()=>palette.locator('.palette-canvas').evaluateAll(es=>es.map(e=>getComputedStyle(e).backgroundColor));
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
+  const specimenSizes=()=>palette.locator('[data-theme]').evaluateAll(es=>es.map(el=>{const b=el.getBoundingClientRect();return [b.width,b.height]}));
+  const beforeSizes=await specimenSizes();
   await palette.getByRole('button',{name:'Adjust color character',exact:true}).click();
   await palette.getByRole('slider',{name:'Surface warmth',exact:true}).press('End');
   await expect.poll(colors).not.toEqual(before);
@@ -76,8 +78,9 @@ test('palette transformations change both mode specimens, keep geometry and surv
   expect(await related.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe(await preserved.evaluate(el=>getComputedStyle(el).backgroundColor));
   expect((await session(page)).values['control-roominess']).toBe(geometry);
   expect((await session(page)).values['palette-relationship']).toBe('neighboring');
-  const header=await page.locator('[data-component~="markupress-header"]').boundingBox();
-  for(const mode of ['light','dark']) {const box=await palette.locator(`[data-theme="${mode}"]`).boundingBox();expect(box.y).toBeGreaterThanOrEqual(header.y+header.height);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize().height);}
+  expect(await specimenSizes()).toEqual(beforeSizes);
+  await expect(palette.locator('.palette-preview')).toHaveAttribute('data-page-flow','');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await expect(palette.locator('[data-theme="light"]')).toBeVisible();
   await expect(palette.locator('[data-theme="dark"]')).toBeVisible();
   const remembered=await session(page); await page.goto(info.config.metadata.markupress+'components/ui-button/');
@@ -118,7 +121,7 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
   try {
     const errors=await enter(page,info);
     await openEditor(page, 'layout');
-    const heights=await page.locator('[data-size-sample] button[data-component="ui-button"]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
+    const heights=await page.locator('[data-size-sample]').evaluateAll(rows=>rows.map(row=>row.querySelector('[data-size-actions] button[data-component="ui-button"]').getBoundingClientRect().height));
     expect(heights).toHaveLength(3); expect(heights[0]).toBeLessThan(heights[1]); expect(heights[1]).toBeLessThan(heights[2]);
     for(const size of ['sm','md','lg']) {
       const row=page.locator(`[data-size-sample="${size}"]`);
@@ -213,7 +216,7 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
         const bounds=el.getBoundingClientRect();
         return [...el.querySelectorAll('button,input')].filter(control=>control.getClientRects().length).every(control=>{const box=control.getBoundingClientRect();return box.x>=bounds.x-1&&box.right<=bounds.right+1;});
       })).toBe(true);
-      expect(await row.locator(`input[label="${size} size sample"]`).evaluate(input=>{
+      expect(await row.getByRole('textbox', {name:`${size} size sample`,exact:true}).evaluate(input=>{
         const style=getComputedStyle(input),context=document.createElement('canvas').getContext('2d');
         context.font=style.font;
         return context.measureText(input.value).width<=input.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
