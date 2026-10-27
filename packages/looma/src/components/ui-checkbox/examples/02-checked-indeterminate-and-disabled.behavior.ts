@@ -2,7 +2,7 @@ import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
 /** Keeps the summary checkbox in step with three independently checked items. */
 export default function connectSelection(root: HTMLElement): () => void {
-  const all = root.querySelector<HTMLElement>("#docs-checkbox-all");
+  const all = root.querySelector<HTMLElement>('[data-example-id="docs-checkbox-all"]');
   const items = Array.from(root.querySelectorAll<HTMLElement>(".docs-checkbox-item"));
   if (!all || !items.length) return () => {};
   const checked = (item: HTMLElement) => Boolean(item.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked);

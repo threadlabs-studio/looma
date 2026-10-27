@@ -2,6 +2,11 @@
 
 ## Next release
 
+- Pre-render documentation examples directly in their cards and share the page's CSS and HTML Next runtime. Remove preview iframes, standalone frame routes, and cross-frame theme/resize messages. Project examples now run as trusted page code; example IDs and their control relationships are scoped per specimen.
+- Give the directory compact, readable examples, portable image assets, and short plain-text summaries while retaining full examples and descriptions in the reference. Image uses a pastoral vector illustration; Avatar keeps its portrait. Skeleton samples fill their stage, floating pickers start closed, and Table Overlay can contain an optional table surface whose real cells supply its geometry.
+- Reuse self-hosted fonts in documentation without a redundant Google Fonts stylesheet, and serve font assets once instead of embedding copies for isolated frames.
+- Keep editor suggestion surfaces reactive when only their open state, anchor geometry or slash query changes, including keyboard and touch interaction in the compact examples.
+
 - Keep SiteHeader full width in centered layouts and let long branding shrink within its mobile row, preserving the visible logo and trailing controls. Direct action slots reserve adjustable space for compact controls’ invisible targets.
 
 - Keep colored callout backgrounds pale and visibly tinted with opaque perceptual colors, preserving hue and readable text in light and dark themes.

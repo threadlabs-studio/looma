@@ -244,7 +244,7 @@ description: Sam has finished the morning checklist.
 <office-status label="Ready for second breakfast"></office-status>
 ```
 
-The example appears in both the reference and the customizer's selection list. Optional `.behavior.js` or `.behavior.ts` companions export a default setup function receiving the example root; return a cleanup function when needed. Add `preview: resizable` to expose the shared card's width control. Framework-specific `.snippet.html` and `.vue` companions provide literal source views.
+The first example also appears in the component directory, so keep it representative at a narrow card width. Full variations belong in the later reference examples. Optional `.behavior.js` or `.behavior.ts` companions export a default setup function receiving the example root; return a cleanup function when needed. Select controls through example-local data attributes: generated IDs and their label, trigger and command references are namespaced for each instance. Add `preview: resizable` to expose the shared card's width control, or `preview: stretch` when the sample needs the available inline width, such as percentage-based loading placeholders. Framework-specific `.snippet.html` and `.vue` companions provide literal source views.
 
 Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not make arbitrary components respond to Looma's tokens.
 
@@ -258,7 +258,7 @@ Use the `@threadlabs/looma/docs` entrypoint for programmatic discovery, catalog 
 
 ## Saving and recovery
 
-The local editor writes only the configured recipe and CSS inside the project. It rejects symlink paths, generated or dependency directories, cross-origin save requests and stale file revisions. A competing edit leaves your unsaved preview in place; reload and reconcile it before saving again. Examples run in isolated frames and receive theme CSS, never the local editing capability. Each preview's compiled runtime is embedded after its content and authorized by an exact content hash in the generated content policy. This keeps previews interactive in Safari while retaining their opaque origin and parent-page isolation.
+The local editor writes only the configured recipe and CSS inside the project. It rejects symlink paths, generated or dependency directories, cross-origin save requests and stale file revisions. A competing edit leaves your unsaved preview in place; reload and reconcile it before saving again. Examples are pre-rendered directly in the documentation page and share its styles and HTML Next runtime. Project component roots and example companions are trusted application code, so opt in only to sources you would run in your application. Example IDs and their label, trigger and command relationships are namespaced per specimen; companions can select stable authored hooks such as data-example-id. Width controls resize the inline stage; viewport media queries follow the documentation window.
 
 The writer stages complete files, serializes saves with a project lock, and rolls back the recipe if replacing the CSS fails. If a process stops during a save or build, close the old editor before removing its `.looma/theme-write.lock` or `.looma/docs-build.lock`; restart and save the loaded recipe to regenerate a consistent pair. Change the server base, output directory or theme-file paths by restarting `dev`.
 

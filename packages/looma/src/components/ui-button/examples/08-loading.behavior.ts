@@ -2,7 +2,7 @@ import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
 /** Simulates a save so the example shows the transition into and out of loading. */
 export default function saveChanges(root: HTMLElement): () => void {
-  const button = root.querySelector<HTMLElement>("#docs-save-changes");
+  const button = root.querySelector<HTMLElement>('[data-example-id="docs-save-changes"]');
   if (!button) return () => {};
   let timer: ReturnType<typeof setTimeout> | undefined;
   const onClick = () => {

@@ -1,0 +1,10 @@
+<!--
+title: Workspace navigation
+description: A compact sidebar with its own toggle for narrow screens.
+-->
+<ui-sidebar id="preview-sidebar" width="176" min-width="160" breakpoint="sm" aria-label="Workspace"><ui-stack gap="xs"><ui-nav-item href="#notes" current="true"
+    >Notes</ui-nav-item><ui-nav-item href="#files">Files</ui-nav-item></ui-stack></ui-sidebar><ui-icon-button
+  commandfor="preview-sidebar"
+  command="--toggle"
+  label="Toggle sidebar"
+><ui-icon name="panel-left"></ui-icon></ui-icon-button>

@@ -7,7 +7,8 @@
       elevated adds a subtle lift above the page, for a view's one card, such as sign-in. Treatment independently controls decorative material.</prop>
     <prop name="treatment" type="keyword" values="standard, expressive" default="standard"
     >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material
-      treatment. Its glass rim can transmit and frost the surrounding scene while content remains opaque. Surface separation controls the rim, independently of frosting. This does not add elevation or require glass.</prop>
+      treatment. Its glass rim can transmit and frost the surrounding scene while content remains opaque. Surface separation controls the rim, independently of
+      frosting. This does not add elevation or require glass.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
@@ -153,16 +154,16 @@
     }
 
     :host([size="sm"]) {
-      inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
-      max-inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+      inline-size: min(22rem, 100%, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(22rem, 100%, calc(100vw - var(--ui-space-2) * 2));
     }
     :host([size="md"]) {
-      inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
-      max-inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+      inline-size: min(28rem, 100%, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(28rem, 100%, calc(100vw - var(--ui-space-2) * 2));
     }
     :host([size="lg"]) {
-      inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
-      max-inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
+      inline-size: min(36rem, 100%, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(36rem, 100%, calc(100vw - var(--ui-space-2) * 2));
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
