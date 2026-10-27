@@ -2,6 +2,14 @@
 
 ## Next release
 
+- Share semantic background, foreground and border roles across subtle Badge, toned Card, Callout, Toast and generated notifications. Text inherits its containing surface or control’s foreground, with the document root supplying the body-text role, so composed status content keeps the same colors. Optional overlay group overrides remain available without masking semantic defaults.
+
+- Separate dark canvas and content elevations, strengthen shared dark neutral and selection derivation, and use shared mode-aware soft-color roles for subtle badges so light status backgrounds remain pale.
+
+- Add optional secondary and tertiary brand families to Button, IconButton, Badge, Card, Meter and Text. Palette controls expose neutral relationships, fill strength, shared boundary contrast, semantic/harmonized/brand status relationships, derived saturation, and accent assignments for selection, focus and links. Light/dark specimens include all statuses and shared control boundaries; saved recipes and exports retain the relationships.
+
+- Require Markupress 0.10.2 for package-generated documentation so the shared responsive header includes native section navigation on mobile home pages and keeps its logo visible.
+
 - Pre-render documentation examples directly in their cards and share the page's CSS and HTML Next runtime. Remove preview iframes, standalone frame routes, and cross-frame theme/resize messages. Project examples now run as trusted page code; example IDs and their control relationships are scoped per specimen.
 - Give the directory compact, readable examples, portable image assets, and short plain-text summaries while retaining full examples and descriptions in the reference. Image uses a pastoral vector illustration; Avatar keeps its portrait. Skeleton samples fill their stage, floating pickers start closed, and Table Overlay can contain an optional table surface whose real cells supply its geometry.
 - Reuse self-hosted fonts in documentation without a redundant Google Fonts stylesheet, and serve font assets once instead of embedding copies for isolated frames.
@@ -10,6 +18,8 @@
 - Keep SiteHeader full width in centered layouts and let long branding shrink within its mobile row, preserving the visible logo and trailing controls. Direct action slots reserve adjustable space for compact controls’ invisible targets.
 
 - Keep colored callout backgrounds pale and visibly tinted with opaque perceptual colors, preserving hue and readable text in light and dark themes.
+- **Breaking:** Public component styling hooks now inherit from `:root` and ancestors, with nearer instance declarations taking precedence. Inherited hooks retain their documented precedence over component props; use `initial` to restore a subtree’s prop-driven fallback. Internal stack measurements and affordance state use private properties. Remove ancestor hook declarations that previously had no effect if those components should keep their defaults.
+
 - Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
 - **Breaking:** Button now renders a native link whenever `href` is supplied, including `href=""`, and a native button otherwise. Remove Button's `as` prop: replace `as="a" href="…"` with `href="…"`; omit `href` for button actions. Disabled and loading links retain their navigation guards.
 
@@ -20,6 +30,13 @@
 - Keep single-column editor specimens in page flow on narrow screens so tall material samples cannot cover controls being touched or dragged.
 
 - Use a lighter relative-color wash for colored callout backgrounds, deriving the hue from their tone while preserving borders, text and document spacing.
+
+- Let Typography customize field-label size independently or follow body text by default, preserving that choice in recipes and CSS exports.
+- Give rhythm a vertical role: it opens text lines and stacked groups without spreading horizontal navigation or action rows. Spacing still adjusts gaps and padding. Size and Material editors now include grouped actions, fields, ordinary and expressive surfaces, and usable floating previews.
+- **Breaking:** Share neutral solid/outline action and form-field borders through `--ui-control-border` and its hover role. A configurable contrast floor (default 2:1) balances quiet boundaries against declared surfaces. Replace separate `--ui-neutral-border` / hover / active settings with the shared control roles.
+
+- Render the theme customizer’s status paragraph at the base body-text size, keeping field help and captions on the supporting-text scale.
+- **Breaking:** Default FormField and Combobox labels to the body-text size so the field’s instruction is larger than its supporting help. This increases labels for themes that did not explicitly size them. Set the shared `--ui-field-label-font-size` to `var(--ui-font-size-sm)` to retain compact labels; existing per-component label-size hooks still take precedence.
 
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
 

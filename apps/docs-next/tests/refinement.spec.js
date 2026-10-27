@@ -65,6 +65,8 @@ test('palette transformations change both mode specimens, keep geometry and surv
   const palette=page.locator('[data-refinement-view="palette"]');
   const colors=()=>palette.locator('.palette-canvas').evaluateAll(es=>es.map(e=>getComputedStyle(e).backgroundColor));
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
+  const specimenSizes=()=>palette.locator('[data-theme]').evaluateAll(es=>es.map(el=>{const b=el.getBoundingClientRect();return [b.width,b.height]}));
+  const beforeSizes=await specimenSizes();
   await palette.getByRole('button',{name:'Adjust color character',exact:true}).click();
   await palette.getByRole('slider',{name:'Surface warmth',exact:true}).press('End');
   await expect.poll(colors).not.toEqual(before);
@@ -76,8 +78,9 @@ test('palette transformations change both mode specimens, keep geometry and surv
   expect(await related.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe(await preserved.evaluate(el=>getComputedStyle(el).backgroundColor));
   expect((await session(page)).values['control-roominess']).toBe(geometry);
   expect((await session(page)).values['palette-relationship']).toBe('neighboring');
-  const header=await page.locator('[data-component~="markupress-header"]').boundingBox();
-  for(const mode of ['light','dark']) {const box=await palette.locator(`[data-theme="${mode}"]`).boundingBox();expect(box.y).toBeGreaterThanOrEqual(header.y+header.height);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize().height);}
+  expect(await specimenSizes()).toEqual(beforeSizes);
+  await expect(palette.locator('.palette-preview')).toHaveAttribute('data-page-flow','');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await expect(palette.locator('[data-theme="light"]')).toBeVisible();
   await expect(palette.locator('[data-theme="dark"]')).toBeVisible();
   const remembered=await session(page); await page.goto(info.config.metadata.markupress+'components/ui-button/');
@@ -118,7 +121,7 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
   try {
     const errors=await enter(page,info);
     await openEditor(page, 'layout');
-    const heights=await page.locator('[data-size-sample] button[data-component="ui-button"]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
+    const heights=await page.locator('[data-size-sample]').evaluateAll(rows=>rows.map(row=>row.querySelector('[data-size-actions] button[data-component="ui-button"]').getBoundingClientRect().height));
     expect(heights).toHaveLength(3); expect(heights[0]).toBeLessThan(heights[1]); expect(heights[1]).toBeLessThan(heights[2]);
     for(const size of ['sm','md','lg']) {
       const row=page.locator(`[data-size-sample="${size}"]`);
@@ -213,7 +216,7 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
         const bounds=el.getBoundingClientRect();
         return [...el.querySelectorAll('button,input')].filter(control=>control.getClientRects().length).every(control=>{const box=control.getBoundingClientRect();return box.x>=bounds.x-1&&box.right<=bounds.right+1;});
       })).toBe(true);
-      expect(await row.locator(`input[label="${size} size sample"]`).evaluate(input=>{
+      expect(await row.getByRole('textbox', {name:`${size} size sample`,exact:true}).evaluate(input=>{
         const style=getComputedStyle(input),context=document.createElement('canvas').getContext('2d');
         context.font=style.font;
         return context.measureText(input.value).width<=input.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
@@ -359,5 +362,100 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
   await expect(palette.getByRole('listbox')).toBeVisible();
   await field.press('Escape');
   await expect(palette.getByRole('listbox')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+
+test('field label sizing follows body text or keeps an independent persisted size', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'typography');
+  const label=editor.locator('label').filter({hasText:'Memo title'});
+  const source=editor.locator('[data-label-size-source]');
+  await expect(source).toHaveValue('inherit');
+  await expect(label).toHaveCSS('font-size','16px');
+  await source.selectOption('custom');
+  const size=editor.getByRole('spinbutton',{name:'Independent field label size',exact:true});
+  await size.fill('14px'); await size.press('Enter');
+  await expect(label).toHaveCSS('font-size','14px');
+  expect((await session(page)).values['label-size']).toBe('14px');
+  await page.reload();
+  await expect(label).toHaveCSS('font-size','14px');
+  await source.selectOption('inherit');
+  await expect(label).toHaveCSS('font-size','16px');
+  await expect(size).toBeHidden();
+  expect((await session(page)).values['label-size']).toBe('inherit');
+});
+
+test('rhythm separates stacked size groups without spreading navigation or action rows', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'layout');
+  const measure=()=>page.evaluate(()=>({
+    groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
+    row:parseFloat(getComputedStyle(document.querySelector('[data-size-actions]')).columnGap),
+    nav:parseFloat(getComputedStyle(document.querySelector('[data-component~="ui-site-header"] .navigation')).columnGap),
+  }));
+  const before=await measure();
+  await editor.getByRole('slider',{name:'Rhythm',exact:true}).press('End');
+  await expect.poll(async()=>(await measure()).groups).toBeGreaterThan(before.groups);
+  const after=await measure(); expect(after.row).toBe(before.row); expect(after.nav).toBe(before.nav);
+  for(const size of ['sm','md','lg']) expect(await editor.locator(`[data-size-sample="${size}"] [data-size-actions] button`).count()).toBe(3);
+});
+
+test('material samples show ordinary and expressive surfaces with working floating controls', async ({page},info) => {
+  await enter(page,info);
+  const editor=await openEditor(page,'material');
+  await expect(editor.locator('[data-material-standard]')).toBeVisible();
+  await expect(editor.locator('[data-material-expressive]')).toBeVisible();
+  await editor.getByRole('button',{name:'Open popover',exact:true}).click();
+  await expect(page.getByText('Floating material',{exact:true})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await editor.getByRole('button',{name:'Open dialog',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Surface and light',exact:true})).toBeVisible();
+  await page.getByRole('dialog',{name:'Surface and light',exact:true}).getByRole('button',{name:'Done',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Surface and light',exact:true})).toBeHidden();
+});
+
+for (const width of [1440,375]) test(`palette relationships govern neutral boundaries and status families at ${width}px`, async ({page},info) => {
+  await page.setViewportSize({width,height:1000});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'palette');
+  const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
+    const border=element=>getComputedStyle(element).borderTopColor;
+    return [card.querySelector('input'),...card.querySelectorAll('[data-component~="ui-button"][data-tone="neutral"]')].map(border);
+  }));
+  await page.mouse.move(1,1);
+  for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Neutrals & shared borders',exact:true}).click();
+  const before=await boundaries();
+  const minimum=editor.getByRole('spinbutton',{name:'Neutral border contrast',exact:true});
+  await minimum.fill('3');await minimum.press('Enter');
+  await page.mouse.move(1,1);
+  await expect.poll(boundaries).not.toEqual(before);
+  for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Supporting accents',exact:true}).click();
+  await editor.locator('[data-color-source="secondary-action"]').selectOption('custom');
+  await setBaseColor(page,'Secondary accent','#dd7045');
+  await editor.locator('[data-color-source="tertiary-action"]').selectOption('custom');
+  await setBaseColor(page,'Tertiary accent','#208676');
+  await expect(editor.locator('[data-extra-accent="secondary-action"]').first()).toBeVisible();
+  await editor.getByRole('button',{name:'Status colors',exact:true}).click();
+  for(const [role,label] of [['success','Success'],['danger','Error'],['warning','Warning'],['info','Info']]) {
+    await editor.getByRole('combobox',{name:label+' relationship',exact:true}).selectOption('primary');
+    expect(await editor.locator(`[data-token="${role}-color"]`).count()).toBe(0);
+  }
+  const statusColors=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>['Success','Error','Warning','Info'].map(label=>getComputedStyle([...card.querySelectorAll('[data-component~="ui-badge"]')].find(badge=>badge.textContent.trim()===label)).color)));
+  for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Accent assignments',exact:true}).click();
+  await editor.getByRole('combobox',{name:'Link accent',exact:true}).selectOption('secondary');
+  const edited=await session(page);
+  expect(edited.values['secondary-action']).toBe('#dd7045');
+  expect(edited.values['tertiary-action']).toBe('#208676');
+  expect(edited.values['neutral-border-contrast']).toBe('3');
+  await page.reload();expect(await session(page)).toEqual(edited);
+  for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
   expect(errors).toEqual([]);
 });

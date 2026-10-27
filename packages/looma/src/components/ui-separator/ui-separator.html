@@ -9,12 +9,6 @@
   </defs>
   <hr from:aria-orientation="$orientation">
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-separator-color {
-      syntax: "*";
-      inherits: false;
-    }
-
     /* The root is the hr, so the rules name :host; a bare hr matches only a descendant. */
     :host {
       box-sizing: border-box !important;

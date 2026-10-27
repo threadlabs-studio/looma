@@ -194,6 +194,20 @@
     "example": 1
   },
   {
+    "name": "tone: accent-secondary",
+    "props": {
+      "tone": "accent-secondary"
+    },
+    "example": 1
+  },
+  {
+    "name": "tone: accent-tertiary",
+    "props": {
+      "tone": "accent-tertiary"
+    },
+    "example": 1
+  },
+  {
     "name": "tone: danger",
     "props": {
       "tone": "danger"

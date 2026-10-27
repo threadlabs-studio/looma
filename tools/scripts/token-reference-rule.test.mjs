@@ -12,7 +12,7 @@ const editorStyles = path.join(repoRoot, "packages/looma/src/vue/editor/looma-ed
 // Optional inherited middle layer. These are deliberately unset in tokens.css, so each component
 // reads its global fallback when a consumer has not themed that group.
 const GROUP_TOKENS = new Set([
-  "--ui-field-radius", "--ui-field-danger", "--ui-action-radius", "--ui-action-edge", "--ui-action-shadow",
+  "--ui-field-radius", "--ui-field-danger", "--ui-field-label-font-size", "--ui-action-radius", "--ui-action-edge", "--ui-action-shadow",
   "--ui-font-display", "--ui-press-scale", "--ui-motion-press",
   "--ui-overlay-radius", "--ui-overlay-surface", "--ui-overlay-border", "--ui-overlay-shadow",
 ]);

@@ -148,7 +148,7 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
       for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= 4.5, `${name} on ${surface}`);
     }
     for (const name of ['--ui-control-border', '--ui-focus-ring']) {
-      for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= 3, `${name} on ${surface}`);
+      for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= (name === '--ui-control-border' ? Number(recipe.values['neutral-border-contrast']) : 3), `${name} on ${surface}`);
     }
     for (const tone of ['accent', 'danger', 'success', 'warning', 'info']) {
       for (const state of ['', '-hover', '-active']) assert.ok(contrast(tokens[`--ui-${tone}${state}`], tokens[`--ui-on-${tone}`]) >= 4.5, `${tone}${state} solid`);
@@ -169,7 +169,7 @@ test('every recipe exports a coordinated pair and both resolved palettes remain 
       assert.ok(contrast(tokens['--ui-control-placeholder'], tokens['--ui-control-surface']) < contrast(tokens['--ui-text'], tokens['--ui-control-surface']), 'hint is quieter than entered text');
       for (const surface of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
         assert.ok(contrast(tokens['--ui-text'], tokens[surface]) >= 4.5);
-        assert.ok(contrast(tokens['--ui-control-border'], tokens[surface]) >= 3);
+        assert.ok(contrast(tokens['--ui-control-border'], tokens[surface]) >= Number(recipe.values['neutral-border-contrast']));
       }
     }
     const css = themeCSS(recipe);
@@ -217,7 +217,7 @@ test('palette relationships change coordinated surfaces without changing geometr
   for (const mode of ['light', 'dark']) {
     const { tokens } = deriveTheme(recipe, { mode });
     assert.ok(contrast(tokens['--ui-text'], tokens['--ui-surface']) >= 4.5);
-    assert.ok(contrast(tokens['--ui-control-border'], tokens['--ui-surface']) >= 3);
+    assert.ok(contrast(tokens['--ui-control-border'], tokens['--ui-surface']) >= Number(recipe.values['neutral-border-contrast']));
     assert.notEqual(tokens['--ui-disabled-text'], tokens['--ui-text-secondary']);
   }
   recipe.values['palette-relationship'] = 'arbitrary';
@@ -242,7 +242,7 @@ test('palette transformations preserve readable roles at their extremes in both 
     const {tokens} = deriveTheme(recipe, {mode});
     for (const surface of ['--ui-surface','--ui-surface-raised','--ui-surface-sunken']) {
       assert.ok(contrast(tokens['--ui-text'],tokens[surface]) >= 4.5, `${relationship}/${mode} body`);
-      assert.ok(contrast(tokens['--ui-control-border'],tokens[surface]) >= 3, `${relationship}/${mode} boundary`);
+      assert.ok(contrast(tokens['--ui-control-border'],tokens[surface]) >= Number(recipe.values['neutral-border-contrast']), `${relationship}/${mode} boundary`);
     }
     for (const tone of ['accent','danger','success','warning','info']) assert.ok(contrast(tokens[`--ui-${tone}`],tokens[`--ui-on-${tone}`]) >= 4.5, `${relationship}/${mode}/${tone}`);
   }
@@ -383,7 +383,7 @@ test('old recipes retain glass property keys, gain neutral light and default to 
 
 test('glass transmits only through decorative rims and keeps opaque content and zero-blur defaults', () => {
   const system = readFileSync(new URL('../../src/tokens/theme-system.css', import.meta.url), 'utf8');
-  assert.match(system, /--ui-overlay-surface: var\(--ui-surface-raised\);/);
+  assert.doesNotMatch(system, /--ui-overlay-surface:/, "optional group overrides must not mask semantic status surfaces");
   assert.match(system, /--ui-material-content: var\(--ui-surface-raised\);/);
   assert.match(system, /--ui-material-glass: color-mix\(in srgb, var\(--ui-surface-raised\) calc\(\(1 - clamp\(0, var\(--ui-overlay-translucency\), 1\)\) \* 100%\), transparent\);/);
   for (const tag of ['ui-card', 'ui-popover', 'ui-dialog', 'ui-menu', 'ui-tooltip']) {
@@ -496,7 +496,7 @@ test('choice frames recess only empty wells and reuse shared state/material boun
   assert.match(radio, /input:checked\s*\{[^}]*background-image: var\(--ui-accent-highlight, none\);[^}]*box-shadow: none;/);
   assert.match(radio, /input:checked::after\s*\{[^}]*opacity: 1;/);
   assert.match(radio, /input::after\s*\{[^}]*background-color: var\(--ui-text-on-accent\);/);
-  assert.match(radio, /@media \(forced-colors: active\)[\s\S]*appearance: auto;[\s\S]*input::after \{ display: none !important; \}/);
+  assert.match(radio, /@media \(forced-colors: active\)[\s\S]*appearance: auto;[\s\S]*input::after\s*\{\s*display: none !important;\s*\}/);
   assert.match(toggle, /input::after\s*\{[^}]*background-image: var\(--ui-knob-highlight, none\);/);
   assert.match(toggle, /input:checked::after\s*\{[^}]*background-image: var\(--ui-knob-on-accent-highlight, none\);/);
   assert.match(toggle, /:host\(\[disabled\]\) input::after\s*\{[^}]*background-image: none;/);
@@ -514,40 +514,34 @@ test('filled actions resolve a coupled hierarchy across light, dark and nearly m
     assert.equal(t['--ui-accent'], action);
     const background=t['--ui-surface-raised'];
     for (const state of ['', '-hover', '-active']) {
-      const neutral=t[`--ui-neutral${state || '-surface'}`], edge=t[`--ui-neutral${state}-border`];
+      const neutral=t[`--ui-neutral${state || '-surface'}`], edge=t['--ui-control-border'];
       const primaryEdge=t[`--ui-accent${state}-border`];
       assert.ok(contrast(neutral,t['--ui-text'])>=4.5, `${mode}/${surface}/${action}${state}: label`);
-      assert.ok(separationOK(edge,background) < separationOK(primaryEdge,background)+.004, `${mode}/${surface}/${action}${state}: secondary contour stays subordinate`);
+      assert.ok(contrast(edge,background)>=2, `${mode}/${surface}/${action}${state}: shared control contour meets its default minimum`);
       assert.ok(separationOK(edge,background) > separationOK(neutral,background)-.004, `${mode}/${surface}/${action}${state}: edge bounds its fill`);
       assert.ok(/^#[a-f0-9]{6}$/.test(primaryEdge));
     }
     assert.notEqual(t['--ui-border-strong'],t['--ui-control-border']);
-    assert.ok(contrast(t['--ui-control-border'],background)>=3);
+    assert.ok(contrast(t['--ui-control-border'],background)>=2);
   }
 });
-test('action companion adapts continuously to primary separation, including chroma', () => {
+test('neutral relationships change hue without following the strength of primary pigment', () => {
   for (const mode of ['light','dark']) {
-    const resolve=action=>deriveTheme({schemaVersion:1,values:{...defaultRecipe().values,action}}, {mode}).tokens;
-    const a=resolve('#ffb84d'), b=resolve('#2563eb'), c=resolve('#fafafa');
-    assert.ok(new Set([a,b,c].map(t=>t['--ui-neutral-surface'])).size>1);
-    assert.ok(separationOK(a['--ui-neutral-border'],a['--ui-surface-raised']) < .15);
-    const adjacent=resolve('#ffb94d');
-    assert.ok(separationOK(a['--ui-neutral-border'],adjacent['--ui-neutral-border'])<.01);
+    const recipe=defaultRecipe();
+    const ordinary=deriveTheme(recipe,{mode}).tokens;
+    recipe.values.action='#fafafa';
+    const adjacent=deriveTheme(recipe,{mode}).tokens;
+    assert.equal(ordinary['--ui-control-border'],adjacent['--ui-control-border']);
+    recipe.values.action='#2563eb'; recipe.values['neutral-source']='primary';
+    assert.notEqual(deriveTheme(recipe,{mode}).tokens['--ui-neutral-surface'],ordinary['--ui-neutral-surface']);
   }
-});
-
-test('equal-lightness chroma separation also informs the action family', () => {
-  const surface=fromLch([.8,0,0]), chromatic=fromLch([.8,.12,70]);
-  assert.ok(Math.abs(toLch(surface)[0]-toLch(chromatic)[0])<.003);
-  const resolve=action=>deriveTheme({schemaVersion:1,values:{...defaultRecipe().values,surface,canvas:surface,action}}, {mode:'light'}).tokens;
-  assert.notEqual(resolve(surface)['--ui-neutral-border'],resolve(chromatic)['--ui-neutral-border']);
 });
 
 test('chroma threshold assistance avoids a contour jump between adjacent seeds', () => {
   const resolve=action=>deriveTheme({schemaVersion:1,values:{...defaultRecipe().values,action,surface:'#bebebe',canvas:'#bebebe'}}, {mode:'light'}).tokens;
   const a=resolve('#b0cd31'), b=resolve('#b0cd30');
   assert.ok(separationOK(a['--ui-accent-border'],b['--ui-accent-border'])<.01);
-  assert.ok(separationOK(a['--ui-neutral-border'],b['--ui-neutral-border'])<.01);
+  assert.ok(separationOK(a['--ui-control-border'],b['--ui-control-border'])<.01);
 });
 
 test('Gold is an identified starting theme with portable Google font provenance', () => {
@@ -580,4 +574,83 @@ test('partial recipes export inherited fonts without importing explicitly suppli
   const explicit = validateRecipe({ schemaVersion: 1, values: { 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif' } });
   assert.equal(explicit.fonts, undefined);
   assert.doesNotMatch(themeCSS(explicit), /fonts.googleapis.com/);
+});
+
+
+test('field-label sizing follows body by default and exports an independent public role when chosen', () => {
+  const recipe = defaultRecipe();
+  assert.equal(recipe.values['label-size'], 'inherit');
+  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], 'inherit');
+  recipe.values['label-size'] = '14px';
+  assert.match(themeCSS(recipe), /--ui-field-label-font-size: 14px;/);
+  assert.equal(validateRecipe(JSON.parse(JSON.stringify(recipe))).values['label-size'], '14px');
+  for (const value of ['0px', '-1px', 'auto', '12px; color:red']) {
+    assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, 'label-size': value } }));
+  }
+});
+
+
+test('neutral boundaries have an editable contrast floor independent of primary pigment', () => {
+  for (const mode of ['light','dark']) for (const minimum of ['1.5','2','3']) {
+    const recipe=defaultRecipe(); recipe.values['neutral-border-contrast']=minimum;
+    const {tokens:t}=deriveTheme(recipe,{mode});
+    for(const surface of ['--ui-surface','--ui-surface-raised','--ui-neutral-surface']) assert.ok(contrast(t['--ui-control-border'],t[surface])>=Number(minimum)-.01, `${mode}/${minimum}/${surface}`);
+    assert.ok(themeCSS(recipe).includes('--ui-control-border:'));
+  }
+});
+
+test('brand accents, neutral pigment and semantic mappings survive recipes and CSS exports', () => {
+  const recipe=defaultRecipe();
+  Object.assign(recipe.values,{'secondary-action':'#e66b70','tertiary-action':'#168779','neutral-source':'secondary','success-source':'primary','danger-source':'secondary','warning-source':'related','info-source':'tertiary'});
+  assert.deepEqual(validateRecipe(JSON.parse(JSON.stringify(recipe))),recipe);
+  for(const mode of ['light','dark']) {
+    const {tokens:t}=deriveTheme(recipe,{mode});
+    assert.equal(t['--ui-accent-secondary'],'#e66b70');
+    assert.equal(t['--ui-accent-tertiary'],'#168779');
+    assert.equal(t['--ui-success'],t['--ui-accent']);
+    assert.equal(t['--ui-danger'],t['--ui-accent-secondary']);
+    assert.equal(t['--ui-info'],t['--ui-accent-tertiary']);
+    assert.notEqual(t['--ui-warning'],t['--ui-accent']);
+    for(const tone of ['accent-secondary','accent-tertiary','success','danger','warning','info']) assert.ok(contrast(t[`--ui-${tone}`],t[`--ui-on-${tone}`])>=4.5);
+  }
+  assert.match(themeCSS(recipe),/--ui-accent-secondary: light-dark\(#e66b70, #e66b70\);/);
+});
+
+test('status relationships govern color without accepting direct status color overrides', () => {
+  const recipe=defaultRecipe();
+  for(const role of ['danger','warning','success','info']) {
+    assert.equal(themeFields.some(field=>field.id===role+'-color'),false);
+    assert.throws(()=>validateRecipe({...recipe,values:{...recipe.values,[role+'-color']:'#ff0000'}}));
+    assert.throws(()=>validateRecipe({...recipe,values:{...recipe.values,[role+'-source']:'custom'}}));
+    recipe.values[role+'-source']='primary';
+  }
+  const {tokens}=deriveTheme(recipe);
+  for(const role of ['danger','warning','success','info']) assert.equal(tokens['--ui-'+role],tokens['--ui-accent']);
+});
+
+
+test('dark mode separates canvas, raised plates, neutral fills and selected rows across palettes', () => {
+  for(const recipe of Object.values(startingPoints)) {
+    const {tokens:t}=deriveTheme(recipe,{mode:'dark'});
+    const lightness=role=>toLch(t['--ui-'+role])[0];
+    assert.ok(lightness('surface-raised')-lightness('surface')>=.06, recipe.values.action+': raised plate stays above canvas');
+    assert.ok(lightness('neutral-surface')-lightness('surface-raised')>=.06, recipe.values.action+': neutral fill is visible');
+    assert.ok(lightness('selection-surface')-lightness('surface-raised')>=.075, recipe.values.action+': selection wash is visible');
+    assert.ok(contrast(t['--ui-selection-text'],t['--ui-selection-surface'])>=7, recipe.values.action+': selected text remains clear');
+    assert.ok(contrast(t['--ui-control-border'],t['--ui-neutral-surface'])>=Number(recipe.values['neutral-border-contrast'])*1.15-.01);
+  }
+});
+
+test('quiet light status surfaces stay pale while dark surfaces use readable contextual pigment', () => {
+  for(const recipe of Object.values(startingPoints)) {
+    for(const mode of ['light','dark']) {
+      const {tokens:t}=deriveTheme(recipe,{mode});
+      for(const tone of ['success','danger','warning','info']) {
+        const fill=t['--ui-'+tone+'-soft'];
+        const delta=toLch(fill)[0]-toLch(t['--ui-surface-raised'])[0];
+        assert.ok(mode==='light'?delta>=-.055:delta>=.06, `${mode}/${tone}: mode-aware quiet tint`);
+        assert.ok(contrast(fill,t['--ui-'+tone+'-subtle-text'])>=4.5,`${mode}/${tone}: text on its actual quiet fill`);
+      }
+    }
+  }
 });

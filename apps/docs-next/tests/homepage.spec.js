@@ -20,7 +20,7 @@ for (const width of [1440, 900, 375]) {
       // The same face's descent scales with font size; subtract it from the text range's bottom.
       const baselines = await bar.evaluate(element => {
         const canvas = document.createElement('canvas').getContext('2d');
-        return [element.querySelector('.brand-title'), element.querySelector('.top a')].map(node => {
+        return [element.querySelector('.brand-title'), element.querySelector('.navigation a')].map(node => {
           const range = document.createRange(); range.selectNodeContents(node);
           const style = getComputedStyle(node); canvas.font = style.font;
           return range.getBoundingClientRect().bottom - canvas.measureText(node.textContent).fontBoundingBoxDescent;

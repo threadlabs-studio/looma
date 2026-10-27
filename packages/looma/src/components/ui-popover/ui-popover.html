@@ -33,36 +33,6 @@
   </defs>
   <span><div class="surface"><slot></slot></div></span>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-popover-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-viewport-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-offset {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-popover-padding {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_ui-material-scale: 0.55;
       --_ui-popover-surface: var(--ui-popover-surface);

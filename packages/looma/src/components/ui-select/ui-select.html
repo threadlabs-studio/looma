@@ -17,48 +17,6 @@
   </defs>
   <select from:disabled="$disabled" from:required="$required" from:aria-invalid="$invalid"><slot></slot></select>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-select-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-border-hover {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-focus-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-focus-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-invalid-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-invalid-focus-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-select-surface {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_ui-select-size: var(--ui-control-size-md);
       --_ui-select-inset-block: var(--ui-control-inset-block-md, var(--ui-space-2));
