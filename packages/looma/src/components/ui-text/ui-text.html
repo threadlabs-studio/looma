@@ -11,10 +11,15 @@
     <prop name="size" type="keyword" values="inherit, xs, sm, md, lg" default="inherit"
     >The step on the type scale. inherit (the default) keeps the size of the text around it; xs is for fine print, sm for supporting text such as help and
       metadata, md is body text, and lg is a lead paragraph.</prop>
-    <prop name="tone" type="keyword" values="default, secondary, muted, accent, danger, success, info, warning" default="default"
-    >The text's colour, by meaning. secondary is supporting prose such as a description; muted is quieter still, for metadata and hints; accent draws the eye;
-      danger states an error; success confirms one; info marks something moving forward normally; warning marks something that needs attention. Colour alone
-      does not carry the meaning, so the words must say it too.</prop>
+    <prop
+      name="tone"
+      type="keyword"
+      values="default, secondary, muted, accent, accent-secondary, accent-tertiary, danger, success, info, warning"
+      default="default"
+    >The text's colour, by meaning. default inherits its containing surface or control's foreground. secondary is supporting prose such as a description; muted
+      is quieter still, for metadata and hints; accent draws the eye; danger states an error; success confirms one; info marks something moving forward
+      normally; warning marks something that needs attention. Colour alone does not carry the meaning, so the words must say it too. Supporting brand families
+      use accent-secondary and accent-tertiary; their usable colors derive from the theme, and unset families follow the primary accent.</prop>
     <prop name="weight" type="keyword" values="inherit, normal, medium, semibold" default="inherit"
     >The weight. inherit keeps the surrounding weight; medium and semibold emphasise a name or a figure.</prop>
     <prop name="variant" type="keyword" values="body, display, heading, label, caption, eyebrow, code" default="body"
@@ -53,7 +58,7 @@
     :host {
       margin: 0 !important;
       min-inline-size: 0;
-      color: var(--ui-text-primary);
+      color: inherit;
       text-align: start;
     }
 
@@ -94,6 +99,14 @@
     :host([tone="muted"]) {
       color: var(--ui-text-muted);
     }
+    :host([tone="accent-secondary"]) {
+      color: var(--ui-accent-secondary-subtle-text);
+    }
+
+    :host([tone="accent-tertiary"]) {
+      color: var(--ui-accent-tertiary-subtle-text);
+    }
+
     :host([tone="accent"]) {
       color: var(--ui-accent-subtle-text);
     }
@@ -157,7 +170,7 @@
     /* A link in running text is underlined, so it stands apart from the words around it by more than
        colour. */
     :host :slotted(a) {
-      color: var(--ui-accent-subtle-text);
+      color: var(--ui-link-color, var(--ui-accent-subtle-text));
       text-decoration: underline;
       text-decoration-thickness: 0.06em;
       text-underline-offset: 0.18em;

@@ -27,24 +27,6 @@
     <span class="trailing"><slot name="trailing"></slot></span>
   </li>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-list-item-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-list-item-icon-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-list-item-padding-block {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-list-item-padding-inline {
-      syntax: "*";
-      inherits: false;
-    }
-
     /* One entry in a list: something to recognise (leading, usually an icon), its name (the default
        slot), one line about it (description), and what it offers (trailing, such as a button or a
        badge). The title and description are one line each and end in an ellipsis, so every item in a
@@ -55,7 +37,7 @@
        a router, a modified click, and "open in new tab" all work. Trailing controls sit above it and
        stay their own. */
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-list-item-icon-size: var(--ui-list-item-icon-size);
 
       position: relative;

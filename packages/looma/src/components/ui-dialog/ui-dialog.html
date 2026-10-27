@@ -47,39 +47,9 @@
     <footer $ref="footer"><slot name="actions"></slot></footer>
   </dialog>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-dialog-duration {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-max-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-dialog-viewport-gap {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_ui-material-scale: 1;
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-dialog-duration: var(--ui-dialog-duration);
 
       position: fixed;

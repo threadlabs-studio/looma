@@ -4,10 +4,11 @@ const timeUnits = { ms: 1, s: 1000 };
 const rounded = value => String(Number(Number(value).toFixed(6)));
 
 export function valueEditor(field, value, { remPixels = 16 } = {}) {
+  if (field.type === 'inherited-length') return { kind: 'inherited-size', value };
   if (field.id === 'text-size') return { kind: 'number', value, unit: 'px', min: field.min, max: field.max, step: 1 };
   if (field.type === 'choice') return { kind: 'choice', value };
   if (field.type === 'easing') return { kind: /^step-/.test(value) ? 'text' : 'curve', value };
-  if (['colour', 'font'].includes(field.type)) return { kind: 'text', value };
+  if (['colour', 'optional-colour', 'font'].includes(field.type)) return { kind: 'text', value };
   if (field.type.includes('length') || field.type === 'time') {
     const unit = value.match(/[a-z]+$/i)?.[0] ?? 'px';
     // Convert authoring limits against the same root as the displayed quantity.

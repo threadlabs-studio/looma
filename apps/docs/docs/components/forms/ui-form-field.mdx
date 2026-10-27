@@ -37,12 +37,12 @@ In development, the field warns in the console when it links a label for you, wh
 
 ## Styling hooks
 
-Set these on the field through a class of your own. They do not inherit, so a field inside the one
-you set them on keeps its defaults.
+Set these on `:root` for all fields, on an ancestor for a section, or on a field through a
+class of your own for one instance. Nearer declarations override inherited values.
 
 | Hook | Sets |
 | --- | --- |
-| `--ui-form-field-label-text`, `--ui-form-field-label-font-size` | the label's colour (`--ui-text-secondary`) and size (`--ui-font-size-sm`) |
+| `--ui-form-field-label-text`, `--ui-form-field-label-font-size` | the label's colour (`--ui-text-secondary`) and size (`--ui-field-label-font-size`, falling back to body size) |
 | `--ui-form-field-help-text`, `--ui-form-field-help-font-size` | the help text's colour (`--ui-text-muted`) and size (`--ui-font-size-sm`) |
 | `--ui-form-field-help-min-block-size` | a minimum height for the help, so fields in a row line up |
 | `--ui-form-field-min-inline-size` | the narrowest the field gets (`0`), such as `16rem` in a wrapping row |

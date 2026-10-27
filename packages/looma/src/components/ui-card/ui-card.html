@@ -11,9 +11,10 @@
       frosting. This does not add elevation or require glass.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
-    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, accent, accent-secondary, accent-tertiary, info, success, warning, danger" default="neutral"
     >accent, info, success, warning and danger add a quiet semantic surface without changing card geometry. Row highlights follow the surface hue; action
-      controls retain their own intent.</prop>
+      controls retain their own intent. Supporting brand families use accent-secondary and accent-tertiary; their usable colors derive from the theme, and unset
+      families follow the primary accent.</prop>
     <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
@@ -28,6 +29,7 @@
        needs no layout of its own. */
     :host {
       --_ui-card-surface: var(--ui-surface-raised);
+      --_ui-surface-text: initial;
       --_ui-card-elevation: 0 0 0 transparent;
       --_ui-selection-context-surface: initial;
       --_ui-selection-context-border: initial;
@@ -41,7 +43,7 @@
       border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--_ui-card-surface);
-      color: var(--ui-text-primary);
+      color: var(--_ui-surface-text, var(--ui-text-primary));
     }
 
     :host([padding="xs"]) {
@@ -111,37 +113,60 @@
       }
     }
 
+    :host([tone="accent-secondary"]) {
+      border-color: var(--ui-accent-secondary-soft-border);
+      --_ui-card-surface: var(--ui-accent-secondary-soft);
+      --_ui-surface-text: var(--ui-accent-secondary-subtle-text);
+    }
+
+    :host([tone="accent-tertiary"]) {
+      border-color: var(--ui-accent-tertiary-soft-border);
+      --_ui-card-surface: var(--ui-accent-tertiary-soft);
+      --_ui-surface-text: var(--ui-accent-tertiary-subtle-text);
+    }
+
     :host([tone="accent"]) {
-      border-color: color-mix(in srgb, var(--ui-accent) 25%, var(--ui-border-default));
-      --_ui-card-surface: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-surface-default));
+      border-color: var(--ui-accent-soft-border);
+      --_ui-card-surface: var(--ui-accent-soft);
+      --_ui-surface-text: var(--ui-accent-subtle-text);
     }
 
     :host([tone="info"]) {
-      border-color: color-mix(in srgb, var(--ui-info) 25%, var(--ui-border-default));
-      --_ui-card-surface: color-mix(in srgb, var(--ui-info) 6%, var(--ui-surface-default));
+      border-color: var(--ui-info-soft-border);
+      --_ui-card-surface: var(--ui-info-soft);
+      --_ui-surface-text: var(--ui-info-subtle-text);
     }
 
     :host([tone="success"]) {
-      border-color: color-mix(in srgb, var(--ui-success) 25%, var(--ui-border-default));
-      --_ui-card-surface: color-mix(in srgb, var(--ui-success) 6%, var(--ui-surface-default));
+      border-color: var(--ui-success-soft-border);
+      --_ui-card-surface: var(--ui-success-soft);
+      --_ui-surface-text: var(--ui-success-subtle-text);
     }
 
     :host([tone="warning"]) {
-      border-color: color-mix(in srgb, var(--ui-warning) 25%, var(--ui-border-default));
-      --_ui-card-surface: color-mix(in srgb, var(--ui-warning) 6%, var(--ui-surface-default));
+      border-color: var(--ui-warning-soft-border);
+      --_ui-card-surface: var(--ui-warning-soft);
+      --_ui-surface-text: var(--ui-warning-subtle-text);
     }
 
-    :host([variant="subtle"]:is([tone="accent"], [tone="info"], [tone="success"], [tone="warning"])) {
+    :host([variant="subtle"]:is([tone="accent"], [tone="accent-secondary"], [tone="accent-tertiary"], [tone="info"], [tone="success"], [tone="warning"])) {
       border-color: transparent;
     }
 
     :host([tone="danger"]) {
-      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
+      border-color: var(--ui-danger-soft-border);
       --_ui-card-surface: var(--ui-danger-soft);
+      --_ui-surface-text: var(--ui-danger-subtle-text);
     }
 
     /* A colored panel shades rows in its own hue, without changing button intent. */
-    :host([tone="accent"]), :host([tone="info"]), :host([tone="success"]), :host([tone="warning"]), :host([tone="danger"]) {
+    :host([tone="accent"]),
+    :host([tone="accent-secondary"]),
+    :host([tone="accent-tertiary"]),
+    :host([tone="info"]),
+    :host([tone="success"]),
+    :host([tone="warning"]),
+    :host([tone="danger"]) {
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--_ui-card-surface) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--_ui-card-surface) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)

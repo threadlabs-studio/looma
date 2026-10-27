@@ -386,8 +386,8 @@ function tokenRecord(name, declarations, references) {
   };
 }
 
-// Hooks do not inherit, so a root relays one to its parts as `--_ui-x: var(--ui-x)`, and a Looma
-// parent sets a default for a child's hook in `--_ui-default-x`. Neither is API: a relay's fallbacks
+// A root can resolve a hook for its parts as `--_ui-x: var(--ui-x)`, and a Looma parent supplies
+// child defaults through `--_ui-default-x`. Neither is API: a relay's fallbacks
 // are its hook's, and a parent's default gives way to the fallback after it.
 function foldRelays(references) {
   const unwrap = (fallback) => /^var\(--_ui-default-[A-Za-z0-9_-]+,\s*([\s\S]*)\)$/.exec(fallback)?.[1].trim() ?? fallback;

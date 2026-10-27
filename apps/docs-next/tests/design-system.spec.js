@@ -552,8 +552,14 @@ test('the removable Custom theme header chip clears browser customization across
     await page.goto(base+'components/ui-button/');
     await expect(chip).toBeVisible();
     expect(await page.locator('html').evaluate(el=>el.scrollWidth<=innerWidth)).toBe(true);
-    const brand=page.locator('[data-component~="markupress-header"] .brand-title');
-    expect(await brand.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+    const brand=page.locator('[data-component~="markupress-header"] .brand-link');
+    await expect(brand.locator('img:visible')).toHaveCount(1);
+    await expect(brand.locator('.brand-title')).toHaveCSS('text-overflow','ellipsis');
+    expect(await brand.evaluate(el=>{
+      const box=el.getBoundingClientRect(),header=el.closest('header').getBoundingClientRect();
+      const logo=[...el.querySelectorAll('img')].find(image=>image.getClientRects().length)?.getBoundingClientRect();
+      return box.right<=header.right+1&&logo?.width>0&&logo.right<=box.right+1;
+    })).toBe(true);
     await page.locator('[data-component~="markupress-header"]').screenshot({path:info.outputPath(`custom-theme-header-${width}.png`)});
     await chip.click();
     await expect(chip).toBeHidden();

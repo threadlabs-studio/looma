@@ -64,6 +64,8 @@ it.each(["button", "icon-button"])("keeps the derived filled-action boundary in 
       && (!selectorState || selector.includes(selectorState))
       && declarations.includes(`var(--${privateRole}${state}-border)`))).toBe(true);
   }
-  expect(rules.some(([, selector, declarations]) => /data-tone=["']?neutral/.test(selector)
-    && declarations.includes("var(--ui-neutral-hover-border"))).toBe(true);
+  for (const role of ["control-border", "control-border-hover"])
+    expect(rules.some(([, selector, declarations]) => /data-tone=["']?neutral/.test(selector)
+      && declarations.includes(`var(--ui-${role}`))).toBe(true);
+  expect(css).not.toMatch(/--ui-neutral-(?:hover-|active-)?border/);
 });

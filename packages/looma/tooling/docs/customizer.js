@@ -33,10 +33,12 @@ export function connect(host) {
   const fields = new Map(themeFields.map(field => [field.id, field]));
   const unitContext = () => ({ remPixels: parseFloat(view.getComputedStyle(document.documentElement).fontSize) });
   const editorFor = (field, value) => valueEditor(field, value, { remPixels: parseFloat(recipe.values['text-size']) });
-  let boundsBase;
+  let boundsBase, lastLabelSize;
+  const optionalColors = new Map();
   const updateControl = (element, value) => {
     if (element.matches('[data-choice]')) element.dataset.selectedValue = value;
     const field = fields.get(element.dataset.token);
+    if (field?.type === 'optional-colour' && value === field.defaultValue) return;
     if (!field || !element.dataset.editorKind) { componentRegistry.update(element, { value }); return; }
     const editor = editorFor(field, value);
     if (element.dataset.editorKind === 'curve') {
@@ -91,6 +93,25 @@ export function connect(host) {
   };
   const paint = () => {
     const values = recipe.values;
+    for (const field of themeFields.filter(field => field.type === 'optional-colour')) {
+      const value = values[field.id], custom = value !== field.defaultValue;
+      if (custom) optionalColors.set(field.id, value);
+      const picker = root.querySelector(`[data-optional-color="${field.id}"]`);
+      picker.hidden = !custom;
+      componentRegistry.update(root.querySelector(`[data-color-source="${field.id}"]`), { value: custom ? 'custom' : 'default' });
+    }
+    for (const sample of root.querySelectorAll('[data-extra-accent]')) sample.hidden = values[sample.dataset.extraAccent] === 'none';
+    for (const readout of root.querySelectorAll('[data-palette-roles]')) {
+      const { tokens } = deriveTheme(recipe, { mode: readout.dataset.paletteRoles });
+      readout.textContent = `Shared border ${tokens['--ui-control-border']} · minimum ${values['neutral-border-contrast']}:1. `;
+    }
+    const followsBody = values['label-size'] === 'inherit';
+    if (!followsBody) lastLabelSize = values['label-size'];
+    const labelSize = root.querySelector('[data-label-size-value]');
+    labelSize.hidden = followsBody;
+    const labelValue = followsBody ? lastLabelSize ?? values['text-size'] : values['label-size'];
+    componentRegistry.update(labelSize, { value: labelValue, unit: labelValue.match(/[a-z]+$/i)?.[0] ?? 'px' });
+    componentRegistry.update(root.querySelector('[data-label-size-source]'), { value: followsBody ? 'inherit' : 'custom' });
     root.querySelector('[data-theme-summary]').textContent = startingPointLabels[recipe.origin ?? startingPointFor(recipe)] ?? 'Your theme';
     const summaries = {
       palette: `${themePalettes[refinementState(recipe, 'palette').id]?.label ?? 'Custom colors'} · Light & dark`,
@@ -220,6 +241,11 @@ export function connect(host) {
     return { ...recipe, fonts, ...(origin ? { origin } : {}), presets, values };
   };
   const input = event => {
+    if (event.target.matches('[data-label-size-value]')) {
+      try { preview(refinedRecipe({ ...recipe.values, 'label-size': String(event.detail?.value ?? event.target.value) })); }
+      catch (error) { say(error.message, true); }
+      return;
+    }
     if (event.target.matches('[data-example-query]')) { filterExamples(); return; }
     if (event.target.matches('[data-light-editor]')) {
       try {
@@ -335,10 +361,22 @@ export function connect(host) {
   };
   const change = async event => {
     const value = event.detail?.value ?? event.target.value;
-    if (event.target.matches('[data-light-editor]') || event.target.closest?.('[data-token]')) {
+    if (event.target.matches('[data-light-editor], [data-label-size-value]') || event.target.closest?.('[data-token]')) {
       input(event); flush(); sayApplied('Theme remembered in this browser. Undo restores the previous decision.'); return;
     }
     flush();
+    if (event.target.matches('[data-color-source]')) {
+      const field = fields.get(event.target.dataset.colorSource);
+      const fallback = recipe.values.action;
+      show(refinedRecipe({ ...recipe.values, [field.id]: value === 'default' ? field.defaultValue : optionalColors.get(field.id) ?? fallback }));
+      sayApplied(`${field.label} updated and remembered in this browser.`);
+      return;
+    }
+    if (event.target.matches('[data-label-size-source]')) {
+      show(refinedRecipe({ ...recipe.values, 'label-size': value === 'inherit' ? 'inherit' : lastLabelSize ?? recipe.values['text-size'] }));
+      sayApplied('Field label size updated and remembered in this browser.');
+      return;
+    }
     if (event.target.matches('[data-unit-for]')) {
       const field = fields.get(event.target.dataset.unitFor);
       try {

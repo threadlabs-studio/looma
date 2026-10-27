@@ -120,30 +120,8 @@
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-tree-item-depth {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tree-item-font-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tree-item-label-padding-block {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tree-item-label-padding-inline {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tree-item-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. The tree's density
+      /* Resolve shared part values at the root. The tree's density
          sets the defaults, in --_ui-default-*. */
       --_ui-tree-item-min-block-size: var(--ui-tree-item-min-block-size, var(--_ui-default-tree-item-min-block-size));
       --_ui-tree-item-font-size: var(--ui-tree-item-font-size, var(--_ui-default-tree-item-font-size));
