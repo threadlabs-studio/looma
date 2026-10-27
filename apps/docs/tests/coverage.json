@@ -43,6 +43,11 @@
       "component": "ui-action-bar",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Form actions",
+          "behavior": false
+        },
+        {
           "id": "01-form-footer",
           "title": "Form footer",
           "behavior": true
@@ -65,6 +70,11 @@
       "source": "apps/docs/docs/components/overlay/ui-affordance-scope.mdx",
       "component": "ui-affordance-scope",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Nearby actions",
+          "behavior": false
+        },
         {
           "id": "01-default-radius",
           "title": "Default radius",
@@ -340,6 +350,11 @@
       "component": "ui-card",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Content card",
+          "behavior": false
+        },
+        {
           "id": "01-variants",
           "title": "Variants",
           "behavior": false
@@ -448,6 +463,11 @@
       "source": "apps/docs/docs/components/forms/ui-color-picker.mdx",
       "component": "ui-color-picker",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Accent color",
+          "behavior": false
+        },
         {
           "id": "01-shapes-and-sizes",
           "title": "Shapes and shared sizes",
@@ -566,6 +586,11 @@
       "component": "ui-cover",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Centered content",
+          "behavior": false
+        },
+        {
           "id": "01-default",
           "title": "Default",
           "behavior": false
@@ -583,6 +608,11 @@
       "source": "apps/docs/docs/components/forms/ui-curve-editor.mdx",
       "component": "ui-curve-editor",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Edit an easing curve",
+          "behavior": false
+        },
         {
           "id": "01-editing",
           "title": "Exact and visual editing",
@@ -1456,6 +1486,11 @@
       "component": "ui-search-shell",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Search commands",
+          "behavior": true
+        },
+        {
           "id": "01-open",
           "title": "open",
           "behavior": false
@@ -1543,6 +1578,11 @@
       "component": "ui-sidebar",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Workspace navigation",
+          "behavior": false
+        },
+        {
           "id": "01-app-shell",
           "title": "App shell",
           "behavior": false
@@ -1561,6 +1601,11 @@
       "component": "ui-site-header",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Compact header",
+          "behavior": false
+        },
+        {
           "id": "01-default",
           "title": "Site navigation",
           "behavior": false
@@ -1573,6 +1618,11 @@
       "source": "apps/docs/docs/components/display/ui-skeleton.mdx",
       "component": "ui-skeleton",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Loading text",
+          "behavior": false
+        },
         {
           "id": "01-text",
           "title": "Text lines",
@@ -1656,6 +1706,11 @@
       "component": "ui-status-message",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Empty state",
+          "behavior": false
+        },
+        {
           "id": "01-kinds",
           "title": "Empty, loading, and error",
           "behavior": false
@@ -1673,6 +1728,11 @@
       "source": "apps/docs/docs/components/forms/ui-swatch.mdx",
       "component": "ui-swatch",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Choose a color",
+          "behavior": false
+        },
         {
           "id": "01-tones",
           "title": "Tones",
@@ -1748,6 +1808,11 @@
       "component": "ui-table",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Recent updates",
+          "behavior": false
+        },
+        {
           "id": "01-default",
           "title": "Default",
           "behavior": false
@@ -1818,6 +1883,11 @@
       "source": "apps/docs/docs/components/display/ui-text.mdx",
       "component": "ui-text",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Text hierarchy",
+          "behavior": false
+        },
         {
           "id": "01-tones",
           "title": "Tones",
@@ -1961,6 +2031,11 @@
       "source": "apps/docs/docs/components/display/ui-tree.mdx",
       "component": "ui-tree",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Project files",
+          "behavior": false
+        },
         {
           "id": "01-default",
           "title": "Default",
@@ -2184,6 +2259,11 @@
       "component": "ui-editor-link-card",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Linked page",
+          "behavior": false
+        },
+        {
           "id": "01-address",
           "title": "Address",
           "behavior": false
@@ -2230,6 +2310,11 @@
       "component": "ui-editor-mention-menu",
       "examples": [
         {
+          "id": "00-preview",
+          "title": "Mention a teammate",
+          "behavior": true
+        },
+        {
           "id": "01-open",
           "title": "Open",
           "behavior": false
@@ -2252,6 +2337,11 @@
       "source": "apps/docs/docs/editor/ui-editor-slash-menu.mdx",
       "component": "ui-editor-slash-menu",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Insert a block",
+          "behavior": true
+        },
         {
           "id": "01-open",
           "title": "Open",
@@ -2298,6 +2388,11 @@
       "source": "apps/docs/docs/editor/ui-editor-table-overlay.mdx",
       "component": "ui-editor-table-overlay",
       "examples": [
+        {
+          "id": "00-preview",
+          "title": "Table edge controls",
+          "behavior": true
+        },
         {
           "id": "01-open-with-geometry",
           "title": "Open with geometry",

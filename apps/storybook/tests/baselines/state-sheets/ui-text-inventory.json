@@ -2,366 +2,371 @@
   {
     "name": "Rest",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "align: start",
     "props": {
       "align": "start"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "align: center",
     "props": {
       "align": "center"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: p",
     "props": {
       "as": "p"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: span",
     "props": {
       "as": "span"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: div",
     "props": {
       "as": "div"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: small",
     "props": {
       "as": "small"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: strong",
     "props": {
       "as": "strong"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: label",
     "props": {
       "as": "label"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h1",
     "props": {
       "as": "h1"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h2",
     "props": {
       "as": "h2"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h3",
     "props": {
       "as": "h3"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h4",
     "props": {
       "as": "h4"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h5",
     "props": {
       "as": "h5"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "as: h6",
     "props": {
       "as": "h6"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "font: inherit",
     "props": {
       "font": "inherit"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "font: sans",
     "props": {
       "font": "sans"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "grow: false",
     "props": {
       "grow": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "grow: true",
     "props": {
       "grow": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: inherit",
     "props": {
       "size": "inherit"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: xs",
     "props": {
       "size": "xs"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: sm",
     "props": {
       "size": "sm"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: md",
     "props": {
       "size": "md"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: lg",
     "props": {
       "size": "lg"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: default",
     "props": {
       "tone": "default"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: secondary",
     "props": {
       "tone": "secondary"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: muted",
     "props": {
       "tone": "muted"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: accent",
     "props": {
       "tone": "accent"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: accent-secondary",
     "props": {
       "tone": "accent-secondary"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: accent-tertiary",
     "props": {
       "tone": "accent-tertiary"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: danger",
     "props": {
       "tone": "danger"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: success",
     "props": {
       "tone": "success"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: info",
     "props": {
       "tone": "info"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: warning",
     "props": {
       "tone": "warning"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "trim: false",
     "props": {
       "trim": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "trim: true",
     "props": {
       "trim": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "truncate: false",
     "props": {
       "truncate": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "truncate: true",
     "props": {
       "truncate": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: body",
     "props": {
       "variant": "body"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: display",
     "props": {
       "variant": "display"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: heading",
     "props": {
       "variant": "heading"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: label",
     "props": {
       "variant": "label"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: caption",
     "props": {
       "variant": "caption"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: eyebrow",
     "props": {
       "variant": "eyebrow"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "variant: code",
     "props": {
       "variant": "code"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "weight: inherit",
     "props": {
       "weight": "inherit"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "weight: normal",
     "props": {
       "weight": "normal"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "weight: medium",
     "props": {
       "weight": "medium"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "weight: semibold",
     "props": {
       "weight": "semibold"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "wrap: normal",
     "props": {
       "wrap": "normal"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "wrap: anywhere",
     "props": {
       "wrap": "anywhere"
     },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
     "example": 0
   },
   {
     "name": "Example: 01-tones",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "Example: 02-variants",
     "props": {},
-    "example": 1
+    "example": 2
   }
 ]

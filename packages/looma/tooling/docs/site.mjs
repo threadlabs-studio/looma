@@ -1,14 +1,15 @@
 import { cp, mkdir, readFile, readdir, realpath, rename, rm, symlink, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { discoverComponents, escapeHtml, mergeCatalogs, readCatalog, readJson } from './catalog.mjs';
-import { cardMarkup, componentPath, exampleKey, previewPath, referencePage } from './render.mjs';
+import { cardMarkup, componentPath, exampleKey, previewTag, scopedExampleMarkup, exampleResources, referencePage } from './render.mjs';
 import { defaultRecipe, themeCSS } from './theme.mjs';
 import { customizerResource } from './customizer-render.mjs';
 import { catalogResource } from './catalog-view.mjs';
 import { cacheDirectory, rejectSymlink, withBuildLock } from './workspace.mjs';
+import { googleFontURL } from './fonts.mjs';
 
 const own = name => fileURLToPath(new URL(name, import.meta.url));
 /** Resolve import-only optional tooling peers in the consumer's ESM package scope. */
@@ -84,7 +85,6 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await cp(own('card.js'), path.join(generated, 'card.js'));
   await writeFile(path.join(generated, 'catalog-view.html'), catalogResource(combined.groups));
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
-  await cp(own('preview.js'), path.join(generated, 'preview.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
   for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
@@ -106,16 +106,10 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       const file = path.join(previews, key + '.html');
       const tags = [...new Set([...example.markup.matchAll(/<([a-z][\w]*-[\w-]+)\b/g)].map(match => match[1]))];
       const links = tags.filter(tag => resourceByTag.has(tag)).map(tag => `<link rel="component" href="${escapeHtml(resourceByTag.get(tag).resource)}">`).join('\n');
-      // Navigation specimens name destinations supplied by their host application. Give those
-      // fragments local stand-ins inside the isolated stage; keep real documentation links checked.
-      const declaredIds = new Set([...example.markup.matchAll(/\sid=["']([^"']+)["']/g)].map(match => match[1]));
-      const destinations = [...new Set([...example.markup.matchAll(/\bhref=["']#([^"']+)["']/g)].map(match => match[1]))].filter(id => !declaredIds.has(id));
-      const anchors = destinations.map(id => `<span id="${escapeHtml(id)}" hidden></span>`).join('');
       const setup = path.join(previews, key + '.js');
-      const behavior = example.behavior;
-      await write(setup, `import { connect as connectPreview } from '../preview.js';\n${behavior ? `import setupExample from ${JSON.stringify(behavior)};\n` : ''}export function connect(host) { const stopPreview = connectPreview(host); ${behavior ? 'const stopExample = setupExample(host.element);' : ''} return () => { ${behavior ? 'stopExample?.();' : ''} stopPreview(); }; }\n`);
-      await write(file, ` ${links}\n<template component="looma-preview-${key}" module="./${key}.js"><defs><meta name="mk:navigation" content="hidden"><title>${escapeHtml(example.title)}</title></defs><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${example.markup}${anchors}</div></template>\n`);
-      examples.push({ ...example, file, component: component.id, path: base + previewPath(example).slice(1) });
+      if (example.behavior) await write(setup, `import setupExample from ${JSON.stringify(example.behavior)};\nexport function connect(host) { return setupExample(host.element); }\n`);
+      await write(file, `${links}\n<template component="${previewTag(example)}"${example.behavior ? ` module="./${key}.js"` : ''}><defs><prop name="namespace" type="string" default="${key}">A unique namespace for this example's IDs and control relationships.</prop></defs><div><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${scopedExampleMarkup(example, base)}</div></div></template>\n`);
+      examples.push({ ...example, file, component: component.id, path: base + componentPath(component).slice(1) });
     }
   }
   const gallery = combined.groups.map(group => {
@@ -123,7 +117,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
     // A standalone opening tag makes this a Markdown HTML block, keeping native card wrappers inside Grid.
     return components.length ? `<section data-catalog-group="${escapeHtml(group.id)}">\n\n## ${escapeHtml(group.label)}\n\n<ui-grid columns="3" min="sm">\n${components.map(component => `<div data-category="${escapeHtml(component.group)}" data-catalog-search="${escapeHtml(`${component.tag} ${component.title} ${component.description}`)}">${cardMarkup(component.examples[0], base, component)}</div>`).join('\n')}\n</ui-grid>\n\n</section>` : '';
   }).join('\n\n');
-  await write(path.join(content, 'components/index.md'), `---\ntitle: Components\n---\n\n# Components\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), card)}">\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog>\n\n${gallery}\n\n</looma-catalog>\n`);
+  await write(path.join(content, 'components/index.md'), `---\ntitle: Components\n---\n\n# Components\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), card)}">\n${exampleResources(combined.components.filter(component => !component.navigationParent).map(component => component.examples[0]), combined)}\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog>\n\n${gallery}\n\n</looma-catalog>\n`);
   await write(path.join(content, 'index.md'), `---\ntitle: ${JSON.stringify(config.title ?? 'Your design system')}\n---\n\n# ${config.title ?? 'Your design system'}\n\nWeave your design system from Looma and your own HTML Next components.\n\n[Explore components](/components/) · [Customize your theme](/customize/)\n`);
   if (combined.components.some(component => component.group === 'editor')) await write(path.join(content, 'editor.md'), `---\ntitle: Editor\nsidebar: false\n---\n\n# Editor\n\nWriting tools and editor components, separate from the general component reference.\n\n${combined.components.filter(component => component.group === 'editor' && !component.navigationParent).map(component => `- [${component.title}](${componentPath(component)})`).join('\n')}\n`);
   await write(path.join(content, 'design-system.md'), await readFile(own('README.md'), 'utf8'));
@@ -141,6 +135,9 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       await mkdir(path.dirname(target), { recursive: true }); await cp(source, target);
     }
   }
+  await write(path.join(generated, 'example-behaviors.js'), examples.filter(example => example.behavior).map((example, index) => `import setup${index} from ${JSON.stringify(example.behavior)};`).join('\n') + `\nexport const exampleBehaviors = {${examples.filter(example => example.behavior).map((example, index) => `${JSON.stringify(example.id)}: setup${index}`).join(',')}};\n`);
+  const choice = exampleResources(examples, combined) + `\n<template component="looma-preview-choice"><defs><prop name="identity" type="string" default="">The authored example to render.</prop><prop name="namespace" type="string" default="selected">Unique ID namespace within this page.</prop></defs><div>${examples.map(example => `<div $if="${escapeHtml(`$identity = ${JSON.stringify(example.id)}`)}" data-preview="${escapeHtml(example.id)}"${example.stretch || combined.components.find(component => component.id === example.component)?.group === 'layout' ? ' data-preview-layout' : ''}>${scopedExampleMarkup(example, base)}</div>`).join('')}</div></template>`;
+  await write(path.join(generated, 'preview-choice.html'), choice);
   const customizer = path.join(generated, 'customizer.html');
   await write(customizer, customizerResource({ catalog: combined, config, base }, config.recipe));
   const customizerPage = path.join(content, 'customize.md');
@@ -169,9 +166,8 @@ async function themeBootstrap(site) {
 export function documentationPlugin(site) {
   return {
     name: 'looma-design-system',
-    buildEnd: context => isolatePreviewScripts(site, context),
-    generate: async () => ({ '/_looma/theme-system.css': await readFile(fileURLToPath(import.meta.resolve('@threadlabs/looma/theme-system.css')), 'utf8') }),
-    config: () => ({ pages: [{ dir: path.relative(site.root, site.previews), prefix: '/_looma/preview/', layout: false }], css: [own('documentation.css')] }),
+    generate: async () => ({ '/_looma/pastoral.svg': await readFile(own('pastoral.svg'), 'utf8'), '/_looma/portrait.svg': await readFile(own('portrait.svg'), 'utf8'), '/_looma/theme-system.css': await readFile(fileURLToPath(import.meta.resolve('@threadlabs/looma/theme-system.css')), 'utf8') }),
+    config: () => ({ css: [own('documentation.css')] }),
   };
 }
 
@@ -180,15 +176,21 @@ export async function documentationOptions(site) {
   const styles = ['tokens.css', 'theme-light.css', 'theme-dark.css', 'theme-system.css'].map(file => fileURLToPath(import.meta.resolve(`@threadlabs/looma/${file}`)));
   const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', headerNotice: 'Custom theme', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
   const savedTheme = path.join(site.generated, 'saved-theme.css');
-  await writeFile(savedTheme, site.config.themeCSSContents ?? themeCSS(site.config.recipe ?? defaultRecipe()));
+  const recipe = site.config.recipe ?? defaultRecipe();
+  const overrides = await Promise.all((site.config.overrides ?? []).map(file => readFile(path.resolve(site.root, file), 'utf8')));
+  const localFonts = new Set(overrides.flatMap(css => [...css.matchAll(/@font-face\s*\{[^}]*font-family:\s*['"]([^'"]+)['"]/g)].map(match => match[1])));
+  const remoteFonts = Object.fromEntries(Object.entries(recipe.fonts ?? {}).filter(([, family]) => !localFonts.has(family)));
+  const imported = googleFontURL(recipe.fonts), remaining = googleFontURL(remoteFonts);
+  // A supplied face already serves the same family; avoid another render-blocking stylesheet.
+  const savedCSS = (site.config.themeCSSContents ?? themeCSS(recipe)).replace(`@import url("${imported}");`, remaining ? `@import url("${remaining}");` : '');
+  await writeFile(savedTheme, savedCSS);
   const themeStyles = [savedTheme, ...await portableThemeStyles(site)];
   return { ...options, plugins: [...options.plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) },
     // Markupress supplies its head script in its own config hook; compose after it.
     { name: 'looma-browser-theme', config: async current => ({ headScript: [current.headScript, await themeBootstrap(site)].filter(Boolean).join('\n;\n') }) }] };
 }
 
-/** Opaque example frames cannot fetch local fonts without host-specific CORS headers.
- * Bundle those font files into theme CSS for both the local server and static output. */
+/** Bundle project theme styles once, shared by the page and every inline example. */
 async function portableThemeStyles(site) {
   const overrides = site.config.overrides ?? [];
   if (!overrides.length) return [];
@@ -197,7 +199,6 @@ async function portableThemeStyles(site) {
   await writeFile(entry, overrides.map(file => `@import ${JSON.stringify(path.resolve(site.root, file))};`).join('\n'));
   const bundled = await build({ root: site.root, base: './', configFile: false, logLevel: 'silent',
     build: { write: false, minify: false, cssMinify: false,
-      assetsInlineLimit: file => /\.(woff2?|ttf|otf)$/i.test(file),
       rollupOptions: { input: entry, output: { assetFileNames: 'theme-assets/[name]-[hash][extname]' } } } });
   const styles = [];
   for (const output of (Array.isArray(bundled) ? bundled[0] : bundled).output) {
@@ -210,7 +211,7 @@ async function portableThemeStyles(site) {
   return styles;
 }
 
-/** Build through MarkupKit, then make opaque preview scripts portable to static hosts without CORS. */
+/** Build references and examples together through MarkupKit. */
 export async function buildDocumentation({ root = process.cwd(), config = {}, catalog } = {}) {
   return withBuildLock(root, async () => {
     const site = await prepareDocumentation({ root, config, catalog });
@@ -218,37 +219,4 @@ export async function buildDocumentation({ root = process.cwd(), config = {}, ca
     const built = await buildApplication(await documentationOptions(site));
     return { ...built, site };
   });
-}
-
-async function isolatePreviewScripts(site, { outDir }) {
-  const { build } = await tool('vite', site.root);
-  // Preview entries and outputs are independent. Keep compiler memory bounded
-  // and retain the build lock until every in-flight bundle has settled.
-  const remaining = [...site.examples];
-  const results = await Promise.allSettled(Array.from({ length: Math.min(2, remaining.length) }, async () => {
-    try {
-      for (let example; (example = remaining.pop());) {
-        const htmlFile = path.join(outDir, '_looma/preview', exampleKey(example.id), 'index.html');
-        let html = await readFile(htmlFile, 'utf8');
-        const scripts = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g)];
-        if (!scripts.length) throw new Error(`No browser module found for isolated preview ${example.id}.`);
-        for (const [tag, url] of scripts) {
-          const input = path.join(outDir, url.slice(site.base.length));
-          const bundle = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: true, lib: { entry: input, name: 'LoomaPreview', formats: ['iife'] }, rollupOptions: { output: { codeSplitting: false } } } });
-          const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(output => output.type === 'chunk').code;
-          // A sandbox has an opaque origin: Safari cannot authorize this runtime via 'self'.
-          // Hash the exact inline bytes and run after the preview DOM, preserving isolation.
-          const script = code.replace(/<\/script/gi, '<\\/script');
-          const hash = createHash('sha256').update(script).digest('base64');
-          if (!/<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*content="[^"]*\bscript-src\b/.test(html)) throw new Error(`Missing script policy for isolated preview ${example.id}.`);
-          html = html.replace(/(<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*content="[^"]*\bscript-src)\b/, `$1 'sha256-${hash}'`);
-          html = html.replace(tag, '').replace('</body>', () => `<script>${script}</script></body>`);
-        }
-        html = html.replace(/<link\b[^>]*rel="modulepreload"[^>]*>/g, '');
-        await writeFile(htmlFile, html);
-      }
-    } catch (error) { remaining.length = 0; throw error; }
-  }));
-  const failed = results.find(result => result.status === 'rejected');
-  if (failed) throw failed.reason;
 }

@@ -104,6 +104,6 @@ test('homepage actions reach their documentation destinations', async ({ page },
   ]) {
     await page.goto(base);
     await page.getByRole('link', { name, exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
   }
 });

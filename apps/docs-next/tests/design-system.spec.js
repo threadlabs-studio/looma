@@ -26,7 +26,8 @@ test('directory cards and full reference come from the published component catal
   for (const tag of ['ui-button', 'ui-stack', 'ui-color-picker']) {
     const card = page.locator(`[data-component-card="${tag}"]`);
     await expect(card.locator('h3')).toHaveText(catalog.components.find(component => component.tag === tag).title);
-    await expect(card.locator('iframe')).toHaveAttribute('sandbox', 'allow-scripts');
+    await expect(card.locator('[data-preview]')).toBeVisible();
+    await expect(card.locator('iframe')).toHaveCount(0);
   }
   await page.getByRole('searchbox', { name: 'Find a component', exact: true }).fill('color picker');
   await expect(page.locator('[data-component-card="ui-color-picker"]')).toBeVisible();
@@ -37,7 +38,7 @@ test('directory cards and full reference come from the published component catal
   await expect(firstReference.locator('pre').first()).toBeVisible();
   expect(await firstReference.locator('pre code span[style*="color"]').count()).toBeGreaterThan(0);
   expect(await firstReference.evaluate(element => getComputedStyle(element.closest('[role="tabpanel"]')).padding)).toBe('0px');
-  const previewFonts = await firstReference.locator('iframe').contentFrame().locator('body').evaluate(async () => {
+  const previewFonts = await firstReference.locator('[data-preview]').evaluate(async () => {
     const fonts = await document.fonts.load('500 17px Manrope', 'Button');
     return fonts.map(font => ({ family: font.family, status: font.status }));
   });
@@ -111,8 +112,8 @@ test('component browser searches the complete catalog in bounded groups', async 
 test('reel examples have meaningful overflow and snap at item centers', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/ui-reel/');
   const examples = page.locator('[data-example-card]');
-  const free = examples.nth(0).locator('iframe').contentFrame().locator('[data-component="ui-reel"]');
-  const snap = examples.nth(1).locator('iframe').contentFrame().locator('[data-component="ui-reel"]');
+  const free = examples.nth(0).locator('[data-preview]').locator('[data-component="ui-reel"]');
+  const snap = examples.nth(1).locator('[data-preview]').locator('[data-component="ui-reel"]');
   await free.waitFor(); await snap.waitFor();
   for (const reel of [free, snap]) {
     expect(await reel.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThan(350);
@@ -126,17 +127,16 @@ test('reel examples have meaningful overflow and snap at item centers', async ({
   })).toBeLessThan(2);
 });
 
-test('customizer reuses real cards, updates every isolated preview and exports the formula-based theme', async ({ page }, info) => {
+test('customizer reuses real cards, updates every inline preview and exports the formula-based theme', async ({ page }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
   await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(9);
   await chooseStartingPoint(page, 'night');
   await openEditor(page, 'components');
-  for (const iframe of await page.locator('[data-refinement-view="components"] .examples [data-example-card] iframe').all()) {
-    const frame = iframe.contentFrame();
-    await expect.poll(() => frame.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
-    expect(await frame.locator('html').evaluate(() => { try { void parent.document; return false; } catch { return true; } })).toBe(true);
+  for (const preview of await page.locator('[data-refinement-view="components"] .examples [data-preview]').all()) {
+    await expect.poll(() => preview.evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
+    expect(await preview.evaluate(element => element.ownerDocument === document)).toBe(true);
   }
   const extra = catalog.components.find(component => component.tag === 'ui-button').examples[0];
   await page.getByRole('button', { name: 'Add an example', exact: true }).click();
@@ -145,7 +145,7 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   await page.getByRole('button', { name: 'Add to preview', exact: true }).click();
   await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(10);
   const added = page.locator(`[data-example-card="${extra.id}"]`);
-  await expect.poll(() => added.locator('iframe').contentFrame().locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
+  await expect.poll(() => added.locator('[data-preview]').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
   await added.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(page.locator('[data-refinement-view="components"] .examples [data-example-card]')).toHaveCount(9);
   await openEditor(page, 'export');
@@ -154,25 +154,25 @@ test('customizer reuses real cards, updates every isolated preview and exports t
   const css = await readFile(await (await cssReady).path(), 'utf8');
   expect(css).toMatch(/--ui-surface: light-dark\([^,]+, #11141c\);/);
   expect(css).toContain('pow(1 / 7, var(--_ui-theme-curve))');
-  const buttonFrame = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').first();
+  const buttonFrame = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').first();
   const appearance = element => {
     const style = getComputedStyle(element);
     return Object.fromEntries(['color', 'backgroundColor', 'borderRadius', 'height', 'padding', 'boxShadow', 'transitionDuration'].map(property => [property, style[property]]));
   };
   await openEditor(page, 'components');
-  const previewAppearance = await buttonFrame.contentFrame().locator('[data-preview] button').first().evaluate(appearance);
+  const previewAppearance = await buttonFrame.locator('button').first().evaluate(appearance);
   const consumerContext = await page.context().browser().newContext({ reducedMotion: 'reduce', colorScheme: 'light' });
   const consumer = await consumerContext.newPage();
   try {
-    await consumer.goto(new URL(await buttonFrame.getAttribute('src'), page.url()).href);
+    await consumer.goto(info.config.metadata.markupress + 'components/ui-button/');
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).not.toMatch(/^light-dark\([^,]+, #11141c\)$/);
     await consumer.addStyleTag({ content: css });
-    await expect.poll(() => consumer.locator('[data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
+    await expect.poll(() => consumer.locator('[data-example-card$="/02-variant"] [data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
-    const consumerButton = consumer.locator('[data-preview] button').first();
-    const lightCanvas = await consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
+    const consumerButton = consumer.locator('[data-example-card$="/02-variant"] [data-preview] button').first();
+    const lightCanvas = await consumer.locator('[data-example-card$="/02-variant"] [data-preview]').evaluate(element => getComputedStyle(element).backgroundColor);
     await consumer.locator('html').evaluate(element => { element.dataset.theme = 'dark'; });
-    await expect.poll(() => consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor)).not.toEqual(lightCanvas);
+    await expect.poll(() => consumer.locator('[data-example-card$="/02-variant"] [data-preview]').evaluate(element => getComputedStyle(element).backgroundColor)).not.toEqual(lightCanvas);
     await consumerButton.evaluate(element => {
       const boundary = document.createElement('section'); boundary.dataset.theme = 'light';
       element.parentElement.insertBefore(boundary, element); boundary.append(element);
@@ -196,7 +196,7 @@ test('complete reference and actual examples render before JavaScript', async ({
     await page.goto(info.config.metadata.markupress + 'components/ui-stack/');
     await expect(page.getByRole('heading', { name: 'Attributes', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Framework props', exact: true })).toBeVisible();
-    await expect(page.locator('[data-example-card] iframe').first().contentFrame().locator('[data-component="ui-stack"]')).toBeVisible();
+    await expect(page.locator('[data-example-card] [data-preview]').first().locator('[data-component="ui-stack"]')).toBeVisible();
   } finally { await context.close(); }
 });
 
@@ -219,19 +219,19 @@ test('one shared size lever derives matching field and action geometry', async (
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(info.config.metadata.markupress + 'customize/');
   await openEditor(page, 'components');
-  const defaultButton = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
+  const defaultButton = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[data-component="ui-button"]').first();
   await expect.poll(() => defaultButton.evaluate(element => ({ padding: getComputedStyle(element).paddingRight, motion: getComputedStyle(element).transitionDuration }))).toEqual({ padding: '12.75px', motion: '0.12s, 0.12s, 0.12s, 0.12s, 0.18s' });
   await openEditor(page, 'layout');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).fill('3');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).press('Enter');
   await openEditor(page, 'components');
-  const button = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().locator('[data-component="ui-button"]').first();
-  const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] iframe').contentFrame().locator('[data-component="ui-input"]').first();
+  const button = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[data-component="ui-button"]').first();
+  const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] [data-preview]').locator('[data-component="ui-input"]').first();
   await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   for (const component of ['ui-select', 'ui-input-group', 'ui-combobox']) {
     await page.getByRole('searchbox', {name:'Search components',exact:true}).fill(component);
-    const frame = page.locator(`[data-refinement-view="components"] [data-component-card="${component}"] iframe`).contentFrame();
+    const frame = page.locator(`[data-refinement-view="components"] [data-component-card="${component}"] [data-preview]`);
     const control = frame.locator(`[data-component="${component}"]${component === 'ui-combobox' ? ' .field' : ''}`).first();
     await expect.poll(() => control.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   }
@@ -256,7 +256,7 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
   await openEditor(page, 'components');
   const buttonCard = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"]');
-  const solid = buttonCard.locator('iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
+  const solid = buttonCard.locator('[data-preview]').getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => solid.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, height: element.getBoundingClientRect().height }))).toEqual({ background: 'rgb(46, 18, 40)', height: 42 });
   await page.getByRole('searchbox', { name: 'Search components', exact: true }).fill('ui-button');
   await expect(buttonCard).toBeVisible();
@@ -278,21 +278,21 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
 });
 
-test('opposite mode boundaries reach the isolated preview without changing siblings or the page', async ({ page }, info) => {
+test('opposite mode boundaries reach the inline preview without changing siblings or the page', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await openEditor(page, 'components');
   const cards = page.locator('[data-refinement-view="components"] .examples [data-example-card]');
   const first = cards.first(); const second = cards.nth(1);
-  await expect.poll(() => first.locator('iframe').contentFrame().locator('html').getAttribute('data-theme')).toBe('light');
-  const previewSurface = () => first.locator('iframe').contentFrame().locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
+  await expect.poll(() => first.locator('[data-preview]').evaluate(element => getComputedStyle(element).colorScheme)).toBe('light');
+  const previewSurface = () => first.locator('[data-preview]').evaluate(element => getComputedStyle(element).backgroundColor);
   const lightSurface = await previewSurface();
   await first.evaluate(element => { element.dataset.theme = 'dark'; });
-  await expect.poll(() => first.locator('iframe').contentFrame().locator('html').getAttribute('data-theme')).toBe('dark');
+  await expect.poll(() => first.locator('[data-preview]').evaluate(element => getComputedStyle(element).colorScheme)).toBe('dark');
   await expect.poll(previewSurface).not.toBe(lightSurface);
-  await expect(second.locator('iframe').contentFrame().locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await second.locator('[data-preview]').evaluate(element => getComputedStyle(element).colorScheme)).toBe('light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await first.evaluate(element => { element.dataset.theme = 'light'; });
-  await expect.poll(() => first.locator('iframe').contentFrame().locator('html').getAttribute('data-theme')).toBe('light');
+  await expect.poll(() => first.locator('[data-preview]').evaluate(element => getComputedStyle(element).colorScheme)).toBe('light');
   await expect.poll(previewSurface).toBe(lightSurface);
 });
 
@@ -303,7 +303,7 @@ test('browser storage failures keep editing usable and explain that changes cann
   await chooseStartingPoint(page, 'bookish');
   await expect(page.locator('[data-message]')).toContainText('Browser storage is unavailable');
   await openEditor(page, 'components');
-  await expect.poll(() => page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
+  await expect.poll(() => page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').getByRole('button', { name: 'Solid', exact: true }).evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(46, 18, 40)');
 });
 
 test('other tabs keep the customizer controls and active theme synchronized', async ({ page, context }, info) => {
@@ -327,7 +327,7 @@ test('shared number, slider and curve controls calculate, convert, constrain and
   await size.fill('3 / 1.2'); await size.press('Enter');
   await expect(size).toHaveValue('2.5');
   await openEditor(page, 'components');
-  const action = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] iframe').contentFrame().getByRole('button', { name: 'Solid', exact: true });
+  const action = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').getByRole('button', { name: 'Solid', exact: true });
   await expect.poll(() => action.evaluate(element => element.getBoundingClientRect().height)).toBe(42.5);
   await openEditor(page, 'typography');
   const textSize = page.getByRole('spinbutton', { name: 'Base text size', exact: true });
@@ -387,7 +387,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await expect(page.locator('[data-palette-adjustment-details]')).toContainText('dark');
   await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await openEditor(page, 'components');
-  const text = page.locator('[data-refinement-view="components"] [data-component-card="ui-text"] iframe').contentFrame();
+  const text = page.locator('[data-refinement-view="components"] [data-component-card="ui-text"] [data-preview]');
   await expect(text.getByRole('heading', { name: 'There and back by Friday', level: 1 })).toBeVisible();
   const displaySize = await text.getByRole('heading', { level: 1 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   const headingSize = await text.getByRole('heading', { level: 2 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
@@ -507,7 +507,7 @@ for (const [preset, recipe] of readableRecipes) {
     await page.goto(info.config.metadata.markupress + 'components/ui-button/');
     const card = page.locator('[data-example-card$="/12-tones"]');
     await card.scrollIntoViewIfNeeded();
-    const frame = card.locator('iframe').contentFrame();
+    const frame = card.locator('[data-preview]');
     const buttons = frame.locator('button[data-appearance="solid"]');
     await expect(buttons).toHaveCount(12);
     const contrast = element => {
@@ -526,7 +526,7 @@ for (const [preset, recipe] of readableRecipes) {
     };
     for (const mode of ['light', 'dark']) {
       await card.evaluate((element, mode) => { element.dataset.theme = mode; }, mode);
-      await expect.poll(() => frame.locator('html').getAttribute('data-theme')).toBe(mode);
+      await expect.poll(() => frame.evaluate(element => getComputedStyle(element).colorScheme)).toBe(mode);
       for (const button of await buttons.all()) {
         expect(await button.evaluate(contrast)).toBeGreaterThanOrEqual(4.5);
         await button.hover(); expect(await button.evaluate(contrast)).toBeGreaterThanOrEqual(4.5);

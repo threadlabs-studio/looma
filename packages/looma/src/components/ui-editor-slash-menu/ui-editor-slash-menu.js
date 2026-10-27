@@ -43,6 +43,10 @@ export function connect(host) {
     }
   };
   const stop = host.effect(() => {
+    // The deferred DOM pass cannot track these reads for the effect.
+    void host.props.open.value;
+    void host.props.anchorRect.value;
+    void host.props.query.value;
     const items = Array.isArray(host.props.items.value) ? host.props.items.value : [];
     if (!authoredLabel) element.setAttribute("aria-label", String(host.props.label.value || "Insert block"));
     host.state.rows = items.map((item) => ({ ...item, value: String(item.value ?? item.title) }));
