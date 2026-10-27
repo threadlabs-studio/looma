@@ -23,7 +23,30 @@
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
     --ui-text: #1a1a1a;
+    /* The reflected environment is independent of object pigment. */
+    --ui-light-color: #ffffff;
     --ui-focus-halo: 0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
+
+    /* Shared action boundaries follow their fills until a recipe refines the family. */
+    --ui-tonal-opacity: 1;
+    --ui-accent-border: var(--ui-accent);
+    --ui-accent-hover-border: var(--ui-accent-hover);
+    --ui-accent-active-border: var(--ui-accent-active);
+    --ui-danger-border: var(--ui-danger);
+    --ui-danger-hover-border: var(--ui-danger-hover);
+    --ui-danger-active-border: var(--ui-danger-active);
+    --ui-success-border: var(--ui-success);
+    --ui-success-hover-border: var(--ui-success-hover);
+    --ui-success-active-border: var(--ui-success-active);
+    --ui-warning-border: var(--ui-warning);
+    --ui-warning-hover-border: var(--ui-warning-hover);
+    --ui-warning-active-border: var(--ui-warning-active);
+    --ui-info-border: var(--ui-info);
+    --ui-info-hover-border: var(--ui-info-hover);
+    --ui-info-active-border: var(--ui-info-active);
+    --ui-neutral-border: var(--ui-neutral-surface);
+    --ui-neutral-hover-border: var(--ui-neutral-hover);
+    --ui-neutral-active-border: var(--ui-neutral-active);
 
     /* The base type token owns the document root; rem-based roles scale from it once. */
     font-size: var(--ui-font-size);

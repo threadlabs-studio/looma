@@ -4,7 +4,7 @@ export const googleFonts = Object.fromEntries([
   ['Source Sans 3', 'sans-serif'], ['Lato', 'sans-serif'], ['Nunito Sans', 'sans-serif'],
   ['DM Sans', 'sans-serif'], ['Manrope', 'sans-serif'], ['Work Sans', 'sans-serif'],
   ['IBM Plex Sans', 'sans-serif'], ['Public Sans', 'sans-serif'], ['Atkinson Hyperlegible', 'sans-serif'],
-  ['Outfit', 'sans-serif'], ['Merriweather', 'serif'], ['Lora', 'serif'],
+  ['Outfit', 'sans-serif'], ['Fraunces', 'serif'], ['Merriweather', 'serif'], ['Lora', 'serif'],
   ['Source Serif 4', 'serif'], ['Libre Baskerville', 'serif'], ['Crimson Pro', 'serif'],
   ['EB Garamond', 'serif'], ['Playfair Display', 'serif'], ['Roboto Mono', 'monospace'],
   ['IBM Plex Mono', 'monospace'], ['JetBrains Mono', 'monospace'], ['Fira Code', 'monospace'],

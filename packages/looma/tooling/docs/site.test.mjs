@@ -12,6 +12,9 @@ test('generates full portable reference and the same isolated cards, including b
     const catalog = await readCatalog(new URL('../../docs/catalog.json', import.meta.url));
     const site = await prepareDocumentation({ root, catalog, config: { title: 'A design system', base: '/system/' } });
     const button = await readFile(path.join(site.content, 'components/03.(Forms)/ui-button.md'), 'utf8');
+    assert.equal(catalog.groups.at(-1).id, 'extras');
+    const lightEditor = await readFile(path.join(site.content, 'components/06.(Extras)/ui-light-editor.md'), 'utf8');
+    assert.match(lightEditor, /LightEditor/);
     assert.match(button, /looma-example-card/);
     assert.match(button, /\/system\/_looma\/preview\//);
     assert.match(button, /Framework props/);
@@ -34,8 +37,15 @@ test('generates full portable reference and the same isolated cards, including b
     const swatches = site.examples.find(example => example.component.endsWith('/ui-color-picker'));
     assert.match(await readFile(swatches.file, 'utf8'), /ui-input\/ui-input.html/);
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
-    assert.match(customizer, /loading="eager"/);
+    assert.match(customizer, /loading="lazy"/);
     assert.match(customizer, /removable/);
+    assert.match(customizer, /summary="Advanced material"/);
+    assert.match(customizer, /Frosting/);
+    assert.match(customizer, /Transparency/);
+    assert.equal((customizer.match(/id="theme-light-color"/g) ?? []).length, 1, 'environment light appears only under Material');
+    assert.match(customizer, /data-editor-preview="material"/);
+    assert.match(customizer, /repeating-linear-gradient/);
+    assert.match(customizer, /treatment="expressive"/);
     for (const file of ['palette.mjs', 'fonts.mjs']) assert.ok((await readFile(path.join(site.generated, file), 'utf8')).length > 0);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
