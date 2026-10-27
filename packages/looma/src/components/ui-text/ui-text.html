@@ -95,7 +95,7 @@
       color: var(--ui-text-muted);
     }
     :host([tone="accent"]) {
-      color: var(--ui-accent-active);
+      color: var(--ui-accent-subtle-text);
     }
     /* Every status tone uses the text-safe token a subtle badge sets its words in, so text and badges
        in one tone match, and each holds 4.5:1 on sunken surfaces where some base colours fall short. */
@@ -157,7 +157,7 @@
     /* A link in running text is underlined, so it stands apart from the words around it by more than
        colour. */
     :host :slotted(a) {
-      color: var(--ui-accent-active);
+      color: var(--ui-accent-subtle-text);
       text-decoration: underline;
       text-decoration-thickness: 0.06em;
       text-underline-offset: 0.18em;

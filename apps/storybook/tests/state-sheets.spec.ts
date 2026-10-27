@@ -55,7 +55,7 @@ for (const component of api.components) {
       await expect(stage.getByRole('navigation', { name: 'Compact navigation' })).toBeVisible();
     } });
   }
-  const themes = themed.has(component.tag) ? ['clear', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
+  const themes = themed.has(component.tag) ? ['looma', 'clear', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
   for (const theme of themes)
     for (const mode of ['light', 'dark'])
       test(`${component.tag} ${theme} ${mode}: complete state sheet`, async ({ page, context }) => {

@@ -133,6 +133,10 @@
       /* Optional inherited action-group values keep text and icon actions under the same light.
          One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
          The shared theme supplies reflections and glow independently of the resting lift. */
+      --_solid-border: var(--ui-accent-border, var(--ui-accent-solid));
+      --_solid-hover-border: var(--ui-accent-hover-border, var(--ui-accent-hover));
+      --_solid-active-border: var(--ui-accent-active-border, var(--ui-accent-active));
+      --_solid-active-surface: var(--ui-accent-active, var(--ui-accent-hover));
       --_tone-highlight: var(--ui-accent-highlight, none);
       --_tone-glow: var(--ui-accent-glow, 0 0 transparent);
       --_ui-action-start: 1px;
@@ -155,20 +159,28 @@
     }
 
     :host[data-tone="accent"] {
+      --_solid-border: var(--ui-accent-border, var(--ui-accent));
+      --_solid-hover-border: var(--ui-accent-hover-border, var(--ui-accent-hover));
+      --_solid-active-border: var(--ui-accent-active-border, var(--ui-accent-active));
+      --_solid-active-surface: var(--ui-accent-active, var(--ui-accent-hover));
       --_tone-highlight: var(--ui-accent-highlight, none);
       --_tone-glow: var(--ui-accent-glow, 0 0 transparent);
-      --_icon-button-border: var(--ui-accent-solid);
-      --_icon-button-hover-border: var(--ui-accent-hover);
+      --_icon-button-border: var(--ui-accent-subtle-text);
+      --_icon-button-hover-border: var(--ui-accent-subtle-text);
       --_icon-button-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-accent-solid) 5%, var(--ui-surface-default));
       color: var(--_icon-button-text);
     }
 
     :host[data-tone="danger"] {
+      --_solid-border: var(--ui-danger-border, var(--ui-danger));
+      --_solid-hover-border: var(--ui-danger-hover-border, var(--ui-danger-hover));
+      --_solid-active-border: var(--ui-danger-active-border, var(--ui-danger-active));
+      --_solid-active-surface: var(--ui-danger-active, var(--ui-danger-hover));
       --_tone-highlight: var(--ui-danger-highlight, none);
       --_tone-glow: var(--ui-danger-glow, 0 0 transparent);
-      --_icon-button-border: var(--ui-danger);
-      --_icon-button-hover-border: var(--ui-danger-hover);
+      --_icon-button-border: var(--ui-danger-subtle-text);
+      --_icon-button-hover-border: var(--ui-danger-subtle-text);
       --_icon-button-text: var(--ui-danger-subtle-text);
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-danger) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-danger);
@@ -178,10 +190,14 @@
     }
 
     :host[data-tone="success"] {
+      --_solid-border: var(--ui-success-border, var(--ui-success));
+      --_solid-hover-border: var(--ui-success-hover-border, var(--ui-success-hover));
+      --_solid-active-border: var(--ui-success-active-border, var(--ui-success-active));
+      --_solid-active-surface: var(--ui-success-active, var(--ui-success-hover));
       --_tone-highlight: var(--ui-success-highlight, none);
       --_tone-glow: var(--ui-success-glow, 0 0 transparent);
-      --_icon-button-border: var(--ui-success);
-      --_icon-button-hover-border: var(--ui-success-hover);
+      --_icon-button-border: var(--ui-success-subtle-text);
+      --_icon-button-hover-border: var(--ui-success-subtle-text);
       --_icon-button-text: var(--ui-success-subtle-text);
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-success) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-success);
@@ -191,10 +207,14 @@
     }
 
     :host[data-tone="warning"] {
+      --_solid-border: var(--ui-warning-border, var(--ui-warning));
+      --_solid-hover-border: var(--ui-warning-hover-border, var(--ui-warning-hover));
+      --_solid-active-border: var(--ui-warning-active-border, var(--ui-warning-active));
+      --_solid-active-surface: var(--ui-warning-active, var(--ui-warning-hover));
       --_tone-highlight: var(--ui-warning-highlight, none);
       --_tone-glow: var(--ui-warning-glow, 0 0 transparent);
-      --_icon-button-border: var(--ui-warning);
-      --_icon-button-hover-border: var(--ui-warning-hover);
+      --_icon-button-border: var(--ui-warning-subtle-text);
+      --_icon-button-hover-border: var(--ui-warning-subtle-text);
       --_icon-button-text: var(--ui-warning-subtle-text);
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-warning) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-warning);
@@ -204,10 +224,14 @@
     }
 
     :host[data-tone="info"] {
+      --_solid-border: var(--ui-info-border, var(--ui-info));
+      --_solid-hover-border: var(--ui-info-hover-border, var(--ui-info-hover));
+      --_solid-active-border: var(--ui-info-active-border, var(--ui-info-active));
+      --_solid-active-surface: var(--ui-info-active, var(--ui-info-hover));
       --_tone-highlight: var(--ui-info-highlight, none);
       --_tone-glow: var(--ui-info-glow, 0 0 transparent);
-      --_icon-button-border: var(--ui-info);
-      --_icon-button-hover-border: var(--ui-info-hover);
+      --_icon-button-border: var(--ui-info-subtle-text);
+      --_icon-button-hover-border: var(--ui-info-subtle-text);
       --_icon-button-text: var(--ui-info-subtle-text);
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-info) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-info);
@@ -218,6 +242,10 @@
 
     /* Neutral actions share the same quiet surface and border roles as fields. */
     :host[data-tone="neutral"] {
+      --_solid-border: var(--ui-neutral-border, var(--ui-neutral-surface));
+      --_solid-hover-border: var(--ui-neutral-hover-border, var(--ui-neutral-hover));
+      --_solid-active-border: var(--ui-neutral-active-border, var(--ui-neutral-active));
+      --_solid-active-surface: var(--ui-neutral-active, var(--ui-neutral-hover));
       --_tone-highlight: var(--ui-neutral-highlight, none);
       --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
       --_icon-button-outline-surface: transparent;
@@ -394,6 +422,7 @@
     }
 
     :host[data-appearance="solid"] {
+      border-color: var(--ui-icon-button-border, var(--_solid-border));
       background-color: var(--ui-icon-button-solid-surface, var(--_icon-button-solid-surface, var(--ui-accent-solid)));
       background-image: var(--_tone-highlight);
       color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
@@ -419,6 +448,7 @@
     }
 
     :host[data-appearance="solid"]:hover:enabled:not([aria-disabled="true"]) {
+      border-color: var(--ui-icon-button-hover-border, var(--_solid-hover-border));
       background-color: var(--ui-icon-button-solid-hover-surface, var(--_icon-button-solid-hover-surface, var(--ui-accent-hover)));
     }
 
@@ -478,6 +508,11 @@
       box-shadow:
         var(--ui-icon-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--ui-focus-halo);
+    }
+
+    :host[data-appearance="solid"]:active:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-active-surface, var(--_solid-active-surface));
+      border-color: var(--_solid-active-border);
     }
 
     :host:is(:host[data-appearance="outline"], :host[data-appearance="solid"]):active:enabled:not([aria-disabled="true"]) {

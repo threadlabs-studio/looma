@@ -170,8 +170,9 @@ test('customizer reuses real cards, updates every isolated preview and exports t
     await expect.poll(() => consumer.locator('[data-preview] button').first().evaluate(appearance)).toEqual(previewAppearance);
     expect(await consumer.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-surface').trim())).toMatch(/^light-dark\([^,]+, #11141c\)$/);
     const consumerButton = consumer.locator('[data-preview] button').first();
+    const lightCanvas = await consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor);
     await consumer.locator('html').evaluate(element => { element.dataset.theme = 'dark'; });
-    await expect.poll(() => consumerButton.evaluate(appearance)).not.toEqual(previewAppearance);
+    await expect.poll(() => consumer.locator('body').evaluate(element => getComputedStyle(element).backgroundColor)).not.toEqual(lightCanvas);
     await consumerButton.evaluate(element => {
       const boundary = document.createElement('section'); boundary.dataset.theme = 'light';
       element.parentElement.insertBefore(boundary, element); boundary.append(element);
@@ -400,13 +401,14 @@ test('material refinement shares a movable light, remembers customized presets a
   await chooseStartingPoint(page, 'bookish');
   const size = await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'));
   const enter = async () => {
-    await openEditor(page, 'material');
+    const material = await openEditor(page, 'material');
+    await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   };
   await enter();
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material).toBeVisible(); await expect(page.locator('[data-customizer-overview]')).toBeHidden();
   await chooseOption(material.getByRole('combobox', { name: 'Material preset', exact: true }), 'polished');
-  const sample = material.locator('[data-light-editor]').getByRole('button', { name: 'Join briefing', exact: true });
+  const sample = material.locator('[data-light-editor]').getByRole('button', { name: 'Material response', exact: true });
   const before = await sample.evaluate(element => getComputedStyle(element).backgroundImage);
   const shadowBefore = await sample.evaluate(element => getComputedStyle(element).getPropertyValue('--ui-shadow-sm'));
   const handle = material.getByRole('button', { name: /^Theme light position. Arrow keys/ });
@@ -460,6 +462,7 @@ test('starting theme refinements remember their material and palette without res
   await openEditor(page, 'material');
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass');
+  await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   await material.getByRole('button', { name: /^Theme light position. Arrow keys/ }).press('Shift+ArrowRight');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
   await material.getByRole('button', { name: 'Overview', exact: true }).click();
@@ -558,4 +561,22 @@ test('the removable Custom theme header chip clears browser customization across
     await expect(page.getByRole('button',{name:'Search',exact:true})).toBeFocused();
     await page.reload();await expect(chip).toBeHidden();
   }
+});
+
+test('Starting point defaults to Looma and Gold applies and survives a reload', async ({ page }, info) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const themes = await openEditor(page, 'themes');
+  await expect(themes.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Looma');
+  await chooseStartingPoint(page, 'gold');
+  const material = await openEditor(page, 'material');
+  const primary = material.getByRole('button', { name: 'Send briefing', exact: true });
+  await expect(primary).toHaveCSS('background-color', 'rgb(255, 184, 77)');
+  await expect(primary).toHaveCSS('font-family', /Lato/);
+  await expect(page.locator('[data-looma-customizer]')).toHaveCSS('background-attachment', /^fixed(?:,\s*fixed)*$/);
+  await page.reload();
+  await openEditor(page, 'themes');
+  await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Gold');
+  expect(errors).toEqual([]);
 });

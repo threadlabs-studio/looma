@@ -213,7 +213,7 @@ test("generates public API metadata from declarative contracts", async () => {
   const menuItem = metadata.components.find(({ tag }) => tag === "ui-menu-item");
 
   assert.equal(metadata.schemaVersion, 5);
-  assert.deepEqual(metadata.groups.map(({ id }) => id), ["layout", "overlay", "forms", "display", "editor"]);
+  assert.deepEqual(metadata.groups.map(({ id }) => id), ["layout", "overlay", "forms", "display", "editor", "extras"]);
   assert.equal(stack.group, "layout");
   assert.equal(tableOverlay.group, "editor");
   assert.equal(menuItem.group, "overlay", "a part is listed in its parent's group");
