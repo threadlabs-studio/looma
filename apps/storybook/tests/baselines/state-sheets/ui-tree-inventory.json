@@ -2,110 +2,115 @@
   {
     "name": "Rest",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "density: comfortable",
     "props": {
       "density": "comfortable"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "density: compact",
     "props": {
       "density": "compact"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "marquee: false",
     "props": {
       "marquee": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "marquee: true",
     "props": {
       "marquee": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "move-activation: click",
     "props": {
       "moveActivation": "click"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "move-activation: keyboard-touch",
     "props": {
       "moveActivation": "keyboard-touch"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "selection: none",
     "props": {
       "selection": "none"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "selection: single",
     "props": {
       "selection": "single"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "selection: multiple",
     "props": {
       "selection": "multiple"
     },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
     "example": 0
   },
   {
     "name": "Example: 01-default",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "Example: 02-expanded-and-selected-items",
     "props": {},
-    "example": 1
+    "example": 2
   },
   {
     "name": "Example: 03-max-depth-2-and-hover-expand-delay-300",
     "props": {},
-    "example": 2
+    "example": 3
   },
   {
     "name": "Example: 04-marquee",
     "props": {},
-    "example": 3
+    "example": 4
   },
   {
     "name": "Example: 05-link-rows",
     "props": {},
-    "example": 4
+    "example": 5
   },
   {
     "name": "Example: 06-move-without-dragging",
     "props": {},
-    "example": 5
+    "example": 6
   },
   {
     "name": "Example: 07-multiple-selection",
     "props": {},
-    "example": 6
+    "example": 7
   },
   {
     "name": "keyboard-expanded branch",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "authored"
   }
 ]

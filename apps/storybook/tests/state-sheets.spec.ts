@@ -19,8 +19,9 @@ type VisualCase = {
 };
 for (const component of api.components) {
   const examples = readdirSync(resolve(sourceRoot, component.tag, 'examples')).filter(name => name.endsWith('.html')).sort((a, b) => a.localeCompare(b));
-  const propertyExample = component.tag === 'ui-menu' ? examples.indexOf('02-for.html') : 0;
-  const states: VisualCase[] = [{ name: 'Rest', props: {}, example: 0 }];
+  const defaultExample = Math.max(0, examples.findIndex(name => name !== '00-preview.html'));
+  const propertyExample = component.tag === 'ui-menu' ? examples.indexOf('02-for.html') : defaultExample;
+  const states: VisualCase[] = [{ name: 'Rest', props: {}, example: defaultExample }];
   for (const attribute of component.attributes) {
     const values = attribute.type === 'boolean' ? [false, true] : attribute.type === 'keyword' ? attribute.options ?? [] : [];
     for (const value of values)
@@ -29,15 +30,15 @@ for (const component of api.components) {
   examples.forEach((name, index) => states.push({ name: `Example: ${name.replace('.html', '')}`, props: {}, example: index }));
   if (['button', 'input', 'select', 'textarea', 'a'].includes(component.root ?? '') || interactive.has(component.tag)) {
     for (const interaction of ['hover', 'focus', 'pressed'])
-      states.push({ name: interaction, props: {}, example: 0, interaction });
+      states.push({ name: interaction, props: {}, example: defaultExample, interaction });
     const variants = component.attributes.find(attribute => attribute.name === 'variant')?.options ?? [];
     for (const variant of variants)
       for (const interaction of ['hover', 'focus', 'pressed'])
-        states.push({ name: `${variant}: ${interaction}`, props: { variant }, example: 0, interaction });
+        states.push({ name: `${variant}: ${interaction}`, props: { variant }, example: defaultExample, interaction });
     if (['ui-button', 'ui-icon-button'].includes(component.tag)) {
-      states.push({ name: 'selected toggle', props: { 'aria-pressed': 'true' }, example: 0 });
-      if (component.tag === 'ui-button') states.push({ name: 'selected card', props: { variant: 'card', 'aria-pressed': 'true' }, example: 0 });
-      states.push({ name: 'open ghost trigger', props: { variant: 'ghost', 'aria-expanded': 'true' }, example: 0 });
+      states.push({ name: 'selected toggle', props: { 'aria-pressed': 'true' }, example: defaultExample });
+      if (component.tag === 'ui-button') states.push({ name: 'selected card', props: { variant: 'card', 'aria-pressed': 'true' }, example: defaultExample });
+      states.push({ name: 'open ghost trigger', props: { variant: 'ghost', 'aria-expanded': 'true' }, example: defaultExample });
     }
   }
   for (const interaction of interactionCases.filter(item => item.component === component.tag)) {
@@ -48,8 +49,8 @@ for (const component of api.components) {
     if (component.tag === 'ui-sidebar') states.push({ name: 'Mobile drawer', props: {}, example, run: interaction.run, viewport: { width: 320, height: 480 } });
   }
   if (component.tag === 'ui-site-header') {
-    states.push({ name: 'Mobile header', props: {}, example: 0, viewport: { width: 375, height: 480 } });
-    states.push({ name: 'Mobile navigation open', props: {}, example: 0, viewport: { width: 375, height: 480 }, run: async (_page, stage) => {
+    states.push({ name: 'Mobile header', props: {}, example: defaultExample, viewport: { width: 375, height: 480 } });
+    states.push({ name: 'Mobile navigation open', props: {}, example: defaultExample, viewport: { width: 375, height: 480 }, run: async (_page, stage) => {
       await expect(stage.getByRole('link', { name: 'Folio home' })).toBeVisible();
       await stage.getByRole('button', { name: 'Open navigation' }).click();
       await expect(stage.getByRole('navigation', { name: 'Compact navigation' })).toBeVisible();
@@ -85,6 +86,9 @@ for (const component of api.components) {
             const stage = page.locator('#visual-state-stage');
             await expect(stage.locator(`[data-component~="${component.tag}"]`).first()).toBeAttached();
             await page.evaluate(() => document.fonts.ready);
+            for (const image of await stage.locator(component.tag === 'ui-image' ? 'img' : 'img[src*="portrait"]').all()) {
+              await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
+            }
             await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
             if (floating.has(component.tag) && state.name !== 'Rest' && !state.run && !state.interaction && state.props.open !== false && state.props.disabled !== true) {
               const opened = stage.locator('dialog[open], [popover]:popover-open');

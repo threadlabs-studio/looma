@@ -1,3 +1,6 @@
+import portrait from "../../../../packages/looma/tooling/docs/portrait.svg?url&no-inline";
+import pastoral from "../../../../packages/looma/tooling/docs/pastoral.svg?url&no-inline";
+
 // Stories render each component's own examples (packages/looma/src/components/<tag>/examples/*.html),
 // the same files the docs site renders and tests. A story never writes a component's markup by hand,
 // so it cannot drift from the component: a story that did once slotted a native <input> into a
@@ -23,7 +26,7 @@ export function componentExamples(tag: string): Example[] {
     .map(([file, source]) => {
       const front = source.match(/^\s*<!--([\s\S]*?)-->/);
       const field = (name: string) => front?.[1].match(new RegExp(`^\\s*${name}:\\s*(.+)$`, "m"))?.[1].trim() ?? "";
-      return { file, title: field("title"), description: field("description"), html: source.replace(/^\s*<!--[\s\S]*?-->\s*/, "") };
+      return { file, title: field("title"), description: field("description"), html: source.replace(/^\s*<!--[\s\S]*?-->\s*/, "").replaceAll("/_looma/portrait.svg", portrait).replaceAll("/_looma/pastoral.svg", pastoral) };
     });
 }
 
