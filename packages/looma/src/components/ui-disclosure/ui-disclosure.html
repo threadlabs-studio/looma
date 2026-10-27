@@ -54,23 +54,9 @@
     <div class="panel" $ref="panel" from:id="$contentId"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-disclosure-trigger-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-disclosure-trigger-padding-block {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-disclosure-trigger-padding-inline {
-      syntax: "*";
-      inherits: false;
-    }
-
     /* Density resolves into the summary row's own values; the public tokens still override them. */
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-disclosure-trigger-min-block-size: var(--ui-disclosure-trigger-min-block-size);
       --_ui-disclosure-trigger-padding-block: var(--ui-disclosure-trigger-padding-block);
       --_ui-disclosure-trigger-padding-inline: var(--ui-disclosure-trigger-padding-inline);

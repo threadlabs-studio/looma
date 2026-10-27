@@ -31,18 +31,8 @@
     </span>
   </label>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-radio-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-radio-size {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-radio-size: var(--ui-radio-size, var(--ui-choice-mark-size));
 
       display: inline-flex !important;
@@ -153,7 +143,9 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      input::after { transition: none; }
+      input::after {
+        transition: none;
+      }
     }
 
     @media (forced-colors: active) {
@@ -163,7 +155,9 @@
         background: none;
         box-shadow: none;
       }
-      input::after { display: none !important; }
+      input::after {
+        display: none !important;
+      }
     }
 
     /* A sized choice keeps its box and aligns instead: the label takes that size's field type size,

@@ -22,30 +22,11 @@
   </div>
   <style>
     /* Component hooks stay on this toast; group overlay values may inherit from the region. */
-    @property --ui-toast-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-accent {
-      syntax: "*";
-      inherits: false;
-    }
 
     :host {
-      --_ui-toast-accent: var(--ui-border-strong);
-      --_ui-toast-surface: var(--ui-surface-muted);
+      --_ui-toast-accent: var(--ui-overlay-border, var(--ui-border-strong));
+      --_ui-surface-text: var(--ui-text-primary);
+      --_ui-toast-surface: var(--ui-overlay-surface, var(--ui-surface-muted));
 
       display: flex !important;
       align-items: center !important;
@@ -59,7 +40,7 @@
       border: var(--ui-border-width) solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-toast-accent, var(--_ui-toast-accent))));
       border-radius: var(--ui-toast-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       background: var(--ui-toast-surface, var(--ui-overlay-surface, var(--_ui-toast-surface)));
-      color: var(--ui-text-primary);
+      color: var(--_ui-surface-text);
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-normal);
@@ -69,19 +50,23 @@
     }
 
     :host([tone="info"]) {
-      --_ui-toast-accent: var(--ui-info-solid);
+      --_ui-toast-accent: var(--ui-info-soft-border);
+      --_ui-surface-text: var(--ui-info-subtle-text);
       --_ui-toast-surface: var(--ui-info-soft);
     }
     :host([tone="success"]) {
-      --_ui-toast-accent: var(--ui-success-solid);
+      --_ui-toast-accent: var(--ui-success-soft-border);
+      --_ui-surface-text: var(--ui-success-subtle-text);
       --_ui-toast-surface: var(--ui-success-soft);
     }
     :host([tone="warning"]) {
-      --_ui-toast-accent: var(--ui-warning-solid);
+      --_ui-toast-accent: var(--ui-warning-soft-border);
+      --_ui-surface-text: var(--ui-warning-subtle-text);
       --_ui-toast-surface: var(--ui-warning-soft);
     }
     :host([tone="danger"]) {
-      --_ui-toast-accent: var(--ui-danger-solid);
+      --_ui-toast-accent: var(--ui-danger-soft-border);
+      --_ui-surface-text: var(--ui-danger-subtle-text);
       --_ui-toast-surface: var(--ui-danger-soft);
     }
 

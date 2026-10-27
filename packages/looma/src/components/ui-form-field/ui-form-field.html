@@ -20,38 +20,8 @@
     <div class="error"><slot name="error"></slot></div>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-form-field-danger {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-help-font-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-help-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-help-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-label-font-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-label-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-form-field-min-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-form-field-danger: var(--ui-form-field-danger);
       --_ui-form-field-help-min-block-size: var(--ui-form-field-help-min-block-size);
       --_ui-form-field-label-text: var(--ui-form-field-label-text);
@@ -76,7 +46,7 @@
 
     .label {
       color: var(--_ui-form-field-label-text, var(--ui-text-secondary));
-      font-size: var(--_ui-form-field-label-font-size, var(--ui-font-size-sm));
+      font-size: var(--_ui-form-field-label-font-size, var(--ui-field-label-font-size, var(--ui-font-size-md)));
     }
 
     /* A label action, such as a small help button, sits after the label text in a box one line

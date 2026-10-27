@@ -1,8 +1,8 @@
 # Tokens
 
 Looma is themed with CSS custom properties. Start with a few global values; use inherited group
-values when a family of components needs a different treatment; set a component hook when one
-instance needs to differ. A component's fallback chain reads **component → group → global** where
+values when a family of components needs a different treatment; use a component hook to adjust
+one component family or instance. A component's fallback chain reads **component → group → global** where
 that group applies. The group and component levels are optional.
 
 Borders and elevation follow [one visual role guide](https://github.com/threadlabs-studio/looma/blob/main/docs/visual-system.md):
@@ -15,12 +15,13 @@ the border or elevation role.
 | --- | --- | --- | --- |
 | Global theme | `--ui-accent`, `--ui-radius-md` | The whole theme or a theme boundary | A brand palette, type and spacing scale, default corners, elevation and motion |
 | Group | `--ui-field-radius`, `--ui-field-danger`, `--ui-overlay-surface` | Every participating component below the element where it is set | Forms, actions or overlays that need a shared treatment |
-| Component hook | `--ui-input-radius`, `--ui-tooltip-surface` | Only the component whose root carries it | One component instance or a product wrapper for that component |
+| Component hook | `--ui-input-radius`, `--ui-tooltip-surface` | Matching components in its subtree | `:root`, a theme or section, or one component instance |
 
 Global seeds are defined in `tokens.css`. Derived semantic values are computed from them. Group
 values are **not preset**: each participating component falls back to its global value, so there is
-no second theme to maintain. Group values inherit normally. Component hooks are registered as
-non-inheriting properties so a hook on an outer component cannot accidentally restyle nested ones.
+no second theme to maintain. Group values and component hooks inherit normally. Set them on
+`:root` for application-wide defaults, on an ancestor for a section, or on a component for an
+instance override.
 
 ## Start with the global values
 
@@ -97,7 +98,7 @@ because each is mixed from it.
 | Derived | From | How |
 | --- | --- | --- |
 | `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 80% and 62%: muted is the lightest step that still reads at 4.5:1 on the sunken surface |
-| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp: 12% for separators, 25% for overlay edges, 48% for enabled control edges |
+| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | quiet enclosure edges; the generated control boundary meets the chosen minimum against its declared surfaces |
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
 | `--ui-disabled-surface`, `--ui-disabled-text`, `--ui-disabled-border` | sunken surface, ink + page | flat surface, pale ink, and a low-contrast edge distinguish a disabled control from every enabled tone |
@@ -108,6 +109,18 @@ because each is mixed from it.
 The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
 one set of rules serves both.
+
+Neutral solid and outline Button and IconButton controls share `--ui-control-border` and `--ui-control-border-hover` with form fields. Changing that role changes the whole family. Neutral surfaces and shadows stay quiet; accent outlines and solid accents provide stronger emphasis.
+
+The theme customizer derives that boundary against canvas, raised, sunken and neutral control surfaces, with a configurable minimum contrast (2:1 by default). **Neutrals & shared borders** chooses a restrained neutral family from text, a brand accent or untinted gray, then adjusts fill strength and the common boundary. Dark derivation adds perceptual compensation to quiet fills and control boundaries. Canvas, raised plates and sunken surfaces retain separate levels. The minimum is a palette-generation decision: regenerate the theme after changing it.
+
+**Supporting accents** optionally adds `--ui-accent-secondary` and `--ui-accent-tertiary`. Use `tone="accent-secondary"` or `tone="accent-tertiary"` on Button, IconButton, Badge, Card, Meter and Text. These are brand families with derived text, fill, hover and material roles. Without a supporting seed they follow the primary accent. Text's existing `tone="secondary"` still means supporting prose.
+
+Subtle badges, toned cards, callouts and notifications consume the same `--ui-<tone>-soft` background, `--ui-<tone>-subtle-text` foreground and `--ui-<tone>-soft-border` edge roles. Components may omit borders; their shapes and layouts remain independent. Text inherits its containing surface or control’s foreground, and the document root supplies the shared body-text color. These shared soft-color roles provide pale backgrounds in light mode and visible contextual tints in dark mode. Selected rows also use contextual pigment in dark mode, with a stronger text contrast target.
+
+**Status colors** chooses each semantic role's relationship: semantic hue, a bounded shift toward the primary hue, or a primary/secondary/tertiary brand family. Derived saturation follows the palette's perceptual chroma and its saturation control. Looma resolves readable fills and contextual text in both modes; status colors have no independent picker. A theme may use its primary family for every status; labels and icons must still communicate meaning.
+
+**Accent assignments** can independently select the family used for links, keyboard focus and selected rows. Primary remains the normal action color; additional accents are deliberate choices for supporting content.
 
 A disabled Button or Icon Button uses the shared neutral surface, text, and border instead of its
 active tone. Its shadow and highlight disappear. The optional filter hook is available
@@ -236,7 +249,7 @@ at `1` and spacing/curve/depth at `0` where needed.
 | `--ui-font-size` | `16px` | Sets the document root’s font size. The customizer accepts 14–24px; type steps, choice marks, controls and rem-based page layout derive from that root once. |
 | `--ui-font-medium` | `500` | Emphasis weight, 400–700; body and heading weights retain their separate roles. |
 | `--ui-control-roominess` | `2.5` | Unitless height multiplier, 2–4 times base text size. Derives `--ui-control-size`; it is not a length. |
-| `--ui-rhythm` | `1` | Unitless compact-to-airy multiplier, 0.75–1.5. Coordinates layout gaps with bounded line-height ratios; rows, clusters and text respond together. |
+| `--ui-rhythm` | `1` | Unitless compact-to-airy multiplier, 0.75–1.5. Coordinates vertical Stack gaps with bounded line-height ratios. Horizontal navigation and control-row gaps follow spacing alone. |
 | `--ui-spacing` | `1` | Unitless space multiplier, 0.75–1.5. Changes gaps and horizontal action insets without changing control heights. |
 | `--ui-scale-ratio` | `1.2` | Small/medium/large control ratio, 1–1.5; 1 deliberately makes the sizes equal. |
 | `--ui-space-curve` | `1` | Spacing curve, 0.5–2; 1 is linear and 2 bends the interior steps quadratically, keeping the endpoints fixed. |
@@ -245,7 +258,7 @@ at `1` and spacing/curve/depth at `0` where needed.
 
 For base text size `f`, roominess `q`, ratio `r`, spacing `s`, rhythm `t` and curve `c`, the
 medium height is `h = f × q`; control heights are `h/r`, `h`, `h×r`.
-The spacing unit is `u = f × s × t / 4`, so changing control roominess does not change page rhythm. The first and last spacing steps stay at
+The spacing unit is `u = f × s / 4`, so changing control roominess does not change page rhythm. Stack multiplies its chosen gap by bounded rhythm `t`; an explicit `--ui-stack-gap` remains exact. Horizontal row gaps and padding use the spacing steps directly. The first and last spacing steps stay at
 `u` and `8u`; interior steps use `u × (1 + 7 × (k/7)^c)`, with `k = 1, 2, 3, 5`
 for steps 2–5. Step 0.5 is half of step 1. Changing the control ratio does not
 change spacing. Spacing follows base text independently of control roominess.
@@ -481,39 +494,41 @@ component reads.
 Each component exposes `--ui-<component>[-<variant>][-<state>]-<property>` for deliberate
 divergence, and each falls back to a semantic value. These are the component's hooks.
 
-### A hook styles the element it is set on
+### Hooks work at the root, within a subtree, and on an instance
 
-Custom properties inherit, so a hook set on a container would reach every component of that kind
-inside it and override their defaults, and even their props: `--ui-stack-gap: 0` on a page's outer
-stack would collapse every stack in the page, including one with `gap="l"`. So a hook does not
-inherit. Looma registers each one with `@property { syntax: "*"; inherits: false; }`, and it styles
-only the component whose root it is set on:
+Public styling properties inherit. A component hook set on `:root` reaches every matching
+component. A value on a nearer ancestor or on the component itself overrides it through the
+normal CSS cascade:
 
 ```css
-/* Removes the outer stack's gap and nothing else. */
-.page-shell { --ui-stack-gap: 0; }
+:root { --ui-input-radius: 0.5rem; }
+.settings { --ui-input-radius: 0.25rem; }
+.square-input { --ui-input-radius: 0; }
 ```
 
-Set on an ancestor that is not the component, a hook does nothing. Set on the component itself it
-beats the component's own default, and where the component documents it, its prop (a Stack's
-`--ui-stack-gap` over its `gap`); an inherited value never can.
+A hook takes precedence over the component's fallback, including a prop where the component
+documents that precedence. For example, `--ui-stack-gap` overrides Stack's `gap` prop even when
+the hook comes from an ancestor. Use props for the predefined options; set a hook when that
+styling override is intended. To return a subtree to its prop-driven defaults, set the hook to
+`initial`; this removes the inherited override and lets the component use its `var()` fallback.
 
-Global theme values inherit on purpose. Set global seeds on `:root` or a `[data-theme]` theme
-boundary: `tokens.css` computes the derived values at those boundaries. A seed set on an arbitrary
-subtree without a theme boundary will not recompute derived values inherited from above it. Use a
-theme boundary for a local palette and group values for a local family change.
-`--ui-font-size` is a root-only seed: mode boundaries share its resolved rem base. The editor's
-`--ui-editor-*` hooks inherit too: the editor is one surface whose parts are separate elements, and
-editors do not nest.
+Set global seeds on `:root` or a `[data-theme]` boundary: `tokens.css` computes derived values
+at those boundaries. A seed on an arbitrary subtree will not recompute derived values inherited
+from above it. Use a theme boundary for a local palette. `--ui-font-size` is a root-only seed:
+mode boundaries share its resolved rem base.
 
 | Kind | Names | Inherits | Set it on |
 | --- | --- | --- | --- |
 | Root type base | `--ui-font-size` | yes | `:root`; sets the document root font size |
 | Global theme value | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root` or a `[data-theme]` boundary for a coherent derived palette |
-| Group value | `--ui-field-radius`, `--ui-overlay-surface` … | yes | An ancestor of the participating components |
-| Component hook | `--ui-<component>-*` | no | the component itself, through a class of your own |
-| Editor hook | `--ui-editor-*` | yes | the editor or an ancestor |
-| Private | `--_*` | yes, inside the component | nothing: not API |
+| Group value | `--ui-field-radius`, `--ui-overlay-surface` … | yes | `:root`, an ancestor, or a component |
+| Component hook | `--ui-<component>-*` | yes | `:root`, an ancestor, or the component itself |
+| Editor hook | `--ui-editor-*` | yes | `:root`, an ancestor, or the editor |
+| Private | `--_*` | implementation-specific | nowhere in application CSS; not API |
+
+Looma does not register public hooks just to restate normal inheritance. Typed registrations
+can validate values or support interpolation. Private measurements may use `inherits: false`
+when each instance needs its own value; they are not theme settings.
 
 ### A component sizes itself from its hook
 
@@ -549,30 +564,20 @@ hooks it reads, and each one names the property it sets.
 
 ### Changing a component's default appearance
 
-A hook does not inherit, so setting it on `:root` or a theme block changes nothing. To change a
-component's default across a product, make that decision once, in a component of your own that
-wraps Looma's and sets its hooks, and use it everywhere. An accent-tinted default button in Vue:
+Set a component hook once on `:root` to change that component throughout an application:
 
-```vue
-<!-- ProductButton.vue -->
-<template>
-  <Button class="product-button" v-bind="$attrs"><slot /></Button>
-</template>
-
-<style scoped>
-.product-button {
+```css
+:root {
   --ui-button-surface: var(--ui-accent-subtle);
   --ui-button-border: var(--ui-accent);
   --ui-button-text: var(--ui-accent-active);
 }
-</style>
 ```
 
-Where one screen needs the change, put the class on those components directly. Point hooks at the
-semantic values, not at fixed colours. A pinned colour stops adapting: a hover tint pinned to one
-surface's colour disappears on every other surface, and a pinned tone ignores a later change of
-accent. A hook set on a component beats its props, so these buttons ignore `tone`; where a product
-needs both, apply the class only to the buttons it means.
+These hooks override Button's tone-derived colours, including explicit `tone` props. For a
+change limited to one screen or a few instances, set the properties on that screen's ancestor
+or on a class you give those components. A local declaration wins over an inherited one.
+Point hooks at semantic values so they keep adapting to the surrounding theme and accent.
 
 ## Motion and navigation
 
@@ -617,11 +622,19 @@ moves as a whole:
 | `--ui-font-size-2xs` | 0.6875 | keyboard hints and micro-labels |
 | `--ui-font-size-xs` | 0.75 | captions and avatar-group counts |
 | `--ui-font-size-sm` | 0.875 | controls, labels, badges, trees, and help text |
-| `--ui-font-size-md` | 1 | body copy, the editor, and menus |
+| `--ui-font-size-md` | 1 | body copy, field labels, the editor, and menus |
 | `--ui-font-size-lg`, `-xl`, `-2xl` | 1.125, 1.25, 1.5 | headings |
 
 Neighbouring steps are at least two pixels apart at the default size: a label one pixel smaller than
 the text beside it reads as a mistake, not as hierarchy.
+
+FormField and Combobox labels use the body step (16px at the default root), while
+field help stays on the supporting step (14px). A compact theme can set
+`--ui-field-label-font-size: var(--ui-font-size-sm)` to retain smaller labels.
+In the customizer’s Typography view, **Field label size** defaults to **Follow body text**. Choose **Set a separate size** to author an independent size. The recipe stores this as `label-size`, and CSS/recipe exports preserve it.
+
+The component-specific `--ui-form-field-label-font-size` and
+`--ui-combobox-label-font-size` hooks take precedence on an individual component.
 
 ## Themes
 

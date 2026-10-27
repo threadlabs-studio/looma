@@ -312,19 +312,26 @@ describe("Reactive form-field control state", () => {
 });
 
 describe("Cycling state button", () => {
-  it("shares restrained neutral outlines between actions and fields", async () => {
+  it("shares neutral action and field boundaries below accent emphasis", async () => {
     for (const adapter of ['html', 'vue']) {
-      const path = await bundle('neutral-outline-' + adapter, adapter === 'html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {Button,IconButton,Input,Select} from '@threadlabs/looma/vue';createApp({render:()=>[h(Input,{id:'field',value:'Frodo'}),h(Select,{id:'select'},()=>h('option',{},'Sam')),h(Button,{id:'text',variant:'outline',tone:'neutral'},()=>'Archive'),h(IconButton,{id:'icon',variant:'outline',tone:'neutral',label:'Archive'}),h(Button,{id:'accent',variant:'outline',tone:'accent'},()=>'Accent')]}).mount('#app');`);
-      const page = await open(path, adapter === 'html' ? '<ui-input id="field" value="Frodo"></ui-input><ui-select id="select"><option>Sam</option></ui-select><ui-button id="text" variant="outline" tone="neutral">Archive</ui-button><ui-icon-button id="icon" variant="outline" tone="neutral" label="Archive"></ui-icon-button><ui-button id="accent" variant="outline" tone="accent">Accent</ui-button>' : '<div id="app"></div>', [join(root,'tokens.css'), ...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])]);
+      const path = await bundle('neutral-outline-' + adapter, adapter === 'html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {Button,IconButton,Input,Select,Textarea,Combobox,NumberInput} from '@threadlabs/looma/vue';createApp({render:()=>[h(Textarea,{id:'textarea'}),h(Combobox,{id:'combo',label:'Colleague'},()=>h('option',{value:'sam'},'Sam')),h(NumberInput,{id:'number',label:'Amount'}),h(Button,{id:'solid',variant:'solid',tone:'neutral'},()=>'File'),h(IconButton,{id:'solid-icon',variant:'solid',tone:'neutral',label:'File'}),h(Input,{id:'field',value:'Frodo'}),h(Select,{id:'select'},()=>h('option',{},'Sam')),h(Button,{id:'text',variant:'outline',tone:'neutral'},()=>'Archive'),h(IconButton,{id:'icon',variant:'outline',tone:'neutral',label:'Archive'}),h(Button,{id:'accent',variant:'outline',tone:'accent'},()=>'Accent')]}).mount('#app');`);
+      const page = await open(path, adapter === 'html' ? '<ui-textarea id="textarea"></ui-textarea><ui-combobox id="combo" label="Colleague"><option value="sam">Sam</option></ui-combobox><ui-number-input id="number" label="Amount"></ui-number-input><ui-button id="solid" variant="solid" tone="neutral">File</ui-button><ui-icon-button id="solid-icon" variant="solid" tone="neutral" label="File"></ui-icon-button><ui-input id="field" value="Frodo"></ui-input><ui-select id="select"><option>Sam</option></ui-select><ui-button id="text" variant="outline" tone="neutral">Archive</ui-button><ui-icon-button id="icon" variant="outline" tone="neutral" label="Archive"></ui-icon-button><ui-button id="accent" variant="outline" tone="accent">Accent</ui-button>' : '<div id="app"></div>', [join(root,'tokens.css'), join(root,'theme-light.css'), join(root,'theme-dark.css'), ...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])]);
       const paint = (id: string) => page.locator(id).evaluate(el => { const s=getComputedStyle(el); return {border:s.borderColor,surface:s.backgroundColor,text:s.color}; });
       try {
         for (const mode of ['light','dark']) {
           await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
-          await page.mouse.move(500,300);
+          await page.mouse.move(1,1);
           await page.waitForTimeout(200);
           assert.deepEqual(await paint('#text'), await paint('#icon'), `${adapter}/${mode}: shared rest treatment`);
           assert.notEqual((await paint('#text')).border, (await paint('#accent')).border);
-          for(const id of ['#field','#select']) assert.equal((await paint(id)).border,(await paint('#text')).border,`${adapter}/${mode}: ${id} shares the neutral border`);
+          for(const id of ['#field','#select','#textarea','#combo .field','#number input','#solid','#solid-icon']) assert.equal((await paint(id)).border,(await paint('#text')).border,`${adapter}/${mode}: ${id} shares the neutral control boundary`);
+          const contrast = await page.evaluate(() => {
+            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d')!; canvas.width = canvas.height = 1;
+            const light = (color: string) => { ctx.fillStyle = color; ctx.fillRect(0,0,1,1); const rgb = [...ctx.getImageData(0,0,1,1).data].slice(0,3).map(v => { const s=v/255; return s<=.04045?s/12.92:((s+.055)/1.055)**2.4; }); return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722; };
+            const probe=document.body.appendChild(document.createElement('i')); probe.style.backgroundColor='var(--ui-surface)'; const surface=light(getComputedStyle(probe).backgroundColor); probe.remove();
+            return ['text','icon','field','accent'].map(id => { const border=light(getComputedStyle(document.getElementById(id)!).borderTopColor); return (Math.max(border,surface)+.05)/(Math.min(border,surface)+.05); });
+          });
+          assert.ok(Math.abs(contrast[0]-contrast[2])<.01 && contrast[0]<contrast[3], `${adapter}/${mode}: neutral edges stay closest to the canvas`);
           await page.locator('#text').hover(); await page.waitForTimeout(200); const hover=await paint('#text');
           await page.locator('#icon').hover(); await page.waitForTimeout(200);
           assert.deepEqual(hover, await paint('#icon'), `${adapter}/${mode}: shared hover treatment`);
@@ -745,9 +752,8 @@ describe("Pressed icon controls and circular marks", () => {
         context.fillRect(0, 0, 1, 1);
         return context.getImageData(0, 0, 1, 1).data[3]! / 255;
       });
-      const defaultOpacity = await countOpacity();
       await page.evaluate(() => document.documentElement.style.setProperty("--ui-badge-circle-opacity", "50%"));
-      assert.ok(Math.abs(await countOpacity() - defaultOpacity) < 0.01, "the instance circle-opacity hook does not cascade from a container");
+      assert.ok(Math.abs(await countOpacity() - 0.5) < 0.01, "the shared circle-opacity hook inherits from :root");
       await page.locator("#accent").evaluate(element => (element as HTMLElement).style.setProperty("--ui-badge-circle-opacity", "60%"));
       assert.ok(Math.abs(await countOpacity() - 0.6) < 0.01, "an explicit instance circle-opacity value overrides its default");
       await page.close();
@@ -1386,17 +1392,18 @@ describe("Toast composition and placement", () => {
             const style = await page.locator(`#${kind}-${tone}`).evaluate((element, { tone, kind }) => {
               const css = getComputedStyle(element);
               const probe = element.appendChild(document.createElement("span"));
-              probe.style.backgroundColor = tone === "neutral" ? "var(--ui-surface-muted)"
-                : kind === "callout" ? `light-dark(oklch(from var(--ui-${tone}-solid) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-${tone}-solid) 25% min(c, 0.035) h))`
-                : `var(--ui-${tone}-soft)`;
+              probe.style.backgroundColor = tone === "neutral" ? "var(--ui-surface-muted)" : `var(--ui-${tone}-soft)`;
               probe.style.fontSize = "var(--ui-font-size-sm)";
               const expectedSurface = getComputedStyle(probe).backgroundColor;
+              probe.style.color = tone === "neutral" ? "var(--ui-text-primary)" : `var(--ui-${tone}-subtle-text)`;
+              probe.style.borderColor = tone === "neutral" ? "var(--ui-border-strong)" : `var(--ui-${tone}-soft-border)`;
+              const expectedText = getComputedStyle(probe).color, expectedBorder = getComputedStyle(probe).borderTopColor;
               const expectedSize = getComputedStyle(probe).fontSize;
               probe.remove();
               return { widths: [css.borderTopWidth, css.borderRightWidth, css.borderBottomWidth, css.borderLeftWidth],
                 colors: [css.borderTopColor, css.borderRightColor, css.borderBottomColor, css.borderLeftColor],
                 radius: css.borderTopLeftRadius, surface: css.backgroundColor, text: css.color,
-                fontSize: css.fontSize, expectedSurface, expectedSize };
+                fontSize: css.fontSize, expectedSurface, expectedSize, expectedText, expectedBorder };
             }, { tone, kind });
             assert.equal(new Set(style.widths).size, 1, `${adapter}/${theme}/${width}/${kind}/${tone}: even border widths`);
             assert.ok(parseFloat(style.widths[0]) > 0, "notification outline remains visible");
@@ -1404,6 +1411,8 @@ describe("Toast composition and placement", () => {
             assert.ok(parseFloat(style.radius) > 0, "rounded shape is retained");
             assert.notEqual(style.text, style.surface, "message remains readable");
             assert.equal(style.surface, style.expectedSurface, `${kind}/${tone}: every tone has a shaded surface`);
+            assert.equal(style.text, style.expectedText, `${kind}/${tone}: shared foreground`);
+            if(tone !== 'neutral') assert.equal(style.colors[0],style.expectedBorder,`${kind}/${tone}: shared semantic border`);
             assert.equal(style.fontSize, style.expectedSize, `${kind}/${tone}: uses small message typography`);
           }
         }
@@ -1863,7 +1872,7 @@ describe("Editor callouts", () => {
       const [lightness, chroma, hue] = paint.rendered;
       const hueDistance = Math.abs(((hue! - paint.source[2]! + 540) % 360) - 180);
       assert.equal(paint.rgba[3], 255, `${theme}/${tone}: opacity must not wash the hue into the backdrop`);
-      assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .18 && lightness! <= .32, `${theme}/${tone}: background lightness ${lightness}`);
+      assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .30 && lightness! <= .39, `${theme}/${tone}: background lightness ${lightness}`);
       assert.ok(chroma! >= .015, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
       assert.ok(hueDistance < 10, `${theme}/${tone}: painted hue follows its tone ${hueDistance}`);
       assert.ok(paint.contrast >= 4.5, `${theme}/${tone}: readable text contrast ${paint.contrast}`);
@@ -1901,7 +1910,7 @@ describe("Editor callouts", () => {
       const paint = await paintedCallout(page, "success");
       const hueDistance = Math.abs(((paint.rendered[2]! - paint.source[2]! + 540) % 360) - 180);
       assert.ok(hueDistance < 10, `${theme}/${hue}: gamut clipping must not shift the painted hue ${JSON.stringify(paint)}`);
-      assert.ok(theme === "light" ? paint.rendered[0]! >= .94 : paint.rendered[0]! >= .23 && paint.rendered[0]! <= .27);
+      assert.ok(theme === "light" ? paint.rendered[0]! >= .94 : paint.rendered[0]! >= .30 && paint.rendered[0]! <= .39);
       assert.ok(paint.contrast >= 4.5);
     }
     await page.close();
@@ -4229,7 +4238,7 @@ describe("Badge colour", () => {
     assert.notEqual(coloured.text, tone.text, "the colour replaces the tone's text");
     assert.notEqual(coloured.border, coloured.surface, "a coloured subtle badge has a stronger edge than its fill");
     assert.deepEqual(await paint("#explicit"), { surface: "rgb(1, 2, 3)", text: "rgb(4, 5, 6)", border: "rgb(7, 8, 9)" });
-    assert.deepEqual(await paint("#nested"), await paint("#neutral"), "the hook styles only the badge it is set on");
+    assert.deepEqual(await paint("#nested"), coloured, "an inherited colour hook styles badges in the subtree");
 
     for (const theme of ["light", "dark"]) {
       await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
@@ -8283,7 +8292,7 @@ describe("HTML components", () => {
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
 
     await page.waitForSelector(':is([data-component~="ui-form-field"], .ui-form-field)');
-    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
+    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "16px");
     await page.close();
   });
 });
@@ -9706,16 +9715,22 @@ describe("Sidebar", () => {
 
 describe("Component hooks", () => {
   // A tree of components, one spec for both adapters: [component or element, attributes, children].
-  type Node = [string, Record<string, string | boolean>, (Node | string)[]?];
+  type Node = [string, Record<string, string | boolean | number>, (Node | string)[]?];
   const hook = (name: string, value: string) => ({ style: `${name}: ${value}` });
   const mark = "rgb(1, 2, 3)";
   const tree: Node[] = [
-    // A hook on the outer stack removes only its gap; the nested stacks keep their prop or default.
+    // Hooks theme matching components in the subtree; a nearer declaration overrides them.
     ["Stack", { id: "stack-outer", ...hook("--ui-stack-gap", "0") }, [
       ["Stack", { id: "stack-prop", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
       ["Stack", { id: "stack-default" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["Stack", { id: "stack-reset", gap: "l", ...hook("--ui-stack-gap", "initial") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
       ["Stack", { id: "stack-own", ...hook("--ui-stack-gap", "7px") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
     ]],
+    ["Stack", { id: "measured-stack", height: 30 }, [["span", {}, ["Measured"]]]],
+    ["Skeleton", { id: "inherited-skeleton" }],
+    ["Skeleton", { id: "local-skeleton", width: "60px", height: "12px" }],
+    ["SiteHeader", { id: "themed-header" }, [["a", { slot: "brand", href: "#home" }, ["Folio"]]]],
+    ["SiteHeader", { id: "local-header", ...hook("--ui-site-header-height", "80px") }, [["a", { slot: "brand", href: "#local" }, ["Local"]]]],
     ["Cluster", { id: "cluster-outer", ...hook("--ui-cluster-gap", "0") }, [
       ["Cluster", { id: "cluster-nested" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
       ["Cluster", { id: "cluster-own", ...hook("--ui-cluster-gap", "7px") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
@@ -9739,9 +9754,10 @@ describe("Component hooks", () => {
     ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", variant: "line", current: "true" }, ["Home"]]]],
     ["NavItem", { id: "nav-plain", variant: "line", current: "true" }, ["Home"]],
     ["NavItem", { id: "nav-own", variant: "line", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
-    // A hook a component reads on an inner part reaches that part from the root, and no further.
+    // Inherited hooks also reach inner parts of nested instances.
     ["Callout", { id: "callout-outer", ...hook("--ui-callout-icon", mark) }, [["Callout", { id: "callout-nested" }, ["Inner"]]]],
     ["Callout", { id: "callout-plain" }, ["Plain"]],
+    ["Stack", { id: "unmeasured-stack" }, [["span", {}, ["Intrinsic"]]]],
     // Theme tokens still theme a subtree.
     ["div", { style: `--ui-space-5: 40px; --ui-accent: ${mark}` }, [
       ["Stack", { id: "stack-themed", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
@@ -9763,14 +9779,26 @@ describe("Component hooks", () => {
     const style = (id: string, property: string, part?: string) => page.locator(`#${id}`).evaluate((element, [property, part]) =>
       getComputedStyle(part ? element.querySelector(part)! : element).getPropertyValue(property!), [property, part]);
 
-    // The Stack bug: a hook on a container reached every nested Stack and beat an explicit gap prop.
+    await page.addStyleTag({ content: ':root { --ui-site-header-height:96px; --ui-button-radius:9px; --ui-skeleton-width:42px; --ui-skeleton-height:10px; }' });
+    assert.equal(await style("themed-header", "min-block-size"), "96px", "a public hook works from :root");
+    assert.equal(await style("local-header", "min-block-size"), "80px", "a local hook wins over a root setting");
+    assert.equal(await style("button-plain", "border-top-left-radius"), "9px", "root settings reach unrelated component families");
+    assert.equal(await style("inherited-skeleton", "width"), "42px", "empty dimension props preserve inherited styling");
+    assert.equal(await style("inherited-skeleton", "height"), "10px");
+    assert.equal(await style("local-skeleton", "width"), "60px", "an explicit dimension prop sets the local value");
+    assert.equal(await style("local-skeleton", "height"), "12px");
+    assert.equal(await style("measured-stack", "height"), "30px");
+    assert.notEqual(await style("unmeasured-stack", "height"), "30px", "an internal measurement is instance-specific");
+
+    // Inherited hooks have the same documented precedence over props as local hooks.
     assert.equal(await style("stack-outer", "row-gap"), "0px", "the hook styles the stack it is set on");
-    assert.equal(await style("stack-prop", "row-gap"), "24px", "a nested stack keeps its gap prop");
-    assert.equal(await style("stack-default", "row-gap"), "16px", "a nested stack keeps its default");
+    assert.equal(await style("stack-prop", "row-gap"), "0px", "an inherited hook overrides the gap prop");
+    assert.equal(await style("stack-reset", "row-gap"), "24px", "initial restores the prop-driven fallback");
+    assert.equal(await style("stack-default", "row-gap"), "0px", "a nested stack inherits the hook");
     assert.equal(await style("stack-own", "row-gap"), "7px", "the hook set on the stack itself wins over its default");
-    assert.equal(await style("cluster-nested", "column-gap"), "12px", "a nested cluster keeps its default");
+    assert.equal(await style("cluster-nested", "column-gap"), "0px", "a nested cluster inherits the hook");
     assert.equal(await style("cluster-own", "column-gap"), "7px", "the hook set on the cluster itself wins");
-    assert.equal(await style("grid-nested", "row-gap"), "16px", "a nested grid keeps its default");
+    assert.equal(await style("grid-nested", "row-gap"), "0px", "a nested grid inherits the hook");
     assert.equal(await style("grid-own", "row-gap"), "7px", "the hook set on the grid itself wins");
 
     for (const [component, property, value, part] of [
@@ -9782,18 +9810,18 @@ describe("Component hooks", () => {
     ] as const) {
       const plain = await style(`${component}-plain`, property, part);
       assert.notEqual(plain, value, `${component}: the default differs from the hook's value`);
-      assert.equal(await style(`${component}-nested`, property, part), plain, `${component}: a hook on a container leaves the instance inside at its default`);
+      assert.equal(await style(`${component}-nested`, property, part), value, `${component}: an ancestor hook styles the instance inside`);
       assert.equal(await style(`${component}-own`, property, part), value, `${component}: a hook on the instance styles it`);
     }
 
     assert.equal(await style("callout-outer", "color", ".icon"), mark, "a callout's hook reaches its own icon");
-    assert.equal(await style("callout-nested", "color", ".icon"), await style("callout-plain", "color", ".icon"), "and not a nested callout's");
+    assert.equal(await style("callout-nested", "color", ".icon"), mark, "an inherited hook reaches a nested callout's icon");
 
     assert.equal(await style("stack-themed", "row-gap"), "40px", "a spacing token themes the stacks in its subtree");
     assert.equal(await style("nav-themed", "border-inline-start-color", ".indicator"), mark, "the accent themes the nav items in its subtree");
   }
 
-  it("style only the instance they are set on, in HTML", async () => {
+  it("inherit from ancestors and allow instance overrides, in HTML", async () => {
     const path = await bundle("html-hooks", `import "@threadlabs/looma";`);
     const page = await open(path, html(tree), [join(root, "tokens.css")]);
     await page.waitForSelector('#nav-themed:is([data-component~="ui-nav-item"], .ui-nav-item)');
@@ -9801,7 +9829,7 @@ describe("Component hooks", () => {
     await page.close();
   });
 
-  it("style only the instance they are set on, in Vue", async () => {
+  it("inherit from ancestors and allow instance overrides, in Vue", async () => {
     const path = await bundle("vue-hooks", `
       import { createApp, h } from "vue";
       import * as looma from "@threadlabs/looma/vue";
@@ -10246,6 +10274,15 @@ describe("App styling hooks", () => {
     assert.equal(await style("#field-help", "color"), "rgb(40, 50, 60)");
     assert.equal(await style("#field-help", "font-size"), "11px");
 
+    // Labels carry the instruction; help stays on the smaller supporting-text step.
+    assert.equal(await style("#default-label", "font-size"), "16px");
+    assert.equal(await style("#default-help", "font-size"), "14px");
+    assert.equal(await style("#default-combobox label", "font-size"), "16px");
+    await page.addStyleTag({ content: ":root { --ui-field-label-font-size: var(--ui-font-size-sm); }" });
+    assert.equal(await style("#default-label", "font-size"), "14px");
+    assert.equal(await style("#default-combobox label", "font-size"), "14px");
+    assert.equal(await style("#field-label", "font-size"), "18px", "the instance hook wins over the shared label size");
+
     // A label kept on one line; unset, a button still wraps as its container does.
     assert.equal(await style("#one-line", "white-space"), "nowrap");
     assert.equal(await style("#wraps", "white-space"), "normal");
@@ -10282,6 +10319,8 @@ describe("App styling hooks", () => {
           <ui-input id="name"></ui-input>
           <p slot="help" id="field-help">As it appears on the invoice.</p>
         </ui-form-field></div>
+        <ui-form-field><label id="default-label" slot="label">Name</label><p id="default-help" slot="help">Shown to readers.</p></ui-form-field>
+        <ui-combobox id="default-combobox" label="Owner"><option>Ada</option></ui-combobox>
         <div class="tight"><ui-button id="one-line" class="one-line">${label}</ui-button></div>
         <div class="tight"><ui-button id="wraps">${label}</ui-button></div>
         <ui-text id="heading" as="h3">Billing</ui-text>
@@ -10294,7 +10333,7 @@ describe("App styling hooks", () => {
   it("apply from an app class in Vue", async () => {
     const path = await bundle("vue-app-hooks", `
       import { createApp, h } from "vue";
-      import { Button, FormField, Input, NavItem, Select, Text } from "@threadlabs/looma/vue";
+      import { Button, Combobox, FormField, Input, NavItem, Select, Text } from "@threadlabs/looma/vue";
       createApp({
         render: () => h("div", { class: "frame" }, [
           h(Input, { id: "input", class: "narrow-input", "aria-label": "Amount" }),
@@ -10308,6 +10347,8 @@ describe("App styling hooks", () => {
             default: () => h(Input, { id: "name" }),
             help: () => h("p", { id: "field-help" }, "As it appears on the invoice."),
           })]),
+          h(FormField, {}, { label: () => h("label", { id: "default-label" }, "Name"), help: () => h("p", { id: "default-help" }, "Shown to readers.") }),
+          h(Combobox, { id: "default-combobox", label: "Owner" }, () => h("option", "Ada")),
           h("div", { class: "tight" }, [h(Button, { id: "one-line", class: "one-line" }, () => "${label}")]),
           h("div", { class: "tight" }, [h(Button, { id: "wraps" }, () => "${label}")]),
           h(Text, { id: "heading", as: "h3" }, () => "Billing"),
@@ -10531,7 +10572,7 @@ describe("CardButton layout", () => {
           h(Button, { id: "outline" }, () => "View changes"), h(Button, { id: "navigation", variant: "ghost", tone: "neutral" }, () => "History")] }).mount("#app");
       `);
       const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : '<ui-button id="card" variant="card" tone="neutral">Changed files</ui-button><ui-button id="outline">View changes</ui-button><ui-button id="navigation" variant="ghost" tone="neutral">History</ui-button>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       try {
         await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
         const neutral = await page.locator("#card").evaluate(element => {
@@ -11766,4 +11807,68 @@ describe("Keyboard item reveal", () => {
       });
     }
   }
+});
+
+
+describe("Brand palette families", () => {
+  for(const adapter of ['html','vue']) it(`applies supporting accents without changing neutral or disabled intent in ${adapter}`, async () => {
+    const { defaultRecipe, themeCSS } = await import('../tooling/docs/theme.mjs');
+    const recipe=defaultRecipe(); Object.assign(recipe.values,{'secondary-action':'#dd7045','tertiary-action':'#208676'});
+    const path=await bundle('extra-accents-'+adapter,adapter==='html'?`import '@threadlabs/looma';`:`import {createApp,h} from 'vue';import {Button,IconButton,Badge,Card,Meter,Text} from '@threadlabs/looma/vue';createApp({render:()=>['accent','accent-secondary','accent-tertiary'].flatMap(tone=>[h(Button,{id:tone,variant:'solid',tone},()=>tone),h(IconButton,{id:tone+'-icon',variant:'solid',tone,label:tone}),h(Badge,{id:tone+'-badge',variant:'solid',tone},()=>tone),h(Badge,{id:tone+'-soft',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>tone),h(Meter,{id:tone+'-meter',value:50,tone,label:tone}),h(Text,{id:tone+'-text',tone},()=>tone),h(Button,{id:tone+'-disabled',variant:'solid',tone,disabled:true},()=>tone)])}).mount('#app');`);
+    const markup=['accent','accent-secondary','accent-tertiary'].map(tone=>`<ui-button id="${tone}" tone="${tone}" variant="solid">${tone}</ui-button><ui-icon-button id="${tone}-icon" tone="${tone}" variant="solid" label="${tone}"></ui-icon-button><ui-badge id="${tone}-badge" tone="${tone}" variant="solid">${tone}</ui-badge><ui-badge id="${tone}-soft" tone="${tone}">${tone}</ui-badge><ui-card id="${tone}-card" tone="${tone}">${tone}</ui-card><ui-meter id="${tone}-meter" value="50" tone="${tone}" label="${tone}"></ui-meter><ui-text id="${tone}-text" tone="${tone}">${tone}</ui-text><ui-button id="${tone}-disabled" tone="${tone}" variant="solid" disabled>${tone}</ui-button>`).join('');
+    const page=await open(path,adapter==='html'?markup:'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try {
+      await page.addStyleTag({content:themeCSS(recipe)});
+      for(const mode of ['light','dark']) {
+        await page.evaluate(mode=>document.documentElement.dataset.theme=mode,mode);
+        await page.waitForTimeout(200);
+        const paint=async(id:string,property:string)=>page.locator('#'+id).evaluate((el,property)=>getComputedStyle(el).getPropertyValue(property),property);
+        for(const tone of ['accent-secondary','accent-tertiary']) {
+          const fill=await paint(tone,'background-color');
+          assert.notEqual(fill,await paint('accent','background-color'),`${adapter}/${mode}: distinct brand fill`);
+          assert.equal(fill,await paint(tone+'-icon','background-color'));
+          assert.equal(fill,await paint(tone+'-badge','background-color'));
+          const {toLch}=await import('../tooling/docs/palette.mjs');
+          const quiet=await page.locator('#'+tone+'-soft').evaluate(el=>{
+            const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d')!;
+            const hex=(color:string)=>{ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return '#'+[...ctx.getImageData(0,0,1,1).data].slice(0,3).map(v=>v.toString(16).padStart(2,'0')).join('');};
+            const probe=el.appendChild(document.createElement('span'));probe.style.backgroundColor='var(--ui-surface-raised)';
+            const plate=hex(getComputedStyle(probe).backgroundColor);probe.remove();
+            return {fill:hex(getComputedStyle(el).backgroundColor),plate};
+          });
+          const delta=toLch(quiet.fill)[0]-toLch(quiet.plate)[0];
+          assert.ok(mode==='light'?delta>=-.055:delta>=.06,`${adapter}/${mode}/${tone}: quiet badge uses the mode's surface calculation`);
+          assert.notEqual(await paint(tone+'-text','color'),await paint('accent-text','color'));
+          assert.notEqual(await paint(tone+'-card','background-color'),await paint('accent-card','background-color'));
+          assert.equal(await paint(tone+'-disabled','background-color'),await paint('accent-disabled','background-color'),'disabled treatment remains neutral');
+        }
+      }
+    } finally {await page.close();}
+  });
+});
+
+
+describe("Shared status surfaces", () => {
+  for(const adapter of ['html','vue']) it(`shares background, foreground and visible border across status components in ${adapter}`,async()=>{
+    const {defaultRecipe,themeCSS}=await import('../tooling/docs/theme.mjs');
+    const tones=['info','success','warning','danger'];
+    const path=await bundle('shared-status-'+adapter,adapter==='html'?`import '@threadlabs/looma';`:`import {createApp,h} from 'vue';import {Badge,Card,Callout,Toast,Text} from '@threadlabs/looma/vue';createApp({render:()=>${JSON.stringify(tones)}.flatMap(tone=>[h(Badge,{id:tone+'-badge',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>h(Text,{id:tone+'-content'},()=>tone)),h(Callout,{id:tone+'-callout',tone},()=>tone),h(Toast,{id:tone+'-toast',tone},()=>tone)])}).mount('#app');`);
+    const body=tones.map(tone=>`<ui-badge id="${tone}-badge" tone="${tone}">${tone}</ui-badge><ui-card id="${tone}-card" tone="${tone}"><ui-text id="${tone}-content">${tone}</ui-text></ui-card><ui-callout id="${tone}-callout" tone="${tone}">${tone}</ui-callout><ui-toast id="${tone}-toast" tone="${tone}">${tone}</ui-toast>`).join('');
+    const page=await open(path,adapter==='html'?body:'<div id="app"></div>',[join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    try {
+      const style=await page.addStyleTag({content:themeCSS(defaultRecipe())});
+      for(const branded of [false,true]) {
+        const recipe=defaultRecipe();if(branded)for(const tone of tones)recipe.values[tone+'-source']='primary';
+        await style.evaluate((el,css)=>el.textContent=css,themeCSS(recipe));
+        for(const mode of ['light','dark']) {
+          await page.evaluate(mode=>document.documentElement.dataset.theme=mode,mode);
+          for(const tone of tones) {
+            const paint=await page.locator('#'+tone+'-badge,#'+tone+'-card,#'+tone+'-callout,#'+tone+'-toast').evaluateAll(es=>es.map(el=>{const s=getComputedStyle(el);return [s.backgroundColor,s.color,s.borderTopColor];}));
+            for(const actual of paint.slice(1))assert.deepEqual(actual,paint[0],`${adapter}/${mode}/${tone}: shared surface, ink and edge`);
+            assert.equal(await page.locator('#'+tone+'-content').evaluate(el=>getComputedStyle(el).color),paint[0][1],'body Text follows its status surface foreground');
+          }
+        }
+      }
+    }finally {await page.close();}
+  });
 });

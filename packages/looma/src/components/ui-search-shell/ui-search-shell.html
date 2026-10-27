@@ -25,50 +25,8 @@
     </dialog>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-search-shell-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-focus-color {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-max-height {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-max-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-padding-top {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-viewport-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-search-shell-z-index {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-search-shell-z-index: var(--ui-search-shell-z-index);
       --_ui-search-shell-padding-top: var(--ui-search-shell-padding-top);
       --_ui-search-shell-viewport-gap: var(--ui-search-shell-viewport-gap);

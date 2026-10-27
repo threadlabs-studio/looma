@@ -22,10 +22,11 @@
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with its
       chosen tone.</prop>
-    <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="neutral"
+    <prop name="tone" type="keyword" values="accent, accent-secondary, accent-tertiary, neutral, danger, success, warning, info" default="neutral"
     >Colour for every variant. The default neutral shares the quiet control family with fields and text buttons. Choose accent explicitly for a coloured action,
       or primary for solid accent. danger, success, warning and info share Button's intent colors. Native aria-pressed="true" keeps an outline toggle visibly
-      pressed; the consumer owns that state.</prop>
+      pressed; the consumer owns that state. Supporting brand families use accent-secondary and accent-tertiary; their usable colors derive from the theme, and
+      unset families follow the primary accent.</prop>
     <prop name="anticipatory" type="boolean" default="false"
     >Keeps the button out of sight until it is wanted: at rest a fine pointer sees only a small guide dot, and the button appears on hover, on focus, or when
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
@@ -51,84 +52,6 @@
     <span class="content"><slot></slot></span>
   </button>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-icon-button-active-scale {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-active-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-disabled-filter {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-disabled-opacity {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-hover-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-hover-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-hover-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-icon-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-icon-stroke-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-outline-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-outline-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-solid-hover-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-solid-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-solid-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-solid-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-icon-button-surface {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       /* Optional inherited action-group values keep text and icon actions under the same light.
          One fine top/start highlight follows the bottom/end lowlight at a joined action seam.
@@ -146,7 +69,7 @@
         inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
       --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-icon-button-icon-size: var(--ui-icon-button-icon-size);
       --_ui-icon-button-icon-stroke-width: var(--ui-icon-button-icon-stroke-width);
 
@@ -156,6 +79,40 @@
 
     :host:dir(rtl) {
       --_ui-action-start: -1px;
+    }
+
+    :host[data-tone="accent-secondary"] {
+      --_solid-border: var(--ui-accent-secondary-border, var(--ui-accent-secondary));
+      --_solid-hover-border: var(--ui-accent-secondary-hover-border, var(--ui-accent-secondary-hover));
+      --_solid-active-border: var(--ui-accent-secondary-active-border, var(--ui-accent-secondary-active));
+      --_solid-active-surface: var(--ui-accent-secondary-active, var(--ui-accent-secondary-hover));
+      --_tone-highlight: var(--ui-accent-secondary-highlight, none);
+      --_tone-glow: var(--ui-accent-secondary-glow, 0 0 transparent);
+      --_icon-button-border: var(--ui-accent-secondary-subtle-text);
+      --_icon-button-hover-border: var(--ui-accent-secondary-subtle-text);
+      --_icon-button-text: var(--ui-accent-secondary-subtle-text, var(--ui-accent-secondary-solid));
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-accent-secondary-solid) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-accent-secondary);
+      --_icon-button-solid-hover-surface: var(--ui-accent-secondary-hover);
+      --_icon-button-solid-text: var(--ui-on-accent-secondary);
+      color: var(--_icon-button-text);
+    }
+
+    :host[data-tone="accent-tertiary"] {
+      --_solid-border: var(--ui-accent-tertiary-border, var(--ui-accent-tertiary));
+      --_solid-hover-border: var(--ui-accent-tertiary-hover-border, var(--ui-accent-tertiary-hover));
+      --_solid-active-border: var(--ui-accent-tertiary-active-border, var(--ui-accent-tertiary-active));
+      --_solid-active-surface: var(--ui-accent-tertiary-active, var(--ui-accent-tertiary-hover));
+      --_tone-highlight: var(--ui-accent-tertiary-highlight, none);
+      --_tone-glow: var(--ui-accent-tertiary-glow, 0 0 transparent);
+      --_icon-button-border: var(--ui-accent-tertiary-subtle-text);
+      --_icon-button-hover-border: var(--ui-accent-tertiary-subtle-text);
+      --_icon-button-text: var(--ui-accent-tertiary-subtle-text, var(--ui-accent-tertiary-solid));
+      --_icon-button-outline-surface: color-mix(in srgb, var(--ui-accent-tertiary-solid) 5%, var(--ui-surface-default));
+      --_icon-button-solid-surface: var(--ui-accent-tertiary);
+      --_icon-button-solid-hover-surface: var(--ui-accent-tertiary-hover);
+      --_icon-button-solid-text: var(--ui-on-accent-tertiary);
+      color: var(--_icon-button-text);
     }
 
     :host[data-tone="accent"] {
@@ -240,17 +197,17 @@
       color: var(--_icon-button-text);
     }
 
-    /* Neutral actions share the same quiet surface and border roles as fields. */
+    /* Neutral actions and form fields share the control boundary. */
     :host[data-tone="neutral"] {
-      --_solid-border: var(--ui-neutral-border, var(--ui-neutral-surface));
-      --_solid-hover-border: var(--ui-neutral-hover-border, var(--ui-neutral-hover));
-      --_solid-active-border: var(--ui-neutral-active-border, var(--ui-neutral-active));
+      --_solid-border: var(--ui-control-border, var(--ui-neutral-surface));
+      --_solid-hover-border: var(--ui-control-border-hover, var(--ui-neutral-hover));
+      --_solid-active-border: var(--ui-control-border-hover, var(--ui-neutral-active));
       --_solid-active-surface: var(--ui-neutral-active, var(--ui-neutral-hover));
       --_tone-highlight: var(--ui-neutral-highlight, none);
       --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
       --_icon-button-outline-surface: transparent;
       --_icon-button-border: var(--ui-control-border);
-      --_icon-button-hover-border: var(--ui-control-border-hover, var(--ui-control-border));
+      --_icon-button-hover-border: var(--ui-control-border-hover);
       --_icon-button-text: var(--ui-text);
       --_icon-button-solid-surface: var(--ui-neutral-surface);
       --_icon-button-solid-hover-surface: var(--ui-neutral-hover);
@@ -270,7 +227,7 @@
       block-size: var(--ui-affordance-guide-size);
       border-radius: var(--ui-radius-round);
       background: var(--ui-affordance-guide-color, var(--ui-border-strong));
-      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--_ui-affordance-scope-guide, 1));
       transform: translate(-50%, -50%);
       transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
       pointer-events: none;
@@ -429,6 +386,14 @@
       box-shadow:
         var(--ui-icon-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--_tone-glow);
+    }
+
+    :host[data-tone="neutral"][data-appearance="outline"] {
+      box-shadow: var(--ui-neutral-shadow);
+    }
+    :host[data-tone="neutral"][data-appearance="solid"] {
+      border-color: var(--ui-icon-button-border, var(--ui-control-border));
+      box-shadow: var(--ui-icon-button-solid-shadow, var(--ui-neutral-shadow));
     }
 
     :host:hover:enabled:not([aria-disabled="true"]) {
