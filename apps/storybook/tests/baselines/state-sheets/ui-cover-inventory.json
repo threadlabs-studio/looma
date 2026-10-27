@@ -2,30 +2,35 @@
   {
     "name": "Rest",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: screen",
     "props": {
       "size": "screen"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "size: fill",
     "props": {
       "size": "fill"
     },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
     "example": 0
   },
   {
     "name": "Example: 01-default",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "Example: 02-message",
     "props": {},
-    "example": 1
+    "example": 2
   }
 ]

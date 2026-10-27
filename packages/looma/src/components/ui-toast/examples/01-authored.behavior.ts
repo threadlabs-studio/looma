@@ -1,8 +1,8 @@
 /** Shows a hidden authored toast when the example's button is pressed; the toast hides itself when dismissed. */
 export function showToastOnClick(buttonId: string, toastId: string): (root: HTMLElement) => () => void {
   return (root) => {
-    const button = root.querySelector<HTMLElement>(`#${buttonId}`);
-    const toast = root.querySelector<HTMLElement>(`#${toastId}`);
+    const button = root.querySelector<HTMLElement>(`[data-example-id="${buttonId}"]`);
+    const toast = root.querySelector<HTMLElement>(`[data-example-id="${toastId}"]`);
     if (!button || !toast) return () => {};
     const show = () => {
       toast.hidden = false;

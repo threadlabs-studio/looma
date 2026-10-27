@@ -3,13 +3,43 @@ import { escapeHtml as escape } from './catalog.mjs';
 import { createLoomaMarkdownIt } from '@threadlabs/looma/markdown/markdown-it';
 
 const descriptions = createLoomaMarkdownIt().set({ html: false });
+export const cardDescription = description => (descriptions.parseInline(description ?? '', {})[0]?.children ?? []).map(token => token.content).join('').split(/(?<=[.!?])\s/)[0];
 
 const literal = value => escape(value).replaceAll('{', '\\{');
 const code = value => `<code>${literal(value ?? '—')}</code>`;
 const table = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${literal(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(value => `<td>${value}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 export const exampleKey = id => createHash('sha256').update(id).digest('hex').slice(0, 20);
 export const componentPath = component => `/${component.group === 'editor' ? 'editor' : 'components'}/${component.navigationParent ?? component.tag}/` + (component.navigationParent ? `#${component.tag}-api` : '');
-export const previewPath = example => `/_looma/preview/${exampleKey(example.id)}/`;
+export const previewTag = example => `looma-preview-${exampleKey(example.id)}`;
+export const previewMarkup = (example, namespace, base = '/', layout = false) => `<div slot="preview"><div data-preview="${escape(example.id)}"${layout || example.stretch ? ' data-preview-layout' : ''}>${scopedExampleMarkup(example, base, namespace)}</div></div>`;
+export function exampleResources(examples, catalog) {
+  const resources = new Map([...catalog.resources ?? [], ...catalog.components].map(resource => [resource.tag, resource.resource]));
+  const tags = [...new Set(examples.flatMap(example => [...example.markup.matchAll(/<([a-z][\w]*-[\w-]+)\b/g)].map(match => match[1])))];
+  return tags.filter(tag => resources.has(tag)).map(tag => `<link rel="component" href="${escape(resources.get(tag))}">`).join('\n');
+}
+
+/** Keep authored ID relationships local when several examples share one document. */
+export function scopedExampleMarkup(example, base = '/', namespace) {
+  const ids = new Set([...example.markup.matchAll(/\sid=["']([^"']+)["']/g)].map(match => match[1]));
+  const destinations = [...new Set([...example.markup.matchAll(/\bhref=["']#([^"']+)["']/g)].map(match => match[1]))].filter(id => !ids.has(id));
+  const markup = example.markup.replaceAll('src="/_looma/', `src="${base}_looma/`) + destinations.map(id => `<span id="${escape(id)}" hidden></span>`).join('');
+  return markup.replace(/<([a-z][\w:-]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi, (tag, name, attributes) => {
+    if (name === 'img') attributes = attributes.replace(/\ssrc="([^"]*\/_looma\/[^"]*)"/, (_, url) => ` from:src="${escape(JSON.stringify(url))}"`);
+    const scoped = attributes.replace(/\s(id|for|commandfor|popovertarget|aria-labelledby|aria-describedby|aria-controls|aria-owns|aria-activedescendant|list|form|headers|href|name)\s*=\s*(["'])(.*?)\2/gi, (attribute, key, quote, value) => {
+      if (key === 'name' && !['ui-radio', 'ui-radio-group'].includes(name) && !(name === 'input' && /\btype=["']radio["']/.test(attributes))) return attribute;
+      if (!value || key === 'href' && !value.startsWith('#')) return attribute;
+      if (namespace) {
+        const scopedValue = (key === 'href' ? '#' : '') + value.replace(/^#/, '').split(/\s+/).map(id => `${namespace}-${id}`).join(' ');
+        return `${key === 'id' && !/\bdata-example-id=/.test(attributes) ? ` data-example-id="${escape(value)}"` : ''} ${key}="${escape(scopedValue)}"`;
+      }
+      const values = value.replace(/^#/, '').split(/\s+/);
+      const binding = values.map(id => `concat($namespace, '-', ${JSON.stringify(id)})`).join(', " ", ');
+      const source = key === 'href' ? `concat('#', ${binding})` : values.length > 1 ? `concat(${binding})` : `concat($namespace, '-', ${JSON.stringify(value)})`;
+      return `${key === 'id' && !/\bdata-example-id=/.test(attributes) ? ` data-example-id="${escape(value)}"` : ''} from:${key}="${escape(source)}"`;
+    });
+    return `<${name}${scoped}>`;
+  });
+}
 
 export function apiBody(api, prefix = '') {
   const attributes = api.attributes ?? [];
@@ -71,7 +101,7 @@ export function exampleCodes(example, component, components) {
 
 /** The same card invocation is embedded in reference pages and rendered by the customizer. */
 export function cardMarkup(example, base = '/', component = {}, { reference = false, code: exampleCode = '' } = {}) {
-  return `<looma-example-card identity="${escape(example.id)}"${reference ? ' reference' : ''} title="${escape(component.title ?? example.title)}" description="${escape(reference ? example.description : component.description ?? example.description)}" example-title="${escape(example.title)}" category="${escape(component.group ?? 'forms')}" tag="${escape(component.tag ?? '')}" package-name="${escape(component.package ?? '')}" native-root="${escape(component.root ? `<${component.root}>` : '')}" href="${component.tag ? base + componentPath(component).slice(1) : ''}" src="${base}${previewPath(example).slice(1)}"${example.resizable ? ' resizable' : ''}>${reference ? `<div slot="heading" class="looma-example-heading"><h3 id="example-${exampleKey(example.id)}">${escape(example.title)}</h3><p>${escape(example.description)}</p></div>` : ''}${exampleCode}</looma-example-card>`;
+  return `<looma-example-card identity="${escape(example.id)}"${reference ? ' reference' : ''} title="${escape(component.title ?? example.title)}" description="${escape(reference ? example.description : cardDescription(component.description ?? example.description))}" example-title="${escape(example.title)}" category="${escape(component.group ?? 'forms')}" tag="${escape(component.tag ?? '')}" package-name="${escape(component.package ?? '')}" native-root="${escape(component.root ? `<${component.root}>` : '')}" href="${component.tag ? base + componentPath(component).slice(1) : ''}"${example.resizable ? ' resizable' : ''}>${previewMarkup(example, `${reference ? 'reference' : 'catalog'}-${exampleKey(example.id)}`, base, component.group === 'layout')}${reference ? `<div slot="heading" class="looma-example-heading"><h3 id="example-${exampleKey(example.id)}">${escape(example.title)}</h3><p>${escape(example.description)}</p></div>` : ''}${exampleCode}</looma-example-card>`;
 }
 
 export function referencePage(component, catalog, cardResource, base) {
@@ -89,5 +119,5 @@ export function referencePage(component, catalog, cardResource, base) {
     return `<ui-tabs slot="code" label="Example syntax" group="syntax" style="--ui-tabs-panel-padding: 0px">${tabs}</ui-tabs>`;
   };
   const body = `<div class="looma-reference-examples"><ui-stack gap="xl">${examples.map(example => `<ui-card as="section" variant="subtle" padding="lg">${cardMarkup(example, base, catalog.components.find(c => c.examples.some(e => e.id === example.id)) ?? component, { reference: true, code: codes(example) })}</ui-card>`).join('')}</ui-stack></div>`;
-  return `---\ntitle: ${JSON.stringify(component.title)}\ndescription: ${JSON.stringify(component.description || `${component.title} component reference.`)}\nid: ${JSON.stringify(component.id)}\n---\n\n# ${escape(component.title)}\n\n<div class="component-description"><p>${descriptions.renderInline(component.description).replaceAll('{', '\\{').replaceAll('\n', '&#10;')}</p></div>\n\n<link rel="component" href="${cardResource}">\n<link rel="component" href="${cardResource.replace(/card\.html$/, 'reference.html')}">\n<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">\n<link rel="component" href="@threadlabs/looma/components/ui-tabs/ui-tabs.html">\n<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">\n<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">\n\n<looma-reference>\n\n<div class="looma-reference-tabs"><ui-tabs label="Component reference" style="--ui-tabs-panel-padding: 0px; --ui-tabs-tab-min-block-size: var(--ui-control-size-lg)"><section aria-label="Examples">${body}</section><section aria-label="API"><h2 id="api">API</h2>\n${apiBody(component)}\n${parts.map(part => `<h2 id="${part.tag}-api">${literal(part.title)} API</h2><p>${literal(part.description)}</p>${apiBody(part, part.tag + '-')}`).join('\n')}</section></ui-tabs></div>\n\n</looma-reference>\n`;
+  return `---\ntitle: ${JSON.stringify(component.title)}\ndescription: ${JSON.stringify(component.description || `${component.title} component reference.`)}\nid: ${JSON.stringify(component.id)}\n---\n\n# ${escape(component.title)}\n\n<div class="component-description"><p>${descriptions.renderInline(component.description).replaceAll('{', '\\{').replaceAll('\n', '&#10;')}</p></div>\n\n<link rel="component" href="${cardResource}">\n${exampleResources(examples, catalog)}\n<link rel="component" href="${cardResource.replace(/card\.html$/, 'reference.html')}">\n<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">\n<link rel="component" href="@threadlabs/looma/components/ui-tabs/ui-tabs.html">\n<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">\n<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">\n\n<looma-reference>\n\n<div class="looma-reference-tabs"><ui-tabs label="Component reference" style="--ui-tabs-panel-padding: 0px; --ui-tabs-tab-min-block-size: var(--ui-control-size-lg)"><section aria-label="Examples">${body}</section><section aria-label="API"><h2 id="api">API</h2>\n${apiBody(component)}\n${parts.map(part => `<h2 id="${part.tag}-api">${literal(part.title)} API</h2><p>${literal(part.description)}</p>${apiBody(part, part.tag + '-')}`).join('\n')}</section></ui-tabs></div>\n\n</looma-reference>\n`;
 }

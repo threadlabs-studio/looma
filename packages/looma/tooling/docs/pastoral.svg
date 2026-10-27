@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title description">
+  <title id="title">A quiet afternoon in the countryside</title>
+  <desc id="description">Soft green hills surround a red-roofed farmhouse, a winding stream, and sheep grazing beneath a broad oak tree.</desc>
+  <rect width="640" height="400" fill="#e9efdf"/>
+  <circle cx="486" cy="85" r="36" fill="#edcd79"/>
+  <g fill="#faf8ed">
+    <path d="M65 89c0-12 10-21 22-20 4-20 35-24 46-6 16-4 30 8 29 23 14-2 25 7 25 18H65Z"/>
+    <path d="M300 58c2-11 17-16 26-9 10-15 33-10 36 7 13-3 25 6 25 17h-87Z"/>
+  </g>
+  <path d="M0 183c76-55 128-46 196-8 67 37 112-68 199-45 85 22 134 67 245 22v248H0Z" fill="#a9c2ad"/>
+  <path d="M0 227c108-62 189-36 285-8 111 33 182-60 355-18v199H0Z" fill="#89aa79"/>
+  <path d="M0 287c89-20 165-64 267-45 110 21 219 79 373 18v140H0Z" fill="#6b925e"/>
+  <path d="M0 349c128-72 240-22 363-4 116 17 190-36 277-31v86H0Z" fill="#52784f"/>
+  <path d="M362 211c-43 31 63 45 28 72-35 26-113 35-99 64 9 20 54 32 84 53h92c-40-44-127-52-124-72 3-19 79-31 84-57 6-30-94-38-55-60Z" fill="#c7deda"/>
+  <path d="M368 213c-28 26 57 44 31 65" fill="none" stroke="#e5eee0" stroke-width="4" stroke-linecap="round"/>
+  <path d="M168 214c-21 37-74 45-90 75-17 33 26 56 21 111h40c-1-57-48-77-38-105 10-27 72-45 80-81Z" fill="#d9c38b"/>
+  <g>
+    <rect x="121" y="173" width="88" height="53" fill="#f6ead0"/>
+    <path d="m109 177 56-39 56 39Z" fill="#a55d48"/>
+    <path d="m118 177 47-32 47 32Z" fill="#bd7458"/>
+    <rect x="181" y="191" width="15" height="35" rx="1" fill="#637961"/>
+    <rect x="135" y="189" width="20" height="19" rx="1" fill="#75999a"/>
+    <path d="M145 189v19m-10-9h20" stroke="#f6ead0" stroke-width="3"/>
+    <path d="M194 155v-17h9v23" fill="#a55d48"/>
+    <rect x="238" y="192" width="47" height="35" fill="#b67456"/>
+    <path d="m231 194 30-26 31 26Z" fill="#805947"/>
+    <rect x="253" y="207" width="16" height="20" fill="#765940"/>
+  </g>
+  <g fill="none" stroke="#f0dfb7" stroke-width="4" stroke-linecap="round">
+    <path d="m27 253 76-18m-65 3v27m25-34v27m25-34v27"/>
+    <path d="m222 248 74 11m-63-24v27m26-22v27m26-23v27"/>
+  </g>
+  <g>
+    <path d="m535 220-8 112h24l-6-112Z" fill="#6d6246"/>
+    <path d="m539 263-23-28m24 14 23-24" fill="none" stroke="#6d6246" stroke-width="8" stroke-linecap="round"/>
+    <path d="M482 232c-26-5-33-36-14-54-10-23 9-45 33-42 9-28 48-31 64-8 26-13 55 6 52 32 28 10 29 45 6 59 0 23-35 34-51 19-24 21-63 16-67-5Z" fill="#3c684d"/>
+    <path d="M484 174c4-21 29-30 44-18 9-24 45-22 53 3 22-5 38 13 34 31-43-17-86 6-131-16Z" fill="#527d55"/>
+  </g>
+  <g stroke="#465b48" stroke-width="3" stroke-linecap="round">
+    <path d="M385 323v9m17-10v9m47 13v8m16-10v9"/>
+  </g>
+  <g fill="#f4edda">
+    <ellipse cx="392" cy="317" rx="16" ry="10"/>
+    <ellipse cx="455" cy="338" rx="14" ry="9"/>
+  </g>
+  <g fill="#465b48">
+    <ellipse cx="406" cy="318" rx="5" ry="7"/>
+    <ellipse cx="468" cy="338" rx="4" ry="6"/>
+  </g>
+  <g fill="#e4ca80">
+    <circle cx="41" cy="370" r="3"/><circle cx="56" cy="351" r="3"/><circle cx="186" cy="346" r="3"/>
+    <circle cx="202" cy="364" r="3"/><circle cx="569" cy="363" r="3"/><circle cx="590" cy="346" r="3"/>
+  </g>
+</svg>

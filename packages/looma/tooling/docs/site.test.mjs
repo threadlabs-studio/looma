@@ -4,8 +4,25 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { prepareDocumentation } from './site.mjs';
+import { scopedExampleMarkup } from './render.mjs';
 
-test('generates full portable reference and the same isolated cards, including behavior and resizing', async () => {
+test('inline specimens scope label, command, fragment and radio relationships together', () => {
+  const example = { markup: '<label id="label" for="field">Name</label><input id="field" aria-labelledby="label hint"><small id="hint">Help</small><ui-button commandfor="dialog">Open</ui-button><ui-dialog id="dialog"></ui-dialog><a href="#details">Details</a><ui-radio name="choice">One</ui-radio>' };
+  const markup = scopedExampleMarkup(example, '/system/', 'first');
+  assert.match(markup, /id="first-field"/);
+  assert.match(markup, /for="first-field"/);
+  assert.match(markup, /aria-labelledby="first-label first-hint"/);
+  assert.match(markup, /commandfor="first-dialog"/);
+  assert.match(markup, /id="first-dialog"/);
+  assert.match(markup, /href="#first-details"/);
+  assert.match(markup, /id="first-details" hidden/);
+  assert.match(markup, /name="first-choice"/);
+  assert.match(markup, /data-example-id="field"/);
+  assert.notEqual(markup, scopedExampleMarkup(example, '/system/', 'second'));
+  assert.match(scopedExampleMarkup({ markup: '<img src="/_looma/portrait.svg" alt="Portrait">' }, '/system/', 'image'), /\/system\/_looma\/portrait\.svg/);
+});
+
+test('prerenders examples in shared cards without frame documents, including behavior and resizing', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'looma-docs-'));
   try {
     const { readCatalog } = await import('./catalog.mjs');
@@ -16,7 +33,8 @@ test('generates full portable reference and the same isolated cards, including b
     const lightEditor = await readFile(path.join(site.content, 'components/06.(Extras)/ui-light-editor.md'), 'utf8');
     assert.match(lightEditor, /LightEditor/);
     assert.match(button, /looma-example-card/);
-    assert.match(button, /\/system\/_looma\/preview\//);
+    assert.match(button, /<div slot="preview"><div data-preview=/);
+    assert.doesNotMatch(button, /iframe|\/_looma\/preview\//);
     assert.match(button, /Framework props/);
     assert.match(button, /Emphasis: how loudly/);
     assert.ok(site.examples.length > 290);
@@ -24,7 +42,7 @@ test('generates full portable reference and the same isolated cards, including b
     assert.ok(site.examples.some(example => example.resizable));
     const preview = await readFile(site.examples.find(example => example.behavior).file, 'utf8');
     assert.match(await readFile(site.examples.find(example => example.behavior).file.replace(/\.html$/, ".js"), "utf8"), /setupExample/);
-    assert.match(preview, /mk:navigation/);
+    assert.doesNotMatch(preview, /mk:navigation|<title>/);
     assert.ok(site.catalog.components.length > 75);
     const editor = catalog.components.find(component => component.group === 'editor' && !component.navigationParent);
     const editorPage = await readFile(path.join(site.content, 'editor', editor.tag + '.md'), 'utf8');
@@ -34,10 +52,11 @@ test('generates full portable reference and the same isolated cards, including b
     const directory = await readFile(path.join(site.content, 'components/index.md'), 'utf8');
     assert.match(directory, /looma-example-card/);
     assert.match(directory, /category="forms"/);
-    const swatches = site.examples.find(example => example.component.endsWith('/ui-color-picker'));
+    assert.match(directory, /data-preview=/);
+    const swatches = site.examples.find(example => example.component.endsWith('/ui-color-picker') && example.markup.includes('<ui-input'));
     assert.match(await readFile(swatches.file, 'utf8'), /ui-input\/ui-input.html/);
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
-    assert.match(customizer, /loading="lazy"/);
+    assert.match(customizer, /<looma-preview-choice slot="preview"/);
     assert.match(customizer, /removable/);
     assert.match(customizer, /summary="Advanced material"/);
     assert.match(customizer, /Frosting/);

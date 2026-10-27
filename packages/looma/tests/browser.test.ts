@@ -7961,6 +7961,39 @@ describe("Chip editor", () => {
 });
 
 describe("Vue editor components", () => {
+  it("updates suggestion visibility when only open, anchor or query changes", async () => {
+    const path = await bundle("suggestion-input-tracking", `
+      import "@threadlabs/looma";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      window.updateSuggestion = (values) => componentRegistry.update(document.querySelector("#suggestion"), values);
+    `);
+    for (const kind of ["slash", "mention"]) {
+      const tag = `ui-editor-${kind}-menu`;
+      const contents = kind === "slash"
+        ? '<ui-editor-slash-menu-item value="heading">Heading</ui-editor-slash-menu-item><ui-editor-slash-menu-item value="paragraph">Paragraph</ui-editor-slash-menu-item>'
+        : '<ui-editor-mention-menu-item value="ada">Ada</ui-editor-mention-menu-item>';
+      const page = await open(path, `<${tag} id="suggestion">${contents}</${tag}>`, [join(root, "tokens.css")]);
+      const menu = page.locator("#suggestion");
+      assert.equal(await menu.isVisible(), false);
+      await page.evaluate(() => (window as any).updateSuggestion({ open: true }));
+      assert.equal(await menu.isVisible(), false, "an open surface still needs an anchor");
+      await page.evaluate(() => (window as any).updateSuggestion({ anchorRect: { left: 500, top: 40, right: 520, bottom: 60 } }));
+      await menu.waitFor({ state: "visible" });
+      const first = (await menu.boundingBox())!;
+      await page.evaluate(() => (window as any).updateSuggestion({ anchorRect: { left: 200, top: 40, right: 220, bottom: 60 } }));
+      await page.waitForFunction(left => document.querySelector("#suggestion")!.getBoundingClientRect().left < left - 100, first.x);
+      if (kind === "slash") {
+        await page.evaluate(() => (window as any).updateSuggestion({ query: "Heading" }));
+        await page.waitForFunction(() => document.querySelectorAll('#suggestion [role="option"]:not([hidden])').length === 1);
+      }
+      await page.evaluate(() => (window as any).updateSuggestion({ open: false }));
+      await menu.waitFor({ state: "hidden" });
+      await page.evaluate(() => (window as any).updateSuggestion({ open: true }));
+      await menu.waitFor({ state: "visible" });
+      await page.close();
+    }
+  });
+
   it("filters authored Slash groups and reports the command value", async () => {
     const path = await bundle("html-authored-slash-menu", `
       import "@threadlabs/looma";
@@ -11403,7 +11436,7 @@ describe("Shared readable material planes", () => {
       await page.waitForFunction(()=>[...getComputedStyle(document.querySelector('#strong-action')!).boxShadow.matchAll(/([.\d]+)px/g)].some(match=>Number(match[1])>=53.9));
       const actual=await page.evaluate(()=>({shadow:getComputedStyle(document.querySelector('#strong-action')!).boxShadow,filter:getComputedStyle(document.querySelector('#strong-panel')!).backdropFilter}));
       assert.ok([...actual.shadow.matchAll(/(?:rgba\([^)]*,\s*|\/\s*)([.\d]+)\)/g)].some(match=>Number(match[1])>=.53),actual.shadow);
-      assert.ok(parseFloat(actual.filter.match(/blur\(([.\d]+)px\)/)?.[1]??'0')>=35,actual.filter);
+      assert.equal(actual.filter,'blur(32px)');
     } finally {await page.close();}
   });
 
