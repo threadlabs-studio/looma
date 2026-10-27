@@ -27,7 +27,7 @@ export async function readExamples(directory, componentId) {
       if (files.includes(name + extension)) frameworks[target] = { language, code: await readFile(path.join(directory, name + extension), 'utf8') };
     }
     const behavior = files.includes(name + '.behavior.ts') ? path.join(directory, name + '.behavior.ts') : files.includes(name + '.behavior.js') ? path.join(directory, name + '.behavior.js') : undefined;
-    return { id: `${componentId}/${name}`, name, title: fields.title ?? name, description: fields.description ?? '', markup: source.slice(meta[0].length).trim(), resizable: fields.preview === 'resizable', bindings: fields.bind ?? '', frameworks, ...(behavior ? { behavior } : {}) };
+    return { id: `${componentId}/${name}`, name, title: fields.title ?? name, description: fields.description ?? '', markup: source.slice(meta[0].length).trim(), resizable: fields.preview === 'resizable', ...(fields.preview === 'stretch' ? { stretch: true } : {}), bindings: fields.bind ?? '', frameworks, ...(behavior ? { behavior } : {}) };
   }));
 }
 

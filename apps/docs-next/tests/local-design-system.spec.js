@@ -6,7 +6,7 @@ import path from 'node:path';
 import { serveLocalDocumentation } from '../../../packages/looma/tooling/docs/local-server.mjs';
 import { createThemeStore } from '../../../packages/looma/tooling/docs/store.mjs';
 
-test('local saving preserves newer edits and directly opened examples remain isolated', async ({ page }, info) => {
+test('local saving preserves newer edits with inline previews', async ({ page }, info) => {
   const root = await mkdtemp(path.join(tmpdir(), 'looma-browser-writer-'));
   let releaseSave;
   const pending = new Promise(resolve => { releaseSave = resolve; });
@@ -29,9 +29,7 @@ test('local saving preserves newer edits and directly opened examples remain iso
     await expect(page.locator('[data-message]')).toContainText('newer edits');
     await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Garden');
     expect(JSON.parse(await readFile(path.join(root, 'looma.theme.json'), 'utf8')).values.canvas).toBe('#11141c');
-    const frame = await page.locator('iframe').first().getAttribute('src');
-    await page.goto(new URL(frame, server.url).href);
-    expect(await page.evaluate(() => self.origin)).toBe('null');
-    expect(await page.evaluate(async url => { try { await fetch(url); return 'readable'; } catch { return 'blocked'; } }, server.url + '_looma/session')).toBe('blocked');
+    await expect(page.locator('iframe')).toHaveCount(0);
+    await expect(page.locator('[data-theme-sampler] [data-preview]')).toBeVisible();
   } finally { releaseSave(); await server.close(); await rm(root, { recursive: true, force: true }); }
 });

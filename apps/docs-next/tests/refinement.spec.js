@@ -45,7 +45,7 @@ test('completed edits undo and redo persist without an ambiguous comparison mode
   expect(await session(page)).toEqual(beforeFocus);
   const stage = page.locator('[data-light-editor]').getByRole('button',{name:'Material response',exact:true});
   await page.getByRole('button',{name:'Try floating surfaces',exact:true}).click();
-  const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] iframe').contentFrame().getByRole('button',{name:'Join briefing',exact:true});
+  const card = page.locator('[data-refinement-view="material"] [data-component-card="ui-card"] [data-preview]').getByRole('button',{name:'Join briefing',exact:true});
   await expect(card).toHaveCSS('background-color', await stage.evaluate(e=>getComputedStyle(e).backgroundColor));
   await page.locator('[data-light-editor] .source').press('Shift+ArrowLeft');
   expect((await session(page)).values['light-x']).toBe('0.4');
@@ -227,7 +227,7 @@ test('the compact documentation sampler stays visible across screen sizes and fo
   for(const width of [1440,390]) {
     await page.setViewportSize({width,height:900});await enter(page,info);
     const sampler=page.locator('[data-theme-sampler]');
-    const frame=sampler.locator('iframe').contentFrame();
+    const frame=sampler.locator('[data-preview]');
     const action=frame.getByRole('button',{name:'Send',exact:true});
     await expect(action).toBeVisible();
     await expect(frame.getByRole('textbox',{name:'Search office',exact:true})).toBeVisible();
@@ -268,7 +268,7 @@ test('sidebar fields reserve space for their focus treatment inside clipping con
 test('starter rhythm changes sampler gaps and unitless text ratios together', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
   const preset=page.locator('[data-preset] input[role=combobox]');
-  const sampler=page.locator('[data-theme-sampler] iframe').contentFrame();
+  const sampler=page.locator('[data-theme-sampler] [data-preview]');
   const measure=()=>sampler.locator('[data-component="ui-card"] [data-component="ui-stack"]').first().evaluate(el=>{
     const root=getComputedStyle(document.documentElement), s=getComputedStyle(el), heading=getComputedStyle(document.querySelector('h3'));
     return {gap:parseFloat(s.rowGap),headingRatio:parseFloat(heading.lineHeight)/parseFloat(heading.fontSize),bodyRatio:root.getPropertyValue('--ui-line-height').trim()};
