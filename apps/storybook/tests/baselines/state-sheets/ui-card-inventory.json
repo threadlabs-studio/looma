@@ -103,6 +103,20 @@
     "example": 0
   },
   {
+    "name": "tone: accent-secondary",
+    "props": {
+      "tone": "accent-secondary"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: accent-tertiary",
+    "props": {
+      "tone": "accent-tertiary"
+    },
+    "example": 0
+  },
+  {
     "name": "tone: info",
     "props": {
       "tone": "info"

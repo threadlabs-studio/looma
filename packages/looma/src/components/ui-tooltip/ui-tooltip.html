@@ -38,51 +38,9 @@
       <span class="shortcut"><slot name="shortcut"></slot></span>
     </div></span>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-tooltip-arrow-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-inverse-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-inverse-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-max-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-offset {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-tooltip-text {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_ui-material-scale: 0.08;
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-tooltip-border: var(--ui-tooltip-border);
       --_ui-tooltip-max-inline-size: var(--ui-tooltip-max-inline-size);
       --_ui-tooltip-radius: var(--ui-tooltip-radius);

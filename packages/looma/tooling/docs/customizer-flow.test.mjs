@@ -32,3 +32,17 @@ test('the fixed quiet scene is editor presentation rather than a portable theme 
   assert.match(root.querySelector('style').textContent, /background-attachment: fixed/);
   assert.doesNotMatch(root.querySelector('style').textContent, /background-attachment: local/);
 });
+
+test('palette exposes governed relationships and shows every status in both modes', t => {
+  const {root}=consumer(t);
+  const palette=root.querySelector('[data-refinement-view="palette"]');
+  for(const role of ['success','danger','warning','info']) {
+    assert.equal(palette.querySelectorAll(`ui-badge[tone="${role}"]`).length,2);
+    const select=palette.querySelector(`#theme-${role}-source`);
+    assert.deepEqual([...select.children].map(option=>option.value),['derived','related','primary','secondary','tertiary']);
+    assert.equal(palette.querySelector(`#theme-${role}-color`),null);
+  }
+  assert.ok(palette.querySelector('#theme-neutral-source'));
+  assert.ok(palette.querySelector('#theme-neutral-border-contrast'));
+  for(const role of ['secondary','tertiary']) assert.ok(palette.querySelector(`[data-color-source="${role}-action"]`));
+});

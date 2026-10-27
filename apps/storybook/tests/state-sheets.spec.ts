@@ -3,6 +3,21 @@ import { stateSheetComparison } from '../scripts/state-sheet-comparison.mjs';
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { interactionCases } from '../../docs/tests/interaction-cases.mts';
+// Reuse successful browser font responses across isolated contexts. A failed
+// remote CSS @import also rejects Storybook's preview-module preload.
+const fontStyles = new Map<string, Promise<{ status: number; headers: Record<string, string>; body: Buffer }>>();
+test.beforeEach(async ({ context }) => {
+  context.on('response', response => {
+    const url = response.url();
+    if (url.startsWith('https://fonts.googleapis.com/') && response.ok() && !fontStyles.has(url))
+      fontStyles.set(url, response.body().then(body => ({ status: response.status(), headers: response.headers(), body })));
+  });
+  await context.route('https://fonts.googleapis.com/**', async route => {
+    const cached = fontStyles.get(route.request().url());
+    if (cached) await route.fulfill(await cached);
+    else await route.continue();
+  });
+});
 type ComponentApi = { tag: string; root?: string; attributes: { name: string; property: string; type: string; options?: string[] }[] };
 const api = JSON.parse(readFileSync(new URL('../../../generated/component-api.json', import.meta.url), 'utf8')) as { components: ComponentApi[] };
 const sourceRoot = resolve(import.meta.dirname, '../../../packages/looma/src/components');

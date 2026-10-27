@@ -59,7 +59,7 @@ An input follows the global control tokens (`--ui-control-border`, `--ui-control
 For a form-wide change, set the inherited `--ui-field-radius` or `--ui-field-danger` on the form:
 Input, Input Group, Select, Textarea, Combobox and Form Field pick up the relevant value together.
 See the [three theming levels](/tokens). To restyle one input, set its own hooks on that input through
-a class of your own. Those hooks do not inherit:
+a class of your own. Set the same hooks on `:root` or an ancestor to style a group of inputs:
 
 | Hook | Sets |
 | --- | --- |

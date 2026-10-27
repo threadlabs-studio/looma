@@ -51,34 +51,8 @@
     </div>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-toast-region-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-region-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-region-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-region-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-region-enter-duration {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-toast-region-exit-duration {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-toast-region-surface: var(--ui-toast-region-surface);
       --_ui-toast-region-border: var(--ui-toast-region-border);
       --_ui-toast-region-radius: var(--ui-toast-region-radius);
@@ -141,8 +115,9 @@
     }
 
     .toast {
-      --_ui-toast-region-accent: var(--ui-border-strong);
-      --_ui-toast-region-tone-surface: var(--ui-surface-muted);
+      --_ui-toast-region-accent: var(--ui-overlay-border, var(--ui-border-strong));
+      --_ui-surface-text: var(--ui-text-primary);
+      --_ui-toast-region-tone-surface: var(--ui-overlay-surface, var(--ui-surface-muted));
       display: grid !important;
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2) !important;
@@ -153,7 +128,7 @@
       /* The close button's internal space supplies the rest of the trailing inset. */
       padding-inline-end: var(--ui-space-2) !important;
       background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--_ui-toast-region-tone-surface)));
-      color: var(--ui-text-primary);
+      color: var(--_ui-surface-text);
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-normal);
@@ -163,19 +138,23 @@
     }
 
     .toast[data-tone="info"] {
-      --_ui-toast-region-accent: var(--ui-info-solid);
+      --_ui-toast-region-accent: var(--ui-info-soft-border);
+      --_ui-surface-text: var(--ui-info-subtle-text);
       --_ui-toast-region-tone-surface: var(--ui-info-soft);
     }
     .toast[data-tone="success"] {
-      --_ui-toast-region-accent: var(--ui-success-solid);
+      --_ui-toast-region-accent: var(--ui-success-soft-border);
+      --_ui-surface-text: var(--ui-success-subtle-text);
       --_ui-toast-region-tone-surface: var(--ui-success-soft);
     }
     .toast[data-tone="warning"] {
-      --_ui-toast-region-accent: var(--ui-warning-solid);
+      --_ui-toast-region-accent: var(--ui-warning-soft-border);
+      --_ui-surface-text: var(--ui-warning-subtle-text);
       --_ui-toast-region-tone-surface: var(--ui-warning-soft);
     }
     .toast[data-tone="danger"] {
-      --_ui-toast-region-accent: var(--ui-danger-solid);
+      --_ui-toast-region-accent: var(--ui-danger-soft-border);
+      --_ui-surface-text: var(--ui-danger-subtle-text);
       --_ui-toast-region-tone-surface: var(--ui-danger-soft);
     }
 

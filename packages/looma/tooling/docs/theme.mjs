@@ -5,12 +5,32 @@ const bounds = {
   'text-size': [14, 24], 'control-roominess': [2, 4], 'corner-roundness': [0, 32],
   'line-weight': [.5, 3], rhythm: [.75, 1.5], spacing: [.75, 1.5], 'scale-contrast': [1, 1.5],
   'space-curve': [.5, 2], 'text-weight': [400, 700], 'outer-depth': [0, 2], 'inner-depth': [0, 2],
-  'response-time': [0, 600],
+  'response-time': [0, 600], 'neutral-border-contrast': [1, 4.5],
 };
+
+const brandChoices = { primary: 'Primary accent', secondary: 'Secondary accent', tertiary: 'Tertiary accent' };
+const statusChoices = { derived: 'Semantic hue', related: 'Harmonize with primary', ...brandChoices };
+const neutralChoices = { text: 'Derive from text', ...brandChoices, gray: 'Untinted gray' };
+const relationshipChoices = { preserve: 'Preserve seed hues', neighboring: 'Neighboring hues', complementary: 'Complementary hues' };
+const choicesFor = id => id === 'neutral-source' ? neutralChoices : id.endsWith('-source') ? statusChoices : id.endsWith('-accent') ? brandChoices : relationshipChoices;
+const statusSeeds = { danger: '#c92d1e', success: '#007a33', warning: '#ba5b0b', info: '#0066cc' };
 
 /** The shared authoring schema; ids remain stable in saved recipes. */
 export const themeFields = [
   ['Colour', 'action', 'Action', '--ui-accent', 'colour', '#5b55d6', 'Primary fill; readable labels and contextual action text are derived separately.'],
+  ['Colour', 'secondary-action', 'Secondary accent', null, 'optional-colour', 'none', 'An optional supporting brand color for selected components. Primary actions keep the primary accent.'],
+  ['Colour', 'tertiary-action', 'Tertiary accent', null, 'optional-colour', 'none', 'An optional third accent for categories, highlights and supporting content.'],
+  ['Colour', 'neutral-source', 'Neutral relationship', null, 'choice', 'text', 'Derive restrained neutrals from text, an accent family or an untinted gray. Shared border contrast and readable labels stay governed.'],
+  ['Colour', 'neutral-strength', 'Neutral fill strength', null, 'fraction', '0.25', 'How much neutral pigment appears in quiet filled controls. Borders remain shared with fields.'],
+  ['Colour', 'neutral-border-contrast', 'Neutral border contrast', null, 'ratio', '2', 'Minimum border-to-surface contrast for neutral buttons and form fields. 2:1 is the balanced default; raise it for stronger boundaries.'],
+  ['Colour', 'status-chroma', 'Derived status saturation', null, 'fraction', '0.5', 'Perceptual saturation of derived status colors, coordinated with the primary accent. Brand mappings keep the chosen family intact.'],
+  ['Colour', 'success-source', 'Success relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
+  ['Colour', 'danger-source', 'Error relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
+  ['Colour', 'warning-source', 'Warning relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
+  ['Colour', 'info-source', 'Info relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
+  ['Colour', 'selection-accent', 'Selection accent', null, 'choice', 'primary', 'Choose the accent for selected rows and choices.'],
+  ['Colour', 'focus-accent', 'Focus accent', null, 'choice', 'primary', 'Choose the accent for keyboard focus rings.'],
+  ['Colour', 'link-accent', 'Link accent', null, 'choice', 'primary', 'Choose the accent for inline Text links and editor links.'],
   ['Colour', 'canvas', 'Canvas', '--ui-surface', 'colour', '#f6f6f8', 'The ground behind surfaces.'],
   ['Colour', 'surface', 'Surface', '--ui-surface-raised', 'colour', '#ffffff', 'Fields, cards and floating surfaces.'],
   ['Colour', 'text', 'Text', '--ui-text', 'colour', '#1a1a1a', 'Readable content; supporting text follows this and Surface.'],
@@ -20,10 +40,11 @@ export const themeFields = [
   ['Type', 'body-font', 'Font', '--ui-font-sans', 'font', 'system-ui, sans-serif', 'The shared interface typeface.'],
   ['Type', 'display-font', 'Heading font', '--ui-font-display', 'font', 'system-ui, sans-serif', 'The heading typeface.'],
   ['Type', 'text-size', 'Base text size', '--ui-font-size', 'positive-length', '16px', 'Sets the document root in px. Type, spacing and layout use rem relationships and scale from this base once.'],
+  ['Type', 'label-size', 'Field label size', '--ui-field-label-font-size', 'inherited-length', 'inherit', 'Follows body text unless you choose a separate size for field labels. Help text keeps its supporting size.'],
   ['Type', 'text-weight', 'Emphasis weight', '--ui-font-medium', 'weight', '500', 'Control-label emphasis; body and headings keep their roles.'],
   ['Size & spacing', 'control-roominess', 'Control roominess', '--ui-control-roominess', 'positive', '2.5', 'Shared control height as a multiple of base text size; buttons, fields and swatches stay aligned.'],
-  ['Size & spacing', 'rhythm', 'Rhythm', '--ui-rhythm', 'positive', '1', 'More or less breathing room between lines and groups. Spacing fine-tunes gaps independently.'],
-  ['Size & spacing', 'spacing', 'Spacing', '--ui-spacing', 'positive', '1', 'More or less breathing room throughout the interface.'],
+  ['Size & spacing', 'rhythm', 'Rhythm', '--ui-rhythm', 'positive', '1', 'Vertical breathing room: opens text lines and the gaps between stacked groups without spreading navigation or button rows.'],
+  ['Size & spacing', 'spacing', 'Spacing', '--ui-spacing', 'positive', '1', 'Space between controls and around content. Changes gaps and padding independently of vertical rhythm.'],
   ['Size & spacing', 'scale-contrast', 'Size ratio', '--ui-scale-ratio', 'ratio', '1.2', 'The multiplier between small, medium and large controls. At 1 the sizes are equal; higher values separate them.'],
   ['Size & spacing', 'space-curve', 'Spacing curve', '--ui-space-curve', 'nonnegative', '1', 'Spacing growth: 1 is linear, 2 is quadratic. Independent of control sizes.'],
   ['Size & spacing', 'corner-roundness', 'Corner roundness', '--ui-radius-md', 'length', '8px', 'One corner family across controls and surfaces.'],
@@ -43,12 +64,12 @@ export const themeFields = [
   ['Material', 'light-strength', 'Light strength', '--ui-light-strength', 'fraction', '0.65', 'Shared illumination; each material and component role determines its response.'],
   ['Motion', 'response-time', 'Response time', '--ui-motion-fast', 'time', '120ms', 'Shared feedback pace; floating transitions take proportionally longer.'],
   ['Motion', 'response-curve', 'Response curve', '--ui-motion-ease', 'easing', 'cubic-bezier(0.2,0,0.2,1)', 'How movement accelerates and settles.'],
-].map(([family, id, label, property, type, defaultValue, description]) => Object.freeze({ family, id, label, property, type, defaultValue, description, ...(type === 'choice' ? { choices: { preserve: 'Preserve seed hues', neighboring: 'Neighboring hues', complementary: 'Complementary hues' } } : {}), ...(bounds[id] ? { min: bounds[id][0], max: bounds[id][1] } : type === 'fraction' ? { min: 0, max: 1 } : {}) }));
+].map(([family, id, label, property, type, defaultValue, description]) => Object.freeze({ family, id, label, property, type, defaultValue, description, ...(type === 'choice' ? { choices: choicesFor(id) } : {}), ...(bounds[id] ? { min: bounds[id][0], max: bounds[id][1] } : type === 'fraction' ? { min: 0, max: 1 } : {}) }));
 
 const baseRecipe = () => ({ schemaVersion: 1, values: Object.fromEntries(themeFields.map(field => [field.id, field.defaultValue])) });
 const starting = values => ({ schemaVersion: 1, values: { ...baseRecipe().values, ...values } });
 /** The documentation starts with Looma's coordinated identity; Clear keeps the neutral baseline. */
-export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#fffdf8', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
+export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#ffffff', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
 export const startingPoints = {
   looma: defaultRecipe(),
   clear: baseRecipe(),
@@ -136,9 +157,11 @@ export function validateRecipe(input) {
     let valid = typeof value === 'string' && value.length > 0;
     if (valid) switch (field.type) {
       case 'choice': valid = Object.hasOwn(field.choices, value); break;
+      case 'optional-colour': valid = value === field.defaultValue || /^#[\da-f]{6}$/i.test(value); break;
       case 'colour': valid = /^#[\da-f]{6}$/i.test(value); break;
       case 'font': valid = font.test(value); break;
       case 'length': valid = length.test(value) && Number.isFinite(parseFloat(value)); break;
+      case 'inherited-length': valid = value === 'inherit' || (length.test(value) && Number.isFinite(parseFloat(value)) && parseFloat(value) > 0); break;
       case 'positive-length': valid = length.test(value) && Number.isFinite(parseFloat(value)) && parseFloat(value) > 0; break;
       case 'time': valid = time.test(value) && Number.isFinite(parseFloat(value)); break;
       case 'easing': valid = easing(value); break;
@@ -271,13 +294,34 @@ export function deriveTheme(input, { mode } = {}) {
   const surface = seed => readableColour(nativeInk === ink ? seed : companionSurface(seed, mode ?? (ink === '#000000' ? 'light' : 'dark')), [ink], 7, paper);
   tokens['--ui-surface'] = surface(seeds.canvas);
   tokens['--ui-surface-raised'] = surface(seeds.surface);
-  tokens['--ui-surface-sunken'] = surface(mix(tokens['--ui-surface-raised'], tokens['--ui-surface'], .92));
+  const dark = ink === '#ffffff';
+  if (dark) {
+    // Dark plates need a positive elevation step; independently flipping near-white
+    // seeds otherwise collapses both canvas and content to almost the same black.
+    const [canvasL, canvasC, canvasH] = toLch(tokens['--ui-surface']);
+    tokens['--ui-surface'] = fromLch([Math.min(canvasL, .38), canvasC, canvasH]);
+    const [raisedL, raisedC, raisedH] = toLch(tokens['--ui-surface-raised']);
+    tokens['--ui-surface-raised'] = readableColour(fromLch([Math.max(raisedL, Math.min(canvasL, .38) + .08), raisedC, raisedH]), [ink], 7, paper);
+    tokens['--ui-surface-sunken'] = fromLch([Math.max(0, Math.min(canvasL, .38) - .035), canvasC, canvasH]);
+  } else tokens['--ui-surface-sunken'] = surface(mix(tokens['--ui-surface-raised'], tokens['--ui-surface'], .92));
   const surfaces = ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken'].map(name => tokens[name]);
-  const tones = { accent: seeds.action, danger: '#c92d1e', success: '#007a33', warning: '#ba5b0b', info: '#0066cc' };
+  const accents = { primary: seeds.action, secondary: seeds['secondary-action'], tertiary: seeds['tertiary-action'] };
+  const tones = { accent: accents.primary, 'accent-secondary': accents.secondary, 'accent-tertiary': accents.tertiary };
+  const brandChroma = Math.min(.20, Math.max(.08, toLch(accents.primary)[1]));
+  for (const role of ['danger','success','warning','info']) {
+    const source = values[role + '-source'];
+    if (source === 'derived' || source === 'related') {
+      let [l, , h] = toLch(statusSeeds[role]);
+      if (source === 'related') {
+        const brandHue = toLch(accents.primary)[2];
+        const delta = ((brandHue - h + 540) % 360) - 180;
+        h += Math.max(-15, Math.min(15, delta));
+      }
+      tones[role] = fromLch([l, brandChroma * (.5 + Number(values['status-chroma'])) * (.6 + Number(values['color-intensity']) * .8), h]);
+    } else tones[role] = accents[source];
+  }
   for (const [tone, original] of Object.entries(tones)) {
-    const [l, c, h] = toLch(original);
-    const seed = tone === 'accent' ? original : fromLch([l, c * (.6 + Number(values['color-intensity']) * .8), h]);
-    const fill = seed;
+    const fill = original;
     const onFill = foreground(fill, '#ffffff', '#000000');
     tokens[`--ui-${tone}`] = fill;
     tokens[`--ui-on-${tone}`] = onFill;
@@ -286,20 +330,29 @@ export function deriveTheme(input, { mode } = {}) {
     const stateTarget = onFill === '#000000' ? '#ffffff' : '#000000';
     tokens[`--ui-${tone}-hover`] = mix(fill, stateTarget, .86);
     tokens[`--ui-${tone}-active`] = mix(fill, stateTarget, .74);
-    tokens[`--ui-${tone}-soft`] = mix(fill, tokens['--ui-surface-raised'], .08);
+    const contextual = readableColour(fill, surfaces, 4.5, ink);
+    const quiet = mix(contextual, tokens['--ui-surface-raised'], .20);
+    const [quietL] = toLch(quiet);
+    const [, pigmentC, pigmentH] = toLch(fill);
+    const plateL = toLch(tokens['--ui-surface-raised'])[0];
+    const quietC = dark ? Math.min(pigmentC, .035) : Math.min(pigmentC, .02 + .03 * Math.max(0, Math.cos((pigmentH - 140) * Math.PI / 180)));
+    tokens[`--ui-${tone}-soft`] = readableColour(fromLch([dark ? Math.max(quietL, plateL + .07) : Math.max(.92, plateL - .04), quietC, pigmentH]), [ink], 4.5, paper);
   }
   // Quiet fills are actual alpha composites. At an extreme light/dark flip,
   // reduce their shared tint before it would leave no readable contextual ink.
-  const quietSurfaces = strength => [...surfaces, ...Object.keys(tones).flatMap(tone => surfaces.flatMap(background => [
+  const quietSurfaces = strength => [...surfaces, ...(dark ? [readableColour(mix(ink, tokens['--ui-surface-raised'], .22), [ink], 4.5, paper)] : []), ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-soft`]), ...Object.keys(tones).flatMap(tone => surfaces.flatMap(background => [
     mix(tokens[`--ui-${tone}`], background, .12 * strength),
-    ...[.05, .12, .18].map(alpha => alphaSurface(tokens[`--ui-${tone}`], background, alpha * strength)),
+    ...[.05, .12, .18, .19].map(alpha => alphaSurface(tokens[`--ui-${tone}`], background, alpha * strength)),
   ]))];
   let tonalOpacity = 1;
   while (tonalOpacity > 0 && quietSurfaces(tonalOpacity).some(background => contrast(ink, background) < 4.5)) tonalOpacity = Math.max(0, tonalOpacity - .01);
   tokens['--ui-tonal-opacity'] = String(Number(tonalOpacity.toFixed(2)));
   const readingSurfaces = quietSurfaces(tonalOpacity);
   for (const tone of Object.keys(tones)) {
-    tokens[`--ui-${tone}-subtle-text`] = readableColour(tokens[`--ui-${tone}`], readingSurfaces, 4.5, ink);
+    const [l, c, h] = toLch(tokens[`--ui-${tone}`]);
+    const foregroundSeed = fromLch([dark ? Math.max(l, .80) : Math.min(l, .50), Math.min(c, dark ? .16 : .18), h]);
+    tokens[`--ui-${tone}-subtle-text`] = readableColour(foregroundSeed, readingSurfaces, 4.5, ink);
+    tokens[`--ui-${tone}-soft-border`] = alphaSurface(tokens[`--ui-${tone}-subtle-text`], tokens[`--ui-${tone}-soft`], .25);
   }
   // Existing validation/editor hooks must receive a contextual text role, never
   // a pressed fill. Preserve consumer overrides at their established boundaries.
@@ -309,27 +362,32 @@ export function deriveTheme(input, { mode } = {}) {
   tokens['--ui-text'] = readableColour(textSeed, readingSurfaces, 4.5, ink);
   tokens['--ui-text-secondary'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .72), readingSurfaces, 4.5, ink);
   tokens['--ui-text-muted'] = tokens['--ui-text-secondary'];
-  // One continuous action-family range: primary pigment determines the neutral
-  // companion and their boundaries. These are design calibration values, not an
-  // empirical attention score. A floor preserves near-surface action boundaries.
+  // Colored action edges keep a boundary when their pigment approaches a surface.
+  // Neutral controls use their own shared contrast decision below.
   const separation = Math.min(...surfaces.map(surface => colourDistance(tokens['--ui-accent'], surface)));
   const amplitude = .10 + .16 * separation / (separation + .20);
   for (const tone of Object.keys(tones)) for (const state of ['', '-hover', '-active']) {
     tokens[`--ui-${tone}${state}-border`] = actionBoundary(tokens[`--ui-${tone}${state}`], surfaces, ink, amplitude);
   }
-  // Keep secondary contours quieter than the weakest resolved primary edge,
-  // including warm surfaces where an assisted edge can approach its backdrop.
-  const familyRange = Math.min(amplitude, ...['', '-hover', '-active'].flatMap(state => surfaces.map(surface =>
-    colourDistance(tokens[`--ui-accent${state}-border`], surface),
-  )));
-  for (const [state, fillScale, edgeScale] of [['surface', .25, .45], ['hover', .35, .55], ['active', .45, .65]]) {
-    tokens[`--ui-neutral-${state}`] = readableColour(surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * fillScale), [tokens['--ui-text']], 4.5, paper);
-    tokens[`--ui-neutral-${state === 'surface' ? '' : state + '-'}border`] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * edgeScale);
+  // Neutral pigment governs fills; a shared contrast floor governs every neutral
+  // control boundary independently of how close the brand pigment is to its canvas.
+  const neutralSource = values['neutral-source'];
+  const [, neutralC, neutralH] = toLch(neutralSource === 'text' || neutralSource === 'gray' ? tokens['--ui-text'] : accents[neutralSource]);
+  const neutral = fromLch([toLch(tokens['--ui-text'])[0], neutralSource === 'gray' ? 0 : Math.min(.04, neutralC), neutralH]);
+  const fillAmount = .02 + Number(values['neutral-strength']) * .16;
+  for (const [state, amount] of [['surface', fillAmount], ['hover', fillAmount + .04], ['active', fillAmount + .08]]) {
+    const tinted = mix(neutral, tokens['--ui-surface-raised'], amount * (dark ? 2.25 : 1));
+    const [l, c, h] = toLch(tinted);
+    const fill = dark ? fromLch([Math.max(l, toLch(tokens['--ui-surface-raised'])[0] + amount * 1.5), c, h]) : tinted;
+    tokens[`--ui-neutral-${state}`] = readableColour(fill, [tokens['--ui-text']], 4.5, paper);
   }
-  // Enclosure lines describe regions; native field affordances retain their
-  // independently resolved control border below.
-  tokens['--ui-border'] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * .20);
-  tokens['--ui-border-strong'] = surfaceOffset(tokens['--ui-surface-raised'], tokens['--ui-text'], familyRange * .35);
+  const borderSurfaces = [...surfaces, tokens['--ui-neutral-surface']];
+  const engagedSurfaces = [...surfaces, tokens['--ui-neutral-hover'], tokens['--ui-neutral-active']];
+  const borderMinimum = Math.min(4.5, Number(values['neutral-border-contrast']) * (dark ? 1.15 : 1));
+  tokens['--ui-control-border'] = readableColour(mix(neutral, tokens['--ui-surface-raised'], .14), borderSurfaces, borderMinimum, ink);
+  tokens['--ui-control-border-hover'] = readableColour(tokens['--ui-control-border'], engagedSurfaces, Math.min(4.5, borderMinimum + .3), ink);
+  tokens['--ui-border'] = mix(neutral, tokens['--ui-surface-raised'], .10);
+  tokens['--ui-border-strong'] = mix(neutral, tokens['--ui-surface-raised'], .18);
   for (const [role, fill, labels] of [
     ['surface', tokens['--ui-surface-raised'], [tokens['--ui-text'], tokens['--ui-text-secondary'], ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-subtle-text`])]],
     ['neutral', tokens['--ui-neutral-surface'], tokens['--ui-text']],
@@ -344,18 +402,22 @@ export function deriveTheme(input, { mode } = {}) {
     const range = [Math.min(low, luminance(trackFill)), Math.max(high, luminance(trackFill), luminance(tokens[`--ui-${track}-specular`]))];
     for (const [part, colour] of Object.entries(materialColours(fill, range, values['light-color'], 3.05))) tokens[`--ui-${role}-${part}`] = colour;
   }
-  tokens['--ui-selection-surface'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .1);
-  tokens['--ui-selection-text'] = tokens['--ui-accent-subtle-text'];
-  tokens['--ui-selection-border'] = mix(tokens['--ui-accent'], tokens['--ui-surface-raised'], .2);
+  const selection = values['selection-accent'] === 'primary' ? 'accent' : 'accent-' + values['selection-accent'];
+  const link = values['link-accent'] === 'primary' ? 'accent' : 'accent-' + values['link-accent'];
+  tokens['--ui-link-color'] = tokens[`--ui-${link}-subtle-text`];
+  tokens['--ui-editor-link-color'] = tokens['--ui-link-color'];
+  // Contextual pigment keeps even deep brand colors visible over a dark plate.
+  const selectionPigment = tokens[`--ui-${selection}${dark ? '-subtle-text' : ''}`];
+  tokens['--ui-selection-surface'] = readableColour(mix(selectionPigment, tokens['--ui-surface-raised'], dark ? .22 : .1), [ink], dark ? 7 : 4.5, paper);
+  tokens['--ui-selection-text'] = readableColour(tokens[`--ui-${selection}-subtle-text`], [...surfaces, tokens['--ui-selection-surface']], dark ? 7 : 4.5, ink);
+  tokens['--ui-selection-border'] = mix(selectionPigment, tokens['--ui-surface-raised'], dark ? .44 : .2);
   tokens['--ui-control-surface'] = tokens['--ui-surface-raised'];
   // A hint is quieter than body copy; resolve it against its field, not every tinted content surface.
   tokens['--ui-control-placeholder'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-control-surface'], .5), [tokens['--ui-control-surface']], 4.5, ink);
-  tokens['--ui-control-border'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .43), readingSurfaces, 3, ink);
-  tokens['--ui-control-border-hover'] = tokens['--ui-control-border'];
   tokens['--ui-disabled-text'] = mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .45);
   tokens['--ui-disabled-surface'] = tokens['--ui-surface-sunken'];
   tokens['--ui-disabled-border'] = mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .2);
-  tokens['--ui-focus-ring'] = readableColour(tokens['--ui-accent'], readingSurfaces, 3, ink);
+  tokens['--ui-focus-ring'] = readableColour(accents[values['focus-accent']], readingSurfaces, 3, ink);
   tokens['--ui-focus-width'] = 'max(2px, calc(var(--ui-border-width) * 2))';
   tokens['color-scheme'] = ink === '#000000' ? 'light' : 'dark';
   for (const [id, property] of [['canvas', '--ui-surface'], ['surface', '--ui-surface-raised'], ['text', '--ui-text']]) {
