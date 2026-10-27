@@ -11395,7 +11395,7 @@ describe("Shared readable material planes", () => {
       await page.waitForFunction(()=>[...getComputedStyle(document.querySelector('#strong-action')!).boxShadow.matchAll(/([.\d]+)px/g)].some(match=>Number(match[1])>=53.9));
       const actual=await page.evaluate(()=>({shadow:getComputedStyle(document.querySelector('#strong-action')!).boxShadow,filter:getComputedStyle(document.querySelector('#strong-panel')!).backdropFilter}));
       assert.ok([...actual.shadow.matchAll(/(?:rgba\([^)]*,\s*|\/\s*)([.\d]+)\)/g)].some(match=>Number(match[1])>=.53),actual.shadow);
-      assert.ok(parseFloat(actual.filter.match(/blur\(([.\d]+)px\)/)?.[1]??'0')>=35,actual.filter);
+      assert.equal(actual.filter,'blur(32px)');
     } finally {await page.close();}
   });
 

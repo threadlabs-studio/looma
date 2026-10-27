@@ -1,3 +1,4 @@
+import { cp, mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
@@ -20,3 +21,7 @@ await build({
     },
   },
 });
+
+const assets = new URL("static/_looma/", import.meta.url);
+await mkdir(assets, { recursive: true });
+for (const file of ["portrait.svg", "pastoral.svg"]) await cp(new URL(`../../packages/looma/tooling/docs/${file}`, import.meta.url), new URL(file, assets));

@@ -2,76 +2,81 @@
   {
     "name": "Rest",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: neutral",
     "props": {
       "tone": "neutral"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: blue",
     "props": {
       "tone": "blue"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: green",
     "props": {
       "tone": "green"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: yellow",
     "props": {
       "tone": "yellow"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: red",
     "props": {
       "tone": "red"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "tone: purple",
     "props": {
       "tone": "purple"
     },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
     "example": 0
   },
   {
     "name": "Example: 01-tones",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "Example: 02-none-chosen",
     "props": {},
-    "example": 1
+    "example": 2
   },
   {
     "name": "hover",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "hover"
   },
   {
     "name": "focus",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "focus"
   },
   {
     "name": "pressed",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "pressed"
   }
 ]
