@@ -153,6 +153,23 @@ for (const component of api.components) {
               await target.hover();
               await page.mouse.down();
             }
+            // Opening a tooltip can request a font weight the hidden surface did
+            // not use. Screenshot waits for it too, so finish that layout first.
+            if (component.tag === 'ui-tooltip') {
+              await page.evaluate(() => document.fonts.ready);
+              await root.evaluate(element => new Promise<void>(resolve => {
+                let previous = '', stable = 0;
+                const sample = () => {
+                  const { x, y, width, height } = element.getBoundingClientRect();
+                  const current = JSON.stringify([x, y, width, height]);
+                  stable = current === previous ? stable + 1 : 0;
+                  previous = current;
+                  if (stable >= 2) resolve();
+                  else requestAnimationFrame(sample);
+                };
+                requestAnimationFrame(sample);
+              }));
+            }
             const clip = await stage.evaluate((stage, tag) => {
               const root = stage.querySelector(`[data-component~="${tag}"]`)!;
               const scope = tag === 'ui-sidebar' ? root : stage;

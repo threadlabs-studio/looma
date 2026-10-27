@@ -188,6 +188,7 @@ export const smokeCases = {
     "Search Shell keyboard results moves among enabled rows and closes on Escape in Vue",
     "Combobox chip truncation ellipsizes native chip labels inside their badge at desktop and 375px",
     "Combobox chip truncation ellipsizes Vue chip labels inside their badge at desktop and 375px",
+    "Combobox chip truncation keeps short ${adapter} chip text and descenders visible at desktop and 375px",
   ],
   "packages/looma/tests/editor-table.test.ts": [
     "LoomaEditor tables inserts a table sized from the toolbar's insert-table grid",

@@ -8,7 +8,7 @@
 
 - Add optional secondary and tertiary brand families to Button, IconButton, Badge, Card, Meter and Text. Palette controls expose neutral relationships, fill strength, shared boundary contrast, semantic/harmonized/brand status relationships, derived saturation, and accent assignments for selection, focus and links. Light/dark specimens include all statuses and shared control boundaries; saved recipes and exports retain the relationships.
 
-- Require Markupress 0.10.1 for package-generated documentation so the site header uses Looma’s responsive geometry and separate adjustable action targets.
+- Require Markupress 0.10.2 for package-generated documentation so the shared responsive header includes native section navigation on mobile home pages and keeps its logo visible.
 
 - Keep SiteHeader full width in centered layouts and let long branding shrink within its mobile row, preserving the visible logo and trailing controls. Direct action slots reserve adjustable space for compact controls’ invisible targets.
 
