@@ -40,60 +40,7 @@
   </defs>
   <input from:type="$type" from:value="$value" from:disabled="$disabled" from:readonly="$readonly" from:required="$required" from:aria-invalid="$invalid">
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. An Input
-       Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */
-    @property --ui-input-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-border-hover {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-border-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-focus-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-focus-outline {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-focus-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-invalid-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-invalid-focus-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-surface {
-      syntax: "*";
-      inherits: false;
-    }
+    /* An Input Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */
     /* Normalize a unitless zero border to a length before the box calculation. */
     @property --_ui-input-stroke {
       syntax: "<length>";
@@ -131,7 +78,10 @@
 
     /* Cap Safari's excess text metrics without changing native date, file, color or range widgets. */
     :host:is([type="text"], [type="search"], [type="tel"], [type="url"], [type="email"], [type="password"], [type="number"]) {
-      max-block-size: max(calc(var(--_ui-input-size) - var(--_ui-default-input-frame-width, 0px)), calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-input-inset-block) + 2 * var(--_ui-input-stroke)));
+      max-block-size: max(
+        calc(var(--_ui-input-size) - var(--_ui-default-input-frame-width, 0px)),
+        calc(1em * var(--ui-line-height-tight) + 2 * var(--_ui-input-inset-block) + 2 * var(--_ui-input-stroke))
+      );
     }
 
     /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */

@@ -33,28 +33,6 @@
   </defs>
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-menu-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-menu-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-menu-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-menu-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-menu-viewport-gap {
-      syntax: "*";
-      inherits: false;
-    }
-
     /* Compact sets its items' defaults, so nothing has to rescale a global; an item's own hooks
        still win. */
     :host([density="compact"]) {

@@ -39,30 +39,8 @@
     </div>
   </aside>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-sidebar-backdrop {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-sidebar-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-sidebar-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-sidebar-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-sidebar-collapsed-width {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-sidebar-backdrop: var(--ui-sidebar-backdrop);
       --_ui-sidebar-expanded-width: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
 
@@ -161,7 +139,7 @@
       inset-inline-start: 3px;
       inline-size: 2px;
       background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
-      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--_ui-affordance-scope-guide, 1));
       transition:
         background-color var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease),
         opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);

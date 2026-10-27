@@ -37,22 +37,8 @@
     </span>
   </label>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-switch-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-switch-track-height {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-switch-track-width {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-switch-track-width: var(--ui-switch-track-width, var(--ui-choice-track-width));
       --_ui-switch-track-height: var(--ui-switch-track-height, var(--ui-choice-track-height));
 

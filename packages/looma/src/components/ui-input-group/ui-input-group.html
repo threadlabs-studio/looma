@@ -18,18 +18,6 @@
     <span class="action"><slot name="action"></slot></span>
   </div>
   <style>
-    @property --ui-input-group-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-group-invalid-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-input-group-invalid-focus-shadow {
-      syntax: "*";
-      inherits: false;
-    }
     /* An input with fixed text before or after it, such as a domain after a site's name
        ("acme" + ".example.com") or slashes around a path. The group draws the field's border and
        focus ring around the input and its affixes together; the input inside drops its own through
@@ -40,7 +28,7 @@
        and not the form's. */
     :host {
       /* The group's own border and height stand for the input's, so the group is a lone Input's height.
-         Hooks do not inherit, so these are defaults for the input; its own hooks still win. */
+         These are defaults for the input; public hooks still win. */
       --_ui-default-input-border-width: 0;
       --_ui-default-input-min-block-size: 0;
       --_ui-default-input-frame-width: calc(2 * var(--ui-border-width));

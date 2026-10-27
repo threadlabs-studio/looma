@@ -44,9 +44,6 @@
     --ui-info-border: var(--ui-info);
     --ui-info-hover-border: var(--ui-info-hover);
     --ui-info-active-border: var(--ui-info-active);
-    --ui-neutral-border: var(--ui-neutral-surface);
-    --ui-neutral-hover-border: var(--ui-neutral-hover);
-    --ui-neutral-active-border: var(--ui-neutral-active);
 
     /* The base type token owns the document root; rem-based roles scale from it once. */
     font-size: var(--ui-font-size);
@@ -110,10 +107,13 @@
      never has to: these exist so components share one vocabulary, not to be configured. */
   :root,
   :where([data-theme], [data-contrast]) {
+    color: var(--ui-text-primary);
     /* Neutral is a quiet filled surface, never the text colour inverted. */
-    --ui-neutral-surface: color-mix(in srgb, var(--ui-text) 6%, var(--ui-surface-raised));
-    --ui-neutral-hover: color-mix(in srgb, var(--ui-text) 10%, var(--ui-surface-raised));
-    --ui-neutral-active: color-mix(in srgb, var(--ui-text) 14%, var(--ui-surface-raised));
+    --ui-neutral-surface: light-dark(color-mix(in oklab, var(--ui-text) 6%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 13.5%, var(--ui-surface-raised)));
+    --ui-neutral-hover: light-dark(color-mix(in oklab, var(--ui-text) 10%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 22.5%, var(--ui-surface-raised)));
+    --ui-neutral-active: light-dark(color-mix(in oklab, var(--ui-text) 14%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 31.5%, var(--ui-surface-raised)));
+    /* Quiet neutral shadows complement the shared action and field boundary. */
+    --ui-neutral-shadow: var(--ui-shadow-xs);
     --ui-accent-line-width: var(--ui-border-width);
 
     /* Type scale, from the base size. */
@@ -182,7 +182,7 @@
     /* Lines divide content; stronger edges enclose surfaces; control edges identify inputs. */
     --ui-border-divider: color-mix(in oklab, var(--ui-border) 50%, var(--ui-border-strong));
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
-    --ui-control-border: color-mix(in oklab, var(--ui-text) 43%, var(--ui-surface));
+    --ui-control-border: light-dark(color-mix(in oklab, var(--ui-text) 30%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 40%, var(--ui-surface-raised)));
 
     /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
        light, so the same mixes brighten instead of darkening, without a second set of values. */
@@ -220,13 +220,42 @@
     --ui-border-subtle: color-mix(in srgb, var(--ui-border) 55%, var(--ui-surface));
     --ui-border-default: var(--ui-border);
 
+    /* Optional brand accents use the primary identity until explicitly supplied. */
+    --ui-accent-secondary: var(--ui-accent);
+    --ui-on-accent-secondary: var(--ui-on-accent);
+    --ui-accent-secondary-hover: color-mix(in oklab, var(--ui-accent-secondary) 86%, var(--ui-text));
+    --ui-accent-secondary-active: color-mix(in oklab, var(--ui-accent-secondary) 74%, var(--ui-text));
+    --ui-accent-secondary-subtle-text: light-dark(oklch(from var(--ui-accent-secondary) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent-secondary) max(l, 0.80) min(c, 0.16) h));
+    --ui-accent-secondary-soft: light-dark(oklch(from var(--ui-accent-secondary) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-accent-secondary) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-accent-secondary-soft-border: color-mix(in srgb, var(--ui-accent-secondary-soft) 75%, var(--ui-accent-secondary-subtle-text));
+    --ui-accent-secondary-solid: var(--ui-accent-secondary);
+    --ui-accent-secondary-strong-surface: var(--ui-accent-secondary);
+    --ui-accent-secondary-border: var(--ui-accent-secondary);
+    --ui-accent-secondary-on-strong: var(--ui-on-accent-secondary);
+    --ui-accent-secondary-hover-border: var(--ui-accent-secondary-hover);
+    --ui-accent-secondary-active-border: var(--ui-accent-secondary-active);
+    --ui-accent-tertiary: var(--ui-accent);
+    --ui-on-accent-tertiary: var(--ui-on-accent);
+    --ui-accent-tertiary-hover: color-mix(in oklab, var(--ui-accent-tertiary) 86%, var(--ui-text));
+    --ui-accent-tertiary-active: color-mix(in oklab, var(--ui-accent-tertiary) 74%, var(--ui-text));
+    --ui-accent-tertiary-subtle-text: light-dark(oklch(from var(--ui-accent-tertiary) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent-tertiary) max(l, 0.80) min(c, 0.16) h));
+    --ui-accent-tertiary-soft: light-dark(oklch(from var(--ui-accent-tertiary) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-accent-tertiary) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-accent-tertiary-soft-border: color-mix(in srgb, var(--ui-accent-tertiary-soft) 75%, var(--ui-accent-tertiary-subtle-text));
+    --ui-accent-tertiary-solid: var(--ui-accent-tertiary);
+    --ui-accent-tertiary-strong-surface: var(--ui-accent-tertiary);
+    --ui-accent-tertiary-border: var(--ui-accent-tertiary);
+    --ui-accent-tertiary-on-strong: var(--ui-on-accent-tertiary);
+    --ui-accent-tertiary-hover-border: var(--ui-accent-tertiary-hover);
+    --ui-accent-tertiary-active-border: var(--ui-accent-tertiary-active);
+    --ui-link-color: var(--ui-accent-subtle-text);
+
     /* Intent tones: a solid surface, its foreground, and a soft tint of each. */
     --ui-accent-solid: var(--ui-accent);
     /* One quiet selection recipe for destination/content rows. Hue derives from the brand;
        corners derive from the scale, and selected labels retain their resting weight. */
-    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 10%, var(--ui-surface));
-    --ui-selection-border: color-mix(in oklab, var(--ui-accent) 20%, var(--ui-surface));
-    --ui-selection-text: var(--ui-accent-subtle-text);
+    --ui-selection-surface: light-dark(color-mix(in oklab, var(--ui-accent) 10%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-accent-subtle-text) 22%, var(--ui-surface-raised)));
+    --ui-selection-border: light-dark(color-mix(in oklab, var(--ui-accent) 20%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-accent-subtle-text) 44%, var(--ui-surface-raised)));
+    --ui-selection-text: light-dark(var(--ui-accent-subtle-text), color-mix(in oklab, var(--ui-accent-subtle-text) 85%, var(--ui-text)));
     --ui-selection-radius: var(--ui-radius-md);
     --ui-nav-icon-size: var(--ui-font-size-md);
     --ui-nav-gap: var(--ui-space-3);
@@ -238,33 +267,38 @@
     --ui-nav-compact-min-block-size: var(--ui-control-size-sm);
     --ui-nav-hover-surface: var(--ui-surface-hover);
 
-    --ui-accent-soft: var(--ui-accent-subtle);
+    --ui-accent-soft: light-dark(oklch(from var(--ui-accent) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-accent) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-accent-soft-border: color-mix(in srgb, var(--ui-accent-soft) 75%, var(--ui-accent-subtle-text));
     --ui-accent-contrast: var(--ui-on-accent);
     --ui-accent-strong-surface: var(--ui-accent);
     --ui-accent-on-strong: var(--ui-on-accent);
-    --ui-accent-subtle-text: var(--ui-accent-active);
+    --ui-accent-subtle-text: light-dark(oklch(from var(--ui-accent) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent) max(l, 0.80) min(c, 0.16) h));
     --ui-danger-solid: var(--ui-danger);
-    --ui-danger-soft: color-mix(in srgb, var(--ui-danger) 8%, var(--ui-surface));
+    --ui-danger-soft: light-dark(oklch(from var(--ui-danger) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-danger) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-danger-soft-border: color-mix(in srgb, var(--ui-danger-soft) 75%, var(--ui-danger-subtle-text));
     --ui-danger-strong-surface: var(--ui-danger);
     --ui-danger-on-strong: var(--ui-on-danger);
-    --ui-danger-subtle-text: var(--ui-danger-hover);
+    --ui-danger-subtle-text: light-dark(oklch(from var(--ui-danger) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-danger) max(l, 0.80) min(c, 0.16) h));
     --ui-success-solid: var(--ui-success);
     --ui-success-hover: color-mix(in srgb, var(--ui-success) 85%, var(--ui-text));
-    --ui-success-soft: color-mix(in srgb, var(--ui-success) 8%, var(--ui-surface));
+    --ui-success-soft: light-dark(oklch(from var(--ui-success) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-success) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-success-soft-border: color-mix(in srgb, var(--ui-success-soft) 75%, var(--ui-success-subtle-text));
     --ui-success-strong-surface: var(--ui-success);
     --ui-success-on-strong: var(--ui-on-accent);
-    --ui-success-subtle-text: color-mix(in srgb, var(--ui-success) 85%, var(--ui-text));
+    --ui-success-subtle-text: light-dark(oklch(from var(--ui-success) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-success) max(l, 0.80) min(c, 0.16) h));
     --ui-warning-solid: var(--ui-warning);
-    --ui-warning-soft: color-mix(in srgb, var(--ui-warning) 8%, var(--ui-surface));
+    --ui-warning-soft: light-dark(oklch(from var(--ui-warning) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-warning) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-warning-soft-border: color-mix(in srgb, var(--ui-warning-soft) 75%, var(--ui-warning-subtle-text));
     --ui-warning-strong-surface: var(--ui-warning);
     --ui-warning-on-strong: var(--ui-on-accent);
     /* Amber is the lightest intent: it takes more ink than the others to read at 4.5:1, even from a bright seed. */
-    --ui-warning-subtle-text: color-mix(in srgb, var(--ui-warning) 55%, var(--ui-text));
+    --ui-warning-subtle-text: light-dark(oklch(from var(--ui-warning) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-warning) max(l, 0.80) min(c, 0.16) h));
     --ui-info-solid: var(--ui-info);
-    --ui-info-soft: color-mix(in srgb, var(--ui-info) 8%, var(--ui-surface));
+    --ui-info-soft: light-dark(oklch(from var(--ui-info) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h), oklch(from var(--ui-info) clamp(0.34, l, 0.38) min(c, 0.035) h));
+    --ui-info-soft-border: color-mix(in srgb, var(--ui-info-soft) 75%, var(--ui-info-subtle-text));
     --ui-info-strong-surface: var(--ui-info);
     --ui-info-on-strong: var(--ui-on-accent);
-    --ui-info-subtle-text: color-mix(in srgb, var(--ui-info) 85%, var(--ui-text));
+    --ui-info-subtle-text: light-dark(oklch(from var(--ui-info) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-info) max(l, 0.80) min(c, 0.16) h));
 
     /* Interaction roles: what a control paints, whatever its intent. */
     --ui-action-primary-surface: var(--ui-accent);
@@ -275,7 +309,7 @@
     --ui-action-secondary-text: var(--ui-text);
     --ui-control-surface: var(--ui-surface);
     --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border-hover: color-mix(in oklab, var(--ui-text) 50%, var(--ui-surface));
+    --ui-control-border-hover: light-dark(color-mix(in oklab, var(--ui-text) 36%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 55%, var(--ui-surface-raised)));
     --ui-control-placeholder: color-mix(in oklab, var(--ui-text) 58%, var(--ui-control-surface));
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */

@@ -21,18 +21,8 @@
     <span class="overflow" $ref="overflow" role="img" from:hidden="not $overflowCount" from:aria-label="$overflowAnnouncement">+{$overflowCount}</span>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-avatar-group-edge-ring {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-avatar-group-overlap-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-avatar-group-overlap-shadow: var(--ui-avatar-group-overlap-shadow);
       --_ui-avatar-group-edge-ring: var(--ui-avatar-group-edge-ring);
 
