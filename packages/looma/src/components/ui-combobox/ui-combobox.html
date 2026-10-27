@@ -6,7 +6,8 @@
     >The field's label, tied to its input and shown above it; required adds an asterisk. It also names the suggestion list. Pair it with
       labelVisibility="sr-only" when the context already labels the field visibly.</prop>
     <prop name="muted" type="boolean" default="false"
-    >Shows the selected field value with supporting-text emphasis, for an inherited or default choice. Suggestions keep normal emphasis and the field stays interactive.</prop>
+    >Shows the selected field value with supporting-text emphasis, for an inherited or default choice. Suggestions keep normal emphasis and the field stays
+      interactive.</prop>
     <prop name="placeholder" type="string" default=""
     >Hint text shown in the empty input, as on a native input. It disappears as the user types, so it never replaces label.</prop>
     <prop name="name" type="string" default=""
@@ -81,7 +82,9 @@
       when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
     <prop name="invalid" type="boolean" default="false"
     >Exposes an externally validated error on the input and field. It remains until the consumer clears it, independently of native validation.</prop>
-    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus or is clicked. A committed selection shows all choices until typing filters them; an explicitly supplied query keeps its filtering.</prop>
+    <prop name="openOnFocus" type="boolean" default="false"
+    >Opens suggestions when the input receives focus or is clicked. A committed selection shows all choices until typing filters them; an explicitly supplied
+      query keeps its filtering.</prop>
     <prop name="loading" type="boolean" default="false"
     >Marks the suggestion list busy while the consumer loads options. It announces loading and suppresses the empty state and create offer until cleared.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md"
@@ -571,74 +574,8 @@
     <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-combobox-affordance-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-item-input-min-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-item-item-max-inline-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-item-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-label-font-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-label-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-max-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-message-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-option-check {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-option-text {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-invalid-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-popup-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-popup-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-popup-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-combobox-popup-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-combobox-label-text: var(--ui-combobox-label-text);
       --_ui-combobox-label-font-size: var(--ui-combobox-label-font-size);
       --_ui-combobox-affordance-text: var(--ui-combobox-affordance-text);
@@ -665,7 +602,7 @@
     }
     label {
       color: var(--_ui-combobox-label-text, var(--ui-text-primary));
-      font-size: var(--_ui-combobox-label-font-size, var(--ui-font-size-sm));
+      font-size: var(--_ui-combobox-label-font-size, var(--ui-field-label-font-size, var(--ui-font-size-md)));
       font-weight: 500;
     }
     /* The field and anything that annotates it sit on one row; the help button is beside the box,

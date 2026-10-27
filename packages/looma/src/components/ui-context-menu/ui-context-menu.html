@@ -27,30 +27,8 @@
   </defs>
   <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-context-menu-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-context-menu-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-context-menu-radius {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-context-menu-shadow {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-context-menu-z-index {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-context-menu-surface: var(--ui-context-menu-surface);
       --_ui-context-menu-border: var(--ui-context-menu-border);
       --_ui-context-menu-radius: var(--ui-context-menu-radius);

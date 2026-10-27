@@ -66,63 +66,15 @@
     </div>
   </div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-callout-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-border-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-icon {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-icon-column {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-icon-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-leading-border-width {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-padding-block {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-padding-inline {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-callout-text {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-callout-icon-column: var(--ui-callout-icon-column);
       --_ui-callout-icon: var(--ui-callout-icon);
       --_ui-callout-icon-size: var(--ui-callout-icon-size);
 
-      /* Near white, sRGB retains more green chroma than blue/red; bound chroma by hue to avoid clipping. */
-      --_callout-surface: light-dark(
-        oklch(from var(--_callout-border) 96% min(c, calc(0.02 + 0.03 * max(0, cos(calc((h - 140) * 1deg))))) h),
-        oklch(from var(--_callout-border) 25% min(c, 0.035) h)
-      );
+      --_callout-surface: var(--ui-info-soft);
+      --_callout-tone-text: var(--ui-info-subtle-text);
+      --_ui-surface-text: var(--ui-callout-text, var(--_callout-tone-text));
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--ui-callout-surface, var(--_callout-surface)) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
@@ -133,8 +85,8 @@
       );
       --_ui-selection-context-text: var(--ui-text-primary);
 
-      --_callout-border: var(--ui-info-solid);
-      --_callout-icon: var(--ui-info-solid);
+      --_callout-border: var(--ui-info-soft-border);
+      --_callout-icon: var(--ui-info-subtle-text);
 
       display: grid !important;
       grid-template-columns: var(--ui-callout-icon-column, 1.125rem) minmax(0, 1fr);
@@ -144,13 +96,12 @@
       padding-block: var(--ui-callout-padding-block, var(--ui-space-2)) !important;
       padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2)) !important;
       padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3)) !important;
-      border: var(--ui-callout-border-width, var(--ui-border-width)) solid
-        color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+      border: var(--ui-callout-border-width, var(--ui-border-width)) solid var(--ui-callout-border, var(--_callout-border));
       border-inline-start: var(--ui-callout-leading-border-width, var(--ui-callout-border-width, var(--ui-border-width))) solid
-        color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+        var(--ui-callout-border, var(--_callout-border));
       border-radius: var(--ui-radius-md);
       background: var(--ui-callout-surface, var(--_callout-surface));
-      color: var(--ui-callout-text, var(--ui-text-primary));
+      color: var(--ui-callout-text, var(--_ui-surface-text));
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-normal);
@@ -185,33 +136,44 @@
       --_ui-selection-context-border: initial;
       --_ui-selection-context-text: initial;
       --_callout-surface: var(--ui-surface-muted);
+      --_callout-tone-text: var(--ui-text-primary);
       --_callout-border: var(--ui-border-strong);
       --_callout-icon: var(--ui-text-secondary);
     }
 
     :host([tone="tip"]) {
-      --_callout-border: var(--ui-success-solid);
-      --_callout-icon: var(--ui-success-solid);
+      --_callout-border: var(--ui-success-soft-border);
+      --_callout-surface: var(--ui-success-soft);
+      --_callout-tone-text: var(--ui-success-subtle-text);
+      --_callout-icon: var(--ui-success-subtle-text);
     }
 
     :host([tone="important"]) {
-      --_callout-border: var(--ui-accent-solid);
-      --_callout-icon: var(--ui-accent-solid);
+      --_callout-border: var(--ui-accent-soft-border);
+      --_callout-surface: var(--ui-accent-soft);
+      --_callout-tone-text: var(--ui-accent-subtle-text);
+      --_callout-icon: var(--ui-accent-subtle-text);
     }
 
     :host([tone="warning"]) {
-      --_callout-border: var(--ui-warning-solid);
-      --_callout-icon: var(--ui-warning-solid);
+      --_callout-border: var(--ui-warning-soft-border);
+      --_callout-surface: var(--ui-warning-soft);
+      --_callout-tone-text: var(--ui-warning-subtle-text);
+      --_callout-icon: var(--ui-warning-subtle-text);
     }
 
     :host([tone="success"]) {
-      --_callout-border: var(--ui-success-solid);
-      --_callout-icon: var(--ui-success-solid);
+      --_callout-border: var(--ui-success-soft-border);
+      --_callout-surface: var(--ui-success-soft);
+      --_callout-tone-text: var(--ui-success-subtle-text);
+      --_callout-icon: var(--ui-success-subtle-text);
     }
 
     :host([tone="danger"]), :host([tone="caution"]) {
-      --_callout-border: var(--ui-danger-solid);
-      --_callout-icon: var(--ui-danger-solid);
+      --_callout-border: var(--ui-danger-soft-border);
+      --_callout-surface: var(--ui-danger-soft);
+      --_callout-tone-text: var(--ui-danger-subtle-text);
+      --_callout-icon: var(--ui-danger-subtle-text);
     }
 
     /* A link in the callout's text is underlined, so it reads as a link by more than colour. */

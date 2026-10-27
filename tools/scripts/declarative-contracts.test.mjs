@@ -242,7 +242,7 @@ test("semantic tones use one public vocabulary", async () => {
 
   assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link", "card", "field"]);
   assert.deepEqual(contracts["ui-callout"].propOptions.tone, ["info", "neutral", "note", "tip", "important", "warning", "caution", "success", "danger"]);
-  assert.deepEqual(contracts["ui-badge"].propOptions.tone, ["neutral", "accent", "info", "success", "warning", "danger"]);
+  assert.deepEqual(contracts["ui-badge"].propOptions.tone, ["neutral", "accent", "accent-secondary", "accent-tertiary", "info", "success", "warning", "danger"]);
   assert.deepEqual(contracts["ui-badge"].propOptions.shape, ["pill", "tag", "dot", "square", "circle"]);
   assert.equal(contracts["ui-badge"].props.shape.default, "pill");
   assert.doesNotMatch(previewSource, /variant=["']destructive["']|tone=["']error["']/);

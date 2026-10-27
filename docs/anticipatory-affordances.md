@@ -44,10 +44,10 @@ set or position of anchors and `destroy()` when the scope is removed.
 
 ## Container and descendant state
 
-The scope reflects `data-ui-interaction="engaged"` while any descendant is near
-and sets `--ui-affordance-scope-engaged: 1`. Components own their direct and
-active visuals, while containers can use the reflected state or inherited custom
-property to gently reveal downstream context.
+The scope reflects `data-ui-interaction="engaged"` while any descendant is near.
+Components coordinate guide visibility through private inherited state and own
+their direct and active visuals. Application containers can use the reflected
+state to gently reveal downstream context.
 
 Keep container effects restrained: reveal relevant controls, strengthen a guide,
 or adjust a local surface. Do not restyle unrelated descendants or make content

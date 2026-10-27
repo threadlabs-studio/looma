@@ -38,11 +38,6 @@
     <slot></slot>
   </fieldset>
   <style>
-    @property --ui-radio-group-invalid-text {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_ui-radio-group-invalid-text: var(--ui-radio-group-invalid-text, var(--ui-field-danger, var(--ui-danger-solid)));
       display: inline-flex !important;

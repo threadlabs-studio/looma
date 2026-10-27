@@ -5,10 +5,11 @@
       inverse uses a translucent contrasting surface and toned ink for a count or label on a filled control of that tone. Neutral looks the same in solid and
       subtle. overlay inherits the containing filled control's text colour on a faint translucent fill, with a quiet single-pixel boundary and no shadow. Its
       small circle is 20px. When space is constrained, the label truncates with an ellipsis while its full text remains available.</prop>
-    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, accent, accent-secondary, accent-tertiary, info, success, warning, danger" default="neutral"
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
-      colour, which overrides the tone.</prop>
+      colour, which overrides the tone. Supporting brand families use accent-secondary and accent-tertiary; their usable colors derive from the theme, and unset
+      families follow the primary accent.</prop>
     <prop name="shape" type="keyword" values="pill, tag, dot, square, circle" default="pill"
     >Silhouette. pill is rounded at both ends; tag is a pointed label. dot is a compact circular signal with visually hidden text: include a state label, or set
       aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
@@ -24,68 +25,6 @@
     <span class="label"><slot></slot></span>
   </span>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-badge-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-square-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-circle-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-circle-opacity {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-dot-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-color {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-font-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-font-weight {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-line-height {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-min-block-size {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-padding-block {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-padding-inline {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-point {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-surface {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-badge-text {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
       --_badge-surface: color-mix(in srgb, var(--ui-surface-subtle) 80%, var(--ui-surface-default));
       --_badge-text: var(--ui-text-secondary);
@@ -204,6 +143,40 @@
       line-height: var(--ui-badge-line-height, 1);
     }
 
+    :host([tone="accent-secondary"]) {
+      --_badge-surface: var(--ui-accent-secondary-strong-surface, var(--ui-accent-secondary-solid));
+      --_badge-border: var(--ui-accent-secondary-strong-surface, var(--ui-accent-secondary-solid));
+      --_badge-text: var(--ui-accent-secondary-on-strong, var(--ui-text-on-accent));
+    }
+
+    :host([tone="accent-tertiary"]) {
+      --_badge-surface: var(--ui-accent-tertiary-strong-surface, var(--ui-accent-tertiary-solid));
+      --_badge-border: var(--ui-accent-tertiary-strong-surface, var(--ui-accent-tertiary-solid));
+      --_badge-text: var(--ui-accent-tertiary-on-strong, var(--ui-text-on-accent));
+    }
+
+    :host([variant="subtle"][tone="accent-secondary"]) {
+      --_badge-surface: var(--ui-accent-secondary-soft);
+      --_badge-border: var(--ui-accent-secondary-soft-border);
+      --_badge-text: var(--ui-accent-secondary-subtle-text, var(--ui-accent-secondary-solid));
+    }
+
+    :host([variant="subtle"][tone="accent-tertiary"]) {
+      --_badge-surface: var(--ui-accent-tertiary-soft);
+      --_badge-border: var(--ui-accent-tertiary-soft-border);
+      --_badge-text: var(--ui-accent-tertiary-subtle-text, var(--ui-accent-tertiary-solid));
+    }
+
+    :host([variant="outline"][tone="accent-secondary"]) {
+      --_badge-border: var(--ui-accent-secondary-solid);
+      --_badge-text: var(--ui-accent-secondary-subtle-text, var(--ui-accent-secondary-solid));
+    }
+
+    :host([variant="outline"][tone="accent-tertiary"]) {
+      --_badge-border: var(--ui-accent-tertiary-solid);
+      --_badge-text: var(--ui-accent-tertiary-subtle-text, var(--ui-accent-tertiary-solid));
+    }
+
     :host([tone="accent"]) {
       --_badge-surface: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-border: var(--ui-accent-strong-surface, var(--ui-accent-solid));
@@ -235,32 +208,32 @@
     }
 
     :host([variant="subtle"][tone="accent"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 19%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 25%, var(--ui-surface-default));
+      --_badge-surface: var(--ui-accent-soft);
+      --_badge-border: var(--ui-accent-soft-border);
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
     :host([variant="subtle"][tone="danger"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 19%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 25%, var(--ui-surface-default));
+      --_badge-surface: var(--ui-danger-soft);
+      --_badge-border: var(--ui-danger-soft-border);
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
     :host([variant="subtle"][tone="success"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 19%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-success-solid) 25%, var(--ui-surface-default));
+      --_badge-surface: var(--ui-success-soft);
+      --_badge-border: var(--ui-success-soft-border);
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
     :host([variant="subtle"][tone="warning"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 19%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 25%, var(--ui-surface-default));
+      --_badge-surface: var(--ui-warning-soft);
+      --_badge-border: var(--ui-warning-soft-border);
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
     :host([variant="subtle"][tone="info"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 19%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-info-solid) 25%, var(--ui-surface-default));
+      --_badge-surface: var(--ui-info-soft);
+      --_badge-border: var(--ui-info-soft-border);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
@@ -333,10 +306,16 @@
       border-color: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-outline-surface)));
     }
     :host([variant="inverse"][tone="neutral"][shape="circle"]) {
-      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, light-dark(
-        color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 66%), transparent),
-        color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 56%), transparent)
-      )));
+      --_badge-outline-surface: var(
+        --ui-badge-surface,
+        var(
+          --_badge-color-surface,
+          light-dark(
+            color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 66%), transparent),
+            color-mix(in srgb, var(--ui-surface-raised) var(--ui-badge-circle-opacity, 56%), transparent)
+          )
+        )
+      );
     }
 
     :host([variant="outline"]) {

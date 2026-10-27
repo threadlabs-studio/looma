@@ -18,10 +18,10 @@ The Markdown that Markupress renders and LoomaEditor reads and writes: CommonMar
 A `--ui-*` custom property defined in `tokens.css` or a theme (`--ui-accent`, `--ui-text`, `--ui-space-4`). It inherits on purpose: set on an element, it themes the whole subtree.
 
 ### Component Hook
-A `--ui-<component>-*` custom property a component reads to diverge from its default (`--ui-stack-gap`, `--ui-button-surface`). Registered with `@property` and `inherits: false`, so it styles only the component whose root it is set on, where it beats the component's default and props; set on an ancestor, it does nothing. The editor's `--ui-editor-*` hooks are the exception and inherit, since the editor is one surface of separate parts. `tools/scripts/component-hook-inheritance-rule.test.mjs` enforces the registration.
+A `--ui-<component>-*` styling property a component reads to override its fallback (`--ui-stack-gap`, `--ui-button-surface`). It inherits: set it on `:root` for application defaults, on an ancestor for a subtree, or on the component for an instance override. Documented hook-over-prop precedence also applies to inherited values. `tools/scripts/component-hook-inheritance-rule.test.mjs` prevents public hooks from blocking inheritance.
 
 ### Hook Relay
-A root's private copy of its own hook, `--_ui-<hook>: var(--ui-<hook>)`, for the inner parts, slotted children, and pseudo-elements that read it: a non-inheriting hook has its value on the root alone.
+A root's private copy of its own hook, `--_ui-<hook>: var(--ui-<hook>)`, which resolves shared fallback values at the root for its inner parts, slotted children, and pseudo-elements. The private relay is not a styling API.
 
 ### Parent Default
 A private `--_ui-default-<hook>` a Looma component sets for the children it composes (Input Group's input, a compact Menu's items, a Tree's density, an editor surface's icons). The child reads it below its own hook, so a hook set on the child still wins.

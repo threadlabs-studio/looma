@@ -46,22 +46,8 @@
     </span>
   </label>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-checkbox-gap {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-checkbox-invalid-border {
-      syntax: "*";
-      inherits: false;
-    }
-    @property --ui-checkbox-size {
-      syntax: "*";
-      inherits: false;
-    }
-
     :host {
-      /* Hooks do not inherit, so the parts below read them from the root. */
+      /* Resolve shared part values at the component root. */
       --_ui-checkbox-size: var(--ui-checkbox-size, var(--ui-choice-mark-size));
       --_ui-checkbox-invalid-border: var(--ui-checkbox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
 

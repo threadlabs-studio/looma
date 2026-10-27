@@ -361,3 +361,98 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
   await expect(palette.getByRole('listbox')).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+
+test('field label sizing follows body text or keeps an independent persisted size', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'typography');
+  const label=editor.locator('label').filter({hasText:'Memo title'});
+  const source=editor.locator('[data-label-size-source]');
+  await expect(source).toHaveValue('inherit');
+  await expect(label).toHaveCSS('font-size','16px');
+  await source.selectOption('custom');
+  const size=editor.getByRole('spinbutton',{name:'Independent field label size',exact:true});
+  await size.fill('14px'); await size.press('Enter');
+  await expect(label).toHaveCSS('font-size','14px');
+  expect((await session(page)).values['label-size']).toBe('14px');
+  await page.reload();
+  await expect(label).toHaveCSS('font-size','14px');
+  await source.selectOption('inherit');
+  await expect(label).toHaveCSS('font-size','16px');
+  await expect(size).toBeHidden();
+  expect((await session(page)).values['label-size']).toBe('inherit');
+});
+
+test('rhythm separates stacked size groups without spreading navigation or action rows', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress+'customize/');
+  await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'layout');
+  const measure=()=>page.evaluate(()=>({
+    groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
+    row:parseFloat(getComputedStyle(document.querySelector('[data-size-actions]')).columnGap),
+    nav:parseFloat(getComputedStyle(document.querySelector('[data-component~="ui-site-header"] .navigation')).columnGap),
+  }));
+  const before=await measure();
+  await editor.getByRole('slider',{name:'Rhythm',exact:true}).press('End');
+  await expect.poll(async()=>(await measure()).groups).toBeGreaterThan(before.groups);
+  const after=await measure(); expect(after.row).toBe(before.row); expect(after.nav).toBe(before.nav);
+  for(const size of ['sm','md','lg']) expect(await editor.locator(`[data-size-sample="${size}"] [data-size-actions] button`).count()).toBe(3);
+});
+
+test('material samples show ordinary and expressive surfaces with working floating controls', async ({page},info) => {
+  await enter(page,info);
+  const editor=await openEditor(page,'material');
+  await expect(editor.locator('[data-material-standard]')).toBeVisible();
+  await expect(editor.locator('[data-material-expressive]')).toBeVisible();
+  await editor.getByRole('button',{name:'Open popover',exact:true}).click();
+  await expect(page.getByText('Floating material',{exact:true})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await editor.getByRole('button',{name:'Open dialog',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Surface and light',exact:true})).toBeVisible();
+  await page.getByRole('dialog',{name:'Surface and light',exact:true}).getByRole('button',{name:'Done',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Surface and light',exact:true})).toBeHidden();
+});
+
+for (const width of [1440,375]) test(`palette relationships govern neutral boundaries and status families at ${width}px`, async ({page},info) => {
+  await page.setViewportSize({width,height:1000});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'clear');
+  const editor=await openEditor(page,'palette');
+  const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
+    const border=element=>getComputedStyle(element).borderTopColor;
+    return [card.querySelector('input'),...card.querySelectorAll('[data-component~="ui-button"][data-tone="neutral"]')].map(border);
+  }));
+  await page.mouse.move(1,1);
+  for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Neutrals & shared borders',exact:true}).click();
+  const before=await boundaries();
+  const minimum=editor.getByRole('spinbutton',{name:'Neutral border contrast',exact:true});
+  await minimum.fill('3');await minimum.press('Enter');
+  await page.mouse.move(1,1);
+  await expect.poll(boundaries).not.toEqual(before);
+  for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Supporting accents',exact:true}).click();
+  await editor.locator('[data-color-source="secondary-action"]').selectOption('custom');
+  await setBaseColor(page,'Secondary accent','#dd7045');
+  await editor.locator('[data-color-source="tertiary-action"]').selectOption('custom');
+  await setBaseColor(page,'Tertiary accent','#208676');
+  await expect(editor.locator('[data-extra-accent="secondary-action"]').first()).toBeVisible();
+  await editor.getByRole('button',{name:'Status colors',exact:true}).click();
+  for(const [role,label] of [['success','Success'],['danger','Error'],['warning','Warning'],['info','Info']]) {
+    await editor.getByRole('combobox',{name:label+' relationship',exact:true}).selectOption('primary');
+    expect(await editor.locator(`[data-token="${role}-color"]`).count()).toBe(0);
+  }
+  const statusColors=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>['Success','Error','Warning','Info'].map(label=>getComputedStyle([...card.querySelectorAll('[data-component~="ui-badge"]')].find(badge=>badge.textContent.trim()===label)).color)));
+  for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
+  await editor.getByRole('button',{name:'Accent assignments',exact:true}).click();
+  await editor.getByRole('combobox',{name:'Link accent',exact:true}).selectOption('secondary');
+  const edited=await session(page);
+  expect(edited.values['secondary-action']).toBe('#dd7045');
+  expect(edited.values['tertiary-action']).toBe('#208676');
+  expect(edited.values['neutral-border-contrast']).toBe('3');
+  await page.reload();expect(await session(page)).toEqual(edited);
+  for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+  expect(errors).toEqual([]);
+});

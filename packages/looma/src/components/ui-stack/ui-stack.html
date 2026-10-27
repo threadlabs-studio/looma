@@ -4,7 +4,8 @@
     <prop name="height" type="number">An optional measured height in CSS pixels, for a viewport-bounded composition. Omit it to retain intrinsic sizing.</prop>
     <prop name="gap" type="keyword" values="none, xs, s, m, l, xl"
     >Space between items, on the spacing scale: none is zero, xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-stack-gap
-      custom property, set on the stack itself, overrides it; set on an ancestor, it does nothing.</prop>
+      custom property, set on :root, an ancestor, or the component itself, overrides it. Theme rhythm scales these vertical gaps, while an explicit gap override
+      stays exact.</prop>
     <prop name="align" type="keyword" values="start, center, end, stretch"
     >How items sit across the stack: stretch (the default) makes each fill the stack's width; start, center, and end keep each at its own width, against the
       start, in the middle, or against the end.</prop>
@@ -12,15 +13,9 @@
     >Where items sit along a stack that is taller than its content: start (the default), center, end, or between, which spreads the spare space between items.
       It has no effect unless the stack is given a height or stretched to one.</prop>
   </defs>
-  <div style:--ui-stack-height="$height"><slot></slot></div>
+  <div style:--_ui-stack-height="$height"><slot></slot></div>
   <style>
-    /* This component's hooks style the element they are set on, and never a nested one. */
-    @property --ui-stack-height {
-      syntax: "*";
-      inherits: false;
-    }
-
-    @property --ui-stack-gap {
+    @property --_ui-stack-height {
       syntax: "*";
       inherits: false;
     }
@@ -30,7 +25,7 @@
       display: flex !important;
       flex-direction: column !important;
       align-items: stretch !important;
-      gap: var(--ui-stack-gap, var(--_layout-gap)) !important;
+      gap: var(--ui-stack-gap, calc(var(--_layout-gap) * clamp(0.75, var(--ui-rhythm, 1), 1.5))) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0 !important;
@@ -41,7 +36,7 @@
       min-block-size: 0;
     }
     :host([height]) {
-      block-size: calc(var(--ui-stack-height, 0) * 1px);
+      block-size: calc(var(--_ui-stack-height, 0) * 1px);
       min-block-size: 0;
     }
 

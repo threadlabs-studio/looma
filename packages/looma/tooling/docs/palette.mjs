@@ -43,10 +43,11 @@ export function paletteSeeds(values) {
   const intensity = Number(values['color-intensity']) * 2, warmth = (Number(values.warmth) - .5) * 2;
   const relationship = values['palette-relationship'];
   const brandHue = toLch(values.action)[2];
-  return Object.fromEntries(['action', 'canvas', 'surface', 'text'].map(key => {
-    if (intensity === 1 && warmth === 0 && relationship === 'preserve') return [key, values[key]];
-    let [l, c, h] = toLch(values[key]);
-    if (key !== 'action') {
+  return Object.fromEntries(['action', 'secondary-action', 'tertiary-action', 'canvas', 'surface', 'text'].map(key => {
+    const seed = values[key] === 'none' ? values.action : values[key];
+    if (intensity === 1 && warmth === 0 && relationship === 'preserve') return [key, seed];
+    let [l, c, h] = toLch(seed);
+    if (!['action','secondary-action','tertiary-action'].includes(key)) {
       const tint = Math.max(Math.abs(warmth), relationship === 'preserve' ? 0 : .5);
       if (tint) l = clamp(l, .08 * tint, 1 - .03 * tint);
       if (relationship !== 'preserve') { h = brandHue + (relationship === 'neighboring' ? 30 : 180); c = Math.max(c, .018); }
