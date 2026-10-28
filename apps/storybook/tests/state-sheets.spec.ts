@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { stateSheetComparison } from '../scripts/state-sheet-comparison.mjs';
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { interactionCases } from '../../docs/tests/interaction-cases.mts';
@@ -248,7 +247,11 @@ for (const component of api.components) {
           }
           await sheet.setViewportSize({ width: best.columns * 128 + 16, height: 800 });
           await sheet.locator('main').evaluate((element, columns) => { (element as HTMLElement).style.gridTemplateColumns = `repeat(${columns},120px)`; }, best.columns);
-          await expect(sheet.locator('body')).toHaveScreenshot(`${component.tag}-${theme}-${mode}.png`, { animations: 'disabled', ...stateSheetComparison });
+          if (process.env.LOOMA_VISUAL_OUTPUT_DIR) {
+            await sheet.locator('body').screenshot({ path: resolve(process.env.LOOMA_VISUAL_OUTPUT_DIR, `${component.tag}-${theme}-${mode}.png`), animations: 'disabled' });
+          } else {
+            throw new Error('Use visual:test to generate a source-to-source visual review.');
+          }
         }
         finally {
           await sheet.close();

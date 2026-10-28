@@ -89,7 +89,7 @@ async function paint(page: Page): Promise<void> {
 }
 
 /** Capture a deliberate pointer/scroll state while preserving focus, selections, and open overlays. */
-export async function screenshot(target: Page | Locator, name: string, fullPage = false, maxDiffPixels = 0): Promise<void> {
+export async function screenshot(target: Page | Locator, name: string, fullPage = false): Promise<void> {
   const page = "page" in target ? target.page() : target;
   await page.mouse.move(0, 0);
   if (fullPage) {
@@ -110,7 +110,8 @@ export async function screenshot(target: Page | Locator, name: string, fullPage 
     });
   }
   await paint(page);
-  await expect(target).toHaveScreenshot(name, { ...(target === page ? { fullPage } : {}), maxDiffPixels, timeout: 15_000 });
+  if (!process.env.LOOMA_VISUAL_OUTPUT_DIR) throw new Error('Use test:visual to generate a source-to-source visual review.');
+  await target.screenshot({ path: path.resolve(process.env.LOOMA_VISUAL_OUTPUT_DIR, name), ...(target === page ? { fullPage } : {}), animations: 'disabled', caret: 'hide' });
 }
 
 export { expect };

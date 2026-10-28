@@ -290,7 +290,8 @@ test("component state sheets shard every case while keeping one browser worker p
   assert.match(visual, /fail-fast: false/);
   assert.match(visual, /shard: \[1, 2, 3, 4, 5, 6, 7, 8\]/);
   assert.match(visual, /--shard=\$\{\{ matrix.shard \}\}\/8/);
-  assert.match(visual, /component-state-differences-\$\{\{ matrix.shard \}\}/);
+  assert.match(visual, /side: \[base, head\]/);
+  assert.match(visual, /visual-capture-\$\{\{ matrix.side \}\}-\$\{\{ matrix.shard \}\}/);
   assert.match(config, /fullyParallel: true/);
   assert.match(config, /workers: 1/);
   assert.match(runner, /shellQuote\(shardArgument\)/);

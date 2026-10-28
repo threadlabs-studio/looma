@@ -82,3 +82,7 @@ apps/docs/static/_looma/
 /packages/looma/docs/
 .looma/
 .markupkit-build-*/
+
+# Visual references are regenerated from source revisions, never versioned binaries.
+/apps/docs/tests/baselines/**/*.png
+/apps/storybook/tests/baselines/**/*.png

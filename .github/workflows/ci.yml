@@ -32,6 +32,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24.21.0
+      - name: Keep generated PNG baselines out of Git
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node tools/scripts/visual-review.mjs check
       - name: Select affected tests
         id: select
         run: node tools/scripts/ci-qualification.mjs plan
@@ -124,24 +128,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        side: [base, head]
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          fetch-depth: 0
+          filter: blob:none
           persist-credentials: false
-      # The runner script only needs Node; it installs and builds inside the
-      # pinned Playwright image so CI renders exactly like the local baselines.
-      - name: Storybook visual regression
-        run: node apps/storybook/scripts/run-storywright-docker.mjs test --shard=${{ matrix.shard }}/8
-      - name: Preserve visual differences
-        if: failure()
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - name: Select affected visual surfaces
+        id: visual-plan
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node tools/scripts/visual-review.mjs plan --shard=${{ matrix.shard }}/8
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: steps.visual-plan.outputs.selected == 'true'
+        with:
+          path: .context/visual-capture
+          key: visual-${{ matrix.side == 'base' && steps.visual-plan.outputs.base_key || steps.visual-plan.outputs.head_key }}
+      - name: Render source revision in the canonical environment
+        run: node tools/scripts/visual-review.mjs render-side --side=${{ matrix.side }}
+      - name: Preserve disposable render outputs
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: component-state-differences-${{ matrix.shard }}
-          path: |
-            apps/storybook/test-results/
-            apps/storybook/playwright-report/
-          if-no-files-found: ignore
+          name: visual-capture-${{ matrix.side }}-${{ matrix.shard }}
+          path: .context/visual-capture/
+          include-hidden-files: true
+          if-no-files-found: error
 
   verify:
     if: always()
@@ -149,7 +166,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
-      - name: Require tests, release packaging, and visual regression
+      - name: Require tests, release packaging, and complete visual captures
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
           BROWSER_RESULT: ${{ needs.browser.result }}
@@ -160,3 +177,27 @@ jobs:
           test "$BROWSER_RESULT" = "success"
           test "$RELEASE_PACKAGE_RESULT" = "success"
           test "$VISUAL_RESULT" = "success"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: visual-capture-*
+          path: .context/visual-artifacts
+      - name: Install the pinned comparison runtime
+        run: node tools/scripts/visual-review.mjs install-comparator
+      - name: Compare regenerated source revisions
+        env:
+          LOOMA_VISUAL_COMPARATOR_ROOT: .context/visual-comparator
+        run: node tools/scripts/visual-review.mjs report --input=.context/visual-artifacts --output=.context/visual-review
+      - name: Attach the visual review report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: visual-review
+          path: .context/visual-review/report/
+          include-hidden-files: true
+          if-no-files-found: error
