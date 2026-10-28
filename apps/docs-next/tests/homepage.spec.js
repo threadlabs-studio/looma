@@ -17,6 +17,7 @@ for (const width of [1440, 900, 375]) {
     });
     expect(centered).toBeLessThan(2);
     if (width > 996) {
+      await expect(bar.locator(".navigation a").first()).toHaveText("Get started");
       // The same face's descent scales with font size; subtract it from the text range's bottom.
       const baselines = await bar.evaluate(element => {
         const canvas = document.createElement('canvas').getContext('2d');
