@@ -1,6 +1,7 @@
 import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { startingPoints } from '../../../packages/looma/tooling/docs/theme.mjs';
 
 const session = page => page.evaluate(() => window[Symbol.for('looma.documentation.theme')].recipe);
 const enter = async (page, info) => {
@@ -443,7 +444,7 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   await page.mouse.move(1,1);
   for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
   const before=await boundaries();
-  const minimum=editor.getByRole('spinbutton',{name:'Neutral border contrast',exact:true});
+  const minimum=editor.getByRole('spinbutton',{name:'Border contrast',exact:true});
   await minimum.fill('3');await minimum.press('Enter');
   await page.mouse.move(1,1);
   await expect.poll(boundaries).not.toEqual(before);
@@ -466,4 +467,50 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
   expect(errors).toEqual([]);
+});
+
+test('Gold outline borders respond to the visibility minimum without changing their text', async ({ page }, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'gold');
+  const editor = await openEditor(page, 'palette');
+  const outline = editor.locator('.palette-preview [data-theme="light"]').getByRole('button', { name: 'Outline', exact: true });
+  const colors = () => outline.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { border: style.borderTopColor, text: style.color };
+  });
+  await page.mouse.move(1, 1);
+  const before = await colors();
+  const minimum = editor.getByRole('spinbutton', { name: 'Border contrast', exact: true });
+  await minimum.fill('3');
+  await minimum.press('Enter');
+  await page.mouse.move(1, 1);
+  await expect.poll(async () => (await colors()).border).not.toBe(before.border);
+  expect((await colors()).text).toBe(before.text);
+  const resting = await colors();
+  await outline.hover();
+  await expect.poll(colors).toEqual(resting);
+});
+
+for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses translucent accent pigment at rest and on hover`, async ({ page }, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, startingPoint);
+  const editor = await openEditor(page, 'palette');
+  for (const mode of ['light', 'dark']) {
+    const outline = editor.locator(`.palette-preview [data-theme="${mode}"]`).getByRole('button', { name: 'Outline', exact: true });
+    const wash = alpha => outline.evaluate((element, alpha) => {
+      const probe = document.createElement('span');
+      probe.style.color = `oklch(from var(--ui-accent) l c h / calc(${alpha}% * var(--ui-tonal-opacity, 1)))`;
+      element.append(probe);
+      const expected = getComputedStyle(probe).color;
+      const background = getComputedStyle(element).backgroundImage;
+      probe.remove();
+      return { expected: `linear-gradient(${expected}, ${expected})`, background };
+    }, alpha);
+    await page.mouse.move(0, 0);
+    let colors = await wash(8);
+    expect(colors.background).toContain(colors.expected);
+    await outline.hover();
+    colors = await wash(12);
+    expect(colors.background).toContain(colors.expected);
+  }
 });

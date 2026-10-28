@@ -99,6 +99,7 @@ test('saved and imported recipes identify their starting point without claiming 
 
 const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(s => s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+const composite = (foreground, background, alpha) => '#' + [1, 3, 5].map(i => Math.round(parseInt(foreground.slice(i, i + 2), 16) * alpha + parseInt(background.slice(i, i + 2), 16) * (1 - alpha)).toString(16).padStart(2, '0')).join('');
 
 test('Forest & cream pairs a forest accent with cream light neutrals', () => {
   const recipe = applyRefinement(defaultRecipe(), 'palette', 'garden');
@@ -277,7 +278,7 @@ test('filled tones preserve their seeds while ink, text and focus adapt independ
         }
         for (const background of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
           assert.ok(contrast(tokens['--ui-focus-ring'], tokens[background]) >= 3, `${action}/${mode}: focus`);
-          for (const alpha of [.05, .12, .18]) {
+          for (const alpha of [.05, .08, .12, .18]) {
             const a = [1, 3, 5].map(i => parseInt(action.slice(i, i + 2), 16));
             const b = [1, 3, 5].map(i => parseInt(tokens[background].slice(i, i + 2), 16));
             const painted = '#' + a.map((n, i) => Math.round(n * alpha * sharedOpacity + b[i] * (1 - alpha * sharedOpacity)).toString(16).padStart(2, '0')).join('');
@@ -600,6 +601,72 @@ test('field-label sizing follows body by default and exports an independent publ
   }
 });
 
+
+test('gold outlines preserve pigment and use the border minimum independently of text contrast', () => {
+  const resolve = minimum => {
+    const recipe = structuredClone(startingPoints.gold);
+    recipe.values['neutral-border-contrast'] = minimum;
+    return deriveTheme(recipe, { mode: 'light' }).tokens;
+  };
+  const low = resolve('1'), normal = resolve('2.1'), strong = resolve('3');
+  assert.equal(low['--ui-accent-outline-border'], low['--ui-accent'], 'a visible pigment needs no adjustment');
+  for (const [tokens, minimum] of [[normal, 2.1], [strong, 3]]) {
+    const border = tokens['--ui-accent-outline-border'];
+    const recipe = startingPoints.gold;
+    const material = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+    const paints = [composite(tokens['--ui-accent'], tokens['--ui-surface-raised'], .18 * Number(tokens['--ui-tonal-opacity'])), ...['--ui-surface-reflection', '--ui-surface-shade'].map(stop => composite(tokens['--ui-accent'], composite(tokens[stop], tokens['--ui-surface-raised'], material), .12 * Number(tokens['--ui-tonal-opacity'])))];
+    const ratio = Math.min(...paints.map(paint => contrast(border, paint)));
+    assert.ok(ratio >= minimum && ratio < minimum + .05, 'adjust only enough to meet the chosen minimum');
+    const hue = colour => toLch(colour)[2];
+    assert.ok(Math.abs(hue(border) - hue(tokens['--ui-accent'])) < 1, 'retain the gold hue');
+    assert.equal(tokens['--ui-accent-subtle-text'], low['--ui-accent-subtle-text'], 'border settings do not alter readable text');
+  }
+  assert.ok(toLch(normal['--ui-accent-outline-border'])[0] > toLch(normal['--ui-accent-subtle-text'])[0]);
+});
+
+test('every outline tone meets the chosen border floor in light and dark themes', () => {
+  for (const starting of Object.values(startingPoints)) for (const mode of ['light', 'dark']) for (const minimum of ['1.5', '2.1', '3']) {
+    const recipe = structuredClone(starting);
+    recipe.values['neutral-border-contrast'] = minimum;
+    const { tokens } = deriveTheme(recipe, { mode });
+    for (const tone of ['accent', 'accent-secondary', 'accent-tertiary', 'success', 'danger', 'warning', 'info']) {
+      for (const surface of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
+        assert.ok(contrast(tokens[`--ui-${tone}-outline-border`], tokens[surface]) >= Number(minimum), `${mode}/${minimum}/${tone}/${surface}`);
+      }
+    }
+  }
+});
+
+test('outline borders and text meet separate contrast minimums against the painted fill in both modes', () => {
+  for (const [name, starting] of Object.entries(startingPoints)) for (const mode of ['light', 'dark']) for (const lighting of ['theme', 'maximum']) {
+    const recipe = structuredClone(starting);
+    if (lighting === 'maximum') Object.assign(recipe.values, { finish: '1', 'light-strength': '1' });
+    const { tokens } = deriveTheme(recipe, { mode });
+    const material = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+    const opacity = Number(tokens['--ui-tonal-opacity']);
+    for (const tone of ['accent', 'accent-secondary', 'accent-tertiary', 'success', 'danger', 'warning', 'info']) {
+      for (const role of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
+        for (const stop of ['--ui-surface-reflection', '--ui-surface-shade']) for (const alpha of [.08, .12]) {
+          const plate = composite(tokens[stop], tokens[role], material);
+          const paint = composite(tokens[`--ui-${tone}`], plate, alpha * opacity);
+          assert.ok(contrast(tokens[`--ui-${tone}-outline-border`], paint) >= Number(recipe.values['neutral-border-contrast']), `${name}/${mode}/${tone}/${role}/${stop}/${alpha}: border`);
+          assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], paint) >= 4.5, `${name}/${mode}/${tone}/${role}/${stop}/${alpha}: text`);
+        }
+      }
+    }
+  }
+});
+
+test('outline contrast updates when material finish or light strength changes', () => {
+  const recipe = structuredClone(startingPoints.bookish);
+  Object.assign(recipe.values, { action: '#371b30', finish: '0', 'light-strength': '1' });
+  const flat = deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'];
+  recipe.values.finish = '1';
+  const lit = deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'];
+  assert.notEqual(lit, flat, 'a stronger reflection requires a brighter border');
+  recipe.values['light-strength'] = '0';
+  assert.equal(deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'], flat);
+});
 
 test('neutral boundaries have an editable contrast floor independent of primary pigment', () => {
   for (const mode of ['light','dark']) for (const minimum of ['1.5','2','3']) {

@@ -29,13 +29,13 @@
 
     /* Shared action boundaries follow their fills until a recipe refines the family. */
     --ui-tonal-opacity: 1;
-    --ui-accent-outline-border: color-mix(in srgb, var(--ui-accent-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-accent-secondary-outline-border: color-mix(in srgb, var(--ui-accent-secondary-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-accent-tertiary-outline-border: color-mix(in srgb, var(--ui-accent-tertiary-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-success-outline-border: color-mix(in srgb, var(--ui-success-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-danger-outline-border: color-mix(in srgb, var(--ui-danger-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-warning-outline-border: color-mix(in srgb, var(--ui-warning-subtle-text) 68%, var(--ui-surface-raised));
-    --ui-info-outline-border: color-mix(in srgb, var(--ui-info-subtle-text) 68%, var(--ui-surface-raised));
+    --ui-accent-outline-border: var(--ui-accent);
+    --ui-accent-secondary-outline-border: var(--ui-accent-secondary);
+    --ui-accent-tertiary-outline-border: var(--ui-accent-tertiary);
+    --ui-success-outline-border: var(--ui-success);
+    --ui-danger-outline-border: var(--ui-danger);
+    --ui-warning-outline-border: var(--ui-warning);
+    --ui-info-outline-border: var(--ui-info);
     --ui-accent-border: var(--ui-accent);
     --ui-accent-hover-border: var(--ui-accent-hover);
     --ui-accent-active-border: var(--ui-accent-active);

@@ -4,6 +4,12 @@
 
 - Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
 
+- Enforce the outline contrast minimum against the composited wash and material surface in light and dark themes. Recalculate borders when finish or lighting changes; text retains its separate readability threshold. Re-export saved theme CSS to adopt the corrected contrast.
+
+- Use the actual accent pigment for translucent Button and IconButton outline washes, with a clearer tint at rest and on hover, instead of washing the surface with darkened text ink.
+
+- Derive colored outline borders from their pigment and the chosen border contrast minimum, independently of readable text. Keep outline hover borders in the same color family. The default remains 2:1; Gold retains its 2.1:1 setting. Re-export saved theme CSS to adopt the corrected borders.
+
 - Keep inverse count text readable over both light and dark filled controls by deriving its ink from the control’s foreground polarity.
 
 - Select the starting theme directly in the customizer summary, preview font names in their own typefaces with glyph-only downloads, and load complete font families when selected.

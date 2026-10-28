@@ -315,7 +315,7 @@
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]) {
-      --_outline-wash: oklch(from var(--_tone-text) l c h / calc(4% * var(--ui-tonal-opacity, 1)));
+      --_outline-wash: oklch(from var(--_tone) l c h / calc(8% * var(--ui-tonal-opacity, 1)));
       border-color: var(--ui-button-border, var(--_tone-outline-border, var(--_tone-text)));
       background-color: var(--ui-button-surface, transparent);
       box-shadow: var(--ui-button-shadow, var(--ui-neutral-shadow));
@@ -325,9 +325,9 @@
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
-      --_outline-wash: oklch(from var(--_tone-text) l c h / calc(9% * var(--ui-tonal-opacity, 1)));
+      --_outline-wash: oklch(from var(--_tone) l c h / calc(12% * var(--ui-tonal-opacity, 1)));
       background-color: var(--ui-button-hover-surface, transparent);
-      border-color: var(--ui-button-hover-border, color-mix(in srgb, var(--_tone-text) 35%, var(--_tone-outline-border)));
+      border-color: var(--ui-button-hover-border, var(--_tone-outline-border));
     }
 
     /* A link is never :enabled, so interactive states test "not unavailable" instead: for a button that
