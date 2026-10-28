@@ -139,7 +139,7 @@ with `insertLoomaExpand({ summary: "Details", open: false })`, leave with `exitL
 and supply `expandNodeView` to customize presentation. The default headless view uses native
 details. Plain text includes summaries and all bodies, even while collapsed.
 
-In Markdown, a section is `::: details Summary` … `:::`, with ` {open}` after the summary when it
+In Markdown, a section is `::: details [Summary]` … `:::`, with ` {open}` after the summary when it
 starts expanded; see [Looma Markdown](/looma-markdown). Search and change-review projections
 must traverse the body rather than omit collapsed content.
 
@@ -205,12 +205,21 @@ text resembles Markdown. Looma also turns Markdown or HTML copied as source into
 including `:::` callouts and sections and GitHub `> [!NOTE]` alerts. Pasting inside a code block
 stays literal.
 
-To load or save [Looma Markdown](/looma-markdown), `loomaMarkdownToHtml(markdown)` renders HTML
-for `setContent`, and `loomaMarkdownFromDoc(editor.state.doc)` writes the document as Looma
-Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads and writes every
-form on that page, including figures with captions and tabs, which it keeps whole and shows panel
-by panel while editing. A table that fits GFM is written as one, and any other as HTML. Front
-matter is the host's page metadata, so the editor leaves it out of what it writes.
+Use the portable Expressmark adapter for Markdown import and export:
+
+```ts
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+
+const markdown = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard" });
+const content = markdownToEditorDocument(markdown, { syntax: "standard" });
+editor.commands.setContent(content);
+```
+
+The adapter defaults to `compatible` syntax for existing CommonMark/GFM interchange;
+select `standard` explicitly when exchanging content with Markupress. It reports content the
+editor schema cannot preserve instead of silently discarding it. Keep page front matter in
+the host application. The older `loomaMarkdownToHtml` and `loomaMarkdownFromDoc` helpers retain
+their editor-specific format; they do not define Markupress's documentation syntax.
 
 ## Mentions
 

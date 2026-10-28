@@ -31,8 +31,8 @@ into its own lifecycle; it does not invent a competing API.
 HTML Next is selected by default. Vue shows the same definition through
 `@threadlabs/looma/vue`; the live result exercises the same Looma definition.
 
-::: code-group syntax
-```html title="HTML Next"
+::: tab [HTML Next]
+```html
 <script type="module">
   import "@threadlabs/looma";
 </script>
@@ -42,8 +42,10 @@ HTML Next is selected by default. Vue shows the same definition through
   <ui-button variant="solid">Save</ui-button>
 </ui-stack>
 ```
+:::
 
-```vue title="Vue"
+::: tab [Vue]
+```vue
 <script setup lang="ts">
 import { Button, Stack } from "@threadlabs/looma/vue";
 </script>
