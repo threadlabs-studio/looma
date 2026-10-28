@@ -44,6 +44,10 @@ test('render cache identity follows source and environment rather than commit na
   assert.equal(key,renderInputKey({...source,'docs/guide.md':'prose-b'},'renderer-a'));
   assert.notEqual(key,renderInputKey({...source,'packages/looma/src/tokens/tokens.css':'blob-b'},'renderer-a'));
   assert.notEqual(key,renderInputKey(source,'renderer-b'));
+  const inventory='apps/storybook/tests/baselines/state-sheets/ui-disclosure-inventory.json';
+  assert.notEqual(renderInputKey({...source,[inventory]:'expected-a'},'renderer-a'),renderInputKey({...source,[inventory]:'expected-b'},'renderer-a'));
+  const png='apps/storybook/tests/baselines/state-sheets/ui-disclosure-clear-light.png';
+  assert.equal(key,renderInputKey({...source,[png]:'obsolete-binary'},'renderer-a'));
 });
 test('an authorized history cutover resolves a missing old push base without hiding ordinary bad refs',t=>{
   const directory=fixture(t), event=path.join(directory,'event.json'), output=path.join(directory,'plan.json'), missing='f'.repeat(40);
