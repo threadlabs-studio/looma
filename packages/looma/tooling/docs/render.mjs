@@ -1,12 +1,23 @@
 import { createHash } from 'node:crypto';
 import { escapeHtml as escape } from './catalog.mjs';
-import { createLoomaMarkdownIt } from '@threadlabs/looma/markdown/markdown-it';
+import { parse } from 'expressmark';
+import { renderHtml } from 'expressmark/render';
+import { parseFragment } from 'parse5';
 
-const descriptions = createLoomaMarkdownIt().set({ html: false });
-export const cardDescription = description => (descriptions.parseInline(description ?? '', {})[0]?.children ?? []).map(token => token.content).join('').split(/(?<=[.!?])\s/)[0];
+const descriptionDocument = description => parse(description ?? '', { syntax: 'standard' });
+// This HTML enters Markdown again. Entities protect rendered text from a second
+// interpretation; existing entities stay intact. Markupress owns final HTML Next escaping.
+const descriptionHtml = description => renderHtml(descriptionDocument(description), { escapeText: html => html.replace(/[!-/:-@[-`{-~]/g, character => character === '&' || character === ';' ? character : `&#${character.codePointAt(0)};`) }).replaceAll('\n', '&#10;');
+function descriptionText(node) {
+  if (node.nodeName === '#text') return node.value;
+  if (node.tagName === 'img') return node.attrs.find(attribute => attribute.name === 'alt')?.value ?? '';
+  if (node.tagName === 'br') return '\n';
+  return (node.childNodes ?? []).map(descriptionText).join(node.nodeName === '#document-fragment' ? ' ' : '');
+}
+export const cardDescription = description => descriptionText(parseFragment(renderHtml(descriptionDocument(description)))).split(/(?<=[.!?])\s/)[0];
 
 const literal = value => escape(value).replaceAll('{', '\\{');
-const code = value => `<code>${literal(value ?? '—')}</code>`;
+const code = value => `<code>${escape(value ?? '—')}</code>`;
 const table = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${literal(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(value => `<td>${value}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 export const exampleKey = id => createHash('sha256').update(id).digest('hex').slice(0, 20);
 export const componentPath = component => `/${component.group === 'editor' ? 'editor' : 'components'}/${component.navigationParent ?? component.tag}/` + (component.navigationParent ? `#${component.tag}-api` : '');
@@ -119,5 +130,5 @@ export function referencePage(component, catalog, cardResource, base) {
     return `<ui-tabs slot="code" label="Example syntax" group="syntax" style="--ui-tabs-panel-padding: 0px">${tabs}</ui-tabs>`;
   };
   const body = `<div class="looma-reference-examples"><ui-stack gap="xl">${examples.map(example => `<ui-card as="section" variant="subtle" padding="lg">${cardMarkup(example, base, catalog.components.find(c => c.examples.some(e => e.id === example.id)) ?? component, { reference: true, code: codes(example) })}</ui-card>`).join('')}</ui-stack></div>`;
-  return `---\ntitle: ${JSON.stringify(component.title)}\ndescription: ${JSON.stringify(component.description || `${component.title} component reference.`)}\nid: ${JSON.stringify(component.id)}\n---\n\n# ${escape(component.title)}\n\n<div class="component-description"><p>${descriptions.renderInline(component.description).replaceAll('{', '\\{').replaceAll('\n', '&#10;')}</p></div>\n\n<link rel="component" href="${cardResource}">\n${exampleResources(examples, catalog)}\n<link rel="component" href="${cardResource.replace(/card\.html$/, 'reference.html')}">\n<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">\n<link rel="component" href="@threadlabs/looma/components/ui-tabs/ui-tabs.html">\n<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">\n<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">\n\n<looma-reference>\n\n<div class="looma-reference-tabs"><ui-tabs label="Component reference" style="--ui-tabs-panel-padding: 0px; --ui-tabs-tab-min-block-size: var(--ui-control-size-lg)"><section aria-label="Examples">${body}</section><section aria-label="API"><h2 id="api">API</h2>\n${apiBody(component)}\n${parts.map(part => `<h2 id="${part.tag}-api">${literal(part.title)} API</h2><p>${literal(part.description)}</p>${apiBody(part, part.tag + '-')}`).join('\n')}</section></ui-tabs></div>\n\n</looma-reference>\n`;
+  return `---\ntitle: ${JSON.stringify(component.title)}\ndescription: ${JSON.stringify(component.description || `${component.title} component reference.`)}\nid: ${JSON.stringify(component.id)}\n---\n\n# ${escape(component.title)}\n\n<div class="component-description">${descriptionHtml(component.description)}</div>\n\n<link rel="component" href="${cardResource}">\n${exampleResources(examples, catalog)}\n<link rel="component" href="${cardResource.replace(/card\.html$/, 'reference.html')}">\n<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">\n<link rel="component" href="@threadlabs/looma/components/ui-tabs/ui-tabs.html">\n<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">\n<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">\n\n<looma-reference>\n\n<div class="looma-reference-tabs"><ui-tabs label="Component reference" style="--ui-tabs-panel-padding: 0px; --ui-tabs-tab-min-block-size: var(--ui-control-size-lg)"><section aria-label="Examples">${body}</section><section aria-label="API"><h2 id="api">API</h2>\n${apiBody(component)}\n${parts.map(part => `<h2 id="${part.tag}-api">${literal(part.title)} API</h2><p>${literal(part.description)}</p>${apiBody(part, part.tag + '-')}`).join('\n')}</section></ui-tabs></div>\n\n</looma-reference>\n`;
 }

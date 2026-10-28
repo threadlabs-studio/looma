@@ -1,9 +1,14 @@
 # Looma Markdown
 
-Looma Markdown is the Markdown that Markupress renders and LoomaEditor reads and writes. It is
-CommonMark with GitHub Flavored Markdown, plus Looma's blocks and a Markdown form for everything
-LoomaEditor makes. A block has the same name and look on every surface: Markupress renders each
-one as the Looma component listed here, and LoomaEditor saves it as that component's HTML.
+Markupress documentation uses the [Expressive Markdown standard](https://nextwebwg.org/expressive-markdown/),
+parsed by Expressmark with `{ syntax: "standard" }`. Markupress maps its semantic blocks to
+Looma components. The parser, the site's presentation, and an editor's saved document are
+separate contracts.
+
+LoomaEditor's portable adapter can read and write standard Markdown explicitly. Its default
+interchange mode is `compatible`, which keeps CommonMark/GFM conventions; the older
+`@threadlabs/looma/markdown/markdown-it` adapter retains its editor-specific format. Neither
+adapter defines Markupress's parser or documentation syntax.
 
 ````md
 ---
@@ -14,7 +19,7 @@ title: Release notes
 
 ## Upgrading {#upgrade}
 
-::: warning Before you upgrade
+::: warning [Before you upgrade]
 Back up your data first.
 :::
 
@@ -23,7 +28,7 @@ Back up your data first.
 
 Status: :chip[Ready]{tone=green}
 
-```ts title="migrate.ts" {2}
+```ts {highlight="2" title="migrate.ts"}
 import { migrate } from "./db";
 await migrate();
 ```
@@ -31,18 +36,18 @@ await migrate();
 
 ## Colons and braces
 
-Two mechanisms carry everything CommonMark and GFM do not.
+Colons declare semantic elements; braces attach their attributes.
 
-**Colons name a Looma element, and their number gives its scope.**
+**Colons declare a semantic element, and their number gives its scope.**
 
 | Form | Scope | Examples |
 | --- | --- | --- |
 | `:name[label]{attributes}` | Inline | `:chip[Ready]{tone=green}` |
 | `::name{attributes}` | A block without content | `::toc{depth=2}` |
-| `::: name Title` … `:::` | A block that holds content | `::: tip Title`, `::: details Summary` |
+| `::: name [Title]` … `:::` | A block that holds content | `::: tip [Title]`, `::: details [Summary]` |
 
-A block's label runs to the end of its opening line. An inline element's label goes in brackets,
-because text follows it. A `]` or `\` in a label is escaped with a backslash.
+Write a container's designated title in brackets after its name. Inline labels also go in
+brackets. Escape a closing bracket or backslash in a label with a backslash.
 
 **Braces after something hold its attributes:** `{#id key=value key="two words" flag}`.
 `#id` sets the ID, `key=value` sets a value, a value with spaces is quoted with `"` or `'`, and a
@@ -64,11 +69,14 @@ In Markdown, a callout's tone is its container name and a chip's tone is its `to
 
 ## Base
 
-- The base is [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) with the
-  [GFM 0.29](https://github.github.com/gfm/) extensions: tables, task list items, strikethrough
-  and autolinks, plus GitHub's footnotes.
-- Raw HTML is part of the document. A renderer passes it through; LoomaEditor keeps the HTML its
-  schema knows.
+- Standard syntax provides familiar headings, lists, links, code, tables, tasks and text marks,
+  with explicit container and attribute forms. It also parses Markdown inside HTML elements.
+  It does not inherit every CommonMark/GFM ambiguity; use Expressmark's explicit `compatible`
+  mode only when that interchange contract is required.
+- Markupress keeps authored native HTML and trusted HTML Next component invocations. Component
+  definitions live in external `.html` resources; Markdown consumes them through ordinary tags
+  and props. The standalone Expressmark renderer uses its safe HTML profile unless its host
+  explicitly admits trusted elements and attributes.
 - Front matter is a YAML mapping at the very start of the file, opened by a `---` line and closed
   by a `---` or `...` line. Its first line that is not blank or a comment starts with a key, and
   each value may be a scalar, a list or a mapping. It is page metadata and renders nothing. Markupress reads its fields
@@ -148,34 +156,14 @@ the colon, and lines indented four spaces continue it, so a note holds paragraph
 A reference with no definition is text, and a definition no text refers to renders nothing; for
 the same label twice, the first definition is the note.
 
-The notes are numbered in the order they are first referred to and render after the document,
-in GitHub's form. A reference is a superscript link to its note, described by the notes' heading,
-and each note links back to every reference to it:
-
-```html
-<p>The build writes a log<sup><a href="#fn:log" id="fnref:log" data-footnote-ref aria-describedby="footnote:label">1</a></sup>, kept for a week<sup><a href="#fn:log" id="fnref:log:2" data-footnote-ref aria-describedby="footnote:label">1</a></sup>.</p>
-<section data-footnotes class="footnotes">
-<h2 id="footnote:label" class="sr-only">Footnotes</h2>
-<ol>
-<li id="fn:log">
-<p>The log holds every step.</p>
-<p>It is plain text. <a href="#fnref:log" data-footnote-backref aria-label="Back to reference 1">↩</a> <a href="#fnref:log:2" data-footnote-backref aria-label="Back to reference 1-2">↩<sup>2</sup></a></p>
-</li>
-</ol>
-</section>
-```
-
-The IDs hold a colon, which no heading anchor does: `fn:label` for a note, `fnref:label` for its
-first reference and `fnref:label:2` for the next. A renderer hides the `sr-only` heading visually,
-and keeps it for screen readers. LoomaEditor reads a reference as the `loomaFootnoteReference`
-node, `{ label }`, and the notes as `loomaFootnotes` holding a `loomaFootnote`, `{ label }`, per
-note. It numbers them again on every edit and saves the HTML above, back-links included, and its
-Markdown writes each note as a definition after the text, in reference order.
+Notes render after the document in first-reference order, with numbered references and links
+back to every use. A missing definition leaves its reference as text. The renderer owns the
+accessible reference and backlink markup; it is separate from the editor's saved HTML.
 
 ## Code blocks
 
 ````md
-```ts title="config.ts" {1,3-4} :line-numbers
+```ts {highlight="1,3-4" show-line-numbers title="config.ts"}
 export default {
   name: "docs",
   base: "/docs/",
@@ -184,31 +172,18 @@ export default {
 ```
 ````
 
-The fence's info string is a language and then any of:
+The fence starts with its language and an optional attribute list:
 
-| Meta | Meaning |
+| Attribute | Meaning |
 | --- | --- |
 | `title="config.ts"` | A caption above the code. |
-| `{1,3-4}` | Highlight lines 1, 3 and 4. |
-| `:line-numbers` or `:no-line-numbers` | Number the lines, or leave them unnumbered, whatever the site default. |
+| `highlight="1,3-4"` | Highlight lines 1, 3 and 4. |
+| `show-line-numbers` | Number the lines. |
+| `show-line-numbers=false` | Leave lines unnumbered, regardless of the site default. |
 
-The language is the first word, up to a space, `{` or `:`, so `ts{1}` and `ts:line-numbers` also
-name `ts`. Everything after the language is the code block's meta, kept as written. A line that
-ends with a `[!code highlight]` comment is highlighted, and the comment is removed from the code
-readers see, so the canonical HTML holds the code without it. The comment can be `//`, `#`, `--`,
-an HTML comment or a block comment. `[!code highlight:3]` covers three lines; alone on its own
-line, the marker is removed with its line and applies to the lines after it. LoomaEditor edits
-the source, so it keeps the comment and writes it back.
-
-To show a marker as text, put a backslash between `[` and `!`, as a backslash escapes `\:::` and
-a heading's braces elsewhere. The escaped marker highlights nothing and shows with one backslash fewer, so this
-example's source reads `[\!code highlight]`:
-
-```text
-const port = 8080; // [\!code highlight]
-```
-
-A fence is longer than any run of backticks inside it.
+Expressmark keeps unrecognized info-string text in the code node's `meta`. Markupress owns
+syntax highlighting and these presentation attributes; source comments remain literal code.
+A fence is longer than any run of its marker inside the code.
 
 ## Tables
 
@@ -218,9 +193,9 @@ A fence is longer than any run of backticks inside it.
 | looma | 0.28.0 | Components |
 ```
 
-A table is a GFM table when it fits one: a single header row, one alignment per column, inline
-content in each cell, and no cell backgrounds, merged cells or set column widths. Any other table
-is HTML, with alignment and background as `style` on each cell, `colspan` and `rowspan` for
+A pipe table fits a single header row, one alignment per column and inline content in each cell.
+Expressive Markdown also supports named and positional list tables for rich cells. Native HTML
+tables remain available, with alignment and background as `style`, `colspan` and `rowspan` for
 merged cells, and block content inside cells.
 
 ```html
@@ -253,18 +228,18 @@ to the document.
 ## Figures
 
 ```md
-::: figure The build, from *source* to release
+::: figure [The build, from *source* to release]
 ![The build pipeline](./pipeline.svg)
 :::
 ```
 
-`::: figure Caption` wraps an image in `<figure>`, with the title line as its `<figcaption>`. The
+`::: figure [Caption]` wraps an image in `<figure>`, with the title line as its `<figcaption>`. The
 caption is inline Markdown, so it can hold formatting and links.
 
 ## Callouts
 
 ```md
-::: warning Before you upgrade
+::: warning [Before you upgrade]
 Back up your data first.
 :::
 
@@ -276,79 +251,85 @@ Back up your data first.
 | --- | --- |
 | Tones | `note`, `tip`, `info`, `important`, `warning`, `danger`. `caution` is an alias of `danger`. |
 | Component | `<ui-callout tone="tip" heading="Title">…</ui-callout>`. `heading` is optional. |
-| Markdown | `::: tip Title` … `:::`, where the title is optional. A GitHub alert also works: `> [!TIP]`, as the first line of a quote. |
+| Markdown | `::: tip [Title]` … `:::`, where the title is optional. A GitHub alert also works: `> [!TIP]`, as the first line of a quote. |
 | Editor | The `loomaCallout` node: `{ tone, heading }` plus block content. It is saved as `<ui-callout>`, and there is one slash command per tone. |
 
-The container name is the tone, matched without regard to case. Its title is the rest of the
-opening line, written as the `heading` attribute exactly as it stands. A GitHub alert has no
-title. `[!CAUTION]` and `::: caution` mean `danger`, and writers write `danger`.
+The container name is the tone. Its bracketed title supplies the component's `heading` attribute. A GitHub alert has no
+title in this example. `[!CAUTION]` and `::: caution` map to the danger component tone.
 
 `note` is the muted aside of Docusaurus's `:::note`, not GitHub's blue NOTE. Callout also keeps
-`neutral` (the same look as `note`) and `success`, which are component tones only.
+`neutral` (the same look as `note`) and `success`.
 
 ## Details
 
 ```md
-::: details Show the full log {open}
+::: details [Show the full log] {open}
 The build finished in 42 seconds.
 :::
 ```
 
 | Part | Form |
 | --- | --- |
-| Component | `<ui-disclosure summary="Title">…</ui-disclosure>` |
-| Markdown | `::: details Title` … `:::`. Add ` {open}` after the title to start expanded. The title defaults to "Details". |
+| Markupress HTML | `<details><summary>Title</summary>…</details>` |
+| Markdown | `::: details [Title]` … `:::`. Add ` {open}` after the title to start expanded. The title defaults to "Details". |
 | Editor | The `loomaExpand` node: `{ summary, open }` plus block content. It is edited through Disclosure and saved as native `<details><summary>Title</summary>…</details>`. |
 
 The editor saves native `<details>`, which opens and closes without JavaScript and which a
-browser's find-in-page can reveal. A renderer may write the same native element in place of
-Disclosure when its page styles it.
+browser's find-in-page can reveal. Markupress uses that native disclosure structure too.
 
 ## Tabs
 
 ````md
-::: tabs install
-== npm
+::: tab [npm]
 ```sh
 npm install @threadlabs/looma
 ```
-== pnpm
+:::
+
+::: tab [pnpm]
 ```sh
 pnpm add @threadlabs/looma
 ```
 :::
-
-::: code-group
-```js title="looma.config.js"
-export default { theme: "light" };
-```
-```ts title="looma.config.ts"
-export default { theme: "light" } satisfies Config;
-```
-:::
 ````
 
-`::: tabs` holds panels, each starting at an `== Label` line. `::: code-group` holds fences, and
-each fence is a panel labelled by its title, or by its language when it has none; `== Label`
-lines work there too. Both map to `<ui-tabs group="name">`, whose group is the container's title
-or, without one, its name. Tabs in one group keep the same selection across the page, matched by
-tab label, and remember it for the next visit.
+Adjacent `::: tab [Label]` containers form one tab group. Each panel contains ordinary Markdown,
+including code fences, lists or paragraphs. Labels belong to panels; a code fence's title is a
+separate caption. Write each panel's own closing fence before the next panel.
+
+Generated component references also use native `<ui-tabs>` and `<section aria-label="…">`
+wrappers with Markdown fences inside them. Those are ordinary HTML component invocations.
+Standard Markdown inside HTML keeps the code literal while the native component owns tab
+behavior.
 
 ## Containers
 
-1. An opening line is three or more colons, a block name and an optional title. The block names
-   are the callout tones, `caution`, `details`, `figure`, `tabs` and `code-group`, matched without
-   regard to case. A line with any other name is ordinary text.
-2. A closing line is three or more colons alone, and it closes the innermost open container. A
-   container with no closing line runs to the end of the block that holds it. Writers give an
-   outer container more colons than any container inside it (`::::` around `:::`), so the nesting
-   shows in the source.
-3. A marker line inside fenced code is code.
-4. A trailing `{open}` is a flag only on `details`. On any other container it is part of the
-   title.
+An opening line is three or more colons, a semantic name and an optional bracketed title and
+attribute list. A closing fence uses the same number of colons as its opener. Make an outer
+container's fence longer than a nested container's fence:
 
-The content between the lines is ordinary Markdown. `== Label` lines start panels only directly
-inside tabs and code groups.
+```md
+:::: warning [Check the migration]
+::: details [Backup steps] {open}
+Create a backup before proceeding.
+:::
+::::
+```
+
+The content between the fences is ordinary Markdown. A marker inside a code fence stays code.
+Attributes follow the title: `::: details [Summary] {open}` starts expanded.
+
+## HTML Next components
+
+Define a component in its own HTML resource, then link and invoke it from Markdown:
+
+```html
+<link rel="component" href="./components/project-status.html">
+<project-status label="Ready"></project-status>
+```
+
+Props on a component invocation are ordinary HTML attributes. Definition expressions belong in
+the external resource, where HTML Next declares the component's inputs and behavior.
 
 ## Chips
 
@@ -388,65 +369,42 @@ level listed, `1` to `3` (default `3`), and `format` is `plain` (default), `bull
 `numbered`. LoomaEditor saves it as `<nav data-looma-toc data-format="numbered" data-depth="2">`
 and fills in the links from the current headings.
 
-## Implementing Looma Markdown
+## Parsing and rendering
 
-`@threadlabs/looma/markdown` holds the shared rules, with no DOM or parser, so it can be imported
-anywhere, including during server rendering:
-
-| Export | Use |
-| --- | --- |
-| `LOOMA_MEANING_TONES`, `LOOMA_BADGE_TONES`, `LOOMA_CALLOUT_TONES`, `normalizeLoomaCalloutTone`, `LOOMA_CHIP_TONES`, `normalizeLoomaChipTone`, `LOOMA_CONTAINER_NAMES` | The vocabulary. |
-| `parseLoomaAttributes`, `readLoomaAttributes`, `formatLoomaAttributes` | Brace attributes. |
-| `loomaHeadingSlug`, `assignLoomaHeadingIds` | The heading anchor rule. |
-| `parseLoomaFenceInfo` | A fence's language, title, highlighted lines and line numbers. |
-| `applyLoomaCodeNotation` | Code without its `[!code highlight]` comments, and the lines they highlight. |
-| `splitLoomaFrontmatter` | Front matter and the body after it. |
-| `loomaContainerMarker`, `loomaCodeFence` | The colons and backticks a writer uses. |
-
-`@threadlabs/looma/markdown/markdown-it` is the reference implementation:
-`createLoomaMarkdownIt()` returns a markdown-it instance that renders the canonical HTML, and
-`loomaMarkdown` is the same rules as a plugin for an instance of your own. Both take
-`{ codeNotation: "keep" }` for an editor, which keeps `[!code highlight]` comments in the code.
-
-`@threadlabs/looma/markdown/fixtures` is the conformance suite. `LOOMA_MARKDOWN_FIXTURES` holds
-one case per file set: Markdown in, the canonical HTML out, and the Markdown a writer produces.
-The cases are grouped by the features in the table below. `normalizeLoomaHtml(html)` makes two
-renderings comparable: it sorts attributes, collapses whitespace outside code, and unwraps
-presentation a renderer adds (heading self-links, a code figure with its actions, highlighting
-inside code). It needs a DOM; pass a `Document` where there is no global one.
+Use Expressmark directly when processing documentation outside Markupress:
 
 ```ts
-import { createLoomaMarkdownIt } from "@threadlabs/looma/markdown/markdown-it";
-import { LOOMA_MARKDOWN_FIXTURES, normalizeLoomaHtml } from "@threadlabs/looma/markdown/fixtures";
+import { parse, stringify } from "expressmark";
+import { renderHtml } from "expressmark/render";
 
-const md = createLoomaMarkdownIt();
-for (const fixture of LOOMA_MARKDOWN_FIXTURES) {
-  console.assert(normalizeLoomaHtml(md.render(fixture.markdown)) === normalizeLoomaHtml(fixture.html), fixture.name);
-}
+const document = parse(source, { syntax: "standard" });
+const html = renderHtml(document);
+const markdown = stringify(document, { syntax: "standard", preferredForms: true });
 ```
 
-## Support
+`renderHtml` has a safe default HTML profile and supports semantic node transformers. Markupress
+owns its documentation transforms, trusted component resources, asset resolution and theme;
+standalone renderer output does not load Looma automatically. Avoid another component parser or
+runtime in a documentation host.
 
-| Feature | Fixtures | Markupress | LoomaEditor reads | LoomaEditor writes |
-| --- | --- | --- | --- | --- |
-| Text and line breaks | `text` | Yes | Yes | Yes |
-| Autolinks | `autolinks` | Yes | Yes | As `<url>` and links |
-| Headings | `headings` | Yes | Yes | Yes |
-| Heading anchors | `heading-ids` | Splits accented letters: "Über" is `u-ber` | Yes | Yes |
-| Lists, quotes and rules | `lists` | Yes | Yes | Yes |
-| Task lists | `task-lists` | Yes | Yes | Yes |
-| Footnotes | `footnotes` | Yes | Yes | Yes |
-| Code blocks | `code-blocks` | Yes | Yes | Yes |
-| Code meta | `code-meta` | Yes | Yes | Yes |
-| Tables | `tables` | Yes | Yes | Yes |
-| Images | `images` | Yes | Yes | Yes |
-| Image size and placement | `image-attributes` | — | Yes | Yes |
-| Figures | `figures` | — | Yes | Yes |
-| Callouts and alerts | `callouts` | Yes | Yes | Yes |
-| Details | `details` | Yes | Yes | Yes |
-| Tabs and code groups | `tabs` | Yes | Yes | Yes |
-| Containers | `containers` | Closes by colon count | Yes | Yes |
-| Chips | `chips` | — | Yes | Yes |
-| Mentions | `mentions` | — | Yes | Yes |
-| Table of contents | `toc` | — | Yes | Yes |
-| Front matter | `front-matter` | Page metadata | On paste, as a YAML code block | Left to the host |
+`@threadlabs/looma/markdown` still exports editor vocabulary, heading and code helpers. Its
+`markdown-it` adapter and `@threadlabs/looma/markdown/fixtures` describe the retained editor
+format, not conformance to the Expressive Markdown standard or Markupress rendering. Use the
+Expressmark AST and renderer for new documentation integrations.
+
+## Editor interchange
+
+Use `@threadlabs/looma/editor/expressmark` for portable editor conversion:
+
+```ts
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+
+const markdown = editorDocumentToMarkdown(savedEditorJson, { syntax: "standard" });
+const restoredEditorJson = markdownToEditorDocument(markdown, { syntax: "standard" });
+```
+
+Without that option, the adapter selects `compatible` syntax. The editor keeps Tiptap JSON as
+its saved document. Features outside its schema raise a conversion error; arbitrary
+component definitions or invocations are documentation content and do not become editor
+nodes automatically. Keep page metadata in the host application. See the
+[editor guide](/editor) for its editing and import/export contracts.

@@ -119,6 +119,9 @@ test('catalog descriptions and snippet language names cannot mount a controller 
     const body = reference.replace(/^---\n[\s\S]*?\n---\n/, '');
     assert.ok(!body.includes('<evil-writer>'));
     assert.ok(!body.includes('href="evil.html"'));
-    assert.match(reference, /&lt;evil-writer&gt;/);
+    const { compileMarkdown } = await import('markupress');
+    const { resource } = await compileMarkdown(reference, { file: '/tmp/inert-reference.md', pageName: 'inert-reference' });
+    const renderedDescription = /<div class="component-description">([\s\S]*?)<\/div>/.exec(resource)?.[1];
+    assert.match(renderedDescription, /&lt;evil-writer&gt;/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

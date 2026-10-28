@@ -12,20 +12,27 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D 'markupress@>=0.10.3 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
+pnpm add -D 'markupress@>=0.12.0 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.10.3 and later compatible 0.x releases supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.12.0 and later compatible 0.x releases render authored documentation with Expressmark’s standard syntax and supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
-| File | Purpose |
-| --- | --- |
-| `looma.docs.json` | Documentation title, content, discovery roots and theme paths. |
-| `looma.theme.json` | Editable semantic decisions. |
-| `looma.theme.css` | Generated theme, including the shared derivation rules. |
+::: table
+
+- File: `looma.docs.json`
+  Purpose: Documentation title, content, discovery roots and theme paths.
+
+- File: `looma.theme.json`
+  Purpose: Editable semantic decisions.
+
+- File: `looma.theme.css`
+  Purpose: Generated theme, including the shared derivation rules.
+
+:::
 
 Import `./looma.theme.css` after Looma's tokens and palette in your application's entry point. The initializer prints that import; it leaves existing application files intact. Commit the configuration, recipe and CSS. Add `.looma/` to your project's ignore file: it contains disposable generated documentation and tooling files.
 
@@ -137,15 +144,30 @@ locally saved CSS. System font uses the operating system and needs no download.
 
 The [public token reference](https://github.com/threadlabs-studio/looma/blob/main/apps/docs-next/docs/03.%28Foundations%29/tokens.md#optional-semantic-theme-recipe) lists defaults, customizer ranges, dependencies and derived outputs for every family. The recipe's `values` keys map to public CSS properties or generator decisions as follows. Values are strings; omitted keys take defaults and unknown keys are rejected.
 
-| Family | Recipe decisions → CSS properties |
-| --- | --- |
-| Base colors | `action` → `--ui-accent`; `canvas` → `--ui-surface`; `surface` → `--ui-surface-raised`; `text` → `--ui-text` |
-| Palette generation (recipe only) | `warmth`, `color-intensity`, `palette-relationship`, optional `secondary-action`/`tertiary-action`, `neutral-source`, `neutral-strength`, `neutral-border-contrast`, `status-chroma`, each status’s `*-source`, and `selection-accent`/`focus-accent`/`link-accent`; compiled into resolved color roles, with no matching CSS custom properties |
-| Type | `body-font` → `--ui-font-sans`; `display-font` → `--ui-font-display`; `text-size` → `--ui-font-size`; `label-size` → `--ui-field-label-font-size` (`inherit` follows body); `text-weight` → `--ui-font-medium` |
-| Rhythm & spacing | `rhythm` → `--ui-rhythm`; `control-roominess` → `--ui-control-roominess`; `spacing` → `--ui-spacing`; `scale-contrast` → `--ui-scale-ratio`; `space-curve` → `--ui-space-curve`; `corner-roundness` → `--ui-radius-md`; `line-weight` → `--ui-border-width` |
-| Depth and transmission | `outer-depth` → `--ui-outer-depth`; `inner-depth` → `--ui-inner-depth`; `glassiness` → `--ui-glassiness`; `surface-separation` → `--ui-surface-separation`; `translucency` → `--ui-overlay-translucency` |
-| Finish and illumination | `finish` → `--ui-finish`; `edge-light` → `--ui-edge-light`; `glow` → `--ui-glow`; `light-x` → `--ui-light-x`; `light-y` → `--ui-light-y`; `light-spread` → `--ui-light-spread`; `light-strength` → `--ui-light-strength` |
-| Motion | `response-time` → `--ui-motion-fast`; `response-curve` → `--ui-motion-ease` |
+::: table
+
+- Family: Base colors
+  Recipe decisions → CSS properties: `action` → `--ui-accent`; `canvas` → `--ui-surface`; `surface` → `--ui-surface-raised`; `text` → `--ui-text`
+
+- Family: Palette generation (recipe only)
+  Recipe decisions → CSS properties: `warmth`, `color-intensity`, `palette-relationship`, optional `secondary-action`/`tertiary-action`, `neutral-source`, `neutral-strength`, `neutral-border-contrast`, `status-chroma`, each status’s `*-source`, and `selection-accent`/`focus-accent`/`link-accent`; compiled into resolved color roles, with no matching CSS custom properties
+
+- Family: Type
+  Recipe decisions → CSS properties: `body-font` → `--ui-font-sans`; `display-font` → `--ui-font-display`; `text-size` → `--ui-font-size`; `label-size` → `--ui-field-label-font-size` (`inherit` follows body); `text-weight` → `--ui-font-medium`
+
+- Family: Rhythm & spacing
+  Recipe decisions → CSS properties: `rhythm` → `--ui-rhythm`; `control-roominess` → `--ui-control-roominess`; `spacing` → `--ui-spacing`; `scale-contrast` → `--ui-scale-ratio`; `space-curve` → `--ui-space-curve`; `corner-roundness` → `--ui-radius-md`; `line-weight` → `--ui-border-width`
+
+- Family: Depth and transmission
+  Recipe decisions → CSS properties: `outer-depth` → `--ui-outer-depth`; `inner-depth` → `--ui-inner-depth`; `glassiness` → `--ui-glassiness`; `surface-separation` → `--ui-surface-separation`; `translucency` → `--ui-overlay-translucency`
+
+- Family: Finish and illumination
+  Recipe decisions → CSS properties: `finish` → `--ui-finish`; `edge-light` → `--ui-edge-light`; `glow` → `--ui-glow`; `light-x` → `--ui-light-x`; `light-y` → `--ui-light-y`; `light-spread` → `--ui-light-spread`; `light-strength` → `--ui-light-strength`
+
+- Family: Motion
+  Recipe decisions → CSS properties: `response-time` → `--ui-motion-fast`; `response-curve` → `--ui-motion-ease`
+
+:::
 
 Palette generation decisions exist only in the JSON recipe; edit it and regenerate to change resolved colors. Geometry, material and motion properties feed the included CSS recipe. `--ui-control-size` remains a derived public height role: author numeric roominess (default 2.5, range 2–4) instead of an absolute control size. Spacing (default 1, range 0.75–1.5) changes space without changing heights. Base text defaults to `16px` and sets the document root. Type and geometry derive from `1rem` once; the base editor accepts only px. Other relative length inputs preserve their units; editor ranges convert through the chosen root, and generated guards keep the documented pixel bounds. Visible size samples report actual rem/px heights. Set the base on `:root`; opposite-mode boundaries retain that same rem root.
 
