@@ -87,6 +87,16 @@ the `packageName` you configure below. That is package attribution, not the
 name of your design system. Shared CSS and recipe filenames are configured
 under `theme`; changing a site title does not require renaming those files.
 
+A navigation link with `"position": "start"` appears before the generated component and
+editor sections. Other links keep their order after those sections:
+
+```json
+{ "nav": [{ "label": "Get started", "href": "/getting-started/", "position": "start" }] }
+```
+
+For documentation-site Markdown syntax and publishing options, see the
+[Markupress documentation](https://threadlabs-studio.github.io/markupress/).
+
 ## Change the rule, keep the family consistent
 
 The authoring model groups shared decisions as Colour, Type, Size & spacing, Material and Motion. The controls expose shared intent: control roominess relative to text, rhythm, spacing, corners, inner and outer depth, and response pace.

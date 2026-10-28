@@ -10,6 +10,7 @@ import { customizerResource } from './customizer-render.mjs';
 import { catalogResource } from './catalog-view.mjs';
 import { cacheDirectory, rejectSymlink, withBuildLock } from './workspace.mjs';
 import { googleFontURL } from './fonts.mjs';
+import { orderNavigation } from './navigation.mjs';
 
 const own = name => fileURLToPath(new URL(name, import.meta.url));
 /** Resolve import-only optional tooling peers in the consumer's ESM package scope. */
@@ -194,7 +195,10 @@ export async function documentationOptions(site) {
   const savedCSS = (site.config.themeCSSContents ?? themeCSS(recipe)).replace(`@import url("${imported}");`, remaining ? `@import url("${remaining}");` : '');
   await writeFile(savedTheme, savedCSS);
   const themeStyles = [savedTheme, ...await portableThemeStyles(site)];
-  return { ...options, plugins: [...options.plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) },
+  const plugins = options.plugins.map(plugin => plugin.name === 'markupress' ? { ...plugin,
+    config: async current => orderNavigation(await plugin.config(current), { nav: site.config.nav, base: site.base }),
+  } : plugin);
+  return { ...options, plugins: [...plugins, { name: 'looma-saved-theme', config: () => ({ css: themeStyles }) },
     // Markupress supplies its head script in its own config hook; compose after it.
     { name: 'looma-browser-theme', config: async current => ({ headScript: [current.headScript, await themeBootstrap(site)].filter(Boolean).join('\n;\n') }) }] };
 }

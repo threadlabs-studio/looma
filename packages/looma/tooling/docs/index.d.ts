@@ -21,7 +21,7 @@ export interface ThemeRecipe { schemaVersion: 1; values: Record<string, string>;
 export interface ThemeField { family: string; id: string; label: string; property: string | null; type: string; defaultValue: string; description: string; min?: number; max?: number; choices?: Record<string, string> }
 export interface DocumentationConfiguration {
   title?: string; base?: string; origin?: string; outDir?: string; content?: string;
-  logo?: string | { light: string; dark?: string }; nav?: { label: string; href: string }[];
+  logo?: string | { light: string; dark?: string }; nav?: { label: string; href: string; position?: 'start' }[];
   components?: DiscoveryRoot[]; catalogs?: string[]; categories?: Record<string, string>;
   theme?: { recipe?: string; css?: string }; overrides?: string[];
   recipe?: ThemeRecipe;
