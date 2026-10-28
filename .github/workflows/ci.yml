@@ -132,7 +132,7 @@ jobs:
       - name: Storybook visual regression
         run: |
           if [ "${{ matrix.shard }}" = "1" ]; then
-            node apps/storybook/scripts/run-storywright-docker.mjs test '--grep=^(ui-button |ui-callout clear |ui-card (looma|clear|gold) )'
+            node apps/storybook/scripts/run-storywright-docker.mjs test '--grep=(ui-button |ui-callout clear |ui-card (looma|clear|gold) )'
           else
             node apps/storybook/scripts/run-storywright-docker.mjs test --shard=${{ matrix.shard }}/8
           fi
