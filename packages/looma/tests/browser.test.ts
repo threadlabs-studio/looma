@@ -3790,12 +3790,12 @@ describe("Shared action edges", () => {
         const icon = () => h(Icon, { name: "chevron-down" });
         createApp({ render: () => [
           ...["3", "30", "99+"].map((count, index) => h(Cluster, { align: "center", wrap: "nowrap", style: { "--ui-cluster-gap": "0", "--ui-action-radius": "0" } }, () => [
-            h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
-            h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
+            h(Button, { id: "primary-" + index, variant: "solid", tone: "accent", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
+            h(IconButton, { id: "more-" + index, variant: "solid", tone: "accent", size: "sm", matchButton: true, label: "More actions" }, icon),
           ])),
           h(Button, { id: "stop", variant: "solid", tone: "neutral" }, () => "Stop"),
           h(IconButton, { id: "stop-icon", variant: "solid", tone: "neutral", label: "Stop" }, icon),
-          h(Button, { id: "outline" }, () => "View changes"),
+          h(Button, { id: "outline", tone: "accent" }, () => "View changes"),
           h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
           h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
           h(Button, { id: "link", variant: "link", href: "#" }, () => "Link"),
@@ -3806,11 +3806,11 @@ describe("Shared action edges", () => {
       `);
       const body = adapter === "vue" ? '<div id="app"></div>' : ["3", "30", "99+"].map((count, index) => `
         <ui-cluster align="center" wrap="nowrap" style="--ui-cluster-gap: 0; --ui-action-radius: 0">
-          <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
-          <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+          <ui-button id="primary-${index}" variant="solid" tone="accent" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
+          <ui-icon-button id="more-${index}" variant="solid" tone="accent" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         </ui-cluster>`).join("") + `
         <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
-        <ui-button id="outline">View changes</ui-button>
+        <ui-button id="outline" tone="accent">View changes</ui-button>
         <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" href="#">Link</ui-button>
         <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
@@ -3826,11 +3826,37 @@ describe("Shared action edges", () => {
           assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
           assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
           assert.equal(await shadow("stop"), await shadow("stop-icon"), "neutral filled actions share the restrained recipe");
-          for (const id of ["primary-0", "more-0", "outline", "outline-icon", "stop", "stop-icon"]) {
-            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting boxed controls have one edge without a face gradient");
+          for (const id of ["primary-0", "more-0"]) {
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting filled accents have one edge without a face gradient");
             assert.equal((await shadow(id)).match(/inset/g)?.length, 2, "one highlight and one lowlight do not stack with another bevel");
             assert.equal((await shadow(id)).split(/,(?![^()]*\))/).length, 3, "the edge pair has only one ambient lift layer");
           }
+          for (const id of ["outline", "outline-icon", "stop", "stop-icon"]) {
+            const quietShadow = await shadow(id);
+            assert.equal(quietShadow, await shadow("stop"), "outlines and neutral fills share quiet elevation");
+            assert.ok(!quietShadow.includes("inset"), `${id} has no raised bevel`);
+            assert.equal(quietShadow.split(/,(?![^()]*\))/).length, 1, `${id} retains one ambient lift layer`);
+            assert.notEqual(quietShadow, "none", `${id} retains quiet elevation`);
+          }
+          for (const id of ["stop", "stop-icon"]) assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "neutral fills do not acquire an accent wash");
+          for (const id of ["outline", "outline-icon"]) {
+            const wash = async (alpha: number) => page.locator("#" + id).evaluate((element, alpha) => {
+              const probe = document.createElement("span");
+              probe.style.color = `oklch(from var(--ui-accent) l c h / ${alpha}%)`;
+              element.append(probe);
+              const color = getComputedStyle(probe).color;
+              const background = getComputedStyle(element).backgroundImage;
+              probe.remove();
+              return { expected: `linear-gradient(${color}, ${color})`, background };
+            }, alpha);
+            await page.mouse.move(0, 0);
+            let colors = await wash(8);
+            assert.ok(colors.background.startsWith(colors.expected), `${id} rests over a translucent accent wash`);
+            await page.locator("#" + id).hover();
+            colors = await wash(12);
+            assert.ok(colors.background.startsWith(colors.expected), `${id} strengthens its accent wash on hover`);
+          }
+          await page.mouse.move(0, 0);
           for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
           for (let index = 0; index < 3; index++) {
             const count = await page.locator(`#primary-${index} :is([data-component~="ui-badge"], .ui-badge)`).evaluate(element => {
@@ -3872,8 +3898,8 @@ describe("Shared action edges", () => {
             await page.mouse.up();
           }
           await page.evaluate(() => document.documentElement.dir = "rtl");
-          assert.ok((await shadow("outline")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
-          assert.ok((await shadow("outline")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
+          assert.ok((await shadow("primary-0")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
+          assert.ok((await shadow("primary-0")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
           await page.evaluate(() => document.documentElement.dir = "ltr");
         }
         await page.evaluate(() => document.documentElement.style.setProperty("--ui-action-shadow", "0 0 0 2px rgb(1 2 3)"));

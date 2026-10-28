@@ -538,7 +538,7 @@
     }
 
     /* Disabled is a flat neutral control, independent of the active variant's tone. */
-    :host:disabled {
+    :host[data-tone]:disabled {
       border-color: var(--ui-disabled-border);
       background-color: var(--ui-disabled-surface);
       color: var(--ui-disabled-text);
