@@ -30,25 +30,22 @@ test('prerenders examples in shared cards without frame documents, including beh
     const site = await prepareDocumentation({ root, catalog, config: { title: 'A design system', base: '/system/' } });
     const button = await readFile(path.join(site.content, 'components/03.(Forms)/ui-button.md'), 'utf8');
     assert.equal(catalog.groups.at(-1).id, 'extras');
-    const lightEditor = await readFile(path.join(site.content, 'components/06.(Extras)/ui-light-editor.md'), 'utf8');
+    const extrasDirectory = `${String(catalog.groups.findIndex(group => group.id === 'extras') + 1).padStart(2, '0')}.(Extras)`;
+    const lightEditor = await readFile(path.join(site.content, 'components', extrasDirectory, 'ui-light-editor.md'), 'utf8');
     assert.match(lightEditor, /LightEditor/);
     assert.match(button, /looma-example-card/);
     assert.match(button, /<div slot="preview"><div data-preview=/);
     assert.doesNotMatch(button, /iframe|\/_looma\/preview\//);
     assert.match(button, /Framework props/);
     assert.match(button, /Emphasis: how loudly/);
-    assert.ok(site.examples.length > 290);
     assert.ok(site.examples.some(example => example.behavior));
     assert.ok(site.examples.some(example => example.resizable));
     const preview = await readFile(site.examples.find(example => example.behavior).file, 'utf8');
     assert.match(await readFile(site.examples.find(example => example.behavior).file.replace(/\.html$/, ".js"), "utf8"), /setupExample/);
     assert.doesNotMatch(preview, /mk:navigation|<title>/);
-    assert.ok(site.catalog.components.length > 75);
-    const editor = catalog.components.find(component => component.group === 'editor' && !component.navigationParent);
-    const editorPage = await readFile(path.join(site.content, 'editor', editor.tag + '.md'), 'utf8');
-    assert.match(editorPage, /looma-example-card/);
-    const { componentPath } = await import('./render.mjs');
-    assert.equal(componentPath(editor), `/editor/${editor.tag}/`);
+    assert.equal(site.catalog.components.length, catalog.components.length);
+    assert.ok(!catalog.components.some(component => component.tag.startsWith('ui-editor-')));
+    assert.ok(catalog.resources.some(resource => resource.tag === 'ui-editor-toolbar'), 'the complete Editor retains its internal resources');
     const directory = await readFile(path.join(site.content, 'components/index.md'), 'utf8');
     assert.match(directory, /looma-example-card/);
     assert.match(directory, /category="forms"/);
@@ -57,14 +54,15 @@ test('prerenders examples in shared cards without frame documents, including beh
     assert.match(forms, /<looma-catalog category="forms"/);
     assert.deepEqual([...forms.matchAll(/<looma-example-card[^>]* tag="([^"]+)"/g)].map(match => match[1]),
       catalog.components.filter(component => component.group === 'forms' && !component.navigationParent).map(component => component.tag));
-assert.match(directory, /data-preview=/);
+    assert.match(directory, /data-preview=/);
     const swatches = site.examples.find(example => example.component.endsWith('/ui-color-picker') && example.markup.includes('<ui-input'));
 
     assert.match(await readFile(swatches.file, 'utf8'), /ui-input\/ui-input.html/);
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
     assert.match(customizer, /<looma-preview-choice slot="preview"/);
     assert.match(customizer, /removable/);
-    assert.match(customizer, /summary="Advanced material"/);
+    assert.match(customizer, /data-customizer-summary/);
+    assert.doesNotMatch(customizer, /summary="Advanced material"/);
     assert.match(customizer, /Frosting/);
     assert.match(customizer, /Transparency/);
     assert.equal((customizer.match(/id="theme-light-color"/g) ?? []).length, 1, 'environment light appears only under Material');

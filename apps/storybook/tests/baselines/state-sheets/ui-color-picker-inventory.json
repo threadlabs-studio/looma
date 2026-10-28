@@ -5,6 +5,20 @@
     "example": 1
   },
   {
+    "name": "clearable: false",
+    "props": {
+      "clearable": false
+    },
+    "example": 1
+  },
+  {
+    "name": "clearable: true",
+    "props": {
+      "clearable": true
+    },
+    "example": 1
+  },
+  {
     "name": "disabled: false",
     "props": {
       "disabled": false
@@ -62,6 +76,11 @@
     "name": "Example: 01-shapes-and-sizes",
     "props": {},
     "example": 1
+  },
+  {
+    "name": "Example: 02-optional",
+    "props": {},
+    "example": 2
   },
   {
     "name": "hover",

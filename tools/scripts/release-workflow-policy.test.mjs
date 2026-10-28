@@ -105,6 +105,15 @@ test("ordinary CI qualifies the same package inputs used by release", async () =
   );
 });
 
+test("CI selection keeps commit history without downloading historical snapshot bytes", () => {
+  for (const name of ["quality", "browser", "release-package"]) {
+    const selected = ciWorkflow.match(new RegExp("\\n  " + name + ":[\\s\\S]*?(?=\\n  [a-zA-Z0-9_-]+:|$)"))?.[0] ?? "";
+    const checkout = selected.match(/uses: actions\/checkout@[\s\S]*?(?=\n      -|$)/)?.[0] ?? "";
+    assert.match(checkout, /fetch-depth: 0/, name + " needs commit history for affected checks");
+    assert.match(checkout, /filter: blob:none/, name + " must avoid fetching historical screenshot blobs");
+  }
+});
+
 test("workflows pin actions to commits and disable checkout credentials", () => {
   for (const source of [workflow, docsWorkflow]) {
     const uses = [...source.matchAll(/uses:\s+([^\s#]+)/g)].map((match) => match[1]);

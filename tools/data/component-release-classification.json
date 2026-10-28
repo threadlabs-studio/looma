@@ -102,55 +102,55 @@
       "package": "@threadlabs/looma"
     },
     "ui-editor-block-actions": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-chip-editor": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-code-language": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-footnote-editor": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-image-toolbar": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-insert-table-grid": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-link-card": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-link-form": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-mention-menu": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-mention-menu-item": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu-group": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-slash-menu-item": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-surface": {
@@ -158,19 +158,19 @@
       "package": "@threadlabs/looma"
     },
     "ui-editor-table-context-menu": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-table-overlay": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-table-toolbar": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-editor-toolbar": {
-      "status": "published",
+      "status": "internal",
       "package": "@threadlabs/looma"
     },
     "ui-floating-action-button": {

@@ -10,6 +10,8 @@
     <prop name="name" type="string" default="">Optional numeric form field name.</prop>
     <prop name="label" type="string" default="Value">Accessible name for the editing control.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and button height.</prop>
+    <prop name="compact" type="boolean" default="false"
+    >Pairs a short exact field with the track, without separate step buttons. Keyboard stepping and arithmetic remain available.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents typing, stepping and pointer or keyboard changes while keeping the value visible.</prop>
     <event name="input" type="object"><prop name="value" type="number" required></prop></event>
     <event name="change" type="object"><prop name="value" type="number" required></prop></event>
@@ -30,6 +32,7 @@
     >
     <ui-number-input
       data-slider-exact
+      from:compact="$compact"
       from:value="concat($current, $unit)"
       from:unit="$unit"
       from:min="$min"
@@ -49,6 +52,9 @@
       margin: 0 !important;
       padding: 0 !important;
       min-inline-size: 0;
+    }
+    :host([compact]) {
+      grid-template-columns: minmax(3rem, 1fr) 5rem !important;
     }
     input {
       inline-size: 100%;

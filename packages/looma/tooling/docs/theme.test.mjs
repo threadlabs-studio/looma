@@ -381,10 +381,10 @@ test('old recipes retain glass property keys, gain neutral light and default to 
   assert.throws(() => validateRecipe({ ...recipe, values: { ...recipe.values, 'light-color': 'red; background:red' } }));
 });
 
-test('glass transmits only through decorative rims and keeps opaque content and zero-blur defaults', () => {
+test('glass keeps a mostly opaque content plane, decorative transmission and zero-blur defaults', () => {
   const system = readFileSync(new URL('../../src/tokens/theme-system.css', import.meta.url), 'utf8');
   assert.doesNotMatch(system, /--ui-overlay-surface:/, "optional group overrides must not mask semantic status surfaces");
-  assert.match(system, /--ui-material-content: var\(--ui-surface-raised\);/);
+  assert.match(system, /--ui-material-content: color-mix\(in srgb, var\(--ui-surface-raised\)/);
   assert.match(system, /--ui-material-glass: color-mix\(in srgb, var\(--ui-surface-raised\) calc\(\(1 - clamp\(0, var\(--ui-overlay-translucency\), 1\)\) \* 100%\), transparent\);/);
   for (const tag of ['ui-card', 'ui-popover', 'ui-dialog', 'ui-menu', 'ui-tooltip']) {
     const html = readFileSync(new URL(`../../src/components/${tag}/${tag}.html`, import.meta.url), 'utf8');
@@ -392,12 +392,12 @@ test('glass transmits only through decorative rims and keeps opaque content and 
     const rim = html.split('\n').find(line => /--_ui-(panel|material)-rim:/.test(line));
     assert.ok(rim.includes('separation') && !rim.includes('glass'), `${tag}: only separation owns rim extent`);
     assert.match(html, /backdrop-filter: blur\(calc\(var\(--_ui-(panel-glass|material-glassiness)\) \*/);
-    assert.match(html, /linear-gradient\(var\(--_ui-(card-surface|material-content-color)\), var\(--_ui-(card-surface|material-content-color)\)\) padding-box/);
-    assert.ok(html.indexOf(') padding-box,') < html.indexOf(') border-box,'), `${tag}: opaque content covers transmitted backdrop`);
+    assert.match(html, /linear-gradient\(var\(--_ui-(card-material-content|material-content-color)\), var\(--_ui-(card-material-content|material-content-color)\)\) padding-box/);
+    assert.ok(html.indexOf(') padding-box,') < html.indexOf(') border-box;'), `${tag}: the content plane covers the decorative backdrop`);
     for (const query of ['prefers-reduced-transparency: reduce', 'forced-colors: active']) {
       const fallback = html.slice(html.indexOf(`@media (${query})`));
       assert.match(fallback, /backdrop-filter: none;/);
-      assert.match(fallback, /background: (var\(--_ui-(card-surface|material-content-color)\)|Canvas);/);
+      assert.match(fallback, /background: (var\(--_ui-card-surface\)|oklch\(from var\(--_ui-material-content-color\) l c h \/ 1\)|Canvas);/);
     }
   }
 });
@@ -422,21 +422,22 @@ test('opposing environmental hues keep readable intermediate material colors', (
 
 
 test('neutral illumination keeps colored material chromatic and neutral material neutral', () => {
-  const pigments = ['#ffb84d', '#ff8c00', '#0066cc', '#7c3aed', '#008842', '#dd2233', '#003366', '#ffffff', '#888888', '#111111'];
+  const pigments = ['#2e1228', '#ffb84d', '#ff8c00', '#0066cc', '#7c3aed', '#008842', '#dd2233', '#003366', '#ffffff', '#888888', '#111111'];
   const hueDistance = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
   for (const action of pigments) for (const mode of ['light', 'dark']) {
     const recipe = defaultRecipe(); recipe.values.action = action;
     const { tokens } = deriveTheme(recipe, { mode });
     const [l, c, h] = toLch(action);
     const [shadeL, shadeC, shadeH] = toLch(tokens['--ui-accent-shade']);
-    const [, reflectedC, reflectedH] = toLch(tokens['--ui-accent-reflection']);
+    const [reflectedL, reflectedC, reflectedH] = toLch(tokens['--ui-accent-reflection']);
     assert.equal(tokens['--ui-accent'], action, 'material never substitutes pigment');
     assert.ok(shadeL <= l + .002 && l - shadeL <= .052, `${action}: restrained perceptual recession`);
     if (c > .02) {
       assert.ok(hueDistance(h, shadeH) < 1, `${action}: shade retains hue`);
       assert.ok(Math.abs(shadeC / shadeL - c / l) < .015, `${action}: shade retains relative saturation`);
       assert.ok(hueDistance(h, reflectedH) < 1, `${action}: neutral light retains reflected hue`);
-      assert.ok(reflectedC >= c * .75, `${action}: reflection keeps chroma rather than whitening the whole pigment`);
+      assert.ok(reflectedC + .002 >= c * Math.max(1, reflectedL / l), `${action}: reflection keeps relative saturation rather than whitening the whole pigment`);
+      if (action === '#2e1228') assert.ok(reflectedC / reflectedL > c / l, 'wine reflection adds relative saturation as it brightens');
     } else {
       for (const part of ['shade', 'reflection', 'specular']) {
         const value = tokens[`--ui-accent-${part}`];
@@ -453,8 +454,11 @@ test('neutral illumination keeps colored material chromatic and neutral material
     const image = system.split('\n').find(line => line.includes(`--ui-${role}-highlight:`));
     assert.ok(image.includes(' in srgb,'), `${role}: checked RGB interpolation is explicit`);
     assert.equal((image.match(/radial-gradient/g) ?? []).length, 1, `${role}: one paint preserves consumer layering`);
-    assert.ok(image.includes(`--ui-${role}-specular`));
-    assert.ok(image.includes('8%') && image.includes('transparent 28%'), `${role}: bright peak is localized before the clear body`);
+    assert.ok(image.includes(`--ui-${role}-reflection`));
+    assert.ok(!image.includes(`--ui-${role}-specular`), `${role}: no isolated bright dot`);
+    assert.ok(image.includes('ellipse farthest-corner'), `${role}: illumination reaches the complete surface`);
+    assert.ok(image.includes('var(--ui-light-spread) * 30%'), `${role}: spread opens the chromatic reflection`);
+    assert.ok(!/, transparent (?:calc|\d)/.test(image), `${role}: no flat clearing between reflection and shade`);
   }
 });
 
@@ -553,6 +557,13 @@ test('Gold is an identified starting theme with portable Google font provenance'
   assert.equal(gold.values.finish,'0.55');
   assert.deepEqual(gold.fonts,{'body-font':'Lato','display-font':'Fraunces'});
   assert.match(themeCSS(gold),/fonts.googleapis.com/);
+  for (const mode of ['light','dark']) {
+    const {tokens}=deriveTheme(gold,{mode});
+    const [l,c,h]=toLch(tokens['--ui-link-color']), [seedL,seedC,seedH]=toLch(gold.values.action);
+    assert.ok(contrast(tokens['--ui-link-color'],tokens['--ui-surface'])>=4.5, `${mode}: gold links clear normal-text contrast`);
+    assert.ok(Math.min(Math.abs(h-seedH),360-Math.abs(h-seedH))<1, `${mode}: readable gold retains its hue`);
+    assert.ok(c/l>=seedC/seedL-.002, `${mode}: darkening does not muddy relative saturation`);
+  }
 });
 
 test('Looma is the coordinated default starting point and carries its font provenance', () => {
@@ -735,7 +746,7 @@ test('Bookish coordinates branded guidance, restrained risk states and supportin
     }
     assert.notEqual(t['--ui-accent-secondary'], t['--ui-accent']);
     assert.notEqual(t['--ui-accent-tertiary'], t['--ui-accent']);
-    assert.equal(recipe.values['focus-accent'], 'secondary');
+    assert.equal(recipe.values['focus-accent'], 'primary');
     assert.equal(recipe.values['selection-accent'], 'primary');
     assert.equal(recipe.values['link-accent'], 'primary');
   }

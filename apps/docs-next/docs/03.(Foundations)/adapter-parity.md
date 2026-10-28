@@ -11,7 +11,7 @@ Adapters project framework props, slots, and callbacks onto Looma's declarative 
 | Adapter | Status | Release 1 promise |
 | --- | --- | --- |
 | `@threadlabs/looma/vue` | Published | Named wrappers for every published layout and core element |
-| `@threadlabs/looma/vue/editor` | Published | Named wrappers for all 7 published editor elements plus Looma editor helpers |
+| `@threadlabs/looma/vue/editor` | Published | The complete rich-text editor and its integration helpers |
 | React | In development | Not published |
 
 Vue and direct declarative HTML examples are the supported public paths.
@@ -26,7 +26,7 @@ The source-derived release check requires a named Vue projection and export for 
 | Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-select`, `ui-listbox`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
 | Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-group`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item`, `ui-nav-item` | Same names in PascalCase |
 | Display and app shell | `ui-text`, `ui-page-header`, `ui-section`, `ui-status-message`, `ui-spinner`, `ui-meter`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-list`, `ui-list-item`, `ui-toast`, `ui-toast-region`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
-| Editor | Seven `ui-editor-*` components | `Editor*` named wrappers |
+| Editor | Complete rich-text editor | `LoomaEditor` |
 
 ## Event and SSR rules
 
