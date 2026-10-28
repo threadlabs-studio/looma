@@ -130,7 +130,7 @@
     "parse5": "^8.0.1"
   },
   "peerDependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.70",
+    "@nextwebwg/html-next": "1.0.0-alpha.69 || 1.0.0-alpha.70",
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",

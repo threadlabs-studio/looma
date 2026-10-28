@@ -19,7 +19,8 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest) 
   await json(path.join(directory, 'package.json'), {
     name: 'looma-documentation-consumer', private: true, type: 'module',
     dependencies: {
-      '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
+      // The supported Markupress minimum uses alpha.69; the other consumers exercise Looma with alpha.70.
+      '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': '1.0.0-alpha.69',
       '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
   });

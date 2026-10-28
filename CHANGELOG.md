@@ -2,7 +2,7 @@
 
 ## Next release
 
-- Use HTML Next alpha.70 across authored and generated components, preserving distinct alternate-language head links sharing a URL.
+- Support the verified HTML Next alpha.69 and alpha.70 artifacts, building against alpha.70. The components use the same public API in both, so existing documentation consumers and consumers needing distinct alternate-language head links can install without peer overrides.
 
 - Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
 
