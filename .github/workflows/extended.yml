@@ -59,7 +59,7 @@ jobs:
         env:
           LOOMA_DOCS_CANONICAL: "1"
           LOOMA_DOCS_REPORT: visual
-        run: pnpm --filter @threadlabs/looma-docs exec playwright test --workers=1 --retries=0 --project=visual
+        run: pnpm --filter @threadlabs/looma-docs test:visual
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()
         with:

@@ -84,7 +84,7 @@ outside this published-component inventory and remain covered by their owners.
 This is a finite state contract, not every possible combination of application
 content and component properties.
 
-`pnpm --dir apps/storybook visual:update` updates these sheets in the pinned rendering container. They cover every published component and its authored examples, including newly added components such as Pagination. The default qualification captures the state sheets once rather than also taking redundant 1280×800 gallery images. CI distributes sheets across eight jobs, each with one browser worker. Inspect changed images and their inventory before committing them. `visual:test` compares the sheets against those references, using one browser worker locally.
+`pnpm --dir apps/storybook visual:test` regenerates affected sheets from the base and candidate source revisions in the pinned rendering container, then produces a visual review report. PNGs are temporary outputs, never committed references. CI distributes each source revision across eight shards with one browser worker per runner; local revisions render sequentially. Appearance differences go through normal PR review, while rendering and functional errors still fail the check. Text inventories remain reviewed snapshots. See [Visual review from source](visual-review.md) for selection, caches, report paths, and focused commands.
 
 ## Original migration inventory
 
@@ -107,7 +107,7 @@ coordinates their `anchor-rect` supplies, so they sit at their preview frame's
 edge rather than at the body inset. The catalog heading also wraps its last letter at 375px. References
 retain those current layouts. Caret-anchored menus in the editor guide have
 separate interaction/state coverage. Review intentional corrections through the
-same targeted baseline update process. API tables can also wrap short type names
+same targeted visual review process. API tables can also wrap short type names
 across lines, and API descriptions display embedded Markdown links as literal
 text. Those are existing reference-rendering issues, retained in this baseline.
 

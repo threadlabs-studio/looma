@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
+
 - Give expanded Disclosure content more space above and below while keeping closed panels fully collapsed. Group the named accordion example into adjacent rows and use Text so paragraph margins do not add uneven space.
 
 - Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.

@@ -221,6 +221,10 @@ test("selection uses the tested PR merge base and main push before revision", ()
   assert.equal(changeBase({ pull_request: { base: { sha: head } }, before: "ignored" }, head), head);
   assert.equal(changeBase({ before: parent }, head), parent);
   assert.equal(changeBase({ before: "0".repeat(40) }, head), parent);
+  const missing = "f".repeat(40);
+  assert.equal(changeBase({ before: missing, forced: true, ref: "refs/heads/main" }, head), parent);
+  assert.equal(changeBase({ before: missing, forced: false, ref: "refs/heads/main" }, head), missing);
+  assert.equal(changeBase({ before: missing, forced: true, ref: "refs/heads/feature" }, head), missing);
 });
 
 

@@ -43,7 +43,12 @@ export function snapshot(revision, source = false) {
 /** Compare the whole PR with its base, or a push with its before revision. No historical CI proof. */
 export function changeBase(event, revision) {
   if (event.pull_request?.base.sha) return git(["merge-base", event.pull_request.base.sha, revision]);
-  if (event.before && !/^0+$/.test(event.before)) return event.before;
+  if (event.before && !/^0+$/.test(event.before)) {
+    const available = spawnSync("git", [...gitOwnership, "cat-file", "-e", `${event.before}^{commit}`], { cwd: root, stdio: "ignore" }).status === 0;
+    // A history-only main cutover can name an old object absent from the rewritten graph.
+    if (!available && event.forced && event.ref === "refs/heads/main") return git(["rev-parse", `${revision}^`]);
+    return event.before;
+  }
   return git(["rev-parse", `${revision}^`]);
 }
 

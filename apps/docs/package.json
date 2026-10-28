@@ -10,7 +10,7 @@
     "test": "echo \"docs: run test:parity and test:visual for browser checks\"",
     "test:browser": "playwright test --workers=1 --project=chromium",
     "test:parity": "playwright test --workers=1 --project=chromium --project=firefox --project=webkit",
-    "test:visual": "node scripts/browser.mjs visual",
+    "test:visual": "node ../../tools/scripts/visual-review.mjs run --suite=docs",
     "test:parity:container": "node scripts/browser.mjs behavior",
     "typecheck:tests": "tsc --project tsconfig.tests.json",
     "docs:coverage": "node ../../tools/scripts/docs-coverage.mjs",
