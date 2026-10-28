@@ -38,7 +38,7 @@ Import `./looma.theme.css` after Looma's tokens and palette in your application'
 
 The CSS includes generated derivation rules as well as values. Re-export or save your recipe after a Looma upgrade to adopt updated rules.
 
-Component navigation keeps every category linked and lists reference pages only beneath the current category. Category links open galleries with the matching filter selected; individual links open their references. Section selection survives reload and browser history, and overview cards render before JavaScript. The Section dropdown navigates between galleries; Filter components narrows only the cards on the current page, and changing sections starts with a fresh filter. Markupress supplies the section navigation and its continuous sidebar background. Editor references have their own section, with concise display names independent of component tags.
+Component navigation keeps every category linked and lists reference pages only beneath the current category. Category links open galleries with the matching filter selected; individual links open their references. Section selection survives reload and browser history, and overview cards render before JavaScript. The Section dropdown navigates between galleries; Filter components narrows only the cards on the current page, and changing sections starts with a fresh filter. Markupress supplies the section navigation and its continuous sidebar background. The Editor guide documents its composed editing tools; implementation controls stay out of the component catalog.
 
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
 
@@ -109,16 +109,18 @@ Palette details expose relationships rather than arbitrary status colors. **Neut
 
 Documentation navigation stays out of the customization workspace. **Material & light** opens a movable light source, real component samples and bounded surface controls. **Palette** opens light/dark specimens, base seeds and advanced relationship controls. Each editor changes the same persistent theme. Returning to the overview, navigating to a component, or reloading keeps the result.
 
-Material starts with Finish, Transparency and Frosting. Advanced material contains the light source and its color, edge light, glow, depth and decorative rim extent. The quiet grid stays fixed across the customizer while the page scrolls; content plates remain opaque.
+Material groups finish, transparency, frosting, lighting and depth in a compact control panel. The grid appears only behind material specimens; editing controls and the persistent summary have opaque backing panels. Help buttons preserve explanations without showing them all up front. Transparency mostly affects decorative rims and overlays; at maximum, content plates also reveal a little of the scene.
 
 The starting themes make different choices within the same controls:
 
 - **Clear:** gray neutrals, restrained status tints and minimal depth.
-- **Gold:** warm primary actions, plum links and selection, rounded polished surfaces, and Lato/Fraunces.
+- **Gold:** warm primary actions, readable amber links and plum selection, rounded polished surfaces, and Lato/Fraunces.
 - **Bookish:** wine guidance and confirmations, coral and leather accents, restrained risk colors, and Open Sans/Newsreader.
 - **Editorial:** flat ink-and-paper surfaces, rust links, serif type, and primary-color statuses distinguished by icons and labels.
 - **Night:** cool supporting accents, amber warnings, glass material, and IBM Plex Sans/Mono.
 - **Garden:** forest, clay and gold, soft rounded surfaces, and Nunito Sans/Lora.
+
+The summary stays above the editor and updates as decisions change; Undo, Redo and Reset remain available there. Optional accent swatches offer None inside the picker, without a separate mode selector.
 
 A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. Status color relationships offer **Semantic colors**, **Less color**, and **Primary + icons**. **Reset status colors** restores the selected status relationship without changing brand colors, type, or material; advanced per-status relationships remain available. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
@@ -193,7 +195,7 @@ An optional recipe `fonts` mapping records Google family names by `body-font` an
 
 Light position is relative to each surface: horizontal and vertical positions run from 0 to 1, with 0.5, 0 at top centre. Drag the source, use its arrow keys (Shift moves faster), or enter exact percentages. Home returns it to top centre. Spread runs from a concentrated spot to broad illumination; strength controls its intensity. The source influences reflections, illuminated edges and the direction of depth shadows throughout the theme.
 
-Depth controls elevation and recession independently from finish, transmission and motion. Finish controls how strongly a material catches a reflection, from matte to polished; it needs nonzero light strength. Light spread shapes that reflection, while position also directs shadows. A light strength of zero does not remove depth shadows. Edge light catches its boundary; glow spills beyond it. Glassiness and glow use a gently increasing lower range and an expressive upper response (`g + 2g⁴`), so the maximum can be exuberant without raising restrained defaults. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays opaque. Overlay translucency changes the shared overlay fill and decorative glass; it does not turn material content transparent. Separation can create a rim even with glassiness at zero. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
+Depth controls elevation and recession independently from finish, transmission and motion. Finish controls how strongly a material catches a reflection, from matte to polished; it needs nonzero light strength. Light spread shapes that reflection, while position also directs shadows. A light strength of zero does not remove depth shadows. Edge light catches its boundary; glow spills beyond it. Glassiness and glow use a gently increasing lower range and an expressive upper response (`g + 2g⁴`), so the maximum can be exuberant without raising restrained defaults. Glassiness and surface separation govern the decorative material around floating content, scaled by popup purpose and rendered size. The content plane stays nearly opaque, with slight transmission at maximum transparency. Overlay translucency changes the shared overlay fill and decorative glass; the content paint accounts for its reflection so stacked layers do not erase that slight transmission. Separation can create a rim even with glassiness at zero. Reflection peaks are bounded for readable text, and reduced transparency disables the ornamental reflection and glow as well as backdrop blur.
 
 Card keeps surface structure and decorative treatment independent:
 
@@ -311,6 +313,8 @@ Use the `@threadlabs/looma/docs` entrypoint for programmatic discovery, catalog 
 The local editor writes only the configured recipe and CSS inside the project. It rejects symlink paths, generated or dependency directories, cross-origin save requests and stale file revisions. A competing edit leaves your unsaved preview in place; reload and reconcile it before saving again. Examples are pre-rendered directly in the documentation page and share its styles and HTML Next runtime. Project component roots and example companions are trusted application code, so opt in only to sources you would run in your application. Example IDs and their label, trigger and command relationships are namespaced per specimen; companions can select stable authored hooks such as data-example-id. Width controls resize the inline stage; viewport media queries follow the documentation window.
 
 The writer stages complete files, serializes saves with a project lock, and rolls back the recipe if replacing the CSS fails. If a process stops during a save or build, close the old editor before removing its `.looma/theme-write.lock` or `.looma/docs-build.lock`; restart and save the loaded recipe to regenerate a consistent pair. Change the server base, output directory or theme-file paths by restarting `dev`.
+
+The starting theme is selectable directly in the persistent summary bar. Font options preview their names using separate font faces loaded on visibility with Google Fonts’ [`text=` subsets](https://developers.google.com/fonts/docs/css2#optimizing_for_latency_and_file_size). Selecting a font loads its unrestricted family and supported weights; preview subsets never supply document text.
 
 Preset choices use the styled, searchable dropdown already used for fonts and component examples. Palette choices include four color swatches for the accent, neutral fill, canvas and text; the selected field previews the current theme. An inherited default keeps muted text while its options remain readable.
 

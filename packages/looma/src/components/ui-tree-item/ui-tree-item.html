@@ -147,12 +147,19 @@
       font-size: var(--_ui-tree-item-font-size, var(--ui-font-size-sm));
       border-radius: var(--ui-selection-radius);
       color: var(--ui-text-secondary);
+      cursor: default;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
         opacity var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
         min-block-size var(--ui-motion-base) var(--ui-motion-ease);
+    }
+
+    :host(:state(isContainer)):not([disabled]) > .row,
+    :host[data-selection-mode="single"]:not([disabled]) > .row,
+    :host[data-selection-mode="multiple"]:not([disabled]) > .row {
+      cursor: pointer;
     }
 
     .row:hover,
@@ -256,7 +263,6 @@
 
     .disclosure:hover {
       color: var(--ui-text-primary);
-      background: var(--ui-surface-elevated);
     }
 
     .disclosure-icon {

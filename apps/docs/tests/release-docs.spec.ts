@@ -505,59 +505,8 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(checkbox).toBeChecked();
 });
 
-test("table overlay uses one structured geometry property", async ({ page }) => {
-  await page.goto("editor/ui-editor-table-overlay", { waitUntil: "domcontentloaded" });
-
-  const primary = page.locator("[data-preview-scenario='Open with geometry']");
-  const overlay = primary.locator(':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay)');
-  await expect(overlay).toBeVisible();
-  await expect(overlay.getByRole("button", { name: "Cell actions" })).toBeVisible();
-  await expect(overlay.getByRole("button", { name: /Insert row/ })).toHaveCount(3);
-  await expect(overlay.getByRole("button", { name: /Insert column/ })).toHaveCount(3);
-
-  const code = primary.locator(".looma-mode-code").first();
-  await expect(code).toContainText("geometry='{");
-  await expect(code).not.toContainText("row-boundaries");
-  await expect(code).not.toContainText("column-boundaries");
-  await expect(code).not.toContainText("active-cell");
-});
-
-test("editor table menus use one action capability set", async ({ page }) => {
-  for (const tag of ["ui-editor-table-context-menu", "ui-editor-table-toolbar"] as const) {
-    await page.goto(`editor/${tag}`, { waitUntil: "domcontentloaded" });
-    const configured = page.locator("[data-preview-scenario='Actions']");
-    await expect((tag === "ui-editor-table-context-menu" ? configured.frameLocator("iframe") : configured).locator("[data-action^='add-row']").first()).toBeVisible();
-    const code = configured.locator(".looma-mode-code").first();
-    await expect(code).toContainText("actions='[");
-    await expect(code).not.toContainText("can-add-row");
-    await expect(code).not.toContainText("can-delete");
-    await expect(code).not.toContainText("can-merge");
-  }
-
-  await page.goto("editor/ui-editor-table-toolbar", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
-  await expect(
-    page.locator("[data-preview-scenario='Open']").getByRole("button", { name: "Table options" })
-  ).toHaveCount(0);
-  await expect(
-    page.locator("[data-preview-scenario='Actions']").getByRole("button", { name: "Table options" })
-  ).toBeVisible();
-});
-
-test("table context menus fit a narrow presentation viewport", async ({ page }) => {
-  await page.goto("editor/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
-  const preview = page.locator("[data-preview-scenario='Actions'] iframe");
-  await preview.evaluate((frame) => { frame.style.width = "200px"; });
-  const menu = preview.contentFrame().locator(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)');
-  await expect(menu).toBeVisible();
-  await expect.poll(() => menu.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return rect.left >= 0 && rect.right <= element.ownerDocument.documentElement.clientWidth;
-  })).toBe(true);
-});
-
 test("static popup part examples stay inside their own presentation viewport", async ({ page }) => {
-  for (const tag of ["ui-menu-item", "ui-menu-group", "ui-editor-mention-menu-item", "ui-editor-slash-menu-item", "ui-editor-slash-menu-group"]) {
+  for (const tag of ["ui-menu-item", "ui-menu-group"]) {
     await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
     await ready(page);
     const scenarios = page.locator("[data-preview-scenario]");
@@ -1035,19 +984,6 @@ test("code panes scroll inside the example and expose readable authored IDs", as
   expect(sizes.pageScrollWidth).toBeLessThanOrEqual(sizes.pageWidth + 1);
   await expect(code.locator(".looma-mode-code")).toContainText('id="tooltip-trigger"');
   await expect(code.locator(".looma-mode-code")).not.toContainText("_r_");
-});
-
-test("structured props appear as attributes in HTML and bindings in framework examples", async ({ page }) => {
-  await page.goto("editor/ui-editor-mention-menu", { waitUntil: "domcontentloaded" });
-  const scenario = page.locator("[data-preview-scenario='Open']");
-  const code = scenario.locator(".looma-mode-code");
-  const modes = scenario.getByRole("group", { name: "Example framework" });
-
-  await expect(code).toContainText("items='[");
-  await expect(code).not.toContainText(".items =");
-  await expect(code).toContainText("Maya Chen");
-  await modes.getByRole("button", { name: "Vue" }).click();
-  await expect(code).toContainText(':items="mentionItems"');
 });
 
 test("ui-cluster wraps and applies its declared spacing and alignment values", async ({ page }) => {
