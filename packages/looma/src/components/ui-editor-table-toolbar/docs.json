@@ -1,4 +1,5 @@
 {
+  "title": "Table Toolbar",
   "description": "Selection-aware quick toolbar for table alignment and structural actions.",
   "group": "editor"
 }

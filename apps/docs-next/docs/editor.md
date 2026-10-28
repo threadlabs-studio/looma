@@ -13,7 +13,7 @@ sidebar: false
   <p>A ready-to-use writing surface with formatting, slash commands, mentions, tables, and image support. Start with the complete editor; configure its capabilities through props and callbacks.</p>
 </header>
 
-[Editor Toolbar](/editor/ui-editor-toolbar/) · [Block actions](/editor/ui-editor-block-actions/)
+[Toolbar](/editor/ui-editor-toolbar/) · [Block actions](/editor/ui-editor-block-actions/)
 
 ## Try the editor
 

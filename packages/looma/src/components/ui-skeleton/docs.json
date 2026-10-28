@@ -1,4 +1,5 @@
 {
   "description": "Reserve the shape of incoming content without announcing each placeholder. Text follows the surrounding line metrics; circles and rectangles stand in for avatars and media. Use one status message and aria-busy on the loading region, then replace the placeholders with real content. Keep existing content visible during refresh when possible. A broad shimmer sweeps across the placeholders together by default, continuously from left to right. Reduced-motion preferences always keep it static.",
-  "group": "display"
+  "group": "display",
+  "summary": "Placeholder shapes that reserve space while content loads."
 }

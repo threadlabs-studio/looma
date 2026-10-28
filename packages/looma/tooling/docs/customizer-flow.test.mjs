@@ -42,6 +42,12 @@ test('palette exposes governed relationships and shows every status in both mode
     assert.deepEqual([...select.children].map(option=>option.value),['derived','related','primary','secondary','tertiary']);
     assert.equal(palette.querySelector(`#theme-${role}-color`),null);
   }
+  const relationships = palette.querySelector('[data-refinement-preset=status]');
+  assert.deepEqual([...relationships.children].map(option => option.value), ['custom','semantic','restrained','primary']);
+  assert.equal(relationships.closest('[data-advanced]'), null);
+  assert.ok(palette.querySelector('[data-action=restore-status]'));
+  assert.equal(palette.querySelectorAll('ui-callout[tone=tip]').length, 2);
+  assert.equal(palette.querySelector('#theme-tip-source'), null);
   assert.ok(palette.querySelector('#theme-neutral-source'));
   assert.ok(palette.querySelector('#theme-neutral-border-contrast'));
   for(const role of ['secondary','tertiary']) assert.ok(palette.querySelector(`[data-color-source="${role}-action"]`));

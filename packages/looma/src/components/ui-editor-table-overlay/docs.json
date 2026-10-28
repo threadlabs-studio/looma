@@ -1,4 +1,5 @@
 {
+  "title": "Table Overlay",
   "description": "Anticipatory table controls for exact-boundary insertion and table actions.",
   "group": "editor"
 }

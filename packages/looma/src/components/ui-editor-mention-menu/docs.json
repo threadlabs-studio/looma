@@ -1,4 +1,5 @@
 {
+  "title": "Mention Menu",
   "description": "Bounded, responsive suggestion surface for an app-provided people directory.",
   "group": "editor"
 }

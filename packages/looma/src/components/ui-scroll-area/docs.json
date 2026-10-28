@@ -1,4 +1,5 @@
 {
   "description": "A region that scrolls when its content outgrows it, and fades each edge that hides content so the reader can tell there is more. Use it for any scrolling region: a navigation list, a panel's body, a strip of controls.",
-  "group": "layout"
+  "group": "layout",
+  "summary": "A scrolling region with fades that indicate more content."
 }
