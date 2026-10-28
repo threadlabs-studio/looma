@@ -72,6 +72,13 @@ describe("SiteHeader", () => {
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
+      await page.addStyleTag({content:':root { --ui-accent-active:#24376e; --ui-link-color:#a2bcff; }'});
+      await page.locator('#destination').evaluate(element=>element.setAttribute('aria-current','page'));
+      assert.equal(await page.locator('#destination').evaluate(element=>getComputedStyle(element).color),'rgb(162, 188, 255)','selected navigation uses contextual link ink, independent of pressed action fill');
+      await page.locator('#destination').evaluate(element=>element.removeAttribute('aria-current'));
+      await page.locator('#destination').hover();
+      assert.equal(await page.locator('#destination').evaluate(element=>getComputedStyle(element).color),'rgb(162, 188, 255)','hovered navigation also uses contextual link ink');
+      await page.mouse.move(0,0);
       for(const dir of ["ltr","rtl"]) {
         await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
         for(const height of [32,64]) {

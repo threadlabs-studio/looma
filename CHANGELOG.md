@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Use contextual link ink for SiteHeader selected and hovered navigation, preserving contrast when a theme has deep action fills.
+
 - Share semantic background, foreground and border roles across subtle Badge, toned Card, Callout, Toast and generated notifications. Text inherits its containing surface or control’s foreground, with the document root supplying the body-text role, so composed status content keeps the same colors. Optional overlay group overrides remain available without masking semantic defaults.
 
 - Separate dark canvas and content elevations, strengthen shared dark neutral and selection derivation, and use shared mode-aware soft-color roles for subtle badges so light status backgrounds remain pale.
