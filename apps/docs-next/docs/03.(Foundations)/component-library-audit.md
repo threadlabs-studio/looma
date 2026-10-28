@@ -77,15 +77,15 @@ Fix these first. They are defects, not new options.
 
 | Component | Adopt | Declined |
 |---|---|---|
-| `ui-input` | `size: "sm" \| "md"`. New `ui-input-group` with `start` and `end` slots for icons, units and buttons | Variant, built-in label, hint or error (Form Field owns these), clearable, counter, mask, debounce |
+| `ui-input` | <code>size: "sm" &#124; "md"</code>. New `ui-input-group` with `start` and `end` slots for icons, units and buttons | Variant, built-in label, hint or error (Form Field owns these), clearable, counter, mask, debounce |
 | `ui-textarea` | `autosize` (`field-sizing: content`, with `rows` as the minimum) | Size, variant, counter, resize prop (CSS) |
-| `ui-select` | `size: "sm" \| "md"`. With `multiple`, the selection is `values: list(string)`, the selected option values (written in HTML as `values='["red","blue"]'`); `value` stays a single string. The options stay `<option>` children | Placeholder prop (use a disabled first `<option>`), clearable, variant |
+| `ui-select` | <code>size: "sm" &#124; "md"</code>. With `multiple`, the selection is `values: list(string)`, the selected option values (written in HTML as `values='["red","blue"]'`); `value` stays a single string. The options stay `<option>` children | Placeholder prop (use a disabled first `<option>`), clearable, variant |
 | `ui-checkbox` | `name` (bug), `invalid` | Size (a token), checkbox group (use `<fieldset>`), readonly, label placement |
 | `ui-radio-group` | `invalid`. `change` detail becomes `{ value, previousValue, trigger }`. Drop the duplicate `select` event. `label` defaults to `""`. `orientation` defaults to `vertical` | Size, hint, readonly |
 | `ui-switch` | `name` (bug) | Size (tokens), on/off track labels, readonly, invalid |
 | `ui-form-field` | Show and describe the `error` slot only while the field is invalid. Fall back to the control's native `validationMessage`. Add a CSS required marker | Keyed per-validity messages (for now), orientation |
 | `ui-editable` | `save-label`, `cancel-label`, `placeholder`, `required` and `maxlength` (invalid text does not commit). `label` defaults to `""` | Multiline (for now), arbitrary edit content, activation and submit modes |
-| `ui-combobox` | `loading` with an `empty` slot, `filter: "label" \| "none"` (`none` for server-side filtering), `open-on-focus`, `invalid`. Option descriptions and tags use `data-description`, `data-tag`, and `data-tag-tone` on `<option>` and become the option's accessible description. | Function hooks, debounce, minimum characters, virtualization, custom match functions |
+| `ui-combobox` | `loading` with an `empty` slot, <code>filter: "label" &#124; "none"</code> (`none` for server-side filtering), `open-on-focus`, `invalid`. Option descriptions and tags use `data-description`, `data-tag`, and `data-tag-tone` on `<option>` and become the option's accessible description. | Function hooks, debounce, minimum characters, virtualization, custom match functions |
 
 Validation stays declarative everywhere. Validation functions are replaced by native constraint attributes, `setCustomValidity()`, the `invalid` prop and Form Field's error slot.
 
@@ -97,7 +97,7 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 | `ui-icon-button` | `loading` | `pressed` (write native `aria-pressed`), tone |
 | `ui-badge` | `outline` variant | Size (badges follow the font size), icon, pill, anchored count badge (a separate component if ever needed) |
 | `ui-callout` | Rename tone `note` to `neutral` to match Badge | Icon slot (a per-tone icon is built in), variant, size, `dismissible` (a candidate if banners need it), live region (write native `role`) |
-| `ui-avatar` | `size`, `shape: "circle" \| "square"`, a built-in person glyph when there is no image or name, `decorative` | Status event, lazy loading, background colour |
+| `ui-avatar` | `size`, <code>shape: "circle" &#124; "square"</code>, a built-in person glyph when there is no image or name, `decorative` | Status event, lazy loading, background colour |
 | `ui-avatar-group` | `total` (the true count when the markup is truncated), `overflow-label` (template text with `{count}`), `size` (together with Avatar) | Spacing (a token) |
 | `ui-separator` | none (see the label bug) | Thickness, colour, `decorative` |
 
@@ -105,10 +105,10 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 
 | Component | Adopt | Declined |
 |---|---|---|
-| `ui-dialog` | `closedby: "any" \| "closerequest" \| "none"` (native vocabulary) replaces `dismissible`. `modal` stays opt-in, as in native `<dialog>`; 0.15 briefly made modal the default with a `modeless` opt-out, which 0.16 reverted (`modeless` is a deprecated no-op). `alert` (`role="alertdialog"`, no close button). `size: "sm" \| "md" \| "lg"`. An `open` event | A fullscreen presentation, initial or return focus props (native `autofocus` and `<dialog>` already do this), description, draggable |
+| `ui-dialog` | <code>closedby: "any" &#124; "closerequest" &#124; "none"</code> (native vocabulary) replaces `dismissible`. `modal` stays opt-in, as in native `<dialog>`; 0.15 briefly made modal the default with a `modeless` opt-out, which 0.16 reverted (`modeless` is a deprecated no-op). `alert` (`role="alertdialog"`, no close button). <code>size: "sm" &#124; "md" &#124; "lg"</code>. An `open` event | A fullscreen presentation, initial or return focus props (native `autofocus` and `<dialog>` already do this), description, draggable |
 | `ui-popover` | The full `placement` set as a typed keyword. A `--ui-popover-offset` token | Arrow, modal or focus trap (use Dialog), dismiss toggles |
 | `ui-tooltip` | The full `placement` set, defaulting to `top`. Instant display for the next tooltip after one has shown | `disabled`, trigger modes, arrow toggle. The evidence suggested dropping `inverse`; Looma keeps it for dark tooltips |
-| `ui-menu`, `ui-menu-item` | `<hr>` separators. `ui-menu-group` with a `label`. Typeahead and Home/End. `href` link items. A `shortcut` slot. `type: "action" \| "checkbox" \| "radio"` with `checked`. Later: submenus | A close-on-select option, an icon slot, a destructive tone |
+| `ui-menu`, `ui-menu-item` | `<hr>` separators. `ui-menu-group` with a `label`. Typeahead and Home/End. `href` link items. A `shortcut` slot. <code>type: "action" &#124; "checkbox" &#124; "radio"</code> with `checked`. Later: submenus | A close-on-select option, an icon slot, a destructive tone |
 | `ui-context-menu` | Everything Menu gains. Long-press opens it on touch | `disabled`, `global`, `modal` |
 | `ui-toast-region` | A declarative `<ui-toast>` child with `tone`, `duration` and an `action` slot. `placement` on the region. Drop `message` and `open` | Merging `auto` into `duration` (Looma keeps the `auto` switch), maximum visible, swipe, promise toasts, hotkey |
 
@@ -117,8 +117,8 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 | Component | Adopt | Declined |
 |---|---|---|
 | `ui-disclosure` | `name` for exclusive groups (like `<details name>`), a `summary` slot, `heading-level`, closed content that find-in-page can reveal | An accordion wrapper, lazy mounting, variants |
-| `ui-tabs` | `activation: "auto" \| "manual"`. An optional `ui-tab-panel` child with `disabled` and a `tab` slot for rich labels. `label` defaults to `""` | Lazy panels, link tabs, closable tabs, variants |
-| `ui-tree`, `ui-tree-item` | `selection: "none" \| "single" \| "multiple"`, a `select` event, `lazy` items, keyboard reordering (bug), typeahead, a cancelable `reorder`. Drop `hover-expand-delay`. Drop `drop-depth` and `subtree-depth` if they can be derived | Propagation modes, filtering, expand-all, a separate checkbox option |
+| `ui-tabs` | <code>activation: "auto" &#124; "manual"</code>. An optional `ui-tab-panel` child with `disabled` and a `tab` slot for rich labels. `label` defaults to `""` | Lazy panels, link tabs, closable tabs, variants |
+| `ui-tree`, `ui-tree-item` | <code>selection: "none" &#124; "single" &#124; "multiple"</code>, a `select` event, `lazy` items, keyboard reordering (bug), typeahead, a cancelable `reorder`. Drop `hover-expand-delay`. Drop `drop-depth` and `subtree-depth` if they can be derived | Propagation modes, filtering, expand-all, a separate checkbox option |
 | `ui-top-bar` | Render a `<header>` | Sticky and elevate-on-scroll props (documented CSS recipes instead), hide on scroll |
 | `ui-search-shell` | Built-in keyboard navigation from the input to the result rows. `dismissible` governs backdrop clicks only | Built-in filtering, hotkey |
 | `ui-affordance-scope` | Reveal on focus and on coarse pointers | none |
@@ -131,7 +131,7 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 | `ui-editor-slash-menu` | Child item markup with `keywords`, groups, filtering inside the component, an `empty` slot, a `footer` slot for key hints | `placement`, loading, shortcut badges |
 | `ui-editor-mention-menu` | Child item markup with an avatar `start` slot, an `empty` slot, a `header` slot | Grouping, filtering inside the component |
 | `ui-editor-insert-table-grid` | Honour `header-row` (bug). Keyboard grid navigation. A click inserts immediately | A separate insert button (unless touch testing needs it) |
-| `ui-editor-table-toolbar`, `ui-editor-table-context-menu` | Header row and column toggles. `scope: "cell" \| "row" \| "column"` on the context menu. Move row and move column actions. Theme tokens for cell backgrounds. The toolbar stops duplicating the context menu | Vertical alignment, borders, text colour, sort, duplicate, freeze, striping |
+| `ui-editor-table-toolbar`, `ui-editor-table-context-menu` | Header row and column toggles. <code>scope: "cell" &#124; "row" &#124; "column"</code> on the context menu. Move row and move column actions. Theme tokens for cell backgrounds. The toolbar stops duplicating the context menu | Vertical alignment, borders, text colour, sort, duplicate, freeze, striping |
 | `ui-editor-table-overlay` | Row and column handles open a scoped menu | Drag-to-reorder (deferred; the move actions come first), a selection overlay |
 
 ## Earlier audit

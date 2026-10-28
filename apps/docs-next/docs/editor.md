@@ -138,7 +138,7 @@ with `insertLoomaExpand({ summary: "Details", open: false })`, leave with `exitL
 and supply `expandNodeView` to customize presentation. The default headless view uses native
 details. Plain text includes summaries and all bodies, even while collapsed.
 
-In Markdown, a section is `::: details Summary` … `:::`, with ` {open}` after the summary when it
+In Markdown, a section is `::: details [Summary]` … `:::`, with `  {open} ` after the summary when it
 starts expanded; see [Looma Markdown](/looma-markdown). Search and change-review projections
 must traverse the body rather than omit collapsed content.
 
@@ -166,7 +166,6 @@ For Expressive Markdown, call `editorDocumentToMarkdown(editor.getJSON())` from
 file. Reading that file preserves the saved navigation instead of regenerating it from surrounding
 headings. The editor's internal JSON can retain configuration only; it does not need an entry copy.
 Authored navigation imported from a file retains its body.
-
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
 they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
@@ -204,12 +203,21 @@ text resembles Markdown. Looma also turns Markdown or HTML copied as source into
 including `:::` callouts and sections and GitHub `> [!NOTE]` alerts. Pasting inside a code block
 stays literal.
 
-To load or save [Looma Markdown](/looma-markdown), `loomaMarkdownToHtml(markdown)` renders HTML
-for `setContent`, and `loomaMarkdownFromDoc(editor.state.doc)` writes the document as Looma
-Markdown. Both come from `@threadlabs/looma/editor/extensions`. The editor reads and writes every
-form on that page, including figures with captions and tabs, which it keeps whole and shows panel
-by panel while editing. A table that fits GFM is written as one, and any other as HTML. Front
-matter is the host's page metadata, so the editor leaves it out of what it writes.
+Use the portable Expressmark adapter for Markdown import and export:
+
+```ts
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+
+const markdown = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard" });
+const content = markdownToEditorDocument(markdown, { syntax: "standard" });
+editor.commands.setContent(content);
+```
+
+The adapter defaults to `compatible` syntax for existing CommonMark/GFM interchange;
+select `standard` explicitly when exchanging content with Markupress. It reports content the
+editor schema cannot preserve instead of silently discarding it. Keep page front matter in
+the host application. The older `loomaMarkdownToHtml` and `loomaMarkdownFromDoc` helpers retain
+their editor-specific format; they do not define Markupress's documentation syntax.
 
 ## Mentions
 
@@ -311,22 +319,65 @@ use `editorDocumentToMarkdown(document, { references })`. These operations retai
 do not mutate editor content. Headless editors pass `{ references }` to `getDefaultEditorExtensions`
 and replace display metadata with `setReferenceDisplay(editor, references)`.
 
-| Prop | Default | Purpose |
-| --- | --- | --- |
-| `modelValue` | Empty document | Document JSON; use `v-model` |
-| `references` | None | Cached labels and destinations, stored separately from document changes |
-| `editable` | `true` | Allow editing or show the document read only |
-| `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
-| `label` | `Document` | Accessible name for the editing surface |
-| `extensions` | None | Answers `extensions`: additional Tiptap extensions |
-| `slashCommands` | None | Answers `slash-commands`: the slash menu's commands, given the defaults |
-| `toolbarMode` | `bubble` | `bubble`, `sticky`, `popover`, or `contextual` toolbar placement |
-| `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
-| `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
-| `mentionItems`, `mentionQuery`, `mentionLimit` | Empty, none, 8 | Fixed mention candidates, and the answer to `mention-query` |
-| `linkBaseUrl` | None | Make newly inserted same-origin web links relative |
-| `linkSearch`, `linkResolve`, `linkTargetLabel` | None, none, `Item` | Answer `link-search` and `link-resolve`: search app destinations and describe existing identity links |
-| `imageUpload`, `resolveImageSource`, `resolveImageAttributes` | None | Answer `image-upload`; image delivery and rendering |
+::: table
+
+- Prop: `modelValue`
+  Default: Empty document
+  Purpose: Document JSON; use `v-model`
+
+- Prop: `references`
+  Default: None
+  Purpose: Cached labels and destinations, stored separately from document changes
+
+- Prop: `editable`
+  Default: `true`
+  Purpose: Allow editing or show the document read only
+
+- Prop: `placeholder`
+  Default: `Type “/” for commands, or start writing…`
+  Purpose: Empty document prompt
+
+- Prop: `label`
+  Default: `Document`
+  Purpose: Accessible name for the editing surface
+
+- Prop: `extensions`
+  Default: None
+  Purpose: Answers `extensions`: additional Tiptap extensions
+
+- Prop: `slashCommands`
+  Default: None
+  Purpose: Answers `slash-commands`: the slash menu's commands, given the defaults
+
+- Prop: `toolbarMode`
+  Default: `bubble`
+  Purpose: `bubble`, `sticky`, `popover`, or `contextual` toolbar placement
+
+- Prop: `toolbarTriggerId`, `toolbarOpen`
+  Default: `""`, `false`
+  Purpose: The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`)
+
+- Prop: `codeLanguages`
+  Default: Built-in catalog
+  Purpose: Replace the default code languages with an application-owned grammar map; `{}` keeps code plain
+
+- Prop: `mentionItems`, `mentionQuery`, `mentionLimit`
+  Default: Empty, none, 8
+  Purpose: Fixed mention candidates, and the answer to `mention-query`
+
+- Prop: `linkBaseUrl`
+  Default: None
+  Purpose: Make newly inserted same-origin web links relative
+
+- Prop: `linkSearch`, `linkResolve`, `linkTargetLabel`
+  Default: None, none, `Item`
+  Purpose: Answer `link-search` and `link-resolve`: search app destinations and describe existing identity links
+
+- Prop: `imageUpload`, `resolveImageSource`, `resolveImageAttributes`
+  Default: None
+  Purpose: Answer `image-upload`; image delivery and rendering
+
+:::
 
 `update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
 `popover` toolbar opening and closing; `ready` exposes the underlying Tiptap
