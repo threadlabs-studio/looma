@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep inverse count text readable over both light and dark filled controls by deriving its ink from the control’s foreground polarity.
+
 - Select the starting theme directly in the customizer summary, preview font names in their own typefaces with glyph-only downloads, and load complete font families when selected.
 
 - Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.

@@ -725,32 +725,43 @@ describe("Pressed icon controls and circular marks", () => {
         [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#accent:is([data-component~="ui-badge"], .ui-badge)');
       await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
-      for (const theme of ["light", "dark"]) {
-        await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
-        const overlays = await page.locator(':is([data-component~="ui-badge"], .ui-badge)').evaluateAll(elements => elements.map(element => {
-          const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
-          const context = document.createElement("canvas").getContext("2d")!;
-          const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
-          const luminance = () => {
-            const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
-            return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
-          };
-          context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
-          const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
-          context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
-          const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
-          const box = element.getBoundingClientRect();
-          paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
-          paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
-        }));
-        await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
-        for (const overlay of overlays) {
-          assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
-          assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
-          assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
-          assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
-          assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+      // Both on-fill polarities must remain readable in either document scheme.
+      for (const [sample, pigment, onFill] of [["default", "", ""], ["deep", "#271a54", "#ffffff"], ["pale", "#ffdd55", "#000000"], ["middle", "#767676", "#000000"]]) {
+        await page.evaluate(({tones,pigment,onFill}) => {
+          for (const tone of tones.filter(tone => tone !== "neutral")) {
+            for (const [property,value] of [["--ui-" + tone,pigment],["--ui-on-" + tone,onFill],["--ui-" + tone + "-on-strong",onFill]]) {
+              if (value) document.documentElement.style.setProperty(property,value);
+              else document.documentElement.style.removeProperty(property);
+            }
+          }
+        }, {tones,pigment,onFill});
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          const overlays = await page.locator(':is([data-component~="ui-badge"], .ui-badge)').evaluateAll(elements => elements.map(element => {
+            const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
+            const context = document.createElement("canvas").getContext("2d")!;
+            const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
+            const luminance = () => {
+              const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
+              return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+            };
+            context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
+            const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+            context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
+            const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+            const box = element.getBoundingClientRect();
+            paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
+            paint(style.color); const ink = luminance();
+            return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          }));
+          await writeFile(join(root, ".build", sample + "-" + `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
+          for (const overlay of overlays) {
+            assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+            assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
+            assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
+            assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
+            assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+          }
         }
       }
       const countOpacity = () => page.locator("#accent").evaluate(element => {
@@ -2604,24 +2615,46 @@ describe("Menu structure and navigation", () => {
     const path = await bundle("html-menu-themes", `import "@threadlabs/looma";`);
     const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
     const page = await open(path, `<ui-menu open aria-label="Options"><ui-menu-item id="grid" type="checkbox" checked>Show grid</ui-menu-item><ui-menu-item id="date" type="radio" checked>Date</ui-menu-item></ui-menu>`, css);
+    // Material gradients can paint an opaque surface while backgroundColor stays transparent.
+    // Sample the indicator and its actual neighboring row paint instead of assuming an RGB color.
+    const indicatorContrast = async () => {
+      const item = page.locator("#grid");
+      const geometry = await item.evaluate(item => {
+        const row = item.getBoundingClientRect(), indicator = item.querySelector(".indicator")!.getBoundingClientRect();
+        return {
+          points: [
+            [indicator.x - row.x + indicator.width / 2, indicator.y - row.y + 2],
+            [indicator.right - row.x + parseFloat(getComputedStyle(item).gap) / 2, indicator.y - row.y + indicator.height / 2],
+          ],
+          icon: Boolean(item.querySelector(".indicator svg")),
+        };
+      });
+      const base64 = (await item.screenshot({ animations: "disabled" })).toString("base64");
+      return page.evaluate(async ({base64,geometry}) => {
+        const image = new Image(); image.src = "data:image/png;base64," + base64; await image.decode();
+        const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+        const context = canvas.getContext("2d")!; context.drawImage(image,0,0);
+        const [indicator,surface] = geometry.points.map(([x,y]) => [...context.getImageData(Math.floor(x!),Math.floor(y!),1,1).data].slice(0,3));
+        const luminance = (color: number[]) => {
+          const [r,g,b] = color.map(channel => { const scaled=channel/255; return scaled<=.04045?scaled/12.92:((scaled+.055)/1.055)**2.4; });
+          return r!*.2126+g!*.7152+b!*.0722;
+        };
+        const ink=luminance(indicator!),background=luminance(surface!);
+        return {ratio:(Math.max(ink,background)+.05)/(Math.min(ink,background)+.05),icon:geometry.icon,surface:"rgb("+surface!.join(",")+")"};
+      }, {base64,geometry});
+    };
     for (const [attribute, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([attribute, value]) => document.documentElement.setAttribute(attribute, value), [attribute, value]);
-      const result = await page.locator("#grid").evaluate((item) => {
-        const color = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
-        const luminance = (value: string) => {
-          const [red, green, blue] = color(value).map((channel) => {
-            const scaled = channel / 255;
-            return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
-          });
-          return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
-        };
-        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).backgroundColor);
-        const surface = luminance(getComputedStyle(item.closest(".surface")!).backgroundColor);
-        return { ratio: (Math.max(indicator, surface) + 0.05) / (Math.min(indicator, surface) + 0.05), icon: Boolean(item.querySelector(".indicator svg")) };
-      });
+      const result = await indicatorContrast();
       assert.equal(result.icon, true);
       assert.ok(result.ratio >= 3, `${value} checked indicator has ${result.ratio.toFixed(2)}:1 contrast`);
+      if (value === "high") {
+        const indicator = page.locator("#grid .indicator");
+        await indicator.evaluate((element,color) => { (element as HTMLElement).style.backgroundColor=color; },result.surface);
+        assert.ok((await indicatorContrast()).ratio < 3,"the pixel probe rejects an indicator that blends into its row");
+        await indicator.evaluate(element => { (element as HTMLElement).style.removeProperty("background-color"); });
+      }
     }
     await page.emulateMedia({ forcedColors: "active" });
     await page.locator("#grid").focus();
