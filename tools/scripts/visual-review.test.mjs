@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -37,6 +37,66 @@ test('direct canonical docs capture installs the detached checkout dependencies 
   writeFileSync(path.join(bin,'corepack'),'#!/bin/sh\nmkdir -p node_modules\ntouch node_modules/.installed\n');chmodSync(path.join(bin,'corepack'),0o755);
   const result=execFileSync(process.execPath,[script,'capture','--suite=docs'],{encoding:'utf8',env:{...process.env,LOOMA_DOCS_CANONICAL:'1',PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
   assert.match(result,/captured/);
+});
+for (const suite of ['storybook', 'docs']) test(`${suite} Docker capture returns writable outputs for host sealing and worktree cleanup`, t => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'looma-visual-ownership-')), bin = path.join(directory, 'bin');
+  const script = suite === 'storybook' ? 'apps/storybook/scripts/run-storywright-docker.mjs' : 'apps/docs/scripts/browser.mjs';
+  for (const folder of ['.git', 'packages', 'apps', 'tools', 'bin', path.dirname(script)]) mkdirSync(path.join(directory, folder), { recursive: true });
+  writeFileSync(path.join(directory, script), readFileSync(script));
+  if (suite === 'storybook') writeFileSync(path.join(directory, 'apps/storybook/scripts/storywright-runtime.mjs'), readFileSync('apps/storybook/scripts/storywright-runtime.mjs'));
+  const makeWritable = target => {
+    if (!existsSync(target)) return;
+    const isDirectory = statSync(target).isDirectory();
+    chmodSync(target, isDirectory ? 0o755 : 0o644);
+    if (isDirectory) for (const name of readdirSync(target)) makeWritable(path.join(target, name));
+  };
+  t.after(() => { makeWritable(directory); rmSync(directory, { recursive: true, force: true }); });
+  writeFileSync(path.join(bin, 'chown'), `#!/usr/bin/env node
+const { chmodSync, readdirSync, statSync } = require('node:fs');
+const path = require('node:path');
+const restore = target => {
+  const directory = statSync(target).isDirectory();
+  chmodSync(target, directory ? 0o755 : 0o644);
+  if (directory) for (const name of readdirSync(target)) restore(path.join(target, name));
+};
+restore(process.argv.at(-1));
+`);
+  writeFileSync(path.join(bin, 'docker'), `#!/usr/bin/env node
+const { chmodSync, mkdirSync, writeFileSync } = require('node:fs');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
+const args = process.argv.slice(2);
+if (args[0] === 'info') process.exit(0);
+if (args[0] !== 'run') throw new Error('Unexpected Docker command');
+const root = args[args.indexOf('--volume') + 1].slice(0, -':/work'.length);
+const command = args.at(-1);
+if (command.includes('chown -R')) {
+  const result = spawnSync('sh', ['-c', command.replaceAll('/work', root)], { stdio: 'inherit' });
+  process.exit(result.status ?? 1);
+}
+for (const relative of ['.context/capture', 'apps/generated-output']) {
+  const output = path.join(root, relative);
+  mkdirSync(path.join(output, 'nested'), { recursive: true });
+  writeFileSync(path.join(output, 'capture.json'), '{}');
+  writeFileSync(path.join(output, 'nested/image.png'), 'capture');
+  chmodSync(path.join(output, 'capture.json'), 0o444);
+  chmodSync(path.join(output, 'nested'), 0o555);
+  chmodSync(output, 0o555);
+}
+`);
+  for (const command of ['docker', 'chown']) chmodSync(path.join(bin, command), 0o755);
+  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CI: 'false' };
+  delete env.LOOMA_DOCS_CANONICAL;
+  delete env.STORYWRIGHT_DOCKER_DIRECT;
+  for (const name of ['JENKINS_URL', 'JENKINS_HOME', 'BUILD_TAG']) delete env[name];
+  execFileSync(process.execPath, [path.join(directory, script), 'capture'], { env, stdio: 'pipe' });
+  for (const relative of ['.context/capture', 'apps/generated-output']) {
+    const output = path.join(directory, relative);
+    assert.ok(statSync(path.join(output, 'capture.json')).mode & 0o200, 'capture manifest is writable by the host');
+    writeFileSync(path.join(output, 'capture.json'), '{"sealed":true}');
+    rmSync(output, { recursive: true });
+    assert.equal(existsSync(output), false, 'host can remove generated worktree contents');
+  }
 });
 test('render cache identity follows source and environment rather than commit names or prose',()=>{
   const source={'packages/looma/src/tokens/tokens.css':'blob-a','pnpm-lock.yaml':'lock','docs/guide.md':'prose-a'};
