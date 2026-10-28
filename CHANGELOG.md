@@ -6,6 +6,8 @@
 
 - Select the starting theme directly in the customizer summary, preview font names in their own typefaces with glyph-only downloads, and load complete font families when selected.
 
+- Give expanded Disclosure content more space above and below while keeping closed panels fully collapsed. Group the named accordion example into adjacent rows and use Text so paragraph margins do not add uneven space.
+
 - Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.
 
 - Keep customizer settings compact and backed by opaque panels, with on-demand help and a persistent theme summary/history toolbar. Optional accents use one clearable swatch each; numeric controls offer compact exact editing without separate step buttons.
