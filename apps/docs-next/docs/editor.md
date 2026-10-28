@@ -121,6 +121,37 @@ A new function whose answer is a different inventory dismisses the open menu and
 query intact; one that answers the same commands leaves the menu open, so an inline function is safe.
 Return new arrays rather than mutating one in place.
 
+Use this extension point for document templates, snippets, decision outlines, and date macros.
+The application owns its catalog, preview or date picker, and the text it inserts. A template
+uses ordinary editor nodes; validate a fresh copy with `editor.schema.nodeFromJSON` and
+`check()` before removing the command range. Keep an asynchronous picker's insertion range
+mapped through edits, and cancel its pending result when that range is no longer valid.
+
+For example, a host can add a **Today** command whose value is fixed when selected:
+
+```ts
+{
+  id: "today",
+  title: "Today",
+  description: "Insert today's date",
+  icon: "tag",
+  keywords: ["today", "date"],
+  command: ({ editor, range }) => {
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+    editor.chain().focus().deleteRange(range).insertContent(date).run();
+  },
+}
+```
+
+This writes the local calendar date as unambiguous `YYYY-MM-DD` text. A host date picker can
+insert its chosen date in the same format. No live date node, reminder, or scheduling state is
+created.
+
 Headless consumers use `createLoomaSlashCommandExtension({ commands, onStateChange })` and
 `filterLoomaSlashCommands`. Menu snapshots supply `select(index)` and `highlight(index)`;
 replace snapshots and discard old callbacks after updates. Call
@@ -148,7 +179,7 @@ with `insertLoomaExpand({ summary: "Details", open: false })`, leave with `exitL
 and supply `expandNodeView` to customize presentation. The default headless view uses native
 details. Plain text includes summaries and all bodies, even while collapsed.
 
-In Markdown, a section is `::: details [Summary]` … `:::`, with `  {open} ` after the summary when it
+In Markdown, a section is `::: details [Summary]` … `:::`, with ` {open}` after the summary when it
 starts expanded. Search and change-review projections
 must traverse the body rather than omit collapsed content.
 
@@ -260,6 +291,20 @@ users can reach the same controls. The editor updates the document; consumers do
 wire a separate table menu.
 
 ## Images and links
+
+Answer the `file-upload` request with `fileUpload` to enable **Attach file**, `/file`, and
+`/attachment`. It receives `{ file }` plus `signal` and `progress` callbacks, and returns
+`{ href, name, size, contentType }` or `null`. The host retains the file and owns permissions
+and its durable download URL. The editor stores an ordinary link followed by its MIME type
+and size. JSON, HTML, and Markdown retain its destination. `editor.getText()` returns its name
+and metadata; applications that need URLs in plain-text exports can project the saved link marks
+or use the Markdown export.
+
+The editor shows upload progress and **Cancel**. Failure leaves authored content intact and
+offers **Retry** and **Dismiss**, while still emitting `uploadError`. Retry keeps the insertion
+point mapped through edits instead of following a newly moved caret. Removing that insertion
+point cancels the pending result. Cancel or dismiss drops the pending file. A successful insertion
+is one undo step, separate from intervening typing.
 
 Answer the [`image-upload`](/editor/looma-editor#image-upload) request with `imageUpload` to
 enable image insertion from a file, paste, or drop. It receives `{ file }` and returns the image to
