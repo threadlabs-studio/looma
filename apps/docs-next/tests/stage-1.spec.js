@@ -5,10 +5,8 @@ import { expect, test } from "@playwright/test";
 
 const pages = [
   { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"]] },
-  ...["release-1-support", "architecture", "conventions", "tokens", "overlay-contract", "adapter-parity", "docs-api-sync"]
+  ...["release-1-support", "architecture", "conventions", "tokens", "theme-reference", "overlay-contract", "adapter-parity"]
     .map((page) => ({ docusaurus: `${page}/`, markupress: `${page}/`, views: [[]] })),
-  { docusaurus: "looma-markdown/", markupress: "looma-markdown/", views: [[]] },
-  { docusaurus: "component-library-audit/", markupress: "component-library-audit/", views: [[]] },
 ];
 
 // Each site's widget controls are not page text: tab lists, buttons, Docusaurus's heading-link
