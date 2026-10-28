@@ -160,6 +160,7 @@ function restoreWorkspaceOwnership(dockerEnv) {
     '/work/packages',
     '/work/apps',
     '/work/generated',
+    '/work/.context',
   ]
   const chownCommand = [
     'for path in',

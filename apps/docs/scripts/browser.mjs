@@ -38,5 +38,13 @@ const command = `corepack enable && corepack pnpm install --frozen-lockfile --st
 const result = spawnSync("docker", ["run", "--rm", "--label", label, "--init", "--ipc=host", "--platform", "linux/arm64", "--workdir", "/work", "--volume", `${root}:/work`, ...mounts,
   ...(process.env.LOOMA_DOCS_TEST_URL ? ["--env", "LOOMA_DOCS_TEST_URL"] : []),
   "--env", "LOOMA_DOCS_CANONICAL=1", "--env", `LOOMA_DOCS_REPORT=${mode}`, "--env", "CI=1", image, "bash", "-lc", command], { cwd: root, stdio: "inherit" });
+const hostUid = process.getuid?.(), hostGid = process.getgid?.();
+if (typeof hostUid === "number" && typeof hostGid === "number") {
+  const generatedPaths = ["/work/packages", "/work/apps", "/work/generated", "/work/.context"];
+  const ownershipCommand = `for path in ${generatedPaths.map(quote).join(" ")}; do [ ! -e "$path" ] || chown -R ${hostUid}:${hostGid} "$path"; done`;
+  const ownership = spawnSync("docker", ["run", "--rm", "--label", label, "--platform", "linux/arm64", "--workdir", "/work", "--volume", `${root}:/work`, image, "sh", "-c", ownershipCommand], { cwd: root, stdio: "inherit" });
+  if (ownership.error) console.warn(`Could not restore documentation artifact ownership: ${ownership.error.message}`);
+  else if (ownership.status !== 0) console.warn(`Could not restore documentation artifact ownership; chown exited ${ownership.status}.`);
+}
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);

@@ -274,6 +274,8 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   assert.doesNotMatch(extended, /pull_request:|push:|schedule:|workflow_run:/);
   assert.match(extended, /--project=firefox/);
   assert.match(extended, /--project=webkit/);
+  const documentation = extended.match(/\n  documentation:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/)?.[0] ?? "";
+  assert.match(documentation, /fetch-depth: 0\n\s+filter: blob:none/, "disposable documentation comparisons need their source base without historical image blobs");
   const packaging = await readFile(path.join(repoRoot, "tools/scripts/verify-packages.mjs"), "utf8");
   assert.match(packaging, /\["--filter", "@threadlabs\/looma", "build"\]/);
   assert.doesNotMatch(packaging, /\["build"\]/);
