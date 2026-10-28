@@ -1,4 +1,5 @@
 {
   "description": "Controlled page navigation for result lists, cards and tables. Supply the visible numbered pages and previous/next availability; Looma owns the native controls, current-page semantics and navigate requests. Optional hrefs preserve ordinary link navigation. Applications own routes, data fetching and page windows.",
-  "group": "display"
+  "group": "display",
+  "summary": "Previous, next, and numbered links for paged results."
 }

@@ -50,7 +50,7 @@ from the medium radius unless you pin it separately; round shapes have their own
 }
 ```
 
-Set a full palette by changing the eleven colour seeds below. Keep custom theme CSS unlayered, as
+Set a full palette by changing the shared colour seeds below. Keep custom theme CSS unlayered, as
 in these examples, or place it in a layer after Looma's layers. Import the token and theme files
 before it. A custom palette still needs contrast checks in light, dark and high contrast modes.
 
@@ -68,7 +68,7 @@ before it. A custom palette still needs contrast checks in light, dark and high 
 
 ## Theming colour
 
-Looma's colour comes from **eleven values**. Everything else — every hover, tint, border, muted
+Looma's colour comes from shared palette seeds. Everything else — every hover, tint, border, muted
 text, and disabled colour — is mixed from them, so theming is a matter of stating these and
 stopping.
 
@@ -76,12 +76,12 @@ stopping.
 :root {
   /* Intent: what an action means. */
   --ui-accent: #5b55d6;
-  --ui-danger: #c92d1e;
-  --ui-success: #007a33;
-  --ui-warning: #ba5b0b;
-  --ui-info: #0066cc;
+  --ui-danger: #b14d3f;
+  --ui-success: #147937;
+  --ui-warning: #b27522;
+  --ui-info: #2e69b5;
 
-  /* The readable foreground on a filled accent or danger surface. */
+  /* Readable foregrounds for filled actions. */
   --ui-on-accent: #ffffff;
   --ui-on-danger: #ffffff;
 
@@ -97,6 +97,10 @@ A brand change is one line. Setting `--ui-accent` moves the accent's hover, its 
 subtle tint, the focus ring, every accent-toned button, and the selected state of every control,
 because each is mixed from it.
 
+The solid warning foreground derives from its fill through `--ui-on-warning`, including the deeper high-contrast palette.
+
+Tips and informational callouts share `--ui-info-soft`, `--ui-info-subtle-text`, and `--ui-info-soft-border`. The advice and information icons distinguish their purposes. The customizer’s Info relationship governs both. **Status color relationship** coordinates all statuses: **Semantic colors** retains their hues, **Less color** reduces pigment and quiet tints together, and **Primary + icons** uses the primary accent while icons and labels carry meaning. Advanced controls can refine each status relationship.
+
 ### What derives from what
 
 | Derived | From | How |
@@ -108,11 +112,11 @@ because each is mixed from it.
 | `--ui-disabled-surface`, `--ui-disabled-text`, `--ui-disabled-border` | sunken surface, ink + page | flat surface, pale ink, and a low-contrast edge distinguish a disabled control from every enabled tone |
 | `--ui-disabled-filter` | `none` | optional hook for custom disabled treatments |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
-| `--ui-warning-subtle-text` | warning + ink | 55% warning toward the ink. Amber is the lightest intent, so it takes more ink to read at 4.5:1, and a theme can keep a bright, saturated warning for tints, borders, and icons |
+| `--ui-warning-subtle-text` | warning hue + surface contrast | restrained amber ink; the customizer adjusts lightness while preserving hue and chroma as far as the display gamut permits |
 
 The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
-one set of rules serves both.
+one set of rules serves both. The default amber fill uses dark labels, so its hover and pressed states brighten to retain contrast. High-contrast warning fills use white labels and darken instead.
 
 Neutral solid and outline Button and IconButton controls share `--ui-control-border` and `--ui-control-border-hover` with form fields. Changing that role changes the whole family. Neutral surfaces and shadows stay quiet; accent outlines and solid accents provide stronger emphasis.
 
@@ -642,7 +646,7 @@ The component-specific `--ui-form-field-label-font-size` and
 
 ## Themes
 
-Switch with `data-theme` or let the media queries do it. A theme sets the eleven seeds, plus the
+Switch with `data-theme` or let the media queries do it. A theme sets the palette seeds, plus the
 shadows if depth should read differently on its surfaces:
 
 ```css
@@ -655,10 +659,10 @@ shadows if depth should read differently on its surfaces:
   --ui-on-accent: #1a1a1a;
   --ui-on-danger: #1a1a1a;
   --ui-accent: #a99bf5;
-  --ui-danger: #ff6b6b;
-  --ui-success: #33cc66;
-  --ui-warning: #ffaa22;
-  --ui-info: #4d9fff;
+  --ui-danger: #ffa191;
+  --ui-success: #84d393;
+  --ui-warning: #f0af63;
+  --ui-info: #92c0ff;
 }
 ```
 
@@ -667,7 +671,7 @@ direction reads as "lifted" flips between a light and a dark scheme, and only th
 which one it is.
 
 In a dark theme the intent tones are light, so their foregrounds (`--ui-on-accent`,
-`--ui-on-danger`) are dark. That is what lets one tone per intent serve both text and solid surfaces.
+`--ui-on-danger`, and `--ui-on-warning`) are dark. That is what lets one tone per intent serve both text and solid surfaces.
 
 ## Components own their layout
 

@@ -29,9 +29,16 @@ test('directory cards and full reference come from the published component catal
     await expect(card.locator('[data-preview]')).toBeVisible();
     await expect(card.locator('iframe')).toHaveCount(0);
   }
-  await page.getByRole('searchbox', { name: 'Find a component', exact: true }).fill('color picker');
+  await page.getByRole('searchbox', { name: 'Filter components', exact: true }).fill('color picker');
   await expect(page.locator('[data-component-card="ui-color-picker"]')).toBeVisible();
   await expect(page.locator('[data-component-card="ui-stack"]')).toBeHidden();
+  await page.setViewportSize({ width: 375, height: 900 });
+  const mobileFilter = await page.getByRole('searchbox', { name: 'Filter components', exact: true }).boundingBox();
+  const mobileSection = await page.getByRole('combobox', { name: 'Section', exact: true }).boundingBox();
+  expect(mobileFilter.width).toBeGreaterThan(300);
+  expect(mobileSection.y).toBeGreaterThanOrEqual(mobileFilter.y + mobileFilter.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(info.config.metadata.markupress + 'components/ui-stack/');
   const firstReference = page.locator('[data-example-card]').first();
   await expect(firstReference.locator('.looma-example-heading')).toHaveCount(1);
@@ -50,35 +57,64 @@ test('directory cards and full reference come from the published component catal
   await expect(page.getByRole('heading', { name: 'Shared tokens', exact: true })).toBeVisible();
 });
 
-test('documentation navigation uses Looma disclosures and keeps editor references in their own section', async ({ page }, info) => {
+test('documentation navigation links categories and lists only the current category pages', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/ui-card/');
   const navigation = page.getByRole('navigation', { name: 'Documentation', exact: true });
-  const forms = navigation.getByRole('button', { name: 'Forms', exact: true });
-  await expect(forms).toHaveAttribute('aria-expanded', 'true');
-  await expect(navigation.locator('summary')).toHaveCount(0);
-  await expect(navigation.getByRole('link', { name: 'Editor Toolbar', exact: true })).toHaveCount(0);
-  const alignment = await forms.evaluate(element => {
-    const row = element.getBoundingClientRect(), icon = element.querySelector('svg').getBoundingClientRect();
-    return Math.abs(row.top + row.height / 2 - icon.top - icon.height / 2);
-  });
-  expect(alignment).toBeLessThanOrEqual(2);
-  await forms.click(); await expect(forms).toHaveAttribute('aria-expanded', 'false');
-  await forms.press('Enter'); await expect(forms).toHaveAttribute('aria-expanded', 'true');
+  const forms = navigation.getByRole('link', { name: 'Forms', exact: true });
+  const layout = navigation.getByRole('link', { name: 'Layout', exact: true });
+  for (const group of catalog.groups) {
+    await expect(navigation.getByRole('link', { name: group.label, exact: true })).toBeVisible();
+  }
+  await expect(navigation.locator('button, details, summary, [aria-expanded]')).toHaveCount(0);
+  await expect(navigation.getByRole('link', { name: 'Display', exact: true })).toHaveAttribute('aria-current', 'location');
+  await expect(navigation.getByRole('link', { name: 'Card', exact: true })).toBeVisible();
+  await expect(navigation.getByRole('link', { name: 'Button', exact: true })).toHaveCount(0);
+  await expect(navigation.getByRole('link', { name: 'Toolbar', exact: true })).toHaveCount(0);
+  await expect(forms).toHaveAttribute('href', /components\/forms\/$/);
+  await forms.focus(); await forms.press('Enter');
+  await expect(page.getByRole('heading', { level: 1, name: 'Forms', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Section', exact: true })).toHaveValue('forms');
+  await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'forms' && !component.navigationParent).length);
+  await expect(forms).toHaveAttribute('aria-current', 'page');
+  const formsURL = page.url();
+  const filter = page.getByRole('searchbox', { name: 'Filter components', exact: true });
+  await filter.fill('ui-stack');
+  await expect(page.getByRole('status').filter({hasText:'No components match.'})).toBeVisible();
+  await expect(page.locator('[data-component-card="ui-stack"]')).toHaveCount(0);
+  await expect(page).toHaveURL(formsURL);
+  await expect(forms).toHaveAttribute('aria-current', 'page');
+  await filter.fill('');
+  await expect(page.locator('[data-component-card="ui-button"]')).toBeVisible();
+  expect((await filter.boundingBox()).width).toBeGreaterThan(300);
+  await expect(navigation.getByRole('link', { name: 'Card', exact: true })).toHaveCount(0);
+  await followDocumentationLink(page, layout, 'Layout');
+  await expect(layout).toHaveAttribute('aria-current', 'page');
+  await page.reload();
+  await expect(page.getByRole('combobox', { name: 'Section', exact: true })).toHaveValue('layout');
+  await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'layout' && !component.navigationParent).length);
+  await expect(navigation.getByRole('link', { name: 'Stack', exact: true })).toBeVisible();
+  await expect(navigation.getByRole('link', { name: 'Button', exact: true })).toHaveCount(0);
+  await page.getByRole('combobox', { name: 'Section', exact: true }).selectOption('forms');
+  await expect(page.getByRole('heading', { level: 1, name: 'Forms', exact: true })).toBeVisible();
+  await expect(forms).toHaveAttribute('aria-current', 'page');
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Layout', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Section', exact: true })).toHaveValue('layout');
+  await page.getByRole('searchbox', { name: 'Filter components', exact: true }).fill('Stack');
+  await page.getByRole('combobox', { name: 'Section', exact: true }).selectOption('');
+  await expect(page.getByRole('heading', { level: 1, name: 'Components', exact: true })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Filter components', exact: true })).toHaveValue('');
+  await expect(page.locator('[data-component-card="ui-stack"]')).toBeVisible();
+  await expect(page.locator('[data-component-card="ui-button"]')).toBeVisible();
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) {
-    const read = element => { const style = getComputedStyle(element), box = element.getBoundingClientRect(); return { height: box.height, font: style.font, color: style.color, background: style.backgroundColor, outline: style.outline, borderRadius: style.borderRadius }; };
-    const states = { rest: await forms.evaluate(read) };
-    await forms.hover(); states.hover = await forms.evaluate(read);
-    await page.mouse.down(); try { states.pressed = await forms.evaluate(read); } finally { await page.mouse.up(); }
-    await page.mouse.move(0, 0);
-    await writeFile(join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-states.json'), JSON.stringify(states, null, 2) + '\n');
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-light.png') });
   }
   await followDocumentationLink(page, page.locator('[data-component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }), 'Editor');
   await expect(page).toHaveURL(/\/editor\/$/);
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toHaveCount(0);
-  const toolbar = page.getByRole('link', { name: 'Editor Toolbar', exact: true });
+  const toolbar = page.getByRole('link', { name: 'Toolbar', exact: true });
   await expect(toolbar).toHaveAttribute('href', /\/editor\/ui-editor-toolbar\/$/);
-  await followDocumentationLink(page, toolbar, 'Editor Toolbar'); await expect(page.getByRole('heading', { level: 1, name: 'Editor Toolbar', exact: true })).toBeVisible();
+  await followDocumentationLink(page, toolbar, 'Toolbar'); await expect(page.getByRole('heading', { level: 1, name: 'Toolbar', exact: true })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 900 });
   await page.getByRole('button', { name: 'Navigation', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toBeVisible();
@@ -90,6 +126,20 @@ test('documentation navigation uses Looma disclosures and keeps editor reference
   await expect(components).toHaveAttribute('aria-current', 'false');
   expect(await components.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(await editor.evaluate(element => getComputedStyle(element).backgroundColor));
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-editor-mobile.png') });
+});
+
+test('category galleries render their cards and native category links before JavaScript', async ({ browser }, info) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(info.config.metadata.markupress + 'components/forms/');
+    await expect(page.getByRole('heading', { level: 1, name: 'Forms', exact: true })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Section', exact: true })).toHaveCount(0);
+    await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'forms' && !component.navigationParent).length);
+    const navigation = page.getByRole('navigation', { name: 'Documentation', exact: true });
+    await followDocumentationLink(page, navigation.getByRole('link', { name: 'Layout', exact: true }), 'Layout');
+    await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'layout' && !component.navigationParent).length);
+  } finally { await context.close(); }
 });
 
 test('component browser searches the complete catalog in bounded groups', async ({ page }, info) => {
@@ -264,7 +314,7 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'View component', exact: true }), 'Button');
   await expect(page).toHaveURL(/\/components\/ui-button\/$/);
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
-  await expect.poll(() => page.getByRole('heading', { name: 'Button', exact: true, level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).toContain('Georgia');
+  await expect.poll(() => page.getByRole('heading', { name: 'Button', exact: true, level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).toContain('Newsreader');
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
   await page.reload();
   await expect.poll(action).toMatch(/^light-dark\(#2e1228, /);
@@ -392,7 +442,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   const displaySize = await text.getByRole('heading', { level: 1 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   const headingSize = await text.getByRole('heading', { level: 2 }).evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   expect(displaySize).toBeGreaterThan(headingSize);
-  await expect.poll(() => text.getByRole('heading', { level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).not.toContain('Georgia');
+  await expect.poll(() => text.getByRole('heading', { level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).not.toContain('Newsreader');
 });
 
 test('material refinement shares a movable light, remembers customized presets and restores only that family', async ({ page }, info) => {
@@ -585,4 +635,86 @@ test('Starting point defaults to Looma and Gold applies and survives a reload', 
   await openEditor(page, 'themes');
   await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Gold');
   expect(errors).toEqual([]);
+});
+
+test('card summaries distinguish application tools, site navigation and contextual view states', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress + 'components/display/');
+  for (const tag of ['ui-top-bar','ui-site-header','ui-status-message','ui-description-list']) {
+    const component = catalog.components.find(component => component.tag === tag);
+    await expect(page.locator(`[data-component-card="${tag}"] .description`)).toHaveText(component.summary);
+  }
+  await expect(page.locator('[data-component-card="ui-top-bar"] h3')).toHaveText('Application toolbar');
+  await page.goto(info.config.metadata.markupress + 'components/ui-status-message/');
+  const frame = page.locator('[data-example-card$="/01-kinds"] [data-preview]');
+  await expect(frame.locator('[data-component~=ui-card] [data-component~=ui-status-message]')).toHaveCount(3);
+  await expect(frame.getByRole('alert')).toHaveText('Activity could not be loaded.');
+});
+
+test('information relationship themes tips and survives reload and export', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const palette = await openEditor(page, 'palette');
+  const sharedInformation = async () => {
+    for (const mode of ['light','dark']) {
+      const panel = palette.locator(`[data-theme="${mode}"]`);
+      const paint = el => { const s = getComputedStyle(el); return [s.backgroundColor, s.color, s.borderTopColor]; };
+      expect(await panel.getByRole('note').filter({hasText:'Tips share the informational color family.'}).evaluate(paint))
+        .toEqual(await panel.getByRole('note').filter({hasText:'A status surface shares the Info badge’s colors.'}).evaluate(paint));
+    }
+  };
+  await sharedInformation();
+  await palette.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
+  await chooseOption(palette.getByRole('combobox', {name:'Info relationship',exact:true}), 'primary');
+  const colors = () => page.locator('html').evaluate(el => {
+    const probe = el.appendChild(document.createElement('span'));
+    const colors = ['--ui-info','--ui-accent'].map(name => {
+      probe.style.color = `var(${name})`; return getComputedStyle(probe).color;
+    });
+    probe.remove(); return colors;
+  });
+  await expect.poll(colors).toEqual(['rgb(118, 88, 214)', 'rgb(118, 88, 214)']);
+  await sharedInformation();
+  await page.reload();
+  await openEditor(page, 'palette');
+  await page.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
+  await expect(page.getByRole('combobox', {name:'Info relationship',exact:true})).toHaveValue('primary');
+  const exported = await openEditor(page, 'export');
+  await exported.getByRole('button', {name:'Theme CSS',exact:true}).click();
+  await expect(exported.locator('[data-css]')).toHaveValue(/--ui-info: light-dark\(#7658d6, #7658d6\);/);
+});
+
+test('status relationship presets reduce color or share primary while keeping icons and advanced choices', async ({page},info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const palette = await openEditor(page, 'palette');
+  const relationship = palette.getByRole('combobox', {name:'Status color relationship',exact:true});
+  await expect(relationship).toHaveValue('semantic');
+  const swatches = () => palette.locator('[data-theme=light] [data-component~=ui-badge]').evaluateAll(nodes =>
+    nodes.filter(el => ['Success','Error','Warning','Info'].includes(el.textContent.trim())).map(el => {
+      const s = getComputedStyle(el); return {tone:el.textContent.trim(),background:s.backgroundColor,text:s.color,icon:el.querySelector('svg')?.innerHTML};
+    }));
+  const normal = await swatches();
+  expect(normal).toHaveLength(4);
+  expect(normal.every(item => item.icon)).toBe(true);
+  expect(new Set(normal.map(item => item.icon)).size).toBe(4);
+  await relationship.selectOption('restrained');
+  await expect(relationship).toHaveValue('restrained');
+  await expect.poll(swatches).not.toEqual(normal);
+  const quiet = await swatches();
+  expect(quiet.map(item => item.icon)).toEqual(normal.map(item => item.icon));
+  await relationship.selectOption('primary');
+  await expect.poll(async () => new Set((await swatches()).map(item => item.background)).size).toBe(1);
+  const shared = await swatches();
+  expect(shared.map(item => item.icon)).toEqual(normal.map(item => item.icon));
+  expect(new Set(shared.map(item => item.text)).size).toBe(1);
+  await page.reload();
+  await openEditor(page, 'palette');
+  await expect(relationship).toHaveValue('primary');
+  await palette.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
+  await chooseOption(palette.getByRole('combobox', {name:'Warning relationship',exact:true}), 'derived');
+  await expect(relationship.locator('option:checked')).toHaveText('Primary + icons · customized');
+  await palette.getByRole('button', {name:'Reset status colors',exact:true}).click();
+  await expect(palette.getByRole('combobox', {name:'Warning relationship',exact:true})).toHaveValue('primary');
+  await relationship.selectOption('semantic');
+  await page.setViewportSize({width:375,height:900});
+  await expect(relationship).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

@@ -52,8 +52,14 @@ test('prerenders examples in shared cards without frame documents, including beh
     const directory = await readFile(path.join(site.content, 'components/index.md'), 'utf8');
     assert.match(directory, /looma-example-card/);
     assert.match(directory, /category="forms"/);
-    assert.match(directory, /data-preview=/);
+    const forms = await readFile(path.join(site.content, 'components/03.(Forms)/00.forms.md'), 'utf8');
+    assert.match(forms, /navigation: overview/);
+    assert.match(forms, /<looma-catalog category="forms"/);
+    assert.deepEqual([...forms.matchAll(/<looma-example-card[^>]* tag="([^"]+)"/g)].map(match => match[1]),
+      catalog.components.filter(component => component.group === 'forms' && !component.navigationParent).map(component => component.tag));
+assert.match(directory, /data-preview=/);
     const swatches = site.examples.find(example => example.component.endsWith('/ui-color-picker') && example.markup.includes('<ui-input'));
+
     assert.match(await readFile(swatches.file, 'utf8'), /ui-input\/ui-input.html/);
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
     assert.match(customizer, /<looma-preview-choice slot="preview"/);

@@ -6,6 +6,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Status Message
 
-The one way a view says it is loading (`kind="loading"`, with a spinner), has nothing yet (`kind="empty"`, the default), or failed (`kind="error"`, in the danger tone and announced at once), with an optional next step in the `action` slot. `layout="panel"` sets it on a dashed surface for an empty area in a page; `layout="fill"` centres it in all the space, for a whole view.
+Shows the loading, empty, or failed state of a content area, with an optional next action. Inline layout uses the surrounding area’s existing boundary; panel adds a boundary, and fill centers a whole-view state. Loading and empty states use a live status region; errors use an alert. Use Callout for static guidance and FormField for errors tied to a specific input.
 
 <ComponentExamplesApiTabs component="ui-status-message" />

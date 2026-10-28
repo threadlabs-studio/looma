@@ -1,4 +1,5 @@
 {
   "description": "Presentational row shell for command/search results. It owns row layout, spacing, hover/selected states, and optional leading/meta/excerpt/trailing regions while apps keep result shaping and highlighting.",
-  "navigationParent": "ui-search-shell"
+  "navigationParent": "ui-search-shell",
+  "summary": "A selectable search result with optional supporting content."
 }

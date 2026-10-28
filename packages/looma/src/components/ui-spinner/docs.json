@@ -1,4 +1,5 @@
 {
   "description": "Something is on its way. With a `label` it is a status that assistive technology announces; beside visible text that already says so, leave the label off. It holds still under reduced motion.",
-  "group": "display"
+  "group": "display",
+  "summary": "A compact indicator that work is in progress."
 }

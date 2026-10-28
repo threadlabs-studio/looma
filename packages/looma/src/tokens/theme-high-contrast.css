@@ -13,6 +13,8 @@
       --ui-danger: #8b0000;
       --ui-success: #006400;
       --ui-warning: #7a3d00;
+      --ui-warning-hover: color-mix(in oklab, var(--ui-warning) 86%, var(--ui-text));
+      --ui-warning-active: color-mix(in oklab, var(--ui-warning) 74%, var(--ui-text));
       --ui-info: #00008b;
 
       /* The deliberate divergence, and the whole point of this theme: a mixed border is a grey
@@ -42,6 +44,8 @@
     --ui-danger: #8b0000;
     --ui-success: #006400;
     --ui-warning: #7a3d00;
+    --ui-warning-hover: color-mix(in oklab, var(--ui-warning) 86%, var(--ui-text));
+    --ui-warning-active: color-mix(in oklab, var(--ui-warning) 74%, var(--ui-text));
     --ui-info: #00008b;
 
     /* The deliberate divergence, and the whole point of this theme: a mixed border is a grey

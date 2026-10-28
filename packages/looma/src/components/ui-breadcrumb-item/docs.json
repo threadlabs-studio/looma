@@ -1,4 +1,5 @@
 {
   "description": "One step in a Breadcrumbs trail: a link up to that place, or, with `current`, the view you are on (`aria-current=\"page\"`). An icon slotted in the link sits with its name. See [Breadcrumbs](/components/ui-breadcrumbs).",
-  "navigationParent": "ui-breadcrumbs"
+  "navigationParent": "ui-breadcrumbs",
+  "summary": "A link or current location in a breadcrumb trail."
 }
