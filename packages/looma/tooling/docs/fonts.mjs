@@ -5,7 +5,7 @@ export const googleFonts = Object.fromEntries([
   ['DM Sans', 'sans-serif'], ['Manrope', 'sans-serif'], ['Work Sans', 'sans-serif'],
   ['IBM Plex Sans', 'sans-serif'], ['Public Sans', 'sans-serif'], ['Atkinson Hyperlegible', 'sans-serif'],
   ['Outfit', 'sans-serif'], ['Fraunces', 'serif'], ['Merriweather', 'serif'], ['Lora', 'serif'],
-  ['Source Serif 4', 'serif'], ['Libre Baskerville', 'serif'], ['Crimson Pro', 'serif'],
+  ['Source Serif 4', 'serif'], ['Newsreader', 'serif'], ['Libre Baskerville', 'serif'], ['Crimson Pro', 'serif'],
   ['EB Garamond', 'serif'], ['Playfair Display', 'serif'], ['Roboto Mono', 'monospace'],
   ['IBM Plex Mono', 'monospace'], ['JetBrains Mono', 'monospace'], ['Fira Code', 'monospace'],
 ].map(([family, category]) => [family, { family, category, weights: ['Lato', 'Atkinson Hyperlegible', 'Libre Baskerville'].includes(family) ? '400;700' : '400;500;600;700' }]));

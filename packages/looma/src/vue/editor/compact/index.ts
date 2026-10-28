@@ -1,4 +1,4 @@
-import { defineComponent, h, onBeforeUnmount, onMounted, shallowRef, watch, type PropType, type VNodeChild } from "vue";
+import { defineComponent, h, nextTick, onBeforeUnmount, onMounted, shallowRef, watch, type PropType, type VNodeChild } from "vue";
 import type { AnyExtension, JSONContent } from "@tiptap/core";
 import { Editor, EditorContent } from "@tiptap/vue-3";
 import { getCompactEditorExtensions } from "./extensions";
@@ -33,13 +33,16 @@ export const LoomaCompactEditor = defineComponent({
     const editor = shallowRef<Editor>();
     onMounted(() => {
       editor.value = new Editor({
-        extensions: [...getCompactEditorExtensions(), ...props.extensions],
+        extensions: [...getCompactEditorExtensions().filter(extension => !props.extensions.some(supplied => supplied.name === extension.name)), ...props.extensions],
         content: props.modelValue,
         editable: props.editable,
         editorProps: { attributes: () => ({ role: "textbox", "aria-multiline": "true", "aria-label": props.label, "aria-readonly": String(!props.editable), id: props.id }) },
         onUpdate: ({ editor }) => emit("update:modelValue", editor.getJSON()),
       });
-      emit("ready", editor.value);
+      // EditorContent attaches the view in its own nextTick after this render.
+      void nextTick().then(() => nextTick()).then(() => {
+        if (editor.value && !editor.value.isDestroyed) emit("ready", editor.value);
+      });
     });
     watch(() => props.modelValue, value => {
       if (editor.value && JSON.stringify(value) !== JSON.stringify(editor.value.getJSON())) editor.value.commands.setContent(value, false);

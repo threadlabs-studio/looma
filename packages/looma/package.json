@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.43.0",
+  "version": "0.44.0",
   "type": "module",
   "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
@@ -134,7 +134,7 @@
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
     "vue": "^3.5.43",
-    "markupress": ">=0.10.2 <1",
+    "markupress": ">=0.10.3 <1",
     "@threadlabs/markupkit": ">=0.2.0 <1",
     "vite": ">=7.2.7 <9"
   },

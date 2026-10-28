@@ -12,12 +12,12 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D 'markupress@>=0.10.2 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
+pnpm add -D 'markupress@>=0.10.3 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.10.2 and later compatible 0.x releases supply the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.10.3 and later compatible 0.x releases supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
 Initialization creates three project-owned files:
 
@@ -30,6 +30,8 @@ Initialization creates three project-owned files:
 Import `./looma.theme.css` after Looma's tokens and palette in your application's entry point. The initializer prints that import; it leaves existing application files intact. Commit the configuration, recipe and CSS. Add `.looma/` to your project's ignore file: it contains disposable generated documentation and tooling files.
 
 The CSS includes generated derivation rules as well as values. Re-export or save your recipe after a Looma upgrade to adopt updated rules.
+
+Component navigation keeps every category linked and lists reference pages only beneath the current category. Category links open galleries with the matching filter selected; individual links open their references. Section selection survives reload and browser history, and overview cards render before JavaScript. The Section dropdown navigates between galleries; Filter components narrows only the cards on the current page, and changing sections starts with a fresh filter. Markupress supplies the section navigation and its continuous sidebar background. Editor references have their own section, with concise display names independent of component tags.
 
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
 
@@ -92,7 +94,16 @@ Documentation navigation stays out of the customization workspace. **Material & 
 
 Material starts with Finish, Transparency and Frosting. Advanced material contains the light source and its color, edge light, glow, depth and decorative rim extent. The quiet grid stays fixed across the customizer while the page scrolls; content plates remain opaque.
 
-A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
+The starting themes make different choices within the same controls:
+
+- **Clear:** gray neutrals, restrained status tints and minimal depth.
+- **Gold:** warm primary actions, plum links and selection, rounded polished surfaces, and Lato/Fraunces.
+- **Bookish:** wine guidance and confirmations, coral and leather accents, restrained risk colors, and Open Sans/Newsreader.
+- **Editorial:** flat ink-and-paper surfaces, rust links, serif type, and primary-color statuses distinguished by icons and labels.
+- **Night:** cool supporting accents, amber warnings, glass material, and IBM Plex Sans/Mono.
+- **Garden:** forest, clay and gold, soft rounded surfaces, and Nunito Sans/Lora.
+
+A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. Status color relationships offer **Semantic colors**, **Less color**, and **Primary + icons**. **Reset status colors** restores the selected status relationship without changing brand colors, type, or material; advanced per-status relationships remain available. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
 Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. LightEditor keeps its coordinate fields under **Exact position**. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
 
@@ -229,12 +240,17 @@ Place a `docs.json` beside it to join a shared category:
 ```json
 {
   "title": "Office status",
+  "summary": "The office’s current status.",
   "description": "A status for the Fellowship office.",
   "group": "display"
 }
 ```
 
+An optional `summary` supplies the short card text; `description` supplies the full reference introduction. Cards use `description` when no summary is authored.
+
 Looma's category IDs are listed in its published catalog. Components without a category appear in **Project components**. A discovery root can declare additional `groups` as `{ "id": "…", "label": "…" }` entries. The top-level `categories` mapping explicitly maps category IDs when combining catalogs.
+
+A component card should demonstrate its defining feature, including a non-default configuration when that makes the behavior clear. A feature demonstration does not require changing the component’s default.
 
 Put authored examples in an `examples/` directory beside the resource. Each `.html` example starts with a metadata comment:
 

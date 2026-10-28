@@ -57,7 +57,7 @@
     .example-heading p { margin: var(--ui-space-2) 0 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); }
     :host([reference]) .preview { min-block-size: 11rem; display: grid !important; align-items: center !important; border-block-end: 0; }
     :host([reference]) .preview::before { display: none; }
-    .preview { position: relative; min-block-size: 13rem; overflow: hidden; border-block-end: var(--ui-border-width) solid var(--ui-border); background: color-mix(in srgb, var(--_card-accent) 5%, var(--ui-surface)); }
+    .preview { position: relative; min-block-size: 13rem; overflow: hidden; border-block-end: var(--ui-border-width) solid var(--ui-border); background: var(--ui-surface-raised); }
     .preview::before { position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 3.5rem; block-size: 3px; background: var(--_card-accent); content: ""; z-index: 1; }
     .stage { inline-size: var(--_preview-width, 100%); max-inline-size: 100%; min-inline-size: 0; }
     footer { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; }

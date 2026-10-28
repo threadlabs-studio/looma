@@ -169,12 +169,19 @@ test('Google selection loads actual font faces, exports its import, and system f
   await openEditor(page, 'export');
   const downloaded=page.waitForEvent('download'); await page.getByRole('button',{name:'Download CSS',exact:true}).click();
   const download=await downloaded, css=await readFile(await download.path(),'utf8');
-  expect(css).toContain('@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");');
+  expect(css).toContain('@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:wght@400;500;600;700&display=swap");');
   await openEditor(page, 'typography');
   await font.fill('System'); await page.getByRole('option',{name:'System font',exact:true}).click();
   await expect(page.locator('[data-font-status="body-font"]')).toContainText('operating system');
   expect((await session(page)).values['body-font']).toBe('system-ui, sans-serif');
-  expect((await session(page)).fonts['body-font']).toBeUndefined(); expect(errors).toEqual([]);
+  expect((await session(page)).fonts['body-font']).toBeUndefined();
+  await openEditor(page, 'export');
+  const systemDownload=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Download CSS',exact:true}).click();
+  const systemCSS=await readFile(await (await systemDownload).path(),'utf8');
+  expect(systemCSS).not.toContain('family=Inter:');
+  expect(systemCSS).toContain('family=Newsreader:wght@400;500;600;700&display=swap');
+  expect(errors).toEqual([]);
 });
 
 
@@ -441,7 +448,7 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   await editor.locator('[data-color-source="tertiary-action"]').selectOption('custom');
   await setBaseColor(page,'Tertiary accent','#208676');
   await expect(editor.locator('[data-extra-accent="secondary-action"]').first()).toBeVisible();
-  await editor.getByRole('button',{name:'Status colors',exact:true}).click();
+  await editor.getByRole('button',{name:'Advanced status relationships',exact:true}).click();
   for(const [role,label] of [['success','Success'],['danger','Error'],['warning','Warning'],['info','Info']]) {
     await editor.getByRole('combobox',{name:label+' relationship',exact:true}).selectOption('primary');
     expect(await editor.locator(`[data-token="${role}-color"]`).count()).toBe(0);

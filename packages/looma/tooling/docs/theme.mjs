@@ -13,7 +13,7 @@ const statusChoices = { derived: 'Semantic hue', related: 'Harmonize with primar
 const neutralChoices = { text: 'Derive from text', ...brandChoices, gray: 'Untinted gray' };
 const relationshipChoices = { preserve: 'Preserve seed hues', neighboring: 'Neighboring hues', complementary: 'Complementary hues' };
 const choicesFor = id => id === 'neutral-source' ? neutralChoices : id.endsWith('-source') ? statusChoices : id.endsWith('-accent') ? brandChoices : relationshipChoices;
-const statusSeeds = { danger: '#c92d1e', success: '#007a33', warning: '#ba5b0b', info: '#0066cc' };
+const statusSeeds = { danger: '#c92d1e', success: '#007a33', warning: '#b27522', info: '#0066cc' };
 
 /** The shared authoring schema; ids remain stable in saved recipes. */
 export const themeFields = [
@@ -23,7 +23,7 @@ export const themeFields = [
   ['Colour', 'neutral-source', 'Neutral relationship', null, 'choice', 'text', 'Derive restrained neutrals from text, an accent family or an untinted gray. Shared border contrast and readable labels stay governed.'],
   ['Colour', 'neutral-strength', 'Neutral fill strength', null, 'fraction', '0.25', 'How much neutral pigment appears in quiet filled controls. Borders remain shared with fields.'],
   ['Colour', 'neutral-border-contrast', 'Neutral border contrast', null, 'ratio', '2', 'Minimum border-to-surface contrast for neutral buttons and form fields. 2:1 is the balanced default; raise it for stronger boundaries.'],
-  ['Colour', 'status-chroma', 'Derived status saturation', null, 'fraction', '0.5', 'Perceptual saturation of derived status colors, coordinated with the primary accent. Brand mappings keep the chosen family intact.'],
+  ['Colour', 'status-chroma', 'Derived status saturation', null, 'fraction', '0.5', 'Coordinate derived status pigment, text and quiet tints with the primary accent. Brand mappings keep the chosen family intact.'],
   ['Colour', 'success-source', 'Success relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
   ['Colour', 'danger-source', 'Error relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
   ['Colour', 'warning-source', 'Warning relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
@@ -68,17 +68,66 @@ export const themeFields = [
 
 const baseRecipe = () => ({ schemaVersion: 1, values: Object.fromEntries(themeFields.map(field => [field.id, field.defaultValue])) });
 const starting = values => ({ schemaVersion: 1, values: { ...baseRecipe().values, ...values } });
+const fontStarting = (values, body, display) => ({
+  ...starting({ ...values, 'body-font': googleFontStack(body), 'display-font': googleFontStack(display) }),
+  fonts: { 'body-font': body, 'display-font': display },
+});
 /** The documentation starts with Looma's coordinated identity; Clear keeps the neutral baseline. */
 export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#ffffff', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
 export const startingPoints = {
   looma: defaultRecipe(),
-  clear: baseRecipe(),
-  gold: { ...starting({ action: '#ffb84d', canvas: '#ffffff', surface: '#ffffff', text: '#171717', 'body-font': googleFontStack('Lato'), 'display-font': googleFontStack('Fraunces'), 'text-size': '17px', 'corner-roundness': '16px', finish: '0.55', 'light-x': '0' }), fonts: { 'body-font': 'Lato', 'display-font': 'Fraunces' } },
-  bookish: starting({ rhythm: '1.05', action: '#2e1228', canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c', 'body-font': 'Arial, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9', 'response-time': '150ms', 'response-curve': 'ease' }),
+  clear: { ...starting({
+    'neutral-source': 'gray', 'neutral-strength': '0.18', 'neutral-border-contrast': '2.2', 'status-chroma': '0.1',
+    'corner-roundness': '6px', 'outer-depth': '0.2', 'inner-depth': '0', 'response-time': '100ms',
+  }), presets: { status: 'restrained' } },
+  gold: { ...fontStarting({
+    action: '#ffb84d', 'secondary-action': '#704d7b', canvas: '#ffffff', surface: '#ffffff', text: '#171717',
+    'neutral-source': 'primary', 'neutral-strength': '0.18', 'neutral-border-contrast': '2.1',
+    'info-source': 'secondary', 'status-chroma': '0.25', 'selection-accent': 'secondary', 'link-accent': 'secondary',
+    'text-size': '17px', 'label-size': '16px', 'corner-roundness': '16px', finish: '0.55', 'light-x': '0',
+  }, 'Lato', 'Fraunces'), presets: { status: 'semantic' } },
+  bookish: { ...fontStarting({
+    action: '#2e1228', 'secondary-action': '#fc5b69', 'tertiary-action': '#896853',
+    canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c',
+    'neutral-source': 'primary', 'neutral-strength': '0.18', 'neutral-border-contrast': '2.1',
+    'info-source': 'primary', 'success-source': 'primary', 'status-chroma': '0.1', 'focus-accent': 'secondary',
+    rhythm: '1.05', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'corner-roundness': '6px',
+    'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18',
+    'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9',
+    'response-time': '150ms', 'response-curve': 'ease',
+  }, 'Open Sans', 'Newsreader'), presets: { status: 'restrained' } },
   wiki: starting({ rhythm: '0.95', 'text-weight': '400', 'space-curve': '0.8', action: '#4f46e5', canvas: '#ffffff', surface: '#ffffff', text: '#1a1a1a', 'control-roominess': '2.125', spacing: '0.95', 'scale-contrast': '1.15', 'corner-roundness': '6px', 'outer-depth': '0.35', 'inner-depth': '0', 'response-time': '110ms' }),
-  editorial: starting({ rhythm: '1.3', 'text-size': '17px', spacing: '1.12', 'space-curve': '1.4', 'scale-contrast': '1.3', action: '#182c24', canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24', 'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'line-weight': '2px', 'response-time': '90ms', 'response-curve': 'linear' }),
-  night: starting({ rhythm: '1.05', 'display-font': 'ui-monospace, monospace', 'text-weight': '500', 'control-roominess': '2.375', spacing: '1.05', 'scale-contrast': '1.25', 'space-curve': '1', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25', 'light-x': '0.25', 'light-spread': '0.65', action: '#a7b8ff', canvas: '#11141c', surface: '#202634', text: '#edf1fb', 'corner-roundness': '12px', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65', 'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)' }),
-  garden: starting({ rhythm: '1.2', 'body-font': 'ui-rounded, system-ui, sans-serif', 'display-font': 'Georgia, serif', 'text-weight': '400', 'space-curve': '1.15', finish: '0.15', 'light-spread': '1', action: '#256342', canvas: '#f4edda', surface: '#fff8e7', text: '#173121', 'corner-roundness': '22px', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05', 'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)' }),
+  editorial: { ...starting({
+    action: '#182c24', 'secondary-action': '#9d4f38', 'tertiary-action': '#92743d',
+    canvas: '#eee9dc', surface: '#fffdf5', text: '#182c24',
+    'neutral-source': 'primary', 'neutral-strength': '0.12', 'neutral-border-contrast': '2.4',
+    'success-source': 'primary', 'info-source': 'primary', 'warning-source': 'primary', 'danger-source': 'primary',
+    'link-accent': 'secondary', 'focus-accent': 'secondary',
+    rhythm: '1.3', 'text-size': '17px', 'label-size': '16px', spacing: '1.12', 'space-curve': '1.4', 'scale-contrast': '1.3',
+    'body-font': 'Georgia, serif', 'display-font': 'Georgia, serif', 'text-weight': '400',
+    'corner-roundness': '0px', 'outer-depth': '0', 'inner-depth': '0', 'line-weight': '2px',
+    'response-time': '90ms', 'response-curve': 'linear',
+  }), presets: { status: 'primary' } },
+  night: { ...fontStarting({
+    action: '#a7b8ff', 'secondary-action': '#68bfc2', 'tertiary-action': '#d0a56b',
+    canvas: '#11141c', surface: '#202634', text: '#edf1fb',
+    'neutral-source': 'primary', 'neutral-strength': '0.3', 'neutral-border-contrast': '2.2',
+    'success-source': 'secondary', 'info-source': 'primary', 'warning-source': 'tertiary', 'status-chroma': '0.3',
+    'selection-accent': 'secondary', 'link-accent': 'secondary',
+    rhythm: '1.05', 'text-weight': '500', 'control-roominess': '2.375', spacing: '1.05', 'scale-contrast': '1.25',
+    'corner-roundness': '12px', finish: '0.6', glow: '0.45', glassiness: '0.45', 'surface-separation': '0.25',
+    'light-x': '0.25', 'light-spread': '0.65', 'outer-depth': '1.4', 'inner-depth': '0.45', translucency: '0.2', 'edge-light': '0.65',
+    'response-time': '210ms', 'response-curve': 'cubic-bezier(0.2,0.8,0.2,1)',
+  }, 'IBM Plex Sans', 'IBM Plex Mono'), presets: { status: 'semantic' } },
+  garden: { ...fontStarting({
+    action: '#256342', 'secondary-action': '#b9684b', 'tertiary-action': '#b9973e',
+    canvas: '#f4edda', surface: '#fff8e7', text: '#173121',
+    'neutral-source': 'primary', 'neutral-strength': '0.2', 'neutral-border-contrast': '2',
+    'success-source': 'primary', 'info-source': 'primary', 'warning-source': 'tertiary', 'status-chroma': '0.2', 'focus-accent': 'secondary',
+    rhythm: '1.2', 'text-weight': '400', 'space-curve': '1.15', 'control-roominess': '2.875', 'scale-contrast': '1.24', spacing: '1.05',
+    'corner-roundness': '22px', finish: '0.15', 'light-spread': '1', 'outer-depth': '0.35', 'inner-depth': '0', 'edge-light': '0.2',
+    'response-time': '180ms', 'response-curve': 'cubic-bezier(0.16,1,0.3,1)',
+  }, 'Nunito Sans', 'Lora'), presets: { status: 'semantic' } },
 };
 export const startingPointLabels = { looma: 'Looma', clear: 'Clear', gold: 'Gold', bookish: 'Bookish', wiki: 'Wiki', editorial: 'Editorial', night: 'Night', garden: 'Garden' };
 const paletteKeys = themeFields.filter(field => field.family === 'Colour').map(field => field.id);
@@ -97,7 +146,21 @@ export const materialPresets = {
   polished: material('Polished', { 'outer-depth': '1', 'inner-depth': '1', 'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9' }),
   glass: material('Frosted glass', startingPoints.bookish.values),
 };
-const refinementPresets = family => family === 'material' ? materialPresets : family === 'palette' ? themePalettes : undefined;
+const status = (label, source, chroma) => ({ label, values: {
+  ...Object.fromEntries(Object.keys(statusSeeds).map(role => [role + '-source', source])), 'status-chroma': chroma,
+} });
+export const statusPresets = {
+  semantic: status('Semantic colors', 'derived', '0.5'),
+  restrained: status('Less color', 'derived', '0.1'),
+  primary: status('Primary + icons', 'primary', '0.5'),
+};
+const refinementPresets = family => {
+  switch (family) {
+    case 'material': return materialPresets;
+    case 'palette': return themePalettes;
+    case 'status': return statusPresets;
+  }
+};
 
 /** Preset provenance is optional recipe data, never a second source of theme values. */
 export function refinementState(input, family) {
@@ -268,6 +331,17 @@ const actionBoundary = (fill, surfaces, ink, amplitude) => {
   return mix(surfaceOffset(surfaces[1], ink, amplitude), fill, shortfall ** 2);
 };
 
+// Adjust semantic ink in lightness before sacrificing its hue or chroma. Mixing
+// amber toward black also removes its color, making a readable warning look brown.
+function readableTone(seed, surfaces, minimum, endpoint) {
+  const [l, c, h] = toLch(seed), end = toLch(endpoint)[0];
+  for (let step = 0; step <= 256; step++) {
+    const next = fromLch([l + (end - l) * step / 256, c, h]);
+    if (surfaces.every(surface => contrast(next, surface) >= minimum)) return next;
+  }
+  return endpoint;
+}
+
 const paletteCache = new Map();
 export function deriveTheme(input, { mode } = {}) {
   if (mode !== undefined && !['light', 'dark'].includes(mode)) throw new Error('Unknown theme color mode.');
@@ -308,16 +382,17 @@ export function deriveTheme(input, { mode } = {}) {
   const accents = { primary: seeds.action, secondary: seeds['secondary-action'], tertiary: seeds['tertiary-action'] };
   const tones = { accent: accents.primary, 'accent-secondary': accents.secondary, 'accent-tertiary': accents.tertiary };
   const brandChroma = Math.min(.20, Math.max(.08, toLch(accents.primary)[1]));
-  for (const role of ['danger','success','warning','info']) {
+  for (const role of Object.keys(statusSeeds)) {
     const source = values[role + '-source'];
     if (source === 'derived' || source === 'related') {
-      let [l, , h] = toLch(statusSeeds[role]);
+      let [l, c, h] = toLch(statusSeeds[role]);
       if (source === 'related') {
         const brandHue = toLch(accents.primary)[2];
         const delta = ((brandHue - h + 540) % 360) - 180;
         h += Math.max(-15, Math.min(15, delta));
       }
-      tones[role] = fromLch([l, brandChroma * (.5 + Number(values['status-chroma'])) * (.6 + Number(values['color-intensity']) * .8), h]);
+      // Preserve each semantic anchor's balance; brand pigment bounds its intensity.
+      tones[role] = fromLch([l, Math.min(c, brandChroma * .7) * (.5 + Number(values['status-chroma'])) * (.6 + Number(values['color-intensity']) * .8), h]);
     } else tones[role] = accents[source];
   }
   for (const [tone, original] of Object.entries(tones)) {
@@ -335,8 +410,12 @@ export function deriveTheme(input, { mode } = {}) {
     const [quietL] = toLch(quiet);
     const [, pigmentC, pigmentH] = toLch(fill);
     const plateL = toLch(tokens['--ui-surface-raised'])[0];
-    const quietC = dark ? Math.min(pigmentC, .035) : Math.min(pigmentC, .02 + .03 * Math.max(0, Math.cos((pigmentH - 140) * Math.PI / 180)));
-    tokens[`--ui-${tone}-soft`] = readableColour(fromLch([dark ? Math.max(quietL, plateL + .07) : Math.max(.92, plateL - .04), quietC, pigmentH]), [ink], 4.5, paper);
+    const warmLift = dark ? Math.max(0, 1 - Math.abs(pigmentH - 70) / 35) ** 2 : 0;
+    const semantic = Object.hasOwn(statusSeeds, tone) && ['derived', 'related'].includes(values[tone + '-source']);
+    const tintScale = semantic ? .25 + 1.5 * Number(values['status-chroma']) : 1;
+    const quietC = Math.min(pigmentC, (dark ? .035 + .015 * warmLift : .02) * tintScale);
+    const softL = dark ? Math.max(quietL, plateL + .07) + .04 * warmLift : Math.max(.92, plateL - .04);
+    tokens[`--ui-${tone}-soft`] = readableColour(fromLch([softL, quietC, pigmentH]), [ink], 4.5, paper);
   }
   // Quiet fills are actual alpha composites. At an extreme light/dark flip,
   // reduce their shared tint before it would leave no readable contextual ink.
@@ -350,8 +429,9 @@ export function deriveTheme(input, { mode } = {}) {
   const readingSurfaces = quietSurfaces(tonalOpacity);
   for (const tone of Object.keys(tones)) {
     const [l, c, h] = toLch(tokens[`--ui-${tone}`]);
-    const foregroundSeed = fromLch([dark ? Math.max(l, .80) : Math.min(l, .50), Math.min(c, dark ? .16 : .18), h]);
-    tokens[`--ui-${tone}-subtle-text`] = readableColour(foregroundSeed, readingSurfaces, 4.5, ink);
+    const semantic = Object.hasOwn(statusSeeds, tone) && ['derived', 'related'].includes(values[tone + '-source']);
+    const foregroundSeed = fromLch([dark ? Math.max(l, .80) : semantic ? l : Math.min(l, .50), Math.min(c, semantic ? .12 : dark ? .16 : .18), h]);
+    tokens[`--ui-${tone}-subtle-text`] = (semantic ? readableTone : readableColour)(foregroundSeed, readingSurfaces, 4.5, ink);
     tokens[`--ui-${tone}-soft-border`] = alphaSurface(tokens[`--ui-${tone}-subtle-text`], tokens[`--ui-${tone}-soft`], .25);
   }
   // Existing validation/editor hooks must receive a contextual text role, never

@@ -4,6 +4,22 @@
 
 - Use contextual link ink for SiteHeader selected and hovered navigation, preserving contrast when a theme has deep action fills.
 
+- **Breaking:** Footnote editing follows document numbering automatically. Remove EditorFootnoteEditor’s `label`, `editable`, and `error` props and `label`/`go` event handlers. Use its default slot for rich editing and `done` for Escape dismissal. Changes apply live; Escape or clicking away closes the editor. Adding a footnote opens its floating rich-text editor; an existing reference offers a one-line action bar with an icon-only Go to note control and an Edit note button. Rich note blocks and marks remain intact.
+
+- Fade dialogs in at their final rendered size. Keep intrinsic height animation for content changes after opening.
+
+- Use the shared raised surface behind component previews, removing the decorative grid and accent tint. The public docs no longer replace shared sunken-surface and border roles with fixed cream/beige colors.
+
+- Curate Clear, Gold, Bookish, Editorial, Night and Garden using supporting accents, neutral relationships, status mappings, typography and material controls. Bookish uses primary-color info/success with restrained warning/error colors, coral/leather accents and Open Sans/Newsreader. Preserve the Looma and Wiki recipes.
+
+- Rebalance shared status colors: quiet green surfaces use the same chroma budget as other hues, semantic pigments stay subordinate to the primary accent, and warning uses amber rather than the red-orange family. Contextual semantic ink adjusts lightness while retaining hue. Dark warm surfaces receive a bounded tonal and chroma lift to retain their color. Tip shares the existing Info palette and its governed relationship controls, using an advice icon to distinguish its purpose. The customizer offers Semantic colors, Less color, and Primary + icons relationships; individual status mappings remain available in advanced controls. Standalone amber actions use `--ui-on-warning` and contrast-safe hover/pressed fills; re-export saved recipes to update existing CSS.
+
+- Give documentation cards concise authored summaries while retaining full reference introductions. Clarify Application toolbar versus SiteHeader, and show inline status messages inside an existing content boundary.
+
+- Require Markupress 0.10.3 for section navigation with a continuous sidebar background to the footer. Category links open filtered card galleries; only the current category’s reference links appear beneath it. Galleries preserve section selection across navigation and render their cards before JavaScript. The Section dropdown navigates; a wider responsive Filter components field searches only the current view and resets when changing sections.
+
+- Use authored component display names in the documentation catalog, removing redundant Editor prefixes from editor reference headings, cards and navigation.
+
 - Share semantic background, foreground and border roles across subtle Badge, toned Card, Callout, Toast and generated notifications. Text inherits its containing surface or control’s foreground, with the document root supplying the body-text role, so composed status content keeps the same colors. Optional overlay group overrides remain available without masking semantic defaults.
 
 - Separate dark canvas and content elevations, strengthen shared dark neutral and selection derivation, and use shared mode-aware soft-color roles for subtle badges so light status backgrounds remain pale.

@@ -625,7 +625,11 @@ test('status relationships govern color without accepting direct status color ov
     recipe.values[role+'-source']='primary';
   }
   const {tokens}=deriveTheme(recipe);
-  for(const role of ['danger','warning','success','info']) assert.equal(tokens['--ui-'+role],tokens['--ui-accent']);
+  for(const role of ['danger','warning','success','info']) {
+    assert.equal(tokens['--ui-'+role],tokens['--ui-accent']);
+    assert.equal(tokens['--ui-'+role+'-subtle-text'],tokens['--ui-accent-subtle-text']);
+    assert.equal(tokens['--ui-'+role+'-soft'],tokens['--ui-accent-soft']);
+  }
 });
 
 
@@ -653,4 +657,88 @@ test('quiet light status surfaces stay pale while dark surfaces use readable con
       }
     }
   }
+});
+
+
+test('default semantic colors stay restrained and amber warning separates from red danger', () => {
+  for (const mode of ['light', 'dark']) {
+    const { tokens: t } = deriveTheme(defaultRecipe(), { mode });
+    const chroma = role => toLch(t['--ui-' + role])[1];
+    for (const role of ['success', 'warning', 'danger', 'info']) {
+      assert.ok(chroma(role) <= chroma('accent') * .8, `${mode}/${role}: semantics support the primary accent`);
+      assert.ok(chroma(role + '-soft') <= (mode === 'light' ? .022 : .052), `${mode}/${role}: quiet tint has no green boost`);
+      assert.ok(chroma(role + '-subtle-text') <= .123, `${mode}/${role}: restrained contextual ink`);
+    }
+    const warningHue = toLch(t['--ui-warning-subtle-text'])[2];
+    const dangerHue = toLch(t['--ui-danger-subtle-text'])[2];
+    assert.ok(warningHue >= 65 && warningHue <= 85, `${mode}: warning retains amber hue`);
+    assert.ok(warningHue - dangerHue >= 35, `${mode}: warning is distinct from red danger`);
+  }
+});
+
+
+test('dark warm surfaces retain color above the neutral floor', () => {
+  const { tokens: t } = deriveTheme(defaultRecipe(), { mode: 'dark' });
+  const [warmL, warmC] = toLch(t['--ui-warning-soft']);
+  const [coolL, coolC] = toLch(t['--ui-info-soft']);
+  assert.ok(warmL >= coolL + .025, 'warm dark tints need a tonal lift to avoid reading as brown-gray');
+  assert.ok(warmC >= coolC + .01 && warmC <= .052, 'warm tint compensation stays bounded');
+  assert.ok(contrast(t['--ui-warning-subtle-text'], t['--ui-warning-soft']) >= 4.5);
+});
+
+test('status relationships coordinate semantic, less-color and primary-icon palettes without changing the brand', () => {
+  const original = defaultRecipe();
+  const quiet = applyRefinement(original, 'status', 'restrained');
+  const primary = applyRefinement(original, 'status', 'primary');
+  for (const recipe of [quiet, primary]) {
+    assert.equal(recipe.values.action, original.values.action);
+    assert.equal(recipe.values.canvas, original.values.canvas);
+    assert.equal(recipe.values['outer-depth'], original.values['outer-depth']);
+    assert.equal(recipe.values['text-size'], original.values['text-size']);
+    assert.deepEqual(refinementState(validateRecipe(JSON.parse(JSON.stringify(recipe))), 'status'),
+      { id: recipe.presets.status, customized: false });
+  }
+  for (const mode of ['light', 'dark']) {
+    const normal = deriveTheme(original, { mode }).tokens;
+    const restrained = deriveTheme(quiet, { mode }).tokens;
+    const shared = deriveTheme(primary, { mode }).tokens;
+    for (const role of ['danger','warning','info','success']) {
+      for (const suffix of ['', '-soft', '-subtle-text']) {
+        assert.ok(toLch(restrained['--ui-' + role + suffix])[1] < toLch(normal['--ui-' + role + suffix])[1] * .8,
+          `${mode}/${role}${suffix}: Less color reduces pigment, tint and foreground together`);
+        assert.equal(shared['--ui-' + role + suffix], shared['--ui-accent' + suffix]);
+      }
+      for (const tokens of [restrained, shared]) {
+        assert.ok(contrast(tokens['--ui-' + role + '-soft'], tokens['--ui-' + role + '-subtle-text']) >= 4.5);
+      }
+    }
+  }
+  quiet.values['info-source'] = 'secondary';
+  assert.deepEqual(refinementState(quiet, 'status'), { id: 'restrained', customized: true });
+  const restored = applyRefinement(quiet, 'status', 'restrained');
+  assert.equal(restored.values['info-source'], 'derived');
+  assert.deepEqual(applyRefinement(primary, 'status', 'semantic').values, original.values);
+});
+
+test('Bookish coordinates branded guidance, restrained risk states and supporting accents', () => {
+  const recipe = startingPoints.bookish;
+  assert.deepEqual(recipe.fonts, { 'body-font': 'Open Sans', 'display-font': 'Newsreader' });
+  assert.deepEqual(validateRecipe(JSON.parse(JSON.stringify(recipe))), recipe);
+  for (const mode of ['light','dark']) {
+    const { tokens: t } = deriveTheme(recipe, { mode });
+    for (const role of ['info','success']) for (const suffix of ['', '-soft', '-subtle-text']) {
+      assert.equal(t['--ui-' + role + suffix], t['--ui-accent' + suffix]);
+    }
+    for (const role of ['warning','danger']) {
+      assert.notEqual(t['--ui-' + role], t['--ui-accent']);
+      assert.ok(contrast(t['--ui-' + role + '-subtle-text'], t['--ui-' + role + '-soft']) >= 4.5);
+    }
+    assert.notEqual(t['--ui-accent-secondary'], t['--ui-accent']);
+    assert.notEqual(t['--ui-accent-tertiary'], t['--ui-accent']);
+    assert.equal(recipe.values['focus-accent'], 'secondary');
+    assert.equal(recipe.values['selection-accent'], 'primary');
+    assert.equal(recipe.values['link-accent'], 'primary');
+  }
+  assert.match(themeCSS(recipe), /Newsreader/);
+  assert.match(themeCSS(recipe), /Open\+Sans/);
 });

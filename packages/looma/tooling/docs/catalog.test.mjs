@@ -13,7 +13,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     await mkdir(path.join(dir, 'examples'), { recursive: true });
     await writeFile(path.join(dir, 'acme-status.html'), '<template component="acme-status" module="./danger.js"><defs><prop name="label" type="string" default="Ready">The current status.</prop></defs><p>{label}<slot></slot></p></template>');
     await writeFile(path.join(dir, 'danger.js'), 'throw new Error("Discovery must not execute this");');
-    await writeFile(path.join(dir, 'docs.json'), JSON.stringify({ title: 'Status', description: 'A project status.', group: 'display' }));
+    await writeFile(path.join(dir, 'docs.json'), JSON.stringify({ title: 'Status', description: 'A project status.', summary: 'Current project state.', group: 'display' }));
     await writeFile(path.join(dir, 'examples/01-ready.html'), '<!--\ntitle: Ready\ndescription: The ready state.\n-->\n<acme-status label="Ready"></acme-status>');
     const catalog = await discoverComponents({ root, directory: 'components', packageName: 'acme-design' });
     const merged = mergeCatalogs([core, catalog]);
@@ -21,6 +21,10 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     assert.equal(c.id, 'acme-design/acme-status');
     assert.equal(c.group, 'display');
     assert.equal(c.description, 'A project status.');
+    assert.equal(c.summary, 'Current project state.');
+    const { cardMarkup } = await import('./render.mjs');
+    assert.match(cardMarkup(c.examples[0], '/', c), /description="Current project state\."/);
+    assert.match(cardMarkup(c.examples[0], '/', c, { reference: true }), /description="The ready state\."/);
     assert.equal(c.attributes[0].description, 'The current status.');
     assert.equal(c.attributes[0].default, 'Ready');
     assert.equal(c.examples[0].title, 'Ready');
