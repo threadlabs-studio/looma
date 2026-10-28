@@ -2009,7 +2009,7 @@
     },
     {
       "path": "components/ui-top-bar",
-      "title": "Top Bar",
+      "title": "Application toolbar",
       "source": "apps/docs/docs/components/display/ui-top-bar.mdx",
       "component": "ui-top-bar",
       "examples": [
@@ -2201,17 +2201,12 @@
       "examples": [
         {
           "id": "01-note",
-          "title": "Note",
-          "behavior": false
+          "title": "Floating note",
+          "behavior": true
         },
         {
           "id": "02-formatted-note",
-          "title": "Formatted note",
-          "behavior": false
-        },
-        {
-          "id": "03-label-in-use",
-          "title": "Label in use",
+          "title": "Note field",
           "behavior": false
         }
       ]
