@@ -99,12 +99,15 @@
       --_ui-material-separation: clamp(0, var(--ui-surface-separation, 0), 1);
       --_ui-material-active: clamp(0, calc(var(--_ui-material-separation) * 100000), 1);
       --_ui-material-rim: calc(var(--_ui-material-separation) * var(--_ui-material-scale, 0.08) * 8px);
-      --_ui-material-content-color: var(--_ui-tooltip-surface, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))));
+      --_ui-material-content-color: var(
+        --_ui-tooltip-surface,
+        var(--_ui-material-underpaint, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))))
+      );
       --_ui-material-rim-color: color-mix(in srgb, var(--ui-material-glass, var(--ui-surface-elevated)) calc(var(--_ui-material-active) * 100%), transparent);
       background:
+        var(--ui-material-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent))) padding-box,
         linear-gradient(var(--_ui-material-content-color), var(--_ui-material-content-color)) padding-box,
-        linear-gradient(var(--_ui-material-rim-color), var(--_ui-material-rim-color)) border-box,
-        var(--_ui-material-content-color) padding-box;
+        linear-gradient(var(--_ui-material-rim-color), var(--_ui-material-rim-color)) border-box;
       border-width: calc(var(--ui-border-width) + var(--_ui-material-rim));
       border-color: var(
         --_ui-tooltip-border,
@@ -127,13 +130,13 @@
 
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
       .surface {
-        background: var(--_ui-material-content-color);
+        background: oklch(from var(--_ui-material-content-color) l c h / 1);
       }
     }
 
     @media (prefers-reduced-transparency: reduce) {
       .surface {
-        background: var(--_ui-material-content-color);
+        background: oklch(from var(--_ui-material-content-color) l c h / 1);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
       }

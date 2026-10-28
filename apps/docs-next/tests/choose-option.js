@@ -9,20 +9,18 @@ export async function chooseOption(field, value) {
   await owner.getByRole('option', { name: label, exact: true }).click();
 }
 
-/** Navigate as a reader does: leave the current editor before opening another. */
+/** Navigate through the persistent toolbar, including its utility menu. */
 export async function openEditor(page, family) {
   const target = page.locator(`[data-refinement-view="${family}"]`);
   if (await target.isVisible()) return target;
-  const current = page.locator('[data-refinement-view]:visible');
-  if (await current.count()) await current.locator('[data-action="back"]').click();
+  if (['components','export'].includes(family)) await page.getByRole('button', {name:'Theme tools',exact:true}).click();
   await page.locator(`[data-action="refine-${family}"]`).click();
   return target;
 }
 
 export async function chooseStartingPoint(page, value) {
-  const editor = await openEditor(page, 'themes');
+  const editor = page.locator('[data-customizer-summary]');
   await chooseOption(editor.getByRole('combobox', { name: 'Starting point', exact: true }), value);
-  await editor.locator('[data-action="back"]').click();
 }
 
 export async function setBaseColor(page, label, value) {
@@ -45,4 +43,9 @@ export async function followDocumentationLink(page, link, heading) {
   await link.click({noWaitAfter:true});
   await page.waitForFunction(({destination,heading}) => location.href === destination && document.querySelector('h1')?.textContent.trim() === heading, {destination,heading});
   if (page.context().browser().browserType().name() === 'webkit') await page.goto(destination);
+}
+
+export async function openOverview(page) {
+  await page.getByRole('button', {name:'Theme tools',exact:true}).click();
+  await page.getByRole('menuitem', {name:'Overview',exact:true}).click();
 }

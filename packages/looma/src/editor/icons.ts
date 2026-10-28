@@ -1,4 +1,5 @@
 import {
+  Slash,
   AlignCenter,
   AlignLeft,
   AlignRight,
@@ -83,6 +84,7 @@ import {
 
 /** The opinionated Lucide set used by Looma's shipped interaction surfaces. */
 export const LOOMA_ICONS = {
+  slash: Slash,
   monitor: Monitor,
   sun: Sun,
   moon: Moon,

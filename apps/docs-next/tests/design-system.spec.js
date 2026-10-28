@@ -1,4 +1,4 @@
-import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, followDocumentationLink } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, openOverview, followDocumentationLink } from './choose-option.js';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -112,9 +112,11 @@ test('documentation navigation links categories and lists only the current categ
   await followDocumentationLink(page, page.locator('[data-component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }), 'Editor');
   await expect(page).toHaveURL(/\/editor\/$/);
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toHaveCount(0);
-  const toolbar = page.getByRole('link', { name: 'Toolbar', exact: true });
-  await expect(toolbar).toHaveAttribute('href', /\/editor\/ui-editor-toolbar\/$/);
-  await followDocumentationLink(page, toolbar, 'Toolbar'); await expect(page.getByRole('heading', { level: 1, name: 'Toolbar', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Toolbar', exact: true })).toHaveCount(0);
+  const editorAPI = page.getByRole('link', { name: 'Editor API reference', exact: true });
+  await expect(editorAPI).toHaveAttribute('href', /\/editor\/looma-editor\/$/);
+  await followDocumentationLink(page, editorAPI, 'Turnkey editor');
+  await expect(page.getByRole('heading', { level: 1, name: 'Turnkey editor', exact: true })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 900 });
   await page.getByRole('button', { name: 'Navigation', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toBeVisible();
@@ -435,7 +437,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await expect(page.locator('[data-palette-adjustments]')).toContainText('readability');
   await page.getByText('Resolved palette values', { exact: true }).click();
   await expect(page.locator('[data-palette-adjustment-details]')).toContainText('dark');
-  await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await openOverview(page);
   await openEditor(page, 'components');
   const text = page.locator('[data-refinement-view="components"] [data-component-card="ui-text"] [data-preview]');
   await expect(text.getByRole('heading', { name: 'There and back by Friday', level: 1 })).toBeVisible();
@@ -452,7 +454,6 @@ test('material refinement shares a movable light, remembers customized presets a
   const size = await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'));
   const enter = async () => {
     const material = await openEditor(page, 'material');
-    await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   };
   await enter();
   const material = page.locator('[data-refinement-view="material"]');
@@ -501,7 +502,7 @@ test('material refinement shares a movable light, remembers customized presets a
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished');
   await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('50%');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe(size);
-  await material.getByRole('button', { name: 'Overview', exact: true }).click();
+  await openOverview(page);
   await expect(page.locator('[data-customizer-overview]')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -512,10 +513,9 @@ test('starting theme refinements remember their material and palette without res
   await openEditor(page, 'material');
   const material = page.locator('[data-refinement-view="material"]');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass');
-  await material.getByRole('button', { name: 'Advanced material', exact: true }).click();
   await material.getByRole('button', { name: /^Theme light position. Arrow keys/ }).press('Shift+ArrowRight');
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
-  await material.getByRole('button', { name: 'Overview', exact: true }).click();
+  await openOverview(page);
   await openEditor(page, 'palette');
   const palette = page.locator('[data-refinement-view="palette"]');
   await setBaseColor(page, 'Action', '#442244');
@@ -623,16 +623,16 @@ test('Starting point defaults to Looma and Gold applies and survives a reload', 
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(info.config.metadata.markupress + 'customize/');
-  const themes = await openEditor(page, 'themes');
+  const themes = page.locator('[data-customizer-summary]');
   await expect(themes.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Looma');
   await chooseStartingPoint(page, 'gold');
   const material = await openEditor(page, 'material');
   const primary = material.getByRole('button', { name: 'Send briefing', exact: true });
   await expect(primary).toHaveCSS('background-color', 'rgb(255, 184, 77)');
   await expect(primary).toHaveCSS('font-family', /Lato/);
-  await expect(page.locator('[data-looma-customizer]')).toHaveCSS('background-attachment', /^fixed(?:,\s*fixed)*$/);
+  await expect(page.locator('[data-looma-customizer]')).toHaveCSS('background-image', 'none');
+  await expect(material.locator('[data-editor-preview=material]')).not.toHaveCSS('background-image', 'none');
   await page.reload();
-  await openEditor(page, 'themes');
   await expect(page.getByRole('combobox', { name: 'Starting point', exact: true })).toHaveValue('Gold');
   expect(errors).toEqual([]);
 });
@@ -662,7 +662,6 @@ test('information relationship themes tips and survives reload and export', asyn
     }
   };
   await sharedInformation();
-  await palette.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
   await chooseOption(palette.getByRole('combobox', {name:'Info relationship',exact:true}), 'primary');
   const colors = () => page.locator('html').evaluate(el => {
     const probe = el.appendChild(document.createElement('span'));
@@ -675,7 +674,6 @@ test('information relationship themes tips and survives reload and export', asyn
   await sharedInformation();
   await page.reload();
   await openEditor(page, 'palette');
-  await page.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
   await expect(page.getByRole('combobox', {name:'Info relationship',exact:true})).toHaveValue('primary');
   const exported = await openEditor(page, 'export');
   await exported.getByRole('button', {name:'Theme CSS',exact:true}).click();
@@ -708,7 +706,6 @@ test('status relationship presets reduce color or share primary while keeping ic
   await page.reload();
   await openEditor(page, 'palette');
   await expect(relationship).toHaveValue('primary');
-  await palette.getByRole('button', {name:'Advanced status relationships',exact:true}).click();
   await chooseOption(palette.getByRole('combobox', {name:'Warning relationship',exact:true}), 'derived');
   await expect(relationship.locator('option:checked')).toHaveText('Primary + icons · customized');
   await palette.getByRole('button', {name:'Reset status colors',exact:true}).click();

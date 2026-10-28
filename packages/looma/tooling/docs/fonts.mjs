@@ -43,3 +43,31 @@ export async function loadGoogleFonts(document, fonts) {
     if (!faces.length) throw new Error(`${family} is unavailable; the fallback is currently displayed.`);
   }
 }
+
+/** Request only a font name's glyphs; selected fonts use the unrestricted stylesheet above. */
+export function googleFontPreviewURL(family) {
+  if (!Object.hasOwn(googleFonts, family)) throw new Error('Choose a supported Google font.');
+  return 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replaceAll('%20', '+') + ':wght@400&display=swap&text=' + encodeURIComponent(family);
+}
+
+const previewLoads = new WeakMap();
+/** Isolate subset faces under aliases so document typography always uses full selected fonts. */
+export function loadGoogleFontPreview(document, family) {
+  let loads = previewLoads.get(document);
+  if (!loads) { loads = new Map(); previewLoads.set(document, loads); }
+  if (!loads.has(family)) {
+    const loaded = (async () => {
+      const response = await document.defaultView.fetch(googleFontPreviewURL(family));
+      if (!response.ok) throw new Error('Font preview unavailable.');
+      const source = (await response.text()).match(/src\s*:\s*([^;]+);/)?.[1];
+      if (!source) throw new Error('Font preview unavailable.');
+      const alias = `Looma Font Preview ${family}`;
+      const face = new document.defaultView.FontFace(alias, source, { weight: '400', style: 'normal', display: 'swap' });
+      await face.load(); document.fonts.add(face);
+      return alias;
+    })();
+    loads.set(family, loaded);
+    loaded.catch(() => { if (loads.get(family) === loaded) loads.delete(family); });
+  }
+  return loads.get(family);
+}

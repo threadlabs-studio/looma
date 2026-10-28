@@ -1,7 +1,7 @@
-import { googleFontStack, systemFont, loadGoogleFonts } from './fonts.mjs';
+import { googleFontStack, systemFont, loadGoogleFonts, loadGoogleFontPreview, googleFonts } from './fonts.mjs';
 import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, startingPointLabels, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, statusPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
+import { startingPoints, startingPointFor, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, statusPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
 
 import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
@@ -34,11 +34,10 @@ export function connect(host) {
   const unitContext = () => ({ remPixels: parseFloat(view.getComputedStyle(document.documentElement).fontSize) });
   const editorFor = (field, value) => valueEditor(field, value, { remPixels: parseFloat(recipe.values['text-size']) });
   let boundsBase, lastLabelSize;
-  const optionalColors = new Map();
   const updateControl = (element, value) => {
     if (element.matches('[data-choice]')) element.dataset.selectedValue = value;
     const field = fields.get(element.dataset.token);
-    if (field?.type === 'optional-colour' && value === field.defaultValue) return;
+    if (field?.type === 'optional-colour' && value === field.defaultValue) value = '';
     if (!field || !element.dataset.editorKind) { componentRegistry.update(element, { value }); return; }
     const editor = editorFor(field, value);
     if (element.dataset.editorKind === 'curve') {
@@ -70,6 +69,7 @@ export function connect(host) {
   const previews = [...root.querySelectorAll('[data-editor-preview], .palette-preview')];
   let layoutFrame = 0;
   const updatePreviewLayout = () => {
+    root.style.setProperty('--_customizer-summary-height', `${root.querySelector('[data-customizer-summary]').getBoundingClientRect().height}px`);
     const chrome = header?.getBoundingClientRect().height ?? 0;
     root.style.setProperty('--_editor-chrome-height', `${chrome}px`);
     for (const preview of previews) preview.toggleAttribute('data-page-flow', preview.offsetHeight > (view.innerHeight - chrome) / 2);
@@ -93,13 +93,6 @@ export function connect(host) {
   };
   const paint = () => {
     const values = recipe.values;
-    for (const field of themeFields.filter(field => field.type === 'optional-colour')) {
-      const value = values[field.id], custom = value !== field.defaultValue;
-      if (custom) optionalColors.set(field.id, value);
-      const picker = root.querySelector(`[data-optional-color="${field.id}"]`);
-      picker.hidden = !custom;
-      componentRegistry.update(root.querySelector(`[data-color-source="${field.id}"]`), { value: custom ? 'custom' : 'default' });
-    }
     for (const sample of root.querySelectorAll('[data-extra-accent]')) sample.hidden = values[sample.dataset.extraAccent] === 'none';
     for (const readout of root.querySelectorAll('[data-palette-roles]')) {
       const { tokens } = deriveTheme(recipe, { mode: readout.dataset.paletteRoles });
@@ -112,14 +105,14 @@ export function connect(host) {
     const labelValue = followsBody ? lastLabelSize ?? values['text-size'] : values['label-size'];
     componentRegistry.update(labelSize, { value: labelValue, unit: labelValue.match(/[a-z]+$/i)?.[0] ?? 'px' });
     componentRegistry.update(root.querySelector('[data-label-size-source]'), { value: followsBody ? 'inherit' : 'custom' });
-    root.querySelector('[data-theme-summary]').textContent = startingPointLabels[recipe.origin ?? startingPointFor(recipe)] ?? 'Your theme';
     const summaries = {
-      palette: `${themePalettes[refinementState(recipe, 'palette').id]?.label ?? 'Custom colors'} · Light & dark`,
-      material: `${materialPresets[refinementState(recipe, 'material').id]?.label ?? 'Custom material'}`,
+      palette: `${themePalettes[refinementState(recipe, 'palette').id]?.label ?? 'Custom colors'}${refinementState(recipe, 'palette').customized ? ' · customized' : ''}`,
+      material: `${Math.round(Number(values.finish) * 100)}% finish · ${Math.round(Number(values.translucency) * 100)}% transparent`,
       typography: `${recipe.fonts?.['body-font'] ?? values['body-font'].split(',')[0]} · ${values['text-size']}`,
       layout: `${Number(values.rhythm) * Number(values.spacing) < .95 ? 'Compact' : Number(values.rhythm) * Number(values.spacing) > 1.2 ? 'Relaxed' : 'Comfortable'} · ${parseFloat(values['corner-roundness']) === 0 ? 'Square' : 'Rounded'} corners`,
       motion: `${values['response-time']} · ${values['response-curve'].startsWith('cubic-bezier') ? 'Custom curve' : values['response-curve']}`,
     };
+    root.querySelector('[data-active-summary]').textContent = summaries[view.location.hash.slice(1)] ?? Object.values(summaries).slice(0,2).join(' · ');
     for (const [family, text] of Object.entries(summaries)) root.querySelector(`[data-summary="${family}"]`).textContent = text;
     root.querySelector('[data-motion-readout]').textContent = `${values['response-time']} feedback · ${parseFloat(convertValueUnit(values['response-time'], 'ms', unitContext())) * 3}ms travel`;
     componentRegistry.update(root.querySelector('[data-action="replay-motion"]'), { disabled: motionPreference.matches });
@@ -257,7 +250,7 @@ export function connect(host) {
     if (!control) return;
     const field = fields.get(control.dataset.token);
     const raw = event.detail?.value ?? control.value;
-    const value = control.dataset.editorKind ? editorValue(field, raw) : String(raw);
+    const value = field.type === 'optional-colour' && raw === '' ? field.defaultValue : control.dataset.editorKind ? editorValue(field, raw) : String(raw);
     const next = refinedRecipe({ ...recipe.values, [control.dataset.token]: value });
     try {
       preview(next); changed = JSON.stringify(recipe) !== JSON.stringify(saved);
@@ -280,11 +273,12 @@ export function connect(host) {
     if (section) refinementTrigger = root.querySelector(`[data-action="refine-${family}"]`);
     for (const element of root.querySelectorAll('[data-refinement-view]')) element.hidden = element !== section;
     overview.hidden = Boolean(section);
+    for (const button of root.querySelectorAll('[data-customizer-summary] [data-action^="refine-"]')) button.setAttribute('aria-pressed', String(button.dataset.action === `refine-${family}`));
     motionAnimation?.cancel();
     if (family === 'motion') motionSignature = undefined;
     paint();
     if (section) { section.focus(); section.scrollIntoView({ block: 'start' }); }
-    else { refinementTrigger?.focus({ preventScroll: true }); view.scrollTo({ top: overviewScroll, behavior: 'instant' }); }
+    else { (['refine-components','refine-export'].includes(refinementTrigger?.dataset.action) ? root.querySelector('#theme-tools') : refinementTrigger)?.focus({ preventScroll: true }); view.scrollTo({ top: overviewScroll, behavior: 'instant' }); }
   };
   const navigate = family => {
     flush();
@@ -302,9 +296,10 @@ export function connect(host) {
         case 'replay-motion': replayMotion(); break;
         case 'undo': case 'redo':
           theme?.[button.dataset.action](); show(theme?.recipe ?? recipe, false); sayApplied('Previous theme decision restored.'); break;
-        case 'refine-material': case 'refine-palette': case 'refine-typography': case 'refine-layout': case 'refine-motion': case 'refine-themes': case 'refine-export': case 'refine-components': {
+        case 'refine-material': case 'refine-palette': case 'refine-typography': case 'refine-layout': case 'refine-motion': case 'refine-export': case 'refine-components': {
           const family = button.dataset.action.slice(7);
-          refinementTrigger = button; overviewScroll = view.scrollY;
+          refinementTrigger = button;
+          if (!root.querySelector('[data-customizer-overview]').hidden) overviewScroll = view.scrollY;
           navigate(family);
           break;
         }
@@ -362,16 +357,9 @@ export function connect(host) {
   const change = async event => {
     const value = event.detail?.value ?? event.target.value;
     if (event.target.matches('[data-light-editor], [data-label-size-value]') || event.target.closest?.('[data-token]')) {
-      input(event); flush(); sayApplied('Theme remembered in this browser. Undo restores the previous decision.'); return;
+      input(event); flush(); sayApplied('Saved in this browser.'); return;
     }
     flush();
-    if (event.target.matches('[data-color-source]')) {
-      const field = fields.get(event.target.dataset.colorSource);
-      const fallback = recipe.values.action;
-      show(refinedRecipe({ ...recipe.values, [field.id]: value === 'default' ? field.defaultValue : optionalColors.get(field.id) ?? fallback }));
-      sayApplied(`${field.label} updated and remembered in this browser.`);
-      return;
-    }
     if (event.target.matches('[data-label-size-source]')) {
       show(refinedRecipe({ ...recipe.values, 'label-size': value === 'inherit' ? 'inherit' : lastLabelSize ?? recipe.values['text-size'] }));
       sayApplied('Field label size updated and remembered in this browser.');
@@ -392,9 +380,9 @@ export function connect(host) {
       show(applyRefinement(recipe, family, value));
       sayApplied(`${{ material: 'Material', palette: 'Coordinated palette', status: 'Status color relationship' }[family]} preset applied and remembered in both modes.`);
     }
-    if (event.target.matches('[data-preset]')) { show({ ...structuredClone(startingPoints[value]), origin: value }); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
+    if (event.target.matches('[data-preset]')) { show({ ...structuredClone(startingPoints[value]), origin: value }); sayApplied('Saved in this browser.'); }
     if (event.target === file && file.files[0]) {
-      try { show(JSON.parse(await file.files[0].text())); sayApplied('Recipe applied throughout the documentation and remembered in this browser.'); }
+      try { show(JSON.parse(await file.files[0].text())); sayApplied('Recipe applied. Saved in this browser.'); }
       catch (error) { say(error.message, true); }
       file.value = '';
     }
@@ -433,14 +421,14 @@ export function connect(host) {
     const next = { ...refinedRecipe({ ...recipe.values, [id]: value }), fonts };
     if (id === 'display-font' && family === 'inherit' && fonts['body-font']) next.fonts['display-font'] = fonts['body-font'];
     const status = root.querySelector(`[data-font-status="${id}"]`), request = ++fontRequest;
-    show(next); status.textContent = family === 'inherit' ? 'Headings use the main font.' : family === 'system' ? 'Using your operating system’s native font.' : `Loading ${family} from Google Fonts…`;
+    show(next); status.hidden = false; status.textContent = family === 'inherit' ? 'Headings use the main font.' : family === 'system' ? 'Using your operating system’s native font.' : `Loading ${family} from Google Fonts…`;
     try {
       await loadGoogleFonts(document, fonts);
       if (alive && request === fontRequest) for (const [field, selected] of Object.entries(fonts)) {
-        root.querySelector(`[data-font-status="${field}"]`).textContent = `${selected} loaded. Included in downloaded and locally saved CSS.`;
+        const target = root.querySelector(`[data-font-status="${field}"]`); target.hidden = false; target.textContent = `${selected} loaded.`;
       }
     } catch (error) {
-      if (alive && request === fontRequest) for (const field of Object.keys(fonts)) root.querySelector(`[data-font-status="${field}"]`).textContent = error.message;
+      if (alive && request === fontRequest) for (const field of Object.keys(fonts)) { const target=root.querySelector(`[data-font-status="${field}"]`); target.hidden=false; target.textContent=error.message; }
     }
   };
   const selectExample = event => {
@@ -449,8 +437,35 @@ export function connect(host) {
     filterExamples();
   };
   const motionPreferenceChanged = () => { motionAnimation?.cancel(); paint(); };
+  // Observe visible option names only; preview faces never replace selected full fonts.
+  const fontOptions = new Map();
+  const fontObserver = new view.IntersectionObserver(entries => {
+    for (const { target, isIntersecting } of entries) {
+      if (!isIntersecting) continue;
+      fontObserver.unobserve(target);
+      const family = fontOptions.get(target);
+      loadGoogleFontPreview(document, family).then(alias => {
+        if (alive && root.contains(target) && fontOptions.get(target) === family)
+          target.style.setProperty('--_font-preview-family', `"${alias}", ${googleFonts[family].category}`);
+      }).catch(() => {}); // A failed decorative preview keeps the readable inherited font.
+    }
+  });
+  const observeFontOptions = () => {
+    for (const [node] of fontOptions) if (!root.contains(node)) { fontObserver.unobserve(node); fontOptions.delete(node); }
+    for (const node of root.querySelectorAll('[data-font-preview]')) {
+      const family = node.dataset.fontPreview;
+      if (fontOptions.get(node) === family) continue;
+      fontObserver.unobserve(node); node.style.removeProperty('--_font-preview-family');
+      fontOptions.delete(node);
+      if (Object.hasOwn(googleFonts, family)) { fontOptions.set(node, family); fontObserver.observe(node); }
+    }
+  };
+  const fontMutations = new view.MutationObserver(observeFontOptions);
+  for (const picker of root.querySelectorAll('[data-font-picker]'))
+    fontMutations.observe(picker, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-font-preview'] });
+  observeFontOptions();
   const previewObserver = new view.ResizeObserver(schedulePreviewLayout);
-  for (const element of [...previews, ...(header ? [header] : [])]) previewObserver.observe(element);
+  for (const element of [root.querySelector('[data-customizer-summary]'), ...previews, ...(header ? [header] : [])]) previewObserver.observe(element);
   view.addEventListener('resize', schedulePreviewLayout);
   motionPreference.addEventListener('change', motionPreferenceChanged);
   root.addEventListener('toggle', updateSizes, true);
@@ -481,5 +496,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { previewObserver.disconnect(); if (layoutFrame) view.cancelAnimationFrame(layoutFrame); view.removeEventListener('resize', schedulePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
+  return () => { fontMutations.disconnect(); fontObserver.disconnect(); fontOptions.clear(); previewObserver.disconnect(); if (layoutFrame) view.cancelAnimationFrame(layoutFrame); view.removeEventListener('resize', schedulePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
 }
