@@ -1,4 +1,4 @@
-import { chooseStartingPoint, openEditor } from './choose-option.js';
+import { chooseStartingPoint, openEditor, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -30,6 +30,7 @@ test('local saving preserves newer edits with inline previews', async ({ page },
     await expect(page.locator('[data-preset] input[role=combobox]')).toHaveValue('Garden');
     expect(JSON.parse(await readFile(path.join(root, 'looma.theme.json'), 'utf8')).values.canvas).toBe('#11141c');
     await expect(page.locator('iframe')).toHaveCount(0);
+    await openOverview(page);
     await expect(page.locator('[data-theme-sampler] [data-preview]')).toBeVisible();
   } finally { releaseSave(); await server.close(); await rm(root, { recursive: true, force: true }); }
 });

@@ -13,7 +13,7 @@ sidebar: false
   <p>A ready-to-use writing surface with formatting, slash commands, mentions, tables, and image support. Start with the complete editor; configure its capabilities through props and callbacks.</p>
 </header>
 
-[Toolbar](/editor/ui-editor-toolbar/) · [Block actions](/editor/ui-editor-block-actions/)
+[Editor API reference](/editor/looma-editor/)
 
 ## Try the editor
 
@@ -21,7 +21,17 @@ sidebar: false
 
 Scroll inside the sample to see the always-visible toolbar stay at the top, or switch to
 **Beside selection** and select text to see formatting appear nearby. Type `/` to insert a block
-or `@` to mention Ada or Grace. Edits here last only until you leave the page.
+or `@` to mention a teammate. Edits here last only until you leave the page.
+
+## Footnotes
+
+Type `/footnote` to add a reference and open its floating rich-text editor. The
+document numbers references automatically. Notes can contain formatting and more
+than one paragraph; edits update the document as you type.
+
+Select an existing reference to open its one-line actions: **Go to note** and
+**Edit note**. Click outside the editor or press Escape to close it. There is no
+separate Done action.
 
 ## Add it to a Vue app
 
@@ -381,6 +391,6 @@ and replace display metadata with `setReferenceDisplay(editor, references)`.
 
 `update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
 `popover` toolbar opening and closing; `ready` exposes the underlying Tiptap
-editor for integrations. The app decides when and where to persist the document. If you are
-building a custom Tiptap integration instead of using `LoomaEditor`, the underlying
-`ui-editor-*` components remain available in the package, with their [component reference](https://github.com/threadlabs-studio/looma/tree/main/packages/looma/src/components).
+editor for integrations. The app decides when and where to persist the document.
+The editor manages its own toolbar, pickers, and editing popovers; integrate through
+`LoomaEditor` rather than composing its internal controls.

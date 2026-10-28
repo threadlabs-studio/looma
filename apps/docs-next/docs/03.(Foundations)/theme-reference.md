@@ -197,7 +197,7 @@ controls reflection, and transmission controls the decorative background plane.
 | `--ui-inner-depth` | `0.3` | 0–2 authoring range. Recessed field and pressed-control shadows; 0 removes recession. |
 | `--ui-glassiness` | `0` | Frosted backdrop blur, saturation and a light-catching rim on participating surfaces. Visible transmission needs a scene behind the decorative plane. |
 | `--ui-surface-separation` | `0` | Decorative rim/offset around participating surfaces; scaled by popup purpose and rendered size. It can appear with glassiness at 0. |
-| `--ui-overlay-translucency` | `0` | How much of the scene decorative floating material transmits; larger values make the frame more transparent. Overlay and material content remain opaque. |
+| `--ui-overlay-translucency` | `0` | How much of the scene decorative floating material transmits; larger values make the frame more transparent. Content remains nearly opaque, with slight transmission at the maximum. |
 | `--ui-finish` | `0` | Matte (0) through polished (1). Reflection strength also depends on light strength and the generated readable reflection colors. |
 | `--ui-edge-light` | `0` | Illuminated boundary, independent of depth. Bright edge strength also depends on light strength. |
 | `--ui-glow` | `0` | Soft tone-derived light beyond a surface. Radius depends on glow; visible strength also depends on light strength. |
@@ -210,13 +210,13 @@ The low end of glassiness and glow stays gentle; their upper range deliberately
 allows a richer frosted material and a vivid bloom. The response is curved:
 `g + 2g⁴`, so 30% remains close to its quiet setting while 100% reaches three
 times the former linear response. This is an ornamental range, not a
-readability constraint. Content planes stay opaque and reflection colours
+readability constraint. Content planes stay nearly opaque and reflection colours
 remain readable; reduced-transparency preferences still remove the effects.
 
 Finish at 0 removes reflections even when the light is strong. Glow and edge
 light can still respond independently. Glassiness and separation create the
-ornamental outer treatment; raising overlay translucency alone does not make an
-opaque material content plane transparent. A feature's visible effect depends
+ornamental outer treatment. Raising overlay translucency mainly reveals the
+scene through the rim, with slight content transmission at its maximum. A feature's visible effect depends
 on the participating surface and its surroundings. Standard Cards keep their
 quiet treatment; `treatment="expressive"` opts into the theme's material.
 

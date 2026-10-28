@@ -205,17 +205,15 @@ test("reports a relayed hook's fallback, and the fallback behind a parent's defa
 test("generates public API metadata from declarative contracts", async () => {
   const metadata = await generateComponentApiMetadata();
   const combobox = metadata.components.find(({ tag }) => tag === "ui-combobox");
-  const mentionMenu = metadata.components.find(({ tag }) => tag === "ui-editor-mention-menu");
   const button = metadata.components.find(({ tag }) => tag === "ui-button");
   const stack = metadata.components.find(({ tag }) => tag === "ui-stack");
-  const tableOverlay = metadata.components.find(({ tag }) => tag === "ui-editor-table-overlay");
   const input = metadata.components.find(({ tag }) => tag === "ui-input");
   const menuItem = metadata.components.find(({ tag }) => tag === "ui-menu-item");
 
   assert.equal(metadata.schemaVersion, 5);
-  assert.deepEqual(metadata.groups.map(({ id }) => id), ["layout", "overlay", "forms", "display", "editor", "extras"]);
+  assert.deepEqual(metadata.groups.map(({ id }) => id), ["layout", "overlay", "forms", "display", "extras"]);
   assert.equal(stack.group, "layout");
-  assert.equal(tableOverlay.group, "editor");
+  assert.ok(!metadata.components.some(({ tag }) => tag.startsWith("ui-editor-")), "editor internals stay outside the public API catalog");
   assert.equal(menuItem.group, "overlay", "a part is listed in its parent's group");
   assert.equal(menuItem.description, "Use an item inside a Menu or Context Menu.");
   assert.equal(
@@ -236,7 +234,6 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.equal("methods" in combobox, false);
   // Props are attributes: structured props appear as attributes too, and nothing is property-only.
   assert.ok(!combobox.properties.some(({ name }) => name === "config"));
-  assert.ok(mentionMenu.attributes.some(({ property }) => property === "items"));
   assert.ok(combobox.properties.every((property) => !("channel" in property)));
   assert.ok(!("className" in combobox));
   assert.deepEqual(button.designTokens.sources, [
@@ -249,9 +246,6 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.ok(button.designTokens.shared.some(({ name }) => name === "--ui-font-medium"));
   assert.ok(stack.designTokens.component.some(({ name }) => name === "--ui-stack-gap"));
   assert.ok(!stack.designTokens.component.some(({ name }) => name === "--ui-grid-gap"));
-  assert.ok(tableOverlay.designTokens.shared.some(
-    ({ name }) => name === "--ui-affordance-near-color",
-  ));
 });
 
 test("design tokens hide private defaults and report them as the public token's default", () => {

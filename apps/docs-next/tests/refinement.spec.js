@@ -1,4 +1,4 @@
-import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -16,7 +16,7 @@ test('touch taps commit starting theme, palette, material and font selections', 
     const page = await context.newPage();
     await page.goto(info.config.metadata.markupress + 'customize/');
     const select = async (family, label, option) => {
-      const editor = await openEditor(page, family);
+      const editor = family === 'themes' ? page.locator('[data-customizer-summary]') : await openEditor(page, family);
       const input = editor.getByRole('combobox', {name:label,exact:true});
       const control = input.locator('xpath=ancestor::*[@data-choice or @data-font-picker][1]');
       await input.tap();
@@ -39,7 +39,6 @@ test('touch taps commit starting theme, palette, material and font selections', 
 test('completed edits undo and redo persist without an ambiguous comparison mode', async ({page}, info) => {
   const errors = await enter(page, info);
   const material = await openEditor(page, 'material');
-  await material.getByRole('button', {name:'Advanced material',exact:true}).click();
   const beforeFocus = await session(page);
   await page.locator('[data-light-editor] .source').click();
   expect(await session(page)).toEqual(beforeFocus);
@@ -64,13 +63,13 @@ test('palette transformations change both mode specimens, keep geometry and surv
   await openEditor(page, 'palette');
   const palette=page.locator('[data-refinement-view="palette"]');
   const colors=()=>palette.locator('.palette-canvas').evaluateAll(es=>es.map(e=>getComputedStyle(e).backgroundColor));
+  await page.evaluate(()=>document.fonts.ready);
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
   const specimenSizes=()=>palette.locator('[data-theme]').evaluateAll(es=>es.map(el=>{const b=el.getBoundingClientRect();return [b.width,b.height]}));
   const beforeSizes=await specimenSizes();
-  await palette.getByRole('button',{name:'Adjust color character',exact:true}).click();
+  await palette.getByRole('button',{name:'Color character',exact:true}).click();
   await palette.getByRole('slider',{name:'Surface warmth',exact:true}).press('End');
   await expect.poll(colors).not.toEqual(before);
-  await palette.getByRole('button',{name:'Color relationships',exact:true}).click();
   await palette.getByRole('button',{name:/Related colors/}).click();
   const related=palette.getByRole('button',{name:/Related colors/}), preserved=palette.getByRole('button',{name:/Keep my colors/});
   await expect(related).toHaveAttribute('aria-pressed','true');
@@ -93,7 +92,6 @@ test('touch light placement persists and can be refined with the keyboard or und
     const page=await context.newPage();
     const errors=await enter(page,info);
     const editor=await openEditor(page,'material');
-    await editor.getByRole('button',{name:'Advanced material',exact:true}).tap();
     const plane=editor.locator('[data-light-editor] .plane');
     await plane.scrollIntoViewIfNeeded();
     const box=await plane.boundingBox();
@@ -104,7 +102,6 @@ test('touch light placement persists and can be refined with the keyboard or und
     await page.reload();
     await expect.poll(async()=>[(await session(page)).values['light-x'],(await session(page)).values['light-y']]).toEqual([placed['light-x'],placed['light-y']]);
     await openEditor(page,'material');
-    await editor.getByRole('button',{name:'Advanced material',exact:true}).tap();
     const handle=editor.locator('[data-light-editor] .source');
     await handle.press('Shift+ArrowLeft');
     await expect.poll(async()=>Number((await session(page)).values['light-x'])).toBeCloseTo(Number(placed['light-x'])-.1,2);
@@ -129,7 +126,6 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
       expect(Math.max(...boxes)-Math.min(...boxes)).toBeLessThan(.6);
     }
     const material=await openEditor(page, 'material');
-    await material.getByRole('button',{name:'Advanced material',exact:true}).click();
     const handle=page.locator('[data-light-editor] .source'); await handle.scrollIntoViewIfNeeded();
     const s=await handle.boundingBox(), plane=await page.locator('[data-light-editor] .plane').boundingBox();
     expect(await handle.evaluate((source, point) => source.contains(document.elementFromPoint(point.x, point.y)), {x:s.x+s.width/2+12,y:s.y+s.height/2}), 'the light handle remains touchable beside the mobile specimen').toBe(true);
@@ -161,10 +157,19 @@ test('Google selection loads actual font faces, exports its import, and system f
   const errors=await enter(page,info);
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
-  await font.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
+  const fontRequests = [];
+  page.on('request', request => { if (request.url().startsWith('https://fonts.googleapis.com/css2?')) fontRequests.push(new URL(request.url())); });
+  await font.fill('Inter');
+  const option = page.getByRole('option',{name:'Inter',exact:true});
+  await expect.poll(() => option.locator('[data-font-preview]').evaluate(el => getComputedStyle(el).fontFamily)).toContain('Looma Font Preview Inter');
+  expect(await page.evaluate(() => [...document.fonts].some(face => face.family.replaceAll('"','') === 'Looma Font Preview Inter' && face.status === 'loaded'))).toBe(true);
+  expect(fontRequests.some(url => url.searchParams.get('text') === 'Inter')).toBe(true);
+  expect(fontRequests.some(url => url.searchParams.get('family')?.startsWith('Inter:') && !url.searchParams.has('text'))).toBe(false);
+  await option.click();
   await expect(page.locator('[data-font-status="body-font"]')).toContainText('Inter loaded',{timeout:30000});
   expect(await page.evaluate(()=>[...document.fonts].some(face=>face.family.replaceAll('"','')==='Inter'&&face.status==='loaded'))).toBe(true);
   expect((await session(page)).fonts['body-font']).toBe('Inter');
+  expect(fontRequests.some(url => url.searchParams.get('family')?.startsWith('Inter:') && !url.searchParams.has('text'))).toBe(true);
   await expect.poll(() => page.locator('[data-editor-preview="typography"]').evaluate(el => getComputedStyle(el).fontFamily)).toContain('Inter');
   await openEditor(page, 'export');
   const downloaded=page.waitForEvent('download'); await page.getByRole('button',{name:'Download CSS',exact:true}).click();
@@ -198,7 +203,6 @@ test('overlapping font selections finish the status for both roles', async ({pag
     const body = page.getByRole('combobox',{name:'Font',exact:true});
     await body.fill('Inter'); await page.getByRole('option',{name:'Inter',exact:true}).click();
     await expect(page.locator('[data-font-status="body-font"]')).toContainText('Loading Inter');
-    await page.getByRole('button', {name:'Heading font',exact:true}).click();
     const display = page.getByRole('combobox',{name:'Heading font',exact:true});
     await display.fill('Lora'); await page.getByRole('option',{name:'Lora',exact:true}).click();
     await expect(page.locator('[data-font-status="display-font"]')).toContainText('Lora loaded',{timeout:30000});
@@ -236,6 +240,7 @@ test('size specimens stay readable and unclipped at the largest root on a narrow
 test('the compact documentation sampler stays visible across screen sizes and follows the shared theme', async ({page},info) => {
   for(const width of [1440,390]) {
     await page.setViewportSize({width,height:900});await enter(page,info);
+    await openOverview(page);
     const sampler=page.locator('[data-theme-sampler]');
     const frame=sampler.locator('[data-preview]');
     const action=frame.getByRole('button',{name:'Send',exact:true});
@@ -248,9 +253,10 @@ test('the compact documentation sampler stays visible across screen sizes and fo
     const paint=field=>field.evaluate(el=>{const s=getComputedStyle(el);return [s.borderTopColor,s.backgroundColor];});
     expect(await paint(icon)).toEqual(await paint(outline));
     await expect(sampler.locator('.body')).toHaveCount(0);
-    const bounds=await sampler.boundingBox(),controls=await page.getByRole('complementary',{name:'Theme controls',exact:true}).boundingBox();
-    if(width<640) expect(bounds.y).toBeGreaterThan(controls.y);else expect(bounds.x).toBeGreaterThan(controls.x);
+    const bounds=await sampler.boundingBox(),controls=await page.locator('[data-customizer-summary]').boundingBox();
+    expect(bounds.y).toBeGreaterThanOrEqual(controls.y+controls.height);
     await chooseStartingPoint(page, 'wiki');
+    await openOverview(page);
     await expect.poll(()=>action.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(79, 70, 229)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   }
@@ -284,9 +290,11 @@ test('starter rhythm changes sampler gaps and unitless text ratios together', as
     return {gap:parseFloat(s.rowGap),headingRatio:parseFloat(heading.lineHeight)/parseFloat(heading.fontSize),bodyRatio:root.getPropertyValue('--ui-line-height').trim()};
   });
   await chooseStartingPoint(page, 'wiki');
+  await openOverview(page);
   await expect(sampler.getByRole('heading',{name:'Second breakfast, sorted.',exact:true})).toBeVisible();
   const compact=await measure();
   await chooseStartingPoint(page, 'editorial');
+  await openOverview(page);
   await expect.poll(async()=>(await measure()).gap).toBeGreaterThan(compact.gap);
   expect((await measure()).headingRatio).toBeGreaterThan(compact.headingRatio);
   expect((await measure()).bodyRatio).not.toMatch(/px|rem|em/);
@@ -315,14 +323,13 @@ test('one main font also styles headings until an optional heading font is chose
   await chooseStartingPoint(page, 'clear');
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
-  await page.getByRole('button',{name:'Heading font',exact:true}).click();
   const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
   await font.fill('Inter');await page.getByRole('option',{name:'Inter',exact:true}).click();
   await expect.poll(async()=>(await session(page)).values['display-font']).toBe('"Inter", sans-serif');
   await heading.fill('Lora');await page.getByRole('option',{name:'Lora',exact:true}).click();
   expect((await session(page)).values['body-font']).toBe('"Inter", sans-serif');
   expect((await session(page)).values['display-font']).toBe('"Lora", serif');
-  await heading.fill('Same');await page.getByRole('option',{name:'Same as main font',exact:true}).click();
+  await heading.fill('Follow');await page.getByRole('listbox',{name:'Heading font suggestions',exact:true}).getByRole('option',{name:'Follow body',exact:true}).click();
   expect((await session(page)).values['display-font']).toBe('"Inter", sans-serif');
 });
 
@@ -347,7 +354,7 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
     context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
     return context.getImageData(0,0,1,1).data[3];
   });
-  expect(alpha).toBe(255);
+  expect(alpha).toBeGreaterThanOrEqual(250); // Nearly opaque at this theme’s restrained transparency.
   await expect(forest.locator('.palette-swatches > span')).toHaveCount(4);
   await expect(forest.locator('.palette-swatches')).toBeVisible();
   const sizes = await forest.locator('.palette-swatches > span').evaluateAll(nodes => nodes.map(node => { const rect=node.getBoundingClientRect();return [rect.width,rect.height]; }));
@@ -435,27 +442,21 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   }));
   await page.mouse.move(1,1);
   for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
-  await editor.getByRole('button',{name:'Neutrals & shared borders',exact:true}).click();
   const before=await boundaries();
   const minimum=editor.getByRole('spinbutton',{name:'Neutral border contrast',exact:true});
   await minimum.fill('3');await minimum.press('Enter');
   await page.mouse.move(1,1);
   await expect.poll(boundaries).not.toEqual(before);
   for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
-  await editor.getByRole('button',{name:'Supporting accents',exact:true}).click();
-  await editor.locator('[data-color-source="secondary-action"]').selectOption('custom');
   await setBaseColor(page,'Secondary accent','#dd7045');
-  await editor.locator('[data-color-source="tertiary-action"]').selectOption('custom');
   await setBaseColor(page,'Tertiary accent','#208676');
   await expect(editor.locator('[data-extra-accent="secondary-action"]').first()).toBeVisible();
-  await editor.getByRole('button',{name:'Advanced status relationships',exact:true}).click();
   for(const [role,label] of [['success','Success'],['danger','Error'],['warning','Warning'],['info','Info']]) {
     await editor.getByRole('combobox',{name:label+' relationship',exact:true}).selectOption('primary');
     expect(await editor.locator(`[data-token="${role}-color"]`).count()).toBe(0);
   }
   const statusColors=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>['Success','Error','Warning','Info'].map(label=>getComputedStyle([...card.querySelectorAll('[data-component~="ui-badge"]')].find(badge=>badge.textContent.trim()===label)).color)));
   for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
-  await editor.getByRole('button',{name:'Accent assignments',exact:true}).click();
   await editor.getByRole('combobox',{name:'Link accent',exact:true}).selectOption('secondary');
   const edited=await session(page);
   expect(edited.values['secondary-action']).toBe('#dd7045');

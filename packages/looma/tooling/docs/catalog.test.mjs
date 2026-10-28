@@ -49,11 +49,14 @@ test('published catalog contains portable resources, authored APIs and browser-r
   const { readCatalog } = await import('./catalog.mjs');
   const catalog = await readCatalog(new URL('../../docs/catalog.json', import.meta.url));
   const merged = mergeCatalogs([catalog]);
-  assert.ok(merged.components.length > 75);
+  assert.ok(merged.components.every(component => !component.tag.startsWith('ui-editor-')), 'editor implementation parts are not public components');
+  assert.ok(merged.resources.some(resource => resource.tag === 'ui-editor-toolbar'), 'the Editor can still import its internal resources');
+  assert.equal(merged.components.find(component => component.tag === 'ui-curve-editor').group, 'extras');
+  assert.ok(!merged.groups.some(group => group.id === 'editor'));
   const button = merged.components.find(c => c.tag === 'ui-button');
   assert.ok(button.attributes.find(prop => prop.name === 'variant').description.includes('Emphasis'));
   const examples = merged.components.flatMap(c => c.examples);
-  assert.ok(examples.length > 290);
+  assert.ok(merged.components.every(component => component.examples.length), 'each public component has a demonstrable example');
   for (const example of examples) {
     if (example.behavior) {
       assert.ok(example.behavior.startsWith('@threadlabs/looma/docs/examples/'));
