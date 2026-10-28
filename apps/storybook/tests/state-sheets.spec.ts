@@ -248,10 +248,7 @@ for (const component of api.components) {
           }
           await sheet.setViewportSize({ width: best.columns * 128 + 16, height: 800 });
           await sheet.locator('main').evaluate((element, columns) => { (element as HTMLElement).style.gridTemplateColumns = `repeat(${columns},120px)`; }, best.columns);
-          // Every specimen is already a decoded PNG; this assembled sheet cannot change.
-          // Compare it once instead of polling the same intentional baseline difference.
-          const screenshot = await sheet.locator('body').screenshot({ animations: 'disabled' });
-          expect(screenshot).toMatchSnapshot(`${component.tag}-${theme}-${mode}.png`, stateSheetComparison);
+          await expect(sheet.locator('body')).toHaveScreenshot(`${component.tag}-${theme}-${mode}.png`, { animations: 'disabled', ...stateSheetComparison });
         }
         finally {
           await sheet.close();
