@@ -22,7 +22,7 @@ export const themeFields = [
   ['Colour', 'tertiary-action', 'Tertiary accent', null, 'optional-colour', 'none', 'An optional third accent for categories, highlights and supporting content.'],
   ['Colour', 'neutral-source', 'Neutral relationship', null, 'choice', 'text', 'Derive restrained neutrals from text, an accent family or an untinted gray. Shared border contrast and readable labels stay governed.'],
   ['Colour', 'neutral-strength', 'Neutral fill strength', null, 'fraction', '0.25', 'How much neutral pigment appears in quiet filled controls. Borders remain shared with fields.'],
-  ['Colour', 'neutral-border-contrast', 'Neutral border contrast', null, 'ratio', '2', 'Minimum border-to-surface contrast for neutral buttons and form fields. 2:1 is the balanced default; raise it for stronger boundaries.'],
+  ['Colour', 'neutral-border-contrast', 'Border contrast', null, 'ratio', '2', 'Minimum border-to-surface contrast for outlined buttons and form fields, independent of text readability. 2:1 is the default; raise it for stronger boundaries.'],
   ['Colour', 'status-chroma', 'Derived status saturation', null, 'fraction', '0.5', 'Coordinate derived status pigment, text and quiet tints with the primary accent. Brand mappings keep the chosen family intact.'],
   ['Colour', 'success-source', 'Success relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
   ['Colour', 'danger-source', 'Error relationship', null, 'choice', 'derived', 'Choose a semantic hue, harmonize it with primary, or use a governed brand-accent family.'],
@@ -346,9 +346,10 @@ const actionBoundary = (fill, surfaces, ink, amplitude) => {
 // amber toward black also removes its color, making a readable warning look brown.
 function readableTone(seed, surfaces, minimum, endpoint) {
   const [l, c, h] = toLch(seed), end = toLch(endpoint)[0];
+  const backgrounds = surfaces.map(surface => typeof surface === 'number' ? surface : luminance(surface));
   for (let step = 0; step <= 256; step++) {
     const next = fromLch([l + (end - l) * step / 256, c, h]);
-    if (surfaces.every(surface => contrast(next, surface) >= minimum)) return next;
+    if (backgrounds.every(background => luminanceContrast(luminance(next), background) >= minimum)) return next;
   }
   return endpoint;
 }
@@ -363,7 +364,7 @@ export function deriveTheme(input, { mode } = {}) {
       const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
     }
   }
-  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key]), values['light-color'], values.translucency]);
+  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key]), values['light-color'], values.translucency, values.finish, values['light-strength']]);
   if (paletteCache.has(cacheKey)) {
     const cached = paletteCache.get(cacheKey);
     return { tokens: { ...tokens, ...cached.tokens }, adjustments: cached.adjustments.map(item => ({ ...item })) };
@@ -451,18 +452,13 @@ export function deriveTheme(input, { mode } = {}) {
   while (tonalOpacity > 0 && quietSurfaces(tonalOpacity).some(background => contrast(ink, background) < 4.5)) tonalOpacity = Math.max(0, tonalOpacity - .01);
   tokens['--ui-tonal-opacity'] = String(Number(tonalOpacity.toFixed(2)));
   const readingSurfaces = quietSurfaces(tonalOpacity);
+  const borderMinimum = Math.min(4.5, Number(values['neutral-border-contrast']) * (dark ? 1.15 : 1));
   for (const tone of Object.keys(tones)) {
     const [l, c, h] = toLch(tokens[`--ui-${tone}`]);
     const semantic = Object.hasOwn(statusSeeds, tone) && ['derived', 'related'].includes(values[tone + '-source']);
     const foregroundSeed = fromLch([dark ? Math.max(l, .80) : semantic ? l : Math.min(l, .50), Math.min(c, semantic ? .12 : dark ? .16 : .18), h]);
     tokens[`--ui-${tone}-subtle-text`] = (semantic ? readableTone : readableColour)(foregroundSeed, readingSurfaces, 4.5, ink);
-    tokens[`--ui-${tone}-outline-border`] = readableColour(mix(tokens[`--ui-${tone}-subtle-text`], tokens['--ui-surface-raised'], .68), surfaces, 3, tokens[`--ui-${tone}-subtle-text`]);
-    tokens[`--ui-${tone}-soft-border`] = alphaSurface(tokens[`--ui-${tone}-subtle-text`], tokens[`--ui-${tone}-soft`], .25);
   }
-  // Existing validation/editor hooks must receive a contextual text role, never
-  // a pressed fill. Preserve consumer overrides at their established boundaries.
-  tokens['--ui-field-danger'] = tokens['--ui-danger-subtle-text'];
-  for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) tokens[`--ui-editor-${hook}`] = tokens['--ui-accent-subtle-text'];
   const textSeed = nativeInk === ink ? seeds.text : mix(seeds.text, ink, .08);
   tokens['--ui-text'] = readableColour(textSeed, readingSurfaces, 4.5, ink);
   tokens['--ui-text-secondary'] = readableColour(mix(tokens['--ui-text'], tokens['--ui-surface-raised'], .72), readingSurfaces, 4.5, ink);
@@ -488,7 +484,6 @@ export function deriveTheme(input, { mode } = {}) {
   }
   const borderSurfaces = [...surfaces, tokens['--ui-neutral-surface']];
   const engagedSurfaces = [...surfaces, tokens['--ui-neutral-hover'], tokens['--ui-neutral-active']];
-  const borderMinimum = Math.min(4.5, Number(values['neutral-border-contrast']) * (dark ? 1.15 : 1));
   tokens['--ui-control-border'] = readableColour(mix(neutral, tokens['--ui-surface-raised'], .14), borderSurfaces, borderMinimum, ink);
   tokens['--ui-control-border-hover'] = readableColour(tokens['--ui-control-border'], engagedSurfaces, Math.min(4.5, borderMinimum + .3), ink);
   tokens['--ui-border'] = mix(neutral, tokens['--ui-surface-raised'], .10);
@@ -497,6 +492,26 @@ export function deriveTheme(input, { mode } = {}) {
     ['surface', tokens['--ui-surface-raised'], [tokens['--ui-text'], tokens['--ui-text-secondary'], ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-subtle-text`])]],
     ['neutral', tokens['--ui-neutral-surface'], tokens['--ui-text']],
   ]) for (const [part, colour] of Object.entries(materialColours(fill, labels, values['light-color']))) tokens[`--ui-${role}-${part}`] = colour;
+  // Borders surround the finished paint, including its translucent wash and
+  // material gradient. Text readability has its own independent contrast floor.
+  const materialOpacity = Number(values.finish) * Number(values['light-strength']);
+  for (const tone of Object.keys(tones)) {
+    const pigment = tokens[`--ui-${tone}`];
+    const backgrounds = surfaces.flatMap(surface => {
+      const reflection = alphaSurface(tokens['--ui-surface-reflection'], surface, materialOpacity);
+      const shade = alphaSurface(tokens['--ui-surface-shade'], surface, materialOpacity);
+      return [surface, ...materialLuminances(reflection, shade),
+        ...[.08, .12].flatMap(alpha => materialLuminances(alphaSurface(pigment, reflection, alpha * tonalOpacity), alphaSurface(pigment, shade, alpha * tonalOpacity))),
+        ...[.08, .12, .18].map(alpha => alphaSurface(pigment, surface, alpha * tonalOpacity))];
+    });
+    tokens[`--ui-${tone}-outline-border`] = readableTone(pigment, backgrounds, borderMinimum, ink);
+    tokens[`--ui-${tone}-subtle-text`] = readableTone(tokens[`--ui-${tone}-subtle-text`], [...readingSurfaces, ...backgrounds], 4.5, ink);
+    tokens[`--ui-${tone}-soft-border`] = alphaSurface(tokens[`--ui-${tone}-subtle-text`], tokens[`--ui-${tone}-soft`], .25);
+  }
+  // Existing validation/editor hooks must receive a contextual text role, never
+  // a pressed fill. Preserve consumer overrides at their established boundaries.
+  tokens['--ui-field-danger'] = tokens['--ui-danger-subtle-text'];
+  for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) tokens[`--ui-editor-${hook}`] = tokens['--ui-accent-subtle-text'];
   // Knobs are painted foreground surfaces, not text. Bound them against the
   // continuous track luminance range, not just its colored endpoints (3:1).
   for (const [role, fill, track, trackFill] of [
