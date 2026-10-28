@@ -14,7 +14,7 @@ async function body(request) {
   catch { throw rejected('Expected a JSON theme recipe and revision.', 400); }
 }
 
-/** Local capabilities stay in the parent editor; opaque example frames receive only theme CSS. */
+/** Serve trusted project documentation with a constrained, same-origin theme writer. */
 export async function serveLocalDocumentation({ upstream, store, base = '/', port = 0, onSaved = async () => {} }) {
   const target = new URL(upstream);
   if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1') throw new Error('The documentation upstream must be a loopback MarkupKit server.');
@@ -52,10 +52,7 @@ export async function serveLocalDocumentation({ upstream, store, base = '/', por
       delete headers['x-looma-capability'];
       const proxy = proxyRequest(target.origin + request.url, { method: request.method, headers }, remote => {
         const responseHeaders = { ...remote.headers };
-        if (url.pathname.startsWith(api + 'preview/')) {
-          const existing = responseHeaders['content-security-policy'];
-          responseHeaders['content-security-policy'] = [...(existing ? [existing].flat() : []), 'sandbox allow-scripts'];
-        }
+
         response.writeHead(remote.statusCode, responseHeaders); remote.pipe(response);
       });
       proxy.on('error', () => { if (!response.headersSent) json(response, 502, { error: 'The documentation renderer is unavailable.' }); else response.destroy(); });

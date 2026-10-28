@@ -2,7 +2,7 @@ export interface DocumentationGroup { id: string; label: string }
 export interface ExampleCode { language: string; code: string }
 export interface DocumentationExample {
   id: string; name: string; title: string; description: string; markup: string;
-  resizable: boolean; frameworks: Record<string, ExampleCode>; behavior?: string; bindings?: string;
+  resizable: boolean; stretch?: boolean; frameworks: Record<string, ExampleCode>; behavior?: string; bindings?: string;
 }
 export interface DocumentationComponent {
   id: string; package: string; tag: string; title: string; description: string; group: string;

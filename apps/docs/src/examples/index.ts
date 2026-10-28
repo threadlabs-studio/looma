@@ -1,3 +1,4 @@
+import siteConfig from "@generated/docusaurus.config";
 import type { FrameworkExamples } from "../components/FrameworkMode";
 import type { ScenarioPropertyAssignment } from "../components/ComponentModeExample";
 
@@ -74,7 +75,7 @@ function metadata(source: string): { fields: Map<string, string>; markup: string
     const separator = line.indexOf(":");
     if (separator > 0) fields.set(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
   }
-  return { fields, markup: source.slice(match[0].length).trim().replace(/>\s+</g, "><") };
+  return { fields, markup: source.slice(match[0].length).trim().replace(/>\s+</g, "><").replaceAll('"/_looma/', `"${siteConfig.baseUrl}_looma/`) };
 }
 
 const decode = (value: string) => value.replaceAll("&#39;", "'").replaceAll("&quot;", '"').replaceAll("&amp;", "&");
