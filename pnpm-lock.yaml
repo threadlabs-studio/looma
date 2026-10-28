@@ -93,8 +93,8 @@ importers:
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@6.0.3))
       markupress:
-        specifier: '>=0.10.3 <1'
-        version: 0.10.3(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: '>=0.12.0 <1'
+        version: 0.12.0(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       vite:
         specifier: 8.3.4
         version: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
@@ -161,8 +161,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.2.0 <1'
-        version: 0.2.0
+        specifier: '>=0.2.2 <1'
+        version: 0.2.2
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -176,8 +176,11 @@ importers:
         specifier: 14.3.1
         version: 14.3.1
       markupress:
-        specifier: '>=0.10.3 <1'
-        version: 0.10.3(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: '>=0.12.0 <1'
+        version: 0.12.0(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+      parse5:
+        specifier: ^8.0.1
+        version: 8.0.1
     devDependencies:
       '@nextwebwg/html-next':
         specifier: 1.0.0-alpha.69
@@ -4947,8 +4950,8 @@ packages:
     resolution: {integrity: sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==}
     engines: {node: '>= 0.10.0'}
 
-  expressmark@0.2.0:
-    resolution: {integrity: sha512-guprkGpG8vJ+W2emrxxlrD4+Md7zqwOPApJp4CBWFhmrLsIi7sR7YLJlaUPE+k+CEeiTpYwbk3/LKgV7nV1I7g==}
+  expressmark@0.2.2:
+    resolution: {integrity: sha512-mecRmshYZ8VGH/tvM5Y1fyeb/Mz6euAlvcFJfofmy53cNRGq9tABVARaGYt/oWzCnA/ieBRJ/9UnBLqTIJP0sg==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -5968,13 +5971,13 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  markupress@0.10.3:
-    resolution: {integrity: sha512-ZFhkJzZIJ7o2bRNIUVQo85iu/nvuEZicPV6OkFOAzv4Dle5DLsmrG/twFiX1XXw310lMT47Og9juJoQVO0IUYg==}
+  markupress@0.12.0:
+    resolution: {integrity: sha512-5cuRXUTs7EjzeAapfvze2abGbhtJH5tZdaNkK0OO7VezVIwAcpQ0/SD3r/1Qdo4Us4iEN5ktkXMtNn07GWLVpg==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
-      '@threadlabs/looma': '>=0.41.2 <1'
+      '@threadlabs/looma': '>=0.44.0 <1'
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -6487,9 +6490,6 @@ packages:
 
   parse5@7.3.0:
     resolution: {integrity: sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw==}
-
-  parse5@8.0.0:
-    resolution: {integrity: sha512-9m4m5GSgXjL4AjumKzq1Fgfp3Z8rsvjRNbnkVwfu2ImRqE5D0LnY2QfDen18FSY9C573YU5XxSapdHZTZ2WolA==}
 
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
@@ -14113,7 +14113,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expressmark@0.2.0:
+  expressmark@0.2.2:
     dependencies:
       htmlparser2: 12.0.0
       markdown-it: 15.0.3
@@ -14924,7 +14924,7 @@ snapshots:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       is-potential-custom-element-name: 1.0.1
-      parse5: 8.0.0
+      parse5: 8.0.1
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
@@ -15238,11 +15238,12 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.10.3(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@0.12.0(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.69
       '@threadlabs/looma': link:packages/looma
       '@threadlabs/markupkit': 0.2.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+      expressmark: 0.2.2
       parse5: 8.0.1
       postcss: 8.5.30
       postcss-value-parser: 4.2.0
@@ -16087,10 +16088,6 @@ snapshots:
       parse5: 7.3.0
 
   parse5@7.3.0:
-    dependencies:
-      entities: 6.0.1
-
-  parse5@8.0.0:
     dependencies:
       entities: 6.0.1
 
