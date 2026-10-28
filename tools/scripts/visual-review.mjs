@@ -23,7 +23,7 @@ const git = (directory, args) => execFileSync('git', ['-c', `safe.directory=${di
   maxBuffer: 64 * 1024 ** 2,
 }).trim();
 const componentTag = file => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//.exec(file)?.[1];
-const isBaselinePath = file => /^apps\/(?:docs|storybook)\/tests\/baselines\//.test(file);
+const isBaselinePath = file => /^apps\/(?:docs|storybook)\/tests\/baselines\/.*\.png$/.test(file);
 const isRenderInput = file => !isBaselinePath(file)
   && /^(?:packages\/looma\/|apps\/(?:storybook|docs)\/|tools\/scripts\/(?:visual-review|ci-selection)|(?:package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$)/.test(file);
 const imageNames = directory => existsSync(directory)
