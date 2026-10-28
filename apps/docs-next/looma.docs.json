@@ -6,12 +6,13 @@
   "content": "docs",
   "nav": [
     {
-      "label": "Customize",
-      "href": "/customize/"
+      "label": "Get started",
+      "href": "/getting-started/",
+      "position": "start"
     },
     {
-      "label": "Get started",
-      "href": "/getting-started/"
+      "label": "Customize",
+      "href": "/customize/"
     },
     {
       "label": "GitHub",

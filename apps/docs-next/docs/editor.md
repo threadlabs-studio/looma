@@ -74,7 +74,7 @@ Callouts have one command per tone: **Info**, **Note**, **Tip**, **Important**, 
 **Danger**. Each wraps the current block in a callout drawn by the Callout component, and choosing
 another tone inside a callout changes its tone. The editor saves callouts as `<ui-callout>`, so
 they look the same in any page that uses Looma. Content saved earlier as
-`<aside data-looma-callout>` still loads. See [Looma Markdown](/looma-markdown).
+`<aside data-looma-callout>` still loads.
 
 Block actions can insert a paragraph after the current block, duplicate it, or delete it.
 
@@ -139,7 +139,7 @@ and supply `expandNodeView` to customize presentation. The default headless view
 details. Plain text includes summaries and all bodies, even while collapsed.
 
 In Markdown, a section is `::: details [Summary]` … `:::`, with `  {open} ` after the summary when it
-starts expanded; see [Looma Markdown](/looma-markdown). Search and change-review projections
+starts expanded. Search and change-review projections
 must traverse the body rather than omit collapsed content.
 
 ## Automatic table of contents
@@ -155,7 +155,7 @@ Read-only editors show the same navigation without settings. Activating an entry
 focuses its heading without opening link editing.
 
 The `loomaTableOfContents` node stores only `{ format, depth }`. When a TOC is present, every
-heading has an ID on [Looma Markdown's anchor rule](/looma-markdown#headings): an ID derived from
+heading has an ID: an ID derived from
 the heading's text follows the text as it changes, a custom ID stays with its heading through
 renames and moves, and duplicate IDs are repaired. Both the node and heading IDs round-trip through
 editor JSON, HTML and Markdown. `editor.getHTML()` includes the current

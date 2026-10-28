@@ -110,12 +110,7 @@ export async function screenshot(target: Page | Locator, name: string, fullPage 
     });
   }
   await paint(page);
-  if (name.endsWith("/docs-api-sync.png")) {
-    // Compare the settled static guide's first capture: repeated live-page capture can remount its TOC.
-    await expect(await page.screenshot({ fullPage, animations: "disabled", caret: "hide" })).toMatchSnapshot(name, { maxDiffPixels });
-  } else {
-    await expect(target).toHaveScreenshot(name, { ...(target === page ? { fullPage } : {}), maxDiffPixels, timeout: 15_000 });
-  }
+  await expect(target).toHaveScreenshot(name, { ...(target === page ? { fullPage } : {}), maxDiffPixels, timeout: 15_000 });
 }
 
 export { expect };
