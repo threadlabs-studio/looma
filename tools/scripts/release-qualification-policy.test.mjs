@@ -274,6 +274,8 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   assert.doesNotMatch(extended, /pull_request:|push:|schedule:|workflow_run:/);
   assert.match(extended, /--project=firefox/);
   assert.match(extended, /--project=webkit/);
+  const documentation = extended.match(/\n  documentation:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/)?.[0] ?? "";
+  assert.match(documentation, /fetch-depth: 0\n\s+filter: blob:none/, "disposable documentation comparisons need their source base without historical image blobs");
   const packaging = await readFile(path.join(repoRoot, "tools/scripts/verify-packages.mjs"), "utf8");
   assert.match(packaging, /\["--filter", "@threadlabs\/looma", "build"\]/);
   assert.doesNotMatch(packaging, /\["build"\]/);
@@ -290,7 +292,8 @@ test("component state sheets shard every case while keeping one browser worker p
   assert.match(visual, /fail-fast: false/);
   assert.match(visual, /shard: \[1, 2, 3, 4, 5, 6, 7, 8\]/);
   assert.match(visual, /--shard=\$\{\{ matrix.shard \}\}\/8/);
-  assert.match(visual, /component-state-differences-\$\{\{ matrix.shard \}\}/);
+  assert.match(visual, /side: \[base, head\]/);
+  assert.match(visual, /visual-capture-\$\{\{ matrix.side \}\}-\$\{\{ matrix.shard \}\}/);
   assert.match(config, /fullyParallel: true/);
   assert.match(config, /workers: 1/);
   assert.match(runner, /shellQuote\(shardArgument\)/);

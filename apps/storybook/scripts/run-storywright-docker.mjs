@@ -22,7 +22,7 @@ const storywrightArgs = args.length > 0 ? args : ['test']
 const grepArgument = storywrightArgs.find(argument => argument.startsWith('--grep='))
 const shardArgument = storywrightArgs.find(argument => argument.startsWith('--shard='))
 if (shardArgument && !/^--shard=[1-9]\d*\/[1-9]\d*$/.test(shardArgument)) throw new Error('Use --shard=current/total with positive integers.')
-if (!['test', 'update'].includes(storywrightArgs[0])) throw new Error('Choose test or update; use visual:report for the HTML report.')
+if (!['test', 'update', 'capture'].includes(storywrightArgs[0])) throw new Error('Choose test, update, or capture; use visual:report for the HTML report.')
 // Keep this tag in lockstep with the pinned @playwright/test version in
 // package.json — a mismatch makes the preinstalled browser build unresolvable.
 // The digest pins the linux/amd64 image the baselines were rendered in, as the
@@ -160,6 +160,7 @@ function restoreWorkspaceOwnership(dockerEnv) {
     '/work/packages',
     '/work/apps',
     '/work/generated',
+    '/work/.context',
   ]
   const chownCommand = [
     'for path in',
@@ -204,7 +205,7 @@ function usesExistingStorybookBuild() {
     || arg.startsWith('--storybook-url='))
 }
 
-if (storywrightArgs[0] === 'test' || storywrightArgs[0] === 'update') {
+if (['test', 'update', 'capture'].includes(storywrightArgs[0])) {
   if (!usesExistingStorybookBuild()) {
     rmSync(resolve(appRoot, 'storybook-static'), { recursive: true, force: true })
   }
@@ -217,7 +218,9 @@ const buildCommand = (appDir) => [
   'pnpm config set store-dir /pnpm/store',
   'pnpm install --frozen-lockfile',
   ...(!usesExistingStorybookBuild() ? [`pnpm --dir ${shellQuote(appDir)} run build:visual`] : []),
-  `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec playwright test --config state-sheets.config.ts --workers=1${shardArgument ? ` ${shellQuote(shardArgument)}` : ''}${grepArgument ? ` ${shellQuote(grepArgument)}` : ''}${storywrightArgs[0] === 'update' ? ' --update-snapshots' : ''}`,
+  storywrightArgs[0] === 'capture'
+    ? `${canonicalStorywrightEnv}=1 node tools/scripts/visual-review.mjs capture ${storywrightArgs.slice(1).filter(arg => !arg.startsWith('--storybook-')).map(shellQuote).join(' ')}`
+    : `${canonicalStorywrightEnv}=1 pnpm --dir ${shellQuote(appDir)} exec playwright test --config state-sheets.config.ts --workers=1${shardArgument ? ` ${shellQuote(shardArgument)}` : ''}${grepArgument ? ` ${shellQuote(grepArgument)}` : ''}${storywrightArgs[0] === 'update' ? ' --update-snapshots' : ''}`,
 ].join(' && ')
 
 const command = buildCommand(appDirFromRepo)
