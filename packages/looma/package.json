@@ -130,7 +130,7 @@
     "parse5": "^8.0.1"
   },
   "peerDependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.69",
+    "@nextwebwg/html-next": "1.0.0-alpha.70",
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
@@ -163,7 +163,7 @@
     }
   },
   "devDependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.69",
+    "@nextwebwg/html-next": "1.0.0-alpha.70",
     "@vitejs/plugin-vue": "^6.0.9",
     "vite": "^8.3.0",
     "vue": "^3.5.43",

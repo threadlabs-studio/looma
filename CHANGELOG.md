@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Use HTML Next alpha.70 across authored and generated components, preserving distinct alternate-language head links sharing a URL.
+
+- Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
+
 - Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
 
 - Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
