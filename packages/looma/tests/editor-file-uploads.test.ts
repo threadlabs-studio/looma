@@ -100,3 +100,19 @@ it('cancels a pending file when its insertion point is removed', async () => {
   expect(signal.aborted).toBe(true);
   expect(editor.getText()).toBe('Replacement document');
 });
+
+it('does not clear a new upload started by the host during the previous insertion', async () => {
+  const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: '<p>Files: </p>' }); editors.push(editor);
+  editor.commands.setTextSelection(8);
+  let finishSecond!: (answer: { href: string; name: string; size: number; contentType: string }) => void;
+  let second: Promise<void> | undefined;
+  const uploads = createFileUploads({ editor, upload: () => file => file.name === 'first.pdf'
+    ? { href: '/first.pdf', name: file.name, size: 1, contentType: 'application/pdf' }
+    : new Promise(resolve => { finishSecond = resolve; }), onError: vi.fn() });
+  editor.on('update', () => { if (!second && editor.getText().includes('first.pdf')) second = uploads.insert(new File(['b'], 'second.pdf')); });
+  await uploads.insert(new File(['a'], 'first.pdf'));
+  finishSecond({ href: '/second.pdf', name: 'second.pdf', size: 1, contentType: 'application/pdf' });
+  await second;
+  expect(editor.getText()).toContain('first.pdf');
+  expect(editor.getText()).toContain('second.pdf');
+});

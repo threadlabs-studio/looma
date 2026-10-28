@@ -40,7 +40,7 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
         { type: 'text', text: ` (${answer.contentType || 'application/octet-stream'}, ${size}) ` },
       ]).run();
       editor.view.dispatch(closeHistory(editor.state.tr));
-      finish();
+      if (current()) finish();
     } catch (error) {
       if (!current()) return;
       job.failed = true;
