@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Render documentation and catalog descriptions with Expressmark's standard syntax, requiring Markupress 0.12 and Expressmark 0.2.2 to preserve native code literally. Guides use bracketed callout titles and adjacent tab panels; component invocations and code examples keep their meaning. The portable editor adapter still defaults to compatible interchange; select `syntax: "standard"` when exchanging content with Markupress.
+
 - Use contextual link ink for SiteHeader selected and hovered navigation, preserving contrast when a theme has deep action fills.
 
 - **Breaking:** Footnote editing follows document numbering automatically. Remove EditorFootnoteEditor’s `label`, `editable`, and `error` props and `label`/`go` event handlers. Use its default slot for rich editing and `done` for Escape dismissal. Changes apply live; Escape or clicking away closes the editor. Adding a footnote opens its floating rich-text editor; an existing reference offers a one-line action bar with an icon-only Go to note control and an Edit note button. Rich note blocks and marks remain intact.

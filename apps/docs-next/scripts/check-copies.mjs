@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { compileMarkdown } from "markupress";
 
 // While the legacy parity fixture is retained, these guides match apps/docs/docs. Edit both; this check
 // fails when they drift. Markupress front matter, a Docusaurus-only fence flag and the relative
@@ -21,15 +22,29 @@ const content = (source, from) => {
   return from === undefined ? body : body.slice(body.indexOf(from));
 };
 
-const drifted = [];
-for (const [source, copy, from] of copies) {
-  const [original, copied] = await Promise.all([
-    readFile(path.join(app, "../docs/docs", source), "utf8"),
-    readFile(path.join(app, "docs", copy), "utf8"),
-  ]);
-  if (content(original, from) !== content(copied, from)) drifted.push(`apps/docs-next/docs/${copy} differs from apps/docs/docs/${source}`);
+export async function copiedPageMatches(original, copied, { from, semantic = false } = {}) {
+  const left = content(original, from), right = content(copied, from);
+  if (!semantic || left === right) return left === right;
+  const compile = body => compileMarkdown(body, { file: path.join(app, "copied-page.md"), pageName: "copied-page-parity" });
+  const [originalPage, copiedPage] = await Promise.all([compile(left), compile(right)]);
+  return originalPage.resource === copiedPage.resource;
 }
-if (drifted.length > 0) {
-  console.error(drifted.join("\n"));
-  process.exitCode = 1;
-} else console.log(`${copies.length} copied pages match apps/docs/docs.`);
+
+// The retained fixture keeps pipe tables for Docusaurus. Only these two guides use
+// target-specific table spellings; the owning Markupress compiler checks their content.
+async function main() {
+  const drifted = [];
+  for (const [source, copy, from] of copies) {
+    const [original, copied] = await Promise.all([
+      readFile(path.join(app, "../docs/docs", source), "utf8"),
+      readFile(path.join(app, "docs", copy), "utf8"),
+    ]);
+    if (!await copiedPageMatches(original, copied, { from, semantic: source === "looma-markdown.md" || source === "editor.mdx" })) drifted.push(`apps/docs-next/docs/${copy} differs from apps/docs/docs/${source}`);
+  }
+  if (drifted.length > 0) {
+    console.error(drifted.join("\n"));
+    process.exitCode = 1;
+  } else console.log(`${copies.length} copied pages match apps/docs/docs.`);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
