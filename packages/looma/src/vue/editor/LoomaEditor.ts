@@ -204,8 +204,8 @@ const EDITOR_REQUEST_NAMES = Object.keys(EDITOR_REQUESTS) as EditorRequest[];
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 
-const uploadProgressText = (progress: LoomaImageUploadsState["progress"]) =>
-  progress && progress.total > 0 ? `Uploading image… ${Math.round(Math.min(1, progress.loaded / progress.total) * 100)}%` : "Uploading image…";
+const uploadProgressText = (progress: LoomaImageUploadsState["progress"], label = "Uploading image…") =>
+  progress && progress.total > 0 ? `${label} ${Math.round(Math.min(1, progress.loaded / progress.total) * 100)}%` : label;
 let editorInstanceSequence = 0;
 
 function slashMenuRows(items: LoomaSlashCommand[]) {
@@ -381,7 +381,7 @@ export const LoomaEditor = defineComponent({
 
     const fileInput = ref<HTMLInputElement | null>(null);
     const attachmentInput = ref<HTMLInputElement | null>(null);
-    const fileUploadState = shallowRef<LoomaFileUploadsState>({ uploading: false, progress: null });
+    const fileUploadState = shallowRef<LoomaFileUploadsState>({ uploading: false, progress: null, failed: null });
     let attachmentUploads: ReturnType<typeof createFileUploads> | undefined;
     const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -1906,7 +1906,17 @@ export const LoomaEditor = defineComponent({
           onChange: onFileChange,
         }),
         h("input", { ref: attachmentInput, class: "looma-editor__file-input", type: "file", tabindex: -1, "aria-hidden": "true", onChange: onAttachmentChange }),
-        fileUploadState.value.uploading ? h(StatusMessage, { kind: "loading" }, { default: () => "Attaching file…", action: () => h(Button, { size: "sm", variant: "ghost", onClick: () => attachmentUploads?.cancel() }, () => "Cancel") }) : null,
+        fileUploadState.value.uploading ? h(StatusMessage, { kind: "loading" }, {
+          default: () => uploadProgressText(fileUploadState.value.progress, "Attaching file…"),
+          action: () => h(Button, { size: "sm", variant: "ghost", onClick: () => attachmentUploads?.cancel() }, () => "Cancel"),
+        }) : null,
+        fileUploadState.value.failed ? h(StatusMessage, { kind: "error" }, {
+          default: () => "Couldn’t attach file.",
+          action: () => [
+            h(Button, { size: "sm", variant: "ghost", onClick: () => attachmentUploads?.cancel() }, () => "Dismiss"),
+            h(Button, { size: "sm", onClick: () => { void attachmentUploads?.retry(); } }, () => "Retry"),
+          ],
+        }) : null,
         uploadState.value.uploading
           ? h(StatusMessage, { kind: "loading" }, {
               default: () => uploadProgressText(uploadState.value.progress),

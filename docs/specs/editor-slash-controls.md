@@ -4,8 +4,10 @@ The editor should help writers link knowledge, organize long documents, and inse
 repeated content without leaving the keyboard. This specification extends the
 existing editor contract; it does not replace its slash, link, or chip controls.
 
-The first implementation covers S1 and S2. The next implementation covers S3 and
-S4; S5–S8 remain separately tracked follow-up work.
+S1–S4 and S8 ship on current main. S5 and S6 use the existing host command
+extension point; they do not require dedicated template or date services in
+Looma. S7 retains the shipped ordinary-link model and completes its upload
+progress and recovery UI.
 
 | Spec | Ticket |
 | --- | --- |
@@ -132,55 +134,52 @@ Acceptance:
   insertion contexts do not offer destructive/dead actions.
 - Keyboard navigation and managed-menu item identity work after filtering.
 
-## S5 — Reusable snippets and decision composition
+## S5 — Host-owned snippets and decision composition
 
-Add a host-provided snippet picker under `/snippet` and `/template`. Insert
-independent copies of valid editor content. Template storage and access belong
-to the host; this feature does not create live/synced content.
+The existing `slash-commands` request supplies the default inventory and accepts
+host commands with an editor and insertion range. Hosts can offer their own
+snippet catalog, preview, search, or decision outline through that boundary.
+Use existing schema nodes, validate an independent copy before insertion, and
+commit insertion as one transaction. Template storage, permissions, choice UI,
+and application-specific document outlines remain host-owned.
 
-Provide `/decision` as an ordinary block composition for a decision, its reason,
-and alternatives. Do not introduce application approval or review state.
+A dedicated snippet provider or built-in decision template is not part of the
+core editor contract. The editor owns its shared command menu and ordinary
+content rendering. See the [host command guide](../../apps/docs/docs/editor.mdx#host-commands).
 
-Acceptance:
+## S6 — Host-owned date commands
 
-- Search/choice/preview/cancel/insert use the shared picker conventions.
-- Snippets use existing schema nodes and insert in one undoable operation.
-- Editing one inserted copy does not edit the source or another copy.
-- Host failures preserve content and provide retryable feedback.
-- Decision content works in HTML, Markdown, plain text, and existing change review.
+A host command can insert an explicit date or the date at activation as ordinary
+text. Use an unambiguous calendar representation such as `YYYY-MM-DD`; a date
+picker can use the shared Input with `type="date"`. Host choice UI owns cancel
+and focus restoration, and insertion remains a normal undoable editor transaction.
 
-## S6 — Dates
-
-Add `/date` and `/today`. Begin with explicit date selection and ordinary
-document text; a semantic date chip is a separate later contract.
-
-Acceptance:
-
-- `/date` opens a standard date control and commits only the chosen date.
-- `/today` inserts the date at activation, not a value that changes when read.
-- Dates remain legible and unambiguous across locales and time zones.
-- Cancellation preserves content; insertion is undoable and portable.
-- A date does not schedule a reminder or change host review state.
+No dedicated date node, live clock value, reminder, or scheduling service is
+required. The host command guide includes a Today example that evaluates the
+local calendar date when the command runs.
 
 ## S7 — Files and attachments
 
-Add `/file` and `/attachment` when a host supplies an attachment service. Looma
-owns insertion, progress/error UI, and a generic durable attachment descriptor;
-the host owns upload transport, permissions, storage, and downloadable links.
+`/file` and `/attachment` use the host's `file-upload` responder. Looma owns
+insertion and progress/error/retry UI; the host owns transport, permissions,
+storage, and the durable `href`. Keep the existing ordinary-link document format.
 
 Acceptance:
 
 - The command is absent when the capability is unavailable.
 - Selection/upload/cancellation/retry follow the current media ownership model.
-- The descriptor retains identity, name, MIME type, size, and durable link.
+- The durable `href` is the host-owned identity. The filename, MIME type, and
+  size remain readable ordinary document content.
 - Read-only content exposes an accessible file name and download/open action.
-- JSON/HTML round-trip and Markdown/plain-text projections retain the file link.
+- JSON/HTML round-trip and Markdown retain the file destination. Plain text
+  retains its name and metadata; URL-bearing plain-text exports remain a host projection.
 - No executable embed or arbitrary iframe is required for the initial contract.
 
 ## S8 — Markdown conversion for supported rich content
 
-Define a supported conversion matrix rather than promising compatibility with
-every Markdown flavor. Prioritize content already representable in the editor.
+Markdown paste and semantic interchange already ship. The editor guide describes
+paste behavior; `packages/looma/EXPRESSIVE-MARKDOWN.md` defines supported export
+and import behavior, including explicit errors for unsupported schema content.
 
 Acceptance:
 
@@ -193,31 +192,14 @@ Acceptance:
 - Test pasted content, stored nodes, semantic HTML, and host projection results;
   syntax recognition alone is not a round-trip guarantee.
 
-## First implementation units
+## Verification
 
-1. Characterize `/link`, add the status alias, and exercise its existing picker.
-2. Implement TOC schema, heading anchors, derived entries, semantic serialization,
-   and focused document-edit/undo tests.
-3. Compose compact TOC settings with current shared controls. Verify keyboard,
-   read-only, 375px layout, and visual hierarchy alongside the link control.
-4. Update editor docs and changelog; run package build, focused editor/browser
-   checks with one worker, typecheck, composition/style policy, and documentation checks.
-
-No dependency upgrade, framework migration, or unrelated toolbar redesign is
-required by the first implementation.
-
-## Next implementation units
-
-1. Implement Expand schema, rich-body serialization/projection, insertion/exit,
-   transient reader toggles, and navigation into collapsed sections.
-2. Compose shared Disclosure and section settings, then verify body editing,
-   cancellation, read-only navigation, keyboard, and touch at 375px.
-3. Extend the existing slash inventory with identity/group/capability metadata and
-   a turnkey customization boundary. Compose authored shared slash groups/rows,
-   keep no-results feedback visible, and synchronize hover with keyboard selection.
-4. Verify duplicate titles, explicit replacement/empty inventories, exact-alias
-   ranking, unsupported contexts, and invalidation of stale selections. Update
-   docs/changelog and run the same composition, documentation, build, and test gates.
+The editor extension and Markdown fixture suites cover pasted content, stored
+nodes, semantic HTML, safe conversion, and portable projections. The file-upload
+unit tests cover retained insertion positions, retry/cancel, late progress, and
+independent undo; browser request tests cover visible recovery controls at desktop
+and 375px. No dependency upgrade, framework migration, or new visual primitive
+is required by these contracts.
 
 ## Desktop floating activation
 

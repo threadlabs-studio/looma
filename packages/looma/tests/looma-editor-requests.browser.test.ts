@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
+import "../tokens.css";
+import "../theme-light.css";
 
 const { respond } = RequestEvent;
 const apps: App[] = [];
@@ -22,10 +24,11 @@ afterEach(async () => {
   for (const app of apps.splice(0)) app.unmount();
   await flushBrowser();
   document.body.innerHTML = "";
+  await page.viewport(1280, 800);
 });
 
-async function mountEditor(props: Record<string, unknown>) {
-  Object.defineProperty(window, "innerWidth", { value: 1280, configurable: true });
+async function mountEditor(props: Record<string, unknown>, width = 1280) {
+  Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
   const host = document.body.appendChild(document.createElement("div"));
   const ready: Editor[] = [];
   const app = createApp({ render: () => h(LoomaEditor, { toolbarMode: "sticky", ...props, onReady: (instance: Editor) => ready.push(instance) }) });
@@ -138,4 +141,32 @@ it("attaches a chosen file through its host responder as an editable link", asyn
   input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   await vi.waitFor(() => expect(JSON.stringify(ready.at(-1)!.getJSON())).toContain('/files/report.pdf'));
   await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+});
+
+it.each([1280, 375])("shows file upload progress and retries without losing content at %spx", async width => {
+  await page.viewport(width, 800);
+  let fail!: (error: Error) => void;
+  let attempts = 0;
+  const fileUpload = vi.fn(async ({ file }: { file: File }, init: { progress: (loaded: number, total: number) => void }) => {
+    init.progress(1, 2);
+    if (++attempts === 1) await new Promise<never>((_resolve, reject) => { fail = reject; });
+    return { href: "/files/report.pdf", name: file.name, size: file.size, contentType: file.type };
+  });
+  const { host, ready } = await mountEditor({ fileUpload, modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Keep this. " }] }] } }, width);
+  ready.at(-1)!.commands.setTextSelection("Keep this. ".length + 1);
+  const input = host.querySelector<HTMLInputElement>('input[type="file"]:not([accept])')!;
+  const transfer = new DataTransfer(); transfer.items.add(new File(["report"], "report.pdf", { type: "application/pdf" }));
+  input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  await expect.element(page.getByText("Attaching file… 50%")).toBeVisible();
+  fail(Error("offline"));
+  await expect.element(page.getByRole("alert")).toHaveTextContent("Couldn’t attach file.");
+  expect(host.querySelector('[role="alert"]')!.getBoundingClientRect().right).toBeLessThanOrEqual(width);
+  expect(ready.at(-1)!.getText()).toBe("Keep this. ");
+  await userEvent.click(page.getByRole("button", { name: "Retry", exact: true }));
+  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+  await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
+  expect(fileUpload).toHaveBeenCalledTimes(2);
+  expect(ready.at(-1)!.getText()).toContain("Keep this. report.pdf");
+  ready.at(-1)!.commands.undo();
+  expect(ready.at(-1)!.getText()).toBe("Keep this. ");
 });
