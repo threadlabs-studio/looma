@@ -245,21 +245,22 @@
       --_badge-color-text: color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default));
     }
 
-    /* A translucent inverse surface picks up its filled control's tone. Deepen the tone ink
-       toward the theme text to retain contrast against that composed surface. */
+    /* The inverse ink opposes the tone's on-fill ink, independently of the document scheme.
+       A bright pigment can use dark on-fill ink even in a light document. */
     :host([variant="inverse"]) {
+      --_badge-inverse-ink: oklch(from var(--_badge-text) clamp(0, calc((0.5 - l) * 1000), 1) 0 h);
       --_badge-color-surface: color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) 88%, transparent);
       --_badge-color-border: var(--_badge-color-surface);
       --_badge-color-text: color-mix(in srgb, var(--_badge-color-ink) 85%, var(--ui-text-primary));
       --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, color-mix(in srgb, var(--_badge-text) 88%, transparent)));
       border-color: var(--ui-badge-border, var(--_badge-color-border, color-mix(in srgb, var(--_badge-text) 88%, transparent)));
-      color: var(--ui-badge-text, var(--_badge-color-text, color-mix(in srgb, var(--_badge-surface) 85%, var(--ui-text-primary))));
+      color: var(--ui-badge-text, var(--_badge-color-text, color-mix(in srgb, var(--_badge-surface) 85%, var(--_badge-inverse-ink))));
       /* Paint each translucent layer once, including the border, without a bright double-painted ring. */
       background-clip: padding-box;
     }
 
-    /* A circular count has a tone-tinted surface, a separate lighter rim and readable tone ink.
-       Dark controls retain a shaded surface and theme ink with a quieter rim. */
+    /* A circular count retains its translucent surface and quiet rim. Bound the pigment
+       in its foreground so either on-fill polarity remains readable through that surface. */
     :host([variant="inverse"][shape="circle"]) {
       --_badge-color-surface: light-dark(
         color-mix(in srgb, color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default)) var(--ui-badge-circle-opacity, 66%), transparent),
@@ -284,7 +285,7 @@
       );
       color: var(
         --ui-badge-text,
-        var(--_badge-color-text, light-dark(color-mix(in srgb, var(--_badge-surface) 65%, var(--ui-text-primary)), var(--ui-text-primary)))
+        var(--_badge-color-text, color-mix(in srgb, var(--_badge-surface) 35%, var(--_badge-inverse-ink)))
       );
       box-shadow: 0 1px 1px light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.12));
     }

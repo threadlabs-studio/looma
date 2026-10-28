@@ -51,9 +51,9 @@ export const themeFields = [
   ['Size & spacing', 'line-weight', 'Line weight', '--ui-border-width', 'length', '1px', 'Shared edge weight; focus stays independently visible.'],
   ['Material', 'outer-depth', 'Outer depth', '--ui-outer-depth', 'nonnegative', '0.6', 'How strongly controls and floating surfaces rise above the page.'],
   ['Material', 'inner-depth', 'Inner depth', '--ui-inner-depth', 'nonnegative', '0.3', 'How strongly fields and pressed controls sit into their surface.'],
-  ['Material', 'glassiness', 'Frosting', '--ui-glassiness', 'fraction', '0', 'Backdrop blur on decorative glass, from none to frosted. Content remains opaque.'],
+  ['Material', 'glassiness', 'Frosting', '--ui-glassiness', 'fraction', '0', 'Blurs the scene through glass, from clear to frosted. Most transmission is in the rim; content stays nearly opaque.'],
   ['Material', 'surface-separation', 'Surface separation', '--ui-surface-separation', 'fraction', '0', 'One material offset, scaled by popup purpose and actual size: quiet tooltips through substantial dialogs.'],
-  ['Material', 'translucency', 'Transparency', '--ui-overlay-translucency', 'fraction', '0', 'How much of the scene comes through decorative glass rims, from opaque to clear. Content remains opaque.'],
+  ['Material', 'translucency', 'Transparency', '--ui-overlay-translucency', 'fraction', '0', 'Reveals the scene through decorative rims. At maximum, the content plate also becomes slightly translucent.'],
   ['Material', 'edge-light', 'Edge light', '--ui-edge-light', 'fraction', '0', 'Light caught by surface edges, independent of depth.'],
   ['Material', 'finish', 'Finish', '--ui-finish', 'fraction', '0', 'Matte through polished: how strongly the material catches a reflection.'],
   ['Material', 'glow', 'Glow', '--ui-glow', 'fraction', '0', 'Reflected light beyond a surface, from a quiet halo to a vivid bloom at the upper end.'],
@@ -73,7 +73,7 @@ const fontStarting = (values, body, display) => ({
   fonts: { 'body-font': body, 'display-font': display },
 });
 /** The documentation starts with Looma's coordinated identity; Clear keeps the neutral baseline. */
-export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#ffffff', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
+export const defaultRecipe = () => ({ ...starting({ action: '#7658d6', canvas: '#fbf9f4', surface: '#ffffff', text: '#2b2538', 'body-font': googleFontStack('Manrope'), 'display-font': googleFontStack('Manrope'), 'text-size': '17px', 'inner-depth': '0.7' }), fonts: { 'body-font': 'Manrope', 'display-font': 'Manrope' } });
 export const startingPoints = {
   looma: defaultRecipe(),
   clear: { ...starting({
@@ -83,14 +83,14 @@ export const startingPoints = {
   gold: { ...fontStarting({
     action: '#ffb84d', 'secondary-action': '#704d7b', canvas: '#ffffff', surface: '#ffffff', text: '#171717',
     'neutral-source': 'primary', 'neutral-strength': '0.18', 'neutral-border-contrast': '2.1',
-    'info-source': 'secondary', 'status-chroma': '0.25', 'selection-accent': 'secondary', 'link-accent': 'secondary',
+    'info-source': 'secondary', 'status-chroma': '0.25', 'selection-accent': 'secondary', 'link-accent': 'primary',
     'text-size': '17px', 'label-size': '16px', 'corner-roundness': '16px', finish: '0.55', 'light-x': '0',
   }, 'Lato', 'Fraunces'), presets: { status: 'semantic' } },
   bookish: { ...fontStarting({
     action: '#2e1228', 'secondary-action': '#fc5b69', 'tertiary-action': '#896853',
     canvas: '#f7f7f5', surface: '#fffefd', text: '#0d0c0c',
     'neutral-source': 'primary', 'neutral-strength': '0.18', 'neutral-border-contrast': '2.1',
-    'info-source': 'primary', 'success-source': 'primary', 'status-chroma': '0.1', 'focus-accent': 'secondary',
+    'info-source': 'primary', 'success-source': 'primary', 'status-chroma': '0.1',
     rhythm: '1.05', 'text-weight': '400', 'control-roominess': '2.625', 'scale-contrast': '1.18', 'corner-roundness': '6px',
     'outer-depth': '1', 'inner-depth': '1', glassiness: '0.8', 'surface-separation': '0.65', translucency: '0.18',
     'edge-light': '1', finish: '0.85', glow: '0.3', 'light-spread': '0.3', 'light-strength': '0.9',
@@ -287,16 +287,27 @@ function materialColours(fill, text, light, minimum = 4.55) {
   const [l, c, h] = toLch(fill), [lightness] = toLch(light);
   // Recede perceptually while retaining relative saturation and hue. Scaling
   // L and C together scales linear RGB, keeping every shade channel <= fill.
-  let depth = .05;
+  const response = 1 - .75 * l;
+  let depth = .05 * response;
   const shaded = amount => amount === 0 ? fill : fromLch([Math.max(0, l - amount), c * Math.max(0, l - amount) / (l || 1), h]);
   while (depth > 0 && labels.some(label => luminanceContrast(luminance(shaded(depth)), label) < minimum)) depth = Math.max(0, depth - .001);
   const shade = shaded(depth);
-  // Environment influences reflected hue, not the pigment's saturation. Neutral
-  // light lifts lightness without the broad white mixture that washes colour out.
+  // Lift chroma with lightness, plus a small pigment-dependent saturation boost,
+  // so the broad reflection stays colored instead of becoming a white wash.
   const [, tintChroma, tintHue] = toLch(mix(light, fill, .18));
-  const target = fromLch([l + (lightness - l) * .16, Math.max(c * .95, tintChroma), tintHue]);
+  const reflectedLightness = l + (lightness - l) * .32 * response;
+  const reflectedChroma = c * Math.max(1, reflectedLightness / (l || 1)) * (1 + .06 * response);
+  const target = fromLch([reflectedLightness, Math.max(reflectedChroma, tintChroma), tintHue]);
   let amount = 1;
-  while (amount > 0 && labels.some(label => materialContrast(mix(target, fill, amount), shade, label) < minimum)) amount = Math.max(0, amount - .005);
+  const readableReflection = amount => {
+    const colour = mix(target, fill, amount);
+    const [reflectedL, reflectedC] = toLch(colour);
+    // Gamut mapping must not dilute saturation as the reflection brightens.
+    // Back toward the pigment when needed, allowing for sRGB byte quantization.
+    return reflectedC + .002 >= c * Math.max(1, reflectedL / (l || 1))
+      && labels.every(label => materialContrast(colour, shade, label) >= minimum);
+  };
+  while (amount > 0 && !readableReflection(amount)) amount = Math.max(0, amount - .005);
   const reflection = mix(target, fill, amount);
   // A tiny specular peak is allowed to brighten separately from the chromatic
   // body reflection. Keep the same quantization margin as every material stop.
@@ -352,7 +363,7 @@ export function deriveTheme(input, { mode } = {}) {
       const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
     }
   }
-  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key]), values['light-color']]);
+  const cacheKey = JSON.stringify([mode, ...paletteKeys.map(key => values[key]), values['light-color'], values.translucency]);
   if (paletteCache.has(cacheKey)) {
     const cached = paletteCache.get(cacheKey);
     return { tokens: { ...tokens, ...cached.tokens }, adjustments: cached.adjustments.map(item => ({ ...item })) };
@@ -403,8 +414,21 @@ export function deriveTheme(input, { mode } = {}) {
     tokens[`--ui-${tone}-on-strong`] = onFill;
     for (const [part, colour] of Object.entries(materialColours(fill, onFill, values['light-color']))) tokens[`--ui-${tone}-${part}`] = colour;
     const stateTarget = onFill === '#000000' ? '#ffffff' : '#000000';
-    tokens[`--ui-${tone}-hover`] = mix(fill, stateTarget, .86);
-    tokens[`--ui-${tone}-active`] = mix(fill, stateTarget, .74);
+    const [fillL, fillC, fillH] = toLch(fill);
+    for (const [state, amount, minimum] of [['hover', .14, .055], ['active', .26, .085]]) {
+      const direction = onFill === '#000000' ? 1 : -1;
+      const room = direction > 0 ? 1 - fillL : fillL;
+      const lightness = Math.max(0, Math.min(1, fillL + direction * Math.max(minimum, room * amount)));
+      const pigment = fromLch([lightness, fillC * lightness / (fillL || 1), fillH]);
+      tokens[`--ui-${tone}-${state}`] = readableColour(pigment, [onFill], 4.55, stateTarget);
+    }
+    // Move the painted pigment with its interaction fill. A fixed opaque
+    // reflection would otherwise hide hover, especially on deep accents.
+    const density = toLch(tokens[`--ui-${tone}-hover`])[0] / (toLch(fill)[0] || 1);
+    for (const part of ['reflection', 'shade']) {
+      const [l, c, h] = toLch(tokens[`--ui-${tone}-${part}`]);
+      tokens[`--ui-${tone}-hover-${part}`] = readableColour(fromLch([l * density, c * density, h]), [onFill], 4.55, stateTarget);
+    }
     const contextual = readableColour(fill, surfaces, 4.5, ink);
     const quiet = mix(contextual, tokens['--ui-surface-raised'], .20);
     const [quietL] = toLch(quiet);
@@ -419,7 +443,7 @@ export function deriveTheme(input, { mode } = {}) {
   }
   // Quiet fills are actual alpha composites. At an extreme light/dark flip,
   // reduce their shared tint before it would leave no readable contextual ink.
-  const quietSurfaces = strength => [...surfaces, ...(dark ? [readableColour(mix(ink, tokens['--ui-surface-raised'], .22), [ink], 4.5, paper)] : []), ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-soft`]), ...Object.keys(tones).flatMap(tone => surfaces.flatMap(background => [
+  const quietSurfaces = strength => [...surfaces, ...surfaces.map(surface => alphaSurface(surface, ink, 1 - .1 * Number(values.translucency))), ...(dark ? [readableColour(mix(ink, tokens['--ui-surface-raised'], .22), [ink], 4.5, paper)] : []), ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-soft`]), ...Object.keys(tones).flatMap(tone => surfaces.flatMap(background => [
     mix(tokens[`--ui-${tone}`], background, .12 * strength),
     ...[.05, .12, .18, .19].map(alpha => alphaSurface(tokens[`--ui-${tone}`], background, alpha * strength)),
   ]))];
@@ -432,6 +456,7 @@ export function deriveTheme(input, { mode } = {}) {
     const semantic = Object.hasOwn(statusSeeds, tone) && ['derived', 'related'].includes(values[tone + '-source']);
     const foregroundSeed = fromLch([dark ? Math.max(l, .80) : semantic ? l : Math.min(l, .50), Math.min(c, semantic ? .12 : dark ? .16 : .18), h]);
     tokens[`--ui-${tone}-subtle-text`] = (semantic ? readableTone : readableColour)(foregroundSeed, readingSurfaces, 4.5, ink);
+    tokens[`--ui-${tone}-outline-border`] = readableColour(mix(tokens[`--ui-${tone}-subtle-text`], tokens['--ui-surface-raised'], .68), surfaces, 3, tokens[`--ui-${tone}-subtle-text`]);
     tokens[`--ui-${tone}-soft-border`] = alphaSurface(tokens[`--ui-${tone}-subtle-text`], tokens[`--ui-${tone}-soft`], .25);
   }
   // Existing validation/editor hooks must receive a contextual text role, never

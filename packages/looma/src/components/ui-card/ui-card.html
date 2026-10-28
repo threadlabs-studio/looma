@@ -7,8 +7,8 @@
       elevated adds a subtle lift above the page, for a view's one card, such as sign-in. Treatment independently controls decorative material.</prop>
     <prop name="treatment" type="keyword" values="standard, expressive" default="standard"
     >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material
-      treatment. Its glass rim can transmit and frost the surrounding scene while content remains opaque. Surface separation controls the rim, independently of
-      frosting. This does not add elevation or require glass.</prop>
+      treatment. Its glass rim can transmit and frost the surrounding scene while content stays nearly opaque. Surface separation controls the rim,
+      independently of frosting. This does not add elevation or require glass.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="keyword" values="neutral, accent, accent-secondary, accent-tertiary, info, success, warning, danger" default="neutral"
@@ -71,16 +71,16 @@
     }
 
     :host([treatment="expressive"]) {
+      --_ui-card-material-content: color-mix(in srgb, var(--_ui-card-surface) calc(var(--_ui-material-content-alpha, 1) * 100%), transparent);
       --_ui-panel-glass: clamp(0, var(--ui-glassiness, 0), 1);
       --_ui-panel-separation: clamp(0, var(--ui-surface-separation, 0), 1);
       --_ui-panel-rim: calc(var(--_ui-panel-separation) * 8px);
       border-width: calc(var(--ui-border-width) + var(--_ui-panel-rim));
       border-color: transparent;
       background:
-        var(--ui-surface-highlight, linear-gradient(transparent, transparent)) padding-box,
-        linear-gradient(var(--_ui-card-surface), var(--_ui-card-surface)) padding-box,
-        linear-gradient(var(--ui-material-glass, var(--ui-surface-raised)), var(--ui-material-glass, var(--ui-surface-raised))) border-box,
-        var(--_ui-card-surface) padding-box;
+        var(--ui-material-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent))) padding-box,
+        linear-gradient(var(--_ui-card-material-content), var(--_ui-card-material-content)) padding-box,
+        linear-gradient(var(--ui-material-glass, var(--ui-surface-raised)), var(--ui-material-glass, var(--ui-surface-raised))) border-box;
       box-shadow:
         var(--_ui-card-elevation),
         var(--ui-material-glow, 0 0 transparent),

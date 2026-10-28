@@ -5,6 +5,20 @@
     "example": 0
   },
   {
+    "name": "compact: false",
+    "props": {
+      "compact": false
+    },
+    "example": 0
+  },
+  {
+    "name": "compact: true",
+    "props": {
+      "compact": true
+    },
+    "example": 0
+  },
+  {
     "name": "disabled: false",
     "props": {
       "disabled": false

@@ -2,9 +2,24 @@
 
 ## Next release
 
+- Keep inverse count text readable over both light and dark filled controls by deriving its ink from the control’s foreground polarity.
+
+- Select the starting theme directly in the customizer summary, preview font names in their own typefaces with glyph-only downloads, and load complete font families when selected.
+
 - Give expanded Disclosure content more space above and below while keeping closed panels fully collapsed. Group the named accordion example into adjacent rows and use Text so paragraph margins do not add uneven space.
 
 - Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.
+
+- Keep customizer settings compact and backed by opaque panels, with on-demand help and a persistent theme summary/history toolbar. Optional accents use one clearable swatch each; numeric controls offer compact exact editing without separate step buttons.
+
+- Balance filled and outlined hover through material reflections, add faint accent outline fills, and keep supporting accents explicitly selectable. Outlines share quiet elevation and retain their keyboard focus halo. Bookish defaults focus to primary. Maximum material transparency primarily affects the rim and adds slight content transmission. Re-export saved recipes to adopt the updated material and state derivations.
+
+- Keep editor controls internal to the complete Editor documentation instead of listing their implementation parts as public components. Move Curve Editor to Extras.
+
+- Keep Tree row hover continuous behind the expansion caret and use action cursors for expandable and selectable rows. Strengthen field recession in the Looma starting theme.
+
+- Spread material reflection across the complete control face without a localized bright dot, with a gentler response on light pigments and a stronger, saturation-preserving reflection on dark fills. Gold links use readable amber derived from the primary hue.
+
 
 - Render documentation and catalog descriptions with Expressmark's standard syntax, requiring Markupress 0.12 and Expressmark 0.2.2 to preserve native code literally. Guides use bracketed callout titles and adjacent tab panels; component invocations and code examples keep their meaning. The portable editor adapter still defaults to compatible interchange; select `syntax: "standard"` when exchanging content with Markupress.
 
