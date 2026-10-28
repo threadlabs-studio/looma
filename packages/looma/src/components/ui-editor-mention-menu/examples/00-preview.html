@@ -1,0 +1,12 @@
+<!--
+title: Mention a teammate
+description: Open the interactive surface when needed; it starts closed in the component directory.
+bind: items=people
+-->
+<ui-button data-demo-trigger aria-haspopup="listbox" aria-expanded="false" aria-controls="preview-mentions"
+>Mention a teammate</ui-button><ui-editor-mention-menu
+  id="preview-mentions"
+  tabindex="-1"
+  data-demo-surface
+  items='[{"id":"maya","label":"Maya Chen","detail":"Design","initials":"MC"},{"id":"noah","label":"Noah Williams","detail":"Engineering","initials":"NW"}]'
+></ui-editor-mention-menu>

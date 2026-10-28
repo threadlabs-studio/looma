@@ -1,0 +1,9 @@
+<!--
+title: Insert a block
+description: Open the interactive surface when needed; it starts closed in the component directory.
+-->
+<ui-button data-demo-trigger aria-haspopup="listbox" aria-expanded="false" aria-controls="preview-commands">Insert a block</ui-button>
+<ui-editor-slash-menu id="preview-commands" data-demo-surface tabindex="-1">
+  <ui-editor-slash-menu-item id="preview-text" value="text" icon="pilcrow" description="Plain paragraph">Text</ui-editor-slash-menu-item>
+  <ui-editor-slash-menu-item id="preview-table" value="table" icon="table" description="Rows and columns">Table</ui-editor-slash-menu-item>
+</ui-editor-slash-menu>

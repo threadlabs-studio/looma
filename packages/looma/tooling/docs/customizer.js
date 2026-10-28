@@ -157,7 +157,6 @@ export function connect(host) {
     const report = root.querySelector('[data-palette-adjustments]');
     report.textContent = adjustments.length ? 'Paired ranges are derived for readability. Your base colors stay editable; resolved values are shown below.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
     root.querySelector('[data-palette-adjustment-details]').textContent = adjustments.length ? adjustments.map(item => `${item.mode} ${fields.get(item.id).label.toLowerCase()} ${item.requested} → ${item.resolved}`).join('; ') + '. Base colors remain editable.' : 'Both ranges preserve your base colors with readable text and essential outlines.';
-    for (const card of root.querySelectorAll('[data-example-card]')) card.dispatchEvent(new CustomEvent('looma-theme-preview', { detail: { css } }));
     const cssControl = root.querySelector('[data-css]');
     if (cssControl.getClientRects().length) updateControl(cssControl, css);
     for (const action of ['undo','redo']) componentRegistry.update(root.querySelector(`[data-action="${action}"]`), { disabled: !theme?.[action === 'undo' ? 'canUndo' : 'canRedo'] });
@@ -320,7 +319,7 @@ export function connect(host) {
           const option = [...root.querySelectorAll('[data-add-example] option')].find(option => option.value === selectedExample);
           if (!option) break;
           const selected = JSON.parse(option.dataset.example);
-          const card = Object.fromEntries(['id','title','description','exampleTitle','src','resizable','category','tag','nativeRoot','href','packageName'].map(key => [key, selected[key]]));
+          const card = Object.fromEntries(['id','title','description','exampleTitle','resizable','category','tag','nativeRoot','href','packageName'].map(key => [key, selected[key]]));
           removedExamples.delete(card.id);
           if (!host.state.cards.some(item => item.id === card.id)) host.state.cards = [card, ...host.state.cards];
           updateControl(root.querySelector('[data-example-query]'), ''); previewQuery = '';
@@ -412,9 +411,6 @@ export function connect(host) {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.target.closest?.('input,textarea,select,[contenteditable="true"]')) return;
     event.preventDefault(); flush(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
   };
-  const ready = event => {
-    if (event.data?.type === 'looma-preview-ready' && [...root.querySelectorAll('iframe')].some(frame => frame.contentWindow === event.source)) paint();
-  };
   const remove = event => {
     const example = catalogExamples.find(card => card.id === event.detail.id);
     const chosen = host.state.cards.some(card => card.id === event.detail.id);
@@ -468,7 +464,6 @@ export function connect(host) {
   root.addEventListener('blur', blur, true);
   root.addEventListener('change', change);
   root.addEventListener('click', click);
-  view.addEventListener('message', ready);
   view.addEventListener('popstate', renderView);
   view.addEventListener('hashchange', renderView);
   view.addEventListener('beforeunload', flush);
@@ -486,5 +481,5 @@ export function connect(host) {
       root.querySelector('[data-action="save"]').hidden = false;
     }).catch(error => { if (alive && error.name !== 'AbortError') say(error.message, true); });
   }
-  return () => { previewObserver.disconnect(); if (layoutFrame) view.cancelAnimationFrame(layoutFrame); view.removeEventListener('resize', schedulePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('message', ready); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
+  return () => { previewObserver.disconnect(); if (layoutFrame) view.cancelAnimationFrame(layoutFrame); view.removeEventListener('resize', schedulePreviewLayout); motionPreference.removeEventListener('change', motionPreferenceChanged); root.removeEventListener('toggle', updateSizes, true); motionAnimation?.cancel(); flush(); root.removeEventListener('cancel', cancel); root.removeEventListener('keydown', keyboard); alive = false; abort.abort(); root.removeEventListener('looma-example-remove', remove); root.removeEventListener('input', input); root.removeEventListener('value-change', choose); root.removeEventListener('value-change', selectExample); root.removeEventListener('value-change', selectFont); root.removeEventListener('blur', blur, true); root.removeEventListener('change', change); root.removeEventListener('click', click); view.removeEventListener('beforeunload', flush); view.removeEventListener('popstate', renderView); view.removeEventListener('hashchange', renderView); view.removeEventListener(themeEvent, synchronize); };
 }

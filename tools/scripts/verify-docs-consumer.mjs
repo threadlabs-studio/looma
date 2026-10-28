@@ -75,8 +75,7 @@ try {
     const page = await fetch(server.url + 'components/office-note/');
     if (page.status === 200) {
       const html = await page.text();
-      const frame = /<iframe[^>]*src="([^"]+)"/.exec(html);
-      if (frame && (await (await fetch(new URL(frame[1], server.url))).text()).includes('Sam booked second breakfast.')) { discovered = true; break; }
+      if (!html.includes('<iframe') && html.includes('Sam booked second breakfast.')) { discovered = true; break; }
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }

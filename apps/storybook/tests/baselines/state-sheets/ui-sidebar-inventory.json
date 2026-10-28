@@ -2,91 +2,96 @@
   {
     "name": "Rest",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "breakpoint: sm",
     "props": {
       "breakpoint": "sm"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "breakpoint: md",
     "props": {
       "breakpoint": "md"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "breakpoint: lg",
     "props": {
       "breakpoint": "lg"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "collapsed: false",
     "props": {
       "collapsed": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "collapsed: true",
     "props": {
       "collapsed": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "resizable: false",
     "props": {
       "resizable": false
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "resizable: true",
     "props": {
       "resizable": true
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "side: start",
     "props": {
       "side": "start"
     },
-    "example": 0
+    "example": 1
   },
   {
     "name": "side: end",
     "props": {
       "side": "end"
     },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
     "example": 0
   },
   {
     "name": "Example: 01-app-shell",
     "props": {},
-    "example": 0
+    "example": 1
   },
   {
     "name": "Example: 02-end-side-resizable",
     "props": {},
-    "example": 1
+    "example": 2
   },
   {
     "name": "command toggles sidebar",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "authored"
   },
   {
     "name": "Mobile drawer",
     "props": {},
-    "example": 0,
+    "example": 1,
     "interaction": "authored",
     "viewport": {
       "width": 320,

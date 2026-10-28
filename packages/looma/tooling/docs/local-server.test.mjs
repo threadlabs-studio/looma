@@ -16,10 +16,6 @@ test('loopback editor protects the writer from cross-origin requests, stale sess
   const server = await serveLocalDocumentation({ upstream: `http://127.0.0.1:${upstream.address().port}/`, base: '/system/', store: await createThemeStore({ root }), onSaved: async () => { rebuilt++; } });
   try {
     assert.match(await (await fetch(server.url)).text(), /MarkupKit/);
-    const preview = await fetch(server.url + '_looma/preview/example/');
-    assert.match(preview.headers.get('content-security-policy'), /sandbox allow-scripts/);
-    assert.match(preview.headers.get('content-security-policy'), /script-src 'self'/);
-    assert.doesNotMatch((await fetch(server.url)).headers.get('content-security-policy'), /sandbox/);
     const sessionURL = server.url + '_looma/session';
     assert.equal((await fetch(sessionURL)).status, 403);
     assert.equal((await fetch(sessionURL, { headers: { Origin: 'null', 'Sec-Fetch-Site': 'same-origin' } })).status, 403);
