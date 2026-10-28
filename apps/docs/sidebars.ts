@@ -12,11 +12,9 @@ const sidebars: SidebarsConfig = {
         "architecture",
         "conventions",
         "tokens",
+        "theme-reference",
         "overlay-contract",
-        "adapter-parity",
-        "docs-api-sync",
-        "looma-markdown",
-        "component-library-audit"
+        "adapter-parity"
       ]
     }
   ],

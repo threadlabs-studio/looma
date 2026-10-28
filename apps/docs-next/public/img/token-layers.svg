@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="332" viewBox="0 0 560 332" role="img" aria-labelledby="title desc">
+  <title id="title">Three layers, one theme</title>
+  <desc id="desc">A component hook overrides a group value. The group value falls back to the global theme. Global values are the starting point; group and component overrides are optional.</desc>
+  <rect width="560" height="332" rx="16" fill="#f3f2f9"/>
+  <g font-family="system-ui, sans-serif" fill="#272438">
+    <rect x="20" y="20" width="520" height="84" rx="10" fill="#fff" stroke="#c8c3de"/>
+    <circle cx="57" cy="62" r="19" fill="#eae6ff"/>
+    <text x="57" y="69" text-anchor="middle" font-size="21" font-weight="600">1</text>
+    <text x="92" y="55" font-size="22" font-weight="600">Global theme</text>
+    <text x="92" y="81" font-size="18" fill="#56506c">Palette, type, spacing and corners</text>
+    <path d="M57 106v19m-6-6 6 6 6-6" fill="none" stroke="#756999" stroke-width="2"/>
+    <rect x="20" y="126" width="520" height="84" rx="10" fill="#fff" stroke="#c8c3de"/>
+    <circle cx="57" cy="168" r="19" fill="#eae6ff"/>
+    <text x="57" y="175" text-anchor="middle" font-size="21" font-weight="600">2</text>
+    <text x="92" y="161" font-size="22" font-weight="600">Group value</text>
+    <text x="92" y="187" font-size="18" fill="#56506c">A shared override for related controls</text>
+    <path d="M57 212v19m-6-6 6 6 6-6" fill="none" stroke="#756999" stroke-width="2"/>
+    <rect x="20" y="232" width="520" height="80" rx="10" fill="#514392"/>
+    <circle cx="57" cy="272" r="19" fill="#7160b6"/>
+    <text x="57" y="279" text-anchor="middle" font-size="21" font-weight="600" fill="#fff">3</text>
+    <text x="92" y="267" font-size="22" font-weight="600" fill="#fff">Component hook</text>
+    <text x="92" y="293" font-size="18" fill="#f1edff">The most specific value wins</text>
+  </g>
+</svg>

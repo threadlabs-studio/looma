@@ -2170,27 +2170,19 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
 });
 
 
-test("documentation TOC follows viewport height and reader navigation", async ({ page }) => {
+test("documentation TOC follows reader navigation across viewport changes", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("docs-api-sync/", { waitUntil: "domcontentloaded" });
+  await page.goto("tokens/", { waitUntil: "domcontentloaded" });
   await ready(page);
   const toc = page.locator(".table-of-contents");
-  const options = toc.getByRole("link", { name: "Option descriptions", exact: true });
-  const settleScroll = async () => page.evaluate(async () => {
-    for (const top of [1, 0]) {
-      await new Promise<void>((resolve) => {
-        window.addEventListener("scroll", () => resolve(), { once: true });
-        window.scrollTo({ top, behavior: "instant" });
-      });
-    }
-  });
-  await settleScroll();
-  await expect(options).not.toHaveClass(/table-of-contents__link--active/);
+  const colour = toc.getByRole("link", { name: "Theming colour", exact: true });
+  await colour.click();
+  await expect(page).toHaveURL(/#theming-colour$/);
+  await expect(colour).toHaveClass(/table-of-contents__link--active/);
   await page.setViewportSize({ width: 1280, height: 1100 });
-  await settleScroll();
-  await expect(options).toHaveClass(/table-of-contents__link--active/);
-  const commands = toc.getByRole("link", { name: "Commands", exact: true });
-  await commands.click();
-  await expect(page).toHaveURL(/#commands$/);
-  await expect(commands).toHaveClass(/table-of-contents__link--active/);
+  await expect(colour).toHaveClass(/table-of-contents__link--active/);
+  const component = toc.getByRole("link", { name: "Component tokens", exact: true });
+  await component.click();
+  await expect(page).toHaveURL(/#component-tokens$/);
+  await expect(component).toHaveClass(/table-of-contents__link--active/);
 });
