@@ -1,115 +1,111 @@
-import type { Editor } from "@tiptap/core";
-import { Fragment, type Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL } from "./extensions/footnote";
+import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { findLoomaFootnote } from "./extensions/footnote";
 
-/** The footnote editor's state: the edited reference's label and its note's text. */
+/** The floating editor's structured note content; numbering belongs to the document. */
 export interface LoomaFootnoteEditingState {
   readonly open: boolean;
-  readonly label: string;
-  /** The note's text, its blocks on separate lines. */
-  readonly note: string;
-  /** Whether `note` can be edited as text: the note is one paragraph of unformatted text. */
-  readonly editable: boolean;
-  /** Why the last label offered was not used, or empty. */
-  readonly error: string;
+  readonly note: JSONContent;
 }
 
-export const LOOMA_FOOTNOTE_EDITING_IDLE: LoomaFootnoteEditingState = Object.freeze({ open: false, label: "", note: "", editable: false, error: "" });
+const content = (note: ProseMirrorNode): JSONContent => ({ type: "doc", content: note.content.toJSON() });
+export const LOOMA_FOOTNOTE_EDITING_IDLE: LoomaFootnoteEditingState = Object.freeze({ open: false, note: { type: "doc", content: [{ type: "paragraph" }] } });
 
 /**
- * The footnote editor as a state machine: it opens on one reference, writes the note's text as the
- * author types it, and renames the footnote everywhere when a new label is committed.
- *
- * @ownership The host owns presentation: the popover, its anchor, and focus. This owns which footnote
- * is edited and the document changes it makes.
- * @failure A change after the footnote was deleted closes the editor and writes nothing. A label with
- * a space or `]`, or one another footnote uses, is not applied; `error` says why.
+ * Edits one note without exposing its internal Markdown identity to the writer.
+ * @ownership The host owns action bar, popover, anchor and focus; this owns document updates.
+ * @failure Deleting the reference closes the editor. Invalid structured content never replaces a note.
  */
 export interface LoomaFootnoteEditing {
   readonly state: LoomaFootnoteEditingState;
-  /** The edited reference's element, for anchoring the editor, or null while it is closed. */
+  /** The reference used to anchor the floating actions or editor. */
   readonly element: HTMLElement | null;
-  /** Calls `listener` after every state change; returns the unsubscribe function. */
   subscribe(listener: () => void): () => void;
-  /**
-   * Opens on the reference at `position`.
-   * @failure Returns false, and stays as it was, when the editor is read-only or no reference is there.
-   */
+  /** Opens on an editable footnote reference; returns false when the reference or note is absent. */
   open(position: number): boolean;
-  /** Replaces the note's text; ignored unless `state.editable`. */
-  setNote(note: string): void;
-  rename(label: string): void;
-  /** Closes the editor and moves the caret to the end of the note. */
+  /** Replaces note content using the parent schema, preserving blocks, marks and attributes. */
+  setNote(note: JSONContent): void;
+  /** Closes the floating surface and moves the document caret to the note. */
   goToNote(): void;
   close(): void;
 }
 
 export interface LoomaFootnoteEditingOptions {
   editor: Editor;
-  /** Read on each opening, so a host can change it while the editor runs. */
   isEditable: () => boolean;
 }
 
-const plain = (note: ProseMirrorNode) => {
-  const paragraph = note.firstChild;
-  if (note.childCount !== 1 || paragraph?.type.name !== "paragraph") return false;
-  let text = true;
-  paragraph.forEach(child => { if (!child.isText || child.marks.length) text = false; });
-  return text;
-};
+/**
+ * Reuses the parent content schema in a short-form field, including global attributes.
+ * Document-wide normalizers and node-view callbacks stay with the parent editor.
+ */
+export function footnoteContentExtensions(editor: Editor): AnyExtension[] {
+  return editor.extensionManager.extensions
+    .filter(extension => extension.type === "node" || extension.type === "mark")
+    .filter(extension => !["loomaFootnotes", "loomaFootnote"].includes(extension.name))
+    .map(extension => {
+      const attributes = Object.fromEntries(editor.extensionManager.attributes
+        .filter(attribute => attribute.type === extension.name)
+        .map(attribute => [attribute.name, { ...attribute.attribute }]));
+      const schema = { addAttributes: () => attributes, addGlobalAttributes: () => [], addProseMirrorPlugins: () => [] };
+      return extension.type === "node" ? extension.extend({ ...schema, addNodeView: null }) : extension.extend(schema);
+    });
+}
 
 export function createFootnoteEditing(options: LoomaFootnoteEditingOptions): LoomaFootnoteEditing {
   const { editor } = options;
   const listeners = new Set<() => void>();
   let state = LOOMA_FOOTNOTE_EDITING_IDLE;
   let element: HTMLElement | null = null;
+  let identity = "";
   const set = (next: LoomaFootnoteEditingState) => {
     state = next;
-    listeners.forEach((listener) => listener());
+    listeners.forEach(listener => listener());
   };
   const close = () => {
     element = null;
+    identity = "";
     if (state.open) set({ ...state, open: false });
   };
-  // The note is found by label on each change, so edits elsewhere in the document cannot misdirect one.
-  const note = () => (state.open && !editor.isDestroyed && element?.isConnected ? findLoomaFootnote(editor.state.doc, state.label) : null);
+  const note = () => state.open && !editor.isDestroyed && element?.isConnected ? findLoomaFootnote(editor.state.doc, identity) : null;
+  const sync = () => {
+    if (!state.open) return;
+    const found = note();
+    if (!found) return close();
+    const next = content(found.node);
+    if (JSON.stringify(next) !== JSON.stringify(state.note)) set({ ...state, note: next });
+  };
+  const destroy = () => {
+    close();
+    editor.off("transaction", sync);
+    editor.off("destroy", destroy);
+    listeners.clear();
+  };
+  editor.on("transaction", sync);
+  editor.on("destroy", destroy);
 
   return {
     get state() { return state; },
     get element() { return element; },
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => { listeners.delete(listener); };
-    },
+    subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     open(position) {
       if (!options.isEditable() || editor.isDestroyed) return false;
-      const node = editor.state.doc.nodeAt(position);
-      const dom = editor.view.nodeDOM(position);
+      const node = editor.state.doc.nodeAt(position), dom = editor.view.nodeDOM(position);
       if (node?.type.name !== "loomaFootnoteReference" || !(dom instanceof HTMLElement)) return false;
-      const label = String(node.attrs.label);
-      const found = findLoomaFootnote(editor.state.doc, label);
+      const found = findLoomaFootnote(editor.state.doc, String(node.attrs.label));
       if (!found) return false;
+      identity = String(node.attrs.label);
       element = dom;
-      set({ open: true, label, note: found.node.textBetween(0, found.node.content.size, "\n"), editable: plain(found.node), error: "" });
+      set({ open: true, note: content(found.node) });
       return true;
     },
-    setNote(text) {
+    setNote(value) {
       const found = note();
       if (!found) return close();
-      if (!state.editable) return;
-      // A note edited here is one paragraph; a line break typed into the field joins its lines.
-      const value = text.replace(/\s*\n\s*/g, " ");
-      const start = found.position + 2;
-      const end = start + found.node.firstChild!.content.size;
-      editor.view.dispatch(editor.state.tr.replaceWith(start, end, value ? editor.schema.text(value) : Fragment.empty));
-      set({ ...state, note: value });
-    },
-    rename(label) {
-      if (!note()) return close();
-      if (label === state.label) return state.error ? set({ ...state, error: "" }) : undefined;
-      if (!LOOMA_FOOTNOTE_LABEL.test(label)) return set({ ...state, error: "A label is one word, without ]." });
-      if (!editor.commands.renameLoomaFootnote(state.label, label)) return set({ ...state, error: "Another footnote uses this label." });
-      set({ ...state, label, error: "" });
+      const next = editor.schema.nodeFromJSON(value);
+      if (next.type !== editor.schema.topNodeType || !found.node.type.validContent(next.content)) throw new Error("Invalid footnote content.");
+      if (found.node.content.eq(next.content)) return;
+      editor.view.dispatch(editor.state.tr.replaceWith(found.position + 1, found.position + 1 + found.node.content.size, next.content));
     },
     goToNote() {
       const reference = element;

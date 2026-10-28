@@ -1,4 +1,6 @@
 {
-  "description": "The editor's footnote editor: a field for the footnote's label and a field for its note.",
-  "group": "editor"
+  "title": "Footnote Editor",
+  "description": "The floating footnote editor frame. Compose a rich-text field in its default slot, or use its simple note field. The document numbers references automatically; Changes apply as you type; Escape or clicking away closes the editor.",
+  "group": "editor",
+  "summary": "A floating editor for a note’s content; numbering is automatic."
 }

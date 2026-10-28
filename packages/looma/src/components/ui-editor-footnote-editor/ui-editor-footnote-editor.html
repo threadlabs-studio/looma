@@ -1,57 +1,11 @@
-<link rel="component" href="../ui-stack/ui-stack.html">
-<link rel="component" href="../ui-form-field/ui-form-field.html">
-<link rel="component" href="../ui-input-group/ui-input-group.html">
-<link rel="component" href="../ui-input/ui-input.html">
 <link rel="component" href="../ui-textarea/ui-textarea.html">
-<link rel="component" href="../ui-button/ui-button.html">
 <template component="ui-editor-footnote-editor" module="./ui-editor-footnote-editor.js">
   <defs>
-    <prop name="label" type="string" default="">The footnote's label, which its references and its note share, shown between [^ and ].</prop>
-    <prop name="note" type="string" default="">The note's text, shown in the note field, with each block of a longer note on its own line.</prop>
-    <prop name="editable" type="boolean" default="false"
-    >Whether the note's text can be edited here. A note with formatting or more than one block shows its text read-only; Go to note edits it in the
-      document.</prop>
-    <prop name="error" type="string" default="">Why the label field's label was not used. While set, the field is invalid and shows it.</prop>
-    <state name="base" type="string" value="ui-editor-footnote-editor"></state>
-    <event name="text" type="object">
-      <prop name="text" required type="string"></prop>
-      The note's text changed.
-    </event>
-    <event name="label" type="object">
-      <prop name="label" required type="string"></prop>
-      A new label was committed: the label field changed and lost focus, or Enter was pressed in it.
-    </event>
-    <event name="go" type="object">Go to note was pressed.</event>
-    <event name="done" type="object">Enter or Escape was pressed in a field, to close the editor and return to the reference.</event>
+    <prop name="note" type="string" default="">Content for the default plain-text field. Supply rich editing content through the default slot.</prop>
+    <event name="text" type="object"><prop name="text" required type="string"></prop>The default text field changed.</event>
+    <event name="done" type="object">An unhandled Escape closes the editor and returns to the reference.</event>
   </defs>
   <div role="dialog" aria-label="Edit footnote">
-    <ui-stack gap="s">
-      <ui-form-field from:invalid="$error != ''">
-        <label slot="label" from:for="concat($base, '-label')">Label</label>
-        <ui-input-group>
-          <span slot="prefix">[^</span>
-          <ui-input data-footnote-label from:id="concat($base, '-label')" size="sm" autocomplete="off" from:value="$label"></ui-input>
-          <span slot="suffix">]</span>
-        </ui-input-group>
-        <span slot="error">{$error}</span>
-      </ui-form-field>
-      <ui-form-field>
-        <label slot="label" from:for="concat($base, '-note')">Note</label>
-        <ui-input-group multiline>
-          <ui-textarea
-            data-footnote-note
-            from:id="concat($base, '-note')"
-            size="sm"
-            rows="2"
-            autosize
-            placeholder="Write the note"
-            from:readonly="not $editable"
-            from:value="$note"
-          ></ui-textarea>
-          <ui-button slot="action" size="sm" data-footnote-go>Go to note</ui-button>
-        </ui-input-group>
-        <span $if="not $editable" slot="help">This note has formatting, so it is edited in the document.</span>
-      </ui-form-field>
-    </ui-stack>
+    <slot><ui-textarea data-footnote-note aria-label="Footnote" rows="3" autosize placeholder="Write the note" from:value="$note"></ui-textarea></slot>
   </div>
 </template>
