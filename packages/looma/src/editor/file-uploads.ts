@@ -14,14 +14,20 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
   type Upload = { file: File; position: number; controller?: AbortController; failed: boolean; map: (event: { transaction: Transaction }) => void };
   let active: Upload | undefined;
   const state = (uploading: boolean, progress: LoomaFileUploadsState['progress'] = null, failed: File | null = null) => options.onState?.({ uploading, progress, failed });
-  const finish = () => {
-    if (active) { editor.off('transaction', active.map); active = undefined; }
+  const finish = (job: Upload | undefined) => {
+    if (active !== job) return;
+    if (job) editor.off('transaction', job.map);
+    active = undefined;
     state(false);
   };
-  const cancel = () => { active?.controller?.abort(); finish(); };
+  const cancel = (job: Upload | undefined) => {
+    if (active !== job) return;
+    job?.controller?.abort();
+    finish(job);
+  };
   const run = async (job: Upload) => {
     const upload = options.upload();
-    if (!upload || editor.isDestroyed || !editor.isEditable) { cancel(); return; }
+    if (!upload || editor.isDestroyed || !editor.isEditable) { cancel(job); return; }
     const controller = new AbortController();
     job.controller = controller; job.failed = false;
     const current = () => active === job && job.controller === controller && !controller.signal.aborted;
@@ -31,7 +37,7 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
         if (current() && !job.failed) state(true, { loaded, total });
       } });
       if (!current()) return;
-      if (!answer || editor.isDestroyed || !editor.isEditable) { finish(); return; }
+      if (!answer || editor.isDestroyed || !editor.isEditable) { finish(job); return; }
       if (!/^(?:https?:\/\/|\/(?!\/))/.test(answer.href) || !Number.isSafeInteger(answer.size) || answer.size < 0) throw new Error('Invalid file descriptor');
       const size = answer.size < 1000 ? `${answer.size} B` : answer.size < 1_000_000 ? `${Math.ceil(answer.size / 1000)} KB` : `${Number((answer.size / 1_000_000).toFixed(1))} MB`;
       editor.view.dispatch(closeHistory(editor.state.tr));
@@ -40,7 +46,7 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
         { type: 'text', text: ` (${answer.contentType || 'application/octet-stream'}, ${size}) ` },
       ]).run();
       editor.view.dispatch(closeHistory(editor.state.tr));
-      if (current()) finish();
+      if (current()) finish(job);
     } catch (error) {
       if (!current()) return;
       job.failed = true;
@@ -49,14 +55,14 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
     }
   };
   return {
-    cancel,
+    cancel() { cancel(active); },
     async insert(file: File) {
-      cancel();
+      cancel(active);
       if (editor.isDestroyed || !editor.isEditable) return;
       const job: Upload = { file, position: editor.state.selection.from, failed: false,
         map: ({ transaction }) => {
           const mapped = transaction.mapping.mapResult(job.position);
-          if (mapped.deletedAcross) cancel();
+          if (mapped.deletedAcross) cancel(job);
           else job.position = mapped.pos;
         } };
       active = job; editor.on('transaction', job.map);

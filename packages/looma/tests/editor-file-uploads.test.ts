@@ -116,3 +116,24 @@ it('does not clear a new upload started by the host during the previous insertio
   expect(editor.getText()).toContain('first.pdf');
   expect(editor.getText()).toContain('second.pdf');
 });
+
+it.each(['transaction', 'abort'])('keeps a replacement upload owned by the host %s callback', async trigger => {
+  const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: '<p>Old content</p>' }); editors.push(editor);
+  editor.commands.setTextSelection(4);
+  const answers = new Map<string, (value: { href: string; name: string; size: number; contentType: string }) => void>();
+  let second: Promise<void> | undefined;
+  const startSecond = () => { second ??= uploads.insert(new File(['b'], 'second.pdf')); };
+  if (trigger === 'transaction') editor.on('transaction', ({ transaction }) => { if (transaction.docChanged) startSecond(); });
+  const uploads = createFileUploads({ editor, upload: () => (file, init) => {
+    if (trigger === 'abort' && file.name === 'first.pdf') init.signal.addEventListener('abort', startSecond, { once: true });
+    return new Promise(resolve => { answers.set(file.name, resolve); });
+  }, onError: vi.fn() });
+  const first = uploads.insert(new File(['a'], 'first.pdf'));
+  if (trigger === 'transaction') editor.commands.setContent('<p>Replacement</p>');
+  else uploads.cancel();
+  answers.get('first.pdf')!({ href: '/first.pdf', name: 'first.pdf', size: 1, contentType: 'application/pdf' });
+  answers.get('second.pdf')!({ href: '/second.pdf', name: 'second.pdf', size: 1, contentType: 'application/pdf' });
+  await Promise.all([first, second]);
+  expect(editor.getText()).not.toContain('first.pdf');
+  expect(editor.getText()).toContain('second.pdf');
+});
