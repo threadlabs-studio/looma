@@ -23,13 +23,6 @@
       "examples": []
     },
     {
-      "path": "component-library-audit",
-      "title": "Component Option Audit",
-      "source": "apps/docs/docs/component-library-audit.md",
-      "component": null,
-      "examples": []
-    },
-    {
       "path": "components",
       "title": "Components",
       "source": "apps/docs/docs/component-catalog.mdx",
@@ -2119,13 +2112,6 @@
       "examples": []
     },
     {
-      "path": "docs-api-sync",
-      "title": "Docs/API Sync Workflow",
-      "source": "apps/docs/docs/docs-api-sync.md",
-      "component": null,
-      "examples": []
-    },
-    {
       "path": "editor",
       "title": "Editor",
       "source": "apps/docs/docs/editor.mdx",
@@ -2449,13 +2435,6 @@
       "examples": []
     },
     {
-      "path": "looma-markdown",
-      "title": "Looma Markdown",
-      "source": "apps/docs/docs/looma-markdown.md",
-      "component": null,
-      "examples": []
-    },
-    {
       "path": "overlay-contract",
       "title": "Overlay Contract",
       "source": "apps/docs/docs/overlay-contract.md",
@@ -2466,6 +2445,13 @@
       "path": "release-1-support",
       "title": "Release 1 Support and Limitations",
       "source": "apps/docs/docs/release-1-support.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "theme-reference",
+      "title": "Theme reference",
+      "source": "apps/docs/docs/theme-reference.md",
       "component": null,
       "examples": []
     },

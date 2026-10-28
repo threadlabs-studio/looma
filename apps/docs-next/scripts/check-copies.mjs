@@ -13,7 +13,7 @@ const copies = [
   ["release-1-support.md", "release-1-support.md"],
   ["editor.mdx", "editor.md"],
   ["editor/looma-editor.mdx", "editor/looma-editor.md"],
-  ...["architecture", "conventions", "tokens", "overlay-contract", "adapter-parity", "docs-api-sync", "looma-markdown", "component-library-audit"]
+  ...["architecture", "conventions", "tokens", "theme-reference", "overlay-contract", "adapter-parity"]
     .map((page) => [`${page}.md`, `03.(Foundations)/${page}.md`]),
 ];
 
@@ -30,7 +30,7 @@ export async function copiedPageMatches(original, copied, { from, semantic = fal
   return originalPage.resource === copiedPage.resource;
 }
 
-// The retained fixture keeps pipe tables for Docusaurus. Only these two guides use
+// The retained fixture keeps pipe tables for Docusaurus. The editor guide uses
 // target-specific table spellings; the owning Markupress compiler checks their content.
 async function main() {
   const drifted = [];
@@ -39,7 +39,7 @@ async function main() {
       readFile(path.join(app, "../docs/docs", source), "utf8"),
       readFile(path.join(app, "docs", copy), "utf8"),
     ]);
-    if (!await copiedPageMatches(original, copied, { from, semantic: source === "looma-markdown.md" || source === "editor.mdx" })) drifted.push(`apps/docs-next/docs/${copy} differs from apps/docs/docs/${source}`);
+    if (!await copiedPageMatches(original, copied, { from, semantic: source === "editor.mdx" })) drifted.push(`apps/docs-next/docs/${copy} differs from apps/docs/docs/${source}`);
   }
   if (drifted.length > 0) {
     console.error(drifted.join("\n"));
