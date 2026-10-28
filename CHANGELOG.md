@@ -4,6 +4,8 @@
 
 - Keep disabled IconButton actions flat when a neutral outline or solid variant supplies its own shadow.
 
+- Show file-upload progress and retryable errors in the editor. Retry keeps its original mapped insertion point; inserting an attachment is a separate undo step so it does not remove intervening typing.
+
 - Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
 
 - Enforce the outline contrast minimum against the composited wash and material surface in light and dark themes. Recalculate borders when finish or lighting changes; text retains its separate readability threshold. Re-export saved theme CSS to adopt the corrected contrast.
