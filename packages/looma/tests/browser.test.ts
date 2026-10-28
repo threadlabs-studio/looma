@@ -725,32 +725,43 @@ describe("Pressed icon controls and circular marks", () => {
         [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('#accent:is([data-component~="ui-badge"], .ui-badge)');
       await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
-      for (const theme of ["light", "dark"]) {
-        await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
-        const overlays = await page.locator(':is([data-component~="ui-badge"], .ui-badge)').evaluateAll(elements => elements.map(element => {
-          const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
-          const context = document.createElement("canvas").getContext("2d")!;
-          const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
-          const luminance = () => {
-            const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
-            return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
-          };
-          context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
-          const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
-          context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
-          const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
-          const box = element.getBoundingClientRect();
-          paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
-          paint(style.color); const ink = luminance();
-          return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
-        }));
-        await writeFile(join(root, ".build", `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
-        for (const overlay of overlays) {
-          assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
-          assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
-          assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
-          assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
-          assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+      // Both on-fill polarities must remain readable in either document scheme.
+      for (const [sample, pigment, onFill] of [["default", "", ""], ["deep", "#271a54", "#ffffff"], ["pale", "#ffdd55", "#000000"], ["middle", "#767676", "#000000"]]) {
+        await page.evaluate(({tones,pigment,onFill}) => {
+          for (const tone of tones.filter(tone => tone !== "neutral")) {
+            for (const [property,value] of [["--ui-" + tone,pigment],["--ui-on-" + tone,onFill],["--ui-" + tone + "-on-strong",onFill]]) {
+              if (value) document.documentElement.style.setProperty(property,value);
+              else document.documentElement.style.removeProperty(property);
+            }
+          }
+        }, {tones,pigment,onFill});
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+          const overlays = await page.locator(':is([data-component~="ui-badge"], .ui-badge)').evaluateAll(elements => elements.map(element => {
+            const style = getComputedStyle(element), control = getComputedStyle(element.closest("button")!);
+            const context = document.createElement("canvas").getContext("2d")!;
+            const paint = (colour: string) => { context.fillStyle = colour; context.fillRect(0, 0, 1, 1); };
+            const luminance = () => {
+              const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => { const channel = value / 255; return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4; });
+              return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+            };
+            context.clearRect(0, 0, 1, 1); paint(style.backgroundColor);
+            const opacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+            context.clearRect(0, 0, 1, 1); paint(style.borderTopColor);
+            const borderOpacity = context.getImageData(0, 0, 1, 1).data[3]! / 255;
+            const box = element.getBoundingClientRect();
+            paint(control.backgroundColor); paint(style.backgroundColor); const background = luminance();
+            paint(style.color); const ink = luminance();
+            return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
+          }));
+          await writeFile(join(root, ".build", sample + "-" + `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
+          for (const overlay of overlays) {
+            assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
+            assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
+            assert.ok(!overlay.shadow.includes("inset") && overlay.shadow.split(/,(?![^()]*\))/).length === 1, "the circular mark has one subtle lift and no bevel");
+            assert.deepEqual(overlay.geometry, [32, 32], "the circle geometry remains unchanged");
+            assert.ok(overlay.contrast >= 4.5, `${adapter}/${theme}/${overlay.tone}: the composed count keeps readable contrast ${JSON.stringify(overlay)}`);
+          }
         }
       }
       const countOpacity = () => page.locator("#accent").evaluate(element => {
@@ -2604,24 +2615,46 @@ describe("Menu structure and navigation", () => {
     const path = await bundle("html-menu-themes", `import "@threadlabs/looma";`);
     const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
     const page = await open(path, `<ui-menu open aria-label="Options"><ui-menu-item id="grid" type="checkbox" checked>Show grid</ui-menu-item><ui-menu-item id="date" type="radio" checked>Date</ui-menu-item></ui-menu>`, css);
+    // Material gradients can paint an opaque surface while backgroundColor stays transparent.
+    // Sample the indicator and its actual neighboring row paint instead of assuming an RGB color.
+    const indicatorContrast = async () => {
+      const item = page.locator("#grid");
+      const geometry = await item.evaluate(item => {
+        const row = item.getBoundingClientRect(), indicator = item.querySelector(".indicator")!.getBoundingClientRect();
+        return {
+          points: [
+            [indicator.x - row.x + indicator.width / 2, indicator.y - row.y + 2],
+            [indicator.right - row.x + parseFloat(getComputedStyle(item).gap) / 2, indicator.y - row.y + indicator.height / 2],
+          ],
+          icon: Boolean(item.querySelector(".indicator svg")),
+        };
+      });
+      const base64 = (await item.screenshot({ animations: "disabled" })).toString("base64");
+      return page.evaluate(async ({base64,geometry}) => {
+        const image = new Image(); image.src = "data:image/png;base64," + base64; await image.decode();
+        const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+        const context = canvas.getContext("2d")!; context.drawImage(image,0,0);
+        const [indicator,surface] = geometry.points.map(([x,y]) => [...context.getImageData(Math.floor(x!),Math.floor(y!),1,1).data].slice(0,3));
+        const luminance = (color: number[]) => {
+          const [r,g,b] = color.map(channel => { const scaled=channel/255; return scaled<=.04045?scaled/12.92:((scaled+.055)/1.055)**2.4; });
+          return r!*.2126+g!*.7152+b!*.0722;
+        };
+        const ink=luminance(indicator!),background=luminance(surface!);
+        return {ratio:(Math.max(ink,background)+.05)/(Math.min(ink,background)+.05),icon:geometry.icon,surface:"rgb("+surface!.join(",")+")"};
+      }, {base64,geometry});
+    };
     for (const [attribute, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([attribute, value]) => document.documentElement.setAttribute(attribute, value), [attribute, value]);
-      const result = await page.locator("#grid").evaluate((item) => {
-        const color = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
-        const luminance = (value: string) => {
-          const [red, green, blue] = color(value).map((channel) => {
-            const scaled = channel / 255;
-            return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
-          });
-          return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
-        };
-        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).backgroundColor);
-        const surface = luminance(getComputedStyle(item.closest(".surface")!).backgroundColor);
-        return { ratio: (Math.max(indicator, surface) + 0.05) / (Math.min(indicator, surface) + 0.05), icon: Boolean(item.querySelector(".indicator svg")) };
-      });
+      const result = await indicatorContrast();
       assert.equal(result.icon, true);
       assert.ok(result.ratio >= 3, `${value} checked indicator has ${result.ratio.toFixed(2)}:1 contrast`);
+      if (value === "high") {
+        const indicator = page.locator("#grid .indicator");
+        await indicator.evaluate((element,color) => { (element as HTMLElement).style.backgroundColor=color; },result.surface);
+        assert.ok((await indicatorContrast()).ratio < 3,"the pixel probe rejects an indicator that blends into its row");
+        await indicator.evaluate(element => { (element as HTMLElement).style.removeProperty("background-color"); });
+      }
     }
     await page.emulateMedia({ forcedColors: "active" });
     await page.locator("#grid").focus();
@@ -6807,6 +6840,24 @@ describe("Text tokens", () => {
 });
 
 describe("Tree link rows", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`keeps branch hover continuous around the caret with an action cursor in ${adapter}`, async () => {
+    const path = await bundle(`tree-hover-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      import {createApp,h} from "vue";
+      import {Tree,TreeItem} from "@threadlabs/looma/vue";
+      createApp({render:()=>h(Tree,{label:"Files"},()=>h(TreeItem,{id:"branch",label:"Project",container:true}))}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML" ? '<ui-tree label="Files"><ui-tree-item id="branch" label="Project" container></ui-tree-item></ui-tree>' : '<div id="app"></div>', [join(root,"tokens.css"), ...(adapter === "Vue" ? [join(root,"vue/components.css")] : [])]);
+    try {
+      const row = page.locator("#branch > .row"), caret = row.locator(".disclosure");
+      await row.locator(".label").hover();
+      assert.equal(await row.locator(".label").evaluate(el=>getComputedStyle(el).cursor), "pointer", "expanding a branch is an action, not text editing");
+      await caret.hover();
+      assert.equal(await caret.evaluate(el=>getComputedStyle(el).backgroundColor), "rgba(0, 0, 0, 0)", "the caret does not erase the row highlight or its leading edge");
+      await caret.click();
+      assert.equal(await page.locator("#branch").getAttribute("aria-expanded"), "true");
+    } finally { await page.close(); }
+  });
+
   const markup = `
     <ui-tree label="Pages">
       <ui-tree-item id="page" item-id="page" label="Welcome">
@@ -11118,7 +11169,38 @@ describe("Component-owned layout", () => {
   }
 });
 
+describe("Compact numeric controls", () => {
+  for (const adapter of ['html','vue']) it(`keeps exact editing and keyboard steps without separate buttons in ${adapter}`, async () => {
+    const path=await bundle('compact-values-'+adapter,adapter==='html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {NumberInput,Slider} from '@threadlabs/looma/vue';createApp({render:()=>h('main',{},[h(NumberInput,{id:'amount',compact:true,size:'sm',value:'10',label:'Compact amount'}),h('div',{style:{width:'144px'}},[h(Slider,{id:'range',compact:true,size:'sm',value:30,min:0,max:100,label:'Compact range'})])])}).mount('#app');`);
+    const page=await open(path,adapter==='html' ? '<ui-number-input id="amount" compact size="sm" value="10" label="Compact amount"></ui-number-input><div style="width:144px"><ui-slider id="range" compact size="sm" value="30" min="0" max="100" label="Compact range"></ui-slider></div>' : '<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:800}});
+    try {
+      for (const step of await page.locator('[data-number-step]').all()) assert.equal(await step.isVisible(),false);
+      const amount=page.getByRole('spinbutton',{name:'Compact amount',exact:true});await amount.fill('10 + 5');await amount.press('Enter');assert.equal(await amount.inputValue(),'15');await amount.press('ArrowUp');assert.equal(await amount.inputValue(),'16');
+      const range=page.getByRole('slider',{name:'Compact range',exact:true});await range.focus();await range.press('ArrowRight');assert.equal(await range.inputValue(),'31');
+      const exact=page.getByRole('spinbutton',{name:'Compact range',exact:true});await exact.fill('50 / 2');await exact.press('Enter');assert.equal(await range.inputValue(),'25');
+      const frame=(await page.locator('#range').boundingBox())!,field=(await exact.boundingBox())!;
+      assert.ok(field.x+field.width<=frame.x+frame.width+1,'the exact field fits the compact track row');
+    } finally {await page.close();}
+  });
+});
+
 describe("Color picker", () => {
+  for (const adapter of ['html','vue']) it(`selects and clears an optional colour in ${adapter}`, async () => {
+    const path=await bundle('optional-colour-'+adapter, adapter==='html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {ColorPicker} from '@threadlabs/looma/vue';createApp({render:()=>h(ColorPicker,{id:'optional',clearable:true,value:'',label:'Optional accent',name:'accent'})}).mount('#app');`);
+    const page=await open(path, adapter==='html' ? '<form><ui-color-picker id="optional" clearable value="" name="accent" label="Optional accent"></ui-color-picker></form>' : '<form><div id="app"></div></form>', [join(root,'tokens.css'),...(adapter==='vue' ? [join(root,'vue/components.css')] : [])]);
+    try {
+      await page.locator('#optional').evaluate(el=>el.addEventListener('change',event=>{el.setAttribute('data-chosen',(event as CustomEvent).detail.value);}));
+      const trigger=page.getByRole('button',{name:'Optional accent',exact:true});
+      assert.equal(await trigger.getAttribute('title'),'None');await trigger.click();
+      const hex=page.getByRole('textbox',{name:'Hex colour',exact:true});await hex.fill('#fc5b69');await hex.press('Tab');
+      assert.equal(await page.locator('#optional').getAttribute('data-chosen'),'#fc5b69');
+      await page.getByRole('button',{name:'None',exact:true}).click();
+      assert.equal(await trigger.getAttribute('title'),'None');assert.ok(await trigger.evaluate(el=>el===document.activeElement));
+      assert.equal(await page.locator('form').evaluate(el=>new FormData(el as HTMLFormElement).get('accent')),'');
+      assert.equal(await page.locator('#optional').getAttribute('data-chosen'),'');
+    } finally {await page.close();}
+  });
+
   for (const adapter of ["html", "vue"]) it(`toggles, edits and shares field geometry in ${adapter}`, async () => {
     const path = await bundle(`${adapter}-color-picker`, adapter === "html" ? `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.disablePicker=()=>componentRegistry.update(document.getElementById("picker-sm"), {disabled:true});` : `
       import { createApp, h } from "vue";
@@ -11434,6 +11516,107 @@ describe("Bounded value editors", () => {
 
 
 describe("Shared readable material planes", () => {
+  it("paints a full-face reflection with a quieter response on light pigments", async () => {
+    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+    const {toLch} = await import('../tooling/docs/palette.mjs');
+    const path = await bundle('continuous-button-material', 'import "@threadlabs/looma";');
+    const page = await open(path, `<div style="width:320px"><ui-stack gap="lg"><ui-button id="paint" preset="primary" stretch aria-label="Material sample"> </ui-button>
+      <ui-stack id="material-preview"><ui-cluster><ui-button preset="primary">Save</ui-button><ui-button variant="outline" tone="accent">Save</ui-button></ui-cluster>
+      <ui-button preset="primary" stretch>Save workspace changes</ui-button></ui-stack></ui-stack></div>`, [join(root,'tokens.css')], {reducedMotion:'reduce'});
+    try {
+      await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
+      await page.addStyleTag({content:'body {font-family:var(--ui-font-sans);}'});
+      const style = await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
+      const ranges = new Map<string,number>();
+      for (const name of ['bookish','gold'] as const) for (const mode of ['light','dark']) {
+        await style.evaluate((el,css)=>el.textContent=css, themeCSS(startingPoints[name]));
+        await page.locator('html').evaluate((el,mode)=>el.setAttribute('data-theme',mode), mode);
+        const bytes = await page.locator('#paint').screenshot({animations:'disabled'});
+        const pixels = await page.evaluate(async base64 => {
+          const image = new Image(); image.src='data:image/png;base64,'+base64; await image.decode();
+          const canvas=document.createElement('canvas'); canvas.width=image.width; canvas.height=image.height;
+          const context=canvas.getContext('2d')!; context.drawImage(image,0,0);
+          return [.2,.5,.8].flatMap(y=>[.15,.5,.85].map(x=>Array.from(context.getImageData(Math.floor(x*image.width),Math.floor(y*image.height),1,1).data).slice(0,3)));
+        }, bytes.toString('base64'));
+        const lightness=pixels.map(rgb=>toLch('#'+rgb.map(n=>n.toString(16).padStart(2,'0')).join(''))[0]);
+        if (process.env.LOOMA_SCREENSHOT_DIR) await page.locator('#material-preview').screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR,`material-${name}-${mode}.png`)});
+        const image = await page.locator('#paint').evaluate(el=>getComputedStyle(el).backgroundImage);
+        assert.match(image, /radial-gradient/);
+        const range=Math.max(...lightness)-Math.min(...lightness);
+        ranges.set(name+'/'+mode,range);
+        assert.ok(new Set(pixels.map(rgb=>rgb.join(','))).size>=3, `${name}/${mode}: reflection changes across the face instead of leaving a flat band`);
+        if (name==='bookish') assert.ok(range>.025, `${mode}: the wine reflection is visible across the body`);
+      }
+      for (const mode of ['light','dark']) assert.ok(ranges.get('gold/'+mode)!<ranges.get('bookish/'+mode)!, `${mode}: lighter pigment has quieter reflection contrast`);
+    } finally { await page.close(); }
+  });
+
+  it("keeps accent hover visible through full material paint in light and dark", async () => {
+    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+    const path = await bundle('painted-accent-states', 'import "@threadlabs/looma";');
+    const page = await open(path, '<ui-cluster><ui-button id="solid" preset="primary" aria-label="Solid sample"> </ui-button><ui-button id="outline" variant="outline" tone="accent" aria-label="Outline sample"> </ui-button><ui-icon-button id="icon" variant="solid" tone="accent" label="Icon sample"></ui-icon-button><ui-icon-button id="icon-outline" variant="outline" tone="accent" label="Outline icon sample"></ui-icon-button><ui-button id="outline-neutral" variant="outline" tone="neutral" aria-label="Neutral outline sample"> </ui-button><ui-icon-button id="icon-neutral" variant="outline" tone="neutral" label="Neutral icon sample"></ui-icon-button></ui-cluster>', [join(root,'tokens.css')], {reducedMotion:'reduce'});
+    try {
+      await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
+      const recipe = structuredClone(startingPoints.bookish);
+      Object.assign(recipe.values, {finish:'1','light-strength':'1'});
+      await page.addStyleTag({content:themeCSS(recipe)});
+      const pixels = async (target: ReturnType<typeof page.locator>) => page.evaluate(async base64 => {
+        const image=new Image(); image.src='data:image/png;base64,'+base64; await image.decode();
+        const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+        const context=canvas.getContext('2d')!;context.drawImage(image,0,0);
+        return [.25,.75].flatMap(y=>[.25,.75].flatMap(x=>Array.from(context.getImageData(Math.floor(x*image.width),Math.floor(y*image.height),1,1).data).slice(0,3)));
+      }, (await target.screenshot()).toString('base64'));
+      for (const mode of ['light','dark']) {
+        await page.locator('html').evaluate((el,mode)=>el.setAttribute('data-theme',mode),mode);
+        const shadow=(id: string)=>page.locator('#'+id).evaluate(el=>getComputedStyle(el).boxShadow);
+        assert.equal(await shadow('outline'),await shadow('outline-neutral'),`${mode}: outline color does not change elevation`);
+        assert.equal(await shadow('icon-outline'),await shadow('icon-neutral'),`${mode}: outlined icons share elevation`);
+        for (const id of ['solid','outline','icon','icon-outline','outline-neutral','icon-neutral']) {
+          const target=page.locator('#'+id);await page.mouse.move(500,500);
+          await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());
+          const restingShadow=await target.evaluate(el=>getComputedStyle(el).boxShadow);
+          const rest=await pixels(target);await target.hover();const hover=await pixels(target);
+          const difference=rest.reduce((sum,value,index)=>sum+Math.abs(value-hover[index]),0)/rest.length;
+          assert.ok(difference>=4, `${mode}/${id}: painted hover must remain visible at maximum finish, got ${difference}`);
+          await page.mouse.down();
+          try { assert.equal(await target.evaluate(el=>getComputedStyle(el).backgroundImage),'none',`${mode}/${id}: pressing removes the raised reflection`); }
+          finally { await page.mouse.up(); }
+          await page.mouse.move(500,500);await target.press('Tab');await page.keyboard.press('Shift+Tab');
+          assert.equal(await target.evaluate(el=>el.matches(':focus-visible')),true,`${mode}/${id}: real keyboard focus returns to the action`);
+          assert.notEqual(await target.evaluate(el=>getComputedStyle(el).boxShadow),restingShadow,`${mode}/${id}: focus adds a visible halo without losing the resting shadow`);
+          await target.press('Tab');
+        }
+        await page.locator('html').evaluate(el=>(el as HTMLElement).style.setProperty('--ui-accent-hover-highlight','initial'));
+        await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());await page.mouse.move(500,500);
+        const solid=page.locator('#solid'),rest=await pixels(solid);await solid.hover();const hover=await pixels(solid);
+        assert.ok(rest.reduce((sum,value,index)=>sum+Math.abs(value-hover[index]),0)/rest.length>=4,`${mode}: an optional missing hover reflection never hides the interaction fill`);
+        await page.locator('html').evaluate(el=>(el as HTMLElement).style.removeProperty('--ui-accent-hover-highlight'));
+      }
+    } finally {await page.close();}
+  });
+
+  it('lets maximum transparency reveal only a little scene through the content face', async () => {
+    const {themeCSS,defaultRecipe}=await import('../tooling/docs/theme.mjs');
+    const path=await bundle('material-transmission','import "@threadlabs/looma";');
+    const page=await open(path,'<ui-combobox id="transmission-combobox" label="Material"><option>Polished</option></ui-combobox><div style="width:240px;background:black"><ui-card id="glass" treatment="expressive"><div style="height:100px"></div></ui-card></div><ui-button id="glass-anchor">Hint</ui-button><ui-tooltip id="transmission-tooltip" for="glass-anchor" open placement="bottom"><span style="display:block;width:80px;height:30px"></span></ui-tooltip>',[join(root,'tokens.css')],{reducedMotion:'reduce'});
+    try {
+      await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
+      await page.addStyleTag({content:'body {background:black}'});
+      const recipe=defaultRecipe();Object.assign(recipe.values,{surface:'#ffffff',translucency:'1','surface-separation':'1','light-strength':'1'});
+      const style=await page.addStyleTag({content:themeCSS(recipe)});
+      for(const finish of ['0','1']) {
+        recipe.values.finish=finish;await style.evaluate((el,css)=>el.textContent=css,themeCSS(recipe));
+        const alpha=await page.locator('#transmission-combobox [popover]').evaluate(el=>{const canvas=document.createElement('canvas'),context=canvas.getContext('2d')!;context.fillStyle=getComputedStyle(el).backgroundColor;context.fillRect(0,0,1,1);return context.getImageData(0,0,1,1).data[3];});
+        assert.ok(alpha>=225 && alpha<=240,`${finish}: an unlayered popup retains nearly opaque content: ${alpha}`);
+        for (const selector of ['#glass','#transmission-tooltip .surface']) {
+        const bytes=await page.locator(selector).screenshot();
+        const rgba=await page.evaluate(async base64=>{const im=new Image();im.src='data:image/png;base64,'+base64;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d')!;x.drawImage(im,0,0);return Array.from(x.getImageData(Math.floor(im.width/2),Math.floor(im.height/2),1,1).data);},bytes.toString('base64'));
+        assert.ok(rgba[0]>=225 && rgba[0]<=240, `${selector}/${finish}: content is slightly translucent, not invisible or painted opaque: ${rgba}`);
+        }
+      }
+    } finally {await page.close();}
+  });
+
   it('lets glass and glow reach expressive maxima', async () => {
     const {defaultRecipe,themeCSS}=await import('../tooling/docs/theme.mjs');
     const path=await bundle('expressive-material-ceiling','import "@threadlabs/looma";');

@@ -14,6 +14,8 @@
     <prop name="name" type="string" default="">Optional form field name.</prop>
     <prop name="label" type="string" default="Value">Accessible name for the editing control.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and button height.</prop>
+    <prop name="compact" type="boolean" default="false"
+    >Shows just the exact field, retaining arrow-key stepping and arithmetic without separate step buttons.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents typing, stepping and pointer or keyboard changes while keeping the value visible.</prop>
     <event name="input" type="object"><prop name="value" type="string" required></prop></event>
     <event name="change" type="object"><prop name="value" type="string" required></prop></event>
@@ -21,6 +23,7 @@
   <span>
     <ui-icon-button
       data-number-step="decrease"
+      from:hidden="$compact"
       match-button
       type="button"
       from:size="$size"
@@ -40,6 +43,7 @@
     ></ui-input>
     <ui-icon-button
       data-number-step="increase"
+      from:hidden="$compact"
       match-button
       type="button"
       from:size="$size"
@@ -55,6 +59,9 @@
       margin: 0 !important;
       padding: 0 !important;
       min-inline-size: 0;
+    }
+    :host([compact]) {
+      inline-size: 5rem;
     }
     :host[hidden] {
       display: none !important;

@@ -53,43 +53,44 @@ test('sized surfaces fit the available preview width', async ({ page }, info) =>
   for (const width of [1440, 375]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(info.config.metadata.markupress + 'components/');
-    const preview = page.locator('[data-component-card="ui-editor-link-card"] [data-preview]');
+    const preview = page.locator('[data-component-card="ui-card"] [data-preview]');
     expect(await preview.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   }
 });
 
-test('compact editor pickers support keyboard selection and cancellation', async ({ page }, info) => {
-  await page.goto(info.config.metadata.markupress + 'components/');
-  for (const [tag, label, expected] of [['ui-editor-slash-menu', 'Insert a block', 'table'], ['ui-editor-mention-menu', 'Mention a teammate', 'noah']]) {
-    const card = page.locator(`[data-component-card="${tag}"]`);
-    const trigger = card.getByRole('button', { name: label, exact: true });
-    await card.locator('[data-demo-surface]').evaluate(element => element.addEventListener('select', event => { element.dataset.chosen = event.detail.value; }));
-    await trigger.focus(); await trigger.press('ArrowDown');
-    const picker = card.getByRole('listbox');
-    await expect(picker).toBeVisible(); await expect(picker).toBeFocused();
-    await picker.press('ArrowDown'); await picker.press('Enter');
-    await expect(card.locator('[data-demo-surface]')).toHaveAttribute('data-chosen', expected);
-    await expect(picker).toBeHidden(); await expect(trigger).toBeFocused();
-    await trigger.click(); await expect(picker).toBeVisible();
-    await picker.press('Escape'); await expect(picker).toBeHidden(); await expect(trigger).toBeFocused();
+test('the Editor guide supports keyboard selection and cancellation in its pickers', async ({ page }, info) => {
+  await page.goto(info.config.metadata.markupress + 'editor/');
+  const editor = page.getByRole('textbox', { name: 'Editor guide playground', exact: true });
+  for (const [source, label] of [['/heading', 'Insert block'], ['@Frodo', 'Mentions']]) {
+    await editor.fill(''); await editor.pressSequentially(source);
+    const picker = page.getByRole('listbox', { name: label, exact: true });
+    await expect(picker).toBeVisible();
+    await editor.press('ArrowDown'); await editor.press('Enter');
+    await expect(picker).toBeHidden(); await expect(editor).toBeFocused();
+    if (source.startsWith('/')) await expect(editor.locator('h2')).toHaveCount(1);
+    else await expect(editor).toContainText('Frodo Baggins');
+    await editor.fill(''); await editor.pressSequentially(source);
+    await expect(picker).toBeVisible(); await editor.press('Escape');
+    await expect(picker).toBeHidden(); await expect(editor).toBeFocused();
   }
 });
 
-test('compact editor pickers work by touch at 375px', async ({ browser }, info) => {
+test('the Editor guide pickers work by touch at 375px', async ({ browser }, info) => {
   const context = await browser.newContext({ viewport: { width: 375, height: 900 }, hasTouch: true, isMobile: true });
   try {
     const page = await context.newPage();
-    await page.goto(info.config.metadata.markupress + 'components/');
-    for (const [tag, label, choice] of [['ui-editor-slash-menu', 'Insert a block', 'Table'], ['ui-editor-mention-menu', 'Mention a teammate', 'Noah Williams']]) {
-      const card = page.locator(`[data-component-card="${tag}"]`);
-      const trigger = card.getByRole('button', { name: label, exact: true });
-      await trigger.tap();
-      const picker = card.getByRole('listbox');
+    await page.goto(info.config.metadata.markupress + 'editor/');
+    const editor = page.getByRole('textbox', { name: 'Editor guide playground', exact: true });
+    for (const [source, label, choice] of [['/heading', 'Insert block', 'Heading 2'], ['@Frodo', 'Mentions', 'Frodo Baggins']]) {
+      await editor.fill(''); await editor.pressSequentially(source);
+      const picker = page.getByRole('listbox', { name: label, exact: true });
       await expect(picker).toBeVisible();
       const box = await picker.boundingBox();
       expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(376);
       await picker.getByRole('option', { name: new RegExp(choice) }).tap();
-      await expect(picker).toBeHidden(); await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await expect(picker).toBeHidden();
+      if (source.startsWith('/')) await expect(editor.locator('h2')).toHaveCount(1);
+      else await expect(editor).toContainText('Frodo Baggins');
     }
   } finally { await context.close(); }
 });
