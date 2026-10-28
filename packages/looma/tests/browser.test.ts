@@ -8928,6 +8928,31 @@ describe("Combobox selectedValues", () => {
   });
 });
 
+describe("Search Result Row direction", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`aligns search result text at the reading start in ${adapter}`, async () => {
+    const path = await bundle(`search-row-direction-${adapter}`, adapter === "HTML" ? 'import "@threadlabs/looma";' : `
+      import { createApp, h } from "vue";
+      import { SearchResultRow } from "@threadlabs/looma/vue";
+      createApp({render:()=>h(SearchResultRow,{id:"result"},{title:()=>h("span",{id:"title"},"دليل البحث"),meta:()=>"Documentation"})}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML"
+      ? '<ui-search-result-row id="result"><span slot="title" id="title">دليل البحث</span><span slot="meta">Documentation</span></ui-search-result-row>'
+      : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {viewport:{width:375,height:700}});
+    try {
+      for (const dir of ["ltr", "rtl"]) {
+        await page.locator("html").evaluate((element, value) => element.setAttribute("dir", value), dir);
+        const alignment = await page.locator("#result .title").evaluate(element => {
+          const range = document.createRange(); range.selectNodeContents(element);
+          const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+          return {left:Math.abs(text.left-box.left), right:Math.abs(text.right-box.right)};
+        });
+        assert.ok((dir === "rtl" ? alignment.right : alignment.left) < 1, `${dir}: text starts at the reading edge`);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      }
+    } finally { await page.close(); }
+  });
+});
+
 describe("Search Result Row selected", () => {
   // A row is a button in the shell's results, not an option in a listbox, so the current result is
   // stated with aria-current, which a button supports; aria-selected would be ignored on it.
