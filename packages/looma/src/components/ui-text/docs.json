@@ -1,4 +1,5 @@
 {
   "description": "Text roles for body copy, display titles, headings, labels, captions, eyebrows and code. Choose the document element independently from its visual role; shared typography and semantic tones keep text consistent.",
-  "group": "display"
+  "group": "display",
+  "summary": "Shared text roles, from body copy to headings and captions."
 }

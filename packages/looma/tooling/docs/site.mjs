@@ -83,7 +83,8 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   const card = path.join(generated, 'card.html');
   await cp(own('card.html'), card);
   await cp(own('card.js'), path.join(generated, 'card.js'));
-  await writeFile(path.join(generated, 'catalog-view.html'), catalogResource(combined.groups));
+  const catalogGroups = combined.groups.filter(group => combined.components.some(component => component.group === group.id && !component.navigationParent));
+  await writeFile(path.join(generated, 'catalog-view.html'), catalogResource(catalogGroups, base));
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
   for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
@@ -112,12 +113,20 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       examples.push({ ...example, file, component: component.id, path: base + componentPath(component).slice(1) });
     }
   }
-  const gallery = combined.groups.map(group => {
+  const gallery = selected => catalogGroups.filter(group => !selected || group.id === selected).map(group => {
     const components = combined.components.filter(c => c.group === group.id && !c.navigationParent);
     // A standalone opening tag makes this a Markdown HTML block, keeping native card wrappers inside Grid.
-    return components.length ? `<section data-catalog-group="${escapeHtml(group.id)}">\n\n## ${escapeHtml(group.label)}\n\n<ui-grid columns="3" min="sm">\n${components.map(component => `<div data-category="${escapeHtml(component.group)}" data-catalog-search="${escapeHtml(`${component.tag} ${component.title} ${component.description}`)}">${cardMarkup(component.examples[0], base, component)}</div>`).join('\n')}\n</ui-grid>\n\n</section>` : '';
+    return components.length ? `<section data-catalog-group="${escapeHtml(group.id)}" aria-label="${escapeHtml(group.label)} components">\n\n${selected ? '' : `## ${escapeHtml(group.label)}\n\n`}<ui-grid columns="3" min="sm">\n${components.map(component => `<div data-category="${escapeHtml(component.group)}" data-catalog-search="${escapeHtml(`${component.tag} ${component.title} ${component.summary ?? ''} ${component.description}`)}">${cardMarkup(component.examples[0], base, component)}</div>`).join('\n')}\n</ui-grid>\n\n</section>` : '';
   }).join('\n\n');
-  await write(path.join(content, 'components/index.md'), `---\ntitle: Components\n---\n\n# Components\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), card)}">\n${exampleResources(combined.components.filter(component => !component.navigationParent).map(component => component.examples[0]), combined)}\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(path.join(content, 'components/index.md'), path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog>\n\n${gallery}\n\n</looma-catalog>\n`);
+  const writeCatalog = async (file, title, selected = '') => {
+    const total = combined.components.filter(component => !component.navigationParent && (!selected || component.group === selected)).length;
+    await write(file, `---\ntitle: ${JSON.stringify(title)}\noutline: false\n${selected ? 'navigation: overview\norder: 0\n' : ''}---\n\n# ${escapeHtml(title)}\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(file, card)}">\n${exampleResources(combined.components.filter(component => !component.navigationParent && (!selected || component.group === selected)).map(component => component.examples[0]), combined)}\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(file, path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog category="${escapeHtml(selected)}" total="${total}">\n\n${gallery(selected)}\n\n</looma-catalog>\n`);
+  };
+  await writeCatalog(path.join(content, 'components/index.md'), 'Components');
+  for (const group of catalogGroups) {
+    await writeCatalog(path.join(content, 'components', groupDirectories.get(group.id), `00.${group.id}.md`), group.label, group.id);
+    generatedReferences.add(`components/${group.id}.md`);
+  }
   await write(path.join(content, 'index.md'), `---\ntitle: ${JSON.stringify(config.title ?? 'Your design system')}\n---\n\n# ${config.title ?? 'Your design system'}\n\nWeave your design system from Looma and your own HTML Next components.\n\n[Explore components](/components/) · [Customize your theme](/customize/)\n`);
   if (combined.components.some(component => component.group === 'editor')) await write(path.join(content, 'editor.md'), `---\ntitle: Editor\nsidebar: false\n---\n\n# Editor\n\nWriting tools and editor components, separate from the general component reference.\n\n${combined.components.filter(component => component.group === 'editor' && !component.navigationParent).map(component => `- [${component.title}](${componentPath(component)})`).join('\n')}\n`);
   await write(path.join(content, 'design-system.md'), await readFile(own('README.md'), 'utf8'));
@@ -174,7 +183,7 @@ export function documentationPlugin(site) {
 export async function documentationOptions(site) {
   const { siteOptions } = await tool('markupress', site.root);
   const styles = ['tokens.css', 'theme-light.css', 'theme-dark.css', 'theme-system.css'].map(file => fileURLToPath(import.meta.resolve(`@threadlabs/looma/${file}`)));
-  const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', headerNotice: 'Custom theme', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
+  const options = siteOptions({ root: site.root, contentDir: path.relative(site.root, site.content), title: site.config.title ?? 'Your design system', headerNotice: 'Custom theme', sidebarNavigation: 'sections', base: site.base, outDir: site.config.outDir ?? 'site', ...(site.config.origin ? { origin: site.config.origin } : {}), ...(site.config.logo ? { logo: site.config.logo } : {}), ...(site.config.nav ? { nav: site.config.nav } : {}) }, { plugins: [documentationPlugin(site)], css: styles, redirects: site.redirects });
   const savedTheme = path.join(site.generated, 'saved-theme.css');
   const recipe = site.config.recipe ?? defaultRecipe();
   const overrides = await Promise.all((site.config.overrides ?? []).map(file => readFile(path.resolve(site.root, file), 'utf8')));

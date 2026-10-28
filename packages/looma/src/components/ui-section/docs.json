@@ -1,4 +1,5 @@
 {
   "description": "A part of a view: an `h2` `heading`, an optional `description`, `actions` for the whole section, and its content. `variant=\"card\"` sets it on a bordered surface, for a settings group; `variant=\"divided\"` rules it off from the section before, for a long form; `tone=\"danger\"` marks destructive actions. Space sections with a Stack.",
-  "group": "display"
+  "group": "display",
+  "summary": "A titled group of content with optional actions."
 }

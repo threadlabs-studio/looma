@@ -1,7 +1,7 @@
 import { googleFontStack, systemFont, loadGoogleFonts } from './fonts.mjs';
 import { documentationTheme, themeEvent } from './theme-session.mjs';
 import { componentRegistry } from '@nextwebwg/html-next/runtime';
-import { startingPoints, startingPointFor, startingPointLabels, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
+import { startingPoints, startingPointFor, startingPointLabels, themeCSS, validateRecipe, themeFields, themePalettes, materialPresets, statusPresets, applyRefinement, refinementState, deriveTheme } from './theme.mjs';
 
 import { valueEditor, editorValue, convertValueUnit } from './value-editors.mjs';
 
@@ -133,8 +133,8 @@ export function connect(host) {
         if (field?.type.includes('length') && field.id !== 'text-size') updateControl(control, recipe.values[field.id]);
       }
     }
-    for (const family of ['material','palette']) {
-      const state = refinementState(recipe, family), presets = family === 'material' ? materialPresets : themePalettes;
+    for (const family of ['material','palette','status']) {
+      const state = refinementState(recipe, family), presets = { material: materialPresets, palette: themePalettes, status: statusPresets }[family];
       for (const select of root.querySelectorAll(`[data-refinement-preset="${family}"]`)) {
         for (const option of select.querySelectorAll('option')) if (presets[option.value]) {
           const label = presets[option.value].label + (state.id === option.value && state.customized ? ' · customized' : '');
@@ -142,7 +142,7 @@ export function connect(host) {
         }
         updateControl(select, state.id);
         const origin = startingPoints[recipe.origin ?? startingPointFor(recipe)];
-        const muted = Boolean(origin && themeFields.filter(field => field.family === (family === 'palette' ? 'Colour' : 'Material')).every(field => origin.values[field.id] === recipe.values[field.id]));
+        const muted = Boolean(origin && Object.keys(Object.values(presets)[0].values).every(key => origin.values[key] === recipe.values[key]));
         componentRegistry.update(select, { muted });
       }
       componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
@@ -231,7 +231,7 @@ export function connect(host) {
   const refinedRecipe = values => {
     if (recipe.values['display-font'] === recipe.values['body-font'] && values['display-font'] === recipe.values['display-font']) values = { ...values, 'display-font': values['body-font'] };
     const presets = { ...recipe.presets };
-    for (const family of ['material', 'palette']) {
+    for (const family of ['material', 'palette', 'status']) {
       const state = refinementState(recipe, family);
       if (!presets[family] && state.id !== 'custom') presets[family] = state.id;
     }
@@ -310,9 +310,9 @@ export function connect(host) {
         }
         case 'back': navigate(''); break;
         case 'use-glass': show(applyRefinement(recipe, 'material', 'glass')); sayApplied('Frosted glass applied. Your colors and type are unchanged.'); break;
-        case 'restore-material': case 'restore-palette': {
+        case 'restore-material': case 'restore-palette': case 'restore-status': {
           const family = button.dataset.action.slice(8), state = refinementState(recipe, family);
-          if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${family === 'material' ? 'Material' : 'Palette'} preset restored; other theme decisions are unchanged.`); }
+          if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${{ material: 'Material', palette: 'Palette', status: 'Status color' }[family]} preset restored; other theme decisions are unchanged.`); }
           break;
         }
         case 'add': {
@@ -390,7 +390,7 @@ export function connect(host) {
     if (event.target.matches('[data-refinement-preset]')) {
       const family = event.target.dataset.refinementPreset;
       show(applyRefinement(recipe, family, value));
-      sayApplied(`${family === 'material' ? 'Material' : 'Coordinated palette'} preset applied and remembered in both modes.`);
+      sayApplied(`${{ material: 'Material', palette: 'Coordinated palette', status: 'Status color relationship' }[family]} preset applied and remembered in both modes.`);
     }
     if (event.target.matches('[data-preset]')) { show({ ...structuredClone(startingPoints[value]), origin: value }); sayApplied('Starting point applied throughout the documentation and remembered in this browser.'); }
     if (event.target === file && file.files[0]) {

@@ -1,4 +1,5 @@
 {
+  "title": "Table Context Menu",
   "description": "Cell and table action menu whose available commands are controlled by app-provided capabilities.",
   "group": "editor"
 }

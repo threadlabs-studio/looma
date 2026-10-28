@@ -4,11 +4,11 @@
 [data-example-card] pre { overflow: auto; }
 /* The customizer is an application page; use Markupress's public width token instead of patching its layout. */
 :root:has([data-looma-customizer]), :root:has([data-component~="looma-catalog"]) { --markupress-content-width: 110rem; }
-[data-preview] { display: grid; place-items: center; gap: var(--ui-space-4); min-inline-size: 0; min-block-size: 13rem; padding: var(--ui-space-4); box-sizing: border-box; color: var(--ui-text); font-family: var(--ui-font-sans); font-size: var(--ui-font-size); line-height: var(--ui-line-height); background: linear-gradient(90deg, rgb(43 37 56 / .035) 1px, transparent 1px), linear-gradient(rgb(43 37 56 / .035) 1px, transparent 1px), color-mix(in srgb, var(--ui-accent) 5%, var(--ui-surface)); background-size: 22px 22px; }
+[data-preview] { display: grid; place-items: center; gap: var(--ui-space-4); min-inline-size: 0; min-block-size: 13rem; padding: var(--ui-space-4); box-sizing: border-box; color: var(--ui-text); font-family: var(--ui-font-sans); font-size: var(--ui-font-size); line-height: var(--ui-line-height); background: var(--ui-surface-raised); }
 [data-preview-layout] { justify-items: stretch; }
 
 /* These headings are authored page content projected through the example card's heading slot. */
 .looma-reference-examples { padding-block-start: var(--ui-space-5); }
 .looma-example-heading h3 { margin: 0; font-size: var(--ui-font-size-lg); line-height: var(--ui-line-height-tight); }
 .looma-example-heading p { margin: var(--ui-space-2) 0 0; font-size: var(--ui-font-size-sm); color: var(--ui-text-secondary); }
-[data-example-card][reference] [data-preview] { min-block-size: 11rem; background: var(--ui-surface); }
+[data-example-card][reference] [data-preview] { min-block-size: 11rem; background: var(--ui-surface-raised); }

@@ -1,7 +1,7 @@
 import { createFileUploads, type LoomaFileDescriptor, type LoomaFileUploadsState } from "../../editor/file-uploads";
 import "../../components/ui-editor-surface/ui-editor-surface.css";
 import "./looma-editor.css";
-import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
+import { Extension, posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { Editor as VueEditor } from "@tiptap/vue-3";
 import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { NodeSelection } from "@tiptap/pm/state";
@@ -46,7 +46,7 @@ import {
   type TableCellBackground,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Button, Card, EditorSurface, IconButton, Popover, Separator, Stack, StatusMessage, Text, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Cluster, EditorSurface, IconButton, Popover, Separator, Stack, StatusMessage, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorBlockActions,
@@ -84,7 +84,9 @@ import { createFormattingSelection, type LoomaFormattingSelection } from "../../
 import { focusTableOverlayTarget } from "../../editor/extensions/table-commands";
 import { validLinkHref } from "../../editor/content";
 import { createChipEditing, LOOMA_CHIP_EDITING_IDLE, type LoomaChipEditing } from "../../editor/chip-editing";
-import { createFootnoteEditing, LOOMA_FOOTNOTE_EDITING_IDLE, type LoomaFootnoteEditing } from "../../editor/footnote-editing";
+import { LoomaCompactEditor } from "./compact";
+import { LOOMA_FOOTNOTE_INSERTED } from "../../editor/extensions/footnote";
+import { createFootnoteEditing, footnoteContentExtensions as createFootnoteContentExtensions, LOOMA_FOOTNOTE_EDITING_IDLE, type LoomaFootnoteEditing } from "../../editor/footnote-editing";
 import {
   groupRangeActions,
   rangeActionsAtCaret,
@@ -403,13 +405,15 @@ export const LoomaEditor = defineComponent({
     let chipEditing: LoomaChipEditing | undefined;
     const chipState = shallowRef(LOOMA_CHIP_EDITING_IDLE);
     const footnoteAnchorId = `looma-editor-footnote-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const footnoteEditorRoot = ref<HTMLElement | null>(null);
-    const setFootnoteEditorRoot = (instance: unknown) => {
-      const element = (instance as { $el?: unknown } | null)?.$el;
-      footnoteEditorRoot.value = element instanceof HTMLElement ? element : null;
-    };
     let footnoteEditing: LoomaFootnoteEditing | undefined;
     const footnoteState = shallowRef(LOOMA_FOOTNOTE_EDITING_IDLE);
+    const footnoteSurface = ref<"actions" | "editor" | null>(null);
+    let footnoteContentExtensions: AnyExtension[] = [];
+    let footnoteField: Editor | undefined;
+    const focusFootnoteField = () => {
+      if (footnoteSurface.value === "editor" && footnoteField && !footnoteField.isDestroyed
+        && footnoteField.view.dom.closest("[popover]")?.matches(":popover-open")) footnoteField.commands.focus("end");
+    };
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -498,15 +502,17 @@ export const LoomaEditor = defineComponent({
       chipEditing.element!.id = chipAnchorId;
       void nextTick(() => chipInput()?.focus());
     };
-    // The footnote popover anchors to its reference the same way.
-    const openFootnoteEditor = (position: number) => {
+    const openFootnoteSurface = (position: number, surface: "actions" | "editor") => {
       if (!footnoteEditing?.open(position)) return;
       root.value?.querySelector(`#${footnoteAnchorId}`)?.removeAttribute("id");
       footnoteEditing.element!.id = footnoteAnchorId;
-      void nextTick(() => footnoteEditorRoot.value?.querySelector<HTMLElement>("[data-footnote-note]")?.focus());
+      footnoteSurface.value = surface;
+      if (surface === "editor") footnoteEditing.element!.scrollIntoView({ block: "nearest" });
     };
+    const openFootnoteEditor = (position: number) => openFootnoteSurface(position, "editor");
     const closeFootnote = (focusReference = false) => {
       const element = footnoteEditing?.element;
+      footnoteSurface.value = null;
       footnoteEditing?.close();
       if (focusReference) element?.focus();
     };
@@ -733,6 +739,23 @@ export const LoomaEditor = defineComponent({
       const footnotes = createFootnoteEditing({ editor: session.editor, isEditable: () => props.editable });
       footnotes.subscribe(() => { footnoteState.value = footnotes.state; });
       footnoteEditing = footnotes;
+      footnoteContentExtensions = createFootnoteContentExtensions(session.editor);
+      const footnoteOwner = session.editor;
+      const insertedFootnote = ({ transaction }: { transaction: import("@tiptap/pm/state").Transaction }) => {
+        const inserted = transaction.getMeta(LOOMA_FOOTNOTE_INSERTED) as { label: string; occurrence: number } | undefined;
+        if (!inserted) return;
+        void nextTick(() => {
+          if (!editor.value || editor.value.isDestroyed) return;
+          let position: number | undefined, occurrence = 0;
+          editor.value.state.doc.descendants((node, offset) => {
+            if (position !== undefined) return false;
+            if (node.type.name === "loomaFootnoteReference" && node.attrs.label === inserted.label && ++occurrence === inserted.occurrence) position = offset;
+          });
+          if (position !== undefined) openFootnoteEditor(position);
+        });
+      };
+      footnoteOwner.on("transaction", insertedFootnote);
+      footnoteOwner.on("destroy", () => footnoteOwner.off("transaction", insertedFootnote));
       const imageUploads = createImageUploads({
         editor: session.editor,
         // Paste and drop ask even without a known responder, so a plain listener still uploads them.
@@ -1266,7 +1289,7 @@ export const LoomaEditor = defineComponent({
       const element = event.target instanceof Element
         ? event.target.closest<HTMLImageElement>('img[data-looma-image]')
         : null;
-      return element && root.value?.contains(element) ? element : null;
+      return element && editor.value?.view.dom.contains(element) ? element : null;
     };
 
     const activateImage = (element: HTMLImageElement, trigger: "keyboard" | "pointer") => {
@@ -1277,13 +1300,13 @@ export const LoomaEditor = defineComponent({
     const chipElementForEvent = (event: Event): HTMLElement | null => {
       const element = event.target instanceof Element
         ? event.target.closest<HTMLElement>("[data-looma-chip]") : null;
-      return element && root.value?.contains(element) ? element : null;
+      return element && editor.value?.view.dom.contains(element) ? element : null;
     };
 
     const footnoteElementForEvent = (event: Event): HTMLElement | null => {
       const element = event.target instanceof Element
         ? event.target.closest<HTMLElement>("[data-looma-footnote-ref]") : null;
-      return element && root.value?.contains(element) ? element : null;
+      return element && editor.value?.view.dom.contains(element) ? element : null;
     };
 
     const onChipClickCapture = (event: MouseEvent) => {
@@ -1291,7 +1314,7 @@ export const LoomaEditor = defineComponent({
       if (reference && editor.value && props.editable) {
         event.preventDefault();
         event.stopPropagation();
-        openFootnoteEditor(editor.value.view.posAtDOM(reference, 0));
+        openFootnoteSurface(editor.value.view.posAtDOM(reference, 0), "actions");
         return;
       }
       const chip = chipElementForEvent(event);
@@ -1319,7 +1342,7 @@ export const LoomaEditor = defineComponent({
       const reference = footnoteElementForEvent(event);
       if (reference && editor.value && props.editable) {
         event.preventDefault();
-        openFootnoteEditor(editor.value.view.posAtDOM(reference, 0));
+        openFootnoteSurface(editor.value.view.posAtDOM(reference, 0), "actions");
         return;
       }
       const chip = chipElementForEvent(event);
@@ -1926,23 +1949,45 @@ export const LoomaEditor = defineComponent({
           onColor: (event: CustomEvent<{ color: LoomaChipColor }>) => chipEditing?.setColor(event.detail.color),
           onDone: () => closeChip(true),
         })),
-        h(Popover, {
-          size: "sm",
-          open: footnoteState.value.open,
-          for: footnoteAnchorId,
+        footnoteState.value.open && footnoteSurface.value === "actions" ? h(Popover, {
+          bare: true, open: true, for: footnoteAnchorId, role: "dialog", "aria-label": "Footnote actions",
+          onToggle: (event: ToggleEvent) => {
+            if (event.newState === "open" && footnoteSurface.value === "actions")
+              (event.target as HTMLElement).querySelector<HTMLElement>('[aria-label="Go to note"]')?.focus();
+          },
+          onClose: (event: CustomEvent<{ reason: string }>) => { if (footnoteSurface.value === "actions") closeFootnote(event.detail.reason === "escape"); },
+        }, () => h(Card, { variant: "elevated", padding: "xs", size: "sm" }, () => h(Cluster, {
+          gap: "xs", wrap: "nowrap", role: "group", "aria-label": "Footnote actions",
+        }, () => [
+          h(IconButton, {
+            id: `${footnoteAnchorId}-go`, label: "Go to note", variant: "ghost", tone: "neutral", size: "sm",
+            onClick: () => { footnoteSurface.value = null; footnoteEditing?.goToNote(); },
+          }, () => loomaIcon("external-link")),
+          h(Tooltip, { for: `${footnoteAnchorId}-go` }, () => "Go to note"),
+          h(Button, {
+            variant: "ghost", tone: "neutral", size: "sm",
+            onClick: () => {
+              footnoteSurface.value = null;
+              void nextTick(() => { if (footnoteState.value.open) footnoteSurface.value = "editor"; });
+            },
+          }, () => [loomaIcon("pencil"), "Edit note"]),
+        ]))) : null,
+        footnoteState.value.open && footnoteSurface.value === "editor" ? h(Popover, {
+          size: "md", open: true, for: footnoteAnchorId,
+          // Native controllers may finish loading after the rich field mounts.
+          onToggle: (event: ToggleEvent) => { if (event.newState === "open") focusFootnoteField(); },
           placement: mobile.value ? "top-start" : "bottom-start",
-          onClose: () => footnoteEditing?.close(),
-        }, () => h(EditorFootnoteEditor, {
-          ref: setFootnoteEditorRoot,
-          label: footnoteState.value.label,
-          note: footnoteState.value.note,
-          editable: footnoteState.value.editable,
-          error: footnoteState.value.error,
-          onText: (event: CustomEvent<{ text: string }>) => footnoteEditing?.setNote(event.detail.text),
-          onLabel: (event: CustomEvent<{ label: string }>) => footnoteEditing?.rename(event.detail.label),
-          onGo: () => footnoteEditing?.goToNote(),
-          onDone: () => closeFootnote(true),
-        })),
+          onClose: (event: CustomEvent<{ reason: string }>) => { if (footnoteSurface.value === "editor") closeFootnote(event.detail.reason === "escape"); },
+        }, () => h(EditorFootnoteEditor, { onDone: () => closeFootnote(true) }, () => h(LoomaCompactEditor, {
+          label: "Footnote", modelValue: footnoteState.value.note, extensions: [...footnoteContentExtensions, Extension.create({
+            name: "footnoteEditorDismiss",
+            // Undo a just-applied input rule first; otherwise dismiss before ProseMirror consumes Escape.
+            priority: 25,
+            addKeyboardShortcuts: () => ({ Escape: () => { closeFootnote(true); return true; } }),
+          })],
+          "onUpdate:modelValue": (value: JSONContent) => footnoteEditing?.setNote(value),
+          onReady: (instance: Editor) => { footnoteField = instance; focusFootnoteField(); },
+        }))) : null,
         h(Popover, {
           class: "looma-editor__link-popover",
           size: "sm",

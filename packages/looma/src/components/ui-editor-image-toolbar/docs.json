@@ -1,4 +1,5 @@
 {
+  "title": "Image Toolbar",
   "description": "Contextual actions for a selected image: four placement commands, a description form, and delete.",
   "group": "editor"
 }

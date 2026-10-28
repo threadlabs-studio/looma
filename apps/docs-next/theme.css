@@ -310,6 +310,4 @@
   --markupress-content-width: 51rem;
   --markupress-background: radial-gradient(circle at 100% 5vh, color-mix(in srgb, var(--ui-accent) 7%, transparent), transparent 400px), var(--ui-surface);
   --ui-font-mono: "DM Mono", ui-monospace, monospace;
-  --ui-surface-sunken: light-dark(#f3efe7, #292431);
-  --ui-border: light-dark(#ded8cf, #463f50);
 }

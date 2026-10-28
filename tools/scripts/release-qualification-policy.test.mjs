@@ -123,7 +123,16 @@ test("every Vitest browser test is included by its package browser config", asyn
   for (const packagePath of browserPackages) {
     const config = await readFile(path.join(repoRoot, packagePath, "vitest.browser.config.ts"), "utf8");
     const sourceRoot = path.join(repoRoot, packagePath);
-    const entries = await readdir(sourceRoot, { recursive: true });
+    const entries = [];
+    const visit = async (relative = "") => {
+      for (const entry of await readdir(path.join(sourceRoot, relative), { withFileTypes: true })) {
+        const file = path.posix.join(relative, entry.name);
+        // Exclude dependencies before descending; workspace self-links can form cycles.
+        if (entry.isDirectory() && !["node_modules", "test-results"].includes(entry.name)) await visit(file);
+        else if (entry.isFile()) entries.push(file);
+      }
+    };
+    await visit();
     const browserTests = entries
       .filter((entry) =>
         !entry.includes("node_modules/")

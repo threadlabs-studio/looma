@@ -6,11 +6,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Footnote Editor
 
-The editor's footnote editor: a field for the footnote's label and a field for its note. The editor
-opens it from a footnote reference. It reports `text` as the note's text changes, and `label` when a new label is
-committed, on leaving the field or pressing Enter; the editor renames the footnote's references and
-note together. A note with formatting or more than one block shows its text read-only. Go to note
-reports `go`, and the editor moves the caret to the end of the note. Enter or Escape in a field
-reports `done`, so the editor can close it and return to the reference.
+The floating footnote editor frame. Compose a rich-text field in its default slot, or use its simple note field. The document numbers references automatically; Changes apply as you type; Escape or clicking away closes the editor.
+
+Adding a footnote opens the floating rich-text editor. An existing reference opens a one-line action bar: Go to note is an icon button with a tooltip, and Edit note has a pencil icon. Formatting and multiple paragraphs remain editable, while Markdown export writes definitions at the end of the document.
 
 <ComponentExamplesApiTabs component="ui-editor-footnote-editor" />

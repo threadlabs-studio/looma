@@ -1,4 +1,5 @@
 {
+  "title": "Block Actions",
   "description": "The editor's block menu: insert a paragraph below, duplicate, or delete the block that holds the caret.",
   "group": "editor"
 }

@@ -1,5 +1,9 @@
 <!--
-title: Note
-description: The label field renames the footnote when it loses focus or Enter is pressed; the note field edits the note's text as it is typed.
+title: Floating note
+ description: Edit the note's content in a floating surface. The document assigns reference numbers automatically.
 -->
-<ui-editor-footnote-editor label="1" note="The figures are from the 2024 survey." editable> </ui-editor-footnote-editor>
+<ui-button id="edit-footnote">Edit footnote</ui-button>
+<ui-popover data-note-popover for="edit-footnote"><ui-editor-footnote-editor
+    data-note-editor
+    note="The figures are from the 2024 survey."
+  ></ui-editor-footnote-editor></ui-popover>

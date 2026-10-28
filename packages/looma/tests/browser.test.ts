@@ -1640,7 +1640,7 @@ describe("Intrinsic layout limits", () => {
 
 describe("Shared block vocabulary", () => {
   it("draws every callout tone with its own icon and an optional heading in HTML and Vue", async () => {
-    const tones = ["note", "tip", "info", "important", "warning", "danger", "caution"];
+    const tones = ["note", "tip", "info", "important", "warning", "danger", "caution", "success"];
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-callout-vocabulary`, adapter === "html" ? `import "@threadlabs/looma";` : `
         import { createApp, h } from "vue";
@@ -1660,9 +1660,11 @@ describe("Shared block vocabulary", () => {
       const looks = Object.fromEntries(await Promise.all(tones.map(async tone => [tone, await look(tone)])));
       for (const tone of tones) assert.ok(looks[tone].icon, `${adapter}/${tone}: draws an icon`);
       assert.deepEqual(looks.caution, looks.danger, `${adapter}: caution is an alias of danger`);
-      const distinct = ["note", "tip", "info", "important", "warning", "danger"];
+      const distinct = ["note", "tip", "info", "important", "warning", "danger", "success"];
       assert.equal(new Set(distinct.map(tone => looks[tone].icon)).size, distinct.length, `${adapter}: each tone has its own icon`);
-      assert.equal(new Set(distinct.map(tone => looks[tone].surface)).size, distinct.length, `${adapter}: each tone has its own surface`);
+      assert.equal(looks.tip.surface, looks.info.surface, `${adapter}: advice shares the information palette`);
+      const surfaceTones = distinct.filter(tone => tone !== "tip");
+      assert.equal(new Set(surfaceTones.map(tone => looks[tone].surface)).size, surfaceTones.length, `${adapter}: other semantic families retain distinct surfaces`);
       assert.equal(await page.locator("#titled .heading").textContent(), "Before you start");
       assert.equal(await page.locator("#info .heading").count(), 0, "no heading element without a heading");
       await page.close();
@@ -1868,7 +1870,7 @@ describe("Editor callouts", () => {
 
   it("keeps colored callouts perceptibly tinted, pale and readable in both themes", async () => {
     const page = await openCalloutFixture();
-    for (const theme of ["light", "dark"]) for (const [tone, colorTone] of Object.entries({ info: "info", tip: "success", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
+    for (const theme of ["light", "dark"]) for (const [tone, colorTone] of Object.entries({ info: "info", tip: "info", important: "accent", warning: "warning", success: "success", danger: "danger", caution: "danger" })) {
       await page.evaluate(({ theme, tone }) => {
         document.documentElement.dataset.theme = theme;
         document.body.style.backgroundColor = "var(--ui-surface)";
@@ -1879,7 +1881,7 @@ describe("Editor callouts", () => {
       const [lightness, chroma, hue] = paint.rendered;
       const hueDistance = Math.abs(((hue! - paint.source[2]! + 540) % 360) - 180);
       assert.equal(paint.rgba[3], 255, `${theme}/${tone}: opacity must not wash the hue into the backdrop`);
-      assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .30 && lightness! <= .39, `${theme}/${tone}: background lightness ${lightness}`);
+      assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .30 && lightness! <= (hue! > 35 && hue! < 105 ? .44 : .39), `${theme}/${tone}: background lightness ${lightness}`);
       assert.ok(chroma! >= .015, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
       assert.ok(hueDistance < 10, `${theme}/${tone}: painted hue follows its tone ${hueDistance}`);
       assert.ok(paint.contrast >= 4.5, `${theme}/${tone}: readable text contrast ${paint.contrast}`);
@@ -1887,17 +1889,17 @@ describe("Editor callouts", () => {
     await page.close();
   });
 
-  it("keeps a pale muted-green background visibly green after painting", async () => {
+  it("keeps a pale muted-green background restrained after painting", async () => {
     const page = await openCalloutFixture();
     await page.evaluate(() => {
       document.documentElement.dataset.theme = "light";
       document.documentElement.style.setProperty("--ui-success", "#4c702d");
       document.body.style.backgroundColor = "var(--ui-surface)";
-      (window as unknown as { fixtureEditor: Editor }).fixtureEditor.commands.setContent({ type: "doc", content: [{ type: "loomaCallout", attrs: { tone: "tip" }, content: [{ type: "paragraph", content: [{ type: "text", text: "A green notice." }] }] }] });
+      (window as unknown as { fixtureEditor: Editor }).fixtureEditor.commands.setContent({ type: "doc", content: [{ type: "loomaCallout", attrs: { tone: "success" }, content: [{ type: "paragraph", content: [{ type: "text", text: "A green notice." }] }] }] });
     });
     const { rendered: [lightness, chroma, hue], contrast } = await paintedCallout(page, "success");
     assert.ok(lightness! >= .94, `a light background must stay pale: ${lightness}`);
-    assert.ok(chroma! >= .035, `lightening must preserve visible green rather than paint grey: ${chroma}`);
+    assert.ok(chroma! >= .015 && chroma! <= .022, `green stays visibly tinted without exceeding the shared quiet chroma: ${chroma}`);
     assert.ok(hue! >= 125 && hue! <= 140, `the background retains the muted green hue: ${hue}`);
     assert.ok(contrast >= 4.5);
     await page.close();
@@ -1912,12 +1914,12 @@ describe("Editor callouts", () => {
     for (const theme of ["light", "dark"]) for (let hue = 0; hue < 360; hue += 30) {
       await page.evaluate(({ theme, hue }) => {
         document.documentElement.dataset.theme = theme;
-        document.documentElement.style.setProperty("--ui-success", `oklch(60% .1 ${hue})`);
+        document.documentElement.style.setProperty("--ui-info", `oklch(60% .1 ${hue})`);
       }, { theme, hue });
-      const paint = await paintedCallout(page, "success");
+      const paint = await paintedCallout(page, "info");
       const hueDistance = Math.abs(((paint.rendered[2]! - paint.source[2]! + 540) % 360) - 180);
       assert.ok(hueDistance < 10, `${theme}/${hue}: gamut clipping must not shift the painted hue ${JSON.stringify(paint)}`);
-      assert.ok(theme === "light" ? paint.rendered[0]! >= .94 : paint.rendered[0]! >= .30 && paint.rendered[0]! <= .39);
+      assert.ok(theme === "light" ? paint.rendered[0]! >= .94 : paint.rendered[0]! >= .30 && paint.rendered[0]! <= (hue > 35 && hue < 105 ? .44 : .39));
       assert.ok(paint.contrast >= 4.5);
     }
     await page.close();
@@ -11911,4 +11913,66 @@ describe("Shared status surfaces", () => {
       }
     }finally {await page.close();}
   });
+});
+
+it("keeps warning action labels readable across standalone themes and interaction states", async () => {
+  const path = await bundle("warning-action-contrast", `import "@threadlabs/looma";`);
+  const page = await open(path, '<ui-button id="warning" tone="warning" variant="solid">Review warning</ui-button>',
+    ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map(file => join(root, file)), { reducedMotion: "reduce" });
+  const button = page.locator("#warning");
+  const contrast = () => button.evaluate(element => {
+    const style = getComputedStyle(element), context = document.createElement("canvas").getContext("2d")!;
+    const luminance = (color: string) => {
+      context.fillStyle = color; context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => value / 255)
+        .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+        .reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index]!, 0);
+    };
+    const text = luminance(style.color), fill = luminance(style.backgroundColor);
+    return (Math.max(text, fill) + .05) / (Math.min(text, fill) + .05);
+  });
+  for (const theme of ["light", "dark", "high"]) {
+    await page.evaluate(theme => {
+      document.documentElement.dataset.theme = theme === "high" ? "light" : theme;
+      if (theme === "high") document.documentElement.dataset.contrast = "high";
+      else delete document.documentElement.dataset.contrast;
+    }, theme);
+    await page.mouse.move(600, 600);
+    await button.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+    assert.ok(await contrast() >= 4.5, theme + ": resting warning label");
+    await button.hover();
+    await button.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+    assert.ok(await contrast() >= 4.5, theme + ": hovered warning label");
+    await page.mouse.down();
+    await button.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+    try { assert.ok(await contrast() >= 4.5, theme + ": pressed warning label"); }
+    finally { await page.mouse.up(); }
+  }
+  await page.close();
+});
+
+it("opens at its final dialog size while retaining content resize animation in HTML and Vue", async () => {
+  for (const adapter of ["html", "vue"]) {
+    const path = await bundle(`${adapter}-dialog-initial-size`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      import { createApp, h } from "vue";
+      import { Button, Dialog } from "@threadlabs/looma/vue";
+      createApp({ render: () => [h(Button, { id: "open" }, () => "Open details"),
+        h(Dialog, { id: "dialog", for: "open", label: "Details" }, () => h("p", "A note with its final content already present."))] }).mount("#app");
+    `);
+    const page = await open(path, adapter === "html" ? '<ui-button id="open">Open details</ui-button><ui-dialog id="dialog" for="open" label="Details"><p>A note with its final content already present.</p></ui-dialog>' : '<div id="app"></div>',
+      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "no-preference" });
+    await page.addStyleTag({ content: ':root {--ui-dialog-duration:400ms}' });
+    await page.locator("#open").click();
+    const sizes = await page.locator("#dialog").evaluate(async element => {
+      const frames = [];
+      for (let index = 0; index < 30; index++) {
+        frames.push({ painted: element.getBoundingClientRect().height, intrinsic: parseFloat(getComputedStyle(element).height) });
+        await new Promise(requestAnimationFrame);
+      }
+      return frames;
+    });
+    assert.ok(Math.max(...sizes.map(size => size.intrinsic)) - Math.min(...sizes.map(size => size.intrinsic)) < 1, `${adapter}: opening content already has one intrinsic size`);
+    assert.ok(Math.max(...sizes.map(size => size.painted)) - Math.min(...sizes.map(size => size.painted)) < 1, `${adapter}: the first appearance must not scale the dialog's height`);
+    await page.close();
+  }
 });

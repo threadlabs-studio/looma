@@ -512,6 +512,8 @@ export async function generateComponentApiMetadata() {
       classifications[tag]?.description ?? "",
       await componentDesignTokens(tag, group, contract),
     ),
+    ...(classifications[tag]?.title ? { title: classifications[tag].title } : {}),
+    ...(classifications[tag]?.summary ? { summary: classifications[tag].summary } : {}),
     // A part is listed under its navigated parent, in the parent's group.
     group: classifications[tag]?.group ?? classifications[classifications[tag]?.navigationParent]?.group,
     ...(classifications[tag]?.navigationParent
