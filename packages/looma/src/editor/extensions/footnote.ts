@@ -9,6 +9,8 @@ const labelFrom = (href: string | null | undefined, prefix: string) => href?.sta
 /** A footnote label as Looma Markdown reads it in `[^label]`: no whitespace and no `]`. */
 export const LOOMA_FOOTNOTE_LABEL = /^[^\s\]]+$/;
 
+export const LOOMA_FOOTNOTE_INSERTED = "loomaFootnoteInserted";
+
 const REFERENCE = "loomaFootnoteReference";
 const NOTES = "loomaFootnotes";
 const NOTE = "loomaFootnote";
@@ -209,7 +211,7 @@ export const LoomaFootnoteReference = Node.create({
       handler: ({ state, range, match }) => { state.tr.replaceWith(range.from, range.to, this.type.create({ label: match[1] })); },
     })];
   },
-  // The reference is a button that the editor's footnote popover opens from; the host owns the popover.
+  // The reference opens its footnote actions; the host owns the action bar and floating editor.
   // Its number sits in an `a`, as in saved HTML, so it reads as a link in the editor's styles.
   addNodeView() {
     return ({ node, editor }) => {
@@ -312,7 +314,11 @@ export const LoomaFootnotes = Node.create({
         const { $from, $to } = state.selection;
         if (!isLabel(name) || !$from.parent.canReplaceWith($from.index(), $to.index(), state.schema.nodes[REFERENCE])) return false;
         if (!dispatch) return true;
+        const position = tr.selection.from;
         tr.replaceSelectionWith(state.schema.nodes[REFERENCE].create({ label: name }));
+        let occurrence = 0;
+        tr.doc.descendants((node, offset) => { if (offset <= position && node.type.name === REFERENCE && node.attrs.label === name) occurrence++; });
+        tr.setMeta(LOOMA_FOOTNOTE_INSERTED, { label: name, occurrence });
         if (!findLoomaFootnote(tr.doc, name)) {
           const note = state.schema.nodes[NOTE].create({ label: name }, state.schema.nodes.paragraph.create());
           const last = tr.doc.lastChild;
