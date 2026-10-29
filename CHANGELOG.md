@@ -2,7 +2,7 @@
 
 ## Next release
 
-- **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.3.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
+- **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
 
 - With `original`, the Markdown a document was read from, an unedited document is written back byte for byte, front matter, line endings and spacing included, and an edit leaves the source of every other block alone. An edited block keeps the spellings it still reads as, such as `_` emphasis, `*` bullets or a setext heading; spacing next to it is one blank line. Raw HTML blocks are written through Expressmark's safe HTML profile.
 
@@ -17,6 +17,8 @@
 - Pasted Markdown is read by Expressmark. Pasted HTML source, and Markdown holding content the editor cannot represent, is read as HTML.
 
 - The Looma Markdown fixtures are Expressive Markdown: tabs are `:::: tabs {group=…}` holding `::: tab [Label]` containers, a nested container takes a longer marker than its parent, a title holding braces is bracketed, an alert's marker may be followed by its title, a mixed list's `- [x]` item is a task, and `::: aside` is a container the editor does not hold, so its fixture is removed. Each fixture's canonical Markdown is what Expressmark writes for it, and LoomaEditor writes every fixture back byte for byte.
+
+- Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
 
 - Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
 

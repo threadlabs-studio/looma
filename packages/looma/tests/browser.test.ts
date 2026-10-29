@@ -5719,6 +5719,46 @@ describe("Compact list", () => {
 });
 
 describe("View primitives", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`joins a fieldset heading to its frame without crowding content in ${adapter}`, async () => {
+    const path = await bundle(`fieldset-section-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      import { createApp, h } from "vue";
+      import { Section, Text, Button, Input } from "@threadlabs/looma/vue";
+      createApp({render:()=>h(Section,{id:"framed",variant:"fieldset",heading:"Profile and preferences"},{
+        description:()=>"Choose the details people see when you work together.",
+        actions:()=>h(Button,{id:"reset",variant:"outline",tone:"accent"},()=>"Reset"),
+        default:()=>[h("label",{for:"name"},"Display name"),h(Input,{id:"name",value:"Ada Lovelace"}),h(Text,null,()=>"Your existing work stays available.")],
+      })}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])]);
+    try {
+      await page.locator("#framed").waitFor();
+      assert.equal(await page.locator("#framed").evaluate(element=>element.tagName),"FIELDSET");
+      assert.equal(await page.getByRole("group",{name:"Profile and preferences",exact:true}).count(),1);
+      assert.equal(await page.locator("#framed > legend h2").textContent(),"Profile and preferences");
+      await page.getByRole("button",{name:"Reset",exact:true}).focus();
+      await page.keyboard.press("Tab");
+      assert.equal(await page.getByRole("textbox").evaluate(element=>element===document.activeElement),true);
+      await page.getByRole("textbox").fill("Grace Hopper");
+      assert.equal(await page.getByRole("textbox").inputValue(),"Grace Hopper");
+      await page.locator("#framed h2").evaluate(element=>element.textContent="Profile, notification preferences and shared workspace visibility");
+      for (const width of [960,375]) for (const scheme of ["light","dark"] as const) for (const dir of ["ltr","rtl"]) {
+        await page.setViewportSize({width,height:800});
+        await page.emulateMedia({colorScheme:scheme});
+        await page.locator("html").evaluate((element,dir)=>element.setAttribute("dir",dir),dir);
+        const layout=await page.locator("#framed").evaluate(frame=>{
+          const bounds=frame.getBoundingClientRect(), legend=frame.querySelector("legend")!.getBoundingClientRect();
+          const body=frame.querySelector(".body")!.getBoundingClientRect();
+          return {border:parseFloat(getComputedStyle(frame).borderInlineStartWidth),overflow:frame.scrollWidth>frame.clientWidth+1,
+            headingInside:legend.left>=bounds.left&&legend.right<=bounds.right+1,bodyBelow:body.top>=legend.bottom,
+            fieldInside:body.left>=bounds.left&&body.right<=bounds.right+1};
+        });
+        assert.ok(layout.border>0,`${adapter}/${width}/${scheme}/${dir}: visible frame`);
+        assert.equal(layout.overflow,false,`${adapter}/${width}/${scheme}/${dir}: no overflow`);
+        assert.equal(layout.headingInside&&layout.bodyBelow&&layout.fieldInside,true,`${adapter}/${width}/${scheme}/${dir}: wrapped heading and content fit`);
+      }
+    } finally { await page.close(); }
+  });
+
   const markup = `
     <ui-page-header id="header">Planning<span slot="description">Roadmaps and decisions.</span></ui-page-header>
     <ui-section id="section" heading="Pinned"><ui-text id="text" tone="muted" size="sm">Edited 2h ago</ui-text></ui-section>
