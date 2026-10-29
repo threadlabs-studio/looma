@@ -18,6 +18,10 @@
 
 - The Looma Markdown fixtures are Expressive Markdown: tabs are `:::: tabs {group=…}` holding `::: tab [Label]` containers, a nested container takes a longer marker than its parent, a title holding braces is bracketed, an alert's marker may be followed by its title, a mixed list's `- [x]` item is a task, and `::: aside` is a container the editor does not hold, so its fixture is removed. Each fixture's canonical Markdown is what Expressmark writes for it, and LoomaEditor writes every fixture back byte for byte.
 
+- Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
+
+- Give fieldset legends the standard Section heading size, clearly larger than body text, and use concise titles in the example. Long headings remain covered by wrapping tests.
+
 - Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
 
 - Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
