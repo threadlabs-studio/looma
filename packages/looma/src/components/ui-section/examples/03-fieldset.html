@@ -1,0 +1,21 @@
+<!--
+title: Connected headings
+description: A native legend joins the heading to the frame. Descriptions, actions and fields stay comfortably inside it, including with long titles on narrow screens.
+-->
+<ui-stack gap="l">
+  <ui-section heading="Profile and preferences" variant="fieldset">
+    <span slot="description">The details people see when you work together.</span>
+    <ui-form-field>
+      <label slot="label" for="profile-name">Display name</label>
+      <ui-input id="profile-name" value="Ada Lovelace"></ui-input>
+    </ui-form-field>
+    <ui-button slot="actions" variant="outline" tone="accent" size="sm">Reset</ui-button>
+  </ui-section>
+  <ui-section heading="Notification preferences and shared workspace visibility" variant="fieldset">
+    <ui-text>Choose when you hear about changes and which workspaces appear in your navigation.</ui-text>
+  </ui-section>
+  <ui-section heading="Delete account" variant="fieldset" tone="danger">
+    <span slot="description">Permanently remove this account and its saved preferences.</span>
+    <ui-button variant="outline" tone="danger">Delete account</ui-button>
+  </ui-section>
+</ui-stack>
