@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { Editor } from '@tiptap/core';
 import { afterEach, expect, it, vi } from 'vitest';
-import { getDefaultEditorExtensions, getDefaultSlashCommands, loomaMarkdownFromDoc } from '../src/editor/extensions';
+import { editorDocumentToMarkdown } from '../src/editor/expressmark';
+import { getDefaultEditorExtensions, getDefaultSlashCommands } from '../src/editor/extensions';
 import { createFileUploads, type LoomaFileUploadsState } from '../src/editor/file-uploads';
 const editors: Editor[] = [];
 afterEach(() => editors.splice(0).forEach(editor => editor.destroy()));
@@ -30,7 +31,7 @@ it('keeps a readable file link through undo and preserves intervening typing at 
     text: 'report.pdf', marks: [{ type: 'link', attrs: { href: '/files/report.pdf', target: '_blank' } }],
   });
   expect(restored.getText()).toContain('report.pdf (application/pdf, 3 B)');
-  expect(loomaMarkdownFromDoc(editor.state.doc)).toContain('[report.pdf](/files/report.pdf)');
+  expect(editorDocumentToMarkdown(editor.getJSON())).toContain('[report.pdf](/files/report.pdf)');
   expect(editor.getText()).toContain('(application/pdf, 3 B)');
   expect(editor.getText()).toContain(' typed');
   editor.commands.undo();

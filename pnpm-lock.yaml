@@ -161,8 +161,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.2.2 <1'
-        version: 0.2.2
+        specifier: '>=0.4.0 <1'
+        version: 0.4.0
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -172,9 +172,6 @@ importers:
       lucide:
         specifier: ~0.554.0
         version: 0.554.0
-      markdown-it:
-        specifier: 14.3.1
-        version: 14.3.1
       markupress:
         specifier: '>=0.12.0 <1'
         version: 0.12.0(@nextwebwg/html-next@1.0.0-alpha.69)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
@@ -290,9 +287,6 @@ importers:
       '@tiptap/vue-3':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@5.9.3))
-      '@types/markdown-it':
-        specifier: 14.2.0
-        version: 14.2.0
       '@vitejs/plugin-vue':
         specifier: ^6.0.9
         version: 6.0.9(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(vue@3.5.43(typescript@5.9.3))
@@ -4954,6 +4948,10 @@ packages:
     resolution: {integrity: sha512-mecRmshYZ8VGH/tvM5Y1fyeb/Mz6euAlvcFJfofmy53cNRGq9tABVARaGYt/oWzCnA/ieBRJ/9UnBLqTIJP0sg==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
+  expressmark@0.4.0:
+    resolution: {integrity: sha512-tYYgC+qsSsetAU8gA5COLExOFezNGH+EFtaFAfZ19Isj8yIqEYpQUKiU2Xo2LKeT0Wiw8IoMFw1OwW4v7RsWgg==}
+    engines: {node: '>=22.13 <23 || >=24 <25'}
+
   extend-shallow@2.0.1:
     resolution: {integrity: sha512-zCnTtlxNoAiDc3gqY2aYAWFx7XWWiasuF2K8Me5WbN8otHKTUKBwjPtNpRs/rbUZm7KxWAaNj7P1a/p52GbVug==}
     engines: {node: '>=0.10.0'}
@@ -6496,6 +6494,11 @@ packages:
 
   parseman@0.55.2:
     resolution: {integrity: sha512-FmRj2BmiK08Ey6i4tK8XJPV7JARytnnxLnuozCeyPUVtSgWQ/qolx3zUNXpmjTY5Qz5WKMS/kzc8ui7tYzVDGQ==}
+    engines: {node: ^20.19.0 || >=22.13.0}
+    hasBin: true
+
+  parseman@0.56.0:
+    resolution: {integrity: sha512-Jb4V2CSONx+gN8IPIO/10qnYAA5ZoUaRsadSURTfxDxI+4ZGNEuLqPGKU2W2ewWp/Y0XJO4aEukFqyQqdCjhhA==}
     engines: {node: ^20.19.0 || >=22.13.0}
     hasBin: true
 
@@ -14121,6 +14124,17 @@ snapshots:
       sanitize-html: 2.18.1
       yaml: 2.9.1
 
+  expressmark@0.4.0:
+    dependencies:
+      entities: 8.1.0
+      htmlparser2: 12.0.0
+      mdurl: 2.1.0
+      parseman: 0.56.0
+      punycode.js: 2.3.1
+      sanitize-html: 2.18.1
+      uc.micro: 3.0.0
+      yaml: 2.9.1
+
   extend-shallow@2.0.1:
     dependencies:
       is-extendable: 0.1.1
@@ -16096,6 +16110,14 @@ snapshots:
       entities: 8.1.0
 
   parseman@0.55.2:
+    dependencies:
+      linecraft: 0.2.6
+      magic-string: 0.30.21
+      oxc-parser: 0.137.0
+      oxc-resolver: 11.23.0
+      unplugin: 3.0.0
+
+  parseman@0.56.0:
     dependencies:
       linecraft: 0.2.6
       magic-string: 0.30.21

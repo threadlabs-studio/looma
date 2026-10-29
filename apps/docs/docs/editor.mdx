@@ -204,10 +204,9 @@ editor JSON, HTML and Markdown. `editor.getHTML()` includes the current
 entries as a named navigation landmark with real links.
 
 For Expressive Markdown, call `editorDocumentToMarkdown(editor.getJSON())` from
-`@threadlabs/looma/editor/expressmark`. It writes the current TOC entries and settings into the
-file. Reading that file preserves the saved navigation instead of regenerating it from surrounding
-headings. The editor's internal JSON can retain configuration only; it does not need an entry copy.
-Authored navigation imported from a file retains its body.
+`@threadlabs/looma/editor/expressmark`. It writes the TOC as its `::toc` placeholder with its
+settings, where it stands, and readers build the entries from the headings. Authored navigation
+imported from a file retains its body.
 
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
@@ -251,16 +250,17 @@ Use the portable Expressmark adapter for Markdown import and export:
 ```ts
 import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
 
-const markdown = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard" });
 const content = markdownToEditorDocument(markdown, { syntax: "standard" });
 editor.commands.setContent(content);
+// Later, write the edited document back over the Markdown it was read from.
+const saved = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard", original: markdown });
 ```
 
 The adapter defaults to `compatible` syntax for existing CommonMark/GFM interchange;
 select `standard` explicitly when exchanging content with Markupress. It reports content the
-editor schema cannot preserve instead of silently discarding it. Keep page front matter in
-the host application. The older `loomaMarkdownToHtml` and `loomaMarkdownFromDoc` helpers retain
-their editor-specific format; they do not define Markupress's documentation syntax.
+editor schema cannot preserve instead of silently discarding it. With `original`, an unedited
+document is written back byte for byte, front matter included, and an edit leaves the source of
+every other block alone. Footnote and link reference definitions stay where they are written.
 
 ## Mentions
 

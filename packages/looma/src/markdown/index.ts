@@ -1,9 +1,8 @@
 /**
  * Looma Markdown's vocabulary and pure rules, shared by every reader and writer.
  *
- * Nothing here touches the DOM or a Markdown parser, so it is safe to import during SSR. The
- * markdown-it plugin is `@threadlabs/looma/markdown/markdown-it`; conformance fixtures are
- * `@threadlabs/looma/markdown/fixtures`.
+ * Nothing here touches the DOM or a Markdown parser, so it is safe to import during SSR. Expressmark
+ * reads and writes the Markdown; conformance fixtures are `@threadlabs/looma/markdown/fixtures`.
  */
 
 // `tone` names one of two kinds of value. Callouts and badges take meanings, which share the core
