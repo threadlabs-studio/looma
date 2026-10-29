@@ -165,7 +165,7 @@ jobs:
   verify:
     if: always()
     needs: [quality, browser, release-package, visual]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 1
     steps:
       - name: Require tests, release packaging, and complete visual captures
