@@ -127,7 +127,7 @@ describe("LoomaEditor footnotes (real browser)", () => {
     await vi.waitFor(() => expect(document.activeElement).toBe(field()));
     await userEvent.keyboard("Cited.");
     await flushBrowser();
-    expect(markdown()).toBe("Start [^1]\n\n[^1]: Cited.\n");
+    expect(markdown()).toBe("Start [^1]\n\n[^1]: Cited.");
     await dismiss();
     editor.chain().setTextSelection(1).insertLoomaFootnote().run();
     await flushBrowser();

@@ -6,6 +6,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Section
 
-A part of a view: an `h2` `heading`, an optional `description`, `actions` for the whole section, and its content. `variant="card"` sets it on a bordered surface, for a settings group; `variant="divided"` rules it off from the section before, for a long form; `tone="danger"` marks destructive actions. Space sections with a Stack.
+A part of a view: an `h2` `heading`, an optional `description`, `actions` for the whole section, and its content. `variant="fieldset"` joins the heading to a rounded frame with a native legend, for a named settings group. Its description and actions stay inside the frame; long headings wrap without covering the content. `variant="card"` sets it on a bordered surface; `variant="divided"` rules it off from the section before, for a long form; `tone="danger"` marks destructive actions. A fieldset is announced as a group named by its legend. Use `aria-label` when omitting the heading. Space sections with a Stack.
 
 <ComponentExamplesApiTabs component="ui-section" />
