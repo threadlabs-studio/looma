@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
+
 - Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
 
 - **Breaking:** SiteHeader now owns mobile navigation. Supply `brand`, `navigation`, and optional `actions` once; below its breakpoint it provides a hamburger after the logo and a full-height scrolling modal drawer with a dark backdrop, focus management, scroll locking, and dismissal. To use the automatic drawer, remove your custom `menu` slot, duplicated mobile links, panel, and handlers. An explicit `menu` slot still replaces the trigger for separately owned navigation surfaces such as a combined documentation sidebar. The previous consumer-owned menu left basic mobile navigation incomplete and inconsistent; an automatic default removes that assembly work. Use `menu-label` and `close-label` to localize the controls. Drawer links use regular navigation weight rather than inheriting the desktop header’s semibold emphasis.
