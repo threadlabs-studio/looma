@@ -5723,13 +5723,13 @@ describe("View primitives", () => {
     const path = await bundle(`fieldset-section-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
       import { createApp, h } from "vue";
       import { Section, Text, Button, Input } from "@threadlabs/looma/vue";
-      createApp({render:()=>h(Section,{id:"framed",variant:"fieldset",heading:"Profile and preferences"},{
+      createApp({render:()=>[h(Section,{id:"framed",variant:"fieldset",heading:"Profile and preferences"},{
         description:()=>"Choose the details people see when you work together.",
         actions:()=>h(Button,{id:"reset",variant:"outline",tone:"accent"},()=>"Reset"),
         default:()=>[h("label",{for:"name"},"Display name"),h(Input,{id:"name",value:"Ada Lovelace"}),h(Text,null,()=>"Your existing work stays available.")],
-      })}).mount("#app");
+      }),h(Section,{id:"danger-frame",variant:"fieldset",tone:"danger",heading:"Delete account"},()=>h(Text,null,()=>"Permanently remove this account."))]}).mount("#app");
     `);
-    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])]);
+    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section><ui-section id="danger-frame" variant="fieldset" tone="danger" heading="Delete account"><ui-text>Permanently remove this account.</ui-text></ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])]);
     try {
       await page.locator("#framed").waitFor();
       assert.equal(await page.locator("#framed").evaluate(element=>element.tagName),"FIELDSET");
@@ -5750,13 +5750,23 @@ describe("View primitives", () => {
           const body=frame.querySelector(".body")!.getBoundingClientRect();
           return {border:parseFloat(getComputedStyle(frame).borderInlineStartWidth),overflow:frame.scrollWidth>frame.clientWidth+1,
             headingFont:parseFloat(getComputedStyle(frame.querySelector(".heading")!).fontSize),bodyFont:parseFloat(getComputedStyle(frame.querySelector(".body p")!).fontSize),
+            headingOffset:frame.querySelector(".heading")!.getBoundingClientRect().top-legend.top,
             headingInside:legend.left>=bounds.left&&legend.right<=bounds.right+1,bodyBelow:body.top>=legend.bottom,
             fieldInside:body.left>=bounds.left&&body.right<=bounds.right+1};
         });
         assert.ok(layout.border>0,`${adapter}/${width}/${scheme}/${dir}: visible frame`);
         assert.ok(layout.headingFont>layout.bodyFont,`${adapter}/${width}/${scheme}/${dir}: heading is larger than body text`);
+        assert.ok(Math.abs(layout.headingOffset+1)<0.1,`${adapter}/${width}/${scheme}/${dir}: heading sits one pixel higher`);
         assert.equal(layout.overflow,false,`${adapter}/${width}/${scheme}/${dir}: no overflow`);
         assert.equal(layout.headingInside&&layout.bodyBelow&&layout.fieldInside,true,`${adapter}/${width}/${scheme}/${dir}: wrapped heading and content fit`);
+        const danger=await page.locator("#danger-frame").evaluate(frame=>{
+          const css=getComputedStyle(frame),neutral=getComputedStyle(document.querySelector("#framed")!);
+          return {radii:[css.borderTopLeftRadius,css.borderTopRightRadius,css.borderBottomRightRadius,css.borderBottomLeftRadius],
+            borders:[css.borderTopWidth,css.borderRightWidth,css.borderBottomWidth,css.borderLeftWidth],bg:css.backgroundColor,neutralBg:neutral.backgroundColor};
+        });
+        assert.ok(danger.radii.every(radius=>radius===danger.radii[0]&&parseFloat(radius)>0),`${adapter}/${scheme}/${dir}: danger keeps all four rounded corners`);
+        assert.ok(danger.borders.every(border=>border===danger.borders[0]),`${adapter}/${scheme}/${dir}: no leading stripe`);
+        assert.equal(danger.bg,danger.neutralBg,`${adapter}/${scheme}/${dir}: danger keeps the neutral surface`);
       }
     } finally { await page.close(); }
   });
