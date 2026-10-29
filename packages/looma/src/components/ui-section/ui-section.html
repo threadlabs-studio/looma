@@ -65,7 +65,7 @@
     }
 
     .legend .heading {
-      font-size: var(--ui-font-size-md);
+      transform: translateY(-1px);
     }
 
     :host([variant="fieldset"]) .head {
@@ -83,6 +83,10 @@
 
     :host([variant="card"][tone="danger"]),
     :host([variant="fieldset"][tone="danger"]) {
+      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
+    }
+
+    :host([variant="card"][tone="danger"]) {
       --_ui-selection-context-surface: light-dark(
         oklch(from var(--ui-danger-soft) calc(l - 0.045) calc(max(c, min(0.045, c * 3))) h),
         oklch(from var(--ui-danger-soft) calc(l + 0.045) calc(max(c, min(0.045, c * 3))) h)
@@ -92,7 +96,6 @@
         oklch(from var(--ui-danger-soft) calc(l + 0.085) calc(max(c, min(0.045, c * 3))) h)
       );
       --_ui-selection-context-text: var(--ui-text-primary);
-      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
       border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
       /* An accent edge keeps the corners on its side straight. */
       border-start-start-radius: 0;

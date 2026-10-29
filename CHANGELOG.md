@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
+
+- Give fieldset legends the standard Section heading size, clearly larger than body text, and use concise titles in the example. Long headings remain covered by wrapping tests.
+
 - Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
 
 - Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
