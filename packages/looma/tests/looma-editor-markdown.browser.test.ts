@@ -57,7 +57,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     pasteSource(editor, [
       "Status :chip[Ready]{tone=green}, owned by @[Ada]#u1.", "",
       "- [x] Read the changelog", "- [ ] Run the migration", "",
-      "::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", ":::",
+      ":::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", "::::",
     ].join("\n"));
     await flushBrowser();
 
@@ -68,7 +68,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     expect(host.querySelector(".ProseMirror [data-type='mention']")?.textContent).toBe("@Ada");
     const boxes = [...host.querySelectorAll<HTMLInputElement>(".ProseMirror [data-type='taskList'] input[type='checkbox']")];
     expect(boxes.map(box => box.checked)).toEqual([true, false]);
-    // The inner `:::` closes the warning, and the `:::` inside the fence stays code.
+    // The outer fence is longer, the inner `:::` closes the warning, and the `:::` inside the fence stays code.
     expect(editor.getJSON().content?.[2]).toMatchObject({
       attrs: { summary: "More" },
       content: [{ type: "loomaCallout", attrs: { tone: "warning" } }, { type: "codeBlock", content: [{ text: ":::" }] }],
