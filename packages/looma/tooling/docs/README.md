@@ -12,10 +12,12 @@ In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
 pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D 'markupress@>=0.12.0 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
+pnpm add -D 'markupress@>=0.12.0 <0.14.4 || >=0.14.5 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
+
+Markupress 0.14.4 is excluded because its declared Looma peer range ends below 0.45.
 
 Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.12.0 and later compatible 0.x releases render authored documentation with Expressmark’s standard syntax and supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
 
