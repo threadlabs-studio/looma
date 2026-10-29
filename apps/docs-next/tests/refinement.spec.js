@@ -508,26 +508,38 @@ test('Gold outline borders respond to the visibility minimum without changing th
   await expect.poll(colors).toEqual(resting);
 });
 
-for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses translucent accent pigment at rest and on hover`, async ({ page }, info) => {
+for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses calibrated translucent accent roles at rest and on hover`, async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, startingPoint);
   const editor = await openEditor(page, 'palette');
   for (const mode of ['light', 'dark']) {
     const outline = editor.locator(`.palette-preview [data-theme="${mode}"]`).getByRole('button', { name: 'Outline', exact: true });
-    const wash = alpha => outline.evaluate((element, alpha) => {
+    const wash = role => outline.evaluate((element, role) => {
       const probe = document.createElement('span');
-      probe.style.color = `oklch(from var(--ui-accent) l c h / calc(${alpha}% * var(--ui-tonal-opacity, 1)))`;
+      probe.style.color = `var(--ui-accent-${role})`;
       element.append(probe);
-      const expected = getComputedStyle(probe).color;
+      const color = getComputedStyle(probe).color;
       const background = getComputedStyle(element).backgroundImage;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d');
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      const alpha = context.getImageData(0, 0, 1, 1).data[3] / 255;
       probe.remove();
-      return { expected: `linear-gradient(${expected}, ${expected})`, background };
-    }, alpha);
+      return { expected: `linear-gradient(${color}, ${color})`, background, alpha };
+    }, role);
     await page.mouse.move(0, 0);
-    let colors = await wash(8);
-    expect(colors.background).toContain(colors.expected);
+    const rest = await wash('wash');
+    expect(rest.background).toContain(rest.expected);
     await outline.hover();
-    colors = await wash(12);
-    expect(colors.background).toContain(colors.expected);
+    const hover = await wash('wash-hover');
+    expect(hover.background).toContain(hover.expected);
+    expect(hover.expected).not.toBe(rest.expected);
+    expect(hover.background.replace(hover.expected, '')).toBe(rest.background.replace(rest.expected, ''));
+    for (const { alpha } of [rest, hover]) {
+      expect(alpha).toBeGreaterThan(0);
+      expect(alpha).toBeLessThan(1);
+    }
   }
 });
