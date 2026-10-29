@@ -40,6 +40,13 @@
     "example": 0
   },
   {
+    "name": "variant: fieldset",
+    "props": {
+      "variant": "fieldset"
+    },
+    "example": 0
+  },
+  {
     "name": "Example: 01-plain",
     "props": {},
     "example": 0
@@ -48,5 +55,10 @@
     "name": "Example: 02-card-and-danger",
     "props": {},
     "example": 1
+  },
+  {
+    "name": "Example: 03-fieldset",
+    "props": {},
+    "example": 2
   }
 ]

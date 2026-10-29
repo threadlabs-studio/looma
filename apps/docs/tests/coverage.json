@@ -1461,6 +1461,11 @@
           "id": "02-card-and-danger",
           "title": "Cards and danger",
           "behavior": false
+        },
+        {
+          "id": "03-fieldset",
+          "title": "Connected headings",
+          "behavior": false
         }
       ]
     },
