@@ -14,17 +14,12 @@ inputs, methods, events, slots, and controller behavior. HTML Next is
 the canonical form. Vue projects that same contract
 into its own lifecycle; it does not invent a competing API.
 
-1. **Author declaratively**
-
-   Semantic content exists before JavaScript and remains visible to the platform.
-
-2. **Lower to a native root**
-
-   The runtime attaches the declared state and controller without a shadow-root bridge.
-
-3. **Project into a host**
-
-   Framework adapters own lifecycle integration while preserving the same public contract.
+1. | **Author declaratively**
+   | Semantic content exists before JavaScript and remains visible to the platform.
+2. | **Lower to a native root**
+   | The runtime attaches the declared state and controller without a shadow-root bridge.
+3. | **Project into a host**
+   | Framework adapters own lifecycle integration while preserving the same public contract.
 
 ### The same component, expressed for your host
 

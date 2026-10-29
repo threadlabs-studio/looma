@@ -155,7 +155,7 @@ test('component browser searches the complete catalog in bounded groups', async 
   const search=page.getByRole('searchbox',{name:'Search components',exact:true});
   await search.fill('ui-slider');await expect(previews).toHaveCount(1);
   await expect(previews).toHaveAttribute('data-component-card','ui-slider');
-  await expect(previews.getByRole('link',{name:'View component',exact:true})).toHaveAttribute('href',/components\/ui-slider\/$/);
+  await expect(previews.locator('h3 a')).toHaveAttribute('href',/components\/ui-slider\/$/);
   await search.fill('no-component-has-this-name');await expect(previews).toHaveCount(0);
   await expect(page.locator('[data-example-count]')).toContainText('No components match');
   await search.clear();await expect(previews).toHaveCount(9);
@@ -313,7 +313,7 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await page.getByRole('searchbox', { name: 'Search components', exact: true }).fill('ui-button');
   await expect(buttonCard).toBeVisible();
   await expect(page.locator('[data-refinement-view="components"] [data-component-card="ui-input"]')).toHaveCount(0);
-  await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'View component', exact: true }), 'Button');
+  await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'Button', exact: true }), 'Button');
   await expect(page).toHaveURL(/\/components\/ui-button\/$/);
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
   await expect.poll(() => page.getByRole('heading', { name: 'Button', exact: true, level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).toContain('Newsreader');
