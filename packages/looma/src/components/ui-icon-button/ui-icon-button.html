@@ -419,15 +419,17 @@
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]) {
+      --_outline-highlight: var(--ui-surface-highlight, linear-gradient(transparent, transparent));
       --_outline-wash: oklch(from var(--_icon-button-solid-surface, var(--ui-accent)) l c h / calc(8% * var(--ui-tonal-opacity, 1)));
       border-color: var(--ui-icon-button-border, var(--_tone-outline-border));
       background-color: var(--ui-icon-button-outline-surface, transparent);
       background-image:
         linear-gradient(var(--_outline-wash), var(--_outline-wash)),
-        var(--ui-surface-highlight, linear-gradient(transparent, transparent));
+        var(--_outline-highlight);
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]):hover:enabled:not([aria-disabled="true"]) {
+      --_outline-highlight: var(--ui-neutral-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent)));
       --_outline-wash: oklch(from var(--_icon-button-solid-surface, var(--ui-accent)) l c h / calc(12% * var(--ui-tonal-opacity, 1)));
       background-color: var(--ui-icon-button-hover-surface, transparent);
       border-color: var(--ui-icon-button-hover-border, var(--_tone-outline-border));

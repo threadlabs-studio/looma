@@ -177,7 +177,7 @@
       inset-inline-start: 0;
       inset-inline-end: auto;
       box-sizing: border-box !important;
-      inline-size: min(var(--ui-sidebar-width, 280px), 85vw);
+      inline-size: min(var(--ui-site-header-navigation-width, 280px), 85vw);
       max-inline-size: none;
       block-size: 100dvh;
       max-block-size: none;
@@ -185,8 +185,8 @@
       padding: 0 !important;
       overflow: hidden;
       border: 0;
-      border-inline-end: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
-      background: var(--ui-sidebar-surface, var(--ui-surface-default));
+      border-inline-end: var(--ui-border-width) solid var(--ui-overlay-border, var(--ui-border-divider));
+      background: var(--ui-overlay-surface, var(--ui-surface-elevated));
       color: var(--ui-text-primary);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       transform: translateX(-100%);
@@ -213,7 +213,7 @@
       }
     }
     :host {
-      --_ui-site-header-backdrop: var(--ui-sidebar-backdrop, var(--ui-overlay-backdrop, rgb(0 0 0 / 0.32)));
+      --_ui-site-header-backdrop: var(--ui-overlay-backdrop, rgb(0 0 0 / 0.32));
     }
     .navigation-panel::backdrop {
       background: var(--_ui-site-header-backdrop);
@@ -244,6 +244,22 @@
       gap: var(--ui-space-4) !important;
       min-block-size: 0;
       overflow: auto;
+      --_ui-scroll-fade-direction: to bottom;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self block);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
       overscroll-behavior: contain;
       padding: var(--ui-space-4) !important;
     }

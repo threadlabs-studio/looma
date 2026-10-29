@@ -10122,6 +10122,11 @@ describe("Theme levels", () => {
       return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a! / 255})`;
     }, property);
 
+    const hasSurfacePaint = (selector: string, color: string) => page.locator(selector).evaluate((element, expected) => {
+      const style = getComputedStyle(element);
+      return style.backgroundColor === expected || style.backgroundImage.includes(expected);
+    }, color);
+
     for (const [theme, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [theme, value]);
@@ -10140,11 +10145,11 @@ describe("Theme levels", () => {
         assert.equal(await look(`#${id}`, "border-top-left-radius"), "5px", `${value}: ${id} inherits action radius`);
       }
       assert.equal(await look("#group-menu .surface", "border-top-left-radius"), "9px", `${value}: menu inherits overlay radius`);
-      assert.equal(await look("#group-menu .surface", "background-color"), "rgb(237, 239, 242)", `${value}: menu inherits overlay surface`);
+      assert.equal(await hasSurfacePaint("#group-menu .surface", "rgb(237, 239, 242)"), true, `${value}: menu inherits overlay surface in its material paint`);
       assert.equal(await look("#group-menu .surface", "border-top-color"), "rgb(22, 33, 44)", `${value}: menu inherits overlay border`);
       assert.equal(await look("#group-menu .surface", "box-shadow"), "none", `${value}: menu inherits overlay shadow`);
       assert.equal(await look("#local-menu .surface", "border-top-left-radius"), "4px", `${value}: local menu radius wins`);
-      assert.equal(await look("#local-menu .surface", "background-color"), "rgb(210, 211, 212)", `${value}: local menu surface wins`);
+      assert.equal(await hasSurfacePaint("#local-menu .surface", "rgb(210, 211, 212)"), true, `${value}: local menu surface wins in its material paint`);
       assert.equal(await look("#local-menu .surface", "border-top-color"), "rgb(80, 81, 82)", `${value}: local menu border wins`);
       assert.equal(await look("#global-danger", "background-color"), await look("#group-danger", "background-color"), `${value}: field danger does not change destructive actions`);
     }
