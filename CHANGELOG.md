@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep documentation cards stationary and make their full lower panel a single link with hover, pressed and keyboard-focus feedback. Tighten the introductory numbered steps so their labels stay with their explanations.
+
 - Keep disabled IconButton actions flat when a neutral outline or solid variant supplies its own shadow.
 
 - Show file-upload progress and retryable errors in the editor. Retry keeps its original mapped insertion point; inserting an attachment is a separate undo step so it does not remove intervening typing.

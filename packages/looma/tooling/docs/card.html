@@ -25,12 +25,12 @@
     <div $if="$resizable" class="preview-width">      <ui-form-field><label slot="label">Preview width</label><span slot="help">Explore the example at a narrower width.</span><ui-input $ref="width" type="number" min="240" max="1600" value="720" aria-label="Preview width in pixels" size="sm"></ui-input></ui-form-field></div>
     <div $if="not $reference and not $previewOnly" class="body"><ui-stack gap="xs">
       <div class="meta"><span>{$category}</span><code>{$nativeRoot}</code></div>
-      <h3><a from:href="$href">{$title}</a></h3>
+      <h3><a class="destination" from:href="$href">{$title}</a></h3>
       <p class="description">{$description}</p>
       <p class="owner" $if="$packageName">{$packageName}</p>
       <p class="example-caption" $if="$exampleTitle">{$exampleTitle}</p>
 
-      <footer><ui-button $if="$href" from:href="$href" variant="link" size="sm">View component</ui-button><ui-button $if="$removable" $ref="remove" variant="ghost" size="sm">Remove</ui-button><slot name="actions"></slot></footer>
+      <footer><span $if="$href" class="view-link">View component</span><div class="secondary-actions"><ui-button $if="$removable" $ref="remove" variant="ghost" size="sm">Remove</ui-button><slot name="actions"></slot></div></footer>
     </ui-stack></div>
   </article>
   <style>
@@ -43,14 +43,11 @@
       border: var(--ui-border-width) solid var(--ui-border);
       border-radius: var(--ui-radius-lg);
       box-shadow: var(--ui-shadow-sm);
-      transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease), transform var(--ui-motion-fast) var(--ui-motion-ease);
     }
     :host([category="display"]) { --_card-accent: var(--ui-success); }
     :host([category="overlay"]) { --_card-accent: var(--ui-danger); }
     :host([category="layout"]) { --_card-accent: var(--ui-info); }
     :host([category="editor"]) { --_card-accent: var(--ui-warning); }
-    :host:hover { border-color: color-mix(in srgb, var(--_card-accent) 45%, var(--ui-border)); box-shadow: var(--ui-shadow-md); transform: translateY(-2px); }
-    :host([reference]):hover { transform: none; border-color: var(--ui-border); box-shadow: var(--ui-shadow-sm); }
     .example-heading { padding: var(--ui-space-5) !important; border-block-end: var(--ui-border-width) solid var(--ui-border); }
     .example-code { padding: var(--ui-space-5) !important; border-block-start: var(--ui-border-width) solid var(--ui-border); }
     .example-code h4 { margin: 0 0 var(--ui-space-3) !important; font-size: var(--ui-font-size-md); }
@@ -62,7 +59,14 @@
     .stage { inline-size: var(--_preview-width, 100%); max-inline-size: 100%; min-inline-size: 0; }
     footer { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; }
     .preview-width { padding: var(--ui-space-4) !important; }
-    .body { padding: var(--ui-space-5) !important; }
+    .body { position: relative; isolation: isolate; padding: var(--ui-space-5) !important; background: var(--ui-surface-raised); transition: background-color var(--ui-motion-fast) var(--ui-motion-ease); }
+    .body:has(.destination[href]:hover), .body:has(.destination[href]:focus-visible) { background: var(--ui-accent-subtle); }
+    .body:has(.destination[href]:active) { background: color-mix(in srgb, var(--ui-accent) 16%, var(--ui-surface-raised)); }
+    .destination[href]::after { position: absolute; inset: 0; z-index: 1; content: ""; cursor: pointer; }
+    .destination:focus-visible { outline: none; }
+    .destination:focus-visible::after { outline: var(--ui-focus-width) solid var(--ui-focus-ring); outline-offset: calc(-1 * var(--ui-focus-width)); }
+    .view-link { color: var(--ui-link-color); font-size: var(--ui-font-size-sm); font-weight: var(--ui-font-semibold); text-decoration: underline; text-underline-offset: .2em; }
+    .secondary-actions { position: relative; z-index: 2; display: flex !important; align-items: center !important; gap: var(--ui-space-2) !important; }
     .meta { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--ui-space-2) !important; margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); font-weight: var(--ui-font-bold); letter-spacing: .09em; text-transform: uppercase; }
     .meta code { padding: 0 !important; background: transparent; color: inherit; text-transform: none; }
     h3 { margin: 0 !important; padding: 0 !important; font-size: var(--ui-font-size-lg); letter-spacing: -.035em; }
@@ -70,6 +74,6 @@
     .description { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height); }
     .owner { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); overflow-wrap: anywhere; }
     .example-caption { margin: 0 !important; color: var(--ui-text-secondary); font-size: var(--ui-font-size-xs); }
-    @media (prefers-reduced-motion: reduce) { :host { transition: none; } :host:hover { transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .body { transition: none; } }
   </style>
 </template>
