@@ -120,7 +120,7 @@
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
     "lucide": "~0.554.0",
-    "expressmark": ">=0.3.0 <1",
+    "expressmark": ">=0.4.0 <1",
     "parse5": "^8.0.1"
   },
   "peerDependencies": {
