@@ -2,6 +2,14 @@
 
 ## Next release
 
+- Keep Looma’s raised surfaces in its warm canvas family, so cards, sidebars and fields share the surface palette.
+
+- Add subtle mark and label hover feedback to Checkbox, Radio and Switch in checked, unchecked and mixed states, while preserving disabled and invalid appearances. Selected marks use their own readable hover paint so compact controls remain visible independently of button strength. Selected radios keep a flat face at rest and on hover so material lighting does not distort the perceived selection dot. Give editable fields a slightly clearer shared hover border.
+
+- **Breaking:** Rename the Clear starting theme and its `clear` identifier to Minimal (`minimal`) so it cannot be mistaken for a reset action. Update saved recipe `origin` and `presets.palette` values from `clear` to `minimal`.
+
+- Balance Button and IconButton hover across solid, outline and ghost appearances using shared perceptual color steps. Reflections move with filled controls, quiet hovers retain their resting material, and deep accent washes retain visible pigment. Gold no longer washes toward white on hover. Outline washes and subtle semantic surfaces, including badges, share a restrained chroma adjustment. Re-export saved theme CSS to adopt the calibrated light/dark paints.
+
 - Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
 
 - **Breaking:** SiteHeader now owns mobile navigation. Supply `brand`, `navigation`, and optional `actions` once; below its breakpoint it provides a hamburger after the logo and a full-height scrolling modal drawer with a dark backdrop, focus management, scroll locking, and dismissal. To use the automatic drawer, remove your custom `menu` slot, duplicated mobile links, panel, and handlers. An explicit `menu` slot still replaces the trigger for separately owned navigation surfaces such as a combined documentation sidebar. The previous consumer-owned menu left basic mobile navigation incomplete and inconsistent; an automatic default removes that assembly work. Use `menu-label` and `close-label` to localize the controls. Drawer links use regular navigation weight rather than inheriting the desktop header’s semibold emphasis.

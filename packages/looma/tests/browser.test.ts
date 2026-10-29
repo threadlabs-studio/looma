@@ -3963,20 +3963,20 @@ describe("Shared action edges", () => {
           }
           for (const id of ["stop", "stop-icon"]) assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "neutral fills do not acquire an accent wash");
           for (const id of ["outline", "outline-icon"]) {
-            const wash = async (alpha: number) => page.locator("#" + id).evaluate((element, alpha) => {
+            const wash = async (state: string) => page.locator("#" + id).evaluate((element, state) => {
               const probe = document.createElement("span");
-              probe.style.color = `oklch(from var(--ui-accent) l c h / ${alpha}%)`;
+              probe.style.color = `var(--ui-accent-${state})`;
               element.append(probe);
               const color = getComputedStyle(probe).color;
               const background = getComputedStyle(element).backgroundImage;
               probe.remove();
               return { expected: `linear-gradient(${color}, ${color})`, background };
-            }, alpha);
+            }, state);
             await page.mouse.move(0, 0);
-            let colors = await wash(8);
+            let colors = await wash("wash");
             assert.ok(colors.background.startsWith(colors.expected), `${id} rests over a translucent accent wash`);
             await page.locator("#" + id).hover();
-            colors = await wash(12);
+            colors = await wash("wash-hover");
             assert.ok(colors.background.startsWith(colors.expected), `${id} strengthens its accent wash on hover`);
           }
           await page.mouse.move(0, 0);
@@ -11669,6 +11669,70 @@ describe("Bounded value editors", () => {
 });
 
 
+describe("Choice control hover", () => {
+  for (const adapter of ['html', 'vue']) it(`gives checked and unchecked choices subtle hover from their label in ${adapter}`, async () => {
+    const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
+    const { toLch } = await import('../tooling/docs/palette.mjs');
+    const states = ['off', 'on', 'disabled', 'disabled-on'];
+    const tags = ['checkbox', 'radio', 'switch'];
+    const path = await bundle('choice-hover-' + adapter, adapter === 'html' ? 'import "@threadlabs/looma";' : `
+      import { createApp, h } from 'vue'; import { Checkbox, Radio, Switch } from '@threadlabs/looma/vue';
+      createApp({ render: () => h('main', [Checkbox, Radio, Switch].flatMap((component, index) =>
+        ['off', 'on', 'disabled', 'disabled-on'].map(state => h(component, {
+          id: ['checkbox', 'radio', 'switch'][index] + '-' + state,
+          checked: state.endsWith('on'), disabled: state.startsWith('disabled')
+        }, () => 'Choice label')))) }).mount('#app');
+    `);
+    const body = tags.flatMap(tag => states.map(state => `<ui-${tag} id="${tag}-${state}" ${state.endsWith('on') ? 'checked' : ''} ${state.startsWith('disabled') ? 'disabled' : ''}>Choice label</ui-${tag}>`)).join('');
+    const page = await open(path, adapter === 'html' ? body : '<div id="app"></div>', [join(root, 'tokens.css'), ...(adapter === 'vue' ? [join(root, 'vue/components.css')] : [])], { reducedMotion: 'reduce' });
+    try {
+      await page.addStyleTag({ path: join(root, 'src/tokens/theme-system.css') });
+      await page.addStyleTag({ content: 'body {background:var(--ui-surface)} body, main {display:grid;gap:12px;justify-items:start}' });
+      const theme = await page.addStyleTag({ content: ' ' });
+      for (const name of ['looma', 'bookish', 'gold'] as const) for (const mode of ['light', 'dark']) {
+        await theme.evaluate((el, css) => el.textContent = css, themeCSS(startingPoints[name]));
+        await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
+        for (const tag of tags) for (const state of states) {
+          const control = page.locator('#' + tag + '-' + state), input = control.locator('input');
+          await page.mouse.move(0, 0);
+          const rest = await input.screenshot(), geometry = await input.boundingBox();
+          if (tag === 'radio' && state === 'on') assert.equal(await input.evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'selected radios keep a flat face so lighting cannot distort the dot');
+          await control.locator('.label').hover();
+          const hovered = await input.screenshot();
+          if (tag === 'radio' && state === 'on') assert.equal(await input.evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'hover preserves the selected radio’s flat face');
+          assert.equal(rest.equals(hovered), state.startsWith('disabled'), `${name}/${mode}/${tag}/${state}: only enabled marks respond when hovering the label`);
+          if (state === 'on') {
+            const samples = await page.evaluate(async sources => Promise.all(sources.map(async base64 => {
+              const image = new Image(); image.src = 'data:image/png;base64,' + base64; await image.decode();
+              const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+              const context = canvas.getContext('2d')!; context.drawImage(image, 0, 0);
+              return Array.from({ length: 36 }, (_, i) => {
+                const rgba = context.getImageData(Math.floor(image.width * (.15 + (i % 6) * .14)), Math.floor(image.height * (.15 + Math.floor(i / 6) * .14)), 1, 1).data;
+                return '#' + Array.from(rgba).slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('');
+              });
+            })), [rest.toString('base64'), hovered.toString('base64')]);
+            const distance = samples[0].reduce((sum, hex, i) => {
+              const [l, c, h] = toLch(hex), [hl, hc, hh] = toLch(samples[1][i]);
+              return sum + Math.sqrt((l - hl) ** 2 + (c - hc) ** 2 + 2 * c * hc * (1 - Math.cos((h - hh) * Math.PI / 180)));
+            }, 0) / samples[0].length;
+            assert.ok(distance >= .01 && distance <= .05, `${name}/${mode}/${tag}: small checked marks need a visible but quiet paint change, got ${distance}`);
+          }
+          assert.deepEqual(await input.boundingBox(), geometry, `${tag}: hover never changes geometry`);
+          assert.equal(await input.isChecked(), state.endsWith('on'), `${tag}: hover never toggles the value`);
+        }
+      }
+      const mixed = page.locator('#checkbox-off input');
+      await mixed.evaluate(el => { (el as HTMLInputElement).indeterminate = true; });
+      await page.mouse.move(0, 0); const rest = await mixed.screenshot();
+      await page.locator('#checkbox-off .label').hover();
+      assert.equal(rest.equals(await mixed.screenshot()), false, 'mixed checkboxes also respond to label hover');
+      await page.mouse.move(0, 0); await mixed.focus();
+      await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+      assert.notEqual(await mixed.evaluate(el => getComputedStyle(el).outlineStyle), 'none', 'keyboard focus remains distinct from hover');
+    } finally { await page.close(); }
+  });
+});
+
 describe("Shared readable material planes", () => {
   it("paints a full-face reflection with a quieter response on light pigments", async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
@@ -11702,6 +11766,53 @@ describe("Shared readable material planes", () => {
         if (name==='bookish') assert.ok(range>.025, `${mode}: the wine reflection is visible across the body`);
       }
       for (const mode of ['light','dark']) assert.ok(ranges.get('gold/'+mode)!<ranges.get('bookish/'+mode)!, `${mode}: lighter pigment has quieter reflection contrast`);
+    } finally { await page.close(); }
+  });
+
+  it("balances painted hover strength across Bookish and Gold action variants", async () => {
+    const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
+    const { toLch } = await import('../tooling/docs/palette.mjs');
+    const path = await bundle('balanced-action-hover', 'import "@threadlabs/looma";');
+    const variants = ['solid', 'outline', 'ghost'];
+    const ids: string[] = [];
+    const body = variants.flatMap(variant => ['accent', 'neutral'].flatMap(tone => ['ui-button', 'ui-icon-button'].map(tag => {
+      const id = `${tag}-${variant}-${tone}`; ids.push(id);
+      return `<${tag} id="${id}" variant="${variant}" tone="${tone}" aria-label="Sample" label="Sample"> </${tag}>`;
+    }))).join('');
+    const page = await open(path, body, [join(root, 'tokens.css')], { reducedMotion: 'reduce' });
+    try {
+      await page.addStyleTag({ path: join(root, 'src/tokens/theme-system.css') });
+      await page.addStyleTag({ content: 'body { background:var(--ui-surface); display:flex; gap:16px; padding:24px; }' });
+      const theme = await page.addStyleTag({ content: ' ' });
+      const pixels = async (id: string) => {
+        const bytes = await page.locator('#' + id).screenshot();
+        return page.evaluate(async base64 => {
+          const image = new Image(); image.src = 'data:image/png;base64,' + base64; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d')!; context.drawImage(image, 0, 0);
+          return [.3, .7].map(y => {
+            const rgb = context.getImageData(Math.floor(image.width * .3), Math.floor(image.height * y), 1, 1).data;
+            return '#' + Array.from(rgb).slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('');
+          });
+        }, bytes.toString('base64'));
+      };
+      for (const name of ['bookish', 'gold'] as const) for (const mode of ['light', 'dark']) for (const finish of ['theme', 'maximum']) {
+        const recipe = structuredClone(startingPoints[name]);
+        if (finish === 'maximum') Object.assign(recipe.values, { finish: '1', 'light-strength': '1' });
+        await theme.evaluate((el, css) => el.textContent = css, themeCSS(recipe));
+        await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
+        for (const id of ids) {
+          await page.mouse.move(0, 0); const rest = await pixels(id);
+          await page.locator('#' + id).hover(); const hover = await pixels(id);
+          const distances = rest.map((color, i) => {
+            const [l, c, h] = toLch(color), [hl, hc, hh] = toLch(hover[i]);
+            return Math.sqrt((l - hl) ** 2 + (c - hc) ** 2 + 2 * c * hc * (1 - Math.cos((h - hh) * Math.PI / 180)));
+          });
+          const deepSolid = name === 'bookish' && id.includes('-solid-accent');
+          for (const distance of distances) assert.ok(distance >= (deepSolid ? .06 : .014) && distance <= (deepSolid ? .095 : .05),
+            `${name}/${mode}/${finish}/${id}: painted hover should be noticeable and restrained, got ${distance}`);
+        }
+      }
     } finally { await page.close(); }
   });
 

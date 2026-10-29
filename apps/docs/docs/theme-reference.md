@@ -250,7 +250,7 @@ or scale overrides should also respect that preference.
 
 The documentation customizer adds a generation step to the CSS recipe. Four
 six-digit hex seeds (`action`, `canvas`, `surface`, `text`) feed the paired
-light/dark palette. Seed defaults below are the customizer's Clear starting point;
+light/dark palette. Seed defaults below are the customizer's Minimal starting point;
 other starting points supply their own values. Resolved outputs may be repaired
 for the requested mode and contrast.
 

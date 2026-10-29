@@ -117,10 +117,11 @@
     color: var(--ui-text-primary);
     /* Neutral is a quiet filled surface, never the text colour inverted. */
     --ui-neutral-surface: light-dark(color-mix(in oklab, var(--ui-text) 6%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 13.5%, var(--ui-surface-raised)));
-    --ui-neutral-hover: light-dark(color-mix(in oklab, var(--ui-text) 10%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 22.5%, var(--ui-surface-raised)));
+    --ui-neutral-hover: light-dark(oklch(from var(--ui-neutral-surface) calc(l - 0.035) c h), oklch(from var(--ui-neutral-surface) calc(l + 0.035) c h));
     --ui-neutral-active: light-dark(color-mix(in oklab, var(--ui-text) 14%, var(--ui-surface-raised)), color-mix(in oklab, var(--ui-text) 31.5%, var(--ui-surface-raised)));
     /* Quiet neutral shadows complement the shared action and field boundary. */
     --ui-neutral-shadow: var(--ui-shadow-xs);
+    --ui-choice-hover-surface: oklch(from var(--ui-accent-solid) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * 0.04) c h);
     --ui-accent-line-width: var(--ui-border-width);
 
     /* Type scale, from the base size. */
@@ -191,18 +192,44 @@
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
     --ui-control-border: light-dark(color-mix(in oklab, var(--ui-text) 30%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 40%, var(--ui-surface-raised)));
 
-    /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
-       light, so the same mixes brighten instead of darkening, without a second set of values. */
-    --ui-accent-hover: color-mix(in oklab, var(--ui-accent) 86%, var(--ui-text));
+    /* Shared action steps change lightness without washing pigment toward black or white.
+       Generated themes also resolve label contrast and move their material stops. */
+    --ui-accent-hover: oklch(from var(--ui-accent) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
     --ui-accent-active: color-mix(in oklab, var(--ui-accent) 74%, var(--ui-text));
     --ui-accent-subtle: color-mix(in oklab, var(--ui-accent) 12%, var(--ui-surface));
-    --ui-danger-hover: color-mix(in oklab, var(--ui-danger) 86%, var(--ui-text));
+    --ui-danger-hover: oklch(from var(--ui-danger) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
     --ui-danger-active: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-text));
     --ui-success-active: color-mix(in oklab, var(--ui-success) 74%, var(--ui-text));
     --ui-warning-active: color-mix(in oklab, var(--ui-warning) 74%, #ffffff);
     --ui-info-active: color-mix(in oklab, var(--ui-info) 74%, var(--ui-text));
-    --ui-warning-hover: color-mix(in oklab, var(--ui-warning) 86%, #ffffff);
-    --ui-info-hover: color-mix(in oklab, var(--ui-info) 86%, var(--ui-text));
+    --ui-warning-hover: oklch(from var(--ui-warning) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
+    --ui-info-hover: oklch(from var(--ui-info) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
+
+    /* Quiet action paint lifts pigment before compositing, so dark accents retain
+       color. Generated themes calibrate these shared roles against their plates. */
+    --ui-accent-wash: light-dark(oklch(from var(--ui-accent) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-accent) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-accent-wash-hover: light-dark(oklch(from var(--ui-accent) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-accent) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-accent-ghost-hover: light-dark(oklch(from var(--ui-accent) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-accent) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-accent-secondary-wash: light-dark(oklch(from var(--ui-accent-secondary) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-accent-secondary) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-accent-secondary-wash-hover: light-dark(oklch(from var(--ui-accent-secondary) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-accent-secondary) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-accent-secondary-ghost-hover: light-dark(oklch(from var(--ui-accent-secondary) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-accent-secondary) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-accent-tertiary-wash: light-dark(oklch(from var(--ui-accent-tertiary) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-accent-tertiary) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-accent-tertiary-wash-hover: light-dark(oklch(from var(--ui-accent-tertiary) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-accent-tertiary) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-accent-tertiary-ghost-hover: light-dark(oklch(from var(--ui-accent-tertiary) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-accent-tertiary) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-danger-wash: light-dark(oklch(from var(--ui-danger) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-danger) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-danger-wash-hover: light-dark(oklch(from var(--ui-danger) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-danger) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-danger-ghost-hover: light-dark(oklch(from var(--ui-danger) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-danger) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-success-wash: light-dark(oklch(from var(--ui-success) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-success) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-success-wash-hover: light-dark(oklch(from var(--ui-success) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-success) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-success-ghost-hover: light-dark(oklch(from var(--ui-success) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-success) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-warning-wash: light-dark(oklch(from var(--ui-warning) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-warning) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-warning-wash-hover: light-dark(oklch(from var(--ui-warning) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-warning) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-warning-ghost-hover: light-dark(oklch(from var(--ui-warning) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-warning) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-info-wash: light-dark(oklch(from var(--ui-info) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.16), oklch(from var(--ui-info) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.08));
+    --ui-info-wash-hover: light-dark(oklch(from var(--ui-info) 0.72 calc(c * 0.74 * 0.72 / max(0.001, l)) h / 0.25), oklch(from var(--ui-info) 0.65 calc(c * 0.74 * 0.65 / max(0.001, l)) h / 0.14));
+    --ui-info-ghost-hover: light-dark(oklch(from var(--ui-info) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-info) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
+    --ui-neutral-wash-hover: light-dark(oklch(from var(--ui-text) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-text) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.06));
+    --ui-neutral-ghost-hover: light-dark(oklch(from var(--ui-text) 0.72 calc(c * 0.72 / max(0.001, l)) h / 0.1), oklch(from var(--ui-text) 0.65 calc(c * 0.65 / max(0.001, l)) h / 0.04));
 
     /* Disabled is one decision, not a per-component one: the sunken surface and a pale ink, at
        full opacity, so a disabled control reads as unavailable rather than as a faded variant.
@@ -230,10 +257,10 @@
     /* Optional brand accents use the primary identity until explicitly supplied. */
     --ui-accent-secondary: var(--ui-accent);
     --ui-on-accent-secondary: var(--ui-on-accent);
-    --ui-accent-secondary-hover: color-mix(in oklab, var(--ui-accent-secondary) 86%, var(--ui-text));
+    --ui-accent-secondary-hover: oklch(from var(--ui-accent-secondary) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
     --ui-accent-secondary-active: color-mix(in oklab, var(--ui-accent-secondary) 74%, var(--ui-text));
     --ui-accent-secondary-subtle-text: light-dark(oklch(from var(--ui-accent-secondary) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent-secondary) max(l, 0.80) min(c, 0.16) h));
-    --ui-accent-secondary-soft: light-dark(oklch(from var(--ui-accent-secondary) 96% min(c, 0.02) h), oklch(from var(--ui-accent-secondary) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-accent-secondary-soft: light-dark(oklch(from var(--ui-accent-secondary) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-accent-secondary) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-accent-secondary-soft-border: color-mix(in srgb, var(--ui-accent-secondary-soft) 75%, var(--ui-accent-secondary-subtle-text));
     --ui-accent-secondary-solid: var(--ui-accent-secondary);
     --ui-accent-secondary-strong-surface: var(--ui-accent-secondary);
@@ -243,10 +270,10 @@
     --ui-accent-secondary-active-border: var(--ui-accent-secondary-active);
     --ui-accent-tertiary: var(--ui-accent);
     --ui-on-accent-tertiary: var(--ui-on-accent);
-    --ui-accent-tertiary-hover: color-mix(in oklab, var(--ui-accent-tertiary) 86%, var(--ui-text));
+    --ui-accent-tertiary-hover: oklch(from var(--ui-accent-tertiary) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
     --ui-accent-tertiary-active: color-mix(in oklab, var(--ui-accent-tertiary) 74%, var(--ui-text));
     --ui-accent-tertiary-subtle-text: light-dark(oklch(from var(--ui-accent-tertiary) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent-tertiary) max(l, 0.80) min(c, 0.16) h));
-    --ui-accent-tertiary-soft: light-dark(oklch(from var(--ui-accent-tertiary) 96% min(c, 0.02) h), oklch(from var(--ui-accent-tertiary) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-accent-tertiary-soft: light-dark(oklch(from var(--ui-accent-tertiary) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-accent-tertiary) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-accent-tertiary-soft-border: color-mix(in srgb, var(--ui-accent-tertiary-soft) 75%, var(--ui-accent-tertiary-subtle-text));
     --ui-accent-tertiary-solid: var(--ui-accent-tertiary);
     --ui-accent-tertiary-strong-surface: var(--ui-accent-tertiary);
@@ -274,27 +301,27 @@
     --ui-nav-compact-min-block-size: var(--ui-control-size-sm);
     --ui-nav-hover-surface: var(--ui-surface-hover);
 
-    --ui-accent-soft: light-dark(oklch(from var(--ui-accent) 96% min(c, 0.02) h), oklch(from var(--ui-accent) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-accent-soft: light-dark(oklch(from var(--ui-accent) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-accent) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-accent-soft-border: color-mix(in srgb, var(--ui-accent-soft) 75%, var(--ui-accent-subtle-text));
     --ui-accent-contrast: var(--ui-on-accent);
     --ui-accent-strong-surface: var(--ui-accent);
     --ui-accent-on-strong: var(--ui-on-accent);
     --ui-accent-subtle-text: light-dark(oklch(from var(--ui-accent) min(l, 0.50) min(c, 0.18) h), oklch(from var(--ui-accent) max(l, 0.80) min(c, 0.16) h));
     --ui-danger-solid: var(--ui-danger);
-    --ui-danger-soft: light-dark(oklch(from var(--ui-danger) 96% min(c, 0.02) h), oklch(from var(--ui-danger) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-danger-soft: light-dark(oklch(from var(--ui-danger) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-danger) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-danger-soft-border: color-mix(in srgb, var(--ui-danger-soft) 75%, var(--ui-danger-subtle-text));
     --ui-danger-strong-surface: var(--ui-danger);
     --ui-danger-on-strong: var(--ui-on-danger);
     --ui-danger-subtle-text: light-dark(oklch(from var(--ui-danger) min(l, 0.50) min(c, 0.12) h), oklch(from var(--ui-danger) max(l, 0.80) min(c, 0.12) h));
     --ui-success-solid: var(--ui-success);
-    --ui-success-hover: color-mix(in srgb, var(--ui-success) 85%, var(--ui-text));
-    --ui-success-soft: light-dark(oklch(from var(--ui-success) 96% min(c, 0.02) h), oklch(from var(--ui-success) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-success-hover: oklch(from var(--ui-success) calc(l + clamp(-1, (0.5 - l) * 1000, 1) * (0.035 + 0.08 * max(0, 1 - l / 0.5))) c h);
+    --ui-success-soft: light-dark(oklch(from var(--ui-success) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-success) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-success-soft-border: color-mix(in srgb, var(--ui-success-soft) 75%, var(--ui-success-subtle-text));
     --ui-success-strong-surface: var(--ui-success);
     --ui-success-on-strong: var(--ui-on-accent);
     --ui-success-subtle-text: light-dark(oklch(from var(--ui-success) min(l, 0.50) min(c, 0.12) h), oklch(from var(--ui-success) max(l, 0.80) min(c, 0.12) h));
     --ui-warning-solid: var(--ui-warning);
-    --ui-warning-soft: light-dark(oklch(from var(--ui-warning) 96% min(c, 0.02) h), oklch(from var(--ui-warning) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-warning-soft: light-dark(oklch(from var(--ui-warning) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-warning) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-warning-soft-border: color-mix(in srgb, var(--ui-warning-soft) 75%, var(--ui-warning-subtle-text));
     --ui-warning-strong-surface: var(--ui-warning);
     /* Amber needs dark ink; the deeper high-contrast seed selects light ink. */
@@ -303,7 +330,7 @@
     /* Amber is the lightest intent: it takes more ink than the others to read at 4.5:1, even from a bright seed. */
     --ui-warning-subtle-text: light-dark(oklch(from var(--ui-warning) min(l, 0.50) min(c, 0.12) h), oklch(from var(--ui-warning) max(l, 0.80) min(c, 0.12) h));
     --ui-info-solid: var(--ui-info);
-    --ui-info-soft: light-dark(oklch(from var(--ui-info) 96% min(c, 0.02) h), oklch(from var(--ui-info) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) h));
+    --ui-info-soft: light-dark(oklch(from var(--ui-info) 96% calc(min(c, 0.02) * 0.74) h), oklch(from var(--ui-info) calc(clamp(0.34, l, 0.38) + 0.04 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2)) calc(min(c, calc(0.035 + 0.015 * pow(max(0, calc(1 - max(calc(h - 70), calc(70 - h)) / 35)), 2))) * 0.74) h));
     --ui-info-soft-border: color-mix(in srgb, var(--ui-info-soft) 75%, var(--ui-info-subtle-text));
     --ui-info-strong-surface: var(--ui-info);
     --ui-info-on-strong: var(--ui-on-accent);
@@ -318,7 +345,7 @@
     --ui-action-secondary-text: var(--ui-text);
     --ui-control-surface: var(--ui-surface);
     --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border-hover: light-dark(color-mix(in oklab, var(--ui-text) 36%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 55%, var(--ui-surface-raised)));
+    --ui-control-border-hover: light-dark(color-mix(in oklab, var(--ui-text) 38%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 57%, var(--ui-surface-raised)));
     --ui-control-placeholder: color-mix(in oklab, var(--ui-text) 58%, var(--ui-control-surface));
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */

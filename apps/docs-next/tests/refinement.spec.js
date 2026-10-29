@@ -11,6 +11,23 @@ const enter = async (page, info) => {
   return errors;
 };
 
+test('theme sampler delivers checked-choice hover over both marks and labels', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'looma');
+  for (const tag of ['ui-checkbox', 'ui-switch', 'ui-radio']) {
+    const control = page.locator(`[data-theme-sampler] [data-component~="${tag}"]`).first();
+    const input = control.locator('input');
+    await expect(input).toBeChecked();
+    const paint = () => input.evaluate(el => getComputedStyle(el).backgroundColor);
+    await page.mouse.move(0, 0); const rest = await paint();
+    await control.locator('.label').hover();
+    await expect.poll(paint).not.toBe(rest);
+    await page.mouse.move(0, 0); await expect.poll(paint).toBe(rest);
+    await input.hover(); await expect.poll(paint).not.toBe(rest);
+    await expect(input).toBeChecked();
+  }
+});
+
 test('touch taps commit starting theme, palette, material and font selections', async ({browser}, info) => {
   const context = await browser.newContext({ viewport: {width:390,height:844}, isMobile:true, hasTouch:true });
   try {
@@ -321,7 +338,7 @@ test('palette and material defaults are muted until their family is overridden',
 
 test('one main font also styles headings until an optional heading font is chosen', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page, 'clear');
+  await chooseStartingPoint(page, 'minimal');
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
   const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
@@ -383,7 +400,7 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
 
 test('field label sizing follows body text or keeps an independent persisted size', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'typography');
   const label=editor.locator('label').filter({hasText:'Memo title'});
   const source=editor.locator('[data-label-size-source]');
@@ -404,7 +421,7 @@ test('field label sizing follows body text or keeps an independent persisted siz
 
 test('rhythm separates stacked size groups without spreading navigation or action rows', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'layout');
   const measure=()=>page.evaluate(()=>({
     groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
@@ -435,7 +452,7 @@ test('material samples show ordinary and expressive surfaces with working floati
 for (const width of [1440,375]) test(`palette relationships govern neutral boundaries and status families at ${width}px`, async ({page},info) => {
   await page.setViewportSize({width,height:1000});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'clear');
+  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'palette');
   const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
     const border=element=>getComputedStyle(element).borderTopColor;
