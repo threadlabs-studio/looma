@@ -2,7 +2,7 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "../src/editor/extensions";
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
 import "../tokens.css";
@@ -79,10 +79,11 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     const { editor, host } = await mountEditor();
     const fence = "```";
     const markdown = [
-      "::: tabs install", "== npm", `${fence}sh`, "npm install @threadlabs/looma", fence, "== pnpm", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "",
+      ":::: tabs {group=install}", "::: tab [npm]", `${fence}sh`, "npm install @threadlabs/looma", fence, ":::", "",
+      "::: tab [pnpm]", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "::::", "",
       "::: figure The build", "![Pipeline](/pipeline.svg){width=320}", ":::",
     ].join("\n");
-    editor.commands.setContent(loomaMarkdownToHtml(markdown));
+    editor.commands.setContent(markdownToEditorDocument(markdown));
     await flushBrowser();
 
     // Editing draws plain panels under their labels rather than the Tabs component.
@@ -102,6 +103,6 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     await userEvent.keyboard(" pipeline");
     await flushBrowser();
     expect(caption.textContent).toBe("The build pipeline");
-    expect(loomaMarkdownFromDoc(editor.state.doc)).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
+    expect(editorDocumentToMarkdown(editor.getJSON(), { original: markdown })).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
   });
 });

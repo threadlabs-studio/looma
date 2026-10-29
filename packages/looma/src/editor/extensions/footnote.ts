@@ -1,5 +1,5 @@
 import { InputRule, Node, PasteRule } from "@tiptap/core";
-import { DOMSerializer, Fragment, Slice, type Node as ProseMirrorNode, type Schema } from "@tiptap/pm/model";
+import { DOMSerializer, type Fragment, type Node as ProseMirrorNode, type Schema, Slice } from "@tiptap/pm/model";
 import { NodeSelection, Plugin, Selection, TextSelection, type EditorState, type Transaction } from "@tiptap/pm/state";
 
 // Footnote IDs as Looma Markdown writes them: `fn:label`, `fnref:label`, and `fnref:label:2` for
@@ -12,7 +12,6 @@ export const LOOMA_FOOTNOTE_LABEL = /^[^\s\]]+$/;
 export const LOOMA_FOOTNOTE_INSERTED = "loomaFootnoteInserted";
 
 const REFERENCE = "loomaFootnoteReference";
-const NOTES = "loomaFootnotes";
 const NOTE = "loomaFootnote";
 
 const isLabel = (label: string) => LOOMA_FOOTNOTE_LABEL.test(label);
@@ -37,15 +36,6 @@ export function findLoomaFootnote(doc: ProseMirrorNode, label: string): { node: 
   return found;
 }
 
-// Rebuilds `node` with each footnote reference inside it passed through `change`, in document order.
-function mapReferences(node: ProseMirrorNode, change: (reference: ProseMirrorNode) => ProseMirrorNode): ProseMirrorNode {
-  if (node.type.name === REFERENCE) return change(node);
-  if (node.isLeaf) return node;
-  const children: ProseMirrorNode[] = [];
-  node.content.forEach(child => children.push(mapReferences(child, change)));
-  return node.copy(Fragment.from(children));
-}
-
 // The note holding `position`, with the note's start, or null outside every note.
 function noteAt(doc: ProseMirrorNode, position: number) {
   const $position = doc.resolve(position);
@@ -57,112 +47,85 @@ function noteAt(doc: ProseMirrorNode, position: number) {
 }
 
 /**
- * Keeps footnotes on Looma Markdown's rule, so the saved HTML is the HTML Looma Markdown renders for
- * the same document. Notes are numbered by first reference, in the text and then in the notes, and
- * every reference carries its note's number and its place among that note's references. The notes
- * live in one `loomaFootnotes` section at the end of the document, in number order. A note no
- * reference points to leaves the document; a reference with no note gets one back, the note it last
- * had in this editor (so cutting a reference and pasting it keeps its note) or an empty one.
- * @invariant Changing nothing but text inside a note never rebuilds the section.
+ * Looma Markdown's footnote numbering for `content`, in document order. Notes are numbered by first
+ * reference, in the text and then in the notes, and every reference has its note's number and its
+ * place among that note's references. The first note for a label is its note, as with Markdown's
+ * definitions; any other note, or one nothing refers to, has no number.
  */
-function footnoteTransaction(state: EditorState, known: Map<string, ProseMirrorNode>): Transaction | null {
-  const { doc, schema } = state;
-  const sections: { node: ProseMirrorNode; position: number }[] = [];
-  const notes = new Map<string, ProseMirrorNode>();
-  const body: { node: ProseMirrorNode; position: number }[] = [];
-  doc.descendants((node, position) => {
-    if (node.type.name === NOTES) {
-      sections.push({ node, position });
-      // The first note for a label is its note, as with Markdown's definitions.
-      node.forEach(note => { if (!notes.has(note.attrs.label)) notes.set(note.attrs.label, note); });
-      return false;
-    }
-    if (node.type.name === REFERENCE) body.push({ node, position });
+function numberFootnotes(content: Fragment) {
+  const references: { label: string; note: ProseMirrorNode | null }[] = [];
+  const notes: ProseMirrorNode[] = [];
+  const first = new Map<string, ProseMirrorNode>();
+  const visit = (fragment: Fragment, note: ProseMirrorNode | null): void => fragment.forEach(node => {
+    if (node.type.name === REFERENCE) references.push({ label: String(node.attrs.label), note });
+    else if (node.type.name === NOTE) {
+      notes.push(node);
+      if (!first.has(node.attrs.label)) first.set(node.attrs.label, node);
+      visit(node.content, node);
+    } else visit(node.content, note);
   });
-  if (!sections.length && !body.length) return null;
-
+  visit(content, null);
   const order: string[] = [];
   const counts = new Map<string, number>();
-  const numbered = (reference: ProseMirrorNode) => {
-    const label = String(reference.attrs.label);
+  const numbered = new Map<number, { number: number; occurrence: number }>();
+  const number = (index: number) => {
+    const { label } = references[index];
     if (!counts.has(label)) order.push(label);
     counts.set(label, (counts.get(label) ?? 0) + 1);
-    const attrs = { ...reference.attrs, number: order.indexOf(label) + 1, occurrence: counts.get(label) };
-    return attrs.number === reference.attrs.number && attrs.occurrence === reference.attrs.occurrence ? reference : reference.type.create(attrs, null, reference.marks);
+    numbered.set(index, { number: order.indexOf(label) + 1, occurrence: counts.get(label)! });
   };
-  const transaction = state.tr;
-  for (const { node, position } of body) {
-    const next = numbered(node);
-    if (next !== node) transaction.setNodeMarkup(position, undefined, next.attrs);
+  references.forEach((reference, index) => { if (!reference.note) number(index); });
+  // A note may refer to a later note, which then joins the order.
+  for (let at = 0; at < order.length; at++) {
+    const note = first.get(order[at]);
+    references.forEach((reference, index) => { if (note && reference.note === note) number(index); });
   }
-  // A note may refer to a later note, which then joins the list.
-  const built: ProseMirrorNode[] = [];
-  for (let index = 0; index < order.length; index++) {
-    const label = order[index];
-    const note = notes.get(label) ?? known.get(label) ?? schema.nodes[NOTE].create({ label }, schema.nodes.paragraph.create());
-    built.push(mapReferences(note, numbered));
-  }
-  // Counts are final only once every note's references are numbered.
-  const wanted = built.map(note => note.attrs.count === counts.get(note.attrs.label) ? note : note.type.create({ ...note.attrs, count: counts.get(note.attrs.label) }, note.content));
-  for (const note of [...notes.values(), ...wanted]) known.set(note.attrs.label, note);
+  return {
+    order,
+    counts,
+    references: references.map((_reference, index) => numbered.get(index) ?? { number: null, occurrence: 1 }),
+    notes: notes.map(note => ({ number: first.get(note.attrs.label) === note && counts.has(note.attrs.label) ? order.indexOf(note.attrs.label) + 1 : null, count: counts.get(note.attrs.label) ?? 1 })),
+  };
+}
 
-  const section = wanted.length ? schema.nodes[NOTES].create(null, wanted) : null;
-  const last = doc.lastChild?.type.name === NOTES ? { node: doc.lastChild, position: doc.content.size - doc.lastChild.nodeSize } : null;
-  if (!(section && last && sections.length === 1 && last.node.eq(section)) && (sections.length || section)) {
-    // A selection inside a note follows the note to its new place.
-    const { selection } = state;
-    const inside = noteAt(doc, selection.from);
-    const keep = inside && selection.to <= inside.start + inside.node.nodeSize ? { label: inside.node.attrs.label, start: inside.start } : null;
-    for (const { node, position } of [...sections].reverse()) if (node !== last?.node) transaction.delete(position, position + node.nodeSize);
-    if (last) {
-      const position = transaction.mapping.map(last.position);
-      if (section) transaction.replaceWith(position, position + last.node.nodeSize, section);
-      else transaction.delete(position, position + last.node.nodeSize);
-    } else if (section) transaction.insert(transaction.doc.content.size, section);
-    const moved = keep && findLoomaFootnote(transaction.doc, keep.label);
-    if (keep && moved) {
-      const json = selection.toJSON() as { anchor: number; head?: number };
-      json.anchor += moved.position - keep.start;
-      if (json.head !== undefined) json.head += moved.position - keep.start;
-      try { transaction.setSelection(Selection.fromJSON(transaction.doc, json)); } catch { /* the mapped selection stands */ }
-    }
+/**
+ * Keeps footnotes on Looma Markdown's rule (`numberFootnotes`). Each note stays where its definition
+ * is written. Removing a note's last reference removes the note; a reference with no note gets one
+ * back at the end of the document, the note it last had in this editor (so cutting a reference and
+ * pasting it keeps its note) or an empty one. A note nothing has referred to in this editor, as a
+ * document may define one, stays.
+ * @invariant Changing nothing but text inside a note never moves or renumbers a note.
+ */
+function footnoteTransaction(state: EditorState, previous: ProseMirrorNode | null, known: Map<string, ProseMirrorNode>): Transaction | null {
+  const { doc, schema } = state;
+  const references: { node: ProseMirrorNode; position: number }[] = [];
+  const notes: { node: ProseMirrorNode; position: number }[] = [];
+  doc.descendants((node, position) => {
+    if (node.type.name === REFERENCE) references.push({ node, position });
+    if (node.type.name === NOTE) notes.push({ node, position });
+  });
+  if (!references.length && !notes.length) return null;
+  // A note deleted by this change is the one its references get back.
+  previous?.descendants(node => { if (node.type.name === NOTE && !known.has(node.attrs.label)) known.set(node.attrs.label, node); });
+  const numbering = numberFootnotes(doc.content);
+  const transaction = state.tr;
+  // Attribute changes keep every position, so these can use the positions read above.
+  const update = ({ node, position }: { node: ProseMirrorNode; position: number }, attrs: Record<string, unknown>) => {
+    if (Object.entries(attrs).some(([key, value]) => node.attrs[key] !== value)) transaction.setNodeMarkup(position, undefined, { ...node.attrs, ...attrs });
+  };
+  references.forEach((reference, index) => update(reference, numbering.references[index]));
+  notes.forEach((note, index) => { update(note, numbering.notes[index]); known.set(note.node.attrs.label, note.node); });
+  const referenced = new Set<string>();
+  previous?.descendants(node => { if (node.type.name === REFERENCE) referenced.add(String(node.attrs.label)); });
+  for (const { node, position } of [...notes].reverse()) {
+    if (referenced.has(node.attrs.label) && !numbering.counts.has(node.attrs.label)) transaction.delete(transaction.mapping.map(position), transaction.mapping.map(position + node.nodeSize));
+  }
+  for (const label of numbering.order) {
+    if (notes.some(({ node }) => node.attrs.label === label)) continue;
+    const note = known.get(label) ?? schema.nodes[NOTE].create({ label }, schema.nodes.paragraph.create());
+    transaction.insert(transaction.doc.content.size, note.type.create({ ...note.attrs, number: numbering.order.indexOf(label) + 1, count: numbering.counts.get(label) }, note.content));
   }
   return transaction.docChanged ? transaction : null;
-}
-
-// Looma Markdown links each note back to its references at the end of its last paragraph, or in a
-// paragraph of their own when the note ends with another block. The editor shows no back-links, so
-// they exist only in serialized HTML.
-function appendBackLinks(item: HTMLElement, label: string, number: number, count: number) {
-  const document = item.ownerDocument;
-  let paragraph = item.lastElementChild;
-  if (paragraph?.nodeName !== "P") item.append(paragraph = document.createElement("p"));
-  for (let occurrence = 1; occurrence <= count; occurrence++) {
-    const link = document.createElement("a");
-    link.setAttribute("href", `#fnref:${label}${occurrence > 1 ? `:${occurrence}` : ""}`);
-    link.setAttribute("data-footnote-backref", "");
-    link.setAttribute("aria-label", `Back to reference ${number}${occurrence > 1 ? `-${occurrence}` : ""}`);
-    link.append("↩");
-    if (occurrence > 1) link.append(Object.assign(document.createElement("sup"), { textContent: String(occurrence) }));
-    paragraph.append(" ", link);
-  }
-}
-
-// ProseMirror caches one serializer per schema; this adds the back-links to each note it writes. It
-// wraps that instance's method rather than subclassing DOMSerializer: a bundler that lowers classes
-// calls the base as a function, which a native class rejects.
-function installSerializer(schema: Schema) {
-  const serializer = DOMSerializer.fromSchema(schema);
-  if (Object.prototype.hasOwnProperty.call(serializer, "serializeFragment")) return;
-  const serializeFragment = serializer.serializeFragment;
-  serializer.serializeFragment = function (fragment, options = {}, target) {
-    const dom = serializeFragment.call(this, fragment, options, target);
-    fragment.forEach((node, _offset, index) => {
-      // A note's number is its place in the section, which the numbering keeps in order.
-      if (node.type.name === NOTE) appendBackLinks(dom.childNodes[index] as HTMLElement, String(node.attrs.label), index + 1, Number(node.attrs.count) || 1);
-    });
-    return dom;
-  };
 }
 
 /**
@@ -237,12 +200,78 @@ export const LoomaFootnoteReference = Node.create({
   },
 });
 
+// Looma Markdown links each note back to its references at the end of its last paragraph, or in a
+// paragraph of their own when the note ends with another block. The editor shows no back-links, so
+// they exist only in serialized HTML.
+function appendBackLinks(item: HTMLElement, label: string, number: number, count: number) {
+  const document = item.ownerDocument;
+  let paragraph = item.lastElementChild;
+  if (paragraph?.nodeName !== "P") item.append(paragraph = document.createElement("p"));
+  for (let occurrence = 1; occurrence <= count; occurrence++) {
+    const link = document.createElement("a");
+    link.setAttribute("href", `#fnref:${label}${occurrence > 1 ? `:${occurrence}` : ""}`);
+    link.setAttribute("data-footnote-backref", "");
+    link.setAttribute("aria-label", `Back to reference ${number}${occurrence > 1 ? `-${occurrence}` : ""}`);
+    link.append("↩");
+    if (occurrence > 1) link.append(Object.assign(document.createElement("sup"), { textContent: String(occurrence) }));
+    paragraph.append(" ", link);
+  }
+}
+
+// Saved HTML collects the notes as Looma Markdown renders them: one `<section data-footnotes>` after
+// the content, in number order, each note an `<li>` with its back-links; a note nothing refers to
+// renders nothing. ProseMirror caches one serializer per schema; this wraps that instance's method
+// rather than subclassing DOMSerializer: a bundler that lowers classes calls the base as a function,
+// which a native class rejects. Only the outermost call, which has no target, collects.
+function installSerializer(schema: Schema) {
+  const serializer = DOMSerializer.fromSchema(schema);
+  if (Object.prototype.hasOwnProperty.call(serializer, "serializeFragment")) return;
+  const serializeFragment = serializer.serializeFragment;
+  serializer.serializeFragment = function (fragment, options = {}, target) {
+    const dom = serializeFragment.call(this, fragment, options, target);
+    if (target) return dom;
+    // The numbers are worked out here, so HTML saved before the editor numbers a document is right.
+    const numbering = numberFootnotes(fragment);
+    const references = [...dom.querySelectorAll<HTMLElement>("a[data-footnote-ref]")];
+    const elements = [...dom.querySelectorAll<HTMLElement>("[data-looma-footnote]")];
+    if (references.length !== numbering.references.length || elements.length !== numbering.notes.length) return dom;
+    references.forEach((link, index) => {
+      const { number, occurrence } = numbering.references[index];
+      const label = labelFrom(link.getAttribute("href"), "fn:");
+      if (number !== null) link.textContent = String(number);
+      link.id = `fnref:${label}${occurrence > 1 ? `:${occurrence}` : ""}`;
+    });
+    const document = dom.ownerDocument!;
+    const items: { number: number; item: HTMLElement }[] = [];
+    elements.forEach((element, index) => {
+      const { number, count } = numbering.notes[index];
+      const label = element.getAttribute("data-label") ?? "";
+      element.remove();
+      if (number === null) return;
+      const item = document.createElement("li");
+      item.id = `fn:${label}`;
+      item.append(...element.querySelector(":scope > li")!.childNodes);
+      appendBackLinks(item, label, number, count);
+      items.push({ number, item });
+    });
+    if (!items.length) return dom;
+    const section = document.createElement("section");
+    section.setAttribute("data-footnotes", "");
+    section.className = "footnotes";
+    section.append(Object.assign(document.createElement("h2"), { id: "footnote:label", className: "sr-only", textContent: "Footnotes" }));
+    section.append(document.createElement("ol"));
+    section.lastElementChild!.append(...items.sort((a, b) => a.number - b.number).map(({ item }) => item));
+    dom.append(section);
+    return dom;
+  };
+}
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     loomaFootnotes: {
       /**
        * Inserts a reference at the selection. A new label (the next free number when none is given)
-       * also gets an empty note, and the caret moves into it.
+       * also gets an empty note at the end of the document, and the caret moves into it.
        */
       insertLoomaFootnote: (label?: string) => ReturnType;
       /** Gives a footnote's note and every reference to it a new, unused label. */
@@ -256,49 +285,61 @@ declare module "@tiptap/core" {
   }
 }
 
+// Each editor's last note for each label. Tiptap shares an extension's storage between the editors
+// that use the extension, so this is kept per editor.
+const known = new WeakMap<object, Map<string, ProseMirrorNode>>();
+const knownNotes = (editor: object) => known.get(editor) ?? known.set(editor, new Map()).get(editor)!;
+
 /**
- * The document's notes, saved as `<section data-footnotes>` with its `<ol>`.
- * @invariant It holds only footnotes and stays the document's last block, one section in number order.
- * @ownership It owns footnote numbering and the back-links in serialized HTML for the whole editor.
+ * One note, `[^label]: …`, where its definition is written. Saved HTML collects the notes into
+ * one `<section data-footnotes>` whose `<li id="fn:label">` items read back as notes.
+ * @invariant `number` is its place in the numbering, or null when nothing refers to it; `count` is
+ * how many references point to it. Its back-links are presentation: the editor reads past them and
+ * writes them only into saved HTML.
+ * @ownership It owns footnote numbering and the notes section in serialized HTML for the whole editor.
  */
-export const LoomaFootnotes = Node.create({
-  name: NOTES,
+export const LoomaFootnote = Node.create({
+  name: NOTE,
   group: "block",
-  content: `${NOTE}+`,
-  isolating: true,
-  parseHTML() {
-    return [{ tag: "section[data-footnotes]", contentElement: "ol" }];
+  content: "block+",
+  defining: true,
+  addAttributes() {
+    return {
+      label: { default: "", parseHTML: element => element.getAttribute("data-label") ?? labelFrom(`#${element.id}`, "fn:") ?? "", renderHTML: () => ({}) },
+      number: { default: null, renderHTML: () => ({}) },
+      count: { default: 1, parseHTML: element => element.querySelectorAll("a[data-footnote-backref]").length || 1, renderHTML: () => ({}) },
+    };
   },
-  renderHTML() {
-    return ["section", { "data-footnotes": "", class: "footnotes" }, ["h2", { id: "footnote:label", class: "sr-only" }, "Footnotes"], ["ol", 0]];
+  parseHTML() {
+    return [
+      { tag: "section[data-footnotes]", priority: 1100, skip: true },
+      { tag: "section[data-footnotes] > h2", priority: 1100, ignore: true },
+      { tag: "section[data-footnotes] > ol", priority: 1100, skip: true },
+      { tag: "section[data-footnotes] > ol > li", priority: 1100 },
+      { tag: ":is(ol, ul)[data-looma-footnote]", priority: 1100, contentElement: ":scope > li" },
+      { tag: "a[data-footnote-backref]", priority: 1100, ignore: true },
+    ];
+  },
+  // In the editor a note is a one-item list, so the native list marker shows its number where it
+  // is written; a note without a number has a bullet.
+  renderHTML({ node }) {
+    const { label, number } = node.attrs as { label: string; number: number | null };
+    return [number === null ? "ul" : "ol", { "data-looma-footnote": "", "data-label": label, id: `fn:${label}`, ...(number === null ? {} : { start: number }) }, ["li", 0]];
   },
   onBeforeCreate() {
     installSerializer(this.editor.schema);
   },
   onCreate() {
-    const transaction = footnoteTransaction(this.editor.state, this.storage.known);
+    const transaction = footnoteTransaction(this.editor.state, null, knownNotes(this.editor));
     if (transaction) this.editor.view.dispatch(transaction.setMeta("addToHistory", false));
   },
-  addStorage: () => ({ known: new Map<string, ProseMirrorNode>() }),
   addProseMirrorPlugins() {
     return [new Plugin({
-      appendTransaction: (transactions, _oldState, state) => transactions.some(transaction => transaction.docChanged)
-        ? footnoteTransaction(state, this.storage.known) : null,
+      appendTransaction: (transactions, oldState, state) => transactions.some(transaction => transaction.docChanged)
+        ? footnoteTransaction(state, oldState.doc, knownNotes(this.editor)) : null,
       props: {
-        // Pasted notes (Markdown definitions, or a rendered document's notes) leave the slice, so they
-        // never merge with the text after the caret, and join the document's notes as the notes of
-        // the pasted references. A slice of one note's text pastes as text.
-        transformPasted: slice => {
-          const kept: ProseMirrorNode[] = [];
-          slice.content.forEach(node => {
-            if (node.type.name === NOTES) node.forEach(note => { this.storage.known.set(note.attrs.label, note); });
-            else kept.push(node);
-          });
-          if (!kept.length || kept.length === slice.content.childCount) return slice;
-          const content = Fragment.from(kept);
-          const open = Slice.maxOpen(content);
-          return new Slice(content, kept[0] === slice.content.firstChild ? slice.openStart : open.openStart, kept.at(-1) === slice.content.lastChild ? slice.openEnd : open.openEnd);
-        },
+        // A pasted note ends the paste, so the text after the caret never joins it.
+        transformPasted: slice => slice.openEnd && slice.content.lastChild?.type.name === NOTE ? new Slice(slice.content, slice.openStart, 0) : slice,
       },
     })];
   },
@@ -320,12 +361,9 @@ export const LoomaFootnotes = Node.create({
         tr.doc.descendants((node, offset) => { if (offset <= position && node.type.name === REFERENCE && node.attrs.label === name) occurrence++; });
         tr.setMeta(LOOMA_FOOTNOTE_INSERTED, { label: name, occurrence });
         if (!findLoomaFootnote(tr.doc, name)) {
-          const note = state.schema.nodes[NOTE].create({ label: name }, state.schema.nodes.paragraph.create());
-          const last = tr.doc.lastChild;
-          // The numbering moves the note to its place; the caret goes with it.
-          if (last?.type.name === NOTES) tr.insert(tr.doc.content.size - 1, note);
-          else tr.insert(tr.doc.content.size, state.schema.nodes[NOTES].create(null, note));
-          tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 3));
+          tr.insert(tr.doc.content.size, state.schema.nodes[NOTE].create({ label: name }, state.schema.nodes.paragraph.create()));
+          // Inside the new note's paragraph.
+          tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 2));
         }
         tr.scrollIntoView();
         return true;
@@ -364,31 +402,5 @@ export const LoomaFootnotes = Node.create({
       "Mod-Alt-f": () => this.editor.commands.insertLoomaFootnote(),
       "Mod-Alt-n": () => this.editor.commands.goToLoomaFootnote(),
     };
-  },
-});
-
-/**
- * One note, `[^label]: …`, saved as `<li id="fn:label">`.
- * @invariant It exists only inside `LoomaFootnotes`. `count` is how many references point to it. Its
- * back-links are presentation: the editor reads past them and writes them only into saved HTML.
- */
-export const LoomaFootnote = Node.create({
-  name: NOTE,
-  content: "block+",
-  defining: true,
-  addAttributes() {
-    return {
-      label: { default: "", parseHTML: element => labelFrom(`#${element.id}`, "fn:") ?? "", renderHTML: () => ({}) },
-      count: { default: 1, parseHTML: element => element.querySelectorAll("a[data-footnote-backref]").length || 1, renderHTML: () => ({}) },
-    };
-  },
-  parseHTML() {
-    return [
-      { tag: "li", priority: 1100, context: `${NOTES}/` },
-      { tag: "a[data-footnote-backref]", priority: 1100, ignore: true },
-    ];
-  },
-  renderHTML({ node }) {
-    return ["li", { id: `fn:${node.attrs.label}` }, 0];
   },
 });

@@ -53,27 +53,17 @@ describe("Expressive Markdown editor documents", () => {
   });
 });
 
-it("materializes table-of-contents links from the document headings", () => {
-  const document = editorDocumentToExpressmark({ type: "doc", content: [
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
-    { type: "heading", attrs: { level: 2, id: "start" }, content: [{ type: "text", text: "Start here" }] },
-  ] });
-  expect(document.body[0]).toMatchObject({ type: "container", subType: "toc", body: [
-    { type: "list", children: [{ type: "listItem", body: [{ type: "paragraph", children: [{ type: "link", url: "#start", value: "Start here" }] }] }] },
-  ] });
-});
-
-it("excludes headings inside authored TOCs from other generated navigation", () => {
-  const doc = editorDocumentToExpressmark({ type: "doc", content: [
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "plain" }, content: [
-      { type: "heading", attrs: { level: 1, id: "nav-label" }, content: [{ type: "text", text: "Navigation label" }] },
-    ] },
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
-    { type: "heading", attrs: { level: 2, id: "actual" }, content: [{ type: "text", text: "Actual section" }] },
-  ] });
-  expect(doc.body[0]?.body?.[0]).toMatchObject({ type: "heading", id: "nav-label", value: "Navigation label" });
-  expect(doc.body[1]?.body?.[0]?.children).toHaveLength(1);
-  expect(doc.body[1]?.body?.[0]?.children?.[0]?.body?.[0]?.children?.[0]).toMatchObject({ type: "link", url: "#actual", value: "Actual section" });
+it("keeps a table of contents where it is written, with its settings, and lets readers build its entries", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", attrs: { depth: 2, format: "bulleted" } },
+    { type: "heading", attrs: { level: 2, id: "start-here" }, content: [{ type: "text", text: "Start here" }] },
+  ] };
+  expect(editorDocumentToExpressmark(editor).body).toEqual([
+    { type: "leaf", subType: "toc", attributes: { depth: "2", format: "bulleted" } },
+    { type: "heading", level: 2, value: "Start here" },
+  ]);
+  expect(editorDocumentToMarkdown(editor)).toBe('::toc {depth="2" format="bulleted"}\n\n## Start here\n');
+  expect(markdownToEditorDocument(editorDocumentToMarkdown(editor))).toEqual(editor);
 });
 
 it("keeps authored TOC navigation instead of replacing it with generated links", () => {
@@ -161,32 +151,25 @@ it('rejects supplied AST URLs and CSS values that the safe HTML policy would dis
   expect(() => expressmarkToEditorDocument({ type: 'document', version: 1, body: [{ type: 'table', children: [{ type: 'tableRow', children: [{ type: 'tableCell', value: 'Cell', attributes: { backgroundColor: 'url(https://example.com/pixel)' } }] }] }] })).toThrow(/table background/)
 })
 
-it('preserves duplicate authored IDs and keeps materialized TOC links on actual targets', () => {
+it('preserves duplicate authored IDs', () => {
   const diagnostics: string[] = []
   const editor = { type: 'doc', content: [
-    { type: 'loomaTableOfContents', attrs: { depth: 3, format: 'bulleted' } },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'First' }] },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Second' }] },
   ] }
   const ast = editorDocumentToExpressmark(editor, { onDiagnostic: diagnostic => diagnostics.push(diagnostic.code) })
-  expect(ast.body.slice(1).map(node => node.id)).toEqual(['same', 'same'])
-  const links = ast.body[0]?.body?.[0]?.children?.map(item => item.body?.[0]?.children?.[0]?.url)
-  expect(links).toEqual(['#same', '#same'])
+  expect(ast.body.map(node => node.id)).toEqual(['same', 'same'])
   expect(diagnostics).toContain('duplicate-id')
-  expect(editor.content[1]?.attrs?.id).toBe('same')
 })
 
-it('reserves authored IDs before assigning TOC targets to headings that need them', () => {
+it('writes only the heading IDs a reader would not derive from the text', () => {
   const editor = { type: 'doc', content: [
-    { type: 'loomaTableOfContents', attrs: { depth: 3, format: 'bulleted' } },
-    { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Same' }] },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Custom' }] },
-    { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Duplicate' }] },
-    { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Same' }] },
+    { type: 'heading', attrs: { level: 2, id: 'same-1' }, content: [{ type: 'text', text: 'Same' }] },
+    { type: 'heading', attrs: { level: 2, id: 'same-2' }, content: [{ type: 'text', text: 'Same' }] },
   ] }
-  const ast = editorDocumentToExpressmark(editor)
-  expect(ast.body.slice(1).map(node => node.id)).toEqual(['same-1', 'same', 'same', 'same-2'])
-  expect(editor.content[1]?.attrs?.id).toBeUndefined()
+  expect(editorDocumentToExpressmark(editor).body.map(node => node.id)).toEqual(['same', undefined, undefined])
+  expect(markdownToEditorDocument(editorDocumentToMarkdown(editor))).toEqual(editor)
 })
 
 it('rejects colored highlights that the default schema cannot preserve', () => {

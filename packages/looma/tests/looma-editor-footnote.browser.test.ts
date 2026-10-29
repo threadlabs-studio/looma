@@ -1,9 +1,9 @@
-import { generateJSON, type Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
-import { getDefaultEditorExtensions, loomaMarkdownFromDoc, loomaMarkdownToHtml } from "../src/editor/extensions";
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import "../tokens.css";
 import "../theme-light.css";
 import "../vue/components.css";
@@ -33,13 +33,13 @@ async function mount(markdown: string) {
   document.body.append(outside, host);
   let editor: Editor | null = null;
   const app = createApp({
-    render: () => h(LoomaEditor, { modelValue: generateJSON(loomaMarkdownToHtml(markdown), getDefaultEditorExtensions()), onReady: (instance: Editor) => { editor = instance; } }),
+    render: () => h(LoomaEditor, { modelValue: markdownToEditorDocument(markdown), onReady: (instance: Editor) => { editor = instance; } }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
   const popover = () => document.querySelector<HTMLElement>('[role="dialog"][aria-label="Edit footnote"]')?.closest<HTMLElement>("[popover]") ?? null;
-  return { host, outside, editor: editor!, popover, markdown: () => loomaMarkdownFromDoc(editor!.state.doc) };
+  return { host, outside, editor: editor!, popover, markdown: () => editorDocumentToMarkdown(editor!.getJSON(), { original: markdown }) };
 }
 
 async function action(name: string) {
@@ -127,7 +127,7 @@ describe("LoomaEditor footnotes (real browser)", () => {
     await vi.waitFor(() => expect(document.activeElement).toBe(field()));
     await userEvent.keyboard("Cited.");
     await flushBrowser();
-    expect(markdown()).toBe("Start [^1]\n\n[^1]: Cited.");
+    expect(markdown()).toBe("Start [^1]\n\n[^1]: Cited.\n");
     await dismiss();
     editor.chain().setTextSelection(1).insertLoomaFootnote().run();
     await flushBrowser();

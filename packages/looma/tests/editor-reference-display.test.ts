@@ -106,7 +106,7 @@ it("serializes materialized reference labels and stable targets without changing
   expect(content).toEqual(before);
 });
 
-it("uses cached names in live TOCs and serializes their concrete entries", () => {
+it("uses cached names in live TOCs and writes the TOC as its placeholder", () => {
   const editor = new Editor({ extensions: getDefaultEditorExtensions({ references: {} }), content: {
     type: "doc", content: [{ type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
       { type: "heading", attrs: { level: 2, id: "stable" }, content: [{ type: "loomaReference", attrs: { id: "guide", kind: "link", href: "/guide", label: "Original" } }] }],
@@ -114,6 +114,7 @@ it("uses cached names in live TOCs and serializes their concrete entries", () =>
   setReferenceDisplay(editor, { "link:guide": { label: "Renamed" } });
   expect(editor.view.dom.querySelector('nav a[href="#stable"]')?.textContent).toBe("Renamed");
   const markdown = editorToMarkdown(editor);
-  expect(markdown).toContain('[Renamed](#stable)');
+  expect(markdown).toMatch(/^::toc \{format="bulleted"\}\n/);
+  expect(markdown).toContain("[Renamed](/guide)");
   expect(editor.getJSON().content?.[0]?.content).toBeUndefined();
 });

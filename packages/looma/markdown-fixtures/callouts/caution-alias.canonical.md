@@ -1,3 +1,3 @@
-::: danger Stop
+::: danger [Stop]
 This cannot be undone.
 :::

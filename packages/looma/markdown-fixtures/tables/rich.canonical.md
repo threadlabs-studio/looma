@@ -1,1 +1,1 @@
-<table><tbody><tr><th><p>Status</p></th><th><p>Owner</p></th></tr><tr><td style="background-color: rgb(220, 252, 231);"><p>Done</p><ul><li><p>Shipped</p></li></ul></td><td style="text-align: center;"><p>Ada</p></td></tr></tbody></table>
+<table><tr><th>Status</th><th>Owner</th></tr><tr><td data-background-color="#dcfce7" data-attributes="{&quot;backgroundColor&quot;:&quot;#dcfce7&quot;}"><p>Done</p><ul><li><p>Shipped</p></li></ul></td><td data-text-align="center" data-attributes="{&quot;textAlign&quot;:&quot;center&quot;}">Ada</td></tr></table>

@@ -1,4 +1,4 @@
-:::: details More
+:::: details [More]
 ::: warning
 Nested.
 :::

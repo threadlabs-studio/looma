@@ -10,7 +10,7 @@ export interface LoomaMarkdownFixture {
   feature: string;
   name: string;
   markdown: string;
-  /** The canonical HTML: what LoomaEditor saves and the markdown-it plugin renders. */
+  /** The canonical HTML: what LoomaEditor saves for the document. */
   html: string;
   /** What a writer produces from the document; the input itself when the case has no `case.canonical.md`. */
   canonical: string;
