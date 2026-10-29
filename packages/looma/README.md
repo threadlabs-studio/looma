@@ -53,6 +53,30 @@ each `<ui-*>` element into its native root. Each component's styles are scoped t
 stylesheet is the only stylesheet to include. Without a build, link components one by one from
 `@threadlabs/looma/components/<tag>/<tag>.html`.
 
+## Site navigation
+
+Provide the brand and navigation once. SiteHeader automatically adds a hamburger
+beside the logo below 64rem and opens the same links in a full-height, scrollable
+modal drawer with a dark backdrop. It handles focus, page scroll locking, Escape,
+outside presses, and closing after link selection. No separate menu or drawer wiring
+is needed. `breakpoint="sm"` and `breakpoint="md"` switch at 40rem and 48rem.
+
+```html
+<ui-site-header>
+  <a slot="brand" href="/">Folio</a>
+  <a slot="navigation" href="/guide">Guide</a>
+  <a slot="navigation" href="/journal">Journal</a>
+</ui-site-header>
+```
+
+In Vue, use `SiteHeader` with `#brand`, `#navigation`, and optional `#actions`.
+Router links keep their original handlers and state. Localize `label`, `menuLabel`,
+and `closeLabel` as needed. Without JavaScript, navigation stays available inline.
+
+Use the optional `menu` slot only when the trigger opens a different navigation
+surface, such as a combined documentation sidebar. That explicit override owns its
+own target and behavior; omitting it gives you the automatic drawer.
+
 ## Theming
 
 Components read design tokens (`--ui-*` custom properties) from `tokens.css` and a theme

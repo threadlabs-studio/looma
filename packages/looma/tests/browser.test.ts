@@ -64,11 +64,10 @@ describe("SiteHeader", () => {
       createApp({render:()=>h(SiteHeader,{id:"site",sticky:true},{
         brand:()=>h("a",{href:"#home",id:"brand"},"Fellowship"),
         navigation:()=>[h("a",{href:"#guide",id:"destination"},"Guide"),h("a",{href:"#components"},"Components")],
-        menu:()=>h(Button,{id:"menu",popovertarget:"drawer",tone:"neutral"},()=>"Menu"),
         actions:()=>h(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
       })}).mount("#app");
     `);
-    const page=await open(path, `${adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="menu" id="menu" popovertarget="drawer" tone="neutral">Menu</ui-button><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>'}<nav id="drawer" popover>Mobile destinations</nav>`, [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
+    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
@@ -98,6 +97,7 @@ describe("SiteHeader", () => {
         title.style.cssText='min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'; element.replaceChildren(title);
       });
       await page.setViewportSize({width:375,height:800});
+      await page.locator("#destination").waitFor({state:"hidden"});
       const mobile=await page.locator('#site').evaluate(header=>{
         const identity=header.querySelector('.identity')!.getBoundingClientRect(), actions=header.querySelector('.actions')!.getBoundingClientRect();
         return {delta:Math.abs(identity.y+identity.height/2-actions.y-actions.height/2), width:identity.width};
@@ -106,15 +106,137 @@ describe("SiteHeader", () => {
       assert.ok(mobile.width>0,'branding retains visible space');
       assert.equal(await page.locator('#brand').isVisible(),true,'the brand stays visible when navigation collapses');
       assert.equal(await page.locator('#destination').isVisible(),false);
-      assert.equal(await page.locator('#menu').isVisible(),true);
+      const menu=page.getByRole('button',{name:'Open navigation',exact:true});
+      assert.equal(await menu.isVisible(),true);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-      await page.locator('#menu').click();
-      assert.equal(await page.locator('#drawer').isVisible(),true);
+      await menu.click();
+      assert.equal(await page.getByRole('dialog',{name:'Main'}).isVisible(),true);
+      assert.equal(await page.locator('#destination').isVisible(),true);
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#drawer').isVisible(),false);
-      await page.locator('#menu').evaluate(element=>element.remove());
-      assert.equal(await page.locator('#destination').isVisible(),true,'destinations remain available without a menu trigger');
+      await page.getByRole('dialog',{name:'Main'}).waitFor({state:'hidden'});
+      assert.equal(await menu.getAttribute('aria-expanded'),'false');
     } finally {await page.close();}
+  });
+});
+
+describe("SiteHeader automatic drawer", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`keeps one live navigation through mobile interactions and breakpoints in ${adapter}`, async () => {
+    const links = Array.from({length:30},(_,index)=>`<a slot="navigation" href="#section-${index}" id="link-${index}">Section ${index+1}</a>`).join('');
+    const path=await bundle(`site-drawer-${adapter}`,adapter==="HTML"?'import "@threadlabs/looma"; import {componentRegistry} from "@nextwebwg/html-next/runtime"; window.setSiteBreakpoint=value=>componentRegistry.update(document.querySelector("#site"),{breakpoint:value});':`
+      import {createApp,h,ref} from "vue"; import {SiteHeader,IconButton} from "@threadlabs/looma/vue";
+      const breakpoint=ref("lg");window.setSiteBreakpoint=value=>breakpoint.value=value;
+      const app=createApp({render:()=>h(SiteHeader,{id:"site",label:"Explore",breakpoint:breakpoint.value},{
+        brand:()=>h("a",{href:"#home",id:"brand"},"Folio"),
+        navigation:()=>Array.from({length:30},(_,i)=>h("a",{href:"#section-"+i,id:"link-"+i},"Section "+(i+1))),
+        actions:()=>h(IconButton,{label:"Account"},()=>"A")
+      })});app.mount("#app");window.siteApp=app;
+    `);
+    const page=await open(path,adapter==="HTML"?`<ui-site-header id="site" label="Explore"><a slot="brand" id="brand" href="#home">Folio</a>${links}<ui-icon-button slot="actions" label="Account">A</ui-icon-button></ui-site-header><button id="outside">Outside</button>`:'<div id="app"></div><button id="outside">Outside</button>',[join(root,"tokens.css"),...(adapter==="Vue"?[join(root,"vue/components.css")]:[])],{viewport:{width:375,height:640},hasTouch:true});
+    try {
+      const menu=page.getByRole('button',{name:'Open navigation',exact:true});
+      const panel=page.getByRole('dialog',{name:'Explore',exact:true});
+      const close=page.getByRole('button',{name:'Close navigation',exact:true});
+      await page.locator('#link-0').waitFor({state:'hidden'});
+      await page.locator('#link-0').evaluate(el=>{
+        (window as any).originalNavigation=el;
+        el.addEventListener('click',event=>{event.preventDefault();document.body.dataset.selected='yes';});
+      });
+      assert.equal(await menu.locator('svg path').count(),3,'the default control has a Lucide hamburger');
+      assert.equal(await page.locator('#link-0').count(),1,'desktop and mobile share one set of links');
+      for(const dir of ['ltr','rtl']) {
+        await page.locator('html').evaluate((el,value)=>el.setAttribute('dir',value),dir);
+        const brand=await page.locator('#brand').boundingBox(),button=await menu.boundingBox();
+        assert.ok(dir==='ltr'?button!.x>=brand!.x+brand!.width:button!.x+button!.width<=brand!.x,'menu follows the brand in reading order');
+        await menu.focus();await page.keyboard.press('Enter');
+        await panel.waitFor({state:'visible'});
+        await page.waitForFunction(()=>getComputedStyle(document.querySelector('dialog')!).transform==='matrix(1, 0, 0, 1, 0, 0)');
+        const geometry=await panel.evaluate(el=>{
+          const box=el.getBoundingClientRect(),nav=el.querySelector('nav')!;
+          return {x:box.x,right:box.right,height:box.height,scrolls:nav.scrollHeight>nav.clientHeight,backdrop:getComputedStyle(el,'::backdrop').backgroundColor};
+        });
+        assert.equal(geometry.height,640);
+        assert.ok(Math.abs(dir==='ltr'?geometry.x:375-geometry.right)<1,'drawer enters from the logical start edge');
+        assert.equal(geometry.scrolls,true,'long menus scroll inside the panel');
+        assert.equal(await page.locator('#link-0').evaluate(el=>getComputedStyle(el).fontWeight),'400','drawer destinations use the regular navigation weight');
+        assert.notEqual(geometry.backdrop,'rgba(0, 0, 0, 0)');
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),true);
+        assert.equal(await panel.evaluate(el=>el.contains(document.activeElement)),true,'focus enters the drawer');
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(await page.locator('#outside').evaluate(el=>document.activeElement===el),false,'Tab cannot reach background controls');
+        await page.locator('#outside').evaluate(el=>(el as HTMLElement).focus());
+        assert.equal(await page.locator('#outside').evaluate(el=>document.activeElement===el),false,'the background is inert');
+        await page.locator('#link-29').focus();
+        assert.ok(await page.locator('#link-29').evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight),'keyboard navigation reveals destinations');
+        await page.keyboard.press('Escape');
+        await panel.waitFor({state:'hidden'});
+        assert.equal(await menu.evaluate(el=>document.activeElement===el),true,'dismissal restores the trigger');
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+        await menu.click();await close.click();await panel.waitFor({state:'hidden'});
+        await menu.click();await page.mouse.click(dir==='ltr'?365:10,400);await panel.waitFor({state:'hidden'});
+      }
+      await menu.click();
+      await page.locator('#link-0').click();await panel.waitFor({state:'hidden'});
+      assert.equal(await page.locator('body').getAttribute('data-selected'),'yes','router-style prevented navigation still selects and closes');
+      await menu.click();
+      await page.setViewportSize({width:1440,height:800});
+      await menu.waitFor({state:'hidden'});
+      await page.locator('#link-0').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>document.querySelectorAll('dialog:modal').length),0,'desktop transition releases the modal');
+      assert.equal(await page.locator('dialog').evaluate(el=>getComputedStyle(el).overlay),'none','desktop has no pending top-layer backdrop');
+      assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+      assert.equal(await page.locator('#link-0').evaluate(el=>el===(window as any).originalNavigation),true,'link identity survives resizing');
+      for (const [breakpoint,width] of [['sm',640],['md',768],['lg',1024]] as const) {
+        await page.evaluate(value=>(window as any).setSiteBreakpoint(value),breakpoint);
+        await page.setViewportSize({width:width-1,height:640});
+        await menu.waitFor({state:'visible'});
+        await menu.click();await panel.waitFor({state:'visible'});
+        await page.setViewportSize({width,height:640});
+        await menu.waitFor({state:'hidden'});
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+      }
+      await page.setViewportSize({width:375,height:640});
+      await menu.waitFor({state:'visible'});
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await menu.click();
+      assert.equal(await panel.evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+      await page.locator('#site').evaluate((el,adapter)=>{
+        if(adapter==='Vue') (window as any).siteApp.unmount();
+        else el.remove();
+      },adapter);
+      await page.waitForFunction(()=>!document.documentElement.hasAttribute('data-ui-scroll-lock'));
+    } finally {await page.close();}
+  });
+});
+
+describe("SiteHeader custom navigation surface", () => {
+  for(const adapter of ['HTML','Vue'] as const) it(`allows a custom documentation-sidebar trigger without duplicating the automatic control in ${adapter}`, async()=>{
+    const path=await bundle(`site-custom-${adapter}`,adapter==='HTML'?'import "@threadlabs/looma";':`
+      import {createApp,h,ref} from "vue";import {SiteHeader,IconButton} from "@threadlabs/looma/vue";
+      const custom=ref(true);window.useAutomaticNavigation=()=>custom.value=false;
+      createApp({render:()=>h(SiteHeader,null,{
+        brand:()=>h('a',{href:'#home'},'Folio'),
+        navigation:()=>h('a',{id:'guide',href:'#guide'},'Guide'),
+        menu:()=>custom.value?h(IconButton,{id:'custom',label:'Browse documentation',popovertarget:'docs'},()=> 'Docs'):null,
+      })}).mount('#app');
+    `);
+    const page=await open(path,`${adapter==='HTML'?'<ui-site-header><a slot="brand" href="#home">Folio</a><a slot="navigation" id="guide" href="#guide">Guide</a><ui-icon-button slot="menu" id="custom" label="Browse documentation" popovertarget="docs">Docs</ui-icon-button></ui-site-header>':'<div id="app"></div>'}<nav id="docs" popover>Documentation sidebar</nav>`,[join(root,'tokens.css'),...(adapter==='Vue'?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:700}});
+    try{
+      const custom=page.getByRole('button',{name:'Browse documentation',exact:true});
+      const automatic=page.getByRole('button',{name:'Open navigation',exact:true});
+      assert.equal(await custom.isVisible(),true);
+      assert.equal(await automatic.isVisible(),false);
+      await page.locator('#guide').waitFor({state:'hidden'});
+      await custom.click();assert.equal(await page.locator('#docs').isVisible(),true);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({width:1440,height:800});
+      await custom.waitFor({state:'hidden'});assert.equal(await page.locator('#guide').isVisible(),true);
+      await page.setViewportSize({width:375,height:700});
+      await custom.waitFor({state:'visible'});
+      if(adapter==='HTML') await custom.evaluate(el=>el.remove());
+      else await page.evaluate(()=>(window as any).useAutomaticNavigation());
+      await automatic.waitFor({state:'visible'});await automatic.click();
+      assert.equal(await page.getByRole('dialog',{name:'Main',exact:true}).isVisible(),true);
+    }finally{await page.close();}
   });
 });
 
@@ -128,6 +250,7 @@ describe("SiteHeader action targets", () => {
       ]})}).mount("#app");`);
     const page=await open(path,adapter==="HTML"?'<ui-site-header id="targets"><a slot="brand" href="#home">Folio</a><ui-icon-button slot="actions" id="first-target" size="sm" label="Search"><ui-icon name="search"></ui-icon></ui-icon-button><ui-icon-button slot="actions" id="second-target" size="sm" label="Account"><ui-icon name="user-round"></ui-icon></ui-icon-button></ui-site-header>':'<div id="app"></div>',[join(root,"tokens.css"),...(adapter==="Vue"?[join(root,"vue/components.css")]:[])],{viewport:{width:375,height:700},hasTouch:true});
     try {
+      assert.equal(await page.getByRole('button',{name:'Open navigation',exact:true}).isVisible(),false,'no empty menu without navigation');
       const widths=[];
       for(const preferred of [44,30]) {
         await page.locator('html').evaluate((element,value)=>(element as HTMLElement).style.setProperty('--ui-control-min-block-size',value+'px'),preferred);
@@ -9999,6 +10122,11 @@ describe("Theme levels", () => {
       return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a! / 255})`;
     }, property);
 
+    const hasSurfacePaint = (selector: string, color: string) => page.locator(selector).evaluate((element, expected) => {
+      const style = getComputedStyle(element);
+      return style.backgroundColor === expected || style.backgroundImage.includes(expected);
+    }, color);
+
     for (const [theme, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [theme, value]);
@@ -10017,11 +10145,11 @@ describe("Theme levels", () => {
         assert.equal(await look(`#${id}`, "border-top-left-radius"), "5px", `${value}: ${id} inherits action radius`);
       }
       assert.equal(await look("#group-menu .surface", "border-top-left-radius"), "9px", `${value}: menu inherits overlay radius`);
-      assert.equal(await look("#group-menu .surface", "background-color"), "rgb(237, 239, 242)", `${value}: menu inherits overlay surface`);
+      assert.equal(await hasSurfacePaint("#group-menu .surface", "rgb(237, 239, 242)"), true, `${value}: menu inherits overlay surface in its material paint`);
       assert.equal(await look("#group-menu .surface", "border-top-color"), "rgb(22, 33, 44)", `${value}: menu inherits overlay border`);
       assert.equal(await look("#group-menu .surface", "box-shadow"), "none", `${value}: menu inherits overlay shadow`);
       assert.equal(await look("#local-menu .surface", "border-top-left-radius"), "4px", `${value}: local menu radius wins`);
-      assert.equal(await look("#local-menu .surface", "background-color"), "rgb(210, 211, 212)", `${value}: local menu surface wins`);
+      assert.equal(await hasSurfacePaint("#local-menu .surface", "rgb(210, 211, 212)"), true, `${value}: local menu surface wins in its material paint`);
       assert.equal(await look("#local-menu .surface", "border-top-color"), "rgb(80, 81, 82)", `${value}: local menu border wins`);
       assert.equal(await look("#global-danger", "background-color"), await look("#group-danger", "background-color"), `${value}: field danger does not change destructive actions`);
     }
