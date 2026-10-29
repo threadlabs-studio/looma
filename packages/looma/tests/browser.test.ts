@@ -5749,10 +5749,12 @@ describe("View primitives", () => {
           const bounds=frame.getBoundingClientRect(), legend=frame.querySelector("legend")!.getBoundingClientRect();
           const body=frame.querySelector(".body")!.getBoundingClientRect();
           return {border:parseFloat(getComputedStyle(frame).borderInlineStartWidth),overflow:frame.scrollWidth>frame.clientWidth+1,
+            headingFont:parseFloat(getComputedStyle(frame.querySelector(".heading")!).fontSize),bodyFont:parseFloat(getComputedStyle(frame.querySelector(".body p")!).fontSize),
             headingInside:legend.left>=bounds.left&&legend.right<=bounds.right+1,bodyBelow:body.top>=legend.bottom,
             fieldInside:body.left>=bounds.left&&body.right<=bounds.right+1};
         });
         assert.ok(layout.border>0,`${adapter}/${width}/${scheme}/${dir}: visible frame`);
+        assert.ok(layout.headingFont>layout.bodyFont,`${adapter}/${width}/${scheme}/${dir}: heading is larger than body text`);
         assert.equal(layout.overflow,false,`${adapter}/${width}/${scheme}/${dir}: no overflow`);
         assert.equal(layout.headingInside&&layout.bodyBelow&&layout.fieldInside,true,`${adapter}/${width}/${scheme}/${dir}: wrapped heading and content fit`);
       }
