@@ -29,7 +29,6 @@ export const PUBLIC_ENTRYPOINTS = Object.freeze([
   { packageName: "@threadlabs/looma", exportPath: "./editor/ui", packageDirectory: "packages/looma", source: "packages/looma/src/editor/ui.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/extensions", packageDirectory: "packages/looma", source: "packages/looma/src/editor/extensions/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./markdown", packageDirectory: "packages/looma", source: "packages/looma/src/markdown/index.ts" },
-  { packageName: "@threadlabs/looma", exportPath: "./markdown/markdown-it", packageDirectory: "packages/looma", source: "packages/looma/src/markdown/markdown-it.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./markdown/fixtures", packageDirectory: "packages/looma", source: "packages/looma/src/markdown/fixtures.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./vue/editor", packageDirectory: "packages/looma", source: "packages/looma/src/vue/editor/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./vue/editor/compact", packageDirectory: "packages/looma", source: "packages/looma/src/vue/editor/compact/index.ts" },

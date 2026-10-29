@@ -1,9 +1,11 @@
 import { Extension } from "@tiptap/core";
-import { DOMParser as ProseMirrorDOMParser, type Schema, Slice } from "@tiptap/pm/model";
+import type { JSONContent } from "@tiptap/core";
+import { DOMParser as ProseMirrorDOMParser, Fragment, type Schema, Slice } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
 import { splitLoomaFrontmatter } from "../../markdown";
-import { loomaMarkdown as markdown } from "./markdown";
+import { parse, type Node as MarkdownNode } from "expressmark";
+import { markdownToEditorDocument } from "../expressmark";
 
 const HTML_DOCUMENT_PATTERN = /<!doctype\s+html\b|<(?:html|body)\b[^>]*>/i;
 const HTML_PAIRED_TAG_PATTERN = /<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tfoot|tr|th|td|figure|figcaption|article|section|header|footer|main|div|span|strong|em|b|i|a|code|pre)\b[^>]*>[\s\S]*?<\/\1\s*>/i;
@@ -28,19 +30,19 @@ function looksLikeDocumentHtml(value: string): boolean {
   return !/[={};`"']|=>|\b(?:const|let|var|return|function|class|import|export)\b/.test(prefix);
 }
 
+const MARKDOWN_BLOCKS = new Set(["list", "blockquote", "table", "container", "leaf", "footnoteDefinition", "definition"]);
+const MARKDOWN_INLINES = new Set(["image", "strong", "inline", "footnoteReference", "linkReference"]);
+
 function looksLikeMarkdown(value: string): boolean {
-  const tokens = markdown.parse(value, {});
-  return tokens.some((token, index) => {
-    if (token.type === "heading_open") {
-      return Boolean(tokens[index + 1]?.content.trim());
-    }
-    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open", "looma_container_open", "looma_toc"].includes(token.type)) {
-      return true;
-    }
+  const visit = (node: MarkdownNode): boolean => {
+    if (node.type === "heading") return Boolean(node.value?.trim() || node.children?.length);
+    if (MARKDOWN_BLOCKS.has(node.type) || MARKDOWN_INLINES.has(node.type)) return true;
+    if (node.type === "code") return node.source?.form !== "indented";
     // A bare URL is a link to Looma Markdown, but on its own it is not evidence of Markdown.
-    return token.type === "inline" && Boolean(token.children?.some((child) =>
-      (child.type === "link_open" && child.markup !== "linkify") || ["image", "strong_open", "looma_chip", "looma_mention", "looma_footnote_ref"].includes(child.type)));
-  });
+    if (node.type === "link") return node.source?.form !== "bare";
+    return (node.body ?? node.children ?? []).some(visit);
+  };
+  return visit(parse(value, { syntax: "compatible" }));
 }
 
 function hasRichClipboardStructure(value: string): boolean {
@@ -101,18 +103,21 @@ function parseHtmlSlice(schema: Schema, value: string, fromHtml = false): Slice 
   });
 }
 
-function escapeHtmlText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+// The editor content of pasted Markdown, or null when it holds something the editor cannot.
+function markdownSlice(schema: Schema, markdown: string, frontmatter: string | null): Slice | null {
+  let content: JSONContent[];
+  try { content = markdownToEditorDocument(markdown).content ?? []; } catch { return null; }
+  if (frontmatter !== null) content.unshift({ type: "codeBlock", attrs: { language: "yaml" }, content: [{ type: "text", text: frontmatter }] });
+  if (!content.length) return Slice.empty;
+  return Slice.maxOpen(Fragment.fromArray(content.map(node => schema.nodeFromJSON(node))));
 }
 
 function documentSlice(schema: Schema, plainText: string): Slice | null {
   const frontmatter = splitLoomaFrontmatter(plainText);
-  if (frontmatter || looksLikeMarkdown(plainText)) {
-    return parseHtmlSlice(schema, frontmatter
-      ? `<pre><code class="language-yaml">${escapeHtmlText(frontmatter.source)}</code></pre>${markdown.render(frontmatter.body)}`
-      : markdown.render(plainText));
-  }
+  if (frontmatter) return markdownSlice(schema, frontmatter.body, frontmatter.source);
+  // HTML source the editor's Markdown reading cannot hold is read as HTML.
+  const markdown = looksLikeMarkdown(plainText) ? markdownSlice(schema, plainText, null) : null;
+  if (markdown) return markdown;
   if (looksLikeDocumentHtml(plainText)) {
     return parseHtmlSlice(schema, plainText, true);
   }

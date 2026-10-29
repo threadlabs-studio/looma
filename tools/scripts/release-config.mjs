@@ -27,8 +27,6 @@ export const RELEASE_PACKAGES = [
       "package/editor/extensions/index.d.ts",
       "package/markdown/index.js",
       "package/markdown/index.d.ts",
-      "package/markdown/markdown-it.js",
-      "package/markdown/markdown-it.d.ts",
       "package/markdown/fixtures.js",
       "package/markdown/fixtures.d.ts",
       "package/vanilla/index.js",

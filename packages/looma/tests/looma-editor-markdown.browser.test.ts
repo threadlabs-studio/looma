@@ -2,7 +2,7 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "../src/editor/extensions";
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
 import "../tokens.css";
@@ -57,7 +57,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     pasteSource(editor, [
       "Status :chip[Ready]{tone=green}, owned by @[Ada]#u1.", "",
       "- [x] Read the changelog", "- [ ] Run the migration", "",
-      "::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", ":::",
+      ":::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", "::::",
     ].join("\n"));
     await flushBrowser();
 
@@ -68,7 +68,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     expect(host.querySelector(".ProseMirror [data-type='mention']")?.textContent).toBe("@Ada");
     const boxes = [...host.querySelectorAll<HTMLInputElement>(".ProseMirror [data-type='taskList'] input[type='checkbox']")];
     expect(boxes.map(box => box.checked)).toEqual([true, false]);
-    // The inner `:::` closes the warning, and the `:::` inside the fence stays code.
+    // The outer fence is longer, the inner `:::` closes the warning, and the `:::` inside the fence stays code.
     expect(editor.getJSON().content?.[2]).toMatchObject({
       attrs: { summary: "More" },
       content: [{ type: "loomaCallout", attrs: { tone: "warning" } }, { type: "codeBlock", content: [{ text: ":::" }] }],
@@ -79,10 +79,11 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     const { editor, host } = await mountEditor();
     const fence = "```";
     const markdown = [
-      "::: tabs install", "== npm", `${fence}sh`, "npm install @threadlabs/looma", fence, "== pnpm", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "",
+      ":::: tabs {group=install}", "::: tab [npm]", `${fence}sh`, "npm install @threadlabs/looma", fence, ":::", "",
+      "::: tab [pnpm]", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "::::", "",
       "::: figure The build", "![Pipeline](/pipeline.svg){width=320}", ":::",
     ].join("\n");
-    editor.commands.setContent(loomaMarkdownToHtml(markdown));
+    editor.commands.setContent(markdownToEditorDocument(markdown));
     await flushBrowser();
 
     // Editing draws plain panels under their labels rather than the Tabs component.
@@ -102,6 +103,6 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     await userEvent.keyboard(" pipeline");
     await flushBrowser();
     expect(caption.textContent).toBe("The build pipeline");
-    expect(loomaMarkdownFromDoc(editor.state.doc)).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
+    expect(editorDocumentToMarkdown(editor.getJSON(), { original: markdown })).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
   });
 });

@@ -37,7 +37,8 @@ import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
 import { LoomaExpand } from "./expand";
-import { LoomaFootnote, LoomaFootnoteReference, LoomaFootnotes } from "./footnote";
+import { LoomaFootnote, LoomaFootnoteReference } from "./footnote";
+import { LoomaLinkDefinition } from "./link-definition";
 import { LoomaFigcaption, LoomaFigure } from "./figure";
 import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
@@ -215,7 +216,8 @@ export function getDefaultEditorExtensions(
     BulletList,
     OrderedList,
     ListItem,
-    TaskList,
+    // A list may hold tasks beside plain items, as GFM reads `- [x] Done` next to `- Item`.
+    TaskList.extend({ content: "(taskItem|listItem)+" }),
     LoomaTaskItem.configure({ nested: false }),
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
@@ -227,8 +229,8 @@ export function getDefaultEditorExtensions(
     LoomaExpand.configure({ nodeView: expandNodeView ? documentContentNodeView(expandNodeView) : null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
     LoomaFootnoteReference,
-    LoomaFootnotes,
     LoomaFootnote,
+    LoomaLinkDefinition,
     dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,

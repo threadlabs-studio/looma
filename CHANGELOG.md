@@ -2,6 +2,22 @@
 
 ## Next release
 
+- **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
+
+- With `original`, the Markdown a document was read from, an unedited document is written back byte for byte, front matter, line endings and spacing included, and an edit leaves the source of every other block alone. An edited block keeps the spellings it still reads as, such as `_` emphasis, `*` bullets or a setext heading; spacing next to it is one blank line. Raw HTML blocks are written through Expressmark's safe HTML profile.
+
+- **Breaking:** A footnote's note stays where its definition is written. `LoomaFootnotes` and the `loomaFootnotes` section node are removed; each note is a `loomaFootnote` block, which the editor shows as a one-item list numbered by its first reference. Saved HTML still collects the notes into one `<section data-footnotes>` in number order, and reads back as before. A definition nothing refers to stays in the document; deleting a note's last reference removes the note, and a note restored for a reference joins the end of the document. To migrate saved editor JSON, replace each `loomaFootnotes` node with its `loomaFootnote` children.
+
+- Link reference definitions, `[label]: url "title"`, are `loomaLinkDefinition` blocks where they are written, rendering nothing. A link that uses one keeps its label and its `full`, `collapsed` or `shortcut` form in the link mark's `reference` and `referenceType` attributes and is written as a reference while the definition still gives its destination and title. Links keep their `title`.
+
+- **Breaking:** A table of contents is written as its `::toc` placeholder with its settings, and readers build its entries; Markdown no longer holds a copy of the entries. Reading Markdown gives each heading without an authored ID the anchor its text derives, and writing adds `{#id}` only where a reader would not derive the ID.
+
+- A task list can hold plain items beside tasks, as `- [x] Done` next to `- Item` reads in GFM.
+
+- Pasted Markdown is read by Expressmark. Pasted HTML source, and Markdown holding content the editor cannot represent, is read as HTML.
+
+- The Looma Markdown fixtures are Expressive Markdown: tabs are `:::: tabs {group=…}` holding `::: tab [Label]` containers, a nested container takes a longer marker than its parent, a title holding braces is bracketed, an alert's marker may be followed by its title, a mixed list's `- [x]` item is a task, and `::: aside` is a container the editor does not hold, so its fixture is removed. Each fixture's canonical Markdown is what Expressmark writes for it, and LoomaEditor writes every fixture back byte for byte.
+
 - Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
 
 - Give fieldset legends the standard Section heading size, clearly larger than body text, and use concise titles in the example. Long headings remain covered by wrapping tests.
