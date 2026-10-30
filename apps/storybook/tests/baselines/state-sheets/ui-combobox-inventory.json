@@ -311,6 +311,11 @@
     "example": 8
   },
   {
+    "name": "Example: 08-multiple-rows",
+    "props": {},
+    "example": 9
+  },
+  {
     "name": "hover",
     "props": {},
     "example": 0,
