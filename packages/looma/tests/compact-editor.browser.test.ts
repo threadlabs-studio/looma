@@ -2,11 +2,15 @@ import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, expect, it } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import type { Editor, JSONContent } from "@tiptap/core";
-import { LoomaCompactEditor, LoomaCompactContent } from "../vue/editor/compact/index.js";
-import { LoomaEditor } from "../vue/editor/index.js";
+import { UiCompactEditor } from "../src/components/ui-compact-editor/ui-compact-editor.html";
+import { UiCompactContent as LoomaCompactContent } from "../src/components/ui-compact-content/ui-compact-content.html";
+import { captureEditor } from "./editor-test-extensions";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+const LoomaCompactEditor = await editorUnderTest(UiCompactEditor, true);
 import "../tokens.css";
 import "../theme-light.css";
-import "../vue/components.css";
 let app: App;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });
 
@@ -14,9 +18,9 @@ it.each(["compact", "document"])("%s editing cancels Markdown with Escape and is
   let editor!: Editor;
   const host = document.createElement("div"); document.body.append(host);
   const model = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
-  const props = { label: "Writing", modelValue: model.value, onReady: (value: Editor) => { editor = value; },
-    "onUpdate:modelValue": (value: JSONContent) => { model.value = value; } };
-  app = createApp({ render: () => kind === "compact" ? h(LoomaCompactEditor, { ...props, modelValue: model.value }) : h(LoomaEditor, { ...props, modelValue: model.value, toolbarMode: "sticky" }) });
+  const props = { label: "Writing", content: model.value, extensions: captureEditor(value => { editor = value; }),
+    onChange: (event: CustomEvent<{ content: JSONContent }>) => { model.value = event.detail.content; } };
+  app = createApp({ render: () => kind === "compact" ? h(LoomaCompactEditor, { ...props, content: model.value }) : h(LoomaEditor, { ...props, content: model.value, toolbarMode: "sticky" }) });
   app.mount(host); await nextTick(); await nextTick();
   const field = page.getByRole("textbox", { name: "Writing" });
   await field.click();
@@ -78,8 +82,8 @@ it("formats short text through native shortcuts and Markdown without document co
   const id = ref("message");
   let editor!: Editor;
   const host = document.createElement("div"); document.body.append(host);
-  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: id.value, label: "Comment", modelValue: model.value,
-    "onUpdate:modelValue": value => { model.value = value; }, onReady: value => { editor = value; } }), h(LoomaCompactContent, { content: model.value })]) });
+  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: id.value, label: "Comment", content: model.value,
+    onChange: (event: CustomEvent<{ content: JSONContent }>) => { model.value = event.detail.content; }, extensions: captureEditor(value => { editor = value; }) }), h(LoomaCompactContent, { content: model.value })]) });
   app.mount(host);
   const initialHeight = host.querySelector(".looma-compact-editor")!.getBoundingClientRect().height;
   await nextTick(); await nextTick();
@@ -102,6 +106,7 @@ it("formats short text through native shortcuts and Markdown without document co
   expect(JSON.stringify(model.value)).toBe(before);
   expect(host.querySelector('[role="toolbar"]')).toBeNull();
   expect(host.scrollWidth).toBeLessThanOrEqual(375);
+  expect(host.querySelectorAll("#message")).toHaveLength(1);
   model.value = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Restored", marks: [{ type: "bold" }] }] }] };
   await nextTick(); await expect.element(field).toHaveTextContent("Restored");
   expect(host.querySelector(".looma-compact-content strong")?.textContent).toBe("Restored");

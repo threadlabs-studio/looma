@@ -1,9 +1,9 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import IconButton from "../vue/UiIconButton.js";
-import Badge from "../vue/UiBadge.js";
-import Container from "../vue/UiContainer.js";
+import { UiIconButton as IconButton } from "@threadlabs/looma";
+import { UiBadge as Badge } from "@threadlabs/looma";
+import { UiContainer as Container } from "@threadlabs/looma";
 
 const render = (node: ReturnType<typeof h>) => renderToString(createSSRApp({ render: () => node }));
 

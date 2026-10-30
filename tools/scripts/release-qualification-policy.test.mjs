@@ -165,13 +165,14 @@ test("public documentation is install-first and installs from latest", async () 
   assert.match(gettingStarted, /pnpm add @threadlabs\/looma/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
   assert.match(gettingStarted, /Vue and Tiptap are optional to Looma as a whole/);
-  assert.match(
-    gettingStarted,
-    /pnpm add @threadlabs\/looma vue@\^3\.5\.0 @tiptap\/vue-3@\^2\.11\.5/
-  );
+  assert.match(gettingStarted, /pnpm add @threadlabs\/looma vue/);
+  assert.match(gettingStarted, /@tiptap\/core/);
+  assert.match(gettingStarted, /@tiptap\/pm/);
+  assert.match(gettingStarted, /@nextwebwg\/html-next-unplugin/);
+  assert.doesNotMatch(gettingStarted, /@tiptap\/vue-3|from ["']@threadlabs\/looma\/vue/);
   assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
-  assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
+  assert.match(gettingStarted, /htmlNext\(\{ target: "vue" \}\)/);
   assert.match(supportPage, /publishes to npm as \*\*`@threadlabs\/looma`\*\*/);
   assert.doesNotMatch(supportPage + gettingStarted, /Candidate/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);

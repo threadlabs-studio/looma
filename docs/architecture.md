@@ -23,8 +23,7 @@ Release 1 and are not public Candidate packages.
 - `@threadlabs/looma/editor`: the complete ESM Tiptap-backed editor surface: declarative UI, the extension preset, and command helpers.
 - `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent declarative UI for advanced composition.
 - `@threadlabs/looma/editor/extensions`: the focused domain-neutral Tiptap preset and command-helper surface. Save, upload, collaboration, and presence remain app concerns.
-- `@threadlabs/looma/vue`: ESM wrappers for public layout and core elements, with no editor or Tiptap edge.
-- `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` Vue integration. It owns the Tiptap instance, default extensions, commands, selection/focus orchestration, and themed editor controls while exposing content and upload boundaries to the host.
+- Vue, React and Svelte applications compile those HTML definitions through the HTML Next Vite plugin. All use prefixed imports such as `UiButton` and `UiEditor` from the package root.
 
 ## DOM And Progressive-Enhancement Contract
 

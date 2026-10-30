@@ -1,77 +1,20 @@
-# Adapter Contract
+# Framework adapters
 
-Looma adapters are thin projections of the same declarative component contracts.
-They create native roots, attach the shared definitions and component modules, and map
-props, events, and slots without owning different behavior.
+Looma publishes HTML Next definitions. Applications compile them with `@nextwebwg/html-next-unplugin/vite` and their framework's Vite compiler. The adapters project the same props, slots, native events, controllers and semantic roots; Looma does not publish a separate framework component library.
 
-## Release 1 Support
-
-| Adapter | Release 1 status | Public support promise |
+| Application | Vite plugins, in order | Component import |
 | --- | --- | --- |
-| `@threadlabs/looma/vue` | Published Candidate subpath | Qualified for public layout and core wrappers without the editor graph |
-| `@threadlabs/looma/vue/editor` | Published Candidate subpath | Qualified for consumer-facing Tiptap-backed Vue editor helpers and wrappers; the internal Knit harness supplies additional deep-integration evidence |
-| React | In development | Not published |
+| Vue | `htmlNext({ target: "vue" })`, `vue()` | `import { UiButton, UiEditor } from "@threadlabs/looma"` |
+| React | `htmlNext({ target: "react" })`, `react()` | Same prefixed names |
+| Svelte 5 | `htmlNext({ target: "svelte" })`, `svelte()` | Same prefixed names |
+| HTML Next | Resolve `<link rel="component">` definitions | `<ui-button>`, `<ui-editor>` |
 
-Publication is not release qualification. React support is in development: it ships once
-HTML Next's React target converts components without the HTML Next runtime.
+See [Getting started](/getting-started/) for installation, plugin imports, themes and generated declarations. React declaration generation in HTML Next alpha.70 still has errors against the complete Looma graph; it is not yet qualified for release.
 
-## Vue Mapping
+Component names follow the source tag: `ui-site-header` becomes `UiSiteHeader`, `ui-editor` becomes `UiEditor`, and `ui-compact-editor` becomes `UiCompactEditor`. Types and headless editor helpers remain at `@threadlabs/looma/editor`; compact schema helpers live at `/editor/compact`.
 
-Release 1 requires a named Vue wrapper for every published layout and core tag
-and every published editor element. The generated/source-derived completeness
-gate is the authority; this table is a readable summary.
+## Slots, events and server rendering
 
-| Element family | Elements | Vue contract |
-| --- | --- | --- |
-| Layout | `ui-stack`, `ui-action-bar`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-scroll-area`, `ui-cover`, `ui-separator` | Same names in PascalCase |
-| Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-select`, `ui-listbox`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
-| Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-group`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item`, `ui-nav-item` | Same names in PascalCase |
-| Display and app shell | `ui-text`, `ui-page-header`, `ui-section`, `ui-status-message`, `ui-spinner`, `ui-meter`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-list`, `ui-list-item`, `ui-chip`, `ui-toast`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
-| Editor | `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` | `Editor*` named wrappers |
+Vue uses named slots, React uses the `slots` prop, and Svelte uses snippets supplied through `slots`. Default content follows each framework's normal syntax. Declared event handlers receive native `CustomEvent`s; read `event.detail`. The editors use `content` and `change.detail.content` for controlled documents. Function-valued integration services answer declared HTML Next requests.
 
-The source-derived completeness gate rejects a missing map entry or named Vue
-export, including for `ui-context-menu` and the editor elements.
-
-## Event Parity
-
-Adapters preserve core event names and detail payloads. Where an element emits
-`open`, `close`, `select`, `change`, `dismiss`, `reorder`, or `expand`, the Vue wrapper must forward
-that event without changing its detail schema. Editor wrappers likewise preserve
-the editor element's custom-event detail.
-
-## SSR And Fallback Rules
-
-- Adapter modules must import in a server process without browser globals.
-- Every adapter renders the native light-DOM root declared by the component
-  contract and preserves consumer-authored semantic content through slots.
-- Adapters must not replace semantic fallback content with framework-only markup.
-- Without JavaScript, direct invocation markup retains its semantic authored
-  content; lowering, module activation, and adapter event translation do not run.
-
-## Vue Example
-
-```ts
-import { h } from "vue";
-import { Disclosure } from "@threadlabs/looma/vue";
-
-export const Example = {
-  setup() {
-    return () =>
-      h(
-        Disclosure,
-        {
-          onOpen: (detail) => console.log("open", detail),
-          onClose: (detail) => console.log("close", detail)
-        },
-        {
-          default: () => [
-            h("button", { type: "button", "aria-controls": "faq-a1" }, "Question"),
-            h("div", { id: "faq-a1", hidden: true }, "Answer")
-          ]
-        }
-      );
-  }
-};
-```
-
-The Release 1 install path covers direct HTML and Vue only.
+Public modules must import during SSR without browser globals. Controllers attach in the browser and preserve authored semantic fallback. The document editor has a `fallback` slot; compact content renders escaped semantic JSON during SSR. Native HTML invocations and framework components share the same sessions and behavior tests.

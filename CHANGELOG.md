@@ -2,6 +2,12 @@
 
 ## Next release
 
+- RadioGroup accepts the native `form` association. The editor’s chip color controls opt out of enclosing forms, so writing inside a form does not submit an internal color choice.
+
+- Author the document editor, compact editor and compact-content renderer in HTML Next. They use `content` and native `change` event details, with host services supplied through requests. The document editor now starts with a valid empty paragraph, avoiding an invalid caret in an empty root document. Controlled replacements that shorten the document keep the caret inside a valid text block.
+
+- Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs. React graph qualification currently requires upstream declaration-generation fixes.
+
 - Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
 - Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits. Darker material and contrast-adjusted borders retain colorfulness through chroma and bounded hue compensation; surface lighting remains restrained. Outline buttons and icon buttons keep flat translucent fills at rest and on hover.
 

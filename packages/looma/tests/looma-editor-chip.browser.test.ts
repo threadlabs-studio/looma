@@ -2,10 +2,12 @@ import type { Editor } from "@tiptap/core";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 import "../theme-light.css";
-import "../vue/components.css";
 
 const apps: App[] = [];
 
@@ -33,11 +35,12 @@ describe("LoomaEditor inline chips (real browser)", () => {
       document.body.append(host);
       let editor: Editor | null = null;
       const app = createApp({
-        render: () => h(LoomaEditor, { onReady: (instance: Editor) => { editor = instance; } }),
+        render: () => h(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }),
       });
       apps.push(app);
       app.mount(host);
       await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
 
       editor!.chain().focus().insertContent("Article /chip").run();
       await flushBrowser();
@@ -64,12 +67,13 @@ describe("LoomaEditor inline chips (real browser)", () => {
     let editor: Editor | null = null;
     const app = createApp({
       render: () => h(LoomaEditor, {
-        onReady: (instance: Editor) => { editor = instance; },
+        extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
     apps.push(app);
     app.mount(host);
     await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
 
     editor!.chain().focus().insertContent("Article /chip").run();
     await flushBrowser();

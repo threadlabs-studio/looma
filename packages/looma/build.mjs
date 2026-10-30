@@ -138,10 +138,12 @@ await build({
       entry: {
         index: join(root, "src/editor/index.ts"),
         ui: join(root, "src/editor/ui.ts"),
+        compact: join(root, "src/editor/compact.ts"),
         expressmark: join(root, "src/editor/expressmark.ts"),
         "extensions/index": join(root, "src/editor/extensions/index.ts"),
       },
       formats: ["es"],
+      cssFileName: "components",
     },
     rollupOptions: { external: isDependency, output: { entryFileNames: "[name].js", chunkFileNames: "chunks/[name].js" } },
   },

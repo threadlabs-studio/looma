@@ -4,9 +4,11 @@ import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, shallowRef, type App } from "vue";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
-import "../vue/components.css";
 
 const apps: App[] = [];
 
@@ -26,10 +28,11 @@ afterEach(async () => {
 async function mountEditor(html: string) {
   const host = document.body.appendChild(document.createElement("div"));
   let editor: Editor | null = null;
-  const app = createApp({ render: () => h(LoomaEditor, { onReady: (instance: Editor) => { editor = instance; } }) });
+  const app = createApp({ render: () => h(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }) });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.poll(() => editor).toBeTruthy();
   editor!.commands.setContent(html);
   await flushBrowser();
   return { host, editor: editor! };
@@ -43,14 +46,14 @@ describe("LoomaEditor node views", () => {
     const references = shallowRef({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });
     const updates = vi.fn(); let editor: Editor | null = null;
     const app = createApp({ render: () => h(LoomaEditor, {
-      modelValue: { type: "doc", content: [{ type: "paragraph", content: [
+      content: { type: "doc", content: [{ type: "paragraph", content: [
         { type: "loomaReference", attrs: { id: "guide", kind: "link", href: "/guide", label: "Saved guide", target: "_self" } },
         { type: "text", text: " " },
         { type: "mention", attrs: { id: "person", label: "Saved person" } },
         { type: "text", text: " My wording", marks: [{ type: "link", attrs: { href: "/guide" } }] },
       ] }] },
-      references: references.value, onUpdate: updates, onReady: (instance: Editor) => { editor = instance; },
-    }) }); apps.push(app); app.mount(host); await flushBrowser();
+      references: references.value, onChange: updates, extensions: captureEditor(instance => { editor = instance; }),
+    }) }); apps.push(app); app.mount(host); await flushBrowser(); await expect.poll(() => editor).toBeTruthy();
     const saved = editor!.getJSON();
     expect(host.querySelector(".ProseMirror")!.textContent).toBe("Cached guide @Cached person My wording");
     references.value = { "link:guide": { label: "Renamed guide" }, "mention:person": { label: "New name" } };

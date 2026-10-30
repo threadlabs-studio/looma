@@ -25,9 +25,8 @@
     "@threadlabs/looma": "workspace:*",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
-    "@tiptap/vue-3": "^2.11.5",
     "prismjs": "^1.30.0",
-    "vue": "^3.5.43"
+    "@nextwebwg/html-next": "1.0.0-alpha.69"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",

@@ -1,6 +1,6 @@
 import { createFileUploads, type LoomaFileDescriptor, type LoomaFileUploadsState } from "../../editor/file-uploads";
 import "../../components/ui-editor-surface/ui-editor-surface.css";
-import "./looma-editor.css";
+import "../../components/ui-editor/ui-editor.css";
 import { Extension, posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { Editor as VueEditor } from "@tiptap/vue-3";
 import { createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";

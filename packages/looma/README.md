@@ -1,32 +1,48 @@
 # @threadlabs/looma
 
-Looma's components, written once as [Declarative HTML Components](https://nextwebwg.org/html-next/)
-and shipped three ways: as HTML, as Vue components, and as plain DOM factories.
+Looma's components are authored as HTML Next definitions. The HTML Next Vite adapter
+converts those definitions in Vue, React and Svelte applications.
 
 ```sh
-pnpm add @threadlabs/looma
+pnpm add @threadlabs/looma vue
+pnpm add -D @nextwebwg/html-next-unplugin@1.0.0-alpha.70 @vitejs/plugin-vue vite
 ```
-
-## Vue
 
 ```ts
-import "@threadlabs/looma/tokens.css";
-import "@threadlabs/looma/vue.css";
-import { Button, TopBar } from "@threadlabs/looma/vue";
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import vue from "@vitejs/plugin-vue";
+
+export default defineConfig({ plugins: [htmlNext({ target: "vue" }), vue()] });
 ```
 
-The Vue components are ordinary Vue 3.5.43+ single-file components, compiled to JavaScript with
-declarations; the `.vue` sources ship beside them. They depend on Vue and Looma only.
+```vue
+<script setup>
+import { UiButton, UiSiteHeader } from "@threadlabs/looma";
+</script>
+<template><UiButton variant="solid">Save</UiButton></template>
+```
 
-The editor is Tiptap-based and needs `@tiptap/vue-3@^2.11.5`:
+Import `@threadlabs/looma/tokens.css` and one theme in your application entry.
+The framework compiler includes component styles; source consumers do not import
+`@threadlabs/looma/vue.css`. Use `html-next-sync` before standalone type checking
+and include its `src/html-next.d.ts` output in your TypeScript project.
+
+For React, use `target: "react"` before `react()` from `@vitejs/plugin-react`.
+For Svelte 5, use `target: "svelte"` before `svelte()` from
+`@sveltejs/vite-plugin-svelte`. Both import the same prefixed names from
+`@threadlabs/looma`. React currently encounters declaration-generation errors
+with HTML Next 1.0.0-alpha.70; see the [loading guide](https://threadlabs.studio/looma/getting-started/).
+
+The document editor, compact field, and compact renderer use the same source imports:
 
 ```ts
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+import { UiEditor, UiCompactEditor, UiCompactContent } from "@threadlabs/looma";
+import type { LoomaMentionQuery, LoomaImageUploader } from "@threadlabs/looma/editor";
 ```
 
-The editor components' event and geometry types, without Tiptap, are in
-`@threadlabs/looma/editor/ui`.
+Both editable components accept Tiptap JSON through `content` and emit native `change` events with `detail.content`. The document editor answers service requests for extensions, mentions, links, uploads, code grammars and image delivery. The compact field supports short rich text without loading document controls. `UiCompactContent` renders escaped JSON during SSR. Install `@tiptap/core` and `@tiptap/pm` for editing. The Vite compiler includes styles; no Vue stylesheet or Tiptap Vue integration is needed.
 
 ## Expressive Markdown
 

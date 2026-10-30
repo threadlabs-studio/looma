@@ -1,10 +1,10 @@
 import { defineComponent, h, nextTick, onBeforeUnmount, onMounted, shallowRef, watch, type PropType, type VNodeChild } from "vue";
 import type { AnyExtension, JSONContent } from "@tiptap/core";
 import { Editor, EditorContent } from "@tiptap/vue-3";
-import { getCompactEditorExtensions } from "./extensions";
-import "./compact-editor.css";
+import { getCompactEditorExtensions } from "../../../editor/compact-extensions";
+import "../../../components/ui-compact-editor/ui-compact-editor.css";
 
-export { getCompactEditorExtensions } from "./extensions";
+export { getCompactEditorExtensions } from "../../../editor/compact-extensions";
 const emptyDocument = (): JSONContent => ({ type: "doc", content: [{ type: "paragraph" }] });
 
 /**

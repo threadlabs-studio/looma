@@ -8,17 +8,16 @@ between minor versions.
 
 - **`@threadlabs/looma`** — ESM; registers every component with the HTML Next runtime for HTML pages.
 - **`@threadlabs/looma/components/*`** — each component's definition and controller, for pages without a build.
-- **`@threadlabs/looma/vue`** — ESM with declarations; every component as a Vue 3.5 component, with no HTML Next runtime. `vue.css` holds their scoped styles.
-- **`@threadlabs/looma/vue/editor`** — ESM; the turnkey `LoomaEditor` and the editor components.
 - **`@threadlabs/looma/editor`** — ESM; the editor components' contracts and the Tiptap-backed editor surface.
 - **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, mentions, and table helpers.
 - **`@threadlabs/looma/*.css`** — Tokens and themes.
 
-React support is in development and not published. Docs, Storybook, examples, and tooling are private workspaces.
+
+Framework applications use the HTML Next Vite plugin with `target: "vue"`, `"react"`, or `"svelte"`. It generates prefixed imports such as `UiButton` and `UiEditor` from the package root. React alpha.70 declaration generation still requires upstream correction before release qualification.
 
 ## Qualified behavior
 
-- All 48 declarative contracts must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
+- All public declarative contracts must appear in generated API metadata, docs navigation, and source-generated framework projections where applicable.
 - Public entry points import without DOM globals during server rendering.
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.

@@ -1,13 +1,16 @@
 <link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
 <link rel="component" href="@threadlabs/looma/components/ui-form-field/ui-form-field.html">
 <link rel="component" href="@threadlabs/looma/components/ui-select/ui-select.html">
+<link rel="component" href="@threadlabs/looma/components/ui-editor/ui-editor.html">
 <template component="looma-editor-guide" module="./looma-editor-guide.js">
-  <defs></defs>
+  <defs>
+    <state name="content" type="object({ type: string, ... })" value="{ type: 'doc', content: [] }"></state>
+    <state name="mode" type="keyword" value="sticky"></state>
+  </defs>
   <section aria-label="Editor guide playground">
     <ui-stack>
-      <ui-form-field><label slot="label" for="guide-toolbar">Toolbar</label><span slot="help">Keep formatting visible, or show it beside selected text.</span><ui-select id="guide-toolbar" $ref="mode" value="sticky"><option value="sticky">Always visible</option><option value="bubble">Beside selection</option></ui-select></ui-form-field>
-      <p role="status" $ref="message"></p>
-      <div class="writing-space" $ref="editor"><h2>The Fellowship office</h2><p>Frodo is drafting the quarterly journey report. Sam has already booked second breakfast, and Sméagol would like the conference room all to himself.</p><p>Enable JavaScript to try the live editor.</p></div>
+      <ui-form-field><label slot="label" for="guide-toolbar">Toolbar</label><span slot="help">Keep formatting visible, or show it beside selected text.</span><ui-select id="guide-toolbar" $ref="mode" from:value="$mode"><option value="sticky">Always visible</option><option value="bubble">Beside selection</option></ui-select></ui-form-field>
+      <div class="writing-space"><ui-editor $ref="editor" label="Editor guide playground" from:content="$content" from:toolbar-mode="$mode" mention-items='[{"id":"frodo","label":"Frodo Baggins","detail":"Delivery","initials":"FB"},{"id":"sam","label":"Samwise Gamgee","detail":"Operations","initials":"SG"},{"id":"smeagol","label":"Sméagol","detail":"Asset management","initials":"S"}]'><div slot="fallback"><h2>The Fellowship office</h2><p>Frodo is drafting the quarterly journey report. Sam has already booked second breakfast.</p><p>Enable JavaScript to try the live editor.</p></div></ui-editor></div>
     </ui-stack>
   </section>
   <style>.writing-space { max-block-size: 34rem; overflow: auto; }</style>

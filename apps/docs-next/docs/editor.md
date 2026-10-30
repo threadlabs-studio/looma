@@ -35,22 +35,21 @@ separate Done action.
 
 ## Add it to a Vue app
 
-Install Looma and the editor peers, import the theme and Vue component styles, then use
-`LoomaEditor` with `v-model`:
+Install Looma and the editor peers, import the theme, then use
+`UiEditor` with controlled JSON content:
 
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import { UiEditor } from "@threadlabs/looma";
 import "@threadlabs/looma/tokens.css";
 import "@threadlabs/looma/theme-light.css";
-import "@threadlabs/looma/vue.css";
 
-const document = ref({ type: "doc", content: [] });
+const document = ref({ type: "doc", content: [{ type: "paragraph" }] });
 </script>
 
 <template>
-  <LoomaEditor v-model="document" label="Article body" />
+  <UiEditor :content="document" @change="document = $event.detail.content" label="Article body" />
 </template>
 ```
 
@@ -95,7 +94,7 @@ request. It receives fresh defaults and returns the inventory to use; an empty a
 commands and `null` keeps the defaults:
 
 ```ts
-import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
+import type { LoomaEditorSlashCommands } from "@threadlabs/looma/editor";
 
 const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => [
   ...defaults,
@@ -117,8 +116,7 @@ Use a unique `id` for each command, especially when titles repeat. `group` is op
 existing headless command objects keep working. Each command owns removal of the supplied
 range. Supply a pure `isAvailable({ editor, range })` predicate to omit a command when a host
 capability or editing context is unavailable; Looma checks it again before execution.
-A new function whose answer is a different inventory dismisses the open menu and keeps the typed
-query intact; one that answers the same commands leaves the menu open, so an inline function is safe.
+After changing an existing inventory, send the editor a native `--refresh-services` command. A different inventory dismisses the open menu and keeps the typed query intact; the same inventory leaves the menu open.
 Return new arrays rather than mutating one in place.
 
 Use this extension point for document templates, snippets, decision outlines, and date macros.
@@ -214,7 +212,7 @@ heading IDs, including inside authored navigation, so repeated labels cannot red
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
 they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
-`tableOfContentsNodeView` for their own settings composition. Turnkey Vue editors already supply
+`tableOfContentsNodeView` for their own settings composition. The HTML Next editor already supply
 settings built with shared FormField, Button, Menu, and Popover controls.
 
 For search, Markdown, plain text, or change-review projections, hosts can import
@@ -234,7 +232,7 @@ Code blocks retain their language in the document. The searchable language picke
 bundled Highlight.js grammar, including HTML, JavaScript, TypeScript, CSS, JSON, Python, SQL, and
 Bash. An explicit choice loads only its grammar on demand. **Auto** uses 20 common grammars when
 code is present to keep detection light. Pass
-`codeLanguages` to replace the list with your own grammars, or
+a `codeLanguages` responder to replace the list with your own grammars, or
 `{}` for plain code blocks. Headless editors pass grammars to `getDefaultEditorExtensions`.
 Untyped code blocks can be detected from the registered languages.
 While the cursor is in an editable code block, an **Auto** language control floats above it; choose a language to save an explicit

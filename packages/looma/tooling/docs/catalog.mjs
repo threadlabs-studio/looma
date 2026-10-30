@@ -23,7 +23,7 @@ export async function readExamples(directory, componentId) {
       const at = line.indexOf(':'); return at < 0 ? [] : [line.slice(0, at).trim(), line.slice(at + 1).trim()];
     }).filter(pair => pair.length));
     const frameworks = {};
-    for (const [target, extension, language] of [['html-next', '.snippet.html', 'html'], ['vue', '.vue', 'vue']]) {
+    for (const [target, extension, language] of [['html-next', '.snippet.html', 'html'], ['vue', '.vue', 'vue'], ['react', '.tsx', 'tsx'], ['svelte', '.svelte', 'svelte']]) {
       if (files.includes(name + extension)) frameworks[target] = { language, code: await readFile(path.join(directory, name + extension), 'utf8') };
     }
     const behavior = files.includes(name + '.behavior.ts') ? path.join(directory, name + '.behavior.ts') : files.includes(name + '.behavior.js') ? path.join(directory, name + '.behavior.js') : undefined;
@@ -61,7 +61,7 @@ export async function discoverComponents({ root, directory, packageName, groups 
       const events = (definition.declarations ?? []).filter(item => item.kind === 'event').map(event => ({ name: event.name, detailType: event.shape ? typeScriptType(event.shape) : String(event.type), detailDocs: docs.events?.[event.name] ?? '' }));
       const slots = (definition.slots ?? []).map(slot => ({ name: slot.name ?? 'default', description: docs.slots?.[slot.name ?? 'default'] ?? '' }));
       const tokens = [...new Set([...definition.css.matchAll(/var\(\s*(--[\w-]+)/g)].map(match => match[1]))].sort();
-      components.push({ id, package: packageName, tag: contract.tag, title: docs.title ?? titleOf(contract.tag), description: docs.description ?? contract.summary ?? '', ...(docs.summary ? { summary: docs.summary } : {}), group: docs.group ?? 'project', ...(docs.navigationParent ? { navigationParent: docs.navigationParent } : {}), root: contract.nativeElement, source, resource: source, targets: ['html-next'], attributes, properties, events, slots, designTokens: { sources: [path.relative(root, source)], component: [], shared: tokens.map(name => ({ name, fallbacks: [] })) }, examples: await readExamples(path.join(path.dirname(source), 'examples'), id) });
+      components.push({ id, package: packageName, tag: contract.tag, title: docs.title ?? titleOf(contract.tag), description: docs.description ?? contract.summary ?? '', ...(docs.summary ? { summary: docs.summary } : {}), group: docs.group ?? 'project', ...(docs.navigationParent ? { navigationParent: docs.navigationParent } : {}), root: contract.nativeElement, source, resource: source, targets: ['html-next', 'vue', 'react', 'svelte'], attributes, properties, events, slots, designTokens: { sources: [path.relative(root, source)], component: [], shared: tokens.map(name => ({ name, fallbacks: [] })) }, examples: await readExamples(path.join(path.dirname(source), 'examples'), id) });
     }
   }
   const categories = components.some(component => component.group === 'project') && !groups.some(group => group.id === 'project') ? [...groups, { id: 'project', label: 'Project components' }] : groups;

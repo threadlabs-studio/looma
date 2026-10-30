@@ -1,4 +1,6 @@
 import React from "react";
+import componentApi from "../../../../generated/component-api.json";
+import { frameworkExamples } from "../../../../packages/looma/tooling/docs/framework-examples.mjs";
 
 import {
   FrameworkModeCode,
@@ -6,32 +8,10 @@ import {
   type FrameworkExamples
 } from "./FrameworkMode";
 
-const examples: FrameworkExamples = {
-  "html-next": {
-    language: "html",
-    code: `<script type="module">
-  import "@threadlabs/looma";
-</script>
-
-<ui-stack gap="m">
+const examples: FrameworkExamples = frameworkExamples({ markup: `<ui-stack gap="m">
   <h2>Account</h2>
   <ui-button variant="solid">Save</ui-button>
-</ui-stack>`
-  },
-  vue: {
-    language: "vue",
-    code: `<script setup lang="ts">
-import { Button, Stack } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Stack gap="m">
-    <h2>Account</h2>
-    <Button variant="solid">Save</Button>
-  </Stack>
-</template>`
-  }
-};
+</ui-stack>` }, componentApi.components);
 
 /**
  * Explains the architectural invariant behind all framework examples: adapters
@@ -46,7 +26,7 @@ export function DeclarativeModel(): JSX.Element {
         <p>
           A Looma definition declares the component tag, native light-DOM root,
           inputs, methods, events, slots, and controller behavior. HTML Next is
-          the canonical form. Vue projects that same contract
+          the canonical form. Vue, React and Svelte project that same contract
           into its own lifecycle; it does not invent a competing API.
         </p>
       </div>
@@ -73,8 +53,8 @@ export function DeclarativeModel(): JSX.Element {
         <div>
           <h3>The same component, expressed for your host</h3>
           <p>
-            HTML Next is selected by default. Vue shows the same definition through
-            <code>@threadlabs/looma/vue</code>; the live result exercises the same Looma definition.
+            HTML Next is selected by default. Framework examples import the same definitions through
+            <code>@threadlabs/looma</code>; the live result exercises the same Looma definition.
           </p>
         </div>
         <FrameworkModeSelector />

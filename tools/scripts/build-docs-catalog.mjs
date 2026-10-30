@@ -31,7 +31,7 @@ export async function buildDocsCatalog() {
       await writeFile(path.join(output, destination), ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText.replace(/((?:from\s*|import\s*)["'])(\.[^"']+)(["'])/g, (_, lead, target, quote) => lead + target.replace(/\.ts$/, '.js').replace(/\.behavior$/, '.behavior.js') + quote));
       example.behavior = `@threadlabs/looma/docs/${destination}`;
     }
-    entries.push({ ...api, id, title: api.title ?? titleOf(api.tag), resource: `${api.package}/components/${api.tag}/${api.tag}.html`, targets: ['html-next', 'vue'], examples });
+    entries.push({ ...api, id, title: api.title ?? titleOf(api.tag), resource: `${api.package}/components/${api.tag}/${api.tag}.html`, targets: ['html-next', 'vue', 'react', 'svelte'], examples });
   }
   const manifest = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
   const resources = [];

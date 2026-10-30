@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../p
 
 test("surface borders and focus rings use semantic dimensions", async () => {
   const tags = (await readdir(path.join(root, "components"))).filter(tag => tag.startsWith("ui-"));
-  const files = [...tags.map(tag => path.join(root, "components", tag, `${tag}.html`)), path.join(root, "tokens/tokens.css"), path.join(root, "vue/editor/looma-editor.css")];
+  const files = [...tags.map(tag => path.join(root, "components", tag, `${tag}.html`)), path.join(root, "tokens/tokens.css"), path.join(root, "components/ui-editor/ui-editor.css")];
   const failures = [];
   for (const file of files) {
     const source = await readFile(file, "utf8");

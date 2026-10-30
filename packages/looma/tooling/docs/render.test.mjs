@@ -82,7 +82,8 @@ test('native reference tabs expose literal Markdown fences to the standard parse
   };
   collect(document);
   assert.match(page, /<ui-tabs slot="code"[^>]*><section aria-label="HTML Next">/);
-  assert.equal(codes.length, 1);
+  assert.equal(codes.length, 4);
   assert.equal(codes[0].language, 'html');
-  assert.equal(codes[0].value, '<script type="module">\nimport "example";\n</script>\n\n' + example.markup);
+  assert.equal(codes[0].value, '<link rel="component" href="example/components/ui-status/ui-status.html">\n\n' + example.markup);
+  for (const label of ['Vue', 'React', 'Svelte']) assert.ok(page.includes(`aria-label="${label}"`));
 });

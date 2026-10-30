@@ -27,6 +27,14 @@ test("a primitive selects transitive consumers and only related cases in a share
   assert.deepEqual(plan.packageTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
 });
 
+test("source consumer manifests and documentation changes compile every framework example", () => {
+  const consumer = "tests/framework-consumer/examples.test.mjs";
+  const graph = { ...files, [consumer]: "test('source imports', () => {});" };
+  for (const changed of [consumer, "tests/framework-consumer/package.json", "packages/looma/tooling/docs/framework-examples.mjs", "pnpm-lock.yaml"]) {
+    assert.ok(selectChecks(graph, [changed]).scripts.includes(consumer), changed);
+  }
+});
+
 test("Looma Markdown's rules and fixtures select the editor and the tests that load them", () => {
   const graph = { ...files,
     "packages/looma/src/markdown/index.ts": "export const rule = 1;",

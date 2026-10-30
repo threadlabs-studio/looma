@@ -20,6 +20,7 @@
   },
   "exports": {
     ".": {
+      "html-next": "./components/",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
@@ -85,7 +86,13 @@
       "types": "./docs/index.d.ts",
       "import": "./docs/index.mjs",
       "default": "./docs/index.mjs"
-    }
+    },
+    "./editor/compact": {
+      "types": "./editor/compact.d.ts",
+      "import": "./editor/compact.js",
+      "default": "./editor/compact.js"
+    },
+    "./editor.css": "./editor/components.css"
   },
   "files": [
     "dist/",
@@ -105,8 +112,7 @@
   "sideEffects": [
     "./dist/index.js",
     "./vanilla/*.js",
-    "./styles/*.css",
-    "./*.css"
+    "**/*.css"
   ],
   "scripts": {
     "build": "node build.mjs",
@@ -157,6 +163,7 @@
     }
   },
   "devDependencies": {
+    "@nextwebwg/html-next-unplugin": "1.0.0-alpha.70",
     "@nextwebwg/html-next": "1.0.0-alpha.69",
     "@vitejs/plugin-vue": "^6.0.9",
     "vite": "^8.3.0",

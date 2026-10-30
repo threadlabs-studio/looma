@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Button from "../vue/UiButton.js";
+import { UiButton as Button } from "@threadlabs/looma";
 
 describe("CardButton before upgrade", () => {
   it("uses one native Button, its tone and arbitrary icon content", async () => {

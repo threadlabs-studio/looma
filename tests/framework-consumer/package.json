@@ -1,0 +1,24 @@
+{
+  "name": "looma-framework-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@threadlabs/looma": "workspace:*",
+    "vue": "^3.5.43"
+  },
+  "devDependencies": {
+    "@nextwebwg/html-next-unplugin": "1.0.0-alpha.70",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/react": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "svelte": "^5.57.1",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.0"
+  },
+  "scripts": {
+    "test": "node --test examples.test.mjs"
+  }
+}

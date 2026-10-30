@@ -1,11 +1,23 @@
-import vue from "@vitejs/plugin-vue";
+import { vueSourcePlugins } from "./tests/framework-plugins";
 import { defineConfig } from "vitest/config";
 
 // Browser-mode tests of the editor. They import the built package (run `pnpm build` first).
 export default defineConfig({
-  plugins: [vue()],
+  plugins: vueSourcePlugins(),
+  define: { __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "vue") },
+  optimizeDeps: { include: ["vue", "@tiptap/core"] },
+  resolve: {
+    dedupe: ["vue", "@vue/shared", "@vue/runtime-core", "@vue/runtime-dom", "@vue/reactivity"],
+    alias: [
+      { find: /^vue$/, replacement: new URL("./node_modules/vue/dist/vue.runtime.esm-bundler.js", import.meta.url).pathname },
+      { find: /^@threadlabs\/looma\/editor$/, replacement: new URL("./src/editor/index.ts", import.meta.url).pathname },
+      { find: /^@threadlabs\/looma\/editor\/compact$/, replacement: new URL("./src/editor/compact.ts", import.meta.url).pathname },
+    ],
+  },
   test: {
     include: [
+      "tests/source-editor.browser.test.ts",
+      "tests/native-editor.browser.test.ts",
       "tests/pagination.browser.test.ts",
       "tests/badge-overlay.browser.test.ts",
       "tests/compact-editor.browser.test.ts",

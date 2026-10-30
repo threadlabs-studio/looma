@@ -1,7 +1,7 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import SiteHeader from "../vue/UiSiteHeader.js";
+import { UiSiteHeader as SiteHeader } from "@threadlabs/looma";
 
 describe("SiteHeader before upgrade", () => {
   it("renders inline navigation once without an open dialog before upgrade", async () => {

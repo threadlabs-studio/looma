@@ -29,7 +29,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     assert.equal(c.attributes[0].default, 'Ready');
     assert.equal(c.examples[0].title, 'Ready');
     assert.equal(c.examples[0].id, 'acme-design/acme-status/01-ready');
-    assert.deepEqual(c.targets, ['html-next']);
+    assert.deepEqual(c.targets, ['html-next', 'vue', 'react', 'svelte']);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

@@ -261,3 +261,8 @@ test("design tokens hide private defaults and report them as the public token's 
   }]);
   assert.deepEqual(tokens.shared.map((token) => token.name), ["--ui-danger-soft", "--ui-info-soft"]);
 });
+
+ test("open declarative records retain known fields in generated TypeScript", () => {
+  assert.equal(declarativeTypeToTypeScript("object({ type: string, ... })"), "{ type: string; [key: string]: unknown }");
+  assert.equal(declarativeTypeToTypeScript("object({ ... })"), "{ [key: string]: unknown }");
+});

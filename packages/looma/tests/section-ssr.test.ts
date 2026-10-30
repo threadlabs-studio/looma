@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Section from "../vue/UiSection.js";
+import { UiSection as Section } from "@threadlabs/looma";
 
 describe("Section before upgrade", () => {
   it("names a native fieldset through its legend and keeps actions and description inside", async () => {

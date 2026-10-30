@@ -11,6 +11,7 @@ export function connect(host) {
   const element = host.element;
   const name = String(host.props.name.value || `ui-radio-group-${++groups}`);
   const [trigger, stopTracking] = trackTrigger(host);
+  const authoredForms = new WeakMap();
   const inputs = () => Array.from(element.querySelectorAll('input[type="radio"]'));
   let external = host.props.value.value;
   // A radio's own required survives until the group's required changes, since either one makes the
@@ -19,6 +20,10 @@ export function connect(host) {
   const apply = (input, value = host.state.internalValue) => {
     if (required) input.required = true;
     input.name = name;
+    if (!authoredForms.has(input)) authoredForms.set(input, input.getAttribute("form"));
+    const form = host.props.form.value ?? authoredForms.get(input);
+    if (form === null) input.removeAttribute("form");
+    else input.setAttribute("form", form);
     checkRadio(input, input.value === value);
     // The value prop is the choice a native form reset returns to.
     input.defaultChecked = input.value === String(external ?? "");
