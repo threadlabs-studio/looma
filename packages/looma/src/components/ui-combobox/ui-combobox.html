@@ -895,7 +895,8 @@
     /* Grow through the requested rows, then keep the typing row in a bounded field.
        The entry owns its scroll; clear/disclosure actions remain outside it. */
     :host([multiple]) .entry.multiline {
-      --_entry-row: max(var(--ui-badge-min-block-size, 1.5rem), var(--_item-row));
+      /* The field owns its nominal row size; nested badges keep their own sizing hooks. */
+      --_entry-row: max(1.5rem, var(--_item-row));
       flex-wrap: wrap !important;
       align-content: flex-start !important;
       max-block-size: calc(var(--_max-rows) * var(--_entry-row) + (var(--_max-rows) - 1) * var(--ui-space-1));

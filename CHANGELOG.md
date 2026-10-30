@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
+
 - Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.
 - Card exposes header and actions slots around its default body content without changing ordinary stacked spacing.
 - SiteHeader centers the brand and navigation containers individually beside actions, including a logo with mixed-size text.
