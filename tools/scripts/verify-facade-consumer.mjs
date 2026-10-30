@@ -30,7 +30,7 @@ async function writeJson(filePath, value) {
 async function installConsumer(directory) {
   await run(
     pnpm,
-    ["install", "--ignore-scripts", "--config.auto-install-peers=false", "--prefer-offline"],
+    ["install", "--ignore-scripts", "--config.auto-install-peers=false", "--prefer-online"],
     directory,
   );
 }

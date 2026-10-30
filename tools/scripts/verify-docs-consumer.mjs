@@ -23,7 +23,8 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest) 
       '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
   });
-  await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline'], directory);
+  // Revalidate admitted versions: offline metadata can retain an incompatible peer after its fixed release publishes.
+  await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-online'], directory);
   await run(pnpm, ['exec', 'looma-docs', 'init', '--title', 'The Fellowship'], directory);
   const config = JSON.parse(await readFile(path.join(directory, 'looma.docs.json'), 'utf8'));
   Object.assign(config, { base: '/system/', content: 'docs', components: [{ directory: 'app/components', packageName: 'fellowship-ui' }] });

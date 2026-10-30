@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Installed consumer verification refreshes registry metadata while reusing package files, so a newly published compatible peer is not hidden by stale offline metadata.
+
 - Qualify the fixed navigation in 0.46.1 so documentation consumers can admit later compatible versions with a stable minimum. Custom native menu triggers remain usable without JavaScript at every breakpoint.
 
 - SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
