@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.
+- Card exposes header and actions slots around its default body content without changing ordinary stacked spacing.
+- SiteHeader centers the brand and navigation containers individually beside actions, including a logo with mixed-size text.
+
 - Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
 - Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits. Darker material and contrast-adjusted borders retain colorfulness through chroma and bounded hue compensation; surface lighting remains restrained. Outline buttons and icon buttons keep flat translucent fills at rest and on hover.
 
