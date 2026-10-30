@@ -161,8 +161,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.4.0 <1'
-        version: 0.4.0
+        specifier: '>=0.5.1 <1'
+        version: 0.5.1
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -4948,8 +4948,8 @@ packages:
     resolution: {integrity: sha512-mecRmshYZ8VGH/tvM5Y1fyeb/Mz6euAlvcFJfofmy53cNRGq9tABVARaGYt/oWzCnA/ieBRJ/9UnBLqTIJP0sg==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
-  expressmark@0.4.0:
-    resolution: {integrity: sha512-tYYgC+qsSsetAU8gA5COLExOFezNGH+EFtaFAfZ19Isj8yIqEYpQUKiU2Xo2LKeT0Wiw8IoMFw1OwW4v7RsWgg==}
+  expressmark@0.5.1:
+    resolution: {integrity: sha512-o6ORkpF3LwxWUlFNd6DjbT5iekpfokX3ZFVtCsZB2AuR3WN/ITxK+JQjC6sga+c7Dx0rjAGeK8jBjnV/w1Femg==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -14124,7 +14124,7 @@ snapshots:
       sanitize-html: 2.18.1
       yaml: 2.9.1
 
-  expressmark@0.4.0:
+  expressmark@0.5.1:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
