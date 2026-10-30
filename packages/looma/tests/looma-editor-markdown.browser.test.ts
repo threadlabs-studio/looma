@@ -106,3 +106,19 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     expect(editorDocumentToMarkdown(editor.getJSON(), { original: markdown })).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
   });
 });
+
+
+it("pastes a source document with front matter and a quoted pipe table as editable blocks", async () => {
+  const { editor, host } = await mountEditor();
+  editor.commands.focus("start");
+  pasteSource(editor, [
+    "---", "date: 2026-01-01", "---", "", "# Field guide", "",
+    "> | Name | Status |", "> | --- | --- |", "> | Example | Ready |", "",
+    "## Details", "", "Body.",
+  ].join("\n"));
+  await flushBrowser();
+  expect(editor.getJSON().content?.map(node => node.type)).toEqual(["codeBlock", "heading", "blockquote", "heading", "paragraph"]);
+  expect(host.querySelector(".ProseMirror h1")?.textContent).toBe("Field guide");
+  expect(host.querySelector(".ProseMirror blockquote table")?.textContent).toContain("Example");
+  expect(host.querySelector(".ProseMirror pre")?.textContent).toContain("date: 2026-01-01");
+});

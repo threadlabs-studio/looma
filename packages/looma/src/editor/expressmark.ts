@@ -6,6 +6,8 @@ import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display
 /** Conversion-time display snapshot, independent from the authored editor document. */
 export interface EditorMarkdownConversionOptions extends ConversionOptions {
   references?: LoomaReferenceMap;
+  /** Write current links and stable heading IDs for portable exports; authored navigation is preserved. Defaults to a reader-built placeholder. */
+  tableOfContents?: "placeholder" | "entries";
   /**
    * The Markdown the document was read from. Its front matter, every block the editor left
    * unchanged and the spacing between them are written back byte for byte; an edited block keeps
@@ -123,22 +125,42 @@ function legacyCodePresentation(code: Node, path: string): Node {
 const REVERSE_MARKS = Object.fromEntries(Object.entries(MARKS).map(([left, right]) => [right, left]));
 
 interface Heading { text: string; id?: string; node: JSONContent }
-interface ProjectionContext { custom: Set<JSONContent>; references: LoomaReferenceMap; definitions: Map<string, JSONContent> }
+interface ProjectionContext { headingIds: WeakMap<JSONContent, string>; headings: Heading[]; tableOfContents?: "placeholder" | "entries"; custom: Set<JSONContent>; references: LoomaReferenceMap; definitions: Map<string, JSONContent> }
 const displayText = (node: JSONContent, references: LoomaReferenceMap): string => {
   if (node.type === "loomaReference") return references[`link:${node.attrs?.id}`]?.label ?? string(node.attrs?.label, string(node.attrs?.id));
   if (node.type === "mention") return `@${references[`mention:${node.attrs?.id}`]?.label ?? string(node.attrs?.label, string(node.attrs?.id))}`;
   return node.text ?? (node.content ?? []).map(child => displayText(child, references)).join("");
 };
 
-// The headings of a document outside authored navigation, in order.
-function headingsOf(document: JSONContent, references: LoomaReferenceMap): Heading[] {
+// Headings in document order; navigation participates only when allocating portable anchors.
+function headingsOf(document: JSONContent, references: LoomaReferenceMap, includeNavigation = false): Heading[] {
   const headings: Heading[] = [];
   const visit = (node: JSONContent) => {
     if (node.type === "heading") headings.push({ node, text: displayText(node, references).trim(), id: node.attrs?.id ? string(node.attrs.id) : undefined });
-    else if (node.type !== "loomaTableOfContents") for (const child of node.content ?? []) visit(child);
+    else if (includeNavigation || node.type !== "loomaTableOfContents") for (const child of node.content ?? []) visit(child);
   };
   visit(document);
   return headings;
+}
+
+// Portable navigation derives from the same heading IDs as the reader, without adding
+// generated bodies to the caller's native document. Skipped heading levels add no fake parents.
+function tocBody(headings: Heading[], depth: number, ordered: boolean, ids: WeakMap<JSONContent, string>): Node[] {
+  const roots: Node[] = [];
+  const stack: { level: number; item: Node }[] = [];
+  headings.forEach(heading => {
+    const level = Number(heading.node.attrs?.level ?? 1);
+    if (level > depth || !heading.text) return;
+    while (stack.length && stack[stack.length - 1]!.level >= level) stack.pop();
+    const item: Node = { type: "listItem", body: [{ type: "paragraph", children: [{ type: "link", url: `#${ids.get(heading.node)}`, value: heading.text, attributes: { target: "_self", rel: "noopener noreferrer" } }] }] };
+    const parent = stack[stack.length - 1]?.item;
+    const destination = parent ? (parent.body ??= []) : roots;
+    let list = destination[destination.length - 1];
+    if (list?.type !== "list") { list = { type: "list", ordered, ...(ordered ? { start: 1 } : {}), children: [] }; destination.push(list); }
+    list.children!.push(item);
+    stack.push({ level, item });
+  });
+  return roots;
 }
 
 // The headings whose ID a reader would not derive from the written text, so they need `{#id}`.
@@ -207,7 +229,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       return { type: "text", value: node.text ?? "" };
     }
     case "paragraph": return plain("paragraph");
-    case "heading": return plain("heading", ["level", "id"], { level: Number(attrs.level ?? 1), ...(context.custom.has(node) ? { id: string(attrs.id) } : {}) });
+    case "heading": return plain("heading", ["level", "id"], { level: Number(attrs.level ?? 1), ...(context.headingIds.has(node) ? { id: context.headingIds.get(node)! } : context.custom.has(node) ? { id: string(attrs.id) } : {}) });
     case "blockquote": return block("blockquote");
     case "horizontalRule": fields(node, [], path); return { type: "horizontalRule" };
     case "hardBreak": fields(node, [], path); return { type: "break" };
@@ -311,14 +333,14 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     case "loomaTableOfContents": {
       fields(node, ["format", "depth"], path);
       const depth = Number(attrs.depth ?? 3); const format = string(attrs.format, "plain");
-      // The entries follow the headings wherever the document is read; only authored navigation is written.
-      if (!node.content?.length) {
+      // Readers derive automatic entries unless the caller requests a portable saved projection.
+      if (!node.content?.length && context.tableOfContents !== "entries") {
         const attributes: Attributes = {};
         if (depth !== 3) attributes.depth = String(depth);
         if (format !== "plain") attributes.format = format;
         return { type: "leaf", subType: "toc", ...(Object.keys(attributes).length ? { attributes } : {}) };
       }
-      return { type: "container", subType: "toc", attributes: { depth: String(depth), format }, body: blocks() };
+      return { type: "container", subType: "toc", attributes: { depth: String(depth), format }, body: node.content?.length ? blocks() : tocBody(context.headings, depth, format === "numbered", context.headingIds) };
     }
     default: return fail(path, `node ${node.type ?? "unknown"}`);
   }
@@ -328,7 +350,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
  * Maps an editor's saved JSON to the independent Expressive Markdown AST without DOM access.
  * @contract Unsupported nodes, marks and durable attributes throw with their location; input is never
  * mutated. Footnote and link definitions stay where they are, and a table of contents stays a
- * placeholder unless it holds authored navigation.
+ * placeholder unless it holds authored navigation or `tableOfContents: "entries"` is requested.
  */
 export function editorDocumentToExpressmark(document: JSONContent, options: EditorMarkdownConversionOptions = {}): Document {
   if (document.type !== "doc") fail("document", "non-document root");
@@ -359,12 +381,17 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Edit
   visit(document);
   const references = options.references ?? {};
   const headings = headingsOf(document, references);
+  const anchored = options.tableOfContents === "entries" ? headingsOf(document, references, true) : [];
   const authored = new Set<string>();
-  for (const { id } of headings) {
-    if (id && authored.has(id)) options.onDiagnostic?.({ code: "duplicate-id", severity: "warning", message: `Authored heading ID "${id}" is repeated and was preserved.` });
+  for (const { id } of options.tableOfContents === "entries" ? anchored : headings) {
+    if (id && authored.has(id)) options.onDiagnostic?.({ code: "duplicate-id", severity: "warning", message: options.tableOfContents === "entries" ? `Authored heading ID "${id}" is repeated; portable output assigns a unique anchor.` : `Authored heading ID "${id}" is repeated and was preserved.` });
     if (id) authored.add(id);
   }
-  const context = { custom: customHeadings(headings), definitions, references };
+  // Saved links must bind to written IDs. Navigation headings reserve anchors too,
+  // even though they do not become entries in another table of contents.
+  const ids = assignLoomaHeadingIds(anchored);
+  const headingIds = new WeakMap<JSONContent, string>(anchored.map((heading, index) => [heading.node, ids[index]!]));
+  const context = { custom: customHeadings(headings), definitions, references, headings, headingIds, tableOfContents: options.tableOfContents };
   return { type: "document", version: 1, syntax: options.syntax ?? "compatible", body: (document.content ?? []).map((node, index) => { const child = toNode(node, `document.body[${index}]`, context); return child.type === "image" ? { type: "paragraph", children: [child] } : child; }) };
 }
 
@@ -625,7 +652,11 @@ function keepAuthored(source: Document, edited: Document, options: EditorMarkdow
   for (let index = 0; index < current.length;) {
     const found = keys.findIndex((key, block) => block > used && key.length > 0 && key.every((value, at) => current[index + at] === value));
     if (found >= 0) {
-      body.push(source.body[found]!);
+      const original = source.body[found]!;
+      // Original spellings must not restore placeholders or omit the IDs a portable export pins.
+      const pinsTargets = options.tableOfContents === "entries" && findNode(original, node => node.type === "heading" || (node.type === "leaf" && node.subType === "toc"));
+      if (pinsTargets) body.push(...edited.body.slice(index, index + keys[found]!.length).map(node => respell(node, original)));
+      else body.push(original);
       index += keys[found]!.length;
       used = found;
       continue;
@@ -641,6 +672,7 @@ function keepAuthored(source: Document, edited: Document, options: EditorMarkdow
  * Writes an editor document using Expressmark's shared parser/writer and safe HTML policy.
  * @contract With `original`, an unedited document is written back byte for byte, and an edit
  * leaves the source of every other block, the front matter and the spacing between them alone.
+ * Portable entries deliberately expand placeholders and pin heading IDs even with `original`.
  * @failure Unsupported editor data raises EditorMarkdownConversionError before any input is changed.
  */
 export function editorDocumentToMarkdown(document: JSONContent, options: EditorMarkdownConversionOptions = {}): string {

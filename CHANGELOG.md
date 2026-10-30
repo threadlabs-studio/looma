@@ -2,6 +2,24 @@
 
 ## Next release
 
+- SiteHeader uses compact spacing between the brand and mobile menu while preserving adjustable control targets. Native custom menus keep the same adjacent placement before JavaScript upgrades the header.
+- Self-contained TOC exports write stable IDs for every heading and reserve anchors used inside authored navigation. Matching heading labels cannot redirect a saved link, including when original Markdown spellings are retained.
+
+- Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
+
+- Markdown exports can request `{ tableOfContents: "entries" }` for saved navigation with current heading links. Reader-built placeholders remain the default, authored navigation remains intact, and native editor content is never rewritten.
+
+- Keep SiteHeader's mobile hamburger in the inline navigation's position beside the brand, with the same gap. Only the actions remain at the trailing edge; the brand no longer expands to push the menu away.
+
+- Installed consumer verification refreshes registry metadata while reusing package files, so a newly published compatible peer is not hidden by stale offline metadata.
+
+- Qualify the fixed navigation in 0.46.1 so documentation consumers can admit later compatible versions with a stable minimum. Custom native menu triggers remain usable without JavaScript at every breakpoint.
+
+- SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
+
+
+- Fieldset sections use internal gaps and padding instead of margins. A description and actions without body content no longer leave an extra gap above the bottom padding; legend and content alignment stays consistent.
+
 - **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
 
 - With `original`, the Markdown a document was read from, an unedited document is written back byte for byte, front matter, line endings and spacing included, and an edit leaves the source of every other block alone. An edited block keeps the spellings it still reads as, such as `_` emphasis, `*` bullets or a setext heading; spacing next to it is one blank line. Raw HTML blocks are written through Expressmark's safe HTML profile.
