@@ -176,3 +176,39 @@ it('rejects colored highlights that the default schema cannot preserve', () => {
   expect(() => editorDocumentToExpressmark({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Marked', marks: [{ type: 'highlight', attrs: { color: 'red;position:fixed' } }] }] }] })).toThrow(/colored highlight/)
   expect(() => expressmarkToEditorDocument({ type: 'document', version: 1, body: [{ type: 'paragraph', children: [{ type: 'highlight', value: 'Marked', attributes: { color: 'red' } }] }] })).toThrow(/color/)
 })
+
+
+it("can export self-contained TOC entries without changing native content or the default", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", attrs: { depth: 2, format: "numbered" } },
+    { type: "heading", attrs: { level: 1, id: "intro" }, content: [{ type: "text", text: "Introduction" }] },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Résumé" }] },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Résumé" }] },
+    { type: "heading", attrs: { level: 3 }, content: [{ type: "text", text: "Hidden" }] },
+  ] };
+  const before = JSON.stringify(editor);
+  expect(editorDocumentToExpressmark(editor).body[0]?.type).toBe("leaf");
+  const written = editorDocumentToMarkdown(editor, { tableOfContents: "entries" });
+  expect(written).toContain("::: toc");
+  expect(written).toContain("#intro");
+  expect(written).toContain("#résumé");
+  expect(written).toContain("#résumé-1");
+  const toc = editorDocumentToExpressmark(editor, { tableOfContents: "entries" }).body[0]!;
+  expect(toc.body?.[0]).toMatchObject({ type: "list", ordered: true });
+  expect(JSON.stringify(toc)).not.toContain("Hidden");
+  expect(JSON.stringify(editor)).toBe(before);
+  const imported = markdownToEditorDocument(written);
+  imported.content![1]!.content![0]!.text = "Changed heading";
+  expect(editorDocumentToMarkdown(imported, { tableOfContents: "entries" })).toContain("Introduction");
+  expect(editorDocumentToMarkdown(editor, { original: editorDocumentToMarkdown(editor), tableOfContents: "entries" })).toContain("::: toc");
+});
+
+it("exports empty automatic TOCs and excludes headings inside authored navigation", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", content: [{ type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Navigation" }] }] },
+    { type: "loomaTableOfContents" },
+  ] };
+  const ast = editorDocumentToExpressmark(editor, { tableOfContents: "entries" });
+  expect(ast.body[1]).toMatchObject({ type: "container", subType: "toc", body: [] });
+  expect(ast.body[0]?.body?.[0]).toMatchObject({ type: "heading", value: "Navigation" });
+});
