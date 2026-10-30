@@ -11,6 +11,23 @@ const enter = async (page, info) => {
   return errors;
 };
 
+test('theme sampler delivers checked-choice hover over both marks and labels', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'looma');
+  for (const tag of ['ui-checkbox', 'ui-switch', 'ui-radio']) {
+    const control = page.locator(`[data-theme-sampler] [data-component~="${tag}"]`).first();
+    const input = control.locator('input');
+    await expect(input).toBeChecked();
+    const paint = () => input.evaluate(el => getComputedStyle(el).backgroundColor);
+    await page.mouse.move(0, 0); const rest = await paint();
+    await control.locator('.label').hover();
+    await expect.poll(paint).not.toBe(rest);
+    await page.mouse.move(0, 0); await expect.poll(paint).toBe(rest);
+    await input.hover(); await expect.poll(paint).not.toBe(rest);
+    await expect(input).toBeChecked();
+  }
+});
+
 test('touch taps commit starting theme, palette, material and font selections', async ({browser}, info) => {
   const context = await browser.newContext({ viewport: {width:390,height:844}, isMobile:true, hasTouch:true });
   try {
@@ -321,7 +338,7 @@ test('palette and material defaults are muted until their family is overridden',
 
 test('one main font also styles headings until an optional heading font is chosen', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page, 'clear');
+  await chooseStartingPoint(page, 'minimal');
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
   const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
@@ -383,7 +400,7 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
 
 test('field label sizing follows body text or keeps an independent persisted size', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'typography');
   const label=editor.locator('label').filter({hasText:'Memo title'});
   const source=editor.locator('[data-label-size-source]');
@@ -404,7 +421,7 @@ test('field label sizing follows body text or keeps an independent persisted siz
 
 test('rhythm separates stacked size groups without spreading navigation or action rows', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'layout');
   const measure=()=>page.evaluate(()=>({
     groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
@@ -435,7 +452,7 @@ test('material samples show ordinary and expressive surfaces with working floati
 for (const width of [1440,375]) test(`palette relationships govern neutral boundaries and status families at ${width}px`, async ({page},info) => {
   await page.setViewportSize({width,height:1000});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'clear');
+  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'palette');
   const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
     const border=element=>getComputedStyle(element).borderTopColor;
@@ -491,26 +508,38 @@ test('Gold outline borders respond to the visibility minimum without changing th
   await expect.poll(colors).toEqual(resting);
 });
 
-for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses translucent accent pigment at rest and on hover`, async ({ page }, info) => {
+for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses calibrated translucent accent roles at rest and on hover`, async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, startingPoint);
   const editor = await openEditor(page, 'palette');
   for (const mode of ['light', 'dark']) {
     const outline = editor.locator(`.palette-preview [data-theme="${mode}"]`).getByRole('button', { name: 'Outline', exact: true });
-    const wash = alpha => outline.evaluate((element, alpha) => {
+    const wash = role => outline.evaluate((element, role) => {
       const probe = document.createElement('span');
-      probe.style.color = `oklch(from var(--ui-accent) l c h / calc(${alpha}% * var(--ui-tonal-opacity, 1)))`;
+      probe.style.color = `var(--ui-accent-${role})`;
       element.append(probe);
-      const expected = getComputedStyle(probe).color;
+      const color = getComputedStyle(probe).color;
       const background = getComputedStyle(element).backgroundImage;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d');
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      const alpha = context.getImageData(0, 0, 1, 1).data[3] / 255;
       probe.remove();
-      return { expected: `linear-gradient(${expected}, ${expected})`, background };
-    }, alpha);
+      return { expected: `linear-gradient(${color}, ${color})`, background, alpha };
+    }, role);
     await page.mouse.move(0, 0);
-    let colors = await wash(8);
-    expect(colors.background).toContain(colors.expected);
+    const rest = await wash('wash');
+    expect(rest.background).toContain(rest.expected);
     await outline.hover();
-    colors = await wash(12);
-    expect(colors.background).toContain(colors.expected);
+    const hover = await wash('wash-hover');
+    expect(hover.background).toContain(hover.expected);
+    expect(hover.expected).not.toBe(rest.expected);
+    expect(hover.background.replace(hover.expected, '')).toBe(rest.background.replace(rest.expected, ''));
+    for (const { alpha } of [rest, hover]) {
+      expect(alpha).toBeGreaterThan(0);
+      expect(alpha).toBeLessThan(1);
+    }
   }
 });

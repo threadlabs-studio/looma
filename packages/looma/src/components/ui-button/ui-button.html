@@ -130,6 +130,9 @@
       --_tone-highlight: var(--ui-accent-highlight, none);
       --_tone-hover-highlight: var(--ui-accent-hover-highlight, none);
       --_tone-outline-border: var(--ui-accent-outline-border, var(--ui-accent-subtle-text));
+      --_tone-wash: var(--ui-accent-wash);
+      --_tone-wash-hover: var(--ui-accent-wash-hover);
+      --_tone-ghost-hover: var(--ui-accent-ghost-hover);
       --_tone-glow: var(--ui-accent-glow, 0 0 transparent);
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);
@@ -316,7 +319,7 @@
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]) {
       --_outline-highlight: var(--ui-surface-highlight, linear-gradient(transparent, transparent));
-      --_outline-wash: oklch(from var(--_tone) l c h / calc(8% * var(--ui-tonal-opacity, 1)));
+      --_outline-wash: var(--_tone-wash);
       border-color: var(--ui-button-border, var(--_tone-outline-border, var(--_tone-text)));
       background-color: var(--ui-button-surface, transparent);
       box-shadow: var(--ui-button-shadow, var(--ui-neutral-shadow));
@@ -326,8 +329,7 @@
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
-      --_outline-highlight: var(--ui-neutral-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent)));
-      --_outline-wash: oklch(from var(--_tone) l c h / calc(12% * var(--ui-tonal-opacity, 1)));
+      --_outline-wash: var(--_tone-wash-hover);
       background-color: var(--ui-button-hover-surface, transparent);
       border-color: var(--ui-button-hover-border, var(--_tone-outline-border));
     }
@@ -395,6 +397,9 @@
       --_tone-highlight: var(--ui-accent-secondary-highlight, none);
       --_tone-hover-highlight: var(--ui-accent-secondary-hover-highlight, none);
       --_tone-outline-border: var(--ui-accent-secondary-outline-border, var(--ui-accent-secondary-subtle-text));
+      --_tone-wash: var(--ui-accent-secondary-wash);
+      --_tone-wash-hover: var(--ui-accent-secondary-wash-hover);
+      --_tone-ghost-hover: var(--ui-accent-secondary-ghost-hover);
       --_tone-glow: var(--ui-accent-secondary-glow, 0 0 transparent);
       --_hue: var(--ui-accent-secondary);
       --_hue-hover: var(--ui-accent-secondary-hover);
@@ -410,6 +415,9 @@
       --_tone-highlight: var(--ui-accent-tertiary-highlight, none);
       --_tone-hover-highlight: var(--ui-accent-tertiary-hover-highlight, none);
       --_tone-outline-border: var(--ui-accent-tertiary-outline-border, var(--ui-accent-tertiary-subtle-text));
+      --_tone-wash: var(--ui-accent-tertiary-wash);
+      --_tone-wash-hover: var(--ui-accent-tertiary-wash-hover);
+      --_tone-ghost-hover: var(--ui-accent-tertiary-ghost-hover);
       --_tone-glow: var(--ui-accent-tertiary-glow, 0 0 transparent);
       --_hue: var(--ui-accent-tertiary);
       --_hue-hover: var(--ui-accent-tertiary-hover);
@@ -423,8 +431,9 @@
       --_tone-hover-border: var(--ui-control-border-hover, var(--ui-neutral-hover));
       --_tone-active-border: var(--ui-control-border-hover, var(--ui-neutral-active));
       --_tone-highlight: var(--ui-neutral-highlight, none);
-      --_tone-hover-highlight: var(--ui-neutral-highlight, var(--_tone-highlight));
+      --_tone-hover-highlight: var(--ui-neutral-hover-highlight, var(--_tone-highlight));
       --_tone-outline-border: var(--ui-control-border);
+      --_tone-ghost-hover: var(--ui-neutral-ghost-hover);
       --_tone-glow: var(--ui-neutral-glow, 0 0 transparent);
       --_hue: var(--ui-text);
       --_hue-hover: var(--ui-text);
@@ -446,8 +455,8 @@
     }
     :host[data-tone="neutral"][data-appearance="outline"]:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--ui-control-border-hover));
-      background-color: var(--ui-button-hover-surface, var(--ui-neutral-hover));
-      --_outline-wash: oklch(from var(--ui-text) l c h / 5%);
+      background-color: var(--ui-button-hover-surface, transparent);
+      --_outline-wash: var(--ui-neutral-wash-hover);
       background-image:
         linear-gradient(var(--_outline-wash), var(--_outline-wash)),
         var(--ui-surface-highlight, linear-gradient(transparent, transparent));
@@ -473,6 +482,9 @@
       --_tone-highlight: var(--ui-danger-highlight, none);
       --_tone-hover-highlight: var(--ui-danger-hover-highlight, none);
       --_tone-outline-border: var(--ui-danger-outline-border, var(--ui-danger-subtle-text));
+      --_tone-wash: var(--ui-danger-wash);
+      --_tone-wash-hover: var(--ui-danger-wash-hover);
+      --_tone-ghost-hover: var(--ui-danger-ghost-hover);
       --_tone-glow: var(--ui-danger-glow, 0 0 transparent);
       --_hue: var(--ui-danger);
       --_hue-hover: var(--ui-danger-hover);
@@ -488,6 +500,9 @@
       --_tone-highlight: var(--ui-success-highlight, none);
       --_tone-hover-highlight: var(--ui-success-hover-highlight, none);
       --_tone-outline-border: var(--ui-success-outline-border, var(--ui-success-subtle-text));
+      --_tone-wash: var(--ui-success-wash);
+      --_tone-wash-hover: var(--ui-success-wash-hover);
+      --_tone-ghost-hover: var(--ui-success-ghost-hover);
       --_tone-glow: var(--ui-success-glow, 0 0 transparent);
       --_hue: var(--ui-success);
       --_hue-hover: var(--ui-success-hover);
@@ -503,6 +518,9 @@
       --_tone-highlight: var(--ui-warning-highlight, none);
       --_tone-hover-highlight: var(--ui-warning-hover-highlight, none);
       --_tone-outline-border: var(--ui-warning-outline-border, var(--ui-warning-subtle-text));
+      --_tone-wash: var(--ui-warning-wash);
+      --_tone-wash-hover: var(--ui-warning-wash-hover);
+      --_tone-ghost-hover: var(--ui-warning-ghost-hover);
       --_tone-glow: var(--ui-warning-glow, 0 0 transparent);
       --_hue: var(--ui-warning);
       --_hue-hover: var(--ui-warning-hover);
@@ -518,6 +536,9 @@
       --_tone-highlight: var(--ui-info-highlight, none);
       --_tone-hover-highlight: var(--ui-info-hover-highlight, none);
       --_tone-outline-border: var(--ui-info-outline-border, var(--ui-info-subtle-text));
+      --_tone-wash: var(--ui-info-wash);
+      --_tone-wash-hover: var(--ui-info-wash-hover);
+      --_tone-ghost-hover: var(--ui-info-ghost-hover);
       --_tone-glow: var(--ui-info-glow, 0 0 transparent);
       --_hue: var(--ui-info);
       --_hue-hover: var(--ui-info-hover);
@@ -560,9 +581,9 @@
       color: var(--ui-button-ghost-text, var(--_tone-text));
     }
 
-    /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
+    /* Shared translucent paint keeps text and icon action feedback coordinated. */
     :host[data-appearance="ghost"]:hover:not(:disabled, [aria-disabled="true"]) {
-      background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / calc(10% * var(--ui-tonal-opacity, 1))));
+      background-color: var(--ui-button-ghost-hover-surface, var(--_tone-ghost-hover));
       border-color: transparent;
     }
 

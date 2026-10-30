@@ -544,7 +544,7 @@ test('palette refinement persists its origin and restoring it leaves material re
 });
 
 const readableRecipes = [...Object.entries(startingPoints), ['imported white seeds', {
-  ...startingPoints.clear, values: { ...startingPoints.clear.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
+  ...startingPoints.minimal, values: { ...startingPoints.minimal.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
 }]];
 for (const [preset, recipe] of readableRecipes) {
   test(`solid action tones and icon actions stay readable in both modes and states: ${preset}`, async ({ page }, info) => {

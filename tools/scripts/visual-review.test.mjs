@@ -149,28 +149,42 @@ test('a failed worktree creation leaves an existing checkout and its diagnostic 
   assert.throws(()=>execFileSync(process.execPath,['tools/scripts/visual-review.mjs','render-side',`--plan=${file}`,'--side=base',`--output=${directory}/output`],{stdio:'pipe'}));
   assert.equal(readFileSync(path.join(checkout,'diagnostic.txt'),'utf8'),'preserve this work');
 });
-test('comparison reports real visual changes without updating the trusted reference',t=>{
+test('comparison reports real visual changes without updating the trusted reference',async t=>{
   const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after'), report=path.join(root,'report');
   mkdirSync(before);mkdirSync(after);
   writeFileSync(path.join(before,'control.png'),image());writeFileSync(path.join(after,'control.png'),image(0));
-  const result=compareCaptures(before,after,report);
+  const result=await compareCaptures(before,after,report);
   assert.equal(result.changed.length,1);assert.equal(result.unchanged.length,0);
   assert.deepEqual(readFileSync(path.join(before,'control.png')),image());
   assert.ok(readFileSync(path.join(report,'index.html'),'utf8').includes('control.png'));
 });
-test('added and removed examples stay visible in the review report',t=>{
+test('added and removed examples stay visible in the review report',async t=>{
   const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after');mkdirSync(before);mkdirSync(after);
   writeFileSync(path.join(before,'removed.png'),image());writeFileSync(path.join(after,'added.png'),image());
-  const result=compareCaptures(before,after,path.join(root,'report'));
+  const result=await compareCaptures(before,after,path.join(root,'report'));
   assert.deepEqual(result.added,['added.png']);assert.deepEqual(result.removed,['removed.png']);
 });
-test('renderer diagnostic attachments are excluded from the visual comparison',t=>{
+test('renderer diagnostic attachments are excluded from the visual comparison',async t=>{
   const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after');
   mkdirSync(path.join(before,'test-results','case'),{recursive:true});mkdirSync(after);
   writeFileSync(path.join(before,'control.png'),image());writeFileSync(path.join(after,'control.png'),image());
   writeFileSync(path.join(before,'test-results','case','control-actual.png'),image());
-  const result=compareCaptures(before,after,path.join(root,'report'));
+  const result=await compareCaptures(before,after,path.join(root,'report'));
   assert.deepEqual(result.removed,[]);assert.equal(result.unchanged.length,1);
+});
+test('parallel visual comparison preserves every result and report image and propagates corrupt captures', async t => {
+  const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after');
+  mkdirSync(before);mkdirSync(after);
+  for (const name of ['unchanged.png','changed.png','removed.png']) writeFileSync(path.join(before,name),image());
+  for (const [name,value] of [['unchanged.png',255],['changed.png',0],['added.png',128]]) writeFileSync(path.join(after,name),image(value));
+  const serial=path.join(root,'serial'), parallel=path.join(root,'parallel');
+  const expected=await compareCaptures(before,after,serial,'storybook',1);
+  assert.deepEqual(await compareCaptures(before,after,parallel,'storybook',2),expected);
+  assert.equal(expected.changed.length,1);assert.equal(expected.unchanged.length,1);
+  assert.deepEqual(readdirSync(parallel).sort(),readdirSync(serial).sort());
+  for (const file of readdirSync(serial)) assert.deepEqual(readFileSync(path.join(parallel,file)),readFileSync(path.join(serial,file)),file);
+  writeFileSync(path.join(after,'changed.png'),'corrupt PNG');
+  await assert.rejects(compareCaptures(before,after,path.join(root,'corrupt'),'storybook',2));
 });
 test('the CI report requires a complete matching source pair for every shard',t=>{
   const directory=fixture(t), input=path.join(directory,'artifacts'), output=path.join(directory,'review');

@@ -70,7 +70,7 @@ for (const component of api.components) {
       await expect(stage.getByRole('dialog', { name: 'Main', exact: true }).getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
     } });
   }
-  const themes = themed.has(component.tag) ? ['looma', 'clear', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
+  const themes = themed.has(component.tag) ? ['looma', 'minimal', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['minimal'];
   for (const theme of themes)
     for (const mode of ['light', 'dark'])
       test(`${component.tag} ${theme} ${mode}: complete state sheet`, async ({ page, context }) => {
