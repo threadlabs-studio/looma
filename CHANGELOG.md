@@ -2,6 +2,10 @@
 
 ## Next release
 
+- TopBar can observe a page heading with `titleFor`, revealing its duplicate title with an upward fade after the heading scrolls out. Navigation and actions stay available, and reduced motion removes the transition.
+
+- Multiple Combobox fields can set `maxRows` to wrap and grow before scrolling vertically. The default remains one row, and keyboard chip navigation and typing stay inside the field.
+
 - Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
 - Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits. Darker material and contrast-adjusted borders retain colorfulness through chroma and bounded hue compensation; surface lighting remains restrained. Outline buttons and icon buttons keep flat translucent fills at rest and on hover.
 
