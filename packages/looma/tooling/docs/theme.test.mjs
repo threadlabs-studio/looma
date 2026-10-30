@@ -434,7 +434,7 @@ test('neutral illumination keeps colored material chromatic and neutral material
     const [shadeL, shadeC, shadeH] = toLch(tokens['--ui-accent-shade']);
     const [reflectedL, reflectedC, reflectedH] = toLch(tokens['--ui-accent-reflection']);
     assert.equal(tokens['--ui-accent'], action, 'material never substitutes pigment');
-    assert.ok(shadeL <= l + .002 && l - shadeL <= .122, `${action}: restrained perceptual recession`);
+    assert.ok(shadeL <= l + .002 && l - shadeL <= .202, `${action}: restrained perceptual recession`);
     if (c > .02) {
       assert.ok(hueDistance(h, shadeH) < 1, `${action}: shade retains hue`);
       assert.ok(Math.abs(shadeC / shadeL - c / l) < .015, `${action}: shade retains relative saturation`);
@@ -838,7 +838,7 @@ test('polished accent materials keep a visible gradient across every palette', (
   for (const palette of Object.keys(themePalettes)) for (const mode of ['light','dark']) {
     const {tokens}=deriveTheme(applyRefinement(base,'palette',palette),{mode});
     const reflection=tokens['--ui-accent-reflection'], shade=tokens['--ui-accent-shade'];
-    assert.ok(separationOK(reflection,shade)>=.09,`${palette}/${mode}: material stops must not collapse into a flat fill`);
+    assert.ok(separationOK(reflection,shade)>=.17,`${palette}/${mode}: material stops must not collapse into a flat fill`);
     assert.ok(contrast(reflection,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: reflection remains readable`);
     assert.ok(contrast(shade,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: shade remains readable`);
   }

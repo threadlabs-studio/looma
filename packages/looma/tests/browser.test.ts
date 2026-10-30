@@ -11863,7 +11863,7 @@ describe("Shared readable material planes", () => {
         assert.match(image, /radial-gradient/);
         const range=Math.max(...lightness)-Math.min(...lightness);
         assert.ok(new Set(pixels.map(rgb=>rgb.join(','))).size>=3, `${name}/${mode}: reflection changes across the face instead of leaving a flat band`);
-        assert.ok(range>.02, `${name}/${mode}: material remains visible across the body (range ${range})`);
+        assert.ok(range>.04, `${name}/${mode}: material remains visible across the body (range ${range})`);
       }
     } finally { await page.close(); }
   });
@@ -11939,7 +11939,9 @@ describe("Shared readable material planes", () => {
           const target=page.locator('#'+id);await page.mouse.move(500,500);
           await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());
           const restingShadow=await target.evaluate(el=>getComputedStyle(el).boxShadow);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat at rest`);
           const rest=await pixels(target);await target.hover();const hover=await pixels(target);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat on hover`);
           const difference=rest.reduce((sum,value,index)=>sum+Math.abs(value-hover[index]),0)/rest.length;
           assert.ok(difference>=4, `${mode}/${id}: painted hover must remain visible at maximum finish, got ${difference}`);
           await page.mouse.down();

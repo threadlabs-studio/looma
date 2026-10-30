@@ -318,14 +318,11 @@
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]) {
-      --_outline-highlight: var(--ui-surface-highlight, linear-gradient(transparent, transparent));
       --_outline-wash: var(--_tone-wash);
       border-color: var(--ui-button-border, var(--_tone-outline-border, var(--_tone-text)));
       background-color: var(--ui-button-surface, transparent);
       box-shadow: var(--ui-button-shadow, var(--ui-neutral-shadow));
-      background-image:
-        linear-gradient(var(--_outline-wash), var(--_outline-wash)),
-        var(--_outline-highlight);
+      background-image: linear-gradient(var(--_outline-wash), var(--_outline-wash));
     }
 
     :host[data-appearance="outline"]:not([data-tone="neutral"]):hover:not(:disabled, [aria-disabled="true"]) {
@@ -451,15 +448,14 @@
     :host[data-tone="neutral"][data-appearance="outline"] {
       border-color: var(--ui-button-border, var(--ui-control-border));
       background-color: var(--ui-button-surface, transparent);
+      background-image: none;
       box-shadow: var(--ui-button-shadow, var(--ui-neutral-shadow));
     }
     :host[data-tone="neutral"][data-appearance="outline"]:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--ui-control-border-hover));
       background-color: var(--ui-button-hover-surface, transparent);
       --_outline-wash: var(--ui-neutral-wash-hover);
-      background-image:
-        linear-gradient(var(--_outline-wash), var(--_outline-wash)),
-        var(--ui-surface-highlight, linear-gradient(transparent, transparent));
+      background-image: linear-gradient(var(--_outline-wash), var(--_outline-wash));
     }
     :host[data-tone="neutral"][data-appearance="outline"]:active:not(:disabled, [aria-disabled="true"]) {
       background-image: none;

@@ -312,7 +312,7 @@ function materialColours(fill, text, light, minimum = 4.55, minimumRange = 0) {
   // Bright saturated pigments have little reflection headroom in sRGB. Keep
   // their material visible through a deeper chromatic shade rather than a
   // white wash, bounded by the label's contrast across the complete gradient.
-  while (depth + .002 <= .12 && colourDistance(reflection, shade) < minimumRange * lightness) {
+  while (depth + .002 <= .2 && colourDistance(reflection, shade) < minimumRange * lightness) {
     const candidate = shaded(depth + .002);
     if (labels.some(label => materialContrast(reflection, candidate, label) < minimum)) break;
     depth += .002;
@@ -448,7 +448,7 @@ export function deriveTheme(input, { mode } = {}) {
     tokens[`--ui-${tone}`] = fill;
     tokens[`--ui-on-${tone}`] = onFill;
     tokens[`--ui-${tone}-on-strong`] = onFill;
-    for (const [part, colour] of Object.entries(materialColours(fill, onFill, values['light-color'], 4.55, .1))) tokens[`--ui-${tone}-${part}`] = colour;
+    for (const [part, colour] of Object.entries(materialColours(fill, onFill, values['light-color'], 4.55, .18))) tokens[`--ui-${tone}-${part}`] = colour;
     const stateTarget = onFill === '#000000' ? '#ffffff' : '#000000';
     const [fillL, fillC, fillH] = toLch(fill);
     const hoverStep = .035 + .08 * Math.max(0, 1 - fillL / .5);
@@ -547,7 +547,7 @@ export function deriveTheme(input, { mode } = {}) {
   for (const [role, fill, labels] of [
     ['surface', tokens['--ui-surface-raised'], [tokens['--ui-text'], tokens['--ui-text-secondary'], ...Object.keys(tones).map(tone => tokens[`--ui-${tone}-subtle-text`])]],
     ['neutral', tokens['--ui-neutral-surface'], tokens['--ui-text']],
-  ]) for (const [part, colour] of Object.entries(materialColours(fill, labels, values['light-color'], 4.55, role === 'neutral' ? .1 : 0))) tokens[`--ui-${role}-${part}`] = colour;
+  ]) for (const [part, colour] of Object.entries(materialColours(fill, labels, values['light-color'], 4.55, role === 'neutral' ? .18 : 0))) tokens[`--ui-${role}-${part}`] = colour;
   const neutralShift = toLch(tokens['--ui-neutral-hover'])[0] - toLch(tokens['--ui-neutral-surface'])[0];
   for (const part of ['reflection', 'shade']) {
     const [l, c, h] = toLch(tokens[`--ui-neutral-${part}`]);
