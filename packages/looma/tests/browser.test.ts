@@ -147,6 +147,13 @@ describe("SiteHeader automatic drawer", () => {
         await page.locator('html').evaluate((el,value)=>el.setAttribute('dir',value),dir);
         const brand=await page.locator('#brand').boundingBox(),button=await menu.boundingBox();
         assert.ok(dir==='ltr'?button!.x>=brand!.x+brand!.width:button!.x+button!.width<=brand!.x,'menu follows the brand in reading order');
+        const placement=await page.locator('#site').evaluate(header=>{
+          const brand=header.querySelector('#brand')!.getBoundingClientRect();
+          const menu=header.querySelector('.menu')!.getBoundingClientRect();
+          const identity=getComputedStyle(header.querySelector('.identity')!);
+          return {gap:identity.direction==='rtl'?brand.left-menu.right:menu.left-brand.right,expectedGap:parseFloat(identity.columnGap)};
+        });
+        assert.ok(Math.abs(placement.gap-placement.expectedGap)<1,`${dir}: hamburger occupies the inline navigation position beside the brand`);
         await menu.focus();await page.keyboard.press('Enter');
         await panel.waitFor({state:'visible'});
         await page.waitForFunction(()=>getComputedStyle(document.querySelector('dialog')!).transform==='matrix(1, 0, 0, 1, 0, 0)');

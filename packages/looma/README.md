@@ -56,8 +56,10 @@ stylesheet is the only stylesheet to include. Without a build, link components o
 ## Site navigation
 
 Provide the brand and navigation once. SiteHeader automatically adds a hamburger
-beside the logo below 64rem and opens the same links in a full-height, scrollable
-modal drawer with a dark backdrop. It handles focus, page scroll locking, Escape,
+in the inline navigation's position beside the logo below 64rem, keeping the same
+brand-to-navigation gap. Optional actions stay at the trailing edge. It opens the
+same links in a full-height, scrollable modal drawer with a dark backdrop. It
+handles focus, page scroll locking, Escape,
 outside presses, and closing after link selection. No separate menu or drawer wiring
 is needed. `breakpoint="sm"` and `breakpoint="md"` switch at 40rem and 48rem.
 
