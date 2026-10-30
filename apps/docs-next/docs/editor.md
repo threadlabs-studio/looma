@@ -205,7 +205,11 @@ entries as a named navigation landmark with real links.
 For Expressive Markdown, call `editorDocumentToMarkdown(editor.getJSON())` from
 `@threadlabs/looma/editor/expressmark`. It writes the TOC as its `::toc` placeholder with its
 settings, where it stands, and readers build the entries from the headings. Authored navigation
-imported from a file retains its body.
+imported from a file retains its body. For a self-contained export, pass
+`{ tableOfContents: "entries" }` to `editorDocumentToMarkdown` or
+`editorDocumentToExpressmark`: automatic TOCs receive current links using the document's
+heading anchors, while authored navigation and the original editor JSON remain unchanged.
+This also expands a placeholder when `original` is supplied.
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
 they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply

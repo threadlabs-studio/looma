@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
+
+- Markdown exports can request `{ tableOfContents: "entries" }` for saved navigation with current heading links. Reader-built placeholders remain the default, authored navigation remains intact, and native editor content is never rewritten.
+
 - Keep SiteHeader's mobile hamburger in the inline navigation's position beside the brand, with the same gap. Only the actions remain at the trailing edge; the brand no longer expands to push the menu away.
 
 - Installed consumer verification refreshes registry metadata while reusing package files, so a newly published compatible peer is not hidden by stale offline metadata.
