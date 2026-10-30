@@ -2,6 +2,12 @@
 
 ## Next release
 
+- Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
+
+- Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.
+- Card exposes header and actions slots around its default body content without changing ordinary stacked spacing.
+- SiteHeader centers the brand and navigation containers individually beside actions, including a logo with mixed-size text.
+
 - TopBar can observe a page heading with `titleFor`, revealing its duplicate title with an upward fade after the heading scrolls out. Navigation and actions stay available, and reduced motion removes the transition.
 
 - Multiple Combobox fields can set `maxRows` to wrap and grow before scrolling vertically. The default remains one row, and keyboard chip navigation and typing stay inside the field.
