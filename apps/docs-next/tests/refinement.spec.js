@@ -11,6 +11,37 @@ const enter = async (page, info) => {
   return errors;
 };
 
+test('palette specimens align with the heading and persistent toolbar', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'bookish');
+  const palette = await openEditor(page, 'palette');
+  for (const width of [1440,375]) for (const dir of ['ltr','rtl']) {
+    await page.setViewportSize({width,height:1000});
+    await page.locator('html').evaluate((el,dir)=>el.dir=dir,dir);
+    const edges=await palette.evaluate((pane,dir)=>{
+      const start=el=>{const box=el.getBoundingClientRect();return dir==='rtl'?box.right:box.left;};
+      return {heading:start(pane.querySelector('h2')),specimen:start(pane.querySelector('.palette-preview [data-theme="light"]')),toolbar:start(document.querySelector('[data-customizer-summary]'))};
+    },dir);
+    expect(Math.abs(edges.heading-edges.specimen),`${width}/${dir}: specimen edge`).toBeLessThan(1);
+    expect(Math.abs(edges.heading-edges.toolbar),`${width}/${dir}: toolbar edge`).toBeLessThan(1);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  }
+});
+
+test('theme history shortcuts work while a status dropdown has focus', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const palette=await openEditor(page,'palette');
+  const relationship=palette.getByRole('combobox',{name:'Status color relationship',exact:true});
+  await relationship.selectOption('primary');
+  for (const modifier of ['Control','Meta']) {
+    await relationship.focus();
+    await page.keyboard.press(`${modifier}+z`);
+    await expect(relationship).toHaveValue('semantic');
+    await page.keyboard.press(`${modifier}+Shift+z`);
+    await expect(relationship).toHaveValue('primary');
+  }
+});
+
 test('theme sampler delivers checked-choice hover over both marks and labels', async ({page}, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'looma');

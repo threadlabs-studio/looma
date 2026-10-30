@@ -11835,8 +11835,8 @@ describe("Choice control hover", () => {
 });
 
 describe("Shared readable material planes", () => {
-  it("paints a full-face reflection with a quieter response on light pigments", async () => {
-    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+  it("paints a visible full-face reflection for every polished palette", async () => {
+    const {themeCSS, defaultRecipe, applyRefinement, themePalettes} = await import('../tooling/docs/theme.mjs');
     const {toLch} = await import('../tooling/docs/palette.mjs');
     const path = await bundle('continuous-button-material', 'import "@threadlabs/looma";');
     const page = await open(path, `<div style="width:320px"><ui-stack gap="lg"><ui-button id="paint" preset="primary" stretch aria-label="Material sample"> </ui-button>
@@ -11845,10 +11845,10 @@ describe("Shared readable material planes", () => {
     try {
       await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
       await page.addStyleTag({content:'body {font-family:var(--ui-font-sans);}'});
-      const style = await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
-      const ranges = new Map<string,number>();
-      for (const name of ['bookish','gold'] as const) for (const mode of ['light','dark']) {
-        await style.evaluate((el,css)=>el.textContent=css, themeCSS(startingPoints[name]));
+      const base = applyRefinement(defaultRecipe(), 'material', 'polished');
+      const style = await page.addStyleTag({content:themeCSS(base)});
+      for (const name of Object.keys(themePalettes)) for (const mode of ['light','dark']) {
+        await style.evaluate((el,css)=>el.textContent=css, themeCSS(applyRefinement(base, 'palette', name)));
         await page.locator('html').evaluate((el,mode)=>el.setAttribute('data-theme',mode), mode);
         const bytes = await page.locator('#paint').screenshot({animations:'disabled'});
         const pixels = await page.evaluate(async base64 => {
@@ -11862,11 +11862,9 @@ describe("Shared readable material planes", () => {
         const image = await page.locator('#paint').evaluate(el=>getComputedStyle(el).backgroundImage);
         assert.match(image, /radial-gradient/);
         const range=Math.max(...lightness)-Math.min(...lightness);
-        ranges.set(name+'/'+mode,range);
         assert.ok(new Set(pixels.map(rgb=>rgb.join(','))).size>=3, `${name}/${mode}: reflection changes across the face instead of leaving a flat band`);
-        if (name==='bookish') assert.ok(range>.025, `${mode}: the wine reflection is visible across the body`);
+        assert.ok(range>.04, `${name}/${mode}: material remains visible across the body (range ${range})`);
       }
-      for (const mode of ['light','dark']) assert.ok(ranges.get('gold/'+mode)!<ranges.get('bookish/'+mode)!, `${mode}: lighter pigment has quieter reflection contrast`);
     } finally { await page.close(); }
   });
 
@@ -11941,7 +11939,9 @@ describe("Shared readable material planes", () => {
           const target=page.locator('#'+id);await page.mouse.move(500,500);
           await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());
           const restingShadow=await target.evaluate(el=>getComputedStyle(el).boxShadow);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat at rest`);
           const rest=await pixels(target);await target.hover();const hover=await pixels(target);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat on hover`);
           const difference=rest.reduce((sum,value,index)=>sum+Math.abs(value-hover[index]),0)/rest.length;
           assert.ok(difference>=4, `${mode}/${id}: painted hover must remain visible at maximum finish, got ${difference}`);
           await page.mouse.down();

@@ -447,7 +447,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await expect.poll(() => text.getByRole('heading', { level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).not.toContain('Newsreader');
 });
 
-test('material refinement shares a movable light, remembers customized presets and restores only that family', async ({ page }, info) => {
+test('material refinement shares a movable light, remembers customized presets and uses shared history', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'bookish');
@@ -498,9 +498,12 @@ test('material refinement shares a movable light, remembers customized presets a
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'material-mobile-dark.png'), fullPage: false });
   }
-  await material.getByRole('button', { name: 'Reset material', exact: true }).click();
-  await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished');
-  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('50%');
+  await handle.press('Shift+ArrowRight');
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('70%');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('60%');
+  await page.getByRole('button', { name: 'Redo', exact: true }).click();
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('70%');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe(size);
   await openOverview(page);
   await expect(page.locator('[data-customizer-overview]')).toBeVisible();
@@ -526,7 +529,7 @@ test('starting theme refinements remember their material and palette without res
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
 });
 
-test('palette refinement persists its origin and restoring it leaves material refinements intact', async ({ page }, info) => {
+test('palette refinement persists its origin and shared history preserves other refinements', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'wiki');
   await chooseRefinement(page, 'palette', 'bookish');
@@ -538,8 +541,11 @@ test('palette refinement persists its origin and restoring it leaves material re
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Palette preset', exact: true })).toHaveValue('Plum & paper · customized');
   await openEditor(page, 'palette');
-  await palette.getByRole('button', { name: 'Reset palette', exact: true }).click();
-  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#2e1228');
+  await setBaseColor(page, 'Action', '#552255');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#442244');
+  await page.getByRole('button', { name: 'Redo', exact: true }).click();
+  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#552255');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe('34px');
 });
 
@@ -708,7 +714,7 @@ test('status relationship presets reduce color or share primary while keeping ic
   await expect(relationship).toHaveValue('primary');
   await chooseOption(palette.getByRole('combobox', {name:'Warning relationship',exact:true}), 'derived');
   await expect(relationship.locator('option:checked')).toHaveText('Primary + icons · customized');
-  await palette.getByRole('button', {name:'Reset status colors',exact:true}).click();
+  await page.getByRole('button', {name:'Undo',exact:true}).click();
   await expect(palette.getByRole('combobox', {name:'Warning relationship',exact:true})).toHaveValue('primary');
   await relationship.selectOption('semantic');
   await page.setViewportSize({width:375,height:900});
