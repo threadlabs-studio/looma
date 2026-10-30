@@ -2,7 +2,10 @@
 
 ## Next release
 
-- Exclude Markupress 0.14.4 from the optional documentation peer range: that version requires Looma below 0.45, so strict consumer installs cannot pair it with this release. Other admitted versions retain their existing range.
+- Qualify the fixed navigation in 0.46.1 so documentation consumers can admit later compatible versions with a stable minimum. Custom native menu triggers remain usable without JavaScript at every breakpoint.
+
+- SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
+
 
 - Fieldset sections use internal gaps and padding instead of margins. A description and actions without body content no longer leave an extra gap above the bottom padding; legend and content alignment stays consistent.
 
