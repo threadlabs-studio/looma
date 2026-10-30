@@ -2,6 +2,9 @@
 
 ## Next release
 
+- Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
+- **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.
+
 - CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
 
 - Matched icon actions retain a larger vertical touch target without intercepting the edge of their neighbouring text action.

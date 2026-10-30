@@ -467,6 +467,11 @@
           "behavior": false
         },
         {
+          "id": "06-bounded-rows",
+          "title": "Bounded rows with all items available",
+          "behavior": false
+        },
+        {
           "id": "99-theme-sampler",
           "title": "Theme sampler",
           "behavior": false

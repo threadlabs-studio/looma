@@ -47,9 +47,11 @@
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
       option removes it. items-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
       not value, in this mode.</prop>
-    <prop name="maxRows" type="integer" default="1"
-    >Visible rows of selected items and typing space in multiple mode. More than one lets the field grow and wrap before extra rows scroll vertically inside it.
-      One or less keeps the single horizontally scrolling row; single-selection fields are unchanged.</prop>
+    <prop name="grow" type="boolean" default="false"
+    >Let a multiple-selection field wrap and grow with its selected items and typing space. Without grow it stays one horizontally scrolling row.</prop>
+    <prop name="maxRows" type="integer"
+    >Optional maximum visible rows when grow is enabled. Extra selections scroll vertically inside the field. Omit it for unbounded growth; single-selection
+      fields are unchanged.</prop>
     <prop name="tokenSeparators" type="list(string)"
     >Keys that commit the typed text in multiple mode, as KeyboardEvent key values such as "," or ";". The text is added as the option whose label matches it,
       ignoring case, or with allowCreate is reported as create-item; otherwise it stays in the input.</prop>
@@ -430,7 +432,7 @@
         *</template></label>
     <div class="control">
       <div class="field" $ref="field">
-        <div class="entry" class:multiline="$multiple and $maxRows > 1" style:--_max-rows="$maxRows">
+        <div class="entry" class:multiline="$multiple and $grow" style:--_max-rows="$maxRows">
           <span class="start"><slot name="start"></slot></span>
           <template $if="$multiple">
             <button
@@ -899,7 +901,7 @@
       --_entry-row: max(1.5rem, var(--_item-row));
       flex-wrap: wrap !important;
       align-content: flex-start !important;
-      max-block-size: calc(var(--_max-rows) * var(--_entry-row) + (var(--_max-rows) - 1) * var(--ui-space-1));
+      max-block-size: calc(max(1, var(--_max-rows)) * var(--_entry-row) + (max(1, var(--_max-rows)) - 1) * var(--ui-space-1));
       overflow-x: hidden;
       overflow-y: auto;
     }
