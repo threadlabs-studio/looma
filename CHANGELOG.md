@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Threadlabs and Nextwebwg dependencies use minimum supported versions without speculative major-version ceilings or experimental exact pins. Lockfiles retain the qualified graph; the verified Markupress 0.14.4 peer-metadata exclusion remains.
+
 - Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
 - **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.
 

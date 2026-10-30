@@ -186,4 +186,4 @@ This repository and its docs are public.
 - Branch from `main`; commit or push only when asked.
 - Use Conventional Commit messages (`feat(scope): ...`, `fix(scope): ...`).
 
-- Use minimum-version ranges for compatible Threadlabs dependencies across pre-1.0 minor releases; lockfiles record exact tested resolutions. Raise a minimum or add an exclusion for an actual API requirement or verified incompatibility, and record the reason. Keep experimental upstream artifact pins where required.
+- Use minimum-version ranges for Threadlabs and Nextwebwg dependencies without speculative 1.0 or later-major ceilings. Lockfiles record exact tested resolutions. Restrict a range only for a demonstrated API requirement or verified incompatible release, and record the evidence. Experimental status does not justify exact pins.
