@@ -18,7 +18,8 @@
       by the adjustable control target preference.</prop>
     <prop name="matchButton" type="boolean" default="false"
     >Matches a boxed Button of the same size when the two share a flex row. Uses the control-size theme tokens and stretches to the row's height, on mouse and
-      touch alike. Leave it off for compact toolbar and inline icon buttons.</prop>
+      touch alike. Touch expansion stays vertical so an adjacent action keeps its own horizontal boundary. Leave it off for compact toolbar and inline icon
+      buttons.</prop>
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with its
       chosen tone.</prop>
@@ -397,6 +398,12 @@
       --_size: var(--ui-control-size-md);
       block-size: auto;
       align-self: stretch;
+    }
+
+    /* A paired action may grow vertically for touch, without intercepting its neighbour. */
+    :host([matchButton])::after,
+    html[data-ui-input-modality="touch"] :host([matchButton])::after {
+      inline-size: 100%;
     }
 
     :host([matchButton][size="sm"]) {

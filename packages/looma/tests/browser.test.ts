@@ -7479,6 +7479,58 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  for (const adapter of ["html", "vue"]) it(`keeps matched ${adapter} icon touch targets within their adjacent action boundary`, async () => {
+    const path = await bundle(`${adapter}-paired-touch-boundaries`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      import {createApp,h} from "vue";
+      import {Button,IconButton,Icon} from "@threadlabs/looma/vue";
+      createApp({render:()=>["sm","md","lg"].map(size=>h("div",{id:size,style:"display:flex;align-items:stretch;padding-block:16px"},[
+        h(Button,{id:size+"-primary",size},()=>"Save changes"),
+        h(IconButton,{id:size+"-more",size,matchButton:true,label:"More options"},()=>h(Icon,{name:"chevron-down"})),
+      ]))}).mount("#app");
+    `);
+    const body = adapter === "html" ? ["sm", "md", "lg"].map(size => `
+      <div id="${size}" style="display:flex;align-items:stretch;padding-block:16px">
+        <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+        <ui-icon-button id="${size}-more" size="${size}" match-button label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+      </div>`).join("") : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,"tokens.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])],
+      {viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+    try {
+      // A raised target preference still expands vertically, with clear space between rows.
+      await page.addStyleTag({content:":root { --ui-control-min-block-size:56px; } body { margin:48px; }"});
+      await page.evaluate(() => {
+        const meta=document.createElement("meta");meta.name="viewport";meta.content="width=device-width,initial-scale=1";document.head.append(meta);
+        (window as unknown as {hits:string[]}).hits=[];
+        for (const button of document.querySelectorAll("button")) button.addEventListener("click",()=> (window as unknown as {hits:string[]}).hits.push(button.id));
+      });
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      for (const direction of ["ltr","rtl"]) {
+        await page.evaluate(value=>{
+          document.documentElement.dir=value;
+          if (value==="rtl") document.documentElement.dataset.uiInputModality="touch";
+          else delete document.documentElement.dataset.uiInputModality;
+        },direction);
+        for (const size of ["sm","md","lg"]) {
+          const points=await page.evaluate(({size,direction})=>{
+            const primary=document.getElementById(size+"-primary")!.getBoundingClientRect();
+            const more=document.getElementById(size+"-more")!,rect=more.getBoundingClientRect();
+            const minimum=Number.parseFloat(getComputedStyle(more,"::after").height);
+            const edge={x:direction==="ltr"?primary.right-2:primary.left+2,y:primary.y+primary.height/2};
+            const outside={x:rect.x+rect.width/2,y:rect.y+rect.height/2+Math.max(rect.height,minimum)/2-1};
+            const hit=(point:{x:number,y:number})=>document.elementFromPoint(point.x,point.y)?.closest("button")?.id;
+            return {edge,outside,primaryHit:hit(edge),moreHit:hit(outside)};
+          },{size,direction});
+          assert.equal(points.primaryHit,size+"-primary",`${adapter}/${direction}/${size}: the menu must not steal the primary action edge`);
+          assert.equal(points.moreHit,size+"-more","the matched icon retains its configured vertical touch target");
+          await page.evaluate(()=>{(window as unknown as {hits:string[]}).hits=[];});
+          await page.touchscreen.tap(points.edge.x,points.edge.y);
+          await page.touchscreen.tap(points.outside.x,points.outside.y);
+          assert.deepEqual(await page.evaluate(()=>(window as unknown as {hits:string[]}).hits),[size+"-primary",size+"-more"]);
+        }
+      }
+    } finally {await page.close();}
+  });
+
   it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
     for (const adapter of ["vue", "html"]) {
       const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
