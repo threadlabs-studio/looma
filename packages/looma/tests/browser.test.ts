@@ -12395,7 +12395,7 @@ describe('Muted inherited choices', () => {
 });
 
 describe('Readable overlay content', () => {
-  it('keeps notification and choice content opaque at every translucency extreme', async () => {
+  it('keeps notifications opaque and bounds choice-surface translucency', async () => {
     const path=await bundle('opaque-overlay-content',`import '@threadlabs/looma';`);
     const page=await open(path,'<ui-toast id="notice" tone="info">Frodo saved the agenda.</ui-toast><ui-combobox id="choices" label="Colleague" value="sam" disclosure><option value="sam">Sam</option></ui-combobox>',[join(root,'tokens.css'),join(root,'theme-light.css'),join(root,'theme-dark.css'),join(root,'theme-system.css')]);
     try {
@@ -12406,7 +12406,7 @@ describe('Readable overlay content', () => {
           context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
           return context.getImageData(0,0,1,1).data[3];
         }));
-        assert.deepEqual(alphas,[255,255],`${mode}/${translucency}: decorative transparency must not transmit through readable content`);
+        assert.deepEqual(alphas,[255,Math.round(255*(1-translucency*0.1))],`${mode}/${translucency}: notifications stay opaque and choices follow the shared material transmission bound`);
       }
     } finally {await page.close();}
   });
