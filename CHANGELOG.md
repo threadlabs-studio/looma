@@ -2,6 +2,9 @@
 
 ## Next release
 
+- Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
+- Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits; surface lighting remains restrained.
+
 - SiteHeader uses compact spacing between the brand and mobile menu while preserving adjustable control targets. Native custom menus keep the same adjacent placement before JavaScript upgrades the header.
 - Self-contained TOC exports write stable IDs for every heading and reserve anchors used inside authored navigation. Matching heading labels cannot redirect a saved link, including when original Markdown spellings are retained.
 
