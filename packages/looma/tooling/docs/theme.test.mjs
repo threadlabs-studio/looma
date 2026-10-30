@@ -434,10 +434,10 @@ test('neutral illumination keeps colored material chromatic and neutral material
     const [shadeL, shadeC, shadeH] = toLch(tokens['--ui-accent-shade']);
     const [reflectedL, reflectedC, reflectedH] = toLch(tokens['--ui-accent-reflection']);
     assert.equal(tokens['--ui-accent'], action, 'material never substitutes pigment');
-    assert.ok(shadeL <= l + .002 && l - shadeL <= .202, `${action}: restrained perceptual recession`);
+    assert.ok(shadeL <= l + .002 && l - shadeL <= .162, `${action}: restrained perceptual recession`);
     if (c > .02) {
-      assert.ok(hueDistance(h, shadeH) < 1, `${action}: shade retains hue`);
-      assert.ok(Math.abs(shadeC / shadeL - c / l) < .015, `${action}: shade retains relative saturation`);
+      assert.ok(hueDistance(h, shadeH) < 12.5, `${action}: shade stays in its pigment family`);
+      assert.ok(shadeC / shadeL >= c / l - .015, `${action}: shade retains or strengthens relative saturation`);
       assert.ok(hueDistance(h, reflectedH) < 1, `${action}: neutral light retains reflected hue`);
       assert.ok(reflectedC + .002 >= c * Math.max(1, reflectedL / l), `${action}: reflection keeps relative saturation rather than whitening the whole pigment`);
       if (action === '#2e1228') assert.ok(reflectedC / reflectedL > c / l, 'wine reflection adds relative saturation as it brightens');
@@ -629,7 +629,7 @@ test('gold outlines preserve pigment and use the border minimum independently of
     const ratio = Math.min(...paints.map(paint => contrast(border, paint)));
     assert.ok(ratio >= minimum && ratio < minimum + .05, 'adjust only enough to meet the chosen minimum');
     const hue = colour => toLch(colour)[2];
-    assert.ok(Math.abs(hue(border) - hue(tokens['--ui-accent'])) < 1, 'retain the gold hue');
+    assert.ok(Math.abs(hue(border) - hue(tokens['--ui-accent'])) < 12.5, 'retain the gold family with bounded chromatic compensation');
     assert.equal(tokens['--ui-accent-subtle-text'], low['--ui-accent-subtle-text'], 'border settings do not alter readable text');
   }
   assert.ok(toLch(normal['--ui-accent-outline-border'])[0] > toLch(normal['--ui-accent-subtle-text'])[0]);
@@ -833,12 +833,30 @@ test('Bookish coordinates branded guidance, restrained risk states and supportin
 });
 
 
+test('Gold material shading and contrast borders stay chromatic as they darken', () => {
+  const recipe=applyRefinement(applyRefinement(defaultRecipe(),'material','polished'),'palette','gold');
+  for (const mode of ['light','dark']) {
+    const {tokens}=deriveTheme(recipe,{mode});
+    const [l,c]=toLch(tokens['--ui-accent']), [shadeL,shadeC]=toLch(tokens['--ui-accent-shade']);
+    assert.ok(l-shadeL<=.155,`${mode}: split the difference on material darkening`);
+    assert.ok(shadeC>=c*.99,`${mode}: darker Gold retains its colorfulness`);
+  }
+  for (const minimum of ['2.1','3']) {
+    recipe.values['neutral-border-contrast']=minimum;
+    const {tokens}=deriveTheme(recipe,{mode:'light'});
+    const [l,c]=toLch(tokens['--ui-accent']), [borderL,borderC]=toLch(tokens['--ui-accent-outline-border']);
+    assert.ok(borderL<l);
+    assert.ok(borderC>=c*.98,`${minimum}: contrast correction retains colorfulness`);
+    assert.ok(borderC/borderL>=c/l*1.1,`${minimum}: darker borders gain relative saturation`);
+  }
+});
+
 test('polished accent materials keep a visible gradient across every palette', () => {
   const base=applyRefinement(defaultRecipe(),'material','polished');
   for (const palette of Object.keys(themePalettes)) for (const mode of ['light','dark']) {
     const {tokens}=deriveTheme(applyRefinement(base,'palette',palette),{mode});
     const reflection=tokens['--ui-accent-reflection'], shade=tokens['--ui-accent-shade'];
-    assert.ok(separationOK(reflection,shade)>=.17,`${palette}/${mode}: material stops must not collapse into a flat fill`);
+    assert.ok(separationOK(reflection,shade)>=.13,`${palette}/${mode}: material stops must not collapse into a flat fill`);
     assert.ok(contrast(reflection,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: reflection remains readable`);
     assert.ok(contrast(shade,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: shade remains readable`);
   }
