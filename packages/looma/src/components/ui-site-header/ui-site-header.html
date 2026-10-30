@@ -22,18 +22,16 @@
             ></ui-icon></ui-icon-button>
         </div>
       </div>
+      <div class="inline-navigation" $ref="inline"><nav class="navigation" $ref="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav></div>
       <dialog
         class="navigation-panel"
         $ref="panel"
-        from:open="true"
-        from:role="{ true: 'dialog', false: 'none' }[concat($drawer)]"
-        from:aria-label="{ true: $label, false: null }[concat($drawer)]"
+        from:aria-label="$label"
       >
         <div class="panel-heading">
           <span class="panel-title">{$label}</span>
           <ui-icon-button $ref="close" size="sm" from:label="$closeLabel"><ui-icon name="x"></ui-icon></ui-icon-button>
         </div>
-        <nav class="navigation" $ref="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav>
       </dialog>
     </div>
     <div class="actions"><slot name="actions"></slot></div>
@@ -135,8 +133,8 @@
         column-gap: var(--ui-space-4) !important;
       }
     }
-    /* The same navigation remains inline before upgrade and on desktop. No links are cloned or moved. */
-    .navigation-panel {
+    /* One live navigation stays inline until its native mobile dialog opens. */
+    .inline-navigation {
       position: static;
       display: flex !important;
       align-items: baseline !important;
@@ -148,6 +146,7 @@
       background: transparent;
       color: inherit;
     }
+    :host(:state(drawer)) .inline-navigation,
     .navigation-panel:not([open]), .menu, .panel-heading {
       display: none !important;
     }
@@ -161,6 +160,26 @@
       justify-items: center !important;
       flex: none;
     }
+    /* Authored native sidebar triggers remain usable before JavaScript upgrades the header. */
+    @media (width < 40rem) {
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+    }
+    @media (width < 48rem) {
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+    }
+    @media (width < 64rem) {
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+    }
+
     .automatic-menu {
       display: grid !important;
       justify-items: center !important;
