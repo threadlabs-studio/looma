@@ -7483,7 +7483,7 @@ describe("Bounded Cluster", () => {
     const path=await bundle(`bounded-cluster-${adapter}`,adapter==="html"?`import "@threadlabs/looma";`:`
       import {createApp,h} from "vue";
       import {Cluster,Button,Popover} from "@threadlabs/looma/vue";
-      const items=()=>Array.from({length:12},(_,i)=>h(Button,{id:'item-'+i,class:'item',size:'sm'},()=> 'Item '+String(i+1).padStart(2,'0')));
+      const items=()=>Array.from({length:12},(_,i)=>h('a',{id:'item-'+i,class:'item',href:'#item-'+i},'Item '+String(i+1).padStart(2,'0')));
       createApp({render:()=>[
         h(Cluster,{id:'bounded',maxRows:3,gap:'xs'},{default:items,
           overflow:()=>h(Button,{id:'overflow',size:'sm'},()=> 'More'),
@@ -7491,14 +7491,14 @@ describe("Bounded Cluster", () => {
         h(Popover,{id:'all',for:'overflow'},()=>h(Cluster,{gap:'xs'},()=>Array.from({length:12},(_,i)=>h(Button,{size:'sm'},()=> 'Item '+String(i+1).padStart(2,'0'))))),
       ]}).mount('#app');
     `);
-    const items=Array.from({length:12},(_,i)=>`<ui-button id="item-${i}" class="item" size="sm">Item ${String(i+1).padStart(2,'0')}</ui-button>`).join('');
+    const items=Array.from({length:12},(_,i)=>`<a id="item-${i}" class="item" href="#item-${i}">Item ${String(i+1).padStart(2,'0')}</a>`).join('');
     const body=adapter==="html"?`<ui-cluster id="bounded" max-rows="3" gap="xs">${items}<ui-button slot="overflow" id="overflow" size="sm">More</ui-button><ui-button slot="trailing" id="add" size="sm">Add</ui-button></ui-cluster><ui-popover id="all" for="overflow"><ui-cluster gap="xs">${items.replaceAll(/ id="[^"]+"/g,'')}</ui-cluster></ui-popover>`:'<div id="app"></div>';
     const page=await open(path,body,[join(root,'tokens.css'),...(adapter==="vue"?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:812},hasTouch:true});
     try {
-      await page.addStyleTag({content:'body {margin:12px} #bounded {inline-size:220px}'});
+      await page.addStyleTag({content:'body {margin:12px} #bounded {inline-size:220px} .item {display:inline-flex; padding:4px; white-space:nowrap}'});
       const metrics=()=>page.locator('#bounded').evaluate(root=>{
         const children=Array.from(root.children).filter(el=>el.getBoundingClientRect().height>0);
-        return {rows:new Set(children.map(el=>Math.round(el.getBoundingClientRect().top))).size,
+        return {rows:new Set(children.map(el=>Math.round(el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2))).size,
           visible:Array.from(root.querySelectorAll(':scope > .item')).filter(el=>el.getBoundingClientRect().height>0).length,
           overflow:root.scrollWidth-root.clientWidth,mask:getComputedStyle(root).maskImage};
       });
@@ -7509,7 +7509,7 @@ describe("Bounded Cluster", () => {
       assert.ok((await metrics()).overflow<=1);
       await page.locator('#overflow').focus();await page.keyboard.press('Enter');
       await page.waitForFunction(()=>document.getElementById('all')!.matches(':popover-open'));
-      assert.equal(await page.locator('#all').getByRole('button').count(),12,'the popup retains the complete collection');
+      assert.equal(await page.locator('#all').locator('a,button').count(),12,'the popup retains the complete collection');
       await page.keyboard.press('Escape');
       await page.waitForFunction(()=>document.activeElement===document.getElementById('overflow'));
       await page.keyboard.press('Tab');assert.equal(await page.locator('#add').evaluate(el=>el===document.activeElement),true);
