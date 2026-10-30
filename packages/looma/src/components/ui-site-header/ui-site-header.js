@@ -4,7 +4,7 @@ const BREAKPOINTS = { sm: "40rem", md: "48rem", lg: "64rem" };
 
 /** Presents the authored navigation inline on desktop and in a modal drawer on mobile. */
 export function connect(host) {
-  const { panel, trigger, close, navigation } = host.refs;
+  const { panel, trigger, close, navigation, inline } = host.refs;
   const document = panel.ownerDocument;
   const view = document.defaultView;
   const id = panel.id ||= `ui-site-navigation-${Math.random().toString(36).slice(2, 11)}`;
@@ -18,6 +18,7 @@ export function connect(host) {
     open = false;
     trigger.setAttribute("aria-expanded", "false");
     closeDialog(panel);
+    inline.append(navigation);
     closeOverlay(document, id);
   };
   const syncMode = () => {
@@ -28,7 +29,6 @@ export function connect(host) {
     // A pending overlay transition would keep the inline desktop navigation in the top layer.
     for (const animation of panel.getAnimations()) animation.cancel();
     if (drawer) closeDialog(panel);
-    else panel.setAttribute("open", "");
     host.state.drawer = drawer;
     if (!drawer) focusedLink?.focus({ preventScroll: true });
   };
@@ -45,6 +45,7 @@ export function connect(host) {
     if (!host.state.drawer || open) return;
     open = true;
     trigger.setAttribute("aria-expanded", "true");
+    panel.append(navigation);
     showDialog(panel, true);
     openOverlay({ id, modal: true, element: panel, dismissible: true, requestClose: dismiss });
   };
@@ -77,6 +78,6 @@ export function connect(host) {
     dismiss();
     host.state.enhanced = false;
     host.state.drawer = false;
-    panel.setAttribute("open", "");
+    inline.append(navigation);
   };
 }

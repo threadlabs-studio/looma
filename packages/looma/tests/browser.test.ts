@@ -2,7 +2,7 @@
 // importing @threadlabs/looma/vue, and a plain page registering the components with dist/index.js.
 import assert from "node:assert/strict";
 import type { Editor } from "@tiptap/core";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
@@ -182,6 +182,7 @@ describe("SiteHeader automatic drawer", () => {
       await menu.waitFor({state:'hidden'});
       await page.locator('#link-0').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>document.querySelectorAll('dialog:modal').length),0,'desktop transition releases the modal');
+      assert.equal(await page.locator('dialog[open]').count(),0,'desktop navigation is a navigation region, not a dialog');
       assert.equal(await page.locator('dialog').evaluate(el=>getComputedStyle(el).overlay),'none','desktop has no pending top-layer backdrop');
       assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
       assert.equal(await page.locator('#link-0').evaluate(el=>el===(window as any).originalNavigation),true,'link identity survives resizing');
@@ -238,6 +239,31 @@ describe("SiteHeader custom navigation surface", () => {
       assert.equal(await page.getByRole('dialog',{name:'Main',exact:true}).isVisible(),true);
     }finally{await page.close();}
   });
+});
+
+it("keeps native custom navigation usable without JavaScript at every SiteHeader breakpoint", async () => {
+  const {createSSRApp,h}=await import("vue"), {renderToString}=await import("vue/server-renderer");
+  const {SiteHeader,IconButton}=await import("../vue/index.js");
+  const headers=await renderToString(createSSRApp({render:()=>(["sm","md","lg"] as const).map(breakpoint=>h(SiteHeader,{breakpoint},{
+    brand:()=>h("a",{href:"#home"},"Fellowship documentation"),
+    navigation:()=>h("a",{href:"#guide"},"Guide"),
+    menu:()=>h(IconButton,{label:"Navigation "+breakpoint,popovertarget:"docs-"+breakpoint},()=>"Docs"),
+  }))}));
+  const page=await browser.newPage({javaScriptEnabled:false,viewport:{width:375,height:800}});
+  page.setDefaultTimeout(5000);
+  const css=await Promise.all([join(root,"tokens.css"),join(root,"vue/components.css")].map(path=>readFile(path,"utf8")));
+  await page.goto("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><style>'+css.join("\n")+'</style>'+headers+["sm","md","lg"].map(name=>'<nav id="docs-'+name+'" popover>Documentation</nav>').join("")));
+  try {
+    for(const [name,width] of [["sm",640],["md",768],["lg",1024]] as const) {
+      const trigger=page.getByRole("button",{name:"Navigation "+name,exact:true});
+      await page.setViewportSize({width:width-1,height:800});
+      assert.equal(await trigger.isVisible(),true);
+      await trigger.click();assert.equal(await page.locator("#docs-"+name).isVisible(),true);
+      await page.keyboard.press("Escape");assert.equal(await page.locator("#docs-"+name).isVisible(),false);
+      await page.setViewportSize({width,height:800});assert.equal(await trigger.isVisible(),false);
+    }
+    assert.equal(await page.locator("dialog[open]").count(),0);
+  } finally {await page.close();}
 });
 
 describe("SiteHeader action targets", () => {
@@ -5727,9 +5753,12 @@ describe("View primitives", () => {
         description:()=>"Choose the details people see when you work together.",
         actions:()=>h(Button,{id:"reset",variant:"outline",tone:"accent"},()=>"Reset"),
         default:()=>[h("label",{for:"name"},"Display name"),h(Input,{id:"name",value:"Ada Lovelace"}),h(Text,null,()=>"Your existing work stays available.")],
-      }),h(Section,{id:"danger-frame",variant:"fieldset",tone:"danger",heading:"Delete account"},()=>h(Text,null,()=>"Permanently remove this account."))]}).mount("#app");
+      }),h(Section,{id:"danger-frame",variant:"fieldset",tone:"danger",heading:"Delete account"},{description:()=>h(Text,null,()=>"Permanently remove this account."),actions:()=>h(Button,{variant:"solid",tone:"danger"},()=>"Delete account")})]}).mount("#app");
     `);
-    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section><ui-section id="danger-frame" variant="fieldset" tone="danger" heading="Delete account"><ui-text>Permanently remove this account.</ui-text></ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])]);
+    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section><ui-section id="danger-frame" variant="fieldset" tone="danger" heading="Delete account">
+<span slot="description">Permanently remove this account.</span>
+<ui-button slot="actions" variant="solid" tone="danger">Delete account</ui-button>
+</ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])]);
     try {
       await page.locator("#framed").waitFor();
       assert.equal(await page.locator("#framed").evaluate(element=>element.tagName),"FIELDSET");
@@ -5747,14 +5776,16 @@ describe("View primitives", () => {
         await page.locator("html").evaluate((element,dir)=>element.setAttribute("dir",dir),dir);
         const layout=await page.locator("#framed").evaluate(frame=>{
           const bounds=frame.getBoundingClientRect(), legend=frame.querySelector("legend")!.getBoundingClientRect();
-          const body=frame.querySelector(".body")!.getBoundingClientRect();
+          const body=frame.querySelector(".body > label")!.getBoundingClientRect();
           return {border:parseFloat(getComputedStyle(frame).borderInlineStartWidth),overflow:frame.scrollWidth>frame.clientWidth+1,
             headingFont:parseFloat(getComputedStyle(frame.querySelector(".heading")!).fontSize),bodyFont:parseFloat(getComputedStyle(frame.querySelector(".body p")!).fontSize),
             headingOffset:frame.querySelector(".heading")!.getBoundingClientRect().top-legend.top,
+            bodyGap:body.top-frame.querySelector(".head")!.getBoundingClientRect().bottom,
             headingInside:legend.left>=bounds.left&&legend.right<=bounds.right+1,bodyBelow:body.top>=legend.bottom,
             fieldInside:body.left>=bounds.left&&body.right<=bounds.right+1};
         });
         assert.ok(layout.border>0,`${adapter}/${width}/${scheme}/${dir}: visible frame`);
+        assert.ok(Math.abs(layout.bodyGap-16)<1,`${adapter}/${width}/${scheme}/${dir}: only the internal layout supplies the header/body gap`);
         assert.ok(layout.headingFont>layout.bodyFont,`${adapter}/${width}/${scheme}/${dir}: heading is larger than body text`);
         assert.ok(Math.abs(layout.headingOffset+1)<0.1,`${adapter}/${width}/${scheme}/${dir}: heading sits one pixel higher`);
         assert.equal(layout.overflow,false,`${adapter}/${width}/${scheme}/${dir}: no overflow`);
@@ -5762,11 +5793,15 @@ describe("View primitives", () => {
         const danger=await page.locator("#danger-frame").evaluate(frame=>{
           const css=getComputedStyle(frame),neutral=getComputedStyle(document.querySelector("#framed")!);
           return {radii:[css.borderTopLeftRadius,css.borderTopRightRadius,css.borderBottomRightRadius,css.borderBottomLeftRadius],
-            borders:[css.borderTopWidth,css.borderRightWidth,css.borderBottomWidth,css.borderLeftWidth],bg:css.backgroundColor,neutralBg:neutral.backgroundColor};
+            borders:[css.borderTopWidth,css.borderRightWidth,css.borderBottomWidth,css.borderLeftWidth],bg:css.backgroundColor,neutralBg:neutral.backgroundColor,
+            bottomSpace:frame.getBoundingClientRect().bottom-frame.querySelector(".head")!.getBoundingClientRect().bottom-parseFloat(css.borderBottomWidth),padding:parseFloat(css.paddingBottom),
+            margins:[...frame.querySelectorAll("*")].flatMap(element=>{const style=getComputedStyle(element);return [style.marginTop,style.marginRight,style.marginBottom,style.marginLeft]})};
         });
         assert.ok(danger.radii.every(radius=>radius===danger.radii[0]&&parseFloat(radius)>0),`${adapter}/${scheme}/${dir}: danger keeps all four rounded corners`);
         assert.ok(danger.borders.every(border=>border===danger.borders[0]),`${adapter}/${scheme}/${dir}: no leading stripe`);
         assert.equal(danger.bg,danger.neutralBg,`${adapter}/${scheme}/${dir}: danger keeps the neutral surface`);
+        assert.ok(Math.abs(danger.bottomSpace-danger.padding)<1,`${adapter}/${width}/${scheme}/${dir}: header-only frame ends at its padding, got ${danger.bottomSpace} vs ${danger.padding}`);
+        assert.ok(danger.margins.every(margin=>parseFloat(margin)===0),`${adapter}/${width}/${scheme}/${dir}: no external margins`);
       }
     } finally { await page.close(); }
   });
