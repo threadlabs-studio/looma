@@ -22,7 +22,9 @@
             ></ui-icon></ui-icon-button>
         </div>
       </div>
-      <div class="inline-navigation" $ref="inline"><nav class="navigation" $ref="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav></div>
+      <div class="inline-navigation" $ref="inline">
+        <nav class="navigation" $ref="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav>
+      </div>
       <dialog
         class="navigation-panel"
         $ref="panel"
@@ -147,10 +149,13 @@
       color: inherit;
     }
     :host(:state(drawer)) .inline-navigation,
-    .navigation-panel:not([open]), .menu, .panel-heading {
+    .navigation-panel:not([open]),
+    .menu,
+    .panel-heading {
       display: none !important;
     }
     :host(:state(drawer)) .identity {
+      column-gap: var(--ui-space-2) !important;
       flex-wrap: nowrap !important;
       align-items: center !important;
     }
@@ -162,22 +167,52 @@
     }
     /* Authored native sidebar triggers remain usable before JavaScript upgrades the header. */
     @media (width < 40rem) {
-      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
-      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
-      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
-      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
+      }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
+        display: none !important;
+      }
     }
     @media (width < 48rem) {
-      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
-      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
-      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
-      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
+      }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
+        display: none !important;
+      }
     }
     @media (width < 64rem) {
-      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity { flex-wrap: nowrap !important; align-items: center !important; }
-      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .brand { flex: 1 1 0; }
-      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu { display: grid !important; grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important; justify-items: center !important; flex: none; }
-      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation { display: none !important; }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
+      }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
+        display: none !important;
+      }
     }
 
     .automatic-menu {

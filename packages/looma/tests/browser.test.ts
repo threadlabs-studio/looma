@@ -149,11 +149,12 @@ describe("SiteHeader automatic drawer", () => {
         assert.ok(dir==='ltr'?button!.x>=brand!.x+brand!.width:button!.x+button!.width<=brand!.x,'menu follows the brand in reading order');
         const placement=await page.locator('#site').evaluate(header=>{
           const brand=header.querySelector('#brand')!.getBoundingClientRect();
-          const menu=header.querySelector('.menu')!.getBoundingClientRect();
+          const menu=header.querySelector('button[aria-label="Open navigation"]')!.getBoundingClientRect();
           const identity=getComputedStyle(header.querySelector('.identity')!);
-          return {gap:identity.direction==='rtl'?brand.left-menu.right:menu.left-brand.right,expectedGap:parseFloat(identity.columnGap)};
+          return {gap:identity.direction==='rtl'?brand.left-menu.right:menu.left-brand.right,buttonWidth:menu.width,columnGap:parseFloat(identity.columnGap),compactGap:parseFloat(identity.rowGap)};
         });
-        assert.ok(Math.abs(placement.gap-placement.expectedGap)<1,`${dir}: hamburger occupies the inline navigation position beside the brand`);
+        assert.equal(placement.columnGap,placement.compactGap,`${dir}: mobile branding uses compact spacing instead of the desktop navigation gap`);
+        assert.ok(placement.gap < placement.buttonWidth,`${dir}: the actual hamburger button stays close to the brand, including reserved target space`);
         await menu.focus();await page.keyboard.press('Enter');
         await panel.waitFor({state:'visible'});
         await page.waitForFunction(()=>getComputedStyle(document.querySelector('dialog')!).transform==='matrix(1, 0, 0, 1, 0, 0)');
@@ -265,6 +266,12 @@ it("keeps native custom navigation usable without JavaScript at every SiteHeader
       const trigger=page.getByRole("button",{name:"Navigation "+name,exact:true});
       await page.setViewportSize({width:width-1,height:800});
       assert.equal(await trigger.isVisible(),true);
+      const placement=await trigger.evaluate(button=>{
+        const brand=button.closest('.ui-site-header')!.querySelector('.brand')!.getBoundingClientRect();
+        const box=button.getBoundingClientRect();
+        return {gap:box.left-brand.right,width:box.width};
+      });
+      assert.ok(placement.gap < placement.width,'native custom menus also stay close to the brand before upgrade');
       await trigger.click();assert.equal(await page.locator("#docs-"+name).isVisible(),true);
       await page.keyboard.press("Escape");assert.equal(await page.locator("#docs-"+name).isVisible(),false);
       await page.setViewportSize({width,height:800});assert.equal(await trigger.isVisible(),false);
