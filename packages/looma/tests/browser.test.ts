@@ -7483,7 +7483,7 @@ describe("Bounded Cluster", () => {
     const path=await bundle(`bounded-cluster-${adapter}`,adapter==="html"?`import "@threadlabs/looma";`:`
       import {createApp,h} from "vue";
       import {Cluster,Button,Popover} from "@threadlabs/looma/vue";
-      const items=()=>Array.from({length:12},(_,i)=>h('a',{id:'item-'+i,class:'item',href:'#item-'+i},'Item '+String(i+1).padStart(2,'0')));
+      const items=()=>Array.from({length:12},(_,i)=>h('a',{id:'item-'+i,class:'item '+(i===0?'overflow':i===1?'trailing':''),href:'#item-'+i},'Item '+String(i+1).padStart(2,'0')));
       createApp({render:()=>[
         h(Cluster,{id:'bounded',maxRows:3,gap:'xs'},{default:items,
           overflow:()=>h(Button,{id:'overflow',size:'sm'},()=> 'More'),
@@ -7491,7 +7491,7 @@ describe("Bounded Cluster", () => {
         h(Popover,{id:'all',for:'overflow'},()=>h(Cluster,{gap:'xs'},()=>Array.from({length:12},(_,i)=>h(Button,{size:'sm'},()=> 'Item '+String(i+1).padStart(2,'0'))))),
       ]}).mount('#app');
     `);
-    const items=Array.from({length:12},(_,i)=>`<a id="item-${i}" class="item" href="#item-${i}">Item ${String(i+1).padStart(2,'0')}</a>`).join('');
+    const items=Array.from({length:12},(_,i)=>`<a id="item-${i}" class="item ${i===0?'overflow':i===1?'trailing':''}" href="#item-${i}">Item ${String(i+1).padStart(2,'0')}</a>`).join('');
     const body=adapter==="html"?`<ui-cluster id="bounded" max-rows="3" gap="xs">${items}<ui-button slot="overflow" id="overflow" size="sm">More</ui-button><ui-button slot="trailing" id="add" size="sm">Add</ui-button></ui-cluster><ui-popover id="all" for="overflow"><ui-cluster gap="xs">${items.replaceAll(/ id="[^"]+"/g,'')}</ui-cluster></ui-popover>`:'<div id="app"></div>';
     const page=await open(path,body,[join(root,'tokens.css'),...(adapter==="vue"?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:812},hasTouch:true});
     try {

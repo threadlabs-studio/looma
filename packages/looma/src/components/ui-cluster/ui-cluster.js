@@ -2,8 +2,8 @@
 export function connect(host) {
   const element = host.element;
   const view = element.ownerDocument.defaultView;
-  const overflow = element.querySelector(':scope > .overflow');
-  const trailing = element.querySelector(':scope > .trailing');
+  const overflow = host.refs.overflow;
+  const trailing = host.refs.trailing;
   const collapsed = new Set();
   const observed = new Set();
   let limit = 0;
@@ -74,17 +74,19 @@ export function connect(host) {
   const schedule = () => {
     if (alive && limit && !frame) frame = view.requestAnimationFrame(measure);
   };
-  const resize = new view.ResizeObserver(schedule);
-  const changes = new view.MutationObserver(schedule);
+  let resize;
+  let changes;
   const stop = host.effect(() => {
     const requested = Number(host.props.maxRows.value);
     host.props.wrap.value;
     limit = Number.isFinite(requested) ? Math.max(0, Math.floor(requested)) : 0;
-    resize.disconnect();
+    resize?.disconnect();
     observed.clear();
-    changes.disconnect();
+    changes?.disconnect();
     element.ownerDocument.fonts?.removeEventListener('loadingdone', schedule);
     if (limit) {
+      resize ??= new view.ResizeObserver(schedule);
+      changes ??= new view.MutationObserver(schedule);
       resize.observe(element);
       changes.observe(element, { childList: true, subtree: true, characterData: true });
       element.ownerDocument.fonts?.addEventListener('loadingdone', schedule);
@@ -94,8 +96,8 @@ export function connect(host) {
   return () => {
     alive = false;
     stop();
-    resize.disconnect();
-    changes.disconnect();
+    resize?.disconnect();
+    changes?.disconnect();
     element.ownerDocument.fonts?.removeEventListener('loadingdone', schedule);
     if (frame) view.cancelAnimationFrame(frame);
     restore();

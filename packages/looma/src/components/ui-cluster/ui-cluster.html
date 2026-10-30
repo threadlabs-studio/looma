@@ -28,8 +28,8 @@
   </defs>
   <div>
     <slot></slot>
-    <span class="overflow" from:hidden="$overflowCount = 0"><slot name="overflow"></slot></span>
-    <span class="trailing"><slot name="trailing"></slot></span>
+    <span class="overflow" $ref="overflow" from:hidden="$overflowCount = 0"><slot name="overflow"></slot></span>
+    <span class="trailing" $ref="trailing"><slot name="trailing"></slot></span>
   </div>
   <style>
     :host {
