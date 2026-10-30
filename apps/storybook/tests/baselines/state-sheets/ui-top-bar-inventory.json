@@ -13,5 +13,10 @@
     "name": "Example: 02-leading-search-and-actions-slots",
     "props": {},
     "example": 1
+  },
+  {
+    "name": "Example: 02-scroll-title",
+    "props": {},
+    "example": 2
   }
 ]

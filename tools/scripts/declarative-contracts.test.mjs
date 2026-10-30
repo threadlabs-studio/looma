@@ -51,6 +51,8 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   });
   assert.match(contracts["ui-checkbox"].events[0].detailType, /trigger: "keyboard" \| "pointer" \| "programmatic"/);
   assert.ok(contracts["ui-combobox"].propFields.items.some((field) => field.path === "[].tag.tone"));
+  assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer", default: 1 });
+  assert.deepEqual(contracts["ui-top-bar"].props.titleFor, { type: "string", default: "" });
 });
 
 test("raw HTML contracts use native state names and false-default booleans", async () => {

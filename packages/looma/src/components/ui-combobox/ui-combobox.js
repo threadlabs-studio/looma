@@ -497,6 +497,9 @@ export function connect(host) {
     void validateCurrent();
   };
   const onFocusin = (event) => {
+    if (host.props.multiple.value && host.props.maxRows.value > 1 && field.contains(event.target)) {
+      revealActiveItem(field, () => document.activeElement);
+    }
     if (event.target === input && host.props.openOnFocus.value && !host.state.expanded && !suppressFocusOpening) openFromField();
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
@@ -585,10 +588,13 @@ export function connect(host) {
     if (host.props.query.value !== lastQuery) { lastQuery = host.props.query.value; syncQuery(); }
     if (host.props.disabled.value || host.props.readonly.value) close();
     updateView();
+    if (host.props.multiple.value && host.props.maxRows.value > 1
+      && document.activeElement && field.contains(document.activeElement)) revealActiveItem(field, () => document.activeElement);
   });
 
   return () => {
     alive = false;
+    cancelActiveItemReveal(field);
     stop();
     stopReset();
     observer.disconnect();

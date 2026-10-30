@@ -541,6 +541,11 @@
           "id": "08-discard-unfinished-query",
           "title": "Discard unfinished search",
           "behavior": false
+        },
+        {
+          "id": "08-multiple-rows",
+          "title": "Wrap selected items before scrolling",
+          "behavior": false
         }
       ]
     },
@@ -1988,6 +1993,11 @@
         {
           "id": "02-leading-search-and-actions-slots",
           "title": "leading, search, and actions slots",
+          "behavior": false
+        },
+        {
+          "id": "02-scroll-title",
+          "title": "Reveal the title after its heading",
           "behavior": false
         }
       ]

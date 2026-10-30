@@ -9050,7 +9050,177 @@ describe("Combobox disabled", () => {
   });
 });
 
+describe("TopBar scroll title", () => {
+  for (const adapter of ['html','vue'] as const) it(`reveals the ${adapter} title after its heading scrolls out, with reduced-motion support`, async () => {
+    const path=await bundle(`${adapter}-top-bar-scroll-title`,adapter==='html' ? `
+      import "@threadlabs/looma";
+      import {componentRegistry} from "@nextwebwg/html-next/runtime";
+      window.setTarget=id=>componentRegistry.update(document.querySelector('#bar'),{titleFor:id});
+    ` : `
+      import {createApp,h,ref} from "vue";
+      import {TopBar,Button} from "@threadlabs/looma/vue";
+      const target=ref('heading'); window.setTarget=id=>target.value=id;
+      createApp({render:()=>h(TopBar,{id:'bar',titleFor:target.value},{
+        leading:()=>h(Button,{size:'sm'},()=> 'Back'),
+        default:()=> 'A deliberately long document heading for this narrow screen',
+        actions:()=>h(Button,{size:'sm'},()=> 'Save'),
+      })}).mount('#app');
+    `);
+    const page=await open(path,`<div id="scroll">${adapter==='html'
+      ? '<ui-top-bar id="bar" title-for="heading"><ui-button slot="leading" size="sm">Back</ui-button>A deliberately long document heading for this narrow screen<ui-button slot="actions" size="sm">Save</ui-button></ui-top-bar>'
+      : '<div id="app"></div>'}<h1 id="heading">Document heading</h1><div style="height:1000px"></div></div>`,
+      [join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:500}});
+    try {
+      await page.addStyleTag({content:'body { margin:0; } #app { display:contents; } #scroll { height:400px; overflow:auto; } h1 { margin:12px; font-size:24px; }'});
+      const title=page.locator('#bar .title');
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      assert.equal(await page.getByRole('button',{name:'Back',exact:true}).isVisible(),true);
+      assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isVisible(),true);
+      const height=await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height);
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.getAttribute('aria-hidden'),'false');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).textOverflow),'ellipsis');
+      assert.equal(await title.evaluate(el=>el.scrollWidth>el.clientWidth),true);
+      assert.equal(await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height),height,'revealing the title does not move the bar');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='0');
+      assert.notEqual(await title.evaluate(el=>getComputedStyle(el).transform),'none','the hidden title starts below its resting position');
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transform),'none');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget(''));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      assert.equal(await title.getAttribute('aria-hidden'),'false','an unobserved title keeps the ordinary always-visible behavior');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget('late-heading'));
+      await page.evaluate(()=>{
+        const heading=document.createElement('h2'); heading.id='late-heading'; heading.textContent='A heading rendered later';
+        document.querySelector('#heading')!.after(heading);
+      });
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      await page.locator('#late-heading').evaluate(el=>el.replaceWith(el.cloneNode(true)));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='false');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+    } finally {await page.close();}
+  });
+});
+
+describe("Responsive control examples", () => {
+  it("contains the growing field and scroll-title examples at phone widths", async () => {
+    const path = await bundle('responsive-control-examples', 'import "@threadlabs/looma";');
+    for (const example of ['ui-combobox/examples/08-multiple-rows.html', 'ui-top-bar/examples/02-scroll-title.html']) {
+      const markup = (await readFile(join(root, 'src/components', example), 'utf8')).replace('<ui-container', '<ui-container id="example-container"');
+      const page = await open(path, markup, [join(root, 'tokens.css')], {viewport: {width: 375, height: 700}});
+      try {
+        await page.addStyleTag({content: 'body {margin:12px}'});
+        for (const width of [320, 375]) {
+          await page.setViewportSize({width, height:700});
+          const overflow = await page.locator('#example-container').evaluateAll(elements => elements.map(element => {
+            const parent = element.parentElement!.getBoundingClientRect();
+            return element.getBoundingClientRect().right - parent.right;
+          }));
+          assert.equal(overflow.length, 1);
+          assert.ok(overflow.every(value => value <= 1), `${example}/${width}: containers stay inside the reading area: ${overflow}`);
+        }
+      } finally {await page.close();}
+    }
+  });
+});
+
 describe("Combobox authored defaults and affordances", () => {
+  for (const adapter of ["html", "vue"] as const) it(`grows a ${adapter} multiple field through three rows before scrolling vertically`, async () => {
+    const shared = `
+      window.items = [];
+      window.removals = [];
+      const remove = event => {
+        window.removals.push(event.detail);
+        window.setItems(window.items.filter(item => item.value !== event.detail.item.value));
+      };
+    `;
+    const path = await bundle(`${adapter}-combobox-multiline`, adapter === "html" ? `
+      import "@threadlabs/looma";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      ${shared}
+      window.setItems = items => {
+        window.items = items;
+        componentRegistry.update(document.querySelector('#multi'), {items});
+      };
+      window.setSize = size => componentRegistry.update(document.querySelector('#multi'), {size});
+      document.addEventListener('remove-item', remove);
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      ${shared}
+      const items = ref([]), size = ref('md');
+      window.setItems = value => { window.items = value; items.value = value; };
+      window.setSize = value => { size.value = value; };
+      createApp({render:()=>h(Combobox,{id:'multi',label:'Topics',multiple:true,maxRows:3,
+        size:size.value,items:items.value,onRemoveItem:remove})}).mount('#app');
+    `);
+    const page = await open(path, adapter === "html"
+      ? '<ui-combobox id="multi" label="Topics" multiple max-rows="3"></ui-combobox>' : '<div id="app"></div>',
+    [join(root,"tokens.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])],
+    {viewport:{width:375,height:700},hasTouch:true,isMobile:true});
+    try {
+      await page.addStyleTag({content:'body { margin:12px; } #multi { inline-size:240px; --ui-control-size-sm:28px; }'});
+      const selected = Array.from({length:10}, (_,i)=>({id:`topic-${i}`,value:`topic-${i}`,label:`Topic number ${i}`}));
+      const setItems = async (items: typeof selected) => {
+        await page.evaluate(items=>(window as unknown as {setItems:(items:unknown[])=>void}).setItems(items),items);
+        await page.waitForFunction(count=>document.querySelectorAll('#multi .item').length===count,items.length);
+      };
+      const field = page.locator('#multi .field'), entry = page.locator('#multi .entry');
+      const input = page.locator('#multi input[role="combobox"]');
+      for (const size of ['sm','md','lg']) {
+        await setItems([]);
+        await page.evaluate(size=>(window as unknown as {setSize:(size:string)=>void}).setSize(size),size);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const empty = await field.evaluate(el=>el.getBoundingClientRect().height);
+        await setItems(selected.slice(0,2));
+        const grown = await field.evaluate(el=>el.getBoundingClientRect().height);
+        assert.ok(grown > empty + 8, `${adapter}/${size}: the field grows before it scrolls`);
+        assert.ok(await entry.evaluate(el=>el.scrollHeight<=el.clientHeight+1), 'two rows remain fully visible');
+        await setItems(selected);
+        const bounds = await entry.evaluate(el=>{
+          const row = Math.max(...Array.from(el.querySelectorAll('.item, input'), item=>item.getBoundingClientRect().height));
+          return {height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth,
+            row,gap:Number.parseFloat(getComputedStyle(el).rowGap),mask:getComputedStyle(el).maskImage};
+        });
+        assert.ok(bounds.height >= 3*bounds.row+2*bounds.gap-1, `three complete rows fit: ${JSON.stringify(bounds)}`);
+        assert.ok(bounds.height <= 3*bounds.row+2*bounds.gap+1, JSON.stringify(bounds));
+        assert.ok(bounds.scroll > bounds.height, 'additional rows scroll inside the field');
+        assert.ok(bounds.scrollWidth<=bounds.width+1, 'the wrapping field has no horizontal tag strip');
+        assert.equal(bounds.mask,'none');
+        await input.focus();
+        const visible = () => input.evaluate(el=>{
+          const box=el.getBoundingClientRect(), area=el.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'the typing row remains visible');
+        await input.press('ArrowLeft');
+        assert.equal(await page.locator('#multi .item').last().evaluate(el=>el===document.activeElement),true);
+        await page.keyboard.press('Delete');
+        await page.waitForFunction(()=>document.querySelectorAll('#multi .item').length===9);
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return document.activeElement===input && box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'removing the final chip returns to the visible input');
+        await setItems([]);
+        assert.ok(Math.abs((await field.evaluate(el=>el.getBoundingClientRect().height))-empty)<1,'the field shrinks again');
+      }
+    } finally { await page.close(); }
+  });
+
   it("starts from selected options, disables empty Clear, and keeps multiple selections on one row", async () => {
     const path = await bundle("html-combobox-authored-defaults", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -12306,7 +12476,7 @@ describe('Muted inherited choices', () => {
 });
 
 describe('Readable overlay content', () => {
-  it('keeps notification and choice content opaque at every translucency extreme', async () => {
+  it('keeps notifications opaque and bounds choice-surface translucency', async () => {
     const path=await bundle('opaque-overlay-content',`import '@threadlabs/looma';`);
     const page=await open(path,'<ui-toast id="notice" tone="info">Frodo saved the agenda.</ui-toast><ui-combobox id="choices" label="Colleague" value="sam" disclosure><option value="sam">Sam</option></ui-combobox>',[join(root,'tokens.css'),join(root,'theme-light.css'),join(root,'theme-dark.css'),join(root,'theme-system.css')]);
     try {
@@ -12317,7 +12487,7 @@ describe('Readable overlay content', () => {
           context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
           return context.getImageData(0,0,1,1).data[3];
         }));
-        assert.deepEqual(alphas,[255,255],`${mode}/${translucency}: decorative transparency must not transmit through readable content`);
+        assert.deepEqual(alphas,[255,Math.round(255*(1-translucency*0.1))],`${mode}/${translucency}: notifications stay opaque and choices follow the shared material transmission bound`);
       }
     } finally {await page.close();}
   });
