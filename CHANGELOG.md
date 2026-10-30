@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Notification stacks keep their content height in Safari instead of expanding over the viewport.
+
 - Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
 
 - Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.

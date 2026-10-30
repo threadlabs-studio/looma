@@ -1530,6 +1530,52 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  for (const adapter of ['html', 'vue'] as const) it(`keeps the ${adapter} notification stack at content height in WebKit`, async () => {
+    const path = await bundle(`toast-intrinsic-${adapter}`, adapter === 'html' ? `
+      import '@threadlabs/looma';
+      import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      window.place = placement => componentRegistry.update(document.getElementById('region'), {placement});
+    ` : `
+      import {createApp,h,ref} from 'vue';
+      import {ToastRegion,Toast} from '@threadlabs/looma/vue';
+      const placement=ref('top');window.place=value=>placement.value=value;
+      createApp({render:()=>h(ToastRegion,{id:'region',placement:placement.value},()=>h(Toast,{id:'notice',tone:'danger'},()=> 'The change could not be saved. Please try again.'))}).mount('#app');
+    `);
+    // An installed compatibility driver also exercises older supported WebKit builds.
+    const driver = process.env.LOOMA_WEBKIT_MODULE || "playwright";
+    const {webkit} = await import(/* @vite-ignore */ driver);
+    const safari = await webkit.launch();
+    let page: Page | undefined;
+    try {
+      page = await safari.newPage({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+      const errors: string[] = [];
+      page.on('pageerror',error=>errors.push(error.message));
+      const markup = adapter === 'html'
+        ? '<ui-toast-region id="region"><ui-toast id="notice" tone="danger">The change could not be saved. Please try again.</ui-toast></ui-toast-region>'
+        : '<div id="app"></div>';
+      await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${markup}</body></html>`);
+      for (const css of [join(root,'tokens.css'), ...(adapter==='vue'?[join(root,'vue/components.css')]:[])]) await page.addStyleTag({path:css});
+      await page.addScriptTag({path});
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      await page.waitForFunction(()=>document.getElementById('region')!.matches(':popover-open'));
+      for (const placement of ['top','top-start','top-end','bottom','bottom-start','bottom-end']) {
+        await page.evaluate(value=>(window as unknown as {place:(value:string)=>void}).place(value),placement);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const geometry=await page.evaluate(()=>{
+          const region=document.getElementById('region')!,toast=document.getElementById('notice')!;
+          const box=region.getBoundingClientRect(),surface=toast.getBoundingClientRect(),style=getComputedStyle(toast);
+          const intrinsic=Math.max(toast.querySelector('.message')!.getBoundingClientRect().height,toast.querySelector('button')!.getBoundingClientRect().height)
+            +['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+Number.parseFloat(style[key as keyof CSSStyleDeclaration] as string),0);
+          return {height:surface.height,stack:box.height,intrinsic,top:box.top,bottom:box.bottom,viewport:innerHeight};
+        });
+        assert.ok(Math.abs(geometry.height-geometry.intrinsic)<=1,`${adapter}/${placement}: notifications retain content height: ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry.stack-geometry.height)<=1,'a single notification does not create an empty viewport-sized grid row');
+        assert.ok(geometry.top>=0 && geometry.bottom<=geometry.viewport,'the notification remains inside the phone viewport');
+      }
+      assert.deepEqual(errors,[]);
+    } finally {await page?.close();await safari.close();}
+  });
+
   it("balances toast content insets without external margins or smaller dismiss targets in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@threadlabs/looma";` : `
