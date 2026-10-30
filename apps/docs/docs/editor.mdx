@@ -210,7 +210,8 @@ imported from a file retains its body. For a self-contained export, pass
 `{ tableOfContents: "entries" }` to `editorDocumentToMarkdown` or
 `editorDocumentToExpressmark`: automatic TOCs receive current links using the document's
 heading anchors, while authored navigation and the original editor JSON remain unchanged.
-This also expands a placeholder when `original` is supplied.
+This also expands a placeholder when `original` is supplied. Portable exports write explicit
+heading IDs, including inside authored navigation, so repeated labels cannot redirect saved links.
 
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
