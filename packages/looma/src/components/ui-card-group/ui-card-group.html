@@ -1,0 +1,29 @@
+<link rel="component" href="../ui-grid/ui-grid.html">
+<link rel="component" href="../ui-card/ui-card.html">
+<template component="ui-card-group">
+  <defs>
+    <prop name="gap" type="keyword" values="xs, s, m, l, xl" default="l"
+    >Space between cards, using Grid’s spacing scale. Grid’s public --ui-grid-gap custom property also applies.</prop>
+    <prop name="min" type="keyword" values="sm, md, lg" default="lg"
+    >Minimum card column width: sm is 12rem, md 16rem and lg 20rem. A narrower container still fits one column.</prop>
+    <prop name="columns" type="integer">Maximum columns when there is room. Omit for no cap; cards wrap as the container narrows.</prop>
+  </defs>
+  <div>
+    <ui-grid from:gap="$gap" from:min="$min" from:columns="$columns"><slot></slot></ui-grid>
+  </div>
+  <style>
+    /* Grid owns columns and spacing; Card owns its surface and three aligned regions. */
+    :host {
+      display: block !important;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      --_ui-card-group-layout: grid;
+      --_ui-card-group-rows: subgrid;
+      --_ui-card-group-span: span 3;
+      --_ui-card-group-region-layout: flex;
+    }
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>

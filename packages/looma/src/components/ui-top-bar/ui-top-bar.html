@@ -1,7 +1,17 @@
-<template component="ui-top-bar">
+<template component="ui-top-bar" module="./ui-top-bar.js">
+  <defs>
+    <prop name="titleFor" type="string" default=""
+    >The ID of the page heading represented by the default title slot. While that heading is visible below the sticky bar, its duplicate title is concealed.
+      After the heading scrolls above the bar, the single-line title slides up and fades in. Leading and action slots stay available, and the bar keeps its
+      size. Omit it for an always-visible title. Reduced motion removes the transition.</prop>
+    <state name="titleOutOfView" type="boolean" value="false"></state>
+    <computed name="titleHidden" from="not ($titleFor = '') and not $titleOutOfView"></computed>
+  </defs>
   <header>
     <div class="leading"><slot name="leading"></slot></div>
-    <div class="title"><slot></slot></div>
+    <div class="title" class:scroll-title="not ($titleFor = '')" class:concealed="$titleHidden" from:aria-hidden="$titleHidden" from:inert="$titleHidden">
+      <slot></slot>
+    </div>
     <div class="search"><slot name="search"></slot></div>
     <div class="actions"><slot name="actions"></slot></div>
   </header>
@@ -39,6 +49,26 @@
     .title {
       min-inline-size: 0;
       flex: 1;
+    }
+    .title.scroll-title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease), transform var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+    .title.scroll-title.concealed {
+      opacity: 0;
+      transform: translateY(var(--ui-space-2));
+      pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .title.scroll-title,
+      .title.scroll-title.concealed {
+        transition: none;
+        transform: none;
+      }
     }
 
     /* An unused region takes no space, so it adds no gap. */

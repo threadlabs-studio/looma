@@ -1,0 +1,5 @@
+{
+  "description": "Responsive cards with shared header, content and action rows. Uses Grid for wrapping columns and Card for native subgrid alignment. All Card slots are optional; content uses the default slot. Omit the header when the title and description should stay together in the body; that body starts at the card’s content edge without an empty header band. Use the header slot only when separate heading alignment is useful. Put an ActionBar in the actions slot, with the main action in its primary slot, for trailing alignment.",
+  "group": "layout",
+  "summary": "Align card headers, content and actions across each row."
+}

@@ -40,3 +40,19 @@ test("every component has a story, and every story renders its component's examp
   }
   assert.deepEqual(handWritten, [], "stories that write component markup instead of rendering examples");
 });
+
+/** Authored examples must reference real Looma controls, including their nested content. */
+test("component examples reference only existing Looma tags", async () => {
+  const tags = new Set((await readdir(componentsRoot)).filter(name => name.startsWith("ui-")));
+  const unknown = [];
+  for (const tag of tags) {
+    const directory = path.join(componentsRoot, tag, "examples");
+    for (const name of (await readdir(directory).catch(() => [])).filter(name => name.endsWith(".html"))) {
+      const file = path.join(directory, name);
+      for (const [, used] of (await readFile(file, "utf8")).matchAll(/<(ui-[a-z0-9-]+)(?=[\s/>])/g)) {
+        if (!tags.has(used)) unknown.push(`${path.relative(componentsRoot, file)}: ${used}`);
+      }
+    }
+  }
+  assert.deepEqual(unknown, [], "unknown Looma controls in published examples");
+});

@@ -41,6 +41,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-card-group": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-checkbox": {
       "status": "published",
       "package": "@threadlabs/looma"

@@ -62,17 +62,17 @@ afterAll(async () => {
 });
 
 describe("SiteHeader", () => {
-  for (const adapter of ["HTML", "Vue"] as const) it(`centers baseline-aligned branding and navigation beside growing actions in ${adapter}`, async () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`centers branding and navigation containers beside growing actions in ${adapter}`, async () => {
     const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
       import { createApp, h } from "vue";
       import { UiSiteHeader as SiteHeader, UiButton as Button } from "@threadlabs/looma";
       createApp({render:()=>h(SiteHeader,{id:"site",sticky:true},{
-        brand:()=>h("a",{href:"#home",id:"brand"},"Fellowship"),
+        brand:()=>h("a",{href:"#home",id:"brand"},[h("img",{width:40,height:40,alt:"Brand mark",src:"data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"}),h("span",{id:"brand-title"},"Fellowship")]),
         navigation:()=>[h("a",{href:"#guide",id:"destination"},"Guide"),h("a",{href:"#components"},"Components")],
         actions:()=>h(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
       })}).mount("#app");
     `);
-    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css")], {viewport:{width:1440,height:800}});
+    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand"><img width="40" height="40" alt="Brand mark" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"><span id="brand-title">Fellowship</span></a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css")], {viewport:{width:1440,height:800}});
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
@@ -89,12 +89,13 @@ describe("SiteHeader", () => {
           await page.locator('#action').evaluate((el,height)=>(el as HTMLElement).style.setProperty('--ui-button-min-block-size',height+'px'),height);
           const alignment=await page.locator('#site').evaluate(header=>{
             const center=(el:Element)=>{const b=el.getBoundingClientRect();return b.y+b.height/2;};
-            const probes=[header.querySelector('#brand')!,header.querySelector('#destination')!].map(el=>{const p=document.createElement('span');p.style.cssText='display:inline-block;width:0;height:0;vertical-align:baseline';el.append(p);return p;});
-            const baseline=Math.abs(probes[0].getBoundingClientRect().y-probes[1].getBoundingClientRect().y);probes.forEach(p=>p.remove());
-            return {center:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),baseline};
+            return {
+              groups:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),
+              text:Math.abs(center(header.querySelector('#brand-title')!)-center(header.querySelector('#destination')!)),
+            };
           });
-          assert.ok(alignment.center<1,`${dir}/${height}: action and text groups stay centred`);
-          assert.ok(alignment.baseline<1,`${dir}/${height}: brand and navigation share a baseline`);
+          assert.ok(alignment.groups<1,`${dir}/${height}: action and text groups stay centred`);
+          assert.ok(alignment.text<1,`${dir}/${height}: branding and navigation containers stay centred`);
         }
       }
       await page.locator('#brand').evaluate(element=>{
@@ -120,6 +121,69 @@ describe("SiteHeader", () => {
       await page.keyboard.press('Escape');
       await page.getByRole('dialog',{name:'Main'}).waitFor({state:'hidden'});
       assert.equal(await menu.getAttribute('aria-expanded'),'false');
+    } finally {await page.close();}
+  });
+});
+
+describe("CardGroup", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`aligns native Card regions, wraps and isolates nested cards in ${adapter}`, async () => {
+    const path=await bundle(`card-group-${adapter}`,adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+      import {createApp,h} from "vue"; import { UiCardGroup as CardGroup, UiCard as Card } from "@threadlabs/looma";
+      createApp({render:()=>h(CardGroup,{id:"group",gap:"l"},()=>[0,1,2].map(i=>h(Card,{class:"card"},{
+        header:()=>h("header",{"data-region":"header"},i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"),
+        default:()=>h("section",{"data-region":"content"},[i===1?"Long content. ".repeat(30):"Short content.",...(i===0?[h(Card,{id:"nested"},()=>"Independent nested card")]:[])]),
+        actions:()=>h("footer",{"data-region":"actions"},[h("a",{href:"#read"},"Read"),h("a",{href:"#offer"},"Offer")]),
+      })))}).mount("#app");
+    `);
+    const cards=[0,1,2].map(i=>`<ui-card class="card"><header slot="header" data-region="header">${i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"}</header><section data-region="content">${i===1?"Long content. ".repeat(30):"Short content."}${i===0?'<ui-card id="nested">Independent nested card</ui-card>':''}</section><footer slot="actions" data-region="actions"><a href="#read">Read</a><a href="#offer">Offer</a></footer></ui-card>`).join('');
+    const page=await open(path,adapter === "HTML" ? `<ui-card-group id="group" gap="l">${cards}</ui-card-group>` : '<div id="app"></div>',[join(root,"tokens.css")],{viewport:{width:700,height:900}});
+    await page.addStyleTag({content:'#group .card { display:block; grid-template-rows:none; grid-row:auto; gap:0; }'});
+    try {
+      for(const dir of ["ltr","rtl"]) {
+        await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
+        const rows=await page.locator('.card').evaluateAll(cards=>cards.map(card=>{
+          const box=card.getBoundingClientRect();
+          return {top:box.top,bottom:box.bottom,rows:[...card.querySelectorAll('[data-region]')].map(region=>region.getBoundingClientRect().top),display:getComputedStyle(card).display,tracks:getComputedStyle(card).gridTemplateRows};
+        }));
+        assert.equal(rows[0].display,'grid');
+        assert.match(rows[0].tracks,/subgrid/);
+        for(let region=0;region<3;region++) assert.ok(Math.abs(rows[0].rows[region]-rows[1].rows[region])<1,`${dir}: region ${region} aligns despite different text lengths`);
+        assert.ok(rows[2].top>rows[0].bottom,'a wrapped row has its own tracks');
+      }
+      assert.equal(await page.locator('#nested').evaluate(el=>getComputedStyle(el).display),'flex','nested cards do not join the outer group');
+      await page.setViewportSize({width:375,height:900});
+      const stacked=await page.locator('.card').evaluateAll(cards=>cards.map(card=>card.getBoundingClientRect().toJSON()));
+      assert.ok(stacked[1].top>stacked[0].bottom);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      await page.locator('#group').evaluate(el=>el.setAttribute('hidden',''));
+      assert.equal(await page.locator('.card').first().isVisible(),false,'hidden groups hide their delegated grid');
+    } finally {await page.close();}
+  });
+});
+
+describe("CardGroup optional header", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`keeps headerless body content in natural flow with trailing primary actions in ${adapter}`, async () => {
+    const path = await bundle(`headerless-cards-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+      import {createApp,h} from "vue"; import { UiCardGroup as CardGroup, UiCard as Card, UiStack as Stack, UiText as Text, UiActionBar as ActionBar, UiButton as Button } from "@threadlabs/looma";
+      createApp({render:()=>h(CardGroup,{columns:2},()=>[0,1].map(i=>h(Card,{class:"card"},{
+        default:()=>h(Stack,{gap:"s"},()=>[h(Text,{"data-title":"",as:"h2"},()=>i?"A longer title that wraps naturally across several lines":"Archive"),h(Text,{"data-summary":""},()=>"A summary that stays beside its own title.")]),
+        actions:()=>h(ActionBar,{}, {primary:()=>h(Button,{"data-action":""},()=>"Open")}),
+      })))}).mount("#app");
+    `);
+    const cards=[0,1].map(i=>`<ui-card class="card"><ui-stack gap="s"><ui-text data-title as="h2">${i?"A longer title that wraps naturally across several lines":"Archive"}</ui-text><ui-text data-summary>A summary that stays beside its own title.</ui-text></ui-stack><ui-action-bar slot="actions"><ui-button data-action slot="primary">Open</ui-button></ui-action-bar></ui-card>`).join('');
+    const page=await open(path,adapter === "HTML"?`<ui-card-group columns="2">${cards}</ui-card-group>`:'<div id="app"></div>',[join(root,"tokens.css")],{viewport:{width:1100,height:800}});
+    try {
+      for(const width of [1100,375]) for(const dir of ["ltr","rtl"]) {
+        await page.setViewportSize({width,height:800});
+        await page.locator('html').evaluate((element,value)=>element.setAttribute('dir',value),dir);
+        const geometry=await page.locator('.card').evaluateAll(cards=>cards.map(card=>{
+          const box=card.getBoundingClientRect(),style=getComputedStyle(card),title=card.querySelector('[data-title]')!.getBoundingClientRect(),summary=card.querySelector('[data-summary]')!.getBoundingClientRect(),action=card.querySelector('[data-action]')!.getBoundingClientRect();
+          return {top:title.top-box.top-parseFloat(style.paddingTop)-parseFloat(style.borderTopWidth),bodyGap:summary.top-title.bottom,actionTop:action.top,end:style.direction==='rtl'?action.left-box.left-parseFloat(style.paddingLeft)-parseFloat(style.borderLeftWidth):box.right-action.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth)};
+        }));
+        for(const card of geometry){assert.ok(Math.abs(card.top)<1,'an omitted header reserves no empty band before the body');assert.ok(card.bodyGap>=0&&card.bodyGap<24,'each summary follows its own title');assert.ok(Math.abs(card.end)<1,'primary actions reach the logical trailing edge');}
+        if(width===1100)assert.ok(Math.abs(geometry[0].actionTop-geometry[1].actionTop)<1,'actions still align across different body lengths');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      }
     } finally {await page.close();}
   });
 });
@@ -1507,6 +1571,52 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  for (const adapter of ['html', 'vue'] as const) it(`keeps the ${adapter} notification stack at content height in WebKit`, async () => {
+    const path = await bundle(`toast-intrinsic-${adapter}`, adapter === 'html' ? `
+      import '@looma-test/runtime';
+      import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      window.place = placement => componentRegistry.update(document.getElementById('region'), {placement});
+    ` : `
+      import {createApp,h,ref} from 'vue';
+      import { UiToastRegion as ToastRegion, UiToast as Toast } from '@threadlabs/looma';
+      const placement=ref('top');window.place=value=>placement.value=value;
+      createApp({render:()=>h(ToastRegion,{id:'region',placement:placement.value},()=>h(Toast,{id:'notice',tone:'danger'},()=> 'The change could not be saved. Please try again.'))}).mount('#app');
+    `);
+    // An installed compatibility driver also exercises older supported WebKit builds.
+    const driver = process.env.LOOMA_WEBKIT_MODULE || "playwright";
+    const {webkit} = await import(/* @vite-ignore */ driver);
+    const safari = await webkit.launch();
+    let page: Page | undefined;
+    try {
+      page = await safari.newPage({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+      const errors: string[] = [];
+      page.on('pageerror',error=>errors.push(error.message));
+      const markup = adapter === 'html'
+        ? '<ui-toast-region id="region"><ui-toast id="notice" tone="danger">The change could not be saved. Please try again.</ui-toast></ui-toast-region>'
+        : '<div id="app"></div>';
+      await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${markup}</body></html>`);
+      for (const css of [join(root,'tokens.css')]) await page.addStyleTag({path:css});
+      await page.addScriptTag({path});
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      await page.waitForFunction(()=>document.getElementById('region')!.matches(':popover-open'));
+      for (const placement of ['top','top-start','top-end','bottom','bottom-start','bottom-end']) {
+        await page.evaluate(value=>(window as unknown as {place:(value:string)=>void}).place(value),placement);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const geometry=await page.evaluate(()=>{
+          const region=document.getElementById('region')!,toast=document.getElementById('notice')!;
+          const box=region.getBoundingClientRect(),surface=toast.getBoundingClientRect(),style=getComputedStyle(toast);
+          const intrinsic=Math.max(toast.querySelector('.message')!.getBoundingClientRect().height,toast.querySelector('button')!.getBoundingClientRect().height)
+            +['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+Number.parseFloat(style[key as keyof CSSStyleDeclaration] as string),0);
+          return {height:surface.height,stack:box.height,intrinsic,top:box.top,bottom:box.bottom,viewport:innerHeight};
+        });
+        assert.ok(Math.abs(geometry.height-geometry.intrinsic)<=1,`${adapter}/${placement}: notifications retain content height: ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry.stack-geometry.height)<=1,'a single notification does not create an empty viewport-sized grid row');
+        assert.ok(geometry.top>=0 && geometry.bottom<=geometry.viewport,'the notification remains inside the phone viewport');
+      }
+      assert.deepEqual(errors,[]);
+    } finally {await page?.close();await safari.close();}
+  });
+
   it("balances toast content insets without external margins or smaller dismiss targets in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@looma-test/runtime";` : `
@@ -7396,6 +7506,58 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  for (const adapter of ["html", "vue"]) it(`keeps matched ${adapter} icon touch targets within their adjacent action boundary`, async () => {
+    const path = await bundle(`${adapter}-paired-touch-boundaries`, adapter === "html" ? `import "@looma-test/runtime";` : `
+      import {createApp,h} from "vue";
+      import { UiButton as Button, UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
+      createApp({render:()=>["sm","md","lg"].map(size=>h("div",{id:size,style:"display:flex;align-items:stretch;padding-block:16px"},[
+        h(Button,{id:size+"-primary",size},()=>"Save changes"),
+        h(IconButton,{id:size+"-more",size,matchButton:true,label:"More options"},()=>h(Icon,{name:"chevron-down"})),
+      ]))}).mount("#app");
+    `);
+    const body = adapter === "html" ? ["sm", "md", "lg"].map(size => `
+      <div id="${size}" style="display:flex;align-items:stretch;padding-block:16px">
+        <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+        <ui-icon-button id="${size}-more" size="${size}" match-button label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+      </div>`).join("") : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,"tokens.css")],
+      {viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+    try {
+      // A raised target preference still expands vertically, with clear space between rows.
+      await page.addStyleTag({content:":root { --ui-control-min-block-size:56px; } body { margin:48px; }"});
+      await page.evaluate(() => {
+        const meta=document.createElement("meta");meta.name="viewport";meta.content="width=device-width,initial-scale=1";document.head.append(meta);
+        (window as unknown as {hits:string[]}).hits=[];
+        for (const button of document.querySelectorAll("button")) button.addEventListener("click",()=> (window as unknown as {hits:string[]}).hits.push(button.id));
+      });
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      for (const direction of ["ltr","rtl"]) {
+        await page.evaluate(value=>{
+          document.documentElement.dir=value;
+          if (value==="rtl") document.documentElement.dataset.uiInputModality="touch";
+          else delete document.documentElement.dataset.uiInputModality;
+        },direction);
+        for (const size of ["sm","md","lg"]) {
+          const points=await page.evaluate(({size,direction})=>{
+            const primary=document.getElementById(size+"-primary")!.getBoundingClientRect();
+            const more=document.getElementById(size+"-more")!,rect=more.getBoundingClientRect();
+            const minimum=Number.parseFloat(getComputedStyle(more,"::after").height);
+            const edge={x:direction==="ltr"?primary.right-2:primary.left+2,y:primary.y+primary.height/2};
+            const outside={x:rect.x+rect.width/2,y:rect.y+rect.height/2+Math.max(rect.height,minimum)/2-1};
+            const hit=(point:{x:number,y:number})=>document.elementFromPoint(point.x,point.y)?.closest("button")?.id;
+            return {edge,outside,primaryHit:hit(edge),moreHit:hit(outside)};
+          },{size,direction});
+          assert.equal(points.primaryHit,size+"-primary",`${adapter}/${direction}/${size}: the menu must not steal the primary action edge`);
+          assert.equal(points.moreHit,size+"-more","the matched icon retains its configured vertical touch target");
+          await page.evaluate(()=>{(window as unknown as {hits:string[]}).hits=[];});
+          await page.touchscreen.tap(points.edge.x,points.edge.y);
+          await page.touchscreen.tap(points.outside.x,points.outside.y);
+          assert.deepEqual(await page.evaluate(()=>(window as unknown as {hits:string[]}).hits),[size+"-primary",size+"-more"]);
+        }
+      }
+    } finally {await page.close();}
+  });
+
   it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
     for (const adapter of ["vue", "html"]) {
       const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
@@ -9055,7 +9217,177 @@ describe("Combobox disabled", () => {
   });
 });
 
+describe("TopBar scroll title", () => {
+  for (const adapter of ['html','vue'] as const) it(`reveals the ${adapter} title after its heading scrolls out, with reduced-motion support`, async () => {
+    const path=await bundle(`${adapter}-top-bar-scroll-title`,adapter==='html' ? `
+      import "@looma-test/runtime";
+      import {componentRegistry} from "@nextwebwg/html-next/runtime";
+      window.setTarget=id=>componentRegistry.update(document.querySelector('#bar'),{titleFor:id});
+    ` : `
+      import {createApp,h,ref} from "vue";
+      import { UiTopBar as TopBar, UiButton as Button } from "@threadlabs/looma";
+      const target=ref('heading'); window.setTarget=id=>target.value=id;
+      createApp({render:()=>h(TopBar,{id:'bar',titleFor:target.value},{
+        leading:()=>h(Button,{size:'sm'},()=> 'Back'),
+        default:()=> 'A deliberately long document heading for this narrow screen',
+        actions:()=>h(Button,{size:'sm'},()=> 'Save'),
+      })}).mount('#app');
+    `);
+    const page=await open(path,`<div id="scroll">${adapter==='html'
+      ? '<ui-top-bar id="bar" title-for="heading"><ui-button slot="leading" size="sm">Back</ui-button>A deliberately long document heading for this narrow screen<ui-button slot="actions" size="sm">Save</ui-button></ui-top-bar>'
+      : '<div id="app"></div>'}<h1 id="heading">Document heading</h1><div style="height:1000px"></div></div>`,
+      [join(root,'tokens.css')],{viewport:{width:375,height:500}});
+    try {
+      await page.addStyleTag({content:'body { margin:0; } #app { display:contents; } #scroll { height:400px; overflow:auto; } h1 { margin:12px; font-size:24px; }'});
+      const title=page.locator('#bar .title');
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      assert.equal(await page.getByRole('button',{name:'Back',exact:true}).isVisible(),true);
+      assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isVisible(),true);
+      const height=await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height);
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.getAttribute('aria-hidden'),'false');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).textOverflow),'ellipsis');
+      assert.equal(await title.evaluate(el=>el.scrollWidth>el.clientWidth),true);
+      assert.equal(await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height),height,'revealing the title does not move the bar');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='0');
+      assert.notEqual(await title.evaluate(el=>getComputedStyle(el).transform),'none','the hidden title starts below its resting position');
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transform),'none');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget(''));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      assert.equal(await title.getAttribute('aria-hidden'),'false','an unobserved title keeps the ordinary always-visible behavior');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget('late-heading'));
+      await page.evaluate(()=>{
+        const heading=document.createElement('h2'); heading.id='late-heading'; heading.textContent='A heading rendered later';
+        document.querySelector('#heading')!.after(heading);
+      });
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      await page.locator('#late-heading').evaluate(el=>el.replaceWith(el.cloneNode(true)));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='false');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+    } finally {await page.close();}
+  });
+});
+
+describe("Responsive control examples", () => {
+  it("contains the growing field and scroll-title examples at phone widths", async () => {
+    const path = await bundle('responsive-control-examples', 'import "@looma-test/runtime";');
+    for (const example of ['ui-combobox/examples/08-multiple-rows.html', 'ui-top-bar/examples/02-scroll-title.html']) {
+      const markup = (await readFile(join(root, 'src/components', example), 'utf8')).replace('<ui-container', '<ui-container id="example-container"');
+      const page = await open(path, markup, [join(root, 'tokens.css')], {viewport: {width: 375, height: 700}});
+      try {
+        await page.addStyleTag({content: 'body {margin:12px}'});
+        for (const width of [320, 375]) {
+          await page.setViewportSize({width, height:700});
+          const overflow = await page.locator('#example-container').evaluateAll(elements => elements.map(element => {
+            const parent = element.parentElement!.getBoundingClientRect();
+            return element.getBoundingClientRect().right - parent.right;
+          }));
+          assert.equal(overflow.length, 1);
+          assert.ok(overflow.every(value => value <= 1), `${example}/${width}: containers stay inside the reading area: ${overflow}`);
+        }
+      } finally {await page.close();}
+    }
+  });
+});
+
 describe("Combobox authored defaults and affordances", () => {
+  for (const adapter of ["html", "vue"] as const) it(`grows a ${adapter} multiple field through three rows before scrolling vertically`, async () => {
+    const shared = `
+      window.items = [];
+      window.removals = [];
+      const remove = event => {
+        window.removals.push(event.detail);
+        window.setItems(window.items.filter(item => item.value !== event.detail.item.value));
+      };
+    `;
+    const path = await bundle(`${adapter}-combobox-multiline`, adapter === "html" ? `
+      import "@looma-test/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      ${shared}
+      window.setItems = items => {
+        window.items = items;
+        componentRegistry.update(document.querySelector('#multi'), {items});
+      };
+      window.setSize = size => componentRegistry.update(document.querySelector('#multi'), {size});
+      document.addEventListener('remove-item', remove);
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
+      ${shared}
+      const items = ref([]), size = ref('md');
+      window.setItems = value => { window.items = value; items.value = value; };
+      window.setSize = value => { size.value = value; };
+      createApp({render:()=>h(Combobox,{id:'multi',label:'Topics',multiple:true,maxRows:3,
+        size:size.value,items:items.value,onRemoveItem:remove})}).mount('#app');
+    `);
+    const page = await open(path, adapter === "html"
+      ? '<ui-combobox id="multi" label="Topics" multiple max-rows="3"></ui-combobox>' : '<div id="app"></div>',
+    [join(root,"tokens.css")],
+    {viewport:{width:375,height:700},hasTouch:true,isMobile:true});
+    try {
+      await page.addStyleTag({content:'body { margin:12px; } #multi { inline-size:240px; --ui-control-size-sm:28px; }'});
+      const selected = Array.from({length:10}, (_,i)=>({id:`topic-${i}`,value:`topic-${i}`,label:`Topic number ${i}`}));
+      const setItems = async (items: typeof selected) => {
+        await page.evaluate(items=>(window as unknown as {setItems:(items:unknown[])=>void}).setItems(items),items);
+        await page.waitForFunction(count=>document.querySelectorAll('#multi .item').length===count,items.length);
+      };
+      const field = page.locator('#multi .field'), entry = page.locator('#multi .entry');
+      const input = page.locator('#multi input[role="combobox"]');
+      for (const size of ['sm','md','lg']) {
+        await setItems([]);
+        await page.evaluate(size=>(window as unknown as {setSize:(size:string)=>void}).setSize(size),size);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const empty = await field.evaluate(el=>el.getBoundingClientRect().height);
+        await setItems(selected.slice(0,2));
+        const grown = await field.evaluate(el=>el.getBoundingClientRect().height);
+        assert.ok(grown > empty + 8, `${adapter}/${size}: the field grows before it scrolls`);
+        assert.ok(await entry.evaluate(el=>el.scrollHeight<=el.clientHeight+1), 'two rows remain fully visible');
+        await setItems(selected);
+        const bounds = await entry.evaluate(el=>{
+          const row = Math.max(...Array.from(el.querySelectorAll('.item, input'), item=>item.getBoundingClientRect().height));
+          return {height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth,
+            row,gap:Number.parseFloat(getComputedStyle(el).rowGap),mask:getComputedStyle(el).maskImage};
+        });
+        assert.ok(bounds.height >= 3*bounds.row+2*bounds.gap-1, `three complete rows fit: ${JSON.stringify(bounds)}`);
+        assert.ok(bounds.height <= 3*bounds.row+2*bounds.gap+1, JSON.stringify(bounds));
+        assert.ok(bounds.scroll > bounds.height, 'additional rows scroll inside the field');
+        assert.ok(bounds.scrollWidth<=bounds.width+1, 'the wrapping field has no horizontal tag strip');
+        assert.equal(bounds.mask,'none');
+        await input.focus();
+        const visible = () => input.evaluate(el=>{
+          const box=el.getBoundingClientRect(), area=el.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'the typing row remains visible');
+        await input.press('ArrowLeft');
+        assert.equal(await page.locator('#multi .item').last().evaluate(el=>el===document.activeElement),true);
+        await page.keyboard.press('Delete');
+        await page.waitForFunction(()=>document.querySelectorAll('#multi .item').length===9);
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return document.activeElement===input && box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'removing the final chip returns to the visible input');
+        await setItems([]);
+        assert.ok(Math.abs((await field.evaluate(el=>el.getBoundingClientRect().height))-empty)<1,'the field shrinks again');
+      }
+    } finally { await page.close(); }
+  });
+
   it("starts from selected options, disables empty Clear, and keeps multiple selections on one row", async () => {
     const path = await bundle("html-combobox-authored-defaults", `import "@looma-test/runtime";`);
     const page = await open(path, `
@@ -12152,7 +12484,7 @@ describe("Shared readable material planes", () => {
     await page.mouse.up();
     await page.close();
   });
-  for (const adapter of ['html', 'vue']) it(`keeps translucent material around opaque readable content and scales dialog size in ${adapter}`, async () => {
+  for (const adapter of ['html', 'vue']) it(`keeps layered material readable at maximum transparency and scales dialog size in ${adapter}`, async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
     const recipe = structuredClone(startingPoints.bookish); recipe.values.translucency = '1';
     const path = await bundle(adapter + '-readable-materials', adapter === 'html' ? `
@@ -12182,17 +12514,39 @@ describe("Shared readable material planes", () => {
       for (const mode of ['light','dark']) {
         await page.locator('html').evaluate((element,mode)=>{element.dataset.theme=mode;},mode);
         for (const selector of selectors) {
-          const result=await page.locator(selector).evaluate(element=>{
-            const style=getComputedStyle(element), context=document.createElement('canvas').getContext('2d')!;
-            const channels=(color:string)=>{context.clearRect(0,0,1,1);context.fillStyle=color;context.fillRect(0,0,1,1);return [...context.getImageData(0,0,1,1).data];};
-            const bg=channels(style.backgroundColor), fg=channels(style.color);
-            const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
-            const a=luminance(bg),b=luminance(fg);
-            return {alpha:bg[3],contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),filter:style.backdropFilter};
+          const foreground=await page.locator(selector).evaluate(element=>{
+            const style=getComputedStyle(element);
+            document.querySelector('#material-paint-probe')?.remove();
+            const probe=document.createElement('div');probe.id='material-paint-probe';
+            Object.assign(probe.style,{position:'fixed',inset:'0 auto auto 0',width:'64px',height:'64px',zIndex:'2147483647',background:'black'});
+            const face=document.createElement('div');
+            Object.assign(face.style,{width:'100%',height:'100%',backgroundImage:style.backgroundImage,backgroundColor:style.backgroundColor,backgroundBlendMode:style.backgroundBlendMode});
+            probe.append(face);document.body.append(probe);
+            const context=document.createElement('canvas').getContext('2d')!;
+            context.fillStyle=style.color;context.fillRect(0,0,1,1);
+            return {rgba:[...context.getImageData(0,0,1,1).data],filter:style.backdropFilter};
           });
-          assert.equal(result.alpha,255,`${adapter}/${mode}/${selector}: content stays opaque at maximum translucency`);
-          assert.ok(result.contrast>=4.5,`${selector}: ${result.contrast}`);
-          assert.ok(result.filter.includes('blur('));
+          const paints:number[][]=[];
+          for(const backdrop of ['black','white']) {
+            await page.locator('#material-paint-probe').evaluate((element,color)=>(element as HTMLElement).style.background=color,backdrop);
+            const bytes=await page.locator('#material-paint-probe').screenshot();
+            paints.push(await page.evaluate(async base64=>{
+              const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();
+              const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+              const context=canvas.getContext('2d')!;context.drawImage(image,0,0);
+              return [...context.getImageData(32,32,1,1).data];
+            },bytes.toString('base64')));
+          }
+          // Layered backgrounds can have a transparent backgroundColor while their gradients
+          // paint a nearly opaque face. Measure that paint against both extreme backdrops.
+          const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
+          for(const paint of paints) {
+            const a=luminance(paint),b=luminance(foreground.rgba);
+            assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,`${adapter}/${mode}/${selector}: painted content retains readable contrast`);
+          }
+          assert.ok(paints[0].slice(0,3).every((channel,index)=>Math.abs(channel-paints[1][index])<=28),`${selector}: the face transmits at most about ten percent of the scene`);
+          assert.ok(foreground.filter.includes('blur('));
+          await page.locator('#material-paint-probe').evaluate(element=>element.remove());
         }
       }
       const dialog=page.locator('#material-dialog');
@@ -12312,7 +12666,7 @@ describe('Muted inherited choices', () => {
 });
 
 describe('Readable overlay content', () => {
-  it('keeps notification and choice content opaque at every translucency extreme', async () => {
+  it('keeps notifications opaque and bounds choice-surface translucency', async () => {
     const path=await bundle('opaque-overlay-content',`import '@looma-test/runtime';`);
     const page=await open(path,'<ui-toast id="notice" tone="info">Frodo saved the agenda.</ui-toast><ui-combobox id="choices" label="Colleague" value="sam" disclosure><option value="sam">Sam</option></ui-combobox>',[join(root,'tokens.css'),join(root,'theme-light.css'),join(root,'theme-dark.css'),join(root,'theme-system.css')]);
     try {
@@ -12323,7 +12677,7 @@ describe('Readable overlay content', () => {
           context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
           return context.getImageData(0,0,1,1).data[3];
         }));
-        assert.deepEqual(alphas,[255,255],`${mode}/${translucency}: decorative transparency must not transmit through readable content`);
+        assert.deepEqual(alphas,[255,Math.round(255*(1-translucency*0.1))],`${mode}/${translucency}: notifications stay opaque and choices follow the shared material transmission bound`);
       }
     } finally {await page.close();}
   });

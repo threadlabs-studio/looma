@@ -19,10 +19,26 @@
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
   <template $match>
-    <section $when="$as = 'section'"><slot></slot></section>
-    <article $when="$as = 'article'"><slot></slot></article>
-    <aside $when="$as = 'aside'"><slot></slot></aside>
-    <div $else><slot></slot></div>
+    <section $when="$as = 'section'">
+      <div class="header"><slot name="header"></slot></div>
+      <div class="content"><slot></slot></div>
+      <div class="actions"><slot name="actions"></slot></div>
+    </section>
+    <article $when="$as = 'article'">
+      <div class="header"><slot name="header"></slot></div>
+      <div class="content"><slot></slot></div>
+      <div class="actions"><slot name="actions"></slot></div>
+    </article>
+    <aside $when="$as = 'aside'">
+      <div class="header"><slot name="header"></slot></div>
+      <div class="content"><slot></slot></div>
+      <div class="actions"><slot name="actions"></slot></div>
+    </aside>
+    <div $else>
+      <div class="header"><slot name="header"></slot></div>
+      <div class="content"><slot></slot></div>
+      <div class="actions"><slot name="actions"></slot></div>
+    </div>
   </template>
   <style>
     /* A surface that groups content. Its children stack with even space between them, so a card
@@ -34,7 +50,11 @@
       --_ui-selection-context-surface: initial;
       --_ui-selection-context-border: initial;
       --_ui-selection-context-text: initial;
-      display: flex !important;
+      --_ui-card-layout: var(--_ui-card-group-layout, flex);
+      --_ui-card-region-layout: var(--_ui-card-group-region-layout, contents);
+      display: var(--_ui-card-layout) !important;
+      grid-template-rows: var(--_ui-card-group-rows, none) !important;
+      grid-row: var(--_ui-card-group-span, auto) !important;
       flex-direction: column !important;
       gap: var(--ui-space-4) !important;
       box-sizing: border-box !important;
@@ -44,6 +64,28 @@
       border-radius: var(--ui-radius-lg);
       background: var(--_ui-card-surface);
       color: var(--_ui-surface-text, var(--ui-text-primary));
+    }
+
+    .header,
+    .content,
+    .actions {
+      display: var(--_ui-card-region-layout) !important;
+      flex-direction: column !important;
+      gap: inherit !important;
+      min-inline-size: 0;
+      /* Group context stops at this card; nested cards start a fresh layout. */
+      --_ui-card-group-layout: initial;
+      --_ui-card-group-rows: initial;
+      --_ui-card-group-span: initial;
+      --_ui-card-group-region-layout: initial;
+    }
+
+    .header:empty {
+      display: none !important;
+    }
+
+    .header:empty + .content {
+      grid-row: span 2 !important;
     }
 
     :host([padding="xs"]) {

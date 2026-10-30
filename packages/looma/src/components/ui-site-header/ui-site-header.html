@@ -71,23 +71,25 @@
       justify-items: center !important;
       margin-inline-start: auto !important;
     }
-    /* Text shares a baseline inside one group; the group is centred beside any control height. */
+    /* Brand, navigation and actions centre their own containers, including mixed font sizes. */
     .identity {
       display: flex !important;
       flex: 1 1 0;
       flex-wrap: wrap !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-2) var(--ui-space-6) !important;
       min-inline-size: 0;
     }
     .brand {
+      display: flex !important;
+      align-items: center !important;
       min-inline-size: 0;
       font-size: var(--ui-font-size-lg);
       font-weight: var(--ui-font-bold);
     }
     .brand > :slotted(a) {
       display: inline-flex !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-3) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
@@ -97,7 +99,7 @@
     .navigation {
       display: flex !important;
       flex-wrap: wrap !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-2) var(--ui-space-5) !important;
       min-inline-size: 0;
       font-size: var(--ui-font-size-sm);
@@ -139,7 +141,7 @@
     .inline-navigation {
       position: static;
       display: flex !important;
-      align-items: baseline !important;
+      align-items: center !important;
       min-inline-size: 0;
       max-inline-size: none;
       margin: 0 !important;

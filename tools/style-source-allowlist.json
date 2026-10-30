@@ -24,6 +24,7 @@
     "packages/looma/src/components/ui-button/ui-button.html",
     "packages/looma/src/components/ui-button/ui-button.js",
     "packages/looma/src/components/ui-callout/ui-callout.html",
+    "packages/looma/src/components/ui-card-group/ui-card-group.html",
     "packages/looma/src/components/ui-card/ui-card.html",
     "packages/looma/src/components/ui-checkbox/ui-checkbox.html",
     "packages/looma/src/components/ui-checkbox/ui-checkbox.js",

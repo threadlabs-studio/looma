@@ -1,0 +1,16 @@
+<!--
+title: Column limit and nested content
+description: Grid's column limit and minimum width apply without page-specific layout rules. A nested card keeps its independent stacked layout.
+-->
+<ui-card-group columns="2" min="md" gap="xl">
+  <ui-card>
+    <ui-text slot="header" as="h2" variant="heading">Research</ui-text>
+    <ui-card variant="subtle" padding="sm"><ui-text>A supporting note inside the card.</ui-text></ui-card>
+    <ui-action-bar slot="actions"><ui-button slot="primary" preset="primary">Read notes</ui-button></ui-action-bar>
+  </ui-card>
+  <ui-card>
+    <ui-text slot="header" as="h2" variant="heading">Correspondence</ui-text>
+    <ui-text>A separate collection of letters.</ui-text>
+    <ui-action-bar slot="actions"><ui-button slot="primary" preset="primary">Browse letters</ui-button></ui-action-bar>
+  </ui-card>
+</ui-card-group>

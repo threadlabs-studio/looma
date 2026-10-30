@@ -70,6 +70,8 @@
       display: grid !important;
       gap: var(--ui-space-2) !important;
       inline-size: min(24rem, calc(100vw - var(--ui-space-4) * 2));
+      /* Prevent fixed popover grid tracks from stretching in older WebKit. */
+      align-content: start !important;
       max-inline-size: 100%;
       box-sizing: border-box !important;
       margin: 0 !important;
