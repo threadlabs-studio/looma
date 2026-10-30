@@ -6,6 +6,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # CardGroup
 
-Responsive cards with shared header, content and action rows. Uses Grid for wrapping columns and Card for native subgrid alignment. Each Card supplies a header slot, default body content and an actions slot.
+Responsive cards with shared header, content and action rows. Uses Grid for wrapping columns and Card for native subgrid alignment. All Card slots are optional; content uses the default slot. Omit the header when the title and description should stay together in the body; that body starts at the card’s content edge without an empty header band. Use the header slot only when separate heading alignment is useful. Put an ActionBar in the actions slot, with the main action in its primary slot, for trailing alignment.
 
 <ComponentExamplesApiTabs component="ui-card-group" />

@@ -2,6 +2,8 @@
 
 ## Next release
 
+- CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
+
 - Notification stacks keep their content height in Safari instead of expanding over the viewport.
 
 - Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.

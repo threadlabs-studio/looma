@@ -23,6 +23,21 @@ describe("CardGroup before upgrade", () => {
     expect(card.textContent).toBe("ArchiveNotes and recordsRead records");
   });
 
+  it("accepts every optional slot combination and preserves supplied reading order", async () => {
+    for (let slots = 0; slots < 8; slots++) {
+      const html = await renderToString(createSSRApp({
+        render: () => h(CardGroup, {}, () => h(Card, {}, {
+          ...(slots & 1 ? { header: () => h("h2", "Title") } : {}),
+          ...(slots & 2 ? { default: () => h("p", "Body") } : {}),
+          ...(slots & 4 ? { actions: () => h("a", { href: "#read" }, "Read") } : {}),
+        })),
+      }));
+      const doc = new JSDOM(html).window.document;
+      expect(doc.body.textContent).toBe(`${slots & 1 ? "Title" : ""}${slots & 2 ? "Body" : ""}${slots & 4 ? "Read" : ""}`);
+      if (slots & 4) expect(doc.querySelector("a")?.getAttribute("href")).toBe("#read");
+    }
+  });
+
   it("retains standalone natural content and semantic root choices", async () => {
     const html = await renderToString(createSSRApp({
       render: () => h(Card, { as: "article" }, () => [
