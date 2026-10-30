@@ -2,6 +2,7 @@
 
 ## Next release
 
+- SiteHeader uses compact spacing between the brand and mobile menu while preserving adjustable control targets. Native custom menus keep the same adjacent placement before JavaScript upgrades the header.
 - Self-contained TOC exports write stable IDs for every heading and reserve anchors used inside authored navigation. Matching heading labels cannot redirect a saved link, including when original Markdown spellings are retained.
 
 - Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
