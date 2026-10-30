@@ -67,7 +67,7 @@ const sharedModules = {
 // the Vue integration.
 // The Vue output bundles the Vanilla factories its editor node views use, so their styles join
 // vue.css and the editor imports in Node without a stylesheet import; HTML Next stays a peer.
-const isDependency = (id) => id === "vue" || id === "lowlight" || id === "markdown-it" || id === "expressmark" || id.startsWith("@nextwebwg/html-next")
+const isDependency = (id) => id === "vue" || id === "lowlight" || id === "expressmark" || id.startsWith("@nextwebwg/html-next")
   || (id.startsWith("@threadlabs/looma/") && !id.startsWith("@threadlabs/looma/vanilla/")) ||
   /^@tiptap\/(core|pm|vue-3)(\/|$)/.test(id) || id.startsWith("lucide");
 await build({
@@ -146,7 +146,7 @@ await build({
     rollupOptions: { external: isDependency, output: { entryFileNames: "[name].js", chunkFileNames: "chunks/[name].js" } },
   },
 });
-// Looma Markdown: its rules, the markdown-it plugin, and the fixtures, whose files are bundled as strings.
+// Looma Markdown: its rules and the fixtures, whose files are bundled as strings.
 await build({
   configFile: false,
   logLevel: "warn",
@@ -158,7 +158,6 @@ await build({
     lib: {
       entry: {
         index: join(root, "src/markdown/index.ts"),
-        "markdown-it": join(root, "src/markdown/markdown-it.ts"),
         fixtures: join(root, "src/markdown/fixtures.ts"),
       },
       formats: ["es"],

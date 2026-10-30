@@ -42,7 +42,7 @@ export interface LoomaFootnoteEditingOptions {
 export function footnoteContentExtensions(editor: Editor): AnyExtension[] {
   return editor.extensionManager.extensions
     .filter(extension => extension.type === "node" || extension.type === "mark")
-    .filter(extension => !["loomaFootnotes", "loomaFootnote"].includes(extension.name))
+    .filter(extension => extension.name !== "loomaFootnote")
     .map(extension => {
       const attributes = Object.fromEntries(editor.extensionManager.attributes
         .filter(attribute => attribute.type === extension.name)

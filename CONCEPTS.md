@@ -10,7 +10,7 @@ An interactive cue that progresses from a quiet guide through near and direct in
 ## Content
 
 ### Looma Markdown
-The Markdown that Markupress renders and LoomaEditor reads and writes: CommonMark and GFM, plus Looma's blocks. Colons name a Looma element and their number gives its scope (`:chip[…]`, `::toc`, `::: tip`); braces after an element hold its attributes. The rules, a markdown-it plugin and the conformance fixtures are `@threadlabs/looma/markdown`. *Avoid:* "shared block vocabulary" for the Markdown as a whole; the shared blocks are one part of it.
+The Markdown that Markupress renders and LoomaEditor reads and writes: CommonMark and GFM, plus Looma's blocks. Colons name a Looma element and their number gives its scope (`:chip[…]`, `::toc`, `::: tip`); braces after an element hold its attributes. Expressmark reads and writes it; the rules and the conformance fixtures are `@threadlabs/looma/markdown`. *Avoid:* "shared block vocabulary" for the Markdown as a whole; the shared blocks are one part of it.
 
 ## Styling
 

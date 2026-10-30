@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { Editor, type JSONContent } from "@tiptap/core";
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -19,8 +20,6 @@ import {
   LoomaChip,
   LoomaTable,
   LoomaTableKit,
-  loomaMarkdownFromDoc,
-  loomaMarkdownToHtml,
   setActiveTableCellBackground,
   type LoomaMentionItem,
 } from "../src/editor/extensions";
@@ -194,15 +193,17 @@ describe("editor extension contract", () => {
     pasteFromSourceEditor(editor, [
       "::: tip Before you start", "Install **first**.", ":::", "",
       "> [!CAUTION]", "> Deletes data.", "",
-      "> [!IMPORTANT] not an alert", "", "> A quote.", "",
+      "> [!IMPORTANT] Titled", "", "> A quote.", "",
       ":::: details More {open}", "::: warning", "Nested.", ":::", "::::",
     ].join("\n"));
 
     const nodes = editor.getJSON().content ?? [];
-    expect(nodes.map(node => node.type)).toEqual(["loomaCallout", "loomaCallout", "blockquote", "blockquote", "loomaExpand"]);
+    // An alert's marker may be followed by its title.
+    expect(nodes.map(node => node.type)).toEqual(["loomaCallout", "loomaCallout", "loomaCallout", "blockquote", "loomaExpand"]);
     expect(nodes[0]).toMatchObject({ attrs: { tone: "tip", heading: "Before you start" }, content: [{ type: "paragraph" }] });
     expect(nodes[0].content?.[0]?.content?.[1]).toMatchObject({ text: "first", marks: [{ type: "bold" }] });
     expect(nodes[1]).toMatchObject({ attrs: { tone: "danger", heading: "" }, content: [{ type: "paragraph", content: [{ text: "Deletes data." }] }] });
+    expect(nodes[2]).toMatchObject({ attrs: { tone: "important", heading: "Titled" } });
     expect(nodes[4]).toMatchObject({ attrs: { summary: "More", open: true }, content: [{ type: "loomaCallout", attrs: { tone: "warning" } }] });
     editor.destroy();
     element.remove();
@@ -228,9 +229,9 @@ describe("editor extension contract", () => {
       mention("u1", "Ada Lovelace"), { type: "text", text: " " }, mention("user:42", "Grace"), { type: "text", text: " " }, mention(null, "ada"),
     ] }] };
     const editor = new Editor({ extensions: getDefaultEditorExtensions(), content });
-    const markdown = loomaMarkdownFromDoc(editor.state.doc);
-    expect(markdown).toBe("@[Ada Lovelace]#u1 @[Grace]{ref=user:42} @[ada]");
-    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
+    const markdown = editorDocumentToMarkdown(editor.getJSON());
+    expect(markdown).toBe('@[Ada Lovelace]#u1 @[Grace]{ref="user:42"} @[ada]\n');
+    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: markdownToEditorDocument(markdown) });
     expect(reloaded.getJSON()).toEqual(editor.getJSON());
     editor.destroy();
     reloaded.destroy();
@@ -244,13 +245,13 @@ describe("editor extension contract", () => {
         + '<details data-looma-expand open><summary>More</summary><div data-looma-expand-body><ui-callout tone="warning"><p>Nested.</p></ui-callout></div></details>'
         + '<ul><li><p>One</p></li></ul><pre><code class="language-ts">const a = 1;</code></pre>',
     });
-    const markdown = loomaMarkdownFromDoc(editor.state.doc);
+    const markdown = editorDocumentToMarkdown(editor.getJSON());
     expect(markdown).toBe([
-      "## Setup", "", "::: tip Before you start", "Install **first**.", ":::", "",
-      ":::: details More {open}", "::: warning", "Nested.", ":::", "::::", "",
-      "- One", "", "```ts", "const a = 1;", "```",
+      "## Setup", "", "::: tip [Before you start]", "Install **first**.", ":::", "",
+      ":::: details [More] {open}", "::: warning", "Nested.", ":::", "::::", "",
+      "- One", "", "```ts", "const a = 1;", "```", "",
     ].join("\n"));
-    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: loomaMarkdownToHtml(markdown) });
+    const reloaded = new Editor({ extensions: getDefaultEditorExtensions(), content: markdownToEditorDocument(markdown) });
     expect(reloaded.getJSON()).toEqual(editor.getJSON());
     editor.destroy();
     reloaded.destroy();

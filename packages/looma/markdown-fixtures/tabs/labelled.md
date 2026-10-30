@@ -1,10 +1,13 @@
-::: tabs install
-== npm
+:::: tabs {group=install}
+::: tab [npm]
 ```sh
 npm install @threadlabs/looma
 ```
-== pnpm
+:::
+
+::: tab [pnpm]
 ```sh
 pnpm add @threadlabs/looma
 ```
 :::
+::::

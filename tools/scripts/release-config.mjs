@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.45.0";
+export const RELEASE_VERSION = "0.46.0";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -27,8 +27,6 @@ export const RELEASE_PACKAGES = [
       "package/editor/extensions/index.d.ts",
       "package/markdown/index.js",
       "package/markdown/index.d.ts",
-      "package/markdown/markdown-it.js",
-      "package/markdown/markdown-it.d.ts",
       "package/markdown/fixtures.js",
       "package/markdown/fixtures.d.ts",
       "package/vanilla/index.js",

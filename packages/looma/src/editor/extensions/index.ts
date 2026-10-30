@@ -22,7 +22,8 @@ export {
 export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./expand";
 export { LoomaFigcaption, LoomaFigure } from "./figure";
-export { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL, LoomaFootnote, LoomaFootnoteReference, LoomaFootnotes } from "./footnote";
+export { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL, LoomaFootnote, LoomaFootnoteReference } from "./footnote";
+export { LoomaLinkDefinition } from "./link-definition";
 export { LoomaTab, LoomaTabs } from "./tabs";
 export {
   LoomaTableOfContents,
@@ -41,7 +42,6 @@ export {
 } from "./preset";
 export { LoomaSmartPaste } from "./smart-paste";
 export { LoomaReference, LoomaReferencePresentation, setReferenceDisplay, getReferenceDisplay, referenceDisplay, type LoomaReferenceDisplay, type LoomaReferenceMap } from "../reference-display";
-export { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "./markdown";
 export {
   getActiveTableUiState,
   handleTableAction,
