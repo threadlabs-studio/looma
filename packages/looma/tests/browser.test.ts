@@ -9107,7 +9107,7 @@ describe("Combobox authored defaults and affordances", () => {
     [join(root,"tokens.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])],
     {viewport:{width:375,height:700},hasTouch:true,isMobile:true});
     try {
-      await page.addStyleTag({content:'body { margin:12px; } #multi { inline-size:240px; }'});
+      await page.addStyleTag({content:'body { margin:12px; } #multi { inline-size:240px; --ui-control-size-sm:28px; }'});
       const selected = Array.from({length:10}, (_,i)=>({id:`topic-${i}`,value:`topic-${i}`,label:`Topic number ${i}`}));
       const setItems = async (items: typeof selected) => {
         await page.evaluate(items=>(window as unknown as {setItems:(items:unknown[])=>void}).setItems(items),items);
@@ -9130,7 +9130,7 @@ describe("Combobox authored defaults and affordances", () => {
           return {height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth,
             row,gap:Number.parseFloat(getComputedStyle(el).rowGap),mask:getComputedStyle(el).maskImage};
         });
-        assert.ok(bounds.height > 2*bounds.row, 'three rows fit');
+        assert.ok(bounds.height >= 3*bounds.row+2*bounds.gap-1, `three complete rows fit: ${JSON.stringify(bounds)}`);
         assert.ok(bounds.height <= 3*bounds.row+2*bounds.gap+1, JSON.stringify(bounds));
         assert.ok(bounds.scroll > bounds.height, 'additional rows scroll inside the field');
         assert.ok(bounds.scrollWidth<=bounds.width+1, 'the wrapping field has no horizontal tag strip');
