@@ -1,5 +1,5 @@
 {
-  "description": "Supply brand, navigation, and optional actions once. Below the breakpoint, SiteHeader automatically adds a hamburger to the right of the logo (mirrored in RTL) and presents the same navigation in a full-height, scrollable drawer with a dark backdrop. It handles focus, Escape, outside press, link selection, and page scroll locking. Applications supply links and routing; no menu slot, duplicate links, IDs, or drawer wiring are needed. Before JavaScript, navigation remains available inline. Use TopBar for contextual application tools.",
+  "description": "Supply brand, navigation, and optional actions once. Below the breakpoint, SiteHeader automatically puts the hamburger in the inline navigation's position beside the brand, with the same gap (mirrored in RTL). Optional actions stay at the trailing edge. It presents the same navigation in a full-height, scrollable drawer with a dark backdrop. It handles focus, Escape, outside press, link selection, and page scroll locking. Applications supply links and routing; no menu slot, duplicate links, IDs, or drawer wiring are needed. Before JavaScript, navigation remains available inline. Use TopBar for contextual application tools.",
   "group": "display",
   "summary": "Site branding and navigation with an automatic mobile drawer.",
   "slots": {
