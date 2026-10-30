@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { headingAnchors, parse } from "expressmark";
+import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 
 describe("Expressive Markdown editor documents", () => {
@@ -211,4 +213,25 @@ it("exports empty automatic TOCs and excludes headings inside authored navigatio
   const ast = editorDocumentToExpressmark(editor, { tableOfContents: "entries" });
   expect(ast.body[1]).toMatchObject({ type: "container", subType: "toc", body: [] });
   expect(ast.body[0]?.body?.[0]).toMatchObject({ type: "heading", value: "Navigation" });
+});
+
+
+it.each([undefined, "navigation", "same"])("pins portable TOC targets when authored navigation contains a matching heading (%s)", id => {
+  const heading = { type: "heading", attrs: { level: 2, ...(id ? { id } : {}) }, content: [{ type: "text", text: "Same" }] };
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", content: [heading] },
+    { type: "loomaTableOfContents" },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Same" }] },
+  ] };
+  const before = JSON.stringify(editor);
+  for (const original of [undefined, editorDocumentToMarkdown(editor)]) {
+    const saved = parse(editorDocumentToMarkdown(editor, { tableOfContents: "entries", original }));
+    const documentHeading = saved.body[2]!;
+    const target = saved.body[1]!.body![0]!.children![0]!.body![0]!.children![0]!.url;
+    expect(documentHeading.id).toBeTruthy();
+    expect(target).toBe(`#${documentHeading.id}`);
+    expect(headingAnchors(saved).get(documentHeading)).toBe(documentHeading.id);
+    expect(renderHtml(saved, { headingIds: true })).toContain(`id="${documentHeading.id}"`);
+  }
+  expect(JSON.stringify(editor)).toBe(before);
 });
