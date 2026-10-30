@@ -1,0 +1,23 @@
+<!--
+title: Reveal the title after its heading
+description: Scroll the document past its heading. The sticky title slides up and fades in once the heading leaves the visible reading area, and disappears when the heading returns. Reduced motion removes that transition.
+-->
+<ui-stack height="256" gap="none">
+  <ui-scroll-area fill>
+    <ui-top-bar title-for="top-bar-example-heading">
+      <ui-button slot="leading" size="sm">Back</ui-button>
+      A document with a long descriptive title
+      <ui-button slot="actions" size="sm">Save</ui-button>
+    </ui-top-bar>
+    <ui-container>
+      <ui-stack gap="m">
+        <ui-text as="h2" size="xl" id="top-bar-example-heading">A document with a long descriptive title</ui-text>
+        <ui-text>The heading labels the document while it is visible. Navigation and actions stay available.</ui-text>
+        <ui-text>Scroll to keep reading the document and its supporting notes.</ui-text>
+        <ui-text>The toolbar keeps the same height as the heading leaves the reading area.</ui-text>
+        <ui-text>Return to the beginning to show the full heading again.</ui-text>
+        <ui-text>The duplicate toolbar title is concealed while the heading is visible.</ui-text>
+      </ui-stack>
+    </ui-container>
+  </ui-scroll-area>
+</ui-stack>
