@@ -370,6 +370,24 @@
       ]
     },
     {
+      "path": "components/ui-card-group",
+      "title": "CardGroup",
+      "source": "apps/docs/docs/components/layout/ui-card-group.mdx",
+      "component": "ui-card-group",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Aligned card regions",
+          "behavior": false
+        },
+        {
+          "id": "02-column-cap",
+          "title": "Column limit and nested content",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-checkbox",
       "title": "Checkbox",
       "source": "apps/docs/docs/components/forms/ui-checkbox.mdx",

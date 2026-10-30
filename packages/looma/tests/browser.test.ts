@@ -57,17 +57,17 @@ afterAll(async () => {
 });
 
 describe("SiteHeader", () => {
-  for (const adapter of ["HTML", "Vue"] as const) it(`centers baseline-aligned branding and navigation beside growing actions in ${adapter}`, async () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`centers branding and navigation containers beside growing actions in ${adapter}`, async () => {
     const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
       import { createApp, h } from "vue";
       import { SiteHeader, Button } from "@threadlabs/looma/vue";
       createApp({render:()=>h(SiteHeader,{id:"site",sticky:true},{
-        brand:()=>h("a",{href:"#home",id:"brand"},"Fellowship"),
+        brand:()=>h("a",{href:"#home",id:"brand"},[h("img",{width:40,height:40,alt:"Brand mark",src:"data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"}),h("span",{id:"brand-title"},"Fellowship")]),
         navigation:()=>[h("a",{href:"#guide",id:"destination"},"Guide"),h("a",{href:"#components"},"Components")],
         actions:()=>h(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
       })}).mount("#app");
     `);
-    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
+    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand"><img width="40" height="40" alt="Brand mark" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"><span id="brand-title">Fellowship</span></a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
@@ -84,12 +84,13 @@ describe("SiteHeader", () => {
           await page.locator('#action').evaluate((el,height)=>(el as HTMLElement).style.setProperty('--ui-button-min-block-size',height+'px'),height);
           const alignment=await page.locator('#site').evaluate(header=>{
             const center=(el:Element)=>{const b=el.getBoundingClientRect();return b.y+b.height/2;};
-            const probes=[header.querySelector('#brand')!,header.querySelector('#destination')!].map(el=>{const p=document.createElement('span');p.style.cssText='display:inline-block;width:0;height:0;vertical-align:baseline';el.append(p);return p;});
-            const baseline=Math.abs(probes[0].getBoundingClientRect().y-probes[1].getBoundingClientRect().y);probes.forEach(p=>p.remove());
-            return {center:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),baseline};
+            return {
+              groups:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),
+              text:Math.abs(center(header.querySelector('#brand-title')!)-center(header.querySelector('#destination')!)),
+            };
           });
-          assert.ok(alignment.center<1,`${dir}/${height}: action and text groups stay centred`);
-          assert.ok(alignment.baseline<1,`${dir}/${height}: brand and navigation share a baseline`);
+          assert.ok(alignment.groups<1,`${dir}/${height}: action and text groups stay centred`);
+          assert.ok(alignment.text<1,`${dir}/${height}: branding and navigation containers stay centred`);
         }
       }
       await page.locator('#brand').evaluate(element=>{
@@ -115,6 +116,42 @@ describe("SiteHeader", () => {
       await page.keyboard.press('Escape');
       await page.getByRole('dialog',{name:'Main'}).waitFor({state:'hidden'});
       assert.equal(await menu.getAttribute('aria-expanded'),'false');
+    } finally {await page.close();}
+  });
+});
+
+describe("CardGroup", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`aligns native Card regions, wraps and isolates nested cards in ${adapter}`, async () => {
+    const path=await bundle(`card-group-${adapter}`,adapter === "HTML" ? 'import "@threadlabs/looma";' : `
+      import {createApp,h} from "vue"; import {CardGroup,Card} from "@threadlabs/looma/vue";
+      createApp({render:()=>h(CardGroup,{id:"group",gap:"l"},()=>[0,1,2].map(i=>h(Card,{class:"card"},{
+        header:()=>h("header",{"data-region":"header"},i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"),
+        default:()=>h("section",{"data-region":"content"},[i===1?"Long content. ".repeat(30):"Short content.",...(i===0?[h(Card,{id:"nested"},()=>"Independent nested card")]:[])]),
+        actions:()=>h("footer",{"data-region":"actions"},[h("a",{href:"#read"},"Read"),h("a",{href:"#offer"},"Offer")]),
+      })))}).mount("#app");
+    `);
+    const cards=[0,1,2].map(i=>`<ui-card class="card"><header slot="header" data-region="header">${i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"}</header><section data-region="content">${i===1?"Long content. ".repeat(30):"Short content."}${i===0?'<ui-card id="nested">Independent nested card</ui-card>':''}</section><footer slot="actions" data-region="actions"><a href="#read">Read</a><a href="#offer">Offer</a></footer></ui-card>`).join('');
+    const page=await open(path,adapter === "HTML" ? `<ui-card-group id="group" gap="l">${cards}</ui-card-group>` : '<div id="app"></div>',[join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])],{viewport:{width:700,height:900}});
+    await page.addStyleTag({content:'#group .card { display:block; grid-template-rows:none; grid-row:auto; gap:0; }'});
+    try {
+      for(const dir of ["ltr","rtl"]) {
+        await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
+        const rows=await page.locator('.card').evaluateAll(cards=>cards.map(card=>{
+          const box=card.getBoundingClientRect();
+          return {top:box.top,bottom:box.bottom,rows:[...card.querySelectorAll('[data-region]')].map(region=>region.getBoundingClientRect().top),display:getComputedStyle(card).display,tracks:getComputedStyle(card).gridTemplateRows};
+        }));
+        assert.equal(rows[0].display,'grid');
+        assert.match(rows[0].tracks,/subgrid/);
+        for(let region=0;region<3;region++) assert.ok(Math.abs(rows[0].rows[region]-rows[1].rows[region])<1,`${dir}: region ${region} aligns despite different text lengths`);
+        assert.ok(rows[2].top>rows[0].bottom,'a wrapped row has its own tracks');
+      }
+      assert.equal(await page.locator('#nested').evaluate(el=>getComputedStyle(el).display),'flex','nested cards do not join the outer group');
+      await page.setViewportSize({width:375,height:900});
+      const stacked=await page.locator('.card').evaluateAll(cards=>cards.map(card=>card.getBoundingClientRect().toJSON()));
+      assert.ok(stacked[1].top>stacked[0].bottom);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      await page.locator('#group').evaluate(el=>el.setAttribute('hidden',''));
+      assert.equal(await page.locator('.card').first().isVisible(),false,'hidden groups hide their delegated grid');
     } finally {await page.close();}
   });
 });
@@ -12303,7 +12340,7 @@ describe("Shared readable material planes", () => {
     await page.mouse.up();
     await page.close();
   });
-  for (const adapter of ['html', 'vue']) it(`keeps translucent material around opaque readable content and scales dialog size in ${adapter}`, async () => {
+  for (const adapter of ['html', 'vue']) it(`keeps layered material readable at maximum transparency and scales dialog size in ${adapter}`, async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
     const recipe = structuredClone(startingPoints.bookish); recipe.values.translucency = '1';
     const path = await bundle(adapter + '-readable-materials', adapter === 'html' ? `
@@ -12333,17 +12370,39 @@ describe("Shared readable material planes", () => {
       for (const mode of ['light','dark']) {
         await page.locator('html').evaluate((element,mode)=>{element.dataset.theme=mode;},mode);
         for (const selector of selectors) {
-          const result=await page.locator(selector).evaluate(element=>{
-            const style=getComputedStyle(element), context=document.createElement('canvas').getContext('2d')!;
-            const channels=(color:string)=>{context.clearRect(0,0,1,1);context.fillStyle=color;context.fillRect(0,0,1,1);return [...context.getImageData(0,0,1,1).data];};
-            const bg=channels(style.backgroundColor), fg=channels(style.color);
-            const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
-            const a=luminance(bg),b=luminance(fg);
-            return {alpha:bg[3],contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),filter:style.backdropFilter};
+          const foreground=await page.locator(selector).evaluate(element=>{
+            const style=getComputedStyle(element);
+            document.querySelector('#material-paint-probe')?.remove();
+            const probe=document.createElement('div');probe.id='material-paint-probe';
+            Object.assign(probe.style,{position:'fixed',inset:'0 auto auto 0',width:'64px',height:'64px',zIndex:'2147483647',background:'black'});
+            const face=document.createElement('div');
+            Object.assign(face.style,{width:'100%',height:'100%',backgroundImage:style.backgroundImage,backgroundColor:style.backgroundColor,backgroundBlendMode:style.backgroundBlendMode});
+            probe.append(face);document.body.append(probe);
+            const context=document.createElement('canvas').getContext('2d')!;
+            context.fillStyle=style.color;context.fillRect(0,0,1,1);
+            return {rgba:[...context.getImageData(0,0,1,1).data],filter:style.backdropFilter};
           });
-          assert.equal(result.alpha,255,`${adapter}/${mode}/${selector}: content stays opaque at maximum translucency`);
-          assert.ok(result.contrast>=4.5,`${selector}: ${result.contrast}`);
-          assert.ok(result.filter.includes('blur('));
+          const paints:number[][]=[];
+          for(const backdrop of ['black','white']) {
+            await page.locator('#material-paint-probe').evaluate((element,color)=>(element as HTMLElement).style.background=color,backdrop);
+            const bytes=await page.locator('#material-paint-probe').screenshot();
+            paints.push(await page.evaluate(async base64=>{
+              const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();
+              const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+              const context=canvas.getContext('2d')!;context.drawImage(image,0,0);
+              return [...context.getImageData(32,32,1,1).data];
+            },bytes.toString('base64')));
+          }
+          // Layered backgrounds can have a transparent backgroundColor while their gradients
+          // paint a nearly opaque face. Measure that paint against both extreme backdrops.
+          const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
+          for(const paint of paints) {
+            const a=luminance(paint),b=luminance(foreground.rgba);
+            assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,`${adapter}/${mode}/${selector}: painted content retains readable contrast`);
+          }
+          assert.ok(paints[0].slice(0,3).every((channel,index)=>Math.abs(channel-paints[1][index])<=28),`${selector}: the face transmits at most about ten percent of the scene`);
+          assert.ok(foreground.filter.includes('blur('));
+          await page.locator('#material-paint-probe').evaluate(element=>element.remove());
         }
       }
       const dialog=page.locator('#material-dialog');

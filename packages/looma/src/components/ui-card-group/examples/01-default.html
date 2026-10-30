@@ -1,0 +1,17 @@
+<!--
+title: Aligned card regions
+description: Different heading and body lengths share header, content and action rows, then stack in a narrow container.
+-->
+<ui-card-group>
+  <ui-card>
+    <ui-text slot="header" as="h2" variant="heading">Fellowship archive</ui-text>
+    <ui-text>A short description of the archive.</ui-text>
+    <ui-action-bar slot="actions"><ui-button slot="primary" preset="primary">Open archive</ui-button></ui-action-bar>
+  </ui-card>
+  <ui-card>
+    <ui-text slot="header" as="h2" variant="heading">Letters and records from the journey</ui-text>
+    <ui-text>Read correspondence, maps and field notes collected throughout the journey. Longer descriptions leave the actions aligned.</ui-text>
+    <ui-action-bar slot="actions"><ui-button slot="secondary" variant="outline">Read more</ui-button><ui-button slot="primary"
+      >Explore records</ui-button></ui-action-bar>
+  </ui-card>
+</ui-card-group>
