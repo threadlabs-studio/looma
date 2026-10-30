@@ -384,6 +384,11 @@
           "id": "02-column-cap",
           "title": "Column limit and nested content",
           "behavior": false
+        },
+        {
+          "id": "03-optional-header",
+          "title": "Body content with optional headers",
+          "behavior": false
         }
       ]
     },

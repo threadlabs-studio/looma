@@ -80,6 +80,14 @@
       --_ui-card-group-region-layout: initial;
     }
 
+    .header:empty {
+      display: none !important;
+    }
+
+    .header:empty + .content {
+      grid-row: span 2 !important;
+    }
+
     :host([padding="xs"]) {
       gap: var(--ui-space-1) !important;
       padding: var(--ui-space-2) !important;

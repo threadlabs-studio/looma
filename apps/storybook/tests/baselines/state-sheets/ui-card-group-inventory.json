@@ -69,5 +69,10 @@
     "name": "Example: 02-column-cap",
     "props": {},
     "example": 1
+  },
+  {
+    "name": "Example: 03-optional-header",
+    "props": {},
+    "example": 2
   }
 ]

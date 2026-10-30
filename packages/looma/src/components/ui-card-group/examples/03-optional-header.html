@@ -1,0 +1,20 @@
+<!--
+title: Body content with optional headers
+description: Omit the header slot to keep each title and description in natural flow. ActionBar keeps primary actions at the trailing edge and aligned across cards.
+-->
+<ui-card-group columns="2" min="md">
+  <ui-card>
+    <ui-stack gap="s">
+      <ui-text as="h2" variant="heading">Archive</ui-text>
+      <ui-text>A short description follows its own title.</ui-text>
+    </ui-stack>
+    <ui-action-bar slot="actions"><ui-button slot="primary" preset="primary">Open archive</ui-button></ui-action-bar>
+  </ui-card>
+  <ui-card>
+    <ui-stack gap="s">
+      <ui-text as="h2" variant="heading">Letters and records from the journey</ui-text>
+      <ui-text>A longer title and description remain one continuous body while the action aligns with its neighbour.</ui-text>
+    </ui-stack>
+    <ui-action-bar slot="actions"><ui-button slot="primary" preset="primary">Browse records</ui-button></ui-action-bar>
+  </ui-card>
+</ui-card-group>
