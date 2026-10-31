@@ -14,9 +14,17 @@ import { afterAll, beforeAll, describe, it } from "vitest";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 let directory = "";
 let browser: Browser;
+let bundleSequence = 0;
+const bundles = new Map<string, string>();
 
 async function bundle(name: string, source: string, mode = "production"): Promise<string> {
-  const entry = join(directory, `${name}.js`);
+  const editorTarget = process.env.LOOMA_EDITOR_TARGET ?? "vue";
+  const key = JSON.stringify([source, mode, editorTarget]);
+  const cached = bundles.get(key);
+  if (cached) return cached;
+  // Immutable fixture inputs share compiled bytes; each case opens a fresh page below.
+  const outputName = `${name}-${bundleSequence++}`;
+  const entry = join(directory, `${outputName}.js`);
   await writeFile(entry, source);
   await build({
     configFile: false,
@@ -24,14 +32,16 @@ async function bundle(name: string, source: string, mode = "production"): Promis
     root: directory,
     plugins: vueSourcePlugins(),
     resolve: { alias: { "@looma-test/runtime": join(root, "dist/index.js") } },
-    define: { "process.env.NODE_ENV": JSON.stringify(mode), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "vue") },
+    define: { "process.env.NODE_ENV": JSON.stringify(mode), __LOOMA_EDITOR_TARGET__: JSON.stringify(editorTarget) },
     build: {
-      outDir: join(directory, name),
+      outDir: join(directory, outputName),
       minify: false,
       lib: { cssFileName: "components", entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
     },
   });
-  return join(directory, name, "bundle.js");
+  const path = join(directory, outputName, "bundle.js");
+  bundles.set(key, path);
+  return path;
 }
 
 async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>): Promise<Page> {

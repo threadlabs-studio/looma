@@ -23,38 +23,60 @@ into its own lifecycle; it does not invent a competing API.
 
 ### The same component, expressed for your host
 
-HTML Next is selected by default. Frameworks load the same definitions through
+HTML Next is selected by default. Framework examples import the same definitions through
 `@threadlabs/looma`; the live result exercises the same Looma definition.
 
 ::: tab [HTML Next]
 ```html
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
 <link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
-<ui-button variant="solid">Save</ui-button>
+
+<ui-stack gap="m">
+  <h2>Account</h2>
+  <ui-button variant="solid">Save</ui-button>
+</ui-stack>
 ```
 :::
 
 ::: tab [Vue]
 ```vue
 <script setup>
-import { UiButton } from "@threadlabs/looma";
+import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
-<template><UiButton variant="solid">Save</UiButton></template>
+
+<template>
+<UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack>
+</template>
 ```
 :::
 
 ::: tab [React]
 ```tsx
-import { UiButton } from "@threadlabs/looma";
-export default function Example() { return <UiButton variant="solid">Save</UiButton>; }
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+export default function Example() {
+  return (<><UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack></>);
+}
 ```
 :::
 
 ::: tab [Svelte]
 ```svelte
 <script>
-import { UiButton } from "@threadlabs/looma";
+import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
-<UiButton variant="solid">Save</UiButton>
+
+
+<UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack>
 ```
 :::
 

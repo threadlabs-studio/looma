@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // its whole content with JavaScript off. A copied page that drifts from apps/docs/docs fails here.
 
 const pages = [
-  { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"]] },
+  { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"], ["React"], ["Svelte"]] },
   ...["release-1-support", "architecture", "conventions", "tokens", "theme-reference", "overlay-contract", "adapter-parity"]
     .map((page) => ({ docusaurus: `${page}/`, markupress: `${page}/`, views: [[]] })),
 ];
