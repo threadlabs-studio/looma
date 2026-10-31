@@ -229,6 +229,10 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.match(combobox.description, /suggestions/);
   assert.equal(combobox.root, "div");
   assert.equal(input.root, "input");
+  assert.equal(input.attributes.find(attribute => attribute.name === "value").valueType.kind, "selected");
+  assert.deepEqual(combobox.attributes.find(attribute => attribute.name === "selected-values").valueType, {
+    kind: "list", item: { kind: "terminal", name: "string" },
+  });
   assert.equal(menuItem.navigationParent, "ui-menu");
   assert.ok(!input.slots.some(({ name }) => name === "default"));
   assert.equal("methods" in combobox, false);

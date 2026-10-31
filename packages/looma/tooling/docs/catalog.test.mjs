@@ -28,6 +28,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     assert.match(cardMarkup(c.examples[0], '/', c, { reference: true }), /description="The ready state\."/);
     assert.equal(c.attributes[0].description, 'The current status.');
     assert.equal(c.attributes[0].default, 'Ready');
+    assert.deepEqual(c.attributes[0].valueType, { kind: 'terminal', name: 'string' });
     assert.equal(c.examples[0].title, 'Ready');
     assert.equal(c.examples[0].id, 'acme-design/acme-status/01-ready');
     assert.deepEqual(c.targets, ['html-next', 'vue', 'react', 'svelte']);
