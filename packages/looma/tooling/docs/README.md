@@ -302,6 +302,8 @@ Discovery reads definitions and descriptions without executing their controllers
 
 Author components and documentation examples in HTML Next. Vue, React and Svelte applications compile those definitions with the HTML Next Vite plugin or converter; framework conversion belongs in the consuming application. See the [loading guide](https://threadlabs.studio/looma/getting-started/) for framework setup, imports and styles.
 
+The shared example generator parses HTML invocations into props, children and named slots, then prints each framework's public API. Catalog attributes carry the HTML Next parser's `valueType` node alongside the displayed `type`; the generator uses HTML Next's public value parser for booleans, numbers, collections and types selected by another prop. Svelte snippets use their slot's role as a name, with component names disambiguating repeated roles. React examples use slot objects and only the fragments required for multiple children. Vue named templates retain their position in the authored example. Structural indentation is rebuilt while inline spacing and preformatted text are preserved. The framework consumer tests compile and render representative generated examples through the actual adapters.
+
 ## Combine installed catalogs
 
 A library can publish the versioned catalog shape exposed by `@threadlabs/looma/docs/catalog.json`. Add package exports or relative JSON files under `catalogs` in the configuration. Component identities are package-qualified; duplicate tags, conflicting categories and missing compound parents fail with ownership information instead of silently replacing a component.

@@ -2,6 +2,9 @@
 
 ## Next release
 
+- Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.
+- Remove the extra padded Card around each documentation example so its own card uses the reference page's available width.
+
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
 
 - **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.

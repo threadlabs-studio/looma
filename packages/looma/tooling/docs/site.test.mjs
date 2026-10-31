@@ -34,6 +34,7 @@ test('prerenders examples in shared cards without frame documents, including beh
     const lightEditor = await readFile(path.join(site.content, 'components', extrasDirectory, 'ui-light-editor.md'), 'utf8');
     assert.match(lightEditor, /LightEditor/);
     assert.match(button, /looma-example-card/);
+    assert.match(button, /<ui-stack gap="xl"><looma-example-card/, 'example cards own their frame and sit directly in the reference stack');
     assert.match(button, /<div slot="preview"><div data-preview=/);
     assert.doesNotMatch(button, /iframe|\/_looma\/preview\//);
     assert.match(button, /Framework props/);

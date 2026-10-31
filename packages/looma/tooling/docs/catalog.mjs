@@ -45,7 +45,7 @@ async function resources(directory) {
 /** Discover only explicitly selected roots through HTML Next's public parser. */
 export async function discoverComponents({ root, directory, packageName, groups = [] }) {
   if (!packageName || !directory) throw new Error('A discovery root requires packageName and directory.');
-  const { parseComponentResource, typeScriptType } = await import('@nextwebwg/html-next');
+  const { parseComponentResource, typeScriptType, normalizeType } = await import('@nextwebwg/html-next');
   const components = [];
   for (const source of await resources(path.resolve(root, directory))) {
     const html = await readFile(source, 'utf8');
@@ -57,7 +57,7 @@ export async function discoverComponents({ root, directory, packageName, groups 
       const docs = metadata.components?.[contract.tag] ?? metadata;
       const id = `${packageName}/${contract.tag}`;
       const properties = Object.entries(contract.props).map(([name, prop]) => ({ name, type: typeScriptType(prop.type), description: prop.description ?? '', ...(Object.hasOwn(prop, 'default') ? { default: prop.default } : {}), ...(prop.values ? { options: prop.values } : {}) }));
-      const attributes = properties.map(prop => ({ ...prop, property: prop.name, name: prop.name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`) }));
+      const attributes = properties.map(prop => ({ ...prop, property: prop.name, name: prop.name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), valueType: normalizeType(contract.props[prop.name].type) }));
       const events = (definition.declarations ?? []).filter(item => item.kind === 'event').map(event => ({ name: event.name, detailType: event.shape ? typeScriptType(event.shape) : String(event.type), detailDocs: docs.events?.[event.name] ?? '' }));
       const slots = (definition.slots ?? []).map(slot => ({ name: slot.name ?? 'default', description: docs.slots?.[slot.name ?? 'default'] ?? '' }));
       const tokens = [...new Set([...definition.css.matchAll(/var\(\s*(--[\w-]+)/g)].map(match => match[1]))].sort();

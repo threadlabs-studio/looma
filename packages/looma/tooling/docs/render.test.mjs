@@ -99,3 +99,11 @@ test('local component snippets import the authored HTML file in every framework'
     assert.ok(!codes[target].code.includes('from "project-catalog"'));
   }
 });
+
+test('framework examples import resource dependencies that have no reference page', () => {
+  const example = { id: 'example/ui-status/icon', title: 'Icon', description: '', markup: '<ui-status><ui-icon name="search"></ui-icon></ui-status>' };
+  const component = { title: 'Status', tag: 'ui-status', id: 'example/ui-status', package: 'example', examples: [example] };
+  const page = referencePage(component, { components: [component], resources: [{ tag: 'ui-icon', package: 'example' }] }, '/card.html', '/');
+  assert.match(page, /import \{ UiIcon, UiStatus \} from "example"/);
+  assert.match(page, /<UiIcon name="search" \/>/);
+});
