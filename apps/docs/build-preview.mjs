@@ -1,6 +1,27 @@
-import { cp, mkdir } from "node:fs/promises";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+
+import { discoverComponents } from "../../packages/looma/tooling/docs/catalog.mjs";
+import { frameworkExamples } from "../../packages/looma/tooling/docs/framework-examples.mjs";
+
+// Convert authored examples during the build, keeping the compiler out of the browser bundle.
+const { components } = await discoverComponents({
+  root: fileURLToPath(new URL("../../", import.meta.url)),
+  directory: "packages/looma/src/components",
+  packageName: "@threadlabs/looma",
+});
+for (const component of components) {
+  component.importSource = component.package;
+  component.resource = `${component.package}/components/${component.tag}/${component.tag}.html`;
+}
+const examples = Object.fromEntries(components.flatMap((component) =>
+  component.examples.map((example) => [`${component.tag}/${example.name}`, frameworkExamples(example, components)])
+));
+const model = frameworkExamples({ markup: await readFile(new URL("model-example.html", import.meta.url), "utf8") }, components);
+const generated = new URL("../../generated/", import.meta.url);
+await mkdir(generated, { recursive: true });
+await writeFile(new URL("framework-examples.json", generated), JSON.stringify({ model, examples }));
 
 // Use the package's build tool and built exports, just as the docs site does.
 const require = createRequire(new URL("../../packages/looma/package.json", import.meta.url));
