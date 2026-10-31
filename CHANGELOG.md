@@ -2,6 +2,7 @@
 
 ## Next release
 
+- Give generated documentation examples readable line breaks, separate attribute lines and consistent nesting in every framework. Keep React's Example component while removing return parentheses and redundant fragments.
 - Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.
 - Remove the extra padded Card around each documentation example so its own card uses the reference page's available width.
 
