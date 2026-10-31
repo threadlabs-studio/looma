@@ -262,8 +262,8 @@ test("events describe the interaction instead of repeating the package and compo
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 
   const adapterSources = await Promise.all([
-    "../../packages/looma/src/vue/editor/primitives.ts",
-    "../../packages/looma/src/vue/editor/LoomaEditor.ts",
+    "../../packages/looma/src/components/ui-editor-formatting-tools/ui-editor-formatting-tools.js",
+    "../../packages/looma/src/editor/document-session.ts",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
   for (const source of adapterSources) {
     assert.doesNotMatch(source, /looma-editor-[a-z-]+-(?:action|highlight|insert|select)/);

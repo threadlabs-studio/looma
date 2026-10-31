@@ -1,11 +1,13 @@
-# Follow-ups after 0.3.0
+# Historical follow-ups after 0.3.0
+
+This is a September 2026 history record. Its installation commands and adapter packaging notes are superseded by [Framework loading](./framework-loading.md) and [Adapters](./adapters.md); do not use the old `/vue` exports or stylesheet instructions below for current integration.
 
 Known work that did not ship in 0.3.0, grouped by target. The component option decisions and the
 defects found by the 0.3 audit are recorded in the docs site's
 [Component Option Audit](../apps/docs/docs/component-library-audit.md); this list points into it
 rather than repeating it.
 
-## Current goal (set 2026-09-22)
+## Historical goal (set 2026-09-22)
 
 Knit running on a clean Looma whose components follow the proposal's styling model
 (nextwebwg.org/html-next/styling) and whose Vue output contains no HTML Next.

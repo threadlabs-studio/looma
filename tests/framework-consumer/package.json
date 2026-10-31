@@ -7,7 +7,7 @@
     "vue": "^3.5.43"
   },
   "devDependencies": {
-    "@nextwebwg/html-next-unplugin": "1.0.0-alpha.70",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.76",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/react": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",

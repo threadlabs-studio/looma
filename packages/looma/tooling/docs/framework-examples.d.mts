@@ -3,5 +3,5 @@ export interface FrameworkExample { language: 'html' | 'vue' | 'tsx' | 'svelte';
 export const frameworkLabels: Readonly<Record<Framework, string>>;
 export function frameworkExamples(
   example: { markup: string; frameworks?: Partial<Record<Framework, FrameworkExample>> },
-  components: readonly { tag: string; package: string; resource?: string; attributes?: readonly { name: string; property?: string; type?: string }[] }[],
+  components: readonly { tag: string; package: string; resource?: string; importSource?: string; attributes?: readonly { name: string; property?: string; type?: string }[] }[],
 ): Record<Framework, FrameworkExample>;

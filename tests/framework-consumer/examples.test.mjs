@@ -28,7 +28,10 @@ for (const [target, extension, compiler] of [['vue', 'vue', vue], ['react', 'tsx
   test(`${target} documentation compiles through source-package discovery`, async () => {
     const directory = await mkdtemp(path.join(root, '.examples-'));
     try {
-      const snippet = frameworkExamples(example, components)[target].code;
+      await writeFile(path.join(directory, 'LocalStatus.html'), '<template component="local-status"><defs><prop name="label" type="string" default="Ready">Status.</prop></defs><p>{$label}</p></template>');
+      const snippet = frameworkExamples({ ...example, markup: example.markup + '<local-status label="Local source"></local-status>' },
+        [...components, { tag: 'local-status', package: 'project-catalog', importSource: './LocalStatus.html' }])[target].code;
+      assert.ok(snippet.includes('from "./LocalStatus.html"'));
       assert.ok(snippet.includes('from "@threadlabs/looma"'));
       assert.ok(!snippet.includes('/vue'));
       const entry = path.join(directory, `Example.${extension}`);

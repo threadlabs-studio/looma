@@ -23,7 +23,6 @@
   "include": [
     "src/editor/**/*.ts",
     "src/markdown/**/*.ts",
-    "src/vue/editor/**/*.ts",
     "src/env.d.ts"
   ],
   "exclude": [

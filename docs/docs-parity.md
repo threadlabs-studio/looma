@@ -37,7 +37,7 @@ browser run checks the inventory after building; it never updates it.
 | Surface | Assertions | Visual reference |
 | --- | --- | --- |
 | Every documentation route | Heading, internal routes and local heading links, page errors, same-origin asset failures | Guide pages: full page at 1280×900 and 375×812, light and dark, with the shared shell hidden |
-| Every authored example | Title, live stage, nonempty code, HTML Next/Vue lens, Examples/API navigation | The example's live stage, one image per viewport and theme |
+| Every authored example | Title, live stage, nonempty code, HTML Next/Vue/React/Svelte views, Examples/API navigation | The example's live stage, one image per viewport and theme |
 | Shared shell | Sidebar categories, mobile navigation, heading deep links, reload and history, theme/framework persistence | Home page with the shell; open mobile navigation |
 | Code controls | Copy requests the displayed snippet, mobile wrapping preserves it, existing overflow and authored-code assertions | Code panes on guide pages |
 | Catalog | Existing count/category/query assertions, keyboard search, empty results | Complete catalog, filtered results, empty state |

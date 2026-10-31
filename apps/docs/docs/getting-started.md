@@ -15,8 +15,8 @@ Looma's HTML definitions are the source for Vue, React and Svelte components. In
 ## Vue
 
 ```sh
-pnpm add @threadlabs/looma vue
-pnpm add -D @nextwebwg/html-next-unplugin@1.0.0-alpha.70 @vitejs/plugin-vue vite vue-tsc typescript
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' vue
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-vue vite vue-tsc typescript
 ```
 
 ```ts
@@ -45,9 +45,23 @@ import { UiButton, UiStack } from "@threadlabs/looma";
 
 ## React
 
-Use `htmlNext({ target: "react" })` before `react()` from `@vitejs/plugin-react`.
-Install React, React DOM, their types, and the standard React Vite plugin. The
-component names retain their prefix:
+```sh
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' react react-dom
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-react vite typescript @types/react @types/react-dom
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [htmlNext({ target: "react" }), react()],
+});
+```
+
+The component names retain their prefix:
 
 ```tsx
 import { UiButton, UiStack } from "@threadlabs/looma";
@@ -57,15 +71,25 @@ export default function Account() {
 }
 ```
 
-React adoption is currently blocked by declaration-generation errors in HTML
-Next 1.0.0-alpha.70. The source consumer test records these errors; the loading
-pattern above is the adapter API, not a claim that the complete Looma graph is
-qualified for React.
+Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for the complete component graph, including the editors. The adapter minimum includes shared-module, compiler-loading and component-import fixes for the complete catalog; later releases are admitted without a 1.0 ceiling.
 
 ## Svelte
 
-Use `htmlNext({ target: "svelte" })` before `svelte()` from
-`@sveltejs/vite-plugin-svelte`. Install Svelte 5 and its standard Vite plugin.
+```sh
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' svelte@5
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @sveltejs/vite-plugin-svelte vite svelte-check typescript
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+
+export default defineConfig({
+  plugins: [htmlNext({ target: "svelte" }), svelte()],
+});
+```
 
 ```svelte
 <script>
@@ -86,6 +110,10 @@ import "@threadlabs/looma/theme-light.css";
 
 The framework compiler includes each component's styles. A source consumer does
 not import `@threadlabs/looma/vue.css`.
+
+Applications that start touch-input tracking explicitly import `trackInputModality`
+from `@threadlabs/looma/input-modality` and call it with their document during client
+setup. This replaces its former Vue-barrel export; its behavior is unchanged.
 
 The adapter discovers Looma through its `html-next` export condition. An HTML
 folder export names `ui-button` as `UiButton`, `ui-site-header` as `UiSiteHeader`,
@@ -120,6 +148,12 @@ file is a component definition, not an ordinary JavaScript component import.
 Vue and Tiptap are optional to Looma as a whole. Install only the framework and editor peers used by your application.
 
 The document editor (`UiEditor`), short field (`UiCompactEditor`), and semantic JSON renderer (`UiCompactContent`) are HTML Next components. Import them through the same Vite plugin as the other controls. Install `@tiptap/core` and `@tiptap/pm` for editing; there is no Tiptap Vue dependency.
+
+Use the supported Tiptap 2 peers:
+
+```sh
+pnpm add '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+```
 
 Pass JSON through `content`, handle `change.detail.content`, and answer the host integration requests:
 
@@ -169,7 +203,7 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
-- Vue, React and Svelte use the HTML Next Vite adapter; framework compilation belongs to the consumer. React qualification is currently blocked as described above.
+- Vue, React and Svelte use the HTML Next Vite adapter; framework compilation belongs to the consumer.
 - `UiEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.
 - Hosts own persistence, the authorized people-directory query, upload

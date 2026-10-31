@@ -58,6 +58,17 @@ test("accepts the complete public release graph", () => {
   }), []);
 });
 
+test("keeps published dependency ranges equal to source without forcing release-version pins", () => {
+  const source = sourcePackages();
+  const registry = registryPackages();
+  source["@threadlabs/looma"].dependencies.expressmark = ">=0.5.1";
+  registry["@threadlabs/looma"].dependencies.expressmark = ">=0.5.1";
+  const input = { manifest: manifest(), sourcePackages: source, registryPackages: registry };
+  assert.deepEqual(collectRegistryReleaseIssues(input), []);
+  registry["@threadlabs/looma"].dependencies.expressmark = "0.5.1";
+  assert.deepEqual(collectRegistryReleaseIssues(input), ["@threadlabs/looma registry dependencies do not match the approved source manifest"]);
+});
+
 test("reports singleton integrity, metadata, tag, and provenance drift together", () => {
   const registry = registryPackages();
   registry["@threadlabs/looma"].integrity = "sha512-wrong";

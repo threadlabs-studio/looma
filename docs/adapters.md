@@ -9,7 +9,7 @@ Looma publishes HTML Next definitions. Applications compile them with `@nextwebw
 | Svelte 5 | `htmlNext({ target: "svelte" })`, `svelte()` | Same prefixed names |
 | HTML Next | Resolve `<link rel="component">` definitions | `<ui-button>`, `<ui-editor>` |
 
-See [Getting started](/getting-started/) for installation, plugin imports, themes and generated declarations. React declaration generation in HTML Next alpha.70 still has errors against the complete Looma graph; it is not yet qualified for release.
+See [Getting started](/getting-started/) for installation, plugin imports, themes and generated declarations. The complete component graph requires HTML Next alpha.74 or later. Runtime and Vite-plugin ranges admit future releases without a 1.0 or later major-version ceiling.
 
 Component names follow the source tag: `ui-site-header` becomes `UiSiteHeader`, `ui-editor` becomes `UiEditor`, and `ui-compact-editor` becomes `UiCompactEditor`. Types and headless editor helpers remain at `@threadlabs/looma/editor`; compact schema helpers live at `/editor/compact`.
 

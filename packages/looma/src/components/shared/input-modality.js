@@ -6,6 +6,8 @@ const initialized = new WeakSet();
  * Idempotent per document; touch is sticky once observed.
  *
  * @param {Document} document
+ * @lifecycle Tracking lasts for the document’s lifetime; repeated calls add no listeners.
+ * @ownership The supplied document owns its listeners.
  */
 export function trackInputModality(document) {
   if (initialized.has(document)) return;

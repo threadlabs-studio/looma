@@ -157,6 +157,7 @@ beforeAll(async () => {
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
+  let delayedController = false;
   lateItemsPath = await bundle("vue-tree-late-items", `
     import { createApp, h } from "vue";
     import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
@@ -169,12 +170,14 @@ beforeAll(async () => {
   `, [{
     name: "delay-tree-item-controller",
     transform(code, id) {
-      if (!id.endsWith("/components/ui-tree-item/ui-tree-item.js")) return;
+      if (!id.endsWith("/ui-tree-item/ui-tree-item.js")) return;
+      delayedController = true;
       const declaration = "export function connect(host) {";
       assert.ok(code.includes(declaration), "delay the real Tree Item controller");
       return code.replace(declaration, "export async function connect(host) { await window.treeItemGate;");
     },
   }]);
+  assert.ok(delayedController, "the generated Tree Item controller must be delayed");
   marqueePath = await bundle("vue-tree-marquee", `
     import { createApp, h } from "vue";
     import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";

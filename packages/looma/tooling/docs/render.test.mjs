@@ -87,3 +87,15 @@ test('native reference tabs expose literal Markdown fences to the standard parse
   assert.equal(codes[0].value, '<link rel="component" href="example/components/ui-status/ui-status.html">\n\n' + example.markup);
   for (const label of ['Vue', 'React', 'Svelte']) assert.ok(page.includes(`aria-label="${label}"`));
 });
+
+
+test('local component snippets import the authored HTML file in every framework', async () => {
+  const { frameworkExamples } = await import('./framework-examples.mjs');
+  const codes = frameworkExamples({ markup: '<acme-status label="Ready"></acme-status>' }, [{
+    tag: 'acme-status', package: 'project-catalog', importSource: './app/components/acme-status.html',
+  }]);
+  for (const target of ['vue', 'react', 'svelte']) {
+    assert.ok(codes[target].code.includes('import { AcmeStatus } from "./app/components/acme-status.html";'));
+    assert.ok(!codes[target].code.includes('from "project-catalog"'));
+  }
+});

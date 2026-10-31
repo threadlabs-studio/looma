@@ -17,7 +17,7 @@ const sites = {
     chrome: "[role=tablist], button, .hash-link, .looma-mode-switch, .looma-model__steps li > span",
     // Docusaurus escapes a `{#id}` heading ID even inside a code fence, and shows the backslash.
     // DeclarativeModel.tsx's JSX drops the space before its <code>; the Markdown page keeps it.
-    fix: (text) => text.replaceAll("\\{#", "{#").replace("through@threadlabs/looma/vue", "through @threadlabs/looma/vue"),
+    fix: (text) => text.replaceAll("\\{#", "{#").replace("through@threadlabs/looma", "through @threadlabs/looma"),
   },
   markupress: { root: "article.markupress-prose", chrome: "[role=tablist], button" },
 };

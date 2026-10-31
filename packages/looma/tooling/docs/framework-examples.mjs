@@ -12,8 +12,9 @@ const reactAttributes = { class: 'className', for: 'htmlFor', readonly: 'readOnl
 export function frameworkExamples(example, components) {
   const byTag = new Map(components.map(component => [component.tag, component]));
   const tags = [...new Set([...example.markup.matchAll(/<([a-z][\w]*-[\w-]+)\b/g)].map(match => match[1]))].filter(tag => byTag.has(tag));
-  const imports = [...new Set(tags.map(tag => byTag.get(tag).package))].map(owner =>
-    `import { ${tags.filter(tag => byTag.get(tag).package === owner).map(componentName).sort().join(', ')} } from ${JSON.stringify(owner)};`).join('\n');
+  const importSource = tag => byTag.get(tag).importSource ?? byTag.get(tag).package;
+  const imports = [...new Set(tags.map(importSource))].map(owner =>
+    `import { ${tags.filter(tag => importSource(tag) === owner).map(componentName).sort().join(', ')} } from ${JSON.stringify(owner)};`).join('\n');
   const links = tags.map(tag => `<link rel="component" href="${byTag.get(tag).resource ?? `${byTag.get(tag).package}/components/${tag}/${tag}.html`}">`).join('\n');
   const fragment = parseFragment(example.markup);
   const codes = { 'html-next': { language: 'html', code: `${links}\n\n${example.markup}` } };

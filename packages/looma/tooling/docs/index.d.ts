@@ -6,7 +6,7 @@ export interface DocumentationExample {
 }
 export interface DocumentationComponent {
   id: string; package: string; tag: string; title: string; description: string; group: string;
-  root: string; resource: string; source?: string; navigationParent?: string;
+  root: string; resource: string; source?: string; importSource?: string; navigationParent?: string;
   targets: string[]; examples: DocumentationExample[];
   attributes: Record<string, unknown>[]; properties: Record<string, unknown>[];
   events: Record<string, unknown>[]; slots: Record<string, unknown>[];

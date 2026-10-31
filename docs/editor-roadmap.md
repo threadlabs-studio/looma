@@ -2,13 +2,13 @@
 
 **Goal:** Provide a complete block editor with open-source Tiptap extensions and shared HTML Next controls, distributed with Looma for applications to consume without a framework-specific implementation.
 
-**Last updated:** 2026-09-05
+**Last updated:** 2026-10-30
 
 ---
 
 ## Status snapshot
 
-- **Shipped now:** a complete `LoomaEditor` component, standalone table,
+- **Implemented:** authored `ui-editor`, `ui-compact-editor` and `ui-compact-content` components, standalone table,
   slash-command, and mention extensions, token-themed formatting and table
   controls, desktop selection/table affordances, and a visual-viewport-aware
   mobile editor surface. Mention search accepts a bounded async host provider,
@@ -23,7 +23,7 @@
 
 ## Release 1 Classification
 
-Editor definitions ship under the package’s HTML Next source condition. Framework-neutral extension and session helpers ship through `@threadlabs/looma/editor`. Vue and Svelte source compilation are exercised; React alpha.70 declaration generation still needs upstream correction before qualification. All later phases and ecosystem-parity gaps below are deferred.
+Editor definitions ship under the package’s HTML Next source condition. Framework-neutral extension and session helpers ship through `@threadlabs/looma/editor`. The complete Vue, React and Svelte source graph requires HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later. Native and Vite-converted Vue browser parity is recorded in the [editor ledger](./editor-html-next-parity.md). All later phases and ecosystem-parity gaps below are deferred.
 
 E-TBL-003 is not silently waived: release must either fix it or record explicit
 owner acceptance after browser evidence establishes an adequate Candidate flow
@@ -57,7 +57,7 @@ How we use it:
 | **Custom block UI** | Block handle, table “+” overlays, custom image/code-block UI. Use framework-neutral Tiptap node views backed by Looma component factories. |
 | **Marks** | Inline code, highlight, link. Use [Mark API](https://tiptap.dev/docs/editor/extensions/custom-extensions/mark-api) or stock extensions; extend only when we need different behavior. |
 
-We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source editor, extensions, and the custom-extension docs. In Looma we ship **web components** for editor UI; Vue is the supported R1 adapter and React is an internal/deferred preview.
+We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source editor, extensions, and the custom-extension docs. Looma ships HTML Next definitions for editor UI; applications compile their framework projections through the Vite plugin.
 
 ---
 
@@ -66,14 +66,14 @@ We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source
 - Editor **primitives** (slash menus, block actions, table controls and toolbar shells) are reusable across applications.
 - Applications add persistence, upload transport and collaboration through supported requests and events.
 - **Web components first:** All Looma editor UI is implemented as **custom elements**.
-  Vue is the supported R1 integration; React remains a repository preview.
+  Vue, React and Svelte consume the same authored definitions through their Vite targets.
   Token-styled, accessible; no dependency on Tiptap’s paid Notion-like template.
 
 ---
 
 ## Scope: Confluence / Notion parity (open source only)
 
-All of the following are achievable with **open-source** Tiptap extensions + **Looma web components**. No Tiptap Cloud or paid templates. The supported Vue adapter connects the editor instance to these elements in R1; the React integration remains deferred.
+All of the following are achievable with **open-source** Tiptap extensions + **Looma web components**. No Tiptap Cloud or paid templates. The shared session connects the editor instance to these elements; framework projections retain that controller behavior.
 
 | Feature | Description | Looma delivers |
 |--------|--------------|----------------|

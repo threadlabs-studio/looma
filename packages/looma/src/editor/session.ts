@@ -41,7 +41,7 @@ export interface LoomaEditorSession<E extends Editor = Editor> {
 
 /**
  * Creates the session's editor from `options`. A framework layer may pass its own `Editor`
- * subclass, such as `@tiptap/vue-3`'s reactive one, so the editor it exposes keeps that behavior.
+ * subclass so integrations retain their chosen editor behavior.
  */
 export function createEditorSession<E extends Editor = Editor>(
   options: Partial<EditorOptions>,

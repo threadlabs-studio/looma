@@ -22,17 +22,27 @@ for (const tag of ["ui-editor", "ui-compact-editor"]) {
     if (tag === "ui-compact-editor") invocation.setAttribute("id", "native-message");
     if (tag === "ui-editor") invocation.setAttribute("toolbar-mode", "sticky");
     wrapper.append(invocation);
+    lowerDocument(document, { props: new Map([[invocation, { content: { type: "doc", content: [{ type: "paragraph" }] } }]]) });
     const field = page.getByRole("textbox", { name: "Native writing" });
     await expect.element(field).toBeVisible();
     await expect.poll(() => editor).toBeDefined();
     if (tag === "ui-compact-editor") expect(wrapper.querySelectorAll("#native-message")).toHaveLength(1);
+    const root = wrapper.querySelector<HTMLElement>(`[data-component~="${tag}"]`)!;
+    const metadataWrites: string[] = [];
+    const metadata = new MutationObserver(records => {
+      for (const record of records) if (record.attributeName?.endsWith("-prop-content")) metadataWrites.push(record.attributeName);
+    });
+    metadata.observe(root, { attributes: true });
     let changed: JSONContent | undefined;
-    wrapper.addEventListener("change", event => { changed = (event as CustomEvent<{ content: JSONContent }>).detail?.content; });
+    wrapper.addEventListener("change", event => {
+      if (event.target !== root) return;
+      changed = (event as CustomEvent<{ content: JSONContent }>).detail?.content;
+      if (changed) componentRegistry.update(root, { content: changed });
+    });
     await field.click();
     await userEvent.keyboard("**Native HTML**");
     expect(editor!.getHTML()).toContain("<strong>Native HTML</strong>");
     expect(changed).toEqual(editor!.getJSON());
-    const root = wrapper.querySelector<HTMLElement>(`[data-component~="${tag}"]`)!;
     componentRegistry.update(root, { content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Replaced" }] }] } });
     await expect.element(field).toHaveTextContent("Replaced");
     if (tag === "ui-compact-editor") {
@@ -52,6 +62,9 @@ for (const tag of ["ui-editor", "ui-compact-editor"]) {
     expect(created).toHaveLength(1);
     expect(editor!.isDestroyed).toBe(false);
     expect(editor!.can().undo()).toBe(undo);
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    expect(metadataWrites).toEqual([]);
+    metadata.disconnect();
     root.remove();
     await expect.poll(() => editor!.isDestroyed).toBe(true);
   });

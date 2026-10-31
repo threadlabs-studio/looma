@@ -81,7 +81,7 @@ test("the required verify result gates unit tests, browser regressions, release 
   assert.match(qualityJob, /ci-qualification\.mjs run quality/);
   const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualifier, /"@threadlabs\/looma", "build"/);
-  assert.match(await readFile(path.join(repoRoot, "packages/looma/build.mjs"), "utf8"), /vue-tsc/);
+  assert.match(await readFile(path.join(repoRoot, "packages/looma/build.mjs"), "utf8"), /node_modules\/\.bin\/tsc/);
   assert.equal(JSON.parse(loomaPackage).scripts.lint, JSON.parse(loomaPackage).scripts.typecheck);
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
@@ -151,7 +151,7 @@ test("every Vitest browser test is included by its package browser config", asyn
   }
 });
 
-test("public documentation is install-first and installs from latest", async () => {
+test("public documentation installs compatible published releases without an upper ceiling", async () => {
   const [rootReadme, gettingStarted, supportPage, facadeReadme] = await Promise.all([
     readFile(path.join(repoRoot, "README.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/getting-started.md"), "utf8"),
@@ -159,13 +159,13 @@ test("public documentation is install-first and installs from latest", async () 
     readFile(path.join(repoRoot, "packages/looma/README.md"), "utf8")
   ]);
 
-  assert.match(rootReadme, /^pnpm add @threadlabs\/looma$/m);
+  assert.match(rootReadme, /^pnpm add '@threadlabs\/looma@>=0\.49\.0'$/m);
   assert.doesNotMatch(rootReadme + gettingStarted + supportPage, /@candidate|candidate.+dist-tag/is);
   assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
-  assert.match(gettingStarted, /pnpm add @threadlabs\/looma/);
+  assert.match(gettingStarted, /pnpm add ['"]?@threadlabs\/looma/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
   assert.match(gettingStarted, /Vue and Tiptap are optional to Looma as a whole/);
-  assert.match(gettingStarted, /pnpm add @threadlabs\/looma vue/);
+  assert.match(gettingStarted, /pnpm add ['"]?@threadlabs\/looma@>=0\.49\.0['"]? ['"]@nextwebwg\/html-next@>=[^'"\n]+['"] vue/);
   assert.match(gettingStarted, /@tiptap\/core/);
   assert.match(gettingStarted, /@tiptap\/pm/);
   assert.match(gettingStarted, /@nextwebwg\/html-next-unplugin/);
@@ -175,35 +175,27 @@ test("public documentation is install-first and installs from latest", async () 
   assert.match(gettingStarted, /htmlNext\(\{ target: "vue" \}\)/);
   assert.match(supportPage, /publishes to npm as \*\*`@threadlabs\/looma`\*\*/);
   assert.doesNotMatch(supportPage + gettingStarted, /Candidate/);
-  assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
+  assert.match(facadeReadme, /pnpm add ['"]?@threadlabs\/looma/);
   assert.doesNotMatch(
     rootReadme + gettingStarted + supportPage,
     /@threadlabs\/looma-(?:tokens|layout|core|editor|vue|react|svelte)/
   );
 });
 
-test("the packed facade consumer matrix pins every editor and Vue entry", async () => {
-  const [script, consumerPackage] = await Promise.all([
+test("the source-only facade qualifies headless entries and Vite-converted editor SSR", async () => {
+  const [script, consumerPackage, facade] = await Promise.all([
     readFile(path.join(repoRoot, "tools/scripts/verify-facade-consumer.mjs"), "utf8"),
-    readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8").then(JSON.parse)
+    readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8").then(JSON.parse),
+    readFile(path.join(repoRoot, "packages/looma/package.json"), "utf8").then(JSON.parse),
   ]);
-
-  for (const subpath of ["editor", "editor/ui", "editor/extensions", "vue", "vue/editor"]) {
-    const exactImport = new RegExp(
-      `["']@threadlabs/looma/${subpath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`,
-      "g"
-    );
-    assert.ok(
-      [...script.matchAll(exactImport)].length >= 2,
-      `${subpath} must be covered by runtime and typecheck consumers`
-    );
-  }
-
-  assert.match(
-    consumerPackage.dependencies["@tiptap/vue-3"],
-    /^\^2\./,
-    "the Vue editor consumer must install its declared Tiptap Vue peer"
-  );
+  for (const subpath of ["editor", "editor/ui", "editor/extensions", "editor/compact"]) assert.ok(script.includes(`from "@threadlabs/looma/${subpath}"`));
+  assert.ok(consumerPackage.devDependencies["@nextwebwg/html-next-unplugin"]);
+  assert.equal(consumerPackage.dependencies["@tiptap/vue-3"], undefined);
+  assert.equal(facade.exports["."]["html-next"], "./components/");
+  assert.equal(Object.keys(facade.exports).some(name => name.startsWith("./vue")), false);
+  assert.equal(facade.files.includes("vue/"), false);
+  assert.equal(facade.peerDependencies.vue, undefined);
+  assert.equal(facade.peerDependencies["@tiptap/vue-3"], undefined);
 });
 
 test("the public consumer command is a separate fail-closed registry gate", async () => {

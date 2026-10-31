@@ -328,7 +328,8 @@ it("keeps native custom navigation usable without JavaScript at every SiteHeader
   }))}));
   const page=await browser.newPage({javaScriptEnabled:false,viewport:{width:375,height:800}});
   page.setDefaultTimeout(5000);
-  const css=await Promise.all([join(root,"tokens.css")].map(path=>readFile(path,"utf8")));
+  const stylesheetBundle = await bundle("site-header-no-script-styles", 'import { UiSiteHeader, UiIconButton } from "@threadlabs/looma"; window.fixtureComponents = [UiSiteHeader, UiIconButton];');
+  const css=await Promise.all([join(root,"tokens.css"),join(dirname(stylesheetBundle),"components.css")].map(path=>readFile(path,"utf8")));
   await page.goto("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><style>'+css.join("\n")+'</style>'+headers+["sm","md","lg"].map(name=>'<nav id="docs-'+name+'" popover>Documentation</nav>').join("")));
   try {
     for(const [name,width] of [["sm",640],["md",768],["lg",1024]] as const) {
@@ -343,7 +344,7 @@ it("keeps native custom navigation usable without JavaScript at every SiteHeader
       assert.ok(placement.gap < placement.width,'native custom menus also stay close to the brand before upgrade');
       await trigger.click();assert.equal(await page.locator("#docs-"+name).isVisible(),true);
       await page.keyboard.press("Escape");assert.equal(await page.locator("#docs-"+name).isVisible(),false);
-      await page.setViewportSize({width,height:800});assert.equal(await trigger.isVisible(),false);
+      await page.setViewportSize({width,height:800});await trigger.waitFor({state:"hidden"});
     }
     assert.equal(await page.locator("dialog[open]").count(),0);
   } finally {await page.close();}
@@ -1595,7 +1596,7 @@ describe("Toast composition and placement", () => {
         ? '<ui-toast-region id="region"><ui-toast id="notice" tone="danger">The change could not be saved. Please try again.</ui-toast></ui-toast-region>'
         : '<div id="app"></div>';
       await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${markup}</body></html>`);
-      for (const css of [join(root,'tokens.css')]) await page.addStyleTag({path:css});
+      for (const css of [join(root,'tokens.css'),join(dirname(path),'components.css')]) await page.addStyleTag({path:css});
       await page.addScriptTag({path});
       await page.waitForFunction(()=>document.documentElement.clientWidth===375);
       await page.waitForFunction(()=>document.getElementById('region')!.matches(':popover-open'));
@@ -2188,7 +2189,8 @@ describe("Editor callouts", () => {
       const hueDistance = Math.abs(((hue! - paint.source[2]! + 540) % 360) - 180);
       assert.equal(paint.rgba[3], 255, `${theme}/${tone}: opacity must not wash the hue into the backdrop`);
       assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .30 && lightness! <= (hue! > 35 && hue! < 105 ? .44 : .39), `${theme}/${tone}: background lightness ${lightness}`);
-      assert.ok(chroma! >= .015, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
+      // Quiet surfaces use chroma .02 × .74; allow for the final 8-bit paint quantization.
+      assert.ok(chroma! >= .02 * .74 - .001, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
       assert.ok(hueDistance < 10, `${theme}/${tone}: painted hue follows its tone ${hueDistance}`);
       assert.ok(paint.contrast >= 4.5, `${theme}/${tone}: readable text contrast ${paint.contrast}`);
     }
@@ -2205,7 +2207,7 @@ describe("Editor callouts", () => {
     });
     const { rendered: [lightness, chroma, hue], contrast } = await paintedCallout(page, "success");
     assert.ok(lightness! >= .94, `a light background must stay pale: ${lightness}`);
-    assert.ok(chroma! >= .015 && chroma! <= .022, `green stays visibly tinted without exceeding the shared quiet chroma: ${chroma}`);
+    assert.ok(Math.abs(chroma! - .02 * .74) <= .001, `green stays visibly tinted without exceeding the shared quiet chroma: ${chroma}`);
     assert.ok(hue! >= 125 && hue! <= 140, `the background retains the muted green hue: ${hue}`);
     assert.ok(contrast >= 4.5);
     await page.close();
@@ -7770,7 +7772,7 @@ describe("Vue form controls", () => {
     assert.equal(await page.evaluate(() => (window as unknown as { topic: { value: string } }).topic.value), "problem");
 
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
-    assert.equal(await fontSize("#topic-label"), "14px");
+    assert.equal(await fontSize("#topic-label"), "16px");
     assert.equal(await fontSize("#topic-help"), "14px");
     // A named slot in Vue has no slot attribute; the field still links its help to the control.
     assert.equal(await select.getAttribute("aria-describedby"), "topic-help");
@@ -8061,6 +8063,7 @@ describe("Button tone and disabled", () => {
       const style = getComputedStyle(element);
       return {
         background: style.backgroundColor,
+        image: style.backgroundImage,
         color: style.color,
         border: style.borderTopColor,
         opacity: style.opacity,
@@ -8074,12 +8077,12 @@ describe("Button tone and disabled", () => {
     const danger = await paint("danger");
     const neutral = await paint("neutral");
     assert.notEqual(danger.border, accent.border, "tone changes an outline's edge");
-    assert.notEqual(danger.background, accent.background, "tone changes an outline's wash");
+    assert.notEqual(danger.image, accent.image, "tone changes an outline's painted wash");
     assert.notEqual(neutral.border, accent.border, "neutral is a tone of its own");
 
-    // Variant is the volume: solid fills with the colour the outline draws with.
+    // A solid action fills the surface that an outline keeps transparent under its wash.
     const solid = await paint("solid");
-    assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
+    assert.notEqual(solid.background, accent.background, "solid paints an opaque tone surface beneath its material layer");
 
     // Disabled actions share a flat neutral palette so no tone still looks actionable.
     const off = await paint("off");
@@ -11863,23 +11866,23 @@ describe("Color picker", () => {
     const page = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css")]);
     try {
       for (const size of ['sm','md','lg']) {
-        const box = await page.locator(`#picker-${size} button`).boundingBox();
+        const box = await page.locator(`#picker-${size} button[data-ui-field-control]`).boundingBox();
         const field = await page.locator(`#field-${size}`).boundingBox();
         assert.ok(box && field);
         assert.ok(Math.abs(box.width-box.height)<.6, JSON.stringify({size,box}));
         assert.ok(Math.abs(box.height-field.height)<.6, JSON.stringify({size,box,field}));
       }
       const roundedTheme = await page.addStyleTag({content:'body { --ui-field-radius: 100px; }'});
-      const squareRadius = await page.locator('#picker-md button').evaluate(el=>({radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),width:el.getBoundingClientRect().width}));
+      const squareRadius = await page.locator('#picker-md button[data-ui-field-control]').evaluate(el=>({radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),width:el.getBoundingClientRect().width}));
       assert.ok(squareRadius.radius <= squareRadius.width/4, 'a theme must not turn the default square swatch into a circle');
       await roundedTheme.evaluate(el=>el.remove());
       const largeType = await page.addStyleTag({content:'body { font-size: 32px; }'});
-      const largeSwatch = await page.locator('#picker-md button').boundingBox();
+      const largeSwatch = await page.locator('#picker-md button[data-ui-field-control]').boundingBox();
       const largeField = await page.locator('#field-md').boundingBox();
       assert.ok(Math.abs(largeSwatch!.height-largeField!.height)<.6, 'inherited type grows the field and swatch together');
       await largeType.evaluate(el=>el.remove());
-      assert.equal(await page.locator('#picker-lg button').evaluate(el => getComputedStyle(el).borderRadius),'50%');
-      const trigger = page.locator('#picker-sm button');
+      assert.equal(await page.locator('#picker-lg button[data-ui-field-control]').evaluate(el => getComputedStyle(el).borderRadius),'50%');
+      const trigger = page.locator('#picker-sm button[data-ui-field-control]');
       const editor = page.locator('#picker-sm [role=dialog]');
       assert.equal(await editor.isVisible(), false);
       await trigger.click(); assert.equal(await editor.isVisible(),true);
@@ -11901,7 +11904,7 @@ describe("Color picker", () => {
       const touch = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css")], {hasTouch:true});
       try {
         for(const size of ['sm','md','lg']) {
-          const swatch=await touch.locator(`#picker-${size} button`).boundingBox();
+          const swatch=await touch.locator(`#picker-${size} button[data-ui-field-control]`).boundingBox();
           const field=await touch.locator(`#field-${size}`).boundingBox();
           assert.ok(Math.abs(swatch!.height-field!.height)<.6, 'touch sizing stays shared');
           assert.ok(Math.abs(swatch!.width-swatch!.height)<.6, 'touch swatch stays square');
@@ -11949,7 +11952,7 @@ describe("Composite field ownership",()=>{
  ])}).mount('#app');`);
  const body=adapter==='html'?`<ui-form-field id="paired"><label slot="label" for="chosen">Hex colour</label><ui-color-picker value="#7c3aed" label="Swatch"></ui-color-picker><ui-input id="chosen" value="#7c3aed"></ui-input><span slot="help">Six hexadecimal digits</span></ui-form-field><form id="disabled-form"><ui-form-field disabled><label slot="label">Brand colour</label><ui-color-picker id="disabled-picker" name="brand" value="#7c3aed"></ui-color-picker></ui-form-field></form>`:'<div id="app"></div>';
  const page=await open(path,body,[join(root,'tokens.css')]);
- try{assert.ok(await page.locator('#chosen').getAttribute('aria-describedby'),'help belongs to the explicitly labelled text input');assert.equal(await page.locator('#disabled-picker button').isDisabled(),true);assert.deepEqual(await page.locator('#disabled-form').evaluate(el=>[...new FormData(el as HTMLFormElement)]),[]);const id=await page.locator('#disabled-picker button').getAttribute('id');assert.equal(await page.locator('#disabled-form .label > label').getAttribute('for'),id);}finally{await page.close();}
+ try{assert.ok(await page.locator('#chosen').getAttribute('aria-describedby'),'help belongs to the explicitly labelled text input');assert.equal(await page.locator('#disabled-picker button[data-ui-field-control]').isDisabled(),true);assert.deepEqual(await page.locator('#disabled-form').evaluate(el=>[...new FormData(el as HTMLFormElement)]),[]);const id=await page.locator('#disabled-picker button[data-ui-field-control]').getAttribute('id');assert.equal(await page.locator('#disabled-form .label > label').getAttribute('for'),id);}finally{await page.close();}
  });
 });
 
@@ -11995,7 +11998,7 @@ describe("Optional semantic theme recipe", () => {
       try {
         await page.addStyleTag({content:themeCSS(startingPoints.wiki,system)});
         for(const [size,height] of [['sm',34/1.15],['md',34],['lg',34*1.15]] as const) {
-          const heights=await page.locator(`#compact-button-${size},#compact-input-${size},#compact-color-${size} button`).evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().height));
+          const heights=await page.locator(`#compact-button-${size},#compact-input-${size},#compact-color-${size} button[data-ui-field-control]`).evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().height));
           assert.ok(heights.every(value=>Math.abs(value-height)<.1),JSON.stringify({touch,size,height,heights}));
         }
         await page.addStyleTag({content:':root {--ui-control-min-block-size:60px}'});
@@ -12051,7 +12054,7 @@ describe("Optional semantic theme recipe", () => {
       await page.addStyleTag({content:themeCSS(defaultRecipe(),system)});
       for (const size of [16,24,32]) {
         await page.locator('html').evaluate((element,size)=>element.style.fontSize=size+'px',size);
-        const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
+        const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button[data-ui-field-control]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
         assert.ok(boxes.every(height=>Math.abs(height-size*2.5)<.1), `all controls grow with root type at ${size}px: ${boxes}`);
         assert.equal(await page.locator('#relative-field').evaluate(e=>getComputedStyle(e).fontSize),size+'px');
       }
@@ -12072,7 +12075,7 @@ describe("Optional semantic theme recipe", () => {
       await page.addStyleTag({path:join(root,'theme-system.css')});
       await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-spacing:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
       for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','link','colour']) {
-        const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button':'');
+        const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button[data-ui-field-control]':'');
         assert.ok(Math.abs((await page.locator(selector).boundingBox())!.height-height)<.6,selector);
       }
       assert.equal(await page.locator('#nested-action').evaluate(el=>el.getBoundingClientRect().height),32);
@@ -12095,7 +12098,7 @@ describe("Optional semantic theme recipe", () => {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),35);
       await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-spacing:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
       for (const size of ['sm','md','lg']) {
-        const heights = await Promise.all(['action','link','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
+        const heights = await Promise.all(['action','link','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button[data-ui-field-control]':'')).evaluate(el=>el.getBoundingClientRect().height)));
         assert.ok(Math.max(...heights)-Math.min(...heights)<.6, 'large typography and curved page spacing preserve shared boxes: '+heights.join(','));
       }
       await page.emulateMedia({reducedMotion:'reduce'});

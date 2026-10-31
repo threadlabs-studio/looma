@@ -21,9 +21,10 @@ const RESOURCE_METHODS = new Set([
   "abort", "cancel", "close", "destroy", "disconnect", "dispose", "hide", "remove", "stop",
 ]);
 
-// The hand-written TypeScript entries. The component entries (".", "./vue") are generated from the
+// The hand-written TypeScript and JavaScript entries. The component entry (".") is generated from the
 // component templates, which document themselves.
 export const PUBLIC_ENTRYPOINTS = Object.freeze([
+  { packageName: "@threadlabs/looma", exportPath: "./input-modality", packageDirectory: "packages/looma", source: "packages/looma/src/components/shared/input-modality.js" },
   { packageName: "@threadlabs/looma", exportPath: "./editor", packageDirectory: "packages/looma", source: "packages/looma/src/editor/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/compact", packageDirectory: "packages/looma", source: "packages/looma/src/editor/compact.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/expressmark", packageDirectory: "packages/looma", source: "packages/looma/src/editor/expressmark.ts" },
@@ -31,8 +32,6 @@ export const PUBLIC_ENTRYPOINTS = Object.freeze([
   { packageName: "@threadlabs/looma", exportPath: "./editor/extensions", packageDirectory: "packages/looma", source: "packages/looma/src/editor/extensions/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./markdown", packageDirectory: "packages/looma", source: "packages/looma/src/markdown/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./markdown/fixtures", packageDirectory: "packages/looma", source: "packages/looma/src/markdown/fixtures.ts" },
-  { packageName: "@threadlabs/looma", exportPath: "./vue/editor", packageDirectory: "packages/looma", source: "packages/looma/src/vue/editor/index.ts" },
-  { packageName: "@threadlabs/looma", exportPath: "./vue/editor/compact", packageDirectory: "packages/looma", source: "packages/looma/src/vue/editor/compact/index.ts" },
 ]);
 
 function loadTypeScript() {
@@ -68,7 +67,7 @@ function symbolDeclarations(symbol, repositoryRoot, packageRoot) {
         && !path.isAbsolute(relativePath)
         && !packageRelativePath.startsWith("..")
         && !path.isAbsolute(packageRelativePath)
-        && /\.[cm]?tsx?$/.test(relativePath)
+        && /\.[cm]?[jt]sx?$/.test(relativePath)
         && !isGeneratedOrPrivateSource(relativePath);
     })
     .sort((left, right) => {
@@ -229,7 +228,7 @@ async function compilerOptions(ts, repositoryRoot) {
     const source = await readFile(configPath, "utf8");
     const parsed = ts.parseConfigFileTextToJson(configPath, source);
     if (parsed.error) throw new Error(ts.flattenDiagnosticMessageText(parsed.error.messageText, "\n"));
-    return ts.parseJsonConfigFileContent(parsed.config, ts.sys, repositoryRoot).options;
+    return { ...ts.parseJsonConfigFileContent(parsed.config, ts.sys, repositoryRoot).options, allowJs: true };
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
     return {
@@ -237,6 +236,7 @@ async function compilerOptions(ts, repositoryRoot) {
       module: ts.ModuleKind.ESNext,
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       skipLibCheck: true,
+      allowJs: true,
     };
   }
 }

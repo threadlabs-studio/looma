@@ -19,6 +19,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     const merged = mergeCatalogs([core, catalog]);
     const c = merged.components[0];
     assert.equal(c.id, 'acme-design/acme-status');
+    assert.equal(c.importSource, './components/acme-status/acme-status.html');
     assert.equal(c.group, 'display');
     assert.equal(c.description, 'A project status.');
     assert.equal(c.summary, 'Current project state.');

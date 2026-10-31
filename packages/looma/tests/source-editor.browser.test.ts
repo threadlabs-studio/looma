@@ -29,6 +29,11 @@ for (const [name, Component] of [["document", UiEditor], ["compact", UiCompactEd
     const field = page.getByRole("textbox", { name: "Writing" });
     await expect.element(field).toBeVisible();
     await expect.poll(() => editor).toBeDefined();
+    const metadataWrites: string[] = [];
+    const metadata = new MutationObserver(records => {
+      for (const record of records) if (record.attributeName?.endsWith("-prop-content")) metadataWrites.push(record.attributeName);
+    });
+    metadata.observe(host.firstElementChild!, { attributes: true });
     await field.click();
     await userEvent.keyboard("**A proper component**");
     await expect.poll(() => model.value.content?.[0]?.content?.[0]?.marks?.[0]?.type).toBe("bold");
@@ -57,6 +62,10 @@ for (const [name, Component] of [["document", UiEditor], ["compact", UiCompactEd
       await userEvent.keyboard("!");
       await expect.element(field).toHaveTextContent("Updated by the host!");
     }
+    // Controlled echoes update the document without serializing it back into DOM hydration data.
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    expect(metadataWrites).toEqual([]);
+    metadata.disconnect();
     app.unmount();
     await expect.poll(() => editor!.isDestroyed).toBe(true);
   });

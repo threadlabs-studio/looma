@@ -4,8 +4,8 @@ Looma's components are authored as HTML Next definitions. The HTML Next Vite ada
 converts those definitions in Vue, React and Svelte applications.
 
 ```sh
-pnpm add @threadlabs/looma vue
-pnpm add -D @nextwebwg/html-next-unplugin@1.0.0-alpha.70 @vitejs/plugin-vue vite
+pnpm add '@threadlabs/looma@>=0.49.0' vue
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-vue vite
 ```
 
 ```ts
@@ -28,12 +28,13 @@ Import `@threadlabs/looma/tokens.css` and one theme in your application entry.
 The framework compiler includes component styles; source consumers do not import
 `@threadlabs/looma/vue.css`. Use `html-next-sync` before standalone type checking
 and include its `src/html-next.d.ts` output in your TypeScript project.
+The framework-neutral `trackInputModality` helper is available from
+`@threadlabs/looma/input-modality` for client setup.
 
 For React, use `target: "react"` before `react()` from `@vitejs/plugin-react`.
 For Svelte 5, use `target: "svelte"` before `svelte()` from
 `@sveltejs/vite-plugin-svelte`. Both import the same prefixed names from
-`@threadlabs/looma`. React currently encounters declaration-generation errors
-with HTML Next 1.0.0-alpha.70; see the [loading guide](https://threadlabs.studio/looma/getting-started/).
+`@threadlabs/looma`. Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later; see the [loading guide](https://threadlabs.studio/looma/getting-started/).
 
 The document editor, compact field, and compact renderer use the same source imports:
 
@@ -42,7 +43,13 @@ import { UiEditor, UiCompactEditor, UiCompactContent } from "@threadlabs/looma";
 import type { LoomaMentionQuery, LoomaImageUploader } from "@threadlabs/looma/editor";
 ```
 
-Both editable components accept Tiptap JSON through `content` and emit native `change` events with `detail.content`. The document editor answers service requests for extensions, mentions, links, uploads, code grammars and image delivery. The compact field supports short rich text without loading document controls. `UiCompactContent` renders escaped JSON during SSR. Install `@tiptap/core` and `@tiptap/pm` for editing. The Vite compiler includes styles; no Vue stylesheet or Tiptap Vue integration is needed.
+Both editable components accept Tiptap JSON through `content` and emit native `change` events with `detail.content`. The document editor answers service requests for extensions, mentions, links, uploads, code grammars and image delivery. The compact field supports short rich text without loading document controls. `UiCompactContent` renders escaped JSON during SSR. Install the supported Tiptap 2 peers for editing:
+
+```sh
+pnpm add '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+```
+
+The Vite compiler includes styles; no Vue stylesheet or Tiptap Vue integration is needed.
 
 ## Expressive Markdown
 
@@ -109,7 +116,7 @@ The package includes the documentation generator and theme customizer used by Lo
 Install the optional documentation tools, then initialize your project:
 
 ```sh
-pnpm add -D markupress @threadlabs/markupkit@0.2.0 vite
+pnpm add -D 'markupress@>=0.14.6' '@threadlabs/markupkit@>=0.4.2' vite
 pnpm exec looma-docs init
 pnpm exec looma-docs dev
 ```

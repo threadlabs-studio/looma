@@ -2,7 +2,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
-import { Card, CardGroup } from "../vue/index.js";
+import { UiCard as Card, UiCardGroup as CardGroup } from "@threadlabs/looma";
 
 describe("CardGroup before upgrade", () => {
   it("renders native Grid and Card regions in reading order without application context", async () => {

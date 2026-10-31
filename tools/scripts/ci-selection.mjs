@@ -136,7 +136,7 @@ export function selectChecks(files, changes, hunks = {}) {
   const frameworkConsumer = "tests/framework-consumer/examples.test.mjs";
   if (files[frameworkConsumer] && (full || changes.some(docsTool) || changes.some(file => file.startsWith("tests/framework-consumer/")))) scripts.add(frameworkConsumer);
   for (const file of changes) {
-    if (/^tests\/framework-consumer\/(?:package\.json|examples\.test\.mjs)$/.test(file)) continue;
+    if (/^tests\/framework-consumer\/(?:package\.json|examples\.test\.mjs|editor-contract\.ts|tsconfig\.editor\.json)$/.test(file)) continue;
     if (docsMetadata(file) || file === "packages/looma/bin/looma-docs.mjs" || /^packages\/looma\/tooling\/docs\//.test(file)) {
       for (const test of Object.keys(files)) if (/^packages\/looma\/tooling\/docs\/.*\.test\.mjs$/.test(test)) scripts.add(test);
       continue;

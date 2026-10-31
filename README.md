@@ -17,7 +17,7 @@
 ## Install
 
 ```sh
-pnpm add @threadlabs/looma
+pnpm add '@threadlabs/looma@>=0.49.0'
 ```
 
 Looma's HTML definitions are converted by the HTML Next Vite adapter in your application.
@@ -31,8 +31,7 @@ import { UiButton, UiSiteHeader } from "@threadlabs/looma";
 ```
 
 See the [loading guide](docs/framework-loading.md) for installation, Vite configuration,
-framework calls, styles, types, and the current React compiler blocker.
-Vue and Svelte source-consumer builds are exercised in this repository.
+framework calls, styles and types. Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for Vue, React and Svelte; dependency ranges admit later releases beyond 1.0.
 
 ## Package
 
@@ -40,10 +39,17 @@ Vue and Svelte source-consumer builds are exercised in this repository.
 | --- | --- |
 | `@threadlabs/looma` | HTML source condition for the Vite framework adapter; native registration fallback |
 | `/components/*` | Individual HTML definitions and their controllers |
-| `/editor`, `/editor/ui`, `/editor/extensions` | Framework-neutral editor contracts, Tiptap extensions and commands |
+| `/editor`, `/editor/compact`, `/editor/ui`, `/editor/extensions` | Framework-neutral editor contracts, Tiptap extensions and commands |
+| `/input-modality` | Shared client input-modality tracking |
 | `tokens.css`, `theme-*.css` | Design tokens and themes |
 
 The document and compact editors use the same authored HTML Next component model as the controls. Their framework-neutral sessions own Tiptap; Vue, React and Svelte use the Vite plugin. Looma is pre-1.0: breaking changes require a minor release.
+
+Editing requires the supported Tiptap 2 peers:
+
+```sh
+pnpm add '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+```
 
 ## Principles
 

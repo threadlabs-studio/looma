@@ -2,27 +2,29 @@
 
 The document editor (`ui-editor`), short field (`ui-compact-editor`) and escaped renderer (`ui-compact-content`) have authored HTML Next definitions. Tiptap sessions and authoring behavior live in `src/editor`; framework components are compiled by the consumer’s Vite plugin.
 
-This ledger records the component-port checks before removing the distributed Vue implementation. No temporary mixed-export release is part of that switch. The previous Vue source is retained only as the local parity reference until the release prerequisites below are satisfied.
+This ledger records the authored editor parity checks and the source-only packaging qualification. The handwritten Vue implementations and their public exports have been removed together; framework consumers compile the HTML definitions.
 
 ## Verification
 
-- Package build: 98 definitions and their catalog.
+- Package build: 99 definitions and their catalog.
 - Framework-neutral unit suite: 435 tests passed.
-- Repository checks: 299 tests passed.
+- Repository tooling and documentation checks: 407 tests passed.
 - Shared browser behavior: 98 cases pass through the Vue Vite plugin; 97 pass natively, with the Vue event-binding case excluded. Six additional source/native mounting probes pass, including external native `commandfor` focus for the compact field.
 - Document integration: 60 cases passed per target, including tables, menus, links, images, geometry, scrolling and responsive controls.
 - Additional editor layout checks passed in the existing browser harness. Form participation verifies that internal chip controls do not submit with an enclosing form and that RadioGroup can target an external form.
 - SSR covers the authored document fallback and escaped compact field/renderer output. The built documentation page additionally passes typing, native focus-end, toolbar-mode changes, selection tools, 375 px reflow and no-JavaScript fallback, with no page errors.
 - `tests/framework-consumer/editor-contract.ts` maps every former editor prop and event to its source API and checks that removed instance/model APIs are absent for both editable components.
-- Vue, React and Svelte consumer builds pass with the prepared upstream compiler corrections; ordinary alpha.70 still fails the complete React graph.
+- Vue, React and Svelte documentation builds passed against published alpha.76, including named slots, package-source discovery and a local component in a hidden directory. The Vue fixture also checks the full and compact editor contracts with strict TypeScript declarations.
 
 ## Release prerequisites
 
-The [HTML Next owner](https://github.com/nextwebwg/html-next) needs its prepared alpha.71 fixes published before the export switch is qualified: hydration indexes following dynamic text, deferred bindings on projected controls, structured hydration metadata, and strictly typed React compositions. These have independent regression coverage and package verification. The docs build and the corrected performance comparison use those owner artifacts, not a published alpha.71 claim.
+The [HTML Next alpha.71 owner fixes](https://github.com/nextwebwg/html-next/pull/320) are published: hydration indexes following dynamic text, deferred bindings on projected controls, structured hydration metadata, and strictly typed React compositions. Controlled document and compact edits pass against the registry release, with zero content-metadata writes asserted for both native and Vite-converted Vue components. The [React computed-attribute correction](https://github.com/nextwebwg/html-next/pull/322) and [initial projected-binding and optional-peer import fixes](https://github.com/nextwebwg/html-next/pull/324) are also published, in alpha.72 and alpha.74 respectively.
+
+The [shared-controller and compiler dependency correction](https://github.com/nextwebwg/html-next/pull/325) is published in alpha.75. The [framework compiler loading, Vite 7/8 compatibility and hidden-directory import fixes](https://github.com/nextwebwg/html-next/pull/326) are published in alpha.76. The runtime minimum is alpha.74; the complete framework source graph requires Vite adapter alpha.76. The final framework builds use the actual registry release, with no upstream patch.
 
 The same 21,248-character document and 60 edits measured median update times of 1.9 ms for the former Vue editor, 1.9 ms for converted Vue, and 0.7 ms for native HTML with the owner fixes. No full-document DOM-attribute rewrites occurred. These are local comparative measurements, not universal latency guarantees.
 
-After that publication, finish the source-only export removal and qualify the packed and registry consumers. The case table below concerns the authored editors; it does not claim that export removal or post-publication consumer verification has already happened.
+The packed Looma 0.49.0 matrix passes with registry SDK alpha.76: minimal native SSR/types, strict Vue controls without editor peers, headless editor APIs, full editor SSR/types/build, and the installed documentation CLI with runtime-singleton, discovery, theme-save and reload checks. The default documentation catalog also builds all 154 routes with the documented editor peers. Post-publication registry application qualification remains required; the case table below records authored editor behavior.
 
 ## Case ledger
 

@@ -2,11 +2,16 @@
 
 ## Next release
 
+- Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
+
+- **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.
+- Admit future Threadlabs and Nextwebwg releases through minimum-version ranges without a 1.0 or later major-version ceiling. Docs tooling requires MarkupKit 0.4.2 and Markupress 0.14.6 to share the corrected runtime and pass strict peer checks; lockfiles retain exact tested resolutions.
+
 - RadioGroup accepts the native `form` association. The editor’s chip color controls opt out of enclosing forms, so writing inside a form does not submit an internal color choice.
 
 - Author the document editor, compact editor and compact-content renderer in HTML Next. They use `content` and native `change` event details, with host services supplied through requests. The document editor now starts with a valid empty paragraph, avoiding an invalid caret in an empty root document. Controlled replacements that shorten the document keep the caret inside a valid text block.
 
-- Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs. React graph qualification currently requires upstream declaration-generation fixes.
+- Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs.
 
 - CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
 

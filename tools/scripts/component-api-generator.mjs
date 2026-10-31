@@ -145,7 +145,7 @@ export function validateComponentProjections({
 }
 
 export async function readRepositoryProjectionTags() {
-  // Every component converts to Vue and is exported from @threadlabs/looma/vue.
+  // Every source definition is available to the consumer-side framework adapters.
   const componentTags = CONTRACT_GROUPS.flatMap(({ contracts }) => Object.keys(contracts));
 
   return {

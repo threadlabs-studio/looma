@@ -3,6 +3,7 @@ import htmlNext from "@nextwebwg/html-next-unplugin/vite";
 import vue from "@vitejs/plugin-vue";
 
 // Exercise dependency discovery exactly as an application importing the package does.
+// Workspace test commands run serially: these harnesses share the consumer’s generated cache.
 export function vueSourcePlugins() {
   return [htmlNext({
     target: "vue",

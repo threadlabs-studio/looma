@@ -342,14 +342,6 @@
     ],
     "packages/looma/src/components/ui-tree/examples/05-link-rows.html": [
       "style=\"width: 15rem\""
-    ],
-    "packages/looma/src/vue/editor/LoomaEditor.ts": [
-      "style: {} as CSSProperties",
-      "codeUi.style = {\n        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,\n        left: `${rect.left + rect.width / 2}px`,\n        transform: `translate(-50%, ${above ? \"-100%\" : \"0\"})`,\n      }",
-      "style: codeUi.style",
-      "style: mobileToolbarStyle.value",
-      "style: tableUi.overlayStyle",
-      "style: tableUi.menuStyle"
     ]
   }
 }
