@@ -150,10 +150,10 @@
     "packages/looma/src/tokens/theme-light.css",
     "packages/looma/src/tokens/theme-system.css",
     "packages/looma/src/tokens/tokens.css",
-    "packages/looma/src/vue/editor/compact/compact-editor.css"
+    "packages/looma/src/components/ui-compact-editor/ui-compact-editor.css"
   ],
   "frozenCssDebt": {
-    "packages/looma/src/vue/editor/looma-editor.css": [
+    "packages/looma/src/components/ui-editor/ui-editor.css": [
       ".ProseMirror .column-resize-handle { position: absolute; z-index: 3; right: -5px; top: 0; bottom: 0; width: 10px; cursor: col-resize; background: transparent; touch-action: none;",
       ".ProseMirror .column-resize-handle::after { content: \"\"; position: absolute; inset-block: 0; inset-inline-start: 4px; width: 2px; border-radius: var(--ui-radius-round, 999px); background: color-mix(in srgb, var(--ui-affordance-near-color, var(--ui-border-strong, #c8c8c4)) 72%, transparent); transition: width var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease), background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);",
       ".ProseMirror .column-resize-handle::before { content: \"Drag to resize column\"; position: absolute; z-index: 4; top: 4px; left: calc(100% + 6px); width: max-content; padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px); border-radius: var(--ui-radius-sm, 4px); background: var(--ui-text-primary, #1a1a1a); color: var(--ui-surface-elevated, #fff); font-size: var(--ui-font-size-xs, 0.75rem); line-height: var(--ui-line-height-md, 1.4); opacity: 0; transform: none; transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease); pointer-events: none;",
@@ -342,14 +342,6 @@
     ],
     "packages/looma/src/components/ui-tree/examples/05-link-rows.html": [
       "style=\"width: 15rem\""
-    ],
-    "packages/looma/src/vue/editor/LoomaEditor.ts": [
-      "style: {} as CSSProperties",
-      "codeUi.style = {\n        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,\n        left: `${rect.left + rect.width / 2}px`,\n        transform: `translate(-50%, ${above ? \"-100%\" : \"0\"})`,\n      }",
-      "style: codeUi.style",
-      "style: mobileToolbarStyle.value",
-      "style: tableUi.overlayStyle",
-      "style: tableUi.menuStyle"
     ]
   }
 }

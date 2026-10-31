@@ -86,9 +86,9 @@ The whole new list of selected option values, reported when the user adds or rem
 
 **Components:** ui-combobox (`multiple`)
 
-### Vue editor image activation
+### Editor image activation
 
-`LoomaEditor` emits framework-level events rather than custom-element events:
+`ui-editor` and its framework projections dispatch native `CustomEvent`s. Read the following payload from `event.detail`:
 
 ```ts
 type ImageDetail = {
@@ -101,12 +101,14 @@ type ImageDetail = {
 };
 ```
 
-- `imageActivate` uses `pointer` or `keyboard` and lets a host open its viewer.
-- `imageRenditionError` uses `programmatic` after Looma removes transient
+- `image-activate` uses `pointer` or `keyboard` and lets a host open its viewer.
+- `image-rendition-error` uses `programmatic` after Looma removes transient
   rendition attributes and restores the resolved master (the stored source when
-  `resolveImageSource` is omitted).
+  the `image-delivery` request supplies no source resolver).
 
 Neither event includes provider-specific URLs beyond the stored `src`.
+
+**Components:** ui-editor
 
 ### reorder
 

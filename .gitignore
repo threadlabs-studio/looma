@@ -5,6 +5,8 @@
 
 # Node artifact files
 node_modules/
+packages/looma/src/components/**/*.host.d.ts
+packages/looma/src/components/**/*.d.html.ts
 dist/
 packages/looma/loader/
 packages/looma/layout/
@@ -17,6 +19,7 @@ apps/docs/build/
 apps/docs/playwright-report/
 apps/docs/test-results/
 packages/looma/test-results/
+packages/looma/.test-build/
 apps/storybook/storybook-static/
 apps/storybook/test-results/
 apps/storybook/playwright-report/

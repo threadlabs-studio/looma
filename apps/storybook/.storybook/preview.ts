@@ -5,7 +5,6 @@ import { withOverlayAnimation } from "./overlay-animate";
 import "@threadlabs/looma/tokens.css";
 import "@threadlabs/looma/theme-light.css";
 import "@threadlabs/looma/theme-dark.css";
-import "@threadlabs/looma/vue.css";
 // Registers every component with the HTML Next runtime; each carries its own scoped styles.
 import "@threadlabs/looma";
 

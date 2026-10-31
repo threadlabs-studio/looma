@@ -339,6 +339,15 @@ export function observeOverlayViewport(document, update) {
 }
 
 /** Presents an unanchored or virtual-anchor surface in the top layer, using the shared viewport pass. */
+/** Apply measured surface geometry without exposing arbitrary component styling. */
+export function placeSurface(surface, placement) {
+  if (!surface) return;
+  for (const name of ["left", "top", "right", "bottom", "width", "height", "transform"]) {
+    const value = placement?.[name] ?? "";
+    if (surface.style[name] !== value) surface.style[name] = value;
+  }
+}
+
 export function createViewportSurface(surface, options = {}) {
   const owner = surface.ownerDocument.defaultView;
   let destroyed = false;

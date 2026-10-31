@@ -15,7 +15,7 @@ import { createUiStack } from "@threadlabs/looma/vanilla/UiStack.js";
 import { createUiText } from "@threadlabs/looma/vanilla/UiText.js";
 import { createUiTooltip } from "@threadlabs/looma/vanilla/UiTooltip.js";
 import { navigateTableOfContents, tableOfContentsTree } from "../extensions/table-of-contents";
-import { getTableOfContentsEntries, normalizeTableOfContentsConfig, type LoomaTableOfContentsConfig } from "@threadlabs/looma/editor";
+import { getTableOfContentsEntries, normalizeTableOfContentsConfig, type LoomaTableOfContentsConfig } from "../extensions/table-of-contents";
 import { element } from "./element";
 import { getReferenceDisplay } from "../reference-display";
 

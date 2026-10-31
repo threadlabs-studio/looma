@@ -1,7 +1,7 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Listbox from "../vue/UiListbox.js";
+import { UiListbox as Listbox } from "@threadlabs/looma";
 
 describe("Listbox server render", () => {
   it("keeps authored options in a usable native control before upgrade", async () => {

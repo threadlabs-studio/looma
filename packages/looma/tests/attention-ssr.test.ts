@@ -1,8 +1,8 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import ListItem from "../vue/UiListItem.js";
-import Badge from "../vue/UiBadge.js";
+import { UiListItem as ListItem } from "@threadlabs/looma";
+import { UiBadge as Badge } from "@threadlabs/looma";
 
 describe("Attention presentation before upgrade", () => {
   it("highlights several rows without claiming a current or selected destination", async () => {

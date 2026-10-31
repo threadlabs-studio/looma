@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Pagination from "../vue/UiPagination.js";
+import { UiPagination as Pagination } from "@threadlabs/looma";
 
 const render = (props = {}) => renderToString(createSSRApp({ render: () => h(Pagination, props) }));
 describe("Pagination before upgrade", () => {

@@ -1,0 +1,26 @@
+<template component="ui-compact-mark">
+  <defs>
+    <prop name="text" type="string" default="">Plain text rendered with escaped HTML characters.</prop>
+    <prop name="marks" type="list(object({ type: string, ... }))" default="[]">The supported inline formatting marks.</prop>
+    <prop name="index" type="integer" default="-1">The next outer mark to render.</prop>
+  </defs>
+  <template $match>
+    <strong $when="$index >= 0 and $marks[$index].type = 'bold'"><ui-compact-mark
+        from:text="$text"
+        from:marks="$marks"
+        from:index="$index - 1"
+      ></ui-compact-mark></strong>
+    <em $when="$index >= 0 and $marks[$index].type = 'italic'"><ui-compact-mark
+        from:text="$text"
+        from:marks="$marks"
+        from:index="$index - 1"
+      ></ui-compact-mark></em>
+    <code $when="$index >= 0 and $marks[$index].type = 'code'"><ui-compact-mark
+        from:text="$text"
+        from:marks="$marks"
+        from:index="$index - 1"
+      ></ui-compact-mark></code>
+    <span $else><ui-compact-mark $if="$index >= 0" from:text="$text" from:marks="$marks" from:index="$index - 1"></ui-compact-mark><span $if="$index &lt; 0"
+      >{$text}</span></span>
+  </template>
+</template>

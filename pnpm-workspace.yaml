@@ -2,6 +2,7 @@ packages:
   - "packages/*"
   - "apps/*"
   - "tools/*"
+  - "tests/framework-consumer"
 
 # Documentation tooling peers with the package being developed, including unreleased minors.
 linkWorkspacePackages: true

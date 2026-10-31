@@ -19,6 +19,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     const merged = mergeCatalogs([core, catalog]);
     const c = merged.components[0];
     assert.equal(c.id, 'acme-design/acme-status');
+    assert.equal(c.importSource, './components/acme-status/acme-status.html');
     assert.equal(c.group, 'display');
     assert.equal(c.description, 'A project status.');
     assert.equal(c.summary, 'Current project state.');
@@ -29,7 +30,7 @@ test('discovers a differently prefixed resource, descriptions and examples witho
     assert.equal(c.attributes[0].default, 'Ready');
     assert.equal(c.examples[0].title, 'Ready');
     assert.equal(c.examples[0].id, 'acme-design/acme-status/01-ready');
-    assert.deepEqual(c.targets, ['html-next']);
+    assert.deepEqual(c.targets, ['html-next', 'vue', 'react', 'svelte']);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

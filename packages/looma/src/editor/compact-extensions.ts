@@ -7,7 +7,7 @@ import Italic from "@tiptap/extension-italic";
 import Code from "@tiptap/extension-code";
 import HardBreak from "@tiptap/extension-hard-break";
 import History from "@tiptap/extension-history";
-import { LoomaInputRuleHistory } from "../../../editor/extensions/input-rule-history";
+import { LoomaInputRuleHistory } from "./extensions/input-rule-history";
 
 /** Minimal short-form schema; additional consumer extensions are opt-in. */
 export function getCompactEditorExtensions(): AnyExtension[] {

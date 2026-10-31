@@ -1,12 +1,12 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Card from "../vue/UiCard.js";
-import Button from "../vue/UiButton.js";
-import ActionBar from "../vue/UiActionBar.js";
-import Radio from "../vue/UiRadio.js";
-import Switch from "../vue/UiSwitch.js";
-import Checkbox from "../vue/UiCheckbox.js";
+import { UiCard as Card } from "@threadlabs/looma";
+import { UiButton as Button } from "@threadlabs/looma";
+import { UiActionBar as ActionBar } from "@threadlabs/looma";
+import { UiRadio as Radio } from "@threadlabs/looma";
+import { UiSwitch as Switch } from "@threadlabs/looma";
+import { UiCheckbox as Checkbox } from "@threadlabs/looma";
 
 describe("material surfaces before upgrade", () => {
   it.each(["standard", "expressive"])("retains semantic content and controls with %s treatment", async treatment => {

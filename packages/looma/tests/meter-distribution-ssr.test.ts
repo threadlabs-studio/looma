@@ -1,7 +1,7 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Meter from "../vue/UiMeter.js";
+import { UiMeter as Meter } from "@threadlabs/looma";
 
 // A distribution is a categorical image, not a reading of one progress value.
 describe("Meter distribution server render", () => {

@@ -24,7 +24,7 @@ Release 1 uses two honest Candidate evidence profiles:
 
 ### Package-integrity Candidate
 
-Used by the CSS and `/layout` surfaces of `@threadlabs/looma`:
+Used by the token and theme CSS surfaces of `@threadlabs/looma`:
 
 - public manifest, license, repository, and export metadata are correct;
 - packed contents contain every documented runtime/style/type entry;
@@ -34,7 +34,7 @@ Used by the CSS and `/layout` surfaces of `@threadlabs/looma`:
 
 ### Behavioral Candidate
 
-Used by the root, `/core`, `/editor`, `/editor/ui`, `/editor/extensions`, `/vue`, and `/vue/editor` surfaces
+Used by the root definitions/native support, `/editor`, `/editor/ui`, `/editor/extensions`, `/editor/compact`, and `/markdown` surfaces
 of `@threadlabs/looma`. It includes all
 package-integrity evidence plus:
 
@@ -42,7 +42,7 @@ package-integrity evidence plus:
 - contract documentation covers semantics, attributes/properties/events/slots,
   SSR/no-JS behavior, keyboard/focus, mobile/touch, and known limits;
 - unit, accessibility, adapter render, and required real-browser behavior pass;
-- Knit consumes the approved package artifacts through its release-critical flow.
+- representative consumers use the published source-only package through their release-critical flows.
 
 React and Svelte do not satisfy the Release 1 behavioral profile and are deferred.
 

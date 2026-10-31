@@ -86,7 +86,10 @@
       --_ui-material-separation: clamp(0, var(--ui-surface-separation, 0), 1);
       --_ui-material-active: clamp(0, calc(var(--_ui-material-separation) * 100000), 1);
       --_ui-material-rim: calc(var(--_ui-material-separation) * var(--_ui-material-scale, 1) * 8px);
-      --_ui-material-content-color: var(--ui-dialog-surface, var(--_ui-material-underpaint, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated)))));
+      --_ui-material-content-color: var(
+        --ui-dialog-surface,
+        var(--_ui-material-underpaint, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))))
+      );
       --_ui-material-rim-color: color-mix(in srgb, var(--ui-material-glass, var(--ui-surface-elevated)) calc(var(--_ui-material-active) * 100%), transparent);
       background:
         var(--ui-material-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent))) padding-box,

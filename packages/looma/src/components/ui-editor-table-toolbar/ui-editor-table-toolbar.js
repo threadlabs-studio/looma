@@ -62,17 +62,20 @@ export function connect(host) {
       .filter(([action]) => enabled.has(action))
       .map(([action, label, icon]) => ({ action, label, icon }));
     const background = normalizeCellBackground(host.props.cellBackground.value, host.element.ownerDocument);
-    host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
+    const swatches = backgrounds.filter(([action]) => enabled.has(action))
       .map(([action, label, color]) => ({ action, label, color, selected: normalizeCellBackground(color, host.element.ownerDocument) === background }));
-    host.state.sections = overflowSections
+    const sections = overflowSections
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
           .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
-    host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;
-    if (!host.props.open.value || !host.state.hasOverflow) host.state.overflowOpen = false;
+    const hasOverflow = swatches.length > 0 || sections.length > 0;
+    host.state.swatches = swatches;
+    host.state.sections = sections;
+    host.state.hasOverflow = hasOverflow;
+    if (!host.props.open.value || !hasOverflow) host.state.overflowOpen = false;
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;

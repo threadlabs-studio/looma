@@ -11,7 +11,7 @@ One model, four authoring modes
 
 A Looma definition declares the component tag, native light-DOM root,
 inputs, methods, events, slots, and controller behavior. HTML Next is
-the canonical form. Vue projects that same contract
+the canonical form. Vue, React and Svelte project that same contract
 into its own lifecycle; it does not invent a competing API.
 
 1. | **Author declaratively**
@@ -23,14 +23,13 @@ into its own lifecycle; it does not invent a competing API.
 
 ### The same component, expressed for your host
 
-HTML Next is selected by default. Vue shows the same definition through
-`@threadlabs/looma/vue`; the live result exercises the same Looma definition.
+HTML Next is selected by default. Framework examples import the same definitions through
+`@threadlabs/looma`; the live result exercises the same Looma definition.
 
 ::: tab [HTML Next]
 ```html
-<script type="module">
-  import "@threadlabs/looma";
-</script>
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
 
 <ui-stack gap="m">
   <h2>Account</h2>
@@ -41,112 +40,204 @@ HTML Next is selected by default. Vue shows the same definition through
 
 ::: tab [Vue]
 ```vue
-<script setup lang="ts">
-import { Button, Stack } from "@threadlabs/looma/vue";
+<script setup>
+import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
 
 <template>
-  <Stack gap="m">
-    <h2>Account</h2>
-    <Button variant="solid">Save</Button>
-  </Stack>
+<UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack>
 </template>
+```
+:::
+
+::: tab [React]
+```tsx
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+export default function Example() {
+  return (<><UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack></>);
+}
+```
+:::
+
+::: tab [Svelte]
+```svelte
+<script>
+import { UiButton, UiStack } from "@threadlabs/looma";
+</script>
+
+
+<UiStack gap="m">
+  <h2>Account</h2>
+  <UiButton variant="solid">Save</UiButton>
+</UiStack>
 ```
 :::
 
 ## Install Looma
 
-Looma is published on npm for Vue 3 and direct declarative HTML use. It is pre-1.0, so the surface can still change between minor versions. React support is in development.
+Looma's HTML definitions are the source for Vue, React and Svelte components. Install the HTML Next Vite adapter and your framework's standard Vite compiler. Import components from `@threadlabs/looma`; the adapter generates the framework code and types in the consuming project.
 
-Use Node 22.22.2 or later, or Node 24.15 or later:
+## Vue
 
-```bash
-pnpm add @threadlabs/looma
+```sh
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' vue
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-vue vite vue-tsc typescript
 ```
-
-Vue and Tiptap are optional to Looma as a whole. The general Vue adapters need
-only Vue 3.5 or newer and do not load the editor graph:
-
-```bash
-pnpm add @threadlabs/looma vue@^3.5.0
-```
-
-The Vue editor entry adds Tiptap 2. Pin Tiptap's official Vue lifecycle package
-to the supported 2.x line:
-
-```bash
-pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
-```
-
-Looma ships the concrete Tiptap extensions used by its editor preset inside the
-editor subpath. You do not need to enumerate those packages yourself.
-`@tiptap/vue-3` is explicit because the turnkey `LoomaEditor` uses Tiptap's
-official Vue lifecycle. Applications that use `/editor` without Vue should
-install a compatible `@tiptap/core` 2.x instead.
-
-The root package and `@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and
-`/vue/editor` entries are Tiptap-backed by design.
-
-## Import the tokens and the components
-
-Import the design tokens and one theme once in the browser entry for your application. For HTML
-pages, import the package to register every component; each component carries its own scoped
-styles.
 
 ```ts
-import "@threadlabs/looma/tokens.css";
-import "@threadlabs/looma/theme-light.css";
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import vue from "@vitejs/plugin-vue";
 
-import "@threadlabs/looma";
+export default defineConfig({
+  plugins: [htmlNext({ target: "vue" }), vue()],
+});
 ```
-
-Vue applications import the Vue components and their stylesheet instead:
-
-```ts
-import "@threadlabs/looma/tokens.css";
-import "@threadlabs/looma/theme-light.css";
-import "@threadlabs/looma/vue.css";
-```
-
-Choose only one Looma theme file unless your application supplies its own semantic-token values. Importing the public modules during server rendering is supported; document lowering and controller behavior wait for a browser.
-
-## How components load
-
-[HTML Next](https://nextwebwg.org/html-next/) defines two ways to load components, and they build
-the same components:
-
-- **Installed package** (above). Your bundler imports Looma's entry points, which register the component definitions ahead of time. This is how Looma is used today.
-- **No build.** A page loads HTML Next's browser entry with a `<script type="module">` and links each component's HTML with `<link rel="component" href="…/@threadlabs/looma/components/ui-button/ui-button.html">`; definitions load on demand.
-
-## Render with a framework adapter
-
-The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, and behavior, and no HTML Next runtime.
 
 ```vue
-<script setup lang="ts">
-import { Button, Stack } from "@threadlabs/looma/vue";
+<script setup>
+import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
 
 <template>
-  <Stack gap="m">
+  <UiStack gap="m">
     <h1>Account</h1>
-    <Button variant="solid">Save</Button>
-  </Stack>
+    <UiButton variant="solid">Save</UiButton>
+  </UiStack>
 </template>
 ```
 
-For a complete Vue editor, pass content and host integration callbacks to Looma:
+## React
+
+```sh
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' react react-dom
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-react vite typescript @types/react @types/react-dom
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [htmlNext({ target: "react" }), react()],
+});
+```
+
+The component names retain their prefix:
+
+```tsx
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+export default function Account() {
+  return <UiStack gap="m"><h1>Account</h1><UiButton variant="solid">Save</UiButton></UiStack>;
+}
+```
+
+Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for the complete component graph, including the editors. The adapter minimum includes shared-module, compiler-loading and component-import fixes for the complete catalog; later releases are admitted without a 1.0 ceiling.
+
+## Svelte
+
+```sh
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' svelte@5
+pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @sveltejs/vite-plugin-svelte vite svelte-check typescript
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+
+export default defineConfig({
+  plugins: [htmlNext({ target: "svelte" }), svelte()],
+});
+```
+
+```svelte
+<script>
+import { UiButton, UiStack } from "@threadlabs/looma";
+</script>
+
+<UiStack gap="m"><h1>Account</h1><UiButton variant="solid">Save</UiButton></UiStack>
+```
+
+## Styles and type checking
+
+Import tokens and one theme once in your application entry:
+
+```ts
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/theme-light.css";
+```
+
+The framework compiler includes each component's styles. A source consumer does
+not import `@threadlabs/looma/vue.css`.
+
+Applications that start touch-input tracking explicitly import `trackInputModality`
+from `@threadlabs/looma/input-modality` and call it with their document during client
+setup. This replaces its former Vue-barrel export; its behavior is unchanged.
+
+The adapter discovers Looma through its `html-next` export condition. An HTML
+folder export names `ui-button` as `UiButton`, `ui-site-header` as `UiSiteHeader`,
+and `ui-editor-toolbar` as `UiEditorToolbar`. These names apply in all three
+frameworks.
+
+Vite prepares framework declarations automatically. Run `html-next-sync` before
+standalone `vue-tsc`, `tsc`, or `svelte-check`, and include `src/html-next.d.ts` in
+your TypeScript project. Generated files under `node_modules/.html-next` and the
+ambient declaration file may be ignored by Git.
+
+Named slots use Vue's `<template #brand>`, React's `slots={{ brand: <a>…</a> }}`,
+and Svelte snippets passed through `slots={{ brand }}`. Default content uses the
+framework's normal children syntax. Declared events retain their native
+`CustomEvent` payloads; read `event.detail`.
+
+## HTML Next pages
+
+Link the definitions used by the page:
+
+```html
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<ui-button variant="solid">Save</ui-button>
+```
+
+An HTML Next page compiler resolves the package resource. A browser-only page
+needs a browser-resolvable URL and the HTML Next browser runtime. The `.html`
+file is a component definition, not an ordinary JavaScript component import.
+
+## Editors
+
+Vue and Tiptap are optional to Looma as a whole. Install only the framework and editor peers used by your application.
+
+The document editor (`UiEditor`), short field (`UiCompactEditor`), and semantic JSON renderer (`UiCompactContent`) are HTML Next components. Import them through the same Vite plugin as the other controls. Install `@tiptap/core` and `@tiptap/pm` for editing; there is no Tiptap Vue dependency.
+
+Use the supported Tiptap 2 peers:
+
+```sh
+pnpm add '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+```
+
+Pass JSON through `content`, handle `change.detail.content`, and answer the host integration requests:
 
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
 import {
-  LoomaEditor,
-  type LoomaImageUploader,
-  type LoomaMentionQuery,
-} from "@threadlabs/looma/vue/editor";
+  UiEditor,
+} from "@threadlabs/looma";
+import type { LoomaImageUploader, LoomaMentionQuery } from "@threadlabs/looma/editor";
 
-const content = ref({ type: "doc", content: [] });
+const content = ref({ type: "doc", content: [{ type: "paragraph" }] });
 const findPeople: LoomaMentionQuery = async ({ query, limit }, { signal }) => {
   const response = await fetch(
     `/api/people?q=${encodeURIComponent(query)}&limit=${limit}`,
@@ -161,8 +252,9 @@ const uploadImage: LoomaImageUploader = async ({ file }, { signal }) => ({
 </script>
 
 <template>
-  <LoomaEditor
-    v-model="content"
+  <UiEditor
+    :content="content"
+    @change="content = $event.detail.content"
     :mention-query="findPeople"
     :mention-limit="8"
     :image-upload="uploadImage"
@@ -183,8 +275,8 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
-- React support is in development; the package has no React export.
-- `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
+- Vue, React and Svelte use the HTML Next Vite adapter; framework compilation belongs to the consumer.
+- `UiEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.
 - Hosts own persistence, the authorized people-directory query, upload
   transport, collaboration, presence, workspace/page concepts, and app-specific

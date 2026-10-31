@@ -2,6 +2,8 @@
 // (run `pnpm build` first). Assertions go through the public surface: events, ARIA, the component marker,
 // computed styles, and geometry.
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { vueSourcePlugins } from "./framework-plugins";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,13 +26,13 @@ async function bundle(name: string, source: string, plugins: Plugin[] = []): Pro
     configFile: false,
     logLevel: "silent",
     root: directory,
-    plugins,
-    resolve: { alias: { "@threadlabs/looma": root } },
+    plugins: [...vueSourcePlugins(), ...plugins],
+    resolve: { alias: { "@looma-test/runtime": join(root, "dist/index.js") } },
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
     build: {
       outDir: join(directory, name),
       minify: false,
-      lib: { entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
+      lib: { cssFileName: "components", entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
     },
   });
   return join(directory, name, "bundle.js");
@@ -47,8 +49,10 @@ async function open(spec: Spec, script = bundlePath, options: BrowserContextOpti
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body style="margin:0;padding:40px 40px 40px 60px;width:320px"><div id="app"></div></body></html>`);
-  for (const path of [join(root, "tokens.css"), join(root, "vue/components.css")]) await page.addStyleTag({ path });
+  for (const path of [join(root, "tokens.css")]) await page.addStyleTag({ path });
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
+  const convertedCss = join(dirname(script), "components.css");
+  if (existsSync(convertedCss)) await page.addStyleTag({ path: convertedCss });
   await page.addScriptTag({ path: script });
   await page.waitForSelector(':is([data-component~="ui-tree"], .ui-tree) [role="treeitem"]', { state });
   await page.waitForTimeout(50);
@@ -133,12 +137,12 @@ const files: Node[] = [
 ];
 
 beforeAll(async () => {
-  await mkdir(join(root, ".build"), { recursive: true });
-  directory = await mkdtemp(join(root, ".build", "tree-"));
+  await mkdir(join(root, ".test-build"), { recursive: true });
+  directory = await mkdtemp(join(root, ".test-build", "tree-"));
   browser = await chromium.launch();
   bundlePath = await bundle("vue-tree", `
     import { createApp, h } from "vue";
-    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
     const events = [];
     window.events = events;
     const render = ({ id, children, ...props }) => h(TreeItem, { itemId: id, sortable: true, ...props }, children ? () => children.map(render) : undefined);
@@ -153,9 +157,10 @@ beforeAll(async () => {
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
+  let delayedController = false;
   lateItemsPath = await bundle("vue-tree-late-items", `
     import { createApp, h } from "vue";
-    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
     window.treeItemGate = new Promise(resolve => { window.releaseTreeItems = resolve; });
     window.events = [];
     createApp({ render: () => h(Tree, {
@@ -165,15 +170,17 @@ beforeAll(async () => {
   `, [{
     name: "delay-tree-item-controller",
     transform(code, id) {
-      if (!id.endsWith("/components/ui-tree-item/ui-tree-item.js")) return;
+      if (!id.endsWith("/ui-tree-item/ui-tree-item.js")) return;
+      delayedController = true;
       const declaration = "export function connect(host) {";
       assert.ok(code.includes(declaration), "delay the real Tree Item controller");
       return code.replace(declaration, "export async function connect(host) { await window.treeItemGate;");
     },
   }]);
+  assert.ok(delayedController, "the generated Tree Item controller must be delayed");
   marqueePath = await bundle("vue-tree-marquee", `
     import { createApp, h } from "vue";
-    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
     const name = "A name long enough to run past the end of its row and under the controls";
     createApp({
       render: () => h(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
@@ -188,7 +195,7 @@ beforeAll(async () => {
   // A full-width link keeps its hit area across the row while its title may be short.
   paddedMarqueePath = await bundle("vue-tree-marquee-padded", `
     import { createApp, h } from "vue";
-    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
     createApp({ render: () => h(Tree, { label: "Files", marquee: true, style: "width:220px" }, () => [
       h(TreeItem, { itemId: "padded", label: "A moderately long file name" }, {
         leading: () => h("span", { style: "display:block;width:16px;height:16px" }),
@@ -609,7 +616,7 @@ describe("Tree selection", () => {
   it("follows a controlled Vue selection and marks a partially selected branch", async () => {
     const script = await bundle("vue-controlled-tree-selection", `
       import { createApp, h, ref } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       const ids = ref(["guide"]);
       window.events = [];
       createApp({ render: () => h(Tree, {

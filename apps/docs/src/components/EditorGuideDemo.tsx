@@ -14,42 +14,50 @@ const startingDocument = {
   ]
 };
 
-/** Mount the published Vue editor in the React docs only after the browser loads. */
+/** Mount the native HTML Next editor after the browser loads. */
 export function EditorGuideDemo(): JSX.Element {
   const mount = useRef<HTMLDivElement>(null);
   const documentValue = useRef(startingDocument);
+  const update = useRef<(props: Record<string, unknown>) => void>();
   const [toolbarMode, setToolbarMode] = useState<"bubble" | "sticky">("sticky");
+  const mode = useRef(toolbarMode);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let active = true;
-    let unmount: (() => void) | undefined;
+    let cleanup: (() => void) | undefined;
     void Promise.all([
-      import("vue"),
-      import("@threadlabs/looma/vue/editor"),
+      import("@threadlabs/looma"),
+      import("@nextwebwg/html-next/runtime"),
       import("@threadlabs/looma/tokens.css"),
       import("@threadlabs/looma/theme-light.css"),
-      import("@threadlabs/looma/theme-dark.css"),
-      import("@threadlabs/looma/vue.css")
-    ]).then(([vue, { LoomaEditor }]) => {
+      import("@threadlabs/looma/theme-dark.css")
+    ]).then(([_runtime, { componentRegistry, lowerDocument }]) => {
       if (!active || !mount.current) return;
-      const app = vue.createApp({
-        render: () => vue.h(LoomaEditor, {
-          modelValue: documentValue.current,
-          label: "Editor guide playground",
-          toolbarMode,
-          mentionItems: [
-            { id: "ada", label: "Ada Lovelace", detail: "Design", initials: "AL" },
-            { id: "grace", label: "Grace Hopper", detail: "Engineering", initials: "GH" }
-          ],
-          "onUpdate:modelValue": (value: typeof startingDocument) => { documentValue.current = value; }
-        })
-      });
-      app.mount(mount.current);
-      unmount = () => app.unmount();
+      const invocation = document.createElement("ui-editor");
+      const props = {
+        content: documentValue.current,
+        label: "Editor guide playground",
+        toolbarMode: mode.current,
+        mentionItems: [
+          { id: "ada", label: "Ada Lovelace", detail: "Design", initials: "AL" },
+          { id: "grace", label: "Grace Hopper", detail: "Engineering", initials: "GH" }
+        ]
+      };
+      mount.current.append(invocation);
+      lowerDocument(document, { props: new Map([[invocation, props]]) });
+      const root = mount.current.firstElementChild as HTMLElement;
+      const changed = (event: Event) => {
+        if (event.target === root) documentValue.current = (event as CustomEvent<{ content: typeof startingDocument }>).detail.content;
+      };
+      root.addEventListener("change", changed);
+      update.current = props => componentRegistry.update(root, props);
+      cleanup = () => { root.removeEventListener("change", changed); root.remove(); update.current = undefined; };
     }).catch(() => { if (active) setError(true); });
-    return () => { active = false; unmount?.(); };
-  }, [toolbarMode]);
+    return () => { active = false; cleanup?.(); };
+  }, []);
+
+  useEffect(() => { mode.current = toolbarMode; update.current?.({ content: documentValue.current, toolbarMode }); }, [toolbarMode]);
 
   return (
     <div className="looma-editor-guide-demo">

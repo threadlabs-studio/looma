@@ -2,8 +2,10 @@ import type { Editor } from "@tiptap/core";
 import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
-import "../vue/components.css";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 
 const apps: App[] = [];
 
@@ -30,11 +32,12 @@ describe("LoomaEditor managed suggestion menus", () => {
     document.body.append(host);
     let editor: Editor | null = null;
     const app = createApp({ render: () => h(LoomaEditor, {
-      onReady: (instance: Editor) => { editor = instance; },
+      extensions: captureEditor(instance => { editor = instance; }),
     }) });
     apps.push(app);
     app.mount(host);
     await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
     editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: false }).run();
     editor!.commands.insertContentAt(editor!.state.doc.content.size, { type: "paragraph", content: [{ type: "text", text: "After table" }] });
     await flushBrowser();
@@ -89,7 +92,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     const app = createApp({
       render: () => h(LoomaEditor, {
         mentionQuery,
-        onReady: (instance: Editor) => { editor = instance; },
+        extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
     apps.push(app);
@@ -97,6 +100,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     try {
       app.mount(host);
       await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
       // Suggestions start only from a typed "@".
       await userEvent.click(editor!.view.dom);
       await userEvent.keyboard("@ad");
@@ -134,7 +138,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     let editor: Editor | null = null;
     const app = createApp({
       render: () => h(LoomaEditor, {
-        onReady: (instance: Editor) => { editor = instance; },
+        extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
     apps.push(app);
@@ -142,6 +146,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     try {
       app.mount(host);
       await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
       editor!.chain().focus().insertContent("/tab").run();
 
       await vi.waitFor(() => {
@@ -170,12 +175,13 @@ describe("LoomaEditor managed suggestion menus", () => {
     let editor: Editor | null = null;
     const app = createApp({
       render: () => h(LoomaEditor, {
-        onReady: (instance: Editor) => { editor = instance; },
+        extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
     apps.push(app);
     app.mount(host);
     await flushBrowser();
+    await expect.poll(() => editor).toBeTruthy();
 
     editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run();
     await flushBrowser();

@@ -1,0 +1,8 @@
+<link rel="component" href="../ui-compact-node/ui-compact-node.html">
+<template component="ui-compact-content" module="./ui-compact-content.js">
+  <defs>
+    <prop name="content" type="object({ type: string, ... })" default="{ type: 'doc', content: [] }"
+    >The short rich-text document to render as escaped semantic HTML.</prop>
+  </defs>
+  <div class="looma-compact-content"><ui-compact-node $each="node of $content.content" from:node="$node"></ui-compact-node></div>
+</template>

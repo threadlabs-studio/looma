@@ -24,8 +24,7 @@ On the 0.37 integration, all 56 documentation browser checks and the site artifa
 The first four jobs run independently. `quality`, `release-package`, `verify`, and
 `docs-parity` retain their branch-protection check names. A stage with no affected
 inputs reports its selection and succeeds without installing dependencies.
-The package build checks source types and generated Vue declarations; repeating
-lint/typecheck adds no proof. Style-source restrictions remain enforced by that build.
+The package build checks framework-neutral source types. The framework-consumer fixture checks generated Vue declarations and compiles Vue, React and Svelte through their Vite plugins; repeating the same source lint/typecheck adds no proof. Style-source restrictions remain enforced by that build.
 Compact component state screenshots run automatically; they replace the redundant full-viewport Storywright gallery. Every published component has light/dark state coverage, and core controls also cover each starter theme. Formatting, comment documentation checks, exhaustive documentation page screenshot/axe sweeps, Firefox and WebKit remain outside automatic release qualification. Package packing builds only the published package.
 
 Release preparation has six minutes of runner work for the complete packed

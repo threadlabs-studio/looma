@@ -38,17 +38,15 @@ Not every symbol needs every facet. Stateful, asynchronous, callback-bearing, or
 
 | Package entry | Durable public surface | Import behavior and ownership |
 | --- | --- | --- |
-| `@threadlabs/looma-core` | Overlay positioning and management, input modality, icons, drag and drop, field contracts, and declarative attachment | Browser-only import registers the core declarative graph and document input-modality tracking idempotently. |
-| `@threadlabs/looma-core/loader` | `defineCustomElements` compatibility hook | Registers the declarative graph; it does not install a custom-element runtime. |
-| `@threadlabs/looma-core/declarative` | Registration, attachment, controller lookup, lifecycle management, adoption records, and generated-prop support | Low-level integration entry; importing it alone does not register a package graph. |
-| `@threadlabs/looma-layout` | Declarative layout definitions and sidebar resize contracts | Import registers the layout graph. CSS and light DOM continue to own visual layout. |
-| `@threadlabs/looma-editor` | Union of `./ui` and `./extensions` | Registers editor UI and loads Tiptap-facing helpers. |
-| `@threadlabs/looma-editor/ui` | Editor menu and table event contracts plus overlay geometry helpers | UI emits intent and never mutates an editor document. |
-| `@threadlabs/looma-editor/extensions` | Tiptap extensions, presets, formatting state, and command helpers | The application owns editor lifetime and intent wiring; Tiptap is a peer runtime. |
-| `@threadlabs/looma-react` | Generated native-root components, handles, and tag map | Import registers core, layout, and editor UI graphs. |
-| `@threadlabs/looma-vue` | Generated core/layout wrappers and optional editor entry | Root registration excludes editor; `./editor` opts in. |
-| `@threadlabs/looma-svelte` | Generated DOM factories and adapter binding | `bindAdapter.destroy` owns lifecycle cleanup for action-bound listeners. |
-| `@threadlabs/looma` | Facade over core, layout, editor, Vue, validation, and CSS entries | The facade has no independent API authority and must preserve source-package parity. |
+| `@threadlabs/looma` | HTML Next source condition and native registration entry | Framework applications compile definitions with the Vite plugin. Native browser registration uses the same definitions and controllers. |
+| `@threadlabs/looma/components/*` | Authored HTML definitions, controllers and examples | The definitions own props, slots, events, requests, defaults and semantic roots. |
+| `@threadlabs/looma/editor` | Neutral document session, contracts and editor helpers | The session owns Tiptap lifetime, document changes and authoring behavior; the host owns the mount and chrome. |
+| `@threadlabs/looma/editor/compact` | Short-field session and schema | Loads no complete-document toolbar, tables or image controls. |
+| `@threadlabs/looma/editor/ui` | Menu/table intent contracts and geometry helpers | Controls emit intent; the session applies editor commands. |
+| `@threadlabs/looma/editor/extensions` | Tiptap extensions, presets and commands | A headless host owns its Tiptap instance and command wiring. |
+| `@threadlabs/looma/editor/expressmark` | Editor JSON and Markdown conversion | Import is safe during SSR; conversion reports unsupported data. |
+| `@threadlabs/looma/markdown` | Markdown rules and parsing helpers | Does not register browser component behavior. |
+| `@threadlabs/looma/docs` | Shared documentation generator and theme integration | The package owns rendering shared by documentation consumers. |
 
 ## Deterministic enforcement path
 

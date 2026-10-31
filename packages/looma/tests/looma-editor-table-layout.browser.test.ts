@@ -1,7 +1,7 @@
 import { Editor, type JSONContent } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { getDefaultEditorExtensions, normalizeActiveTableColumnWidths } from "../src/editor/extensions";
-import "../src/vue/editor/looma-editor.css";
+import "../src/components/ui-editor/ui-editor.css";
 import "../src/components/ui-editor-surface/ui-editor-surface.css";
 import "../tokens.css";
 import "../theme-light.css";

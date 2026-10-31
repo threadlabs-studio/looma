@@ -5,7 +5,7 @@ import { createSSRApp, h } from "vue";
 import { execFileSync } from "node:child_process";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Meter from "../vue/UiMeter.js";
+import { UiMeter as Meter } from "@threadlabs/looma";
 
 const render = async (props: Record<string, unknown>) => {
   const html = await renderToString(createSSRApp({ render: () => h(Meter, props) }));
@@ -20,8 +20,19 @@ describe("Meter server render", () => {
     const html = execFileSync(process.execPath, ["--input-type=module", "--eval", `
       import { createSSRApp, h } from 'vue';
       import { renderToString } from 'vue/server-renderer';
-      import Meter from './vue/UiMeter.js';
-      process.stdout.write(await renderToString(createSSRApp({ render: () => h(Meter, { value: 0.29 }) })));
+      import { resolve } from 'node:path';
+      import { createServer } from 'vite';
+      import htmlNext from '@nextwebwg/html-next-unplugin/vite';
+      import vue from '@vitejs/plugin-vue';
+      const server = await createServer({
+        configFile: false, logLevel: 'silent', root: resolve('../../tests/framework-consumer'),
+        plugins: [htmlNext({ target: 'vue', declarationsFile: 'node_modules/.html-next/locale-test.d.ts' }), vue()],
+        server: { middlewareMode: true },
+      });
+      try {
+        const { UiMeter: Meter } = await server.ssrLoadModule('@threadlabs/looma');
+        process.stdout.write(await renderToString(createSSRApp({ render: () => h(Meter, { value: 0.29 }) })));
+      } finally { await server.close(); }
     `], { cwd: new URL("../", import.meta.url), env: { ...process.env, LANG: "de_DE.UTF-8", LC_ALL: "de_DE.UTF-8" }, encoding: "utf8" });
     expect(html).toContain('aria-valuetext="29\u00a0%"');
     expect(Number(/inline-size:([\d.]+)%;/.exec(html)?.[1])).toBeCloseTo(29, 6);

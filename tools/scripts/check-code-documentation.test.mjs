@@ -47,6 +47,7 @@ test("walks re-exports while excluding generated declarations", async () => {
     }),
     "packages/public/src/index.ts": [
       'export { documented, CallbackApi } from "./public.js";',
+      'export { formatLabel } from "./shared.js";',
       'export { generatedValue } from "./generated/value.js";',
       'export { dependencyValue } from "../../dependency/src/index.js";',
       "",
@@ -64,6 +65,7 @@ test("walks re-exports while excluding generated declarations", async () => {
       "export interface CallbackApi { run(callback: () => void): void; }",
       "",
     ].join("\n"),
+    "packages/public/src/shared.js": "/** Converts supplied values to the text used by a labelled control. */\nexport function formatLabel(value) { return String(value); }\n",
     "packages/public/src/generated/value.ts": "export const generatedValue = 1;\n",
     "packages/dependency/src/index.ts": "export const dependencyValue = 1;\n",
   });
@@ -77,9 +79,11 @@ test("walks re-exports while excluding generated declarations", async () => {
   assert.deepEqual(Object.keys(symbols), [
     "packages/public/src/public.ts#CallbackApi",
     "packages/public/src/public.ts#documented",
+    "packages/public/src/shared.js#formatLabel",
   ]);
   assert.deepEqual(symbols["packages/public/src/public.ts#CallbackApi"].issues, []);
   assert.deepEqual(symbols["packages/public/src/public.ts#documented"].facets, ["contract"]);
+  assert.deepEqual(symbols["packages/public/src/shared.js#formatLabel"].issues, []);
 
   const generatedProjection = await analyzePublicDocumentation({
     repositoryRoot,

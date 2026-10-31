@@ -1,29 +1,32 @@
 {
   "name": "looma-release-consumer-fixture",
   "private": true,
-  "version": "0.47.0",
+  "version": "0.49.0",
   "type": "module",
   "packageManager": "pnpm@10.7.1",
   "scripts": {
+    "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "verify:ssr": "tsc -p tsconfig.json --noEmit false --outDir dist && node dist/index.js"
+    "verify:ssr": "node dist/index.js"
   },
   "dependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.69",
-    "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.6.5.tgz",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
+    "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.49.0.tgz",
     "@tiptap/core": "^2.27.2",
     "@tiptap/pm": "^2.27.2",
-    "@tiptap/vue-3": "^2.27.2",
-    "@vue/server-renderer": "3.5.29",
-    "vue": "3.5.29"
+    "@vue/server-renderer": "3.5.43",
+    "vue": "3.5.43"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.74",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "vite": "^8.3.0"
   },
   "pnpm": {
     "overrides": {
-      "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.6.5.tgz"
+      "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.49.0.tgz"
     }
   }
 }

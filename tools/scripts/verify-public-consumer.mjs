@@ -243,7 +243,8 @@ export function publicConsumerEvidence({
       fixture: "tests/release/consumer",
       fixtureLockfileCopied: false,
       localOverridesRemoved: true,
-      freshTemporaryStore: true,
+      packageStore: "shared",
+      frameworkBuild: "passed",
       onlineFetch: true,
       npmCredentialUsed: false,
       typecheck: "passed",
@@ -299,7 +300,7 @@ async function copyCleanFixture(destination) {
     filter(source) {
       const relative = path.relative(fixtureDirectory, source);
       const firstSegment = relative.split(path.sep)[0];
-      return !["node_modules", "pnpm-lock.yaml", ".npmrc"].includes(firstSegment);
+      return !["node_modules", "dist", "pnpm-lock.yaml", ".npmrc"].includes(firstSegment) && relative.split(path.sep).join("/") !== "src/html-next.d.ts";
     }
   });
 }
@@ -381,7 +382,6 @@ async function main() {
   const pnpmVersion = run("pnpm", ["--version"], { capture: true });
   const temporaryRoot = await mkdtemp(path.join(tmpdir(), "looma-public-consumer-"));
   const consumerDirectory = path.join(temporaryRoot, "consumer");
-  const storeDirectory = path.join(temporaryRoot, "pnpm-store");
   const userConfigPath = path.join(temporaryRoot, "public.npmrc");
   const globalConfigPath = path.join(temporaryRoot, "global.npmrc");
   const installArgs = [
@@ -392,12 +392,11 @@ async function main() {
     "--ignore-workspace",
     "--config.prefer-workspace-packages=false",
     "--config.link-workspace-packages=false",
-    "--config.verify-store-integrity=true",
-    "--store-dir",
-    storeDirectory
+    "--config.verify-store-integrity=true"
   ];
   const evidenceCommands = [
-    commandText("pnpm", [...installArgs.slice(0, -1), "<fresh-temporary-store>"]),
+    commandText("pnpm", installArgs),
+    "pnpm run build",
     "pnpm run typecheck",
     "pnpm run verify:ssr"
   ];
@@ -417,6 +416,7 @@ async function main() {
     // npm serves a new version's metadata before its tarball, so an install straight after
     // publishing can 404 for a minute or two. Retry rather than fail a release that is fine.
     installWithRetries(installArgs, consumerDirectory, environment);
+    run("pnpm", ["run", "build"], { cwd: consumerDirectory, env: environment });
     run("pnpm", ["run", "typecheck"], { cwd: consumerDirectory, env: environment });
     run("pnpm", ["run", "verify:ssr"], { cwd: consumerDirectory, env: environment });
 

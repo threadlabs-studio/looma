@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // its whole content with JavaScript off. A copied page that drifts from apps/docs/docs fails here.
 
 const pages = [
-  { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"]] },
+  { docusaurus: "getting-started/", markupress: "getting-started/", views: [[], ["Vue"], ["React"], ["Svelte"]] },
   ...["release-1-support", "architecture", "conventions", "tokens", "theme-reference", "overlay-contract", "adapter-parity"]
     .map((page) => ({ docusaurus: `${page}/`, markupress: `${page}/`, views: [[]] })),
 ];
@@ -17,7 +17,7 @@ const sites = {
     chrome: "[role=tablist], button, .hash-link, .looma-mode-switch, .looma-model__steps li > span",
     // Docusaurus escapes a `{#id}` heading ID even inside a code fence, and shows the backslash.
     // DeclarativeModel.tsx's JSX drops the space before its <code>; the Markdown page keeps it.
-    fix: (text) => text.replaceAll("\\{#", "{#").replace("through@threadlabs/looma/vue", "through @threadlabs/looma/vue"),
+    fix: (text) => text.replaceAll("\\{#", "{#").replace("through@threadlabs/looma", "through @threadlabs/looma"),
   },
   markupress: { root: "article.markupress-prose", chrome: "[role=tablist], button" },
 };

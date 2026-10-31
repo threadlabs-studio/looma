@@ -42,6 +42,6 @@ Start with a palette and a typeface. Shape the rhythm, corners, depth, and motio
 
 ## Markup first. Platform native.
 
-Author components in HTML Next. Ship semantic HTML or Vue from the same definition, with native focus, forms, and browser behavior at the foundation.
+Author components in HTML Next. Use the same definitions in native HTML, Vue, React, and Svelte, with native focus, forms, and browser behavior at the foundation.
 
 [See how Looma works](/architecture/)
