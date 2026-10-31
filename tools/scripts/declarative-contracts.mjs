@@ -46,6 +46,7 @@ function inferRoot(source, tag) {
   const body = template
     .replace(/^\s*<template\b[^>]*>/, "")
     .replace(/<\/template>\s*$/, "")
+    .replace(/^(?:\s*<!--[\s\S]*?-->)+\s*/, "")
     .trim();
   // A polymorphic root (`<template $match>`) renders its `$else` arm by default, as HTML Next records it.
   const match = /^<template\s+\$match\b/.test(body)

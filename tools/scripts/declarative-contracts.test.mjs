@@ -30,6 +30,12 @@ test("derives the public contract from one maintained declarative definition", (
   assert.deepEqual(contract.slots, []);
 });
 
+test("root discovery skips formatting comments but still requires a rendered native element", () => {
+  const source = '<template component="ui-example"><defs></defs><!-- <button> is commentary --><!-- markup-fmt-ignore --><input></template>';
+  assert.equal(parseDeclarativeContract(source, "ui-example").root, "input");
+  assert.throws(() => parseDeclarativeContract('<template component="ui-example"><defs></defs><!-- <input> is commentary --></template>', "ui-example"), /no native root/);
+});
+
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
