@@ -301,6 +301,9 @@
 ### Improvements
 
 - Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
+- Keep wide SiteHeader brand images inside their available width beside mobile controls, preserving image proportions in both reading directions.
+
 ## v0.34.0
 
 ### Migration: readable theme recipes
