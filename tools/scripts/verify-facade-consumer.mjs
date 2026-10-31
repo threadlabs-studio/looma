@@ -46,7 +46,7 @@ async function assertPackagesAbsent(directory, packages, consumerLabel) {
   }
 }
 
-async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
+async function verifyMinimalConsumer(directory, tarball) {
   await mkdir(directory, { recursive: true });
   await writeJson(path.join(directory, "package.json"), {
     name: "looma-minimal-consumer",
@@ -54,7 +54,6 @@ async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
     type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
-      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
     },
   });
   // Without a document (SSR), the registration entry loads and registers nothing.
@@ -113,7 +112,6 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
     name: "looma-vue-only-consumer", private: true, type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
-      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
       vue: facadeManifest.devDependencies.vue,
       "@vue/server-renderer": facadeManifest.devDependencies.vue,
     },
@@ -171,7 +169,6 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
     name: "looma-peer-consumer", private: true, type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
-      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
       "@tiptap/core": facadeManifest.peerDependencies["@tiptap/core"],
       "@tiptap/pm": facadeManifest.peerDependencies["@tiptap/pm"],
     },
@@ -235,7 +232,7 @@ async function main() {
     // Drain both branches before cleanup, including when one reports a failure.
     const consumers = await Promise.allSettled([
       (async () => {
-        await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball, facadeManifest);
+        await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball);
         await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
         await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
         await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);

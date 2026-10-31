@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
 
 - **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.

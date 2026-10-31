@@ -1,12 +1,16 @@
 # @threadlabs/looma
 
 Looma's components are authored as HTML Next definitions. The HTML Next Vite adapter
-converts those definitions in Vue, React and Svelte applications.
+converts those definitions in Vue, React and Svelte applications. In an existing
+Vue/Vite project:
 
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0' vue
-pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-vue vite
+pnpm add @threadlabs/looma
+pnpm add -D @nextwebwg/html-next-unplugin
 ```
+
+Looma installs its HTML Next runtime automatically. For a new Vue project, also
+install `vue`, `@vitejs/plugin-vue`, `vite`, `vue-tsc` and `typescript`.
 
 ```ts
 // vite.config.ts
@@ -34,7 +38,8 @@ The framework-neutral `trackInputModality` helper is available from
 For React, use `target: "react"` before `react()` from `@vitejs/plugin-react`.
 For Svelte 5, use `target: "svelte"` before `svelte()` from
 `@sveltejs/vite-plugin-svelte`. Both import the same prefixed names from
-`@threadlabs/looma`. Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later; see the [loading guide](https://threadlabs.studio/looma/getting-started/).
+`@threadlabs/looma`. See the [loading guide](https://threadlabs.studio/looma/getting-started/)
+for framework setup and compatibility requirements.
 
 The document editor, compact field, and compact renderer use the same source imports:
 

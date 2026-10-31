@@ -20,7 +20,7 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest) 
   await json(path.join(directory, 'package.json'), {
     name: 'looma-documentation-consumer', private: true, type: 'module', packageManager,
     dependencies: {
-      '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
+      '@threadlabs/looma': `file:${tarball}`,
       '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
   });
@@ -30,14 +30,35 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest) 
   await run(process.execPath, ['--experimental-import-meta-resolve', '--input-type=module', '--eval', `
 import assert from 'node:assert/strict';
 import { realpath } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 const origin = pathToFileURL(process.cwd() + '/package.json').href;
-const runtime = await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', origin)));
+const looma = import.meta.resolve('@threadlabs/looma/editor', origin);
+const runtime = await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', looma)));
 for (const name of ['@threadlabs/markupkit', '@threadlabs/looma/editor']) {
   const entry = import.meta.resolve(name, origin);
   assert.equal(await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', entry))), runtime, name + ' must share the application runtime');
 }
 console.log('Documentation packages resolve one HTML Next runtime through their ESM entry points.');
+const runtimeRequire = createRequire(import.meta.resolve('@nextwebwg/html-next/runtime', looma));
+const { JSDOM } = await import(runtimeRequire.resolve('jsdom'));
+const dom = new JSDOM('', { url: 'http://localhost/' });
+for (const name of Object.getOwnPropertyNames(dom.window)) {
+  if (!(name in globalThis) || ["Event", "EventTarget", "AbortController", "AbortSignal"].includes(name)) {
+    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value: dom.window[name] });
+  }
+}
+try {
+  const { stop } = await import('@threadlabs/looma');
+  const markupkit = import.meta.resolve('@threadlabs/markupkit', origin);
+  const { componentRegistry } = await import(import.meta.resolve('@nextwebwg/html-next/runtime', markupkit));
+  const button = componentRegistry.create('ui-button', { content: ['Save'] });
+  document.body.append(button);
+  componentRegistry.update(button, { disabled: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(button.disabled, true, 'MarkupKit and Looma must share native component updates');
+  stop();
+} finally { dom.window.close(); }
 `], directory);
   await run(pnpm, ['exec', 'looma-docs', 'init', '--title', 'The Fellowship'], directory);
   const config = JSON.parse(await readFile(path.join(directory, 'looma.docs.json'), 'utf8'));
