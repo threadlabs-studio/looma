@@ -124,3 +124,20 @@ test('Vue expression quoting preserves apostrophes, quotes, backslashes and HTML
   const expression = component.attrs.find(attribute => attribute.name === ':values').value;
   assert.deepEqual(JSON.parse(JSON.stringify(runInNewContext(expression))), values);
 });
+
+test('HTML Next separates named slots from a single default text label', () => {
+  const markup = '<ui-page-header><ui-icon slot="leading" name="folder"></ui-icon> Planning <span slot="description">Roadmaps</span></ui-page-header>';
+  const code = frameworkExamples({ markup }, [])['html-next'].code;
+  assert.equal(code, `<ui-page-header>
+  <ui-icon
+    slot="leading"
+    name="folder"
+  ></ui-icon>
+  Planning
+  <span
+    slot="description"
+  >Roadmaps</span>
+</ui-page-header>`);
+  const inline = frameworkExamples({ markup: '<ui-label><ui-icon slot="leading"></ui-icon>Hello <strong>world</strong>!</ui-label>' }, [])['html-next'].code;
+  assert.ok(inline.includes('Hello <strong>world</strong>!'));
+});

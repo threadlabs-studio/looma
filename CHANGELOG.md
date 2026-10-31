@@ -13,6 +13,7 @@
 - Require MarkupKit 0.4.3 for server-prepared calendar documentation and HTML Next Vite adapter alpha.79 for framework preparation. Keep minimum-version ranges and exact tested lockfile resolutions.
 - Generated Vue example bindings use single-quoted JavaScript strings in objects and arrays, while preserving escaped content and other framework output.
 
+- Give authored HTML Next examples the same separate attribute lines and nesting as generated examples. Place named slots and their default text labels on separate indented lines.
 - Give generated documentation examples readable line breaks, separate attribute lines and consistent nesting in every framework. Keep React's Example component while removing return parentheses and redundant fragments.
 - Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
 - **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.

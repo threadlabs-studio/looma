@@ -26,11 +26,20 @@ function vueExpression(value) {
 }
 
 // Derive block layout from the tree. Mixed text and inline adjacency stay together.
-function layout(nodes) {
+function layout(nodes, owner) {
   const structural = nodes.some(node => node.kind === 'slot' || node.kind === 'element' && (node.component || !inlineElements.has(node.tag)));
-  const multiline = structural
+  const labels = nodes.filter(node => node.kind === 'text' && !formattingSpace(node));
+  const namedSlot = node => node.kind === 'element' && node.attributes.some(attribute => attribute.name === 'slot' && attribute.value);
+  const slottedLabel = owner?.tag.includes('-') && labels.length === 1 && !labels[0].preserve
+    && nodes.some(namedSlot) && nodes.every(node => node.kind !== 'element' || namedSlot(node));
+  const multiline = slottedLabel || structural
     && !nodes.some(node => node.kind === 'text' && !formattingSpace(node));
-  return { multiline, nodes: multiline ? nodes.filter(node => !formattingSpace(node)) : nodes };
+  if (!multiline) return { multiline, nodes };
+  const displayed = nodes.filter(node => !formattingSpace(node)).map(node => {
+    if (!slottedLabel || node.kind !== 'text') return node;
+    return { ...node, value: node.value.replace(/^[\t\n\r\f ]+|[\t\n\r\f ]+$/g, '') };
+  });
+  return { multiline, nodes: displayed };
 }
 
 function text(node, target) {
@@ -101,8 +110,8 @@ function snippetBindings(model) {
 function printer(model, target) {
   const bindings = target === 'svelte' ? snippetBindings(model) : new Map();
 
-  function sequence(nodes, depth, forceLines = false) {
-    const arranged = layout(nodes);
+  function sequence(nodes, depth, forceLines = false, owner) {
+    const arranged = layout(nodes, owner);
     const content = arranged.nodes.map(node => (arranged.multiline ? indent(depth) : '') + render(node, depth)).join(arranged.multiline ? '\n' : '');
     return (forceLines && !arranged.multiline ? indent(depth) : '') + content;
   }
@@ -141,10 +150,11 @@ function printer(model, target) {
     const wrapped = attrs.length > 0;
     const start = wrapped ? `<${node.tag}\n${attrs.map(value => indent(depth + 1) + value).join('\n')}\n${indent(depth)}` : `<${node.tag}`;
     const children = target === 'vue' ? node.children : node.children.filter(child => child.kind !== 'slot');
-    const arranged = layout(children);
+    const owner = target === 'html-next' ? node : undefined;
+    const arranged = layout(children, owner);
     if (!arranged.nodes.length && (node.component || target === 'react')) return `${start}${wrapped ? '' : ' '}/>`;
     if (voidElements.has(node.tag)) return `${start}>`;
-    const content = sequence(children, depth + 1);
+    const content = sequence(children, depth + 1, false, owner);
     return arranged.multiline
       ? `${start}>\n${content}\n${indent(depth)}</${node.tag}>`
       : `${start}>${content}</${node.tag}>`;
