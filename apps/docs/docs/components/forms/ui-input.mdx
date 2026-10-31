@@ -6,7 +6,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Input
 
-Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.
+A native input with Looma’s shared control theme. Optional segments support block selection, character filtering, automatic or typed separator advancement, and continuous authentication-code entry.
 
 <ComponentExamplesApiTabs component="ui-input" />
 
@@ -77,3 +77,24 @@ a class of your own. Set the same hooks on `:root` or an ancestor to style a gro
 affixes: fixed text before or after the value, such as `https://` or `.example.com`. The input keeps
 its behaviour there, and the group's page lists what it guarantees: one tab stop, a lone Input's
 focus ring, affixes that focus the input when pressed, and affixes read as the input's description.
+
+
+## Edit blocks progressively
+
+Set `segments` to a list of editable blocks and fixed separators. An editable block
+has a `placeholder` and a `pattern` matching one allowed Unicode character. Its
+placeholder length determines how many characters fit. Hint text uses the native
+placeholder attribute and never becomes the input value. Partial entry contains
+entered characters and separators. A separator has `literal`
+instead. For example, hours and minutes use:
+
+```html
+<ui-input value="09:30" segments='[{ placeholder: "hh", pattern: "[0-9]" }, { literal: ":" }, { placeholder: "mm", pattern: "[0-9]" }]'></ui-input>
+```
+
+Focus selects the first block. Type a complete block or its separator to advance.
+Arrow keys move between blocks; Backspace clears or moves back. Adjacent one-digit
+blocks support authentication codes with `autocomplete="one-time-code"`. The
+control remains one native input for selection, clipboard, autofill and submission.
+Use native `pattern` and `required` attributes to validate a completed code.
+Date Field and Time Field configure localized date and time blocks automatically.

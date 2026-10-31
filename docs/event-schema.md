@@ -27,6 +27,22 @@ Tabs and Radio Group report `{ value, previousValue, trigger }`. Menu and Contex
 `{ value, checked?, trigger }`, where `checked` is present for a checkable choice. Tree reports
 `{ ids: string[], trigger }`: the requested selected IDs in tree order. Tree Item `selected` remains
 consumer controlled. Editor suggestion menus report `{ index, value }`.
+Calendar reports `{ value, trigger }` for every accepted day activation, including
+an already selected date. Its `input` and `change` events report only a changed
+selection; month/year navigation does not change the selected date.
+
+Date Range Picker reports `input` and `change` with
+`{ value: { start: string, end: string }, trigger }`. Endpoints are inclusive
+`YYYY-MM-DD` dates. Choosing an existing endpoint or completing a two-click calendar range commits
+both endpoints immediately. An unfinished first click or partial typed pair
+does not replace the previously accepted range. Its `query-change`
+includes `{ endpoint: 'start' | 'end', query }`; `validation-change` includes
+`{ invalid, message, endpoint? }` so applications can associate field errors.
+
+### month-change
+
+Calendar reports `{ month: string, trigger }` when user navigation or a `focus-date`
+request changes the visible ISO `YYYY-MM`. External prop replacements report no event.
 
 ### navigate
 
@@ -56,7 +72,15 @@ expansion behavior.
 { value: string; trigger }
 ```
 
-**Components:** ui-input
+**Components:** ui-input, ui-date-field, ui-date-picker, ui-time-field, ui-time-picker
+
+### file selection
+
+File Input reports `change` with `{ files: File[], trigger }` after accepting a
+selection, removal or drop. The array contains native File objects, including an
+empty array after removing the last file. A rejected proposal reports `reject`
+with `{ files: File[], message }` and preserves the previously accepted selection.
+Applications own upload transport and progress.
 
 ### dismiss
 
@@ -142,6 +166,19 @@ placement in addition to dragging.
 
 ## Controller requests
 
+Date Field, Time Field and Time Picker accept a native `set-value` CustomEvent
+on their rendered root, with detail `{ value: string, trigger?: 'keyboard' |
+'pointer' | 'programmatic' }`. The canonical value must satisfy the field's
+constraints. An accepted request replaces the editable draft, including an invalid
+draft whose last accepted value is unchanged. A changed accepted value emits the
+usual input/change events once. Rejected requests leave the value and draft
+validity unchanged. Dispatch a cancelable event to observe rejection through
+`dispatchEvent()` returning false, including for disabled or readonly fields.
+The request does not change the external reset seed. Use ordinary
+value props for application state reflection; picker compositions use this request
+to commit an explicit choice. A native `validate` event checks the current draft
+and reports validation-change.
+
 Toast Region accepts a native `show-toast` CustomEvent dispatched on its rendered
 root, with detail `{ message: string, id?: string, tone?: 'neutral' | 'info' |
 'success' | 'warning' | 'danger', duration?: number }`. `id` identifies the
@@ -151,8 +188,8 @@ existing `--show-toast` invoker command reads the source button's `value`.
 Combobox accepts a native `validate` event or a `command` event with `command: '--validate'` and
 reports validation through its existing `validation-change` event. Focus its
 native `input[role="combobox"]` directly. These replace generated `show()`,
-`validate()`, and `focusInput()` element methods; controllers have only a default
-instance initializer and use connection subscriptions for DOM setup/cleanup.
+`validate()`, and `focusInput()` element methods. Controllers use the named
+`connect(host)` lifecycle and return cleanup for their DOM setup.
 
 An HTML Next parent can target a child through its own local ref. For example,
 `<dispatch target="customer" event="validate">` addresses
@@ -172,3 +209,12 @@ Adapters map:
 
 Event names can have component-specific details; adapter generation reads each component's declared
 event type, rather than assuming that one name implies one universal payload.
+
+### Segmented input selection
+
+An Input configured with `segments` accepts a native `select-first-segment` event
+to select its first editable block after a composing owner changes the displayed
+representation. It leaves focus with the caller. Ordinary focus selects that
+block automatically. Native input events continue to carry the edited text;
+Date Field and Time Field own parsing and emit canonical values through their
+existing input/change events.

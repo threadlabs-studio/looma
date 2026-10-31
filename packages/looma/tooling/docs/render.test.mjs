@@ -74,6 +74,7 @@ test('native reference tabs expose literal Markdown fences to the standard parse
   const example = { id: 'example/ui-status/default', title: 'Ready', description: 'Ready status.', markup: '<ui-status label="Ready">**literal**</ui-status>', frameworks: {} };
   const component = { title: 'Status', tag: 'ui-status', id: 'example/ui-status', package: 'example', description: 'A status.', examples: [example] };
   const page = referencePage(component, { components: [component] }, '/card.html', '/');
+  assert.doesNotMatch(page, /<ui-card as="section" variant="subtle" padding="lg">/, 'the example card owns its surface without a second padded card');
   const document = parse(page, { syntax: 'standard', trustedHtml: true });
   const codes = [];
   const collect = node => {

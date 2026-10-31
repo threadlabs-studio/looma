@@ -112,7 +112,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       const links = tags.filter(tag => resourceByTag.has(tag)).map(tag => `<link rel="component" href="${escapeHtml(resourceByTag.get(tag).resource)}">`).join('\n');
       const setup = path.join(previews, key + '.js');
       if (example.behavior) await write(setup, `import setupExample from ${JSON.stringify(example.behavior)};\nexport function connect(host) { return setupExample(host.element); }\n`);
-      await write(file, `${links}\n<template component="${previewTag(example)}"${example.behavior ? ` module="./${key}.js"` : ''}><defs><prop name="namespace" type="string" default="${key}">A unique namespace for this example's IDs and control relationships.</prop></defs><div><div data-preview="${escapeHtml(example.id)}"${component.group === 'layout' ? ' data-preview-layout' : ''}>${scopedExampleMarkup(example, base)}</div></div></template>\n`);
+      await write(file, `${links}\n<template component="${previewTag(example)}"${example.behavior ? ` module="./${key}.js"` : ''}><defs><prop name="namespace" type="string" default="${key}">A unique namespace for this example's IDs and control relationships.</prop></defs><div><div data-preview="${escapeHtml(example.id)}"${example.stretch || component.group === 'layout' ? ' data-preview-layout' : ''}>${scopedExampleMarkup(example, base)}</div></div></template>\n`);
       examples.push({ ...example, file, component: component.id, path: base + componentPath(component).slice(1) });
     }
   }

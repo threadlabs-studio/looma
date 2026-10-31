@@ -1,0 +1,24 @@
+<!--
+title: Validation summary
+description: After validation, focus the summary and link each error to its native input. Keep the same message beside the field. The application supplies errors and decides when to validate; Callout, List and Form Field own the presentation.
+-->
+<ui-stack>
+  <section data-error-summary tabindex="-1" aria-label="Check these two fields">
+    <ui-callout tone="danger" heading="Check these two fields">
+      <ui-list density="compact">
+        <ui-list-item wrap><a href="#summary-name">Enter your name.</a></ui-list-item>
+        <ui-list-item wrap><a href="#summary-email">Enter a valid email address.</a></ui-list-item>
+      </ui-list>
+    </ui-callout>
+  </section>
+  <ui-form-field required invalid>
+    <label slot="label" for="summary-name">Name</label>
+    <ui-input id="summary-name" name="name" autocomplete="name"></ui-input>
+    <small slot="error">Enter your name.</small>
+  </ui-form-field>
+  <ui-form-field required invalid>
+    <label slot="label" for="summary-email">Email</label>
+    <ui-input id="summary-email" name="email" type="email" value="incomplete" autocomplete="email"></ui-input>
+    <small slot="error">Enter a valid email address.</small>
+  </ui-form-field>
+</ui-stack>

@@ -2,6 +2,17 @@
 
 ## Next release
 
+- Add Calendar, Date Field, Date Picker, Date Range Picker, Time Field and Time Picker with Temporal validation, localized typing and canonical string values. Date selection exports `YYYY-MM-DD` by default; explicit local date-time, instant and zoned modes preserve their distinct meanings and fractional precision.
+- Calendar supports month/year navigation, direct year entry, locale week order with explicit overrides, inclusive bounds, allowed/disabled dates and intervals, and disabled weekdays. Shared theme tokens style weekday/weekend bands, circular choices and continuous range highlights in light and dark themes.
+- Date and time pickers commit valid edits immediately. Calendar day/month/year views retain their size, and time choices follow the locale. Existing range edits retain the opposite endpoint until crossed, then collapse both to the edited date; new backwards selections sort their endpoints chronologically.
+- Input adds optional `segments` for progressive block entry, character filtering, typed separator advancement, arrow navigation, backward deletion and authentication-code continuation. Format hints stay in the native placeholder attribute rather than entering raw or submitted values.
+- Preserve editable native date/time fallbacks before JavaScript and hydrate server-prepared calendar grids without replacing nodes. Partial drafts, pre-upgrade edits, external replacements, native forms and cancelled resets retain their ownership and validity.
+- Add File Input with native browsing, drag/drop, individual removal and optional type/size restrictions. Native forms receive File objects; applications own uploads. Add a validation-summary recipe with linked field errors.
+- Grid adds fixed columns, zero gap, theme-derived shaded columns and inclusive selection bands. Cluster adds `padding="xs"`; selected ghost buttons share semantic selection tokens; logical icons and Select chevrons support RTL. Popover adds caller-controlled activation through `trigger="manual"`.
+- Composed fields focus their visible editor and retain label/help associations across native enhancement. Disabled ghost choices remain transparent unless selected.
+- Require MarkupKit 0.4.3 for server-prepared calendar documentation and HTML Next Vite adapter alpha.79 for framework preparation. Keep minimum-version ranges and exact tested lockfile resolutions.
+- Generated Vue example bindings use single-quoted JavaScript strings in objects and arrays, while preserving escaped content and other framework output.
+
 - Give generated documentation examples readable line breaks, separate attribute lines and consistent nesting in every framework. Keep React's Example component while removing return parentheses and redundant fragments.
 - Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
 - **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.

@@ -1,0 +1,15 @@
+<!--
+title: Keep unavailable dates outside the range
+description: Bounds, a weekday blacklist and an unavailable interval restrict typing and selection. Interior dates must be available unless allow-unavailable-within-range is set explicitly.
+-->
+<ui-date-range-picker
+  min="2026-10-01"
+  max="2026-12-31"
+  disabled-weekdays="[6, 7]"
+  disabled-ranges="[{ start: '2026-11-23', end: '2026-11-27' }]"
+  start-name="from"
+  end-name="to"
+  start-input-id="available-range-start"
+  end-input-id="available-range-end"
+  locale="en-US"
+></ui-date-range-picker>

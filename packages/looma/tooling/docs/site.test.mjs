@@ -28,6 +28,8 @@ test('prerenders examples in shared cards without frame documents, including beh
   try {
     const { readCatalog } = await import('./catalog.mjs');
     const catalog = await readCatalog(new URL('../../docs/catalog.json', import.meta.url));
+    const stretched = catalog.components.find(component => component.tag === 'ui-button').examples[0];
+    stretched.stretch = true;
     const site = await prepareDocumentation({ root, catalog, config: { title: 'A design system', base: '/system/' } });
     const button = await readFile(path.join(site.content, 'components/03.(Forms)/ui-button.md'), 'utf8');
     assert.equal(catalog.groups.at(-1).id, 'extras');
@@ -37,6 +39,9 @@ test('prerenders examples in shared cards without frame documents, including beh
     assert.match(button, /looma-example-card/);
     assert.match(button, /<ui-stack gap="xl"><looma-example-card/, 'example cards own their frame and sit directly in the reference stack');
     assert.match(button, /<div slot="preview"><div data-preview=/);
+    assert.match(button, /data-preview="[^"]+" data-preview-layout/);
+    const stretchedPreview = site.examples.find(example => example.id === stretched.id);
+    assert.match(await readFile(stretchedPreview.file, 'utf8'), /data-preview="[^"]+" data-preview-layout/);
     assert.doesNotMatch(button, /iframe|\/_looma\/preview\//);
     assert.match(button, /Framework props/);
     assert.match(button, /Emphasis: how loudly/);

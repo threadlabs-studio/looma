@@ -44,7 +44,7 @@ async function bundle(name: string, source: string, mode = "production"): Promis
   return path;
 }
 
-async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>): Promise<Page> {
+async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>, beforeUpgrade?: (page: Page) => Promise<void>): Promise<Page> {
   const page = await browser.newPage(options);
   await beforeLoad?.(page);
   const errors: string[] = [];
@@ -53,6 +53,7 @@ async function open(bundlePath: string, body: string, css: readonly string[], op
   for (const path of css) await page.addStyleTag({ path });
   const convertedCss = join(dirname(bundlePath), "components.css");
   if (existsSync(convertedCss)) await page.addStyleTag({ path: convertedCss });
+  await beforeUpgrade?.(page);
   await page.addScriptTag({ path: bundlePath });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
@@ -69,6 +70,238 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   if (directory) await rm(directory, { recursive: true, force: true });
+});
+
+describe("Date controls framework hydration", () => {
+  it("keeps a newer external value ahead of a pending native-field handoff", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { UiDateField: DateField } = await import("@threadlabs/looma");
+    const props = { name: "due", inputId: "replacement-date", value: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(DateField, props)]) }));
+    const path = await bundle("native-handoff-replacement", `
+      import { createSSRApp, h, reactive } from 'vue';
+      import { UiDateField as DateField } from '@threadlabs/looma';
+      const props = reactive(${JSON.stringify(props)});
+      window.nativeReplacementProps = props;
+      window.nativeReplacementInputs = [];
+      createSSRApp({ render: () => h('form', [h(DateField, { ...props,
+        'onUpdate:value': value => props.value = value,
+        onInput: event => window.nativeReplacementInputs.push(event.detail.value),
+      })]) }).mount('#app');
+    `);
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined, async page => {
+      await page.locator('#replacement-date').fill("");
+      await page.locator('#replacement-date').press("1");
+      assert.equal(await page.locator('#replacement-date').evaluate(input => (input as HTMLInputElement).validity.badInput), true);
+      await page.locator('#replacement-date').evaluate(input => input.addEventListener('input', () => {
+        queueMicrotask(() => { (window as any).nativeReplacementProps.value = "2026-12-03"; });
+      }, { once: true }));
+    });
+    try {
+      await page.locator('#replacement-date').fill("2026-11-02");
+      await page.waitForTimeout(50);
+      assert.deepEqual(await page.locator("form").evaluate(form => [...new FormData(form as HTMLFormElement)]), [["due", "2026-12-03"]]);
+      assert.deepEqual(await page.evaluate(() => (window as any).nativeReplacementInputs), []);
+    } finally { await page.close(); }
+  });
+
+  it("retains a completed range endpoint while its native opposite is still incomplete", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { UiDateRangePicker: DateRangePicker } = await import("@threadlabs/looma");
+    const props = { value: { start: "2026-10-10", end: "2026-10-15" }, startName: "from", endName: "to", startInputId: "partial-start", endInputId: "partial-end", today: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(DateRangePicker, props)]) }));
+    const path = await bundle("partial-range-before-hydration", `
+      import { createSSRApp, h } from 'vue';
+      import { UiDateRangePicker as DateRangePicker } from '@threadlabs/looma';
+      createSSRApp({ render: () => h('form', [h(DateRangePicker, ${JSON.stringify(props)})]) }).mount('#app');
+    `);
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined, async page => {
+      await page.locator('#partial-start').fill("2026-10-12");
+      await page.locator('#partial-end').fill("");
+      await page.locator('#partial-end').press("1");
+      assert.equal(await page.locator('#partial-end').evaluate(input => (input as HTMLInputElement).validity.badInput), true);
+    });
+    try {
+      assert.equal(await page.locator('#partial-end').getAttribute("data-date-fallback"), "");
+      await page.locator('#partial-end').fill("2026-10-20");
+      await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('to') === "2026-10-20");
+      assert.deepEqual(await page.locator("form").evaluate(form => [...new FormData(form as HTMLFormElement)]), [["from", "2026-10-12"], ["to", "2026-10-20"]]);
+    } finally { await page.close(); }
+  });
+
+  it("keeps an unfinished native date editable until its segments are complete", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { UiDatePicker: DatePicker } = await import("@threadlabs/looma");
+    const props = { name: "due", inputId: "partial-due", value: "2026-10-30", today: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(DatePicker, props)]) }));
+    const path = await bundle("partial-date-before-hydration", `
+      import { createSSRApp, h } from 'vue';
+      import { UiDatePicker as DatePicker } from '@threadlabs/looma';
+      createSSRApp({ render: () => h('form', [h(DatePicker, ${JSON.stringify(props)})]) }).mount('#app');
+    `);
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined, async page => {
+      await page.locator('#partial-due').fill("");
+      await page.locator('#partial-due').press("1");
+      assert.equal(await page.locator('#partial-due').evaluate(input => (input as HTMLInputElement).validity.badInput), true);
+      await page.evaluate(() => { (window as any).partialDateInput = document.querySelector('#partial-due'); });
+
+    });
+    try {
+      assert.equal(await page.locator('[data-date-fallback]').first().isVisible(), true);
+      assert.equal(await page.locator('form').evaluate(form => (form as HTMLFormElement).checkValidity()), false);
+      assert.equal(await page.evaluate(() => document.querySelector('[data-date-fallback]') === (window as any).partialDateInput), true);
+      await page.locator('#partial-due').fill("2026-11-02");
+      await page.waitForFunction(() => document.querySelector<HTMLInputElement>('[data-picker-field] [data-date-editor]')?.hidden === false);
+      await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('due') === "2026-11-02");
+      await page.locator('[data-picker-trigger]').click();
+      await page.waitForFunction(() => document.querySelector('[data-calendar-month-toggle]')?.textContent?.includes("November"));
+    } finally { await page.close(); }
+  });
+
+  for (const adapter of ["HTML", "Vue"] as const) it(`preserves native Input edits through ${adapter} upgrade, reset and reconnection`, async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { UiInput: Input } = await import("@threadlabs/looma");
+    const props = { id: "initial-input", name: "title", value: "Draft" };
+    let html;
+    if (adapter === "Vue") html = await renderToString(createSSRApp({ render: () => h("form", [h(Input, props)]) }));
+    else {
+      const { renderComponents, closeRenderWorkers } = await import("@nextwebwg/html-next/server");
+      const { definitions } = await import("../dist/index.js");
+      try { html = (await renderComponents('<form><ui-input id="initial-input" name="title" value="Draft"></ui-input></form>', { definitions })).html; }
+      finally { await closeRenderWorkers(); }
+    }
+    const path = await bundle(`input-before-hydration-${adapter}`, adapter === "Vue" ? `
+      import { createSSRApp, h, reactive } from 'vue';
+      import { UiInput as Input } from '@threadlabs/looma';
+      const props = reactive(${JSON.stringify(props)});
+      window.updateNativeInput = value => props.value = value;
+      createSSRApp({ render: () => h('form', [h(Input, props)]) }).mount('#app');
+    ` : `
+      import '@looma-test/runtime';
+      import { componentRegistry } from '@nextwebwg/html-next/runtime';
+      const input = document.querySelector('#initial-input');
+      window.updateNativeInput = value => componentRegistry.update(input, { value });
+    `);
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined,
+      page => page.locator('#initial-input').fill("Typed"));
+    try {
+      assert.equal(await page.locator('#initial-input').inputValue(), "Typed");
+      await page.locator('form').evaluate(form => (form as HTMLFormElement).reset());
+      assert.equal(await page.locator('#initial-input').inputValue(), "Draft");
+      await page.evaluate(() => (window as any).updateNativeInput("Replacement"));
+      await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#initial-input')?.value === "Replacement");
+      await page.locator('#initial-input').fill("Later");
+      await page.locator('#initial-input').evaluate(input => { (window as any).detachedInput = input; input.remove(); });
+      await page.waitForTimeout(25);
+      await page.evaluate(() => document.querySelector('form')!.append((window as any).detachedInput));
+      await page.waitForTimeout(25);
+      assert.equal(await page.locator('#initial-input').inputValue(), "Later");
+      await page.locator('#initial-input').evaluate(input => input.remove());
+      await page.waitForTimeout(25);
+      await page.evaluate(() => (window as any).updateNativeInput("Fresh"));
+      await page.evaluate(() => document.querySelector('form')!.append((window as any).detachedInput));
+      await page.waitForFunction(() => document.querySelector<HTMLInputElement>('#initial-input')?.value === "Fresh");
+    } finally { await page.close(); }
+  });
+
+  for (const endpoint of ["time", "start", "end"] as const) it(`coordinates a native ${endpoint} edit with its picker before Vue hydration`, async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const name = endpoint === "time" ? "TimePicker" : "DateRangePicker";
+    const Component = (await import("@threadlabs/looma"))[`Ui${name}`];
+    const props = endpoint === "time" ? { name: "time", inputId: "pre-time", value: "14:30", locale: "en-GB" }
+      : { value: { start: "2026-10-10", end: "2026-10-15" }, startName: "from", endName: "to", startInputId: "pre-start", endInputId: "pre-end", today: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(Component, props)]) }));
+    const path = await bundle(`before-hydration-${endpoint}`, `
+      import { createSSRApp, h } from 'vue';
+      import { Ui${name} as ${name} } from '@threadlabs/looma';
+      createSSRApp({ render: () => h('form', [h(${name}, ${JSON.stringify(props)})]) }).mount('#app');
+    `);
+    const next = endpoint === "time" ? "20:45" : endpoint === "start" ? "2026-10-20" : "2026-10-05";
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined,
+      page => page.locator(`#pre-${endpoint}`).fill(next));
+    try {
+      const trigger = endpoint === "time" ? '[data-time-trigger]' : `[data-range-trigger="${endpoint}"]`;
+      await page.waitForFunction(selector => document.querySelector<HTMLButtonElement>(selector)?.hidden === false, trigger);
+      const expected = endpoint === "time" ? [["time", next]] : [["from", next], ["to", next]];
+      assert.deepEqual(await page.locator("form").evaluate(form => [...new FormData(form as HTMLFormElement)]), expected);
+      await page.locator(trigger).click();
+      if (endpoint === "time") assert.equal(await page.locator('[data-time-hour]').inputValue(), "20");
+      else assert.equal(await page.locator(`[data-calendar-day="${next}"]`).evaluate(node => node.parentElement!.getAttribute("aria-selected")), "true");
+    } finally { await page.close(); }
+  });
+
+  it("preserves a date typed into the native fallback before Vue hydration", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { UiDatePicker: DatePicker } = await import("@threadlabs/looma");
+    const props = { name: "due", inputId: "pre-due", value: "2026-10-30", today: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(DatePicker, props)]) }));
+    const path = await bundle("date-before-hydration", `
+      import { createSSRApp, h } from 'vue';
+      import { UiDatePicker as DatePicker } from '@threadlabs/looma';
+      createSSRApp({ render: () => h('form', [h(DatePicker, ${JSON.stringify(props)})]) }).mount('#app');
+    `);
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css")], {}, undefined,
+      async page => {
+        await page.locator('#pre-due').fill("2026-11-02");
+
+      });
+    try {
+      await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('[data-picker-trigger]')?.hidden === false);
+      assert.deepEqual(await page.locator("form").evaluate(form => [...new FormData(form as HTMLFormElement)]), [["due", "2026-11-02"]]);
+      assert.equal(await page.locator('[data-picker-field] [data-date-editor]').inputValue(), "02/11/2026");
+      await page.locator('[data-picker-trigger]').click();
+      await page.waitForFunction(() => document.querySelector('[data-calendar-month-toggle]')?.textContent?.includes("November"));
+      assert.equal(await page.locator('[data-calendar-day="2026-11-02"]').evaluate(node => node.parentElement!.getAttribute("aria-selected")), "true");
+    } finally { await page.close(); }
+  });
+
+  it("hydrates automatically prepared Calendar and picker grids without replacing their SSR dates", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const [{ default: Calendar }, { default: DatePicker }, { default: DateRangePicker }] = await Promise.all([
+      import("@threadlabs/looma").then(m => ({ default: m.UiCalendar })), import("@threadlabs/looma").then(m => ({ default: m.UiDatePicker })), import("@threadlabs/looma").then(m => ({ default: m.UiDateRangePicker })),
+    ]);
+    const calendar = { id: "calendar", value: "2024-02-29", today: "2024-02-12", locale: "en-GB" };
+    const picker = { id: "picker", name: "due", inputId: "due-date", value: "2026-10-30", today: "2026-10-30", locale: "en-GB" };
+    const range = { id: "range", value: { start: "2026-10-15", end: "2026-10-18" }, startName: "from", endName: "to", startInputId: "range-start", endInputId: "range-end", today: "2026-10-30", locale: "en-GB" };
+    const html = await renderToString(createSSRApp({ render: () => h("form", [h(Calendar, calendar), h(DatePicker, picker), h(DateRangePicker, range)]) }));
+    const path = await bundle("date-framework-hydration", `
+      import { createSSRApp, h, reactive } from 'vue';
+      import { UiCalendar as Calendar, UiDatePicker as DatePicker, UiDateRangePicker as DateRangePicker } from '@threadlabs/looma';
+      const calendar = reactive(${JSON.stringify(calendar)});
+      const picker = reactive(${JSON.stringify(picker)});
+      const range = reactive(${JSON.stringify(range)});
+      window.dateServerNodes = [...document.querySelectorAll('[data-calendar-day]')];
+      window.dateHydration = { calendar, picker, range };
+      const app = createSSRApp({ render: () => h('form', [h(Calendar, calendar), h(DatePicker, picker), h(DateRangePicker, range)]) });
+      app.config.warnHandler = message => console.error(message);
+      app.mount('#app');
+    `, "development");
+    const errors: string[] = [];
+    const page = await open(path, `<div id="app">${html}</div>`, [join(root, "tokens.css"), join(root, "theme-light.css")], {}, async page => {
+      page.on("console", message => { if (message.type() === "warning" || message.type() === "error") errors.push(message.text()); });
+
+    });
+    try {
+      await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('[data-picker-trigger]')?.hidden === false);
+      assert.equal(await page.locator('[data-calendar-day]').count(), 126);
+      assert.equal(await page.evaluate(() => [...document.querySelectorAll('[data-calendar-day]')].every((node, index) => node === (window as any).dateServerNodes[index])), true);
+      assert.equal(await page.locator('[data-html-next-bindings]').count(), 0, "transfer metadata is consumed after hydration");
+      assert.deepEqual(await page.locator("form").evaluate(form => [...new FormData(form as HTMLFormElement)]), [["due", "2026-10-30"], ["from", "2026-10-15"], ["to", "2026-10-18"]]);
+      await page.evaluate(() => { (window as any).dateHydration.calendar.value = "2024-03-12"; });
+      await page.waitForFunction(() => document.querySelector('#calendar [data-calendar-month-toggle]')?.textContent?.includes("March"));
+      await page.locator('#picker [data-picker-trigger]').click();
+      await page.locator('#picker [data-calendar-day="2026-10-31"]').click();
+      await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('due') === "2026-10-31");
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  });
 });
 
 describe("SiteHeader", () => {
@@ -1056,6 +1289,35 @@ describe("Pressed icon controls and circular marks", () => {
 });
 
 describe("Anchored overlay placement", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`supports manual popover activation with a replaceable anchor in ${adapter}`, async () => {
+    const source = adapter === "HTML" ? `
+      import "@looma-test/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      window.setManualPopover = (values) => componentRegistry.update(document.querySelector('#manual-popup'), values);
+    ` : `
+      import { createApp, h, reactive } from "vue";
+      import { UiPopover as Popover } from "@threadlabs/looma";
+      const props = reactive({ for: 'first-anchor', open: false, trigger: 'manual' });
+      window.setManualPopover = (values) => Object.assign(props, values);
+      createApp({ render: () => h(Popover, { ...props, id: 'manual-popup' }, () => h('button', 'Inside')) }).mount('#app');
+    `;
+    const path = await bundle(`manual-popover-${adapter}`, source);
+    const page = await open(path, `<button id="first-anchor">First</button><button id="second-anchor">Second</button>${adapter === "HTML" ? '<ui-popover id="manual-popup" for="first-anchor" trigger="manual"><button>Inside</button></ui-popover>' : '<div id="app"></div>'}`, [join(root, "tokens.css")]);
+    try {
+      await page.locator('#first-anchor').click();
+      assert.equal(await page.locator('#manual-popup').evaluate(element => element.matches(':popover-open')), false);
+      await page.evaluate(() => (window as any).setManualPopover({ open: true }));
+      await page.waitForFunction(() => document.querySelector('#manual-popup')!.matches(':popover-open'));
+      await page.locator('#first-anchor').click();
+      assert.equal(await page.locator('#manual-popup').evaluate(element => element.matches(':popover-open')), true);
+      await page.evaluate(() => (window as any).setManualPopover({ for: 'second-anchor' }));
+      await page.waitForFunction(() => document.querySelector('#second-anchor')!.getAttribute('aria-expanded') === 'true');
+      assert.notEqual(await page.locator('#first-anchor').getAttribute('aria-expanded'), 'true');
+      await page.locator('#manual-popup button').focus(); await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('#manual-popup')!.matches(':popover-open'));
+    } finally { await page.close(); }
+  });
+
   it("presents an open popover and menu without for in the top layer at their written place, traveling with it", async () => {
     const path = await bundle("html-unanchored-popups", `import "@looma-test/runtime";`);
     const page = await open(path, `
@@ -8139,7 +8401,7 @@ describe("Compact controls on touch", () => {
 });
 
 describe("Button tone and disabled", () => {
-  it("paints available variants in their tone and gives disabled actions one neutral treatment", async () => {
+  it("paints available variants in their tone and preserves transparent disabled ghost surfaces", async () => {
     const path = await bundle("vue-tone", `
       import { createApp, h } from "vue";
       import { UiButton as Button } from "@threadlabs/looma";
@@ -8154,6 +8416,8 @@ describe("Button tone and disabled", () => {
           h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
           h(Button, { id: "off-ghost", variant: "ghost", disabled: true }, () => "Review"),
           h(Button, { id: "off-ghost-neutral", variant: "ghost", tone: "neutral", disabled: true }, () => "Cancel"),
+          h(Button, { id: "selected-ghost", variant: "ghost", selected: true }, () => "Selected"),
+          h(Button, { id: "off-selected-ghost", variant: "ghost", selected: true, disabled: true }, () => "Selected unavailable"),
         ]),
       }).mount("#app");
     `);
@@ -8198,13 +8462,15 @@ describe("Button tone and disabled", () => {
     assert.equal(off.filter, "none", "disabled colours are chosen directly");
     assert.equal(accent.filter, "none", "an available button is not");
 
-    // Ghosts keep their borderless shape but gain the same muted fill and text.
+    // A disabled ghost stays transparent; filled paint remains an interaction/selection cue.
     for (const id of ["off-ghost", "off-ghost-neutral"]) {
       const ghost = await paint(id);
-      assert.equal(ghost.background, off.background);
+      assert.equal(ghost.background, "rgba(0, 0, 0, 0)");
       assert.equal(ghost.color, off.color);
       assert.equal(ghost.border, "rgba(0, 0, 0, 0)");
     }
+    assert.notEqual((await paint("selected-ghost")).background, "rgba(0, 0, 0, 0)");
+    assert.equal((await paint("off-selected-ghost")).background, off.background, "an unavailable selection retains a muted selection wash");
     await page.close();
   });
 });
@@ -10046,6 +10312,158 @@ describe("Editable click away", () => {
   });
 });
 
+describe("Date Range Picker touch surfaces", () => {
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`selects a backwards date range by touch in light and dark ${adapter}`, async () => {
+      const path = await bundle(`range-touch-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+        import { createApp, h } from "vue";
+        import { UiDateRangePicker as DateRangePicker } from "@threadlabs/looma";
+        createApp({ render: () => h('form', [h(DateRangePicker, { startName: 'from', endName: 'to', startInputId: 'touch-start', endInputId: 'touch-end', today: '2026-10-30', locale: 'en-GB' })]) }).mount('#app');
+      `);
+      const body = adapter === "HTML" ? '<form><ui-date-range-picker start-name="from" end-name="to" start-input-id="touch-start" end-input-id="touch-end" today="2026-10-30" locale="en-GB"></ui-date-range-picker></form>' : '<div id="app"></div>';
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")], { viewport: { width: 375, height: 720 }, hasTouch: true });
+      const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+      try {
+        await page.addStyleTag({ content: 'body { font-family:var(--ui-font-family-sans); background:var(--ui-surface); color:var(--ui-text-primary); } form { max-inline-size:343px; }' });
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(mode => { document.documentElement.dataset.theme = mode; document.querySelector('form')!.dir = mode === 'dark' ? 'rtl' : 'ltr'; }, theme);
+          await page.locator('[data-range-trigger="start"]').tap();
+          const popup = page.locator('[data-range-popover]');
+          await popup.evaluate(async element => {
+            await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+            await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+            await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished));
+          });
+          const geometry = async () => ({ popup: await popup.boundingBox(), arrow: await popup.locator('[data-calendar-previous]').boundingBox() });
+          const original = await geometry();
+          const unchanged = async () => {
+            const next = await geometry();
+            for (const key of ['x', 'y', 'width', 'height'] as const) assert.ok(Math.abs(next.popup![key] - original.popup![key]) < 1, `${adapter}/${theme}: popup ${key} stays fixed across views`);
+            for (const key of ['x', 'y'] as const) assert.ok(Math.abs(next.arrow![key] - original.arrow![key]) < 1, `${adapter}/${theme}: navigation ${key} stays fixed across views`);
+          };
+          await popup.locator('[data-calendar-year-toggle]').tap();
+          await popup.locator('[data-calendar-year="2026"]').waitFor({ state: 'visible' }); await unchanged();
+          await popup.locator('[data-calendar-year="2026"]').tap();
+          await popup.locator('[data-calendar-month="2026-10"]').waitFor({ state: 'visible' }); await unchanged();
+          await popup.locator('[data-calendar-month="2026-10"]').tap();
+          await popup.locator('[data-calendar-day="2026-10-20"]').waitFor({ state: 'visible' }); await unchanged();
+          await page.locator('[data-calendar-day="2026-10-20"]').tap();
+          await page.locator('[data-calendar-day="2026-10-15"]').tap();
+          await page.screenshot({ path: join(root, `../../.context/date-range-${adapter.toLowerCase()}-touch-${theme}.png`) });
+          await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('from') === '2026-10-15');
+          assert.deepEqual(await page.evaluate(() => [...new FormData(document.querySelector('form')!)]), [['from', '2026-10-15'], ['to', '2026-10-20']]);
+          await page.evaluate(() => document.querySelector('form')!.reset());
+          await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('from') === '');
+        }
+        assert.deepEqual(errors, []);
+      } finally { await page.close(); }
+    });
+  }
+});
+
+describe("Calendar touch surfaces", () => {
+  // Blank cell corners expose the composited paint, including washes that disappear against the canvas.
+  async function paintedBands(page: Page) {
+    await page.locator('#calendar').scrollIntoViewIfNeeded();
+    const points = await page.locator('#calendar [data-calendar-days]').evaluate(grid => {
+      const rows = [...grid.querySelectorAll('[role="row"]')];
+      const cells = [...rows[1]!.querySelectorAll('[role="gridcell"]')];
+      const shaded = [...rows[1]!.querySelectorAll('.column-shade')].map(node => Number(getComputedStyle(node).gridColumnStart) - 1);
+      const point = (node: Element) => { const box = node.getBoundingClientRect(); return { x: box.left + 2, y: box.top + 2 }; };
+      return { body: point(cells.find((node, index) => !shaded.includes(index))!), weekend: point(cells[shaded[0]!]!), header: point(rows[0]!.querySelector('[role="columnheader"]')!) };
+    });
+    const png = (await page.screenshot({ scale: 'css' })).toString('base64');
+    return page.evaluate(async ({ png, points }) => {
+      const picture = new Image(); picture.src = 'data:image/png;base64,' + png; await picture.decode();
+      const canvas = document.createElement('canvas'); canvas.width = picture.width; canvas.height = picture.height;
+      const ctx = canvas.getContext('2d')!; ctx.drawImage(picture, 0, 0);
+      const sample = (point: { x: number; y: number }) => [...ctx.getImageData(Math.floor(point.x), Math.floor(point.y), 1, 1).data].slice(0, 3);
+      return { body: sample(points.body), weekend: sample(points.weekend), header: sample(points.header) };
+    }, { png, points });
+  }
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`keeps calendar navigation and selection usable at 375px in light and dark ${adapter}`, async () => {
+      const path = await bundle(`calendar-touch-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+        import { createApp, h } from "vue";
+        import { UiCalendar as Calendar } from "@threadlabs/looma";
+        createApp({ render: () => h("form", [h(Calendar, { id: "calendar", value: "2026-10-09", locale: "en-GB", min: "2026-10-05", disabledWeekdays: [6, 7], disabledDates: ["2026-10-12"] })]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "HTML" ? '<form><ui-calendar id="calendar" value="2026-10-09" locale="en-GB" min="2026-10-05" disabled-weekdays="[6,7]" disabled-dates=\'["2026-10-12"]\'></ui-calendar></form>' : '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")], { viewport: { width: 375, height: 640 }, hasTouch: true });
+      try {
+        await page.addStyleTag({ content: 'body { font-family:var(--ui-font-family-sans); background:var(--ui-surface); color:var(--ui-text-primary); } form { max-inline-size:343px; }' });
+        await page.evaluate(() => {
+          (window as any).calendarSelections = [];
+          document.querySelector("form")!.addEventListener("select", event => { if (event instanceof CustomEvent) (window as any).calendarSelections.push(event.detail); });
+        });
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(mode => {
+            document.documentElement.dataset.theme = mode;
+            document.querySelector("form")!.dir = mode === "dark" ? "rtl" : "ltr";
+            document.querySelector("#calendar")!.dispatchEvent(new CustomEvent("focus-date", { detail: { value: "2026-10-09" } }));
+          }, theme);
+          await page.locator('[data-calendar-month-toggle]').tap();
+          await page.locator('[data-calendar-month="2026-11"]').tap();
+          await page.waitForSelector('[data-calendar-day="2026-11-15"]');
+          await page.locator('[data-calendar-month-toggle]').tap();
+          await page.locator('[data-calendar-month="2026-10"]').tap();
+          await page.waitForSelector('[data-calendar-day="2026-10-09"]');
+          assert.equal(await page.locator('[data-calendar-day="2026-10-10"]').isDisabled(), true);
+          assert.equal(await page.locator('[data-calendar-day="2026-10-12"]').isDisabled(), true);
+          await page.locator('[data-calendar-day="2026-10-13"]').tap();
+          await page.waitForFunction(() => document.querySelector('[data-calendar-day="2026-10-13"]')?.parentElement?.getAttribute("aria-selected") === "true");
+          const paint = await paintedBands(page);
+          const difference = (a: number[], b: number[]) => Math.max(...a.map((value, index) => Math.abs(value - b[index]!)));
+          assert.ok(difference(paint.body, paint.weekend) >= 8, `${adapter}/${theme}: neutral weekend shading must be visible: ${JSON.stringify(paint)}`);
+          assert.ok(difference(paint.body, paint.header) >= 8, `${adapter}/${theme}: the weekday band must be visible: ${JSON.stringify(paint)}`);
+          const tint = paint.header.map((value, index) => value - paint.weekend[index]!);
+          assert.ok(Math.max(...tint) - Math.min(...tint) >= 4, `${adapter}/${theme}: the weekday accent tint must differ from neutral shading: ${JSON.stringify(paint)}`);
+          const geometry = await page.locator('#calendar').evaluate(element => ({ scroll: element.scrollWidth, width: element.clientWidth }));
+          assert(geometry.scroll <= geometry.width + 1, JSON.stringify(geometry));
+          await page.locator('#calendar').screenshot({ path: join(root, `../../.context/calendar-${adapter.toLowerCase()}-touch-${theme}.png`) });
+        }
+        assert.deepEqual(await page.evaluate(() => (window as any).calendarSelections), [{ value: "2026-10-13", trigger: "pointer" }, { value: "2026-10-13", trigger: "pointer" }]);
+      } finally { await page.close(); }
+    });
+  }
+});
+
+describe("Time picker touch surfaces", () => {
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`keeps time selection usable at 375px in light and dark ${adapter}`, async () => {
+      const path = await bundle(`time-picker-touch-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+        import { createApp, h } from "vue";
+        import { UiTimePicker as TimePicker } from "@threadlabs/looma";
+        createApp({ render: () => h("form", [h(TimePicker, { id: "picker", name: "time", label: "Time", value: "23:15:30.125", min: "21:00", max: "03:00", locale: "en-GB" })]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "HTML" ? '<form><ui-time-picker id="picker" name="time" label="Time" value="23:15:30.125" min="21:00" max="03:00" locale="en-GB"></ui-time-picker></form>' : '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")], { viewport: { width: 375, height: 320 }, hasTouch: true });
+      await page.evaluate(() => { document.body.style.fontFamily = "var(--ui-font-family-sans)"; document.body.style.backgroundColor = "var(--ui-surface)"; document.body.style.color = "var(--ui-text-primary)"; });
+      for (const theme of ["light", "dark"]) {
+        await page.evaluate(mode => { document.documentElement.dataset.theme = mode; }, theme);
+        await page.locator('form').evaluate((form, direction) => { form.dir = direction; }, theme === 'dark' ? 'rtl' : 'ltr');
+        const trigger = page.locator('#picker [data-time-trigger]');
+        await trigger.tap();
+        await page.waitForFunction(() => {
+          const popover = document.querySelector('#picker [data-time-popover]');
+          return popover && getComputedStyle(popover).opacity === "1";
+        });
+        assert.equal(await page.locator('#picker [data-time-hour]').inputValue(), '23');
+        assert.equal(await page.locator('#picker [data-time-hour] option[value="12"]').isDisabled(), true);
+        if (theme === 'dark') assert.equal(await page.locator('#picker [data-time-hour]').evaluate(select => getComputedStyle(select).backgroundPositionX.split(',')[0].trim()), '8px');
+        assert.equal(await page.locator('#picker [data-time-popover]').evaluate(element => element.scrollWidth <= element.clientWidth + 1), true);
+        assert.equal(await page.locator('#picker').evaluate(element => element.scrollWidth <= element.clientWidth + 1), true);
+        await page.screenshot({ path: join(root, `../../.context/time-picker-${adapter.toLowerCase()}-touch-${theme}.png`) });
+        await page.locator('#picker [data-time-hour]').selectOption('1');
+        await page.locator('#picker [data-time-apply]').tap();
+        await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('time') === '01:15:30.125');
+        assert.equal(await trigger.getAttribute('aria-expanded'), 'false');
+        await page.locator('form').evaluate(form => (form as HTMLFormElement).reset());
+        await page.waitForFunction(() => new FormData(document.querySelector('form')!).get('time') === '23:15:30.125');
+      }
+      await page.close();
+    });
+  }
+});
+
 // Every Looma control that can carry a name sits in a real form here, in HTML and in Vue, and is
 // used the way a person would use it. The form's own FormData is the contract: what a submit sends.
 // tools/scripts/form-participation-rule.test.mjs fails if a named control is missing from this block.
@@ -10057,6 +10475,15 @@ describe("Form participation", () => {
   const html = `
     <form id="form">
       <ui-input id="title" name="title" value="Draft"></ui-input>
+      <ui-date-field id="due-date" name="due" value="2026-10-30" locale="en-GB" label="Due date"></ui-date-field>
+      <ui-date-picker id="appointment" name="appointment" value="2026-10-30" today="2026-10-30" locale="en-GB" label="Appointment"></ui-date-picker>
+      <ui-date-picker name="off-date-picker" value="2026-10-30" disabled></ui-date-picker>
+      <ui-date-range-picker id="period" value='{"start":"2026-10-10","end":"2026-10-15"}' start-name="period-start" end-name="period-end" today="2026-10-30" locale="en-GB"></ui-date-range-picker>
+      <ui-date-range-picker value='{"start":"2026-10-10","end":"2026-10-15"}' start-name="off-start" end-name="off-end" disabled></ui-date-range-picker>
+      <ui-time-field id="opening-time" name="opening" value="09:30" label="Opening time"></ui-time-field>
+      <ui-time-picker id="closing-time" name="closing" value="16:15" locale="en-GB" label="Closing time"></ui-time-picker>
+      <ui-time-picker name="off-time-picker" value="16:15" disabled></ui-time-picker>
+      <ui-file-input name="attachment" label="Attachments"></ui-file-input>
       <ui-number-input id="distance" name="distance" value="42px" unit="px" label="Distance"></ui-number-input>
       <ui-number-input name="off-number" value="99" disabled></ui-number-input>
       <ui-slider id="progress" name="progress" value="25" label="Progress"></ui-slider>
@@ -10098,7 +10525,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { UiEditor as Editor, UiCompactEditor as CompactEditor, UiCheckbox as Checkbox, UiColorPicker as ColorPicker, UiCombobox as Combobox, UiEditable as Editable, UiInput as Input, UiInputGroup as InputGroup, UiListbox as Listbox, UiNumberInput as NumberInput, UiSlider as Slider, UiRadio as Radio, UiRadioGroup as RadioGroup, UiSelect as Select, UiSwatch as Swatch, UiSwitch as Switch, UiTextarea as Textarea } from "@threadlabs/looma";
+    import { UiCalendar as Calendar, UiDateField as DateField, UiDatePicker as DatePicker, UiDateRangePicker as DateRangePicker, UiFileInput as FileInput, UiTimeField as TimeField, UiTimePicker as TimePicker, UiEditor as Editor, UiCompactEditor as CompactEditor, UiCheckbox as Checkbox, UiColorPicker as ColorPicker, UiCombobox as Combobox, UiEditable as Editable, UiInput as Input, UiInputGroup as InputGroup, UiListbox as Listbox, UiNumberInput as NumberInput, UiSlider as Slider, UiRadio as Radio, UiRadioGroup as RadioGroup, UiSelect as Select, UiSwatch as Swatch, UiSwitch as Switch, UiTextarea as Textarea } from "@threadlabs/looma";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -10107,6 +10534,15 @@ describe("Form participation", () => {
       render: () => h("div", [
         h("form", { id: "form" }, [
           h(Input, { id: "title", name: "title", value: "Draft" }),
+          h(DateField, { id: "due-date", name: "due", value: "2026-10-30", locale: "en-GB", label: "Due date" }),
+          h(DatePicker, { id: "appointment", name: "appointment", value: "2026-10-30", today: "2026-10-30", locale: "en-GB", label: "Appointment" }),
+          h(DatePicker, { name: "off-date-picker", value: "2026-10-30", disabled: true }),
+          h(DateRangePicker, { id: "period", value: { start: "2026-10-10", end: "2026-10-15" }, startName: "period-start", endName: "period-end", today: "2026-10-30", locale: "en-GB" }),
+          h(DateRangePicker, { value: { start: "2026-10-10", end: "2026-10-15" }, startName: "off-start", endName: "off-end", disabled: true }),
+          h(TimeField, { id: "opening-time", name: "opening", value: "09:30", label: "Opening time" }),
+          h(TimePicker, { id: "closing-time", name: "closing", value: "16:15", locale: "en-GB", label: "Closing time" }),
+          h(TimePicker, { name: "off-time-picker", value: "16:15", disabled: true }),
+          h(FileInput, { name: "attachment", label: "Attachments" }),
           h(NumberInput, { id: "distance", name: "distance", value: "42px", unit: "px", label: "Distance" }),
           h(NumberInput, { name: "off-number", value: "99", disabled: true }),
           h(Slider, { id: "progress", name: "progress", value: 25, label: "Progress" }),
@@ -10152,11 +10588,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["distance", "42px"], ["progress", "25"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["due", "2026-10-30"], ["appointment", "2026-10-30"], ["period-start", "2026-10-10"], ["period-end", "2026-10-15"], ["opening", "09:30"], ["closing", "16:15"], ["attachment", "[object File]"], ["distance", "42px"], ["progress", "25"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
     ["color", "blue"], ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["distance", "35px"], ["progress", "100"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["due", "2026-11-02"], ["appointment", "2026-11-02"], ["period-start", "2026-10-12"], ["period-end", "2026-10-17"], ["opening", "10:45"], ["closing", "17:45"], ["attachment", "[object File]"], ["distance", "35px"], ["progress", "100"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
     ["plan", "free"], ["color", "neutral"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -10183,6 +10619,18 @@ describe("Form participation", () => {
     await page.locator("#title").fill("Final");
     await page.locator('#distance input').fill('42px / 1.2');
     await page.locator('#distance input').press('Enter');
+    await page.locator('#due-date [data-date-editor]').fill('02/11/2026');
+    await page.locator('#due-date [data-date-editor]').press('Enter');
+    await page.locator('#appointment [data-picker-field] [data-date-editor]').fill('02/11/2026');
+    await page.locator('#appointment [data-picker-field] [data-date-editor]').press('Enter');
+    await page.locator('#period [data-range-field="start"] [data-date-editor]').fill('12/10/2026');
+    await page.locator('#period [data-range-field="start"] [data-date-editor]').press('Enter');
+    await page.locator('#period [data-range-field="end"] [data-date-editor]').fill('17/10/2026');
+    await page.locator('#period [data-range-field="end"] [data-date-editor]').press('Enter');
+    await page.locator('#opening-time [data-date-editor]').fill('10:45');
+    await page.locator('#opening-time [data-date-editor]').press('Enter');
+    await page.locator('#closing-time [data-date-editor]').fill('17:45');
+    await page.locator('#closing-time [data-date-editor]').press('Enter');
     await page.locator('#progress input[type="range"]').press('End');
     await page.getByRole("button", { name: "Brand colour", exact: true }).click();
     await page.locator('#brand-colour input[aria-label="Hex colour"]').fill('#123456');

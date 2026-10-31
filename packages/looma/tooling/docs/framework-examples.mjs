@@ -4,7 +4,8 @@ const escapeHtml = value => String(value).replaceAll('&', '&amp;').replaceAll('<
 const indent = depth => '  '.repeat(depth);
 const textValue = node => node.preserve ? node.value : node.value.replace(/[\t\n\r\f ]+/g, ' ');
 const formattingSpace = node => node?.kind === 'text' && !node.preserve && /^[\t\n\r\f ]*$/.test(node.value);
-const key = value => /^[a-zA-Z_$][\w$]*$/.test(value) ? value : JSON.stringify(value);
+const key = (value, quote = JSON.stringify) => /^[a-zA-Z_$][\w$]*$/.test(value) ? value : quote(value);
+const singleQuoted = value => `'${JSON.stringify(value).slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`;
 const kebab = value => value.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const reactAttributes = { class: 'className', for: 'htmlFor', readonly: 'readOnly', tabindex: 'tabIndex', autofocus: 'autoFocus', maxlength: 'maxLength', minlength: 'minLength', colspan: 'colSpan', rowspan: 'rowSpan', srcset: 'srcSet', crossorigin: 'crossOrigin', spellcheck: 'spellCheck', contenteditable: 'contentEditable', allowfullscreen: 'allowFullScreen', formnovalidate: 'formNoValidate', novalidate: 'noValidate', playsinline: 'playsInline' };
@@ -13,6 +14,16 @@ const inlineElements = new Set('a abbr b bdi bdo br button cite code del em i im
 const reserved = new Set('await break case catch class const continue debugger default delete do else enum export extends false finally for function if implements import in instanceof interface let new null package private protected public return static super switch this throw true try typeof var void while with yield arguments eval'.split(' '));
 
 export const frameworkLabels = { 'html-next': 'HTML Next', vue: 'Vue', react: 'React', svelte: 'Svelte' };
+
+function vueExpression(value) {
+  if (typeof value === 'string') return singleQuoted(value);
+  if (Array.isArray(value)) return `[${value.map(vueExpression).join(', ')}]`;
+  if (value && typeof value === 'object') {
+    const fields = Object.entries(value).map(([name, item]) => `${key(name, singleQuoted)}: ${vueExpression(item)}`);
+    return fields.length ? `{ ${fields.join(', ')} }` : '{}';
+  }
+  return JSON.stringify(value);
+}
 
 // Derive block layout from the tree. Mixed text and inline adjacency stay together.
 function layout(nodes) {
@@ -57,7 +68,7 @@ function attribute(value, target, component) {
   }
   name = component ? kebab(name) : value.name;
   if (data === true && nativeBooleans.has(name) && !component) return name;
-  return typeof data === 'string' ? `${name}="${escapeHtml(data).replaceAll('{', '&#123;')}"` : `:${name}="${escapeHtml(JSON.stringify(data))}"`;
+  return typeof data === 'string' ? `${name}="${escapeHtml(data).replaceAll('{', '&#123;')}"` : `:${name}="${escapeHtml(vueExpression(data))}"`;
 }
 
 function snippetBindings(model) {

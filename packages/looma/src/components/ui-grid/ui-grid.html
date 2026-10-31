@@ -1,19 +1,48 @@
 <template component="ui-grid">
   <defs>
-    <prop name="gap" type="keyword" values="xs, s, m, l, xl"
-    >Space between cells, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-grid-gap custom property,
-      set on :root, an ancestor, or the component itself, overrides it.</prop>
+    <prop name="gap" type="keyword" values="none, xs, s, m, l, xl"
+    >Space between cells, on the spacing scale: none removes the gap, xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The
+      --ui-grid-gap custom property, set on :root, an ancestor, or the component itself, overrides it.</prop>
     <prop name="min" type="keyword" values="sm, md, lg"
     >The narrowest a column may get before the grid drops to fewer columns: sm is 12rem (also the default), md is 16rem, and lg is 20rem. The grid fits as many
       equal columns as its width allows, and a single column never overflows a narrower container.</prop>
     <prop name="columns" type="integer"
-    >Maximum columns when there is room. Omit for no cap. The grid still drops columns as its container narrows; it never forces a fixed column count.</prop>
+    >Maximum columns when there is room. Omit for no cap. Columns normally decrease as the container narrows; fixed opts into an exact count.</prop>
+    <prop name="fixed" type="boolean" default="false"
+    >Keeps the declared columns at every width, for aligned matrices such as weekday grids. Cells share the available width; omitted columns gives one
+      column.</prop>
+    <prop name="shadedColumns" type="list(integer)" default="[]"
+    >One-based columns to shade in a fixed grid with explicit columns, such as nonworking days in a date matrix. A soft wash of the theme's ink distinguishes
+      them from the canvas; --ui-grid-shade-surface can replace it. Shading follows writing direction and does not change cell sizing.</prop>
+    <prop name="shadeTone" type="keyword" values="neutral, accent" default="neutral"
+    >The shaded columns' paint: neutral uses the theme's ink; accent uses its readable accent pigment. Both are subtle washes over the current surface.</prop>
+    <prop name="selectionStart" type="integer"
+    >First selected one-based column in a fixed grid row. Pair with selection-end to paint a continuous rounded interval behind the cells.</prop>
+    <prop name="selectionEnd" type="integer"
+    >Last selected one-based column, inclusive. The interval uses the theme's selection surface; --ui-grid-selection-inset and --ui-grid-selection-surface
+      customize its inset and paint.</prop>
   </defs>
-  <div style:--_grid-column-cap="$columns"><slot></slot></div>
+  <div style:--_grid-column-cap="$columns" from:data-shaded="$fixed and ($shadedColumns.length > 0 or $selectionStart > 0)">
+    <template $each="column of $shadedColumns"><span
+        $if="$fixed and $columns != null and $column > 0 and $column &lt;= $columns"
+        class="column-shade"
+        aria-hidden="true"
+        style:--_grid-shaded-column="$column"
+      ></span></template>
+    <span
+      $if="$fixed and $selectionStart > 0 and $selectionEnd >= $selectionStart and $selectionEnd &lt;= $columns"
+      class="selection-band"
+      aria-hidden="true"
+      style:--_grid-selection-start="$selectionStart"
+      style:--_grid-selection-end="$selectionEnd + 1"
+    ></span>
+    <slot></slot>
+  </div>
   <style>
     :host {
       --_grid-gap: var(--ui-space-4);
       --_grid-min: 12rem;
+      --_grid-shade-surface: color-mix(in oklab, var(--ui-text) 8%, transparent);
       display: grid !important;
       gap: var(--ui-grid-gap, var(--_grid-gap)) !important;
       grid-template-columns:
@@ -37,6 +66,42 @@
 
     :host([gap="xs"]) {
       --_grid-gap: var(--ui-space-2);
+    }
+
+    :host([fixed]) {
+      grid-template-columns: repeat(max(1, var(--_grid-column-cap, 1)), minmax(0, 1fr)) !important;
+    }
+
+    :host[data-shaded] {
+      position: relative !important;
+      isolation: isolate;
+    }
+
+    :host([shadeTone="accent"]) {
+      --_grid-shade-surface: color-mix(in oklab, var(--ui-accent-subtle-text) 12%, transparent);
+    }
+
+    .column-shade {
+      position: absolute !important;
+      inset: 0 !important;
+      grid-column: var(--_grid-shaded-column) / span 1 !important;
+      z-index: -1;
+      pointer-events: none;
+      background-color: var(--ui-grid-shade-surface, var(--_grid-shade-surface));
+    }
+
+    .selection-band {
+      position: absolute !important;
+      grid-column: var(--_grid-selection-start) / var(--_grid-selection-end) !important;
+      inset: var(--ui-grid-selection-inset, var(--ui-space-1)) !important;
+      border-radius: var(--ui-radius-round);
+      background: var(--ui-grid-selection-surface, var(--ui-selection-surface));
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    :host([gap="none"]) {
+      --_grid-gap: 0px;
     }
     :host([gap="s"]) {
       --_grid-gap: var(--ui-space-3);

@@ -89,7 +89,7 @@
       min-block-size: var(--ui-control-size-lg);
     }
 
-    :host:hover:not(:has(:is(input, textarea):focus, :is(input, textarea):disabled, :is(input, textarea):read-only, [aria-invalid="true"], :user-invalid)) {
+    :host:hover:not(:has(:is(input, textarea):focus, :is(input:not([type="hidden"]), textarea):not([hidden]):disabled, :is(input:not([type="hidden"]), textarea):not([hidden]):read-only, [aria-invalid="true"], :user-invalid)) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 
@@ -127,7 +127,7 @@
     }
 
     :host([disabled]),
-    :host:has(:is(input, textarea):disabled) {
+    :host:has(:is(input:not([type="hidden"]), textarea):not([hidden]):disabled) {
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
       box-shadow: none;
       cursor: not-allowed;

@@ -1,7 +1,7 @@
 {
   "name": "looma-release-consumer-fixture",
   "private": true,
-  "version": "0.50.0",
+  "version": "0.51.0",
   "type": "module",
   "packageManager": "pnpm@10.7.1",
   "scripts": {
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/node": "^22.13.5",
     "typescript": "^5.9.2",
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.76",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.79",
     "@vitejs/plugin-vue": "^6.0.9",
     "vite": "^8.3.0"
   },

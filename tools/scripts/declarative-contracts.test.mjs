@@ -54,6 +54,10 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   assert.deepEqual(contracts["ui-combobox"].props.grow, { type: "boolean", default: false });
   assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer" });
   assert.deepEqual(contracts["ui-top-bar"].props.titleFor, { type: "string", default: "" });
+  // Numeric bounds constrain a nested field without supplying an enum values list.
+  assert.deepEqual(contracts["ui-date-field"].propFields.displayOptions.find((field) => field.path === "fractionalSecondDigits"), {
+    path: "fractionalSecondDigits", type: "integer", required: false,
+  });
 });
 
 test("raw HTML contracts use native state names and false-default booleans", async () => {

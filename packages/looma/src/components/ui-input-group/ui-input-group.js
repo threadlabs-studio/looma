@@ -3,6 +3,7 @@ import { DEV, duplicateId, warnOnce } from "../shared/authoring.js";
 let nextAffixId = 0;
 // An affix holding a control keeps it: its clicks are its own, and it is not hidden or described.
 const INTERACTIVE = "a[href], button, input, select, textarea, [tabindex], [contenteditable]";
+const FIELD = ".field :is(input:not([type=hidden]), textarea):not([hidden])";
 
 function descriptionIds(input) {
   return (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
@@ -36,7 +37,7 @@ export function connect(host) {
       if (action) actionObserver.observe(action);
     }
     measureAction();
-    const input = element.querySelector(".field :is(input, textarea)");
+    const input = element.querySelector(FIELD);
     const affixes = Array.from(element.querySelectorAll(":scope > .affix")).filter((affix) => {
       const text = affix.textContent.trim() !== "" && !affix.querySelector(INTERACTIVE);
       if (text) affix.setAttribute("aria-hidden", "true");
@@ -65,14 +66,14 @@ export function connect(host) {
   };
   // Click, not pointerdown: a tap's click is a user activation, so a touch keyboard opens.
   const onClick = (event) => {
-    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(".field :is(input, textarea)")?.focus();
+    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(FIELD)?.focus();
   };
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
-  // Re-link when the input, an affix, or a description set elsewhere changes. Only aria-describedby
-  // is watched, and it is written only when it differs, so this settles.
+  // Re-link when a composed field switches its visible input, an affix changes,
+  // or an external description changes. Description writes settle when unchanged.
   const observer = new MutationObserver(() => queueMicrotask(wire));
-  observer.observe(element, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["aria-describedby"] });
+  observer.observe(element, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["aria-describedby", "hidden"] });
   wire();
   return () => {
     observer.disconnect();

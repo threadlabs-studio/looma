@@ -1,0 +1,15 @@
+<!--
+title: Edit blocks within one field
+description: Focus selects the first block. Type digits to advance automatically, or type the colon to move to minutes. Arrow keys select neighbouring blocks; Backspace clears or moves back. Date Field and Time Field supply their localized blocks automatically.
+-->
+<ui-form-field>
+  <label slot="label" for="segmented-time">Time (24-hour)</label>
+  <ui-input
+    id="segmented-time"
+    name="time"
+    value="09:30"
+    inputmode="numeric"
+    segments='[{ placeholder: "hh", pattern: "[0-9]" }, { literal: ":" }, { placeholder: "mm", pattern: "[0-9]" }]'
+  ></ui-input>
+  <small slot="help">Type hours, then minutes. You can also type the colon to advance.</small>
+</ui-form-field>

@@ -1,0 +1,13 @@
+<!--
+preview: stretch
+title: Available weekdays
+description: Weekends, a blocked interval and dates outside the inclusive bounds remain visible and unavailable. The same rules validate typed fields.
+-->
+<ui-calendar
+  month="2026-10"
+  min="2026-10-05"
+  max="2026-11-20"
+  disabled-weekdays="[6,7]"
+  disabled-ranges='[{"start":"2026-10-12","end":"2026-10-16"}]'
+  locale="en-US"
+></ui-calendar>

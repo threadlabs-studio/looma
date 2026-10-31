@@ -17,6 +17,7 @@ export function connect(host) {
   let surface = null;
   let lastFor;
   let lastPlacement;
+  let lastTrigger;
   let lastOpen;
   let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
@@ -50,15 +51,18 @@ export function connect(host) {
   const setup = () => {
     const nextFor = String(host.props.for.value ?? "");
     const nextPlacement = String(host.props.placement.value ?? "bottom-start");
+    const nextTrigger = host.props.trigger.value;
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement
+      && nextTrigger === lastTrigger
       && (!nextFor || anchor === document.getElementById(nextFor))) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
+    lastTrigger = nextTrigger;
     surface?.destroy();
     releaseAnchor();
     anchor = ids.get(nextFor);
     if (anchor) anchorExpanded = anchor.getAttribute("aria-expanded");
-    anchor?.addEventListener("click", onAnchorClick);
+    if (nextTrigger !== "manual") anchor?.addEventListener("click", onAnchorClick);
     surface = createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset, materialRole: "popover" });
   };
   const apply = () => {

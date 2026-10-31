@@ -1,0 +1,5 @@
+{
+  "description": "Type or paste a date, or choose a calendar day to update the field immediately. Date-only selection closes the popup and returns focus to its calendar action. Month and year navigation leaves the value unchanged. Escape or clicking outside closes the popup. The default value is YYYY-MM-DD; explicit local date-time, instant and zoned types preserve their clock precision and bound zone. Date-time popups keep the clock editable, committing each complete valid edit. Native fields remain usable before JavaScript.",
+  "group": "forms",
+  "summary": "Type dates directly or choose them from a calendar."
+}

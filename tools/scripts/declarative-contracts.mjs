@@ -171,7 +171,7 @@ function shapeFields(node, prefix = "") {
       path,
       type: fieldType(field.type),
       required: !field.optional,
-      ...(base.kind === "constrained" ? { values: base.values.map(String) } : {}),
+      ...(base.kind === "constrained" && base.values ? { values: base.values.map(String) } : {}),
     }, ...shapeFields(base, path)];
   });
 }

@@ -29,11 +29,10 @@ Set one API vocabulary that all components and adapters follow, including state 
 
 ## Controlled/Uncontrolled Rules
 
-- Value state: `value` + `defaultValue`.
-- Open state: `open` + `defaultOpen`.
-- Controlled source always wins when provided.
-- Events always fire for user intent.
-- Controlled consumers must reflect state updates back to the component.
+- Declarative controls expose one native-like state name, such as `value`, `checked`, or `open`; they do not add framework-style `default-*` attributes.
+- Input-like controls use the authored value as their initial/reset value. Live edits stand between external updates; a changed value prop replaces them. The component definition states its exact ownership rules.
+- Explicitly controlled channels, such as Combobox's `selectedValues`, retain consumer ownership and report requested changes for the consumer to reflect back.
+- Events report user edits or intent according to the component's declared contract. Adapters preserve the underlying ownership rules.
 - Removing or reanchoring a Menu or Popover collapses its released trigger, even if the consumer set `aria-expanded="true"` before mounting the overlay. Other pre-existing trigger attributes are restored.
 
 ## Slots and Children
@@ -47,9 +46,10 @@ Set one API vocabulary that all components and adapters follow, including state 
 - SSR HTML must be meaningful and usable before JS.
 - Upgrade attaches behavior without rewriting the tree shape.
 - Required ARIA attributes must be derivable from SSR markup.
-- Derive what a component shows from its props with `<computed>`, not a controller effect: a
-  controller runs only after upgrade (a Vue component's only once mounted, never on the server), so
-  anything it fills in is missing from server-rendered and first-rendered HTML.
+- Derive rendered data before SSR. Use `<computed>` for declaration expressions and
+  server-prepared module inputs for calculations outside that expression language.
+  Browser connection attaches interactions; a controller effect that first fills
+  rendered data after mounting leaves that data missing from the server HTML.
 
 ## Template Text And Formatting
 

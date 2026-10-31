@@ -25,7 +25,7 @@ export function connect(host) {
   };
   const wire = () => {
     const label = element.querySelector('[slot="label"], label');
-    const selector = "[data-ui-field-control], input:not([type=hidden]), textarea, select";
+    const selector = "[data-ui-field-control]:not([hidden]), input:not([type=hidden]):not([hidden]), textarea:not([hidden]), select:not([hidden])";
     const target = label?.getAttribute("for") ? element.ownerDocument.getElementById(label.getAttribute("for")) : null;
     const requested = target && element.contains(target) ? (target.matches(selector) ? target : target.querySelector(selector)) : null;
     const input = requested ?? element.querySelector(selector);
@@ -73,7 +73,7 @@ export function connect(host) {
     });
   };
   const observer = new MutationObserver(schedule);
-  observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-describedby", "slot", "id", "role"] });
+  observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-describedby", "slot", "id", "role", "hidden"] });
   // Track props before deferred rewiring, even when no control is mounted yet.
   const stop = host.effect(() => {
     void host.props.disabled.value;

@@ -1,7 +1,7 @@
 <template component="ui-cluster" module="./ui-cluster.js">
   <defs>
-    <prop name="padding" type="keyword" values="none, s, m, l" default="none"
-    >Optional internal space for an action group, using the shared spacing scale.</prop>
+    <prop name="padding" type="keyword" values="none, xs, s, m, l" default="none"
+    >Optional internal space for an action group, using the shared spacing scale. xs is 0.25rem, s is 0.5rem, m is 0.75rem, and l is 1rem.</prop>
     <prop name="paddingEnd" type="keyword" values="none, s, m, l, xl" default="none"
     >Optional extra space at the inline end, such as clearance beside another control. xl is 4rem.</prop>
     <prop name="fixed" type="boolean" default="false">Keeps this group at its content size inside a flex layout.</prop>
@@ -62,6 +62,9 @@
 
     :host([fixed]) {
       flex: none;
+    }
+    :host([padding="xs"]) {
+      padding: var(--ui-space-1) !important;
     }
     :host([padding="s"]) {
       padding: var(--ui-space-2) !important;

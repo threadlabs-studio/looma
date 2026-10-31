@@ -1,0 +1,8 @@
+<!--
+title: Wall-clock and exact time
+description: A time of day has no date or zone. An exact instant uses an explicit editing zone; localized formatting never changes its identity.
+-->
+<ui-stack gap="s">
+  <ui-date-field type="time" label="Opening time" value="09:30" min="08:00" max="18:00" locale="en-US"></ui-date-field>
+  <ui-date-field type="instant" label="Meeting time" value="2026-10-30T18:30:00Z" time-zone="America/New_York" locale="en-US"></ui-date-field>
+</ui-stack>
