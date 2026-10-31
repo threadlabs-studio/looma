@@ -85,13 +85,13 @@ export function referencePage(component, catalog, cardResource, base) {
     const owner = catalog.components.find(c => c.examples.some(e => e.id === example.id)) ?? component;
     // Blank lines let Markupress parse real fences inside the projected HTML slots.
     // A fence longer than any authored run keeps snippets literal, including nested fences.
-    const tabs = Object.entries(exampleCodes(example, owner, catalog.components)).map(([mode, value]) => {
+    const tabs = Object.entries(exampleCodes(example, owner, [...catalog.resources ?? [], ...catalog.components])).map(([mode, value]) => {
       const fence = '~'.repeat(Math.max(3, ...[...value.code.matchAll(/~+/g)].map(match => match[0].length + 1)));
       const language = /^[\w+-]+$/.test(value.language) ? value.language : 'text';
       return `<section aria-label="${frameworkLabels[mode]}"><div data-theme="dark" style="--ui-surface-sunken: #0d1117">\n\n${fence}${language}\n${value.code}\n${fence}\n\n</div></section>`;
     }).join('\n');
     return `<ui-tabs slot="code" label="Example syntax" group="syntax" style="--ui-tabs-panel-padding: 0px">${tabs}</ui-tabs>`;
   };
-  const body = `<div class="looma-reference-examples"><ui-stack gap="xl">${examples.map(example => `<ui-card as="section" variant="subtle" padding="lg">${cardMarkup(example, base, catalog.components.find(c => c.examples.some(e => e.id === example.id)) ?? component, { reference: true, code: codes(example) })}</ui-card>`).join('')}</ui-stack></div>`;
+  const body = `<div class="looma-reference-examples"><ui-stack gap="xl">${examples.map(example => cardMarkup(example, base, catalog.components.find(c => c.examples.some(e => e.id === example.id)) ?? component, { reference: true, code: codes(example) })).join('')}</ui-stack></div>`;
   return `---\ntitle: ${JSON.stringify(component.title)}\ndescription: ${JSON.stringify(component.description || `${component.title} component reference.`)}\nid: ${JSON.stringify(component.id)}\n---\n\n# ${escape(component.title)}\n\n<div class="component-description">${descriptionHtml(component.description)}</div>\n\n<link rel="component" href="${cardResource}">\n${exampleResources(examples, catalog)}\n<link rel="component" href="${cardResource.replace(/card\.html$/, 'reference.html')}">\n<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">\n<link rel="component" href="@threadlabs/looma/components/ui-tabs/ui-tabs.html">\n<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">\n<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">\n\n<looma-reference>\n\n<div class="looma-reference-tabs"><ui-tabs label="Component reference" style="--ui-tabs-panel-padding: 0px; --ui-tabs-tab-min-block-size: var(--ui-control-size-lg)"><section aria-label="Examples">${body}</section><section aria-label="API"><h2 id="api">API</h2>\n${apiBody(component)}\n${parts.map(part => `<h2 id="${part.tag}-api">${literal(part.title)} API</h2><p>${literal(part.description)}</p>${apiBody(part, part.tag + '-')}`).join('\n')}</section></ui-tabs></div>\n\n</looma-reference>\n`;
 }

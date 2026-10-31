@@ -1,6 +1,5 @@
 import React from "react";
-import componentApi from "../../../../generated/component-api.json";
-import { frameworkExamples } from "../../../../packages/looma/tooling/docs/framework-examples.mjs";
+import generatedExamples from "../../../../generated/framework-examples.json";
 
 import {
   FrameworkModeCode,
@@ -8,10 +7,7 @@ import {
   type FrameworkExamples
 } from "./FrameworkMode";
 
-const examples: FrameworkExamples = frameworkExamples({ markup: `<ui-stack gap="m">
-  <h2>Account</h2>
-  <ui-button variant="solid">Save</ui-button>
-</ui-stack>` }, componentApi.components);
+const examples = generatedExamples.model as FrameworkExamples;
 
 /**
  * Explains the architectural invariant behind all framework examples: adapters

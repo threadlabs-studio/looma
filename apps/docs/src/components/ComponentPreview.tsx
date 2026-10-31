@@ -115,11 +115,7 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
                   dangerouslySetInnerHTML={{ __html: example.markup }}
                 />
               )}
-              <ScenarioModeExample
-                examples={example.frameworks}
-                markup={example.frameworkMarkup}
-                propertyAssignments={example.assignments}
-              />
+              <ScenarioModeExample examples={example.frameworks} />
             </section>
           ))}
         </div>

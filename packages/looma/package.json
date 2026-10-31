@@ -109,6 +109,7 @@
     "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
+    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "dompurify": "3.4.15",
     "expressmark": ">=0.5.1",
     "highlight.js": "11.11.2",
@@ -117,7 +118,6 @@
     "parse5": "^8.0.1"
   },
   "peerDependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "@threadlabs/markupkit": ">=0.4.2",
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
@@ -142,7 +142,6 @@
     }
   },
   "devDependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.76",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-blockquote": "^2.11.5",

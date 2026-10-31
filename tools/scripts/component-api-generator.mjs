@@ -453,6 +453,7 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
       property: name,
       description: describe(name),
       type: contract.propValueTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+      ...(contract.propTypeNodes?.[name] ? { valueType: contract.propTypeNodes[name] } : {}),
       ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
       ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))

@@ -1,12 +1,23 @@
 # Load Looma with HTML Next
 
-Looma's HTML definitions are the source for Vue, React and Svelte components. Install the HTML Next Vite adapter and your framework's standard Vite compiler. Import components from `@threadlabs/looma`; the adapter generates the framework code and types in the consuming project.
+Looma's HTML definitions are the source for Vue, React and Svelte components. In an existing Vite project, install Looma and the HTML Next Vite adapter:
+
+```sh
+pnpm add @threadlabs/looma
+pnpm add -D @nextwebwg/html-next-unplugin
+```
+
+Looma installs its HTML Next runtime dependency automatically. Configure the adapter before your framework's Vite plugin, then import components from `@threadlabs/looma`. The adapter generates the framework code and types in your project.
+
+Framework conversion requires Vite adapter alpha.76 or later. Looma declares its runtime minimum in its package dependencies; both packages admit later releases beyond 1.0.
 
 ## Vue
 
+If your project does not already have Vue tooling, install it:
+
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' vue
-pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-vue vite vue-tsc typescript
+pnpm add vue
+pnpm add -D @vitejs/plugin-vue vite vue-tsc typescript
 ```
 
 ```ts
@@ -35,9 +46,11 @@ import { UiButton, UiStack } from "@threadlabs/looma";
 
 ## React
 
+If your project does not already have React tooling, install it:
+
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' react react-dom
-pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @vitejs/plugin-react vite typescript @types/react @types/react-dom
+pnpm add react react-dom
+pnpm add -D @vitejs/plugin-react vite typescript @types/react @types/react-dom
 ```
 
 ```ts
@@ -61,13 +74,13 @@ export default function Account() {
 }
 ```
 
-Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for the complete component graph, including the editors. The adapter minimum includes shared-module, compiler-loading and component-import fixes for the complete catalog; later releases are admitted without a 1.0 ceiling.
-
 ## Svelte
 
+If your project does not already have Svelte tooling, install it:
+
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' svelte@5
-pnpm add -D '@nextwebwg/html-next-unplugin@>=1.0.0-alpha.76' @sveltejs/vite-plugin-svelte vite svelte-check typescript
+pnpm add svelte@5
+pnpm add -D @sveltejs/vite-plugin-svelte vite svelte-check typescript
 ```
 
 ```ts

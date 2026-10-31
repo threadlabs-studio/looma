@@ -151,21 +151,26 @@ test("every Vitest browser test is included by its package browser config", asyn
   }
 });
 
-test("public documentation installs compatible published releases without an upper ceiling", async () => {
-  const [rootReadme, gettingStarted, supportPage, facadeReadme] = await Promise.all([
+test("public documentation installs current releases with application-owned build tooling", async () => {
+  const [rootReadme, gettingStarted, supportPage, facadeReadme, publicGettingStarted, loadingGuide] = await Promise.all([
     readFile(path.join(repoRoot, "README.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/getting-started.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/release-1-support.md"), "utf8"),
-    readFile(path.join(repoRoot, "packages/looma/README.md"), "utf8")
+    readFile(path.join(repoRoot, "packages/looma/README.md"), "utf8"),
+    readFile(path.join(repoRoot, "apps/docs-next/docs/getting-started.md"), "utf8"),
+    readFile(path.join(repoRoot, "docs/framework-loading.md"), "utf8"),
   ]);
 
-  assert.match(rootReadme, /^pnpm add '@threadlabs\/looma@>=0\.49\.0'$/m);
+  for (const guide of [rootReadme, gettingStarted, facadeReadme, publicGettingStarted, loadingGuide]) {
+    assert.match(guide, /^pnpm add @threadlabs\/looma$/m);
+    assert.match(guide, /^pnpm add -D @nextwebwg\/html-next-unplugin$/m);
+    assert.doesNotMatch(guide, /^pnpm add.*@nextwebwg\/html-next(?:@|['"\s]|$)/m);
+  }
   assert.doesNotMatch(rootReadme + gettingStarted + supportPage, /@candidate|candidate.+dist-tag/is);
   assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
   assert.match(gettingStarted, /pnpm add ['"]?@threadlabs\/looma/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
   assert.match(gettingStarted, /Vue and Tiptap are optional to Looma as a whole/);
-  assert.match(gettingStarted, /pnpm add ['"]?@threadlabs\/looma@>=0\.49\.0['"]? ['"]@nextwebwg\/html-next@>=[^'"\n]+['"] vue/);
   assert.match(gettingStarted, /@tiptap\/core/);
   assert.match(gettingStarted, /@tiptap\/pm/);
   assert.match(gettingStarted, /@nextwebwg\/html-next-unplugin/);
@@ -196,6 +201,10 @@ test("the source-only facade qualifies headless entries and Vite-converted edito
   assert.equal(facade.files.includes("vue/"), false);
   assert.equal(facade.peerDependencies.vue, undefined);
   assert.equal(facade.peerDependencies["@tiptap/vue-3"], undefined);
+  assert.ok(facade.dependencies["@nextwebwg/html-next"]);
+  assert.equal(facade.peerDependencies["@nextwebwg/html-next"], undefined);
+  assert.equal(facade.dependencies["@nextwebwg/html-next-unplugin"], undefined);
+  assert.equal(consumerPackage.dependencies["@nextwebwg/html-next"], undefined);
 });
 
 test("the public consumer command is a separate fail-closed registry gate", async () => {

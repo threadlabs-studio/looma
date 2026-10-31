@@ -11,13 +11,13 @@ Looma ships the documentation generator and theme customizer used by its public 
 In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
-pnpm add -D 'markupress@>=0.14.6' '@threadlabs/markupkit@>=0.4.2' vite
+pnpm add @threadlabs/looma '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+pnpm add -D markupress @threadlabs/markupkit vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. These minimum-version ranges admit future releases beyond 1.0. Markupress renders authored documentation with Expressmark’s standard syntax and supplies section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. The full built-in catalog includes document and compact editor examples; the commands above install their supported Tiptap 2 peers. Tiptap remains optional for applications and catalogs using only controls.
+Looma installs its HTML Next runtime automatically. Use the tool versions accepted by Looma's optional peer dependencies. Markupress renders authored documentation with Expressmark’s standard syntax and supplies section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. The full built-in catalog includes document and compact editor examples; the commands above install their supported Tiptap 2 peers. Tiptap remains optional for applications and catalogs using only controls.
 
 Initialization creates three project-owned files:
 
@@ -301,6 +301,8 @@ The first example also appears in the component directory, so keep it representa
 Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not make arbitrary components respond to Looma's tokens.
 
 Author components and documentation examples in HTML Next. Vue, React and Svelte applications compile those definitions with the HTML Next Vite plugin or converter; framework conversion belongs in the consuming application. See the [loading guide](https://threadlabs.studio/looma/getting-started/) for framework setup, imports and styles.
+
+The shared example generator parses HTML invocations into props, children and named slots, then prints each framework's public API. Catalog attributes carry the HTML Next parser's `valueType` node alongside the displayed `type`; the generator uses HTML Next's public value parser for booleans, numbers, collections and types selected by another prop. Svelte snippets use their slot's role as a name, with component names disambiguating repeated roles. React examples use slot objects and only the fragments required for multiple children. Vue named templates retain their position in the authored example. Structural indentation is rebuilt while inline spacing and preformatted text are preserved. The framework consumer tests compile and render representative generated examples through the actual adapters.
 
 ## Combine installed catalogs
 
