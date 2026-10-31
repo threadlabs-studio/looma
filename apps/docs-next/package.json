@@ -20,7 +20,7 @@
     "@threadlabs/markupkit": ">=0.4.2",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
-    "markupress": ">=0.14.6",
+    "markupress": ">=0.15.0",
     "vite": "8.3.4"
   },
   "devDependencies": {
