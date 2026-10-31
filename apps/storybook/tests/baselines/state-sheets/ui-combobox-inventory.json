@@ -117,6 +117,20 @@
     "example": 0
   },
   {
+    "name": "grow: false",
+    "props": {
+      "grow": false
+    },
+    "example": 0
+  },
+  {
+    "name": "grow: true",
+    "props": {
+      "grow": true
+    },
+    "example": 0
+  },
+  {
     "name": "invalid: false",
     "props": {
       "invalid": false
