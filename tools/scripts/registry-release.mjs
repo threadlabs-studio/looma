@@ -10,16 +10,6 @@ function repositoryUrl(value) {
   return typeof value === "string" ? value : object(value).url;
 }
 
-function internalDependencies(packageJson) {
-  const result = {};
-  for (const field of ["dependencies", "optionalDependencies"]) {
-    for (const [name, range] of Object.entries(object(packageJson[field]))) {
-      if (RELEASE_PACKAGE_NAMES.has(name)) result[name] = range;
-    }
-  }
-  return result;
-}
-
 function stableObject(value) {
   return Object.fromEntries(Object.entries(object(value)).sort(([left], [right]) => left.localeCompare(right)));
 }
@@ -84,12 +74,9 @@ export function collectRegistryReleaseIssues({
       issues.push(`${label} registry peer dependencies do not match the approved source manifest`);
     }
 
-    const sourceInternal = internalDependencies(sourcePackage);
-    const registryInternal = internalDependencies(registryPackage);
-    const internalNames = new Set([...Object.keys(sourceInternal), ...Object.keys(registryInternal)]);
-    for (const dependencyName of internalNames) {
-      if (registryInternal[dependencyName] !== RELEASE_VERSION) {
-        issues.push(`${label} registry dependency ${dependencyName} must be exact ${RELEASE_VERSION}`);
+    for (const field of ["dependencies", "optionalDependencies"]) {
+      if (JSON.stringify(stableObject(registryPackage[field])) !== JSON.stringify(stableObject(sourcePackage[field]))) {
+        issues.push(`${label} registry ${field} do not match the approved source manifest`);
       }
     }
 

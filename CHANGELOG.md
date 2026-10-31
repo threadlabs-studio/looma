@@ -2,10 +2,31 @@
 
 ## Next release
 
-- Threadlabs and Nextwebwg dependencies use minimum supported versions without speculative major-version ceilings or experimental exact pins. Lockfiles retain the qualified graph; the verified Markupress 0.14.4 peer-metadata exclusion remains.
-
 - Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
 - **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.
+- Build the public documentation with Markupress 0.15.0. Align the declared Looma baseline with published 0.49.4 so strict packed documentation consumers satisfy Markupress's shared-control requirements.
+
+- Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.
+- Remove the extra padded Card around each documentation example so its own card uses the reference page's available width.
+
+- Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
+
+- Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
+
+- Match generated editor responder and event types to the framework-neutral host contracts, including mention/link records, passage ranges and image activation triggers.
+
+- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+
+- Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
+
+- **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.
+- Admit future Threadlabs and Nextwebwg releases through minimum-version ranges without a 1.0 or later major-version ceiling. Docs tooling requires MarkupKit 0.4.2 and Markupress 0.14.6 to share the corrected runtime and pass strict peer checks; lockfiles retain exact tested resolutions.
+
+- RadioGroup accepts the native `form` association. The editor’s chip color controls opt out of enclosing forms, so writing inside a form does not submit an internal color choice.
+
+- Author the document editor, compact editor and compact-content renderer in HTML Next. They use `content` and native `change` event details, with host services supplied through requests. The document editor now starts with a valid empty paragraph, avoiding an invalid caret in an empty root document. Controlled replacements that shorten the document keep the caret inside a valid text block.
+
+- Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs.
 
 - CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
 
@@ -284,6 +305,9 @@
 ### Improvements
 
 - Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
+- Keep wide SiteHeader brand images inside their available width beside mobile controls, preserving image proportions in both reading directions.
+
 ## v0.34.0
 
 ### Migration: readable theme recipes

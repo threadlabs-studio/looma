@@ -9,11 +9,11 @@ const loweredSource = `<button data-component="ui-button" data-ui-button-state="
   Save
 </button>`;
 const vueSource = `<script setup lang="ts">
-import { Button } from "@threadlabs/looma/vue";
+import { UiButton } from "@threadlabs/looma";
 <\/script>
 
 <template>
-  <Button variant="solid">Save</Button>
+  <UiButton variant="solid">Save</UiButton>
 </template>`;
 
 export function HomePage(): JSX.Element {
@@ -29,7 +29,7 @@ export function HomePage(): JSX.Element {
             Looma is the first UI library built on{" "}
             <a href="https://nextwebwg.org/html-next/">Declarative HTML Components</a>, a proposal to
             give HTML its own reactive component model. Every Looma component is written once as that markup,
-            and the same definition ships two ways.
+            and the same definition serves HTML Next, Vue, React, and Svelte.
           </p>
           <div className="looma-home-grid">
             <article>
@@ -54,8 +54,7 @@ export function HomePage(): JSX.Element {
                 <code>{vueSource}</code>
               </pre>
               <p>
-                An ordinary Vue 3.5 component, compiled from the same definition, with no Looma
-                runtime inside it.
+                An ordinary Vue component compiled in your application by the HTML Next Vite plugin.
               </p>
             </article>
           </div>

@@ -61,6 +61,22 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-compact-content": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-compact-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-compact-mark": {
+      "status": "internal",
+      "package": "@threadlabs/looma"
+    },
+    "ui-compact-node": {
+      "status": "internal",
+      "package": "@threadlabs/looma"
+    },
     "ui-container": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -78,10 +94,6 @@
       "package": "@threadlabs/looma"
     },
     "ui-cycle-button": {
-      "status": "published",
-      "package": "@threadlabs/looma"
-    },
-    "ui-light-editor": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -105,6 +117,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-editor": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-editor-block-actions": {
       "status": "internal",
       "package": "@threadlabs/looma"
@@ -118,6 +134,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-editor-footnote-editor": {
+      "status": "internal",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-formatting-tools": {
       "status": "internal",
       "package": "@threadlabs/looma"
     },
@@ -206,6 +226,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-input-group": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-light-editor": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

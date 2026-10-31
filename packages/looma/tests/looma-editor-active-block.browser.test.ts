@@ -7,9 +7,11 @@ import {
   LOOMA_ACTIVE_BLOCK_CLASS,
   LOOMA_ACTIVE_BLOCK_TYPING_IDLE_MS,
 } from "../src/editor/extensions/active-block";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
-import "../vue/components.css";
 
 const apps: App[] = [];
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -34,14 +36,15 @@ async function mountEditor(initialContent?: JSONContent) {
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
-      modelValue: modelValue.value,
-      "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
-      onReady: (instance: Editor) => { editor = instance; },
+      content: modelValue.value,
+      onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
+      extensions: captureEditor(instance => { editor = instance; }),
     }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.poll(() => editor).toBeTruthy();
   return { editor: editor!, host };
 }
 

@@ -15,16 +15,51 @@ const json = (file, value) => writeFile(file, JSON.stringify(value, null, 2) + '
 /** Qualify the shipped product from an isolated install, including its real local writer and watcher. */
 export async function verifyDocumentationConsumer(directory, tarball, manifest) {
   const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  const packageManager = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).packageManager;
   await mkdir(directory, { recursive: true });
   await json(path.join(directory, 'package.json'), {
-    name: 'looma-documentation-consumer', private: true, type: 'module',
+    name: 'looma-documentation-consumer', private: true, type: 'module', packageManager,
     dependencies: {
-      '@threadlabs/looma': `file:${tarball}`, '@nextwebwg/html-next': manifest.peerDependencies['@nextwebwg/html-next'],
+      '@threadlabs/looma': `file:${tarball}`,
       '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
   });
   // Fresh per-run metadata sees newly compatible peers; the shared package-file store is still reused.
   await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline', `--config.cache-dir=${path.join(path.dirname(directory), 'registry-metadata')}`], directory);
+  // Routing, component controllers and document requests must use the same runtime registry.
+  await run(process.execPath, ['--experimental-import-meta-resolve', '--input-type=module', '--eval', `
+import assert from 'node:assert/strict';
+import { realpath } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+const origin = pathToFileURL(process.cwd() + '/package.json').href;
+const looma = import.meta.resolve('@threadlabs/looma/editor', origin);
+const runtime = await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', looma)));
+for (const name of ['@threadlabs/markupkit', '@threadlabs/looma/editor']) {
+  const entry = import.meta.resolve(name, origin);
+  assert.equal(await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', entry))), runtime, name + ' must share the application runtime');
+}
+console.log('Documentation packages resolve one HTML Next runtime through their ESM entry points.');
+const runtimeRequire = createRequire(import.meta.resolve('@nextwebwg/html-next/runtime', looma));
+const { JSDOM } = await import(runtimeRequire.resolve('jsdom'));
+const dom = new JSDOM('', { url: 'http://localhost/' });
+for (const name of Object.getOwnPropertyNames(dom.window)) {
+  if (!(name in globalThis) || ["Event", "EventTarget", "AbortController", "AbortSignal"].includes(name)) {
+    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value: dom.window[name] });
+  }
+}
+try {
+  const { stop } = await import('@threadlabs/looma');
+  const markupkit = import.meta.resolve('@threadlabs/markupkit', origin);
+  const { componentRegistry } = await import(import.meta.resolve('@nextwebwg/html-next/runtime', markupkit));
+  const button = componentRegistry.create('ui-button', { content: ['Save'] });
+  document.body.append(button);
+  componentRegistry.update(button, { disabled: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(button.disabled, true, 'MarkupKit and Looma must share native component updates');
+  stop();
+} finally { dom.window.close(); }
+`], directory);
   await run(pnpm, ['exec', 'looma-docs', 'init', '--title', 'The Fellowship'], directory);
   const config = JSON.parse(await readFile(path.join(directory, 'looma.docs.json'), 'utf8'));
   Object.assign(config, { base: '/system/', content: 'docs', components: [{ directory: 'app/components', packageName: 'fellowship-ui' }] });
@@ -49,7 +84,8 @@ await buildProjectDocumentation({ root: process.cwd(), config, catalog });
   assert.match(await readFile(path.join(output, 'index.html'), 'utf8'), /Ready for second breakfast/);
   const reference = await readFile(path.join(output, 'components/office-status/index.html'), 'utf8');
   assert.match(reference, /The office status\./);
-  assert.doesNotMatch(reference, /<h2[^>]*>Framework props<\/h2>/);
+  assert.match(reference, /<h2[^>]*>Framework props<\/h2>/);
+  assert.ok(reference.includes('./app/components/office-status/office-status.html'));
   assert.match(await readFile(path.join(output, 'customize/index.html'), 'utf8'), /data-mode="public"/);
   await writeFile(path.join(directory, 'verify-local.mjs'), `
 import assert from 'node:assert/strict';

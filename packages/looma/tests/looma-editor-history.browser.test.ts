@@ -4,9 +4,11 @@ import { AllSelection } from "@tiptap/pm/state";
 import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
-import { Button } from "../vue/index";
-import "../vue/components.css";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
+import { UiButton as Button } from "../src/components/ui-button/ui-button.html";
 import "../tokens.css";
 import "../theme-light.css";
 
@@ -48,22 +50,23 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
-      modelValue: modelValue.value,
+      content: modelValue.value,
       editable: editable.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
-      ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
+      ...(options.codeLanguages ? { codeLanguages: () => options.codeLanguages } : {}),
       ...(options.mentionItems ? { mentionItems: options.mentionItems } : {}),
-      ...(options.imageUpload ? { imageUpload: options.imageUpload, onUploadError: options.onUploadError } : {}),
+      ...(options.imageUpload ? { imageUpload: options.imageUpload, "onUpload-error": (event: CustomEvent<{ error: unknown; file: File }>) => options.onUploadError?.(event.detail.error, event.detail.file) } : {}),
       ...(options.controlled === false ? {} : {
-        "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
+        onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
       }),
-      onReady: (instance: Editor) => { editor = instance; },
+      extensions: captureEditor(instance => { editor = instance; }),
     }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await vi.waitFor(() => expect(editor).not.toBeNull());
   return { editor: editor!, host, editable };
 }
 
@@ -306,9 +309,9 @@ describe("LoomaEditor history (real browser)", () => {
       render: () => h("div", [
         h(Button, { onClick: () => { detailsClicked.value = true; } }, () => "Document details"),
         h(LoomaEditor, {
-          modelValue: { type: "doc", content: [{ type: "paragraph" }] },
+          content: { type: "doc", content: [{ type: "paragraph" }] },
           toolbarMode: "contextual",
-          onReady: (instance: Editor) => { editor = instance; },
+          extensions: captureEditor(instance => { editor = instance; }),
         }),
       ]),
     });
@@ -598,11 +601,12 @@ describe("LoomaEditor history (real browser)", () => {
       render: () => h("div", [
         h("button", { id: "format-trigger", type: "button" }, "Format"),
         h(LoomaEditor, {
-          modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hello world" }] }] },
+          content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hello world" }] }] },
           toolbarMode: "popover",
           toolbarTriggerId: "format-trigger",
           toolbarOpen: open.value,
-          "onUpdate:toolbarOpen": (value: boolean) => { open.value = value; },
+          "onToolbar-open": () => { open.value = true; },
+          "onToolbar-close": () => { open.value = false; },
         }),
       ]),
     });

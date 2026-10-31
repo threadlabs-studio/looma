@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Combobox } from "@threadlabs/looma/vue";
+import { UiCombobox as Combobox } from "@threadlabs/looma";
 
 const regions = [
   { value: "north", label: "North" },

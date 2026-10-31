@@ -229,6 +229,10 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.match(combobox.description, /suggestions/);
   assert.equal(combobox.root, "div");
   assert.equal(input.root, "input");
+  assert.equal(input.attributes.find(attribute => attribute.name === "value").valueType.kind, "selected");
+  assert.deepEqual(combobox.attributes.find(attribute => attribute.name === "selected-values").valueType, {
+    kind: "list", item: { kind: "terminal", name: "string" },
+  });
   assert.equal(menuItem.navigationParent, "ui-menu");
   assert.ok(!input.slots.some(({ name }) => name === "default"));
   assert.equal("methods" in combobox, false);
@@ -260,4 +264,9 @@ test("design tokens hide private defaults and report them as the public token's 
     declarations: ["var(--ui-info-soft)", "var(--ui-danger-soft)"],
   }]);
   assert.deepEqual(tokens.shared.map((token) => token.name), ["--ui-danger-soft", "--ui-info-soft"]);
+});
+
+ test("open declarative records retain known fields in generated TypeScript", () => {
+  assert.equal(declarativeTypeToTypeScript("object({ type: string, ... })"), "{ type: string; [key: string]: unknown }");
+  assert.equal(declarativeTypeToTypeScript("object({ ... })"), "{ [key: string]: unknown }");
 });

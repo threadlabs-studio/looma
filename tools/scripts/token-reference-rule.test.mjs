@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tokensRoot = path.join(repoRoot, "packages/looma/src/tokens");
 const componentsRoot = path.join(repoRoot, "packages/looma/src/components");
-const editorStyles = path.join(repoRoot, "packages/looma/src/vue/editor/looma-editor.css");
+const editorStyles = path.join(repoRoot, "packages/looma/src/components/ui-editor/ui-editor.css");
 
 // Optional inherited middle layer. These are deliberately unset in tokens.css, so each component
 // reads its global fallback when a consumer has not themed that group.

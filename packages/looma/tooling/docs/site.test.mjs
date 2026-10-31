@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { prepareDocumentation } from './site.mjs';
 import { scopedExampleMarkup } from './render.mjs';
@@ -34,6 +35,7 @@ test('prerenders examples in shared cards without frame documents, including beh
     const lightEditor = await readFile(path.join(site.content, 'components', extrasDirectory, 'ui-light-editor.md'), 'utf8');
     assert.match(lightEditor, /LightEditor/);
     assert.match(button, /looma-example-card/);
+    assert.match(button, /<ui-stack gap="xl"><looma-example-card/, 'example cards own their frame and sit directly in the reference stack');
     assert.match(button, /<div slot="preview"><div data-preview=/);
     assert.doesNotMatch(button, /iframe|\/_looma\/preview\//);
     assert.match(button, /Framework props/);
@@ -59,6 +61,8 @@ test('prerenders examples in shared cards without frame documents, including beh
 
     assert.match(await readFile(swatches.file, 'utf8'), /ui-input\/ui-input.html/);
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
+    const controller = await import(pathToFileURL(path.join(site.generated, 'customizer.js')).href);
+    assert.equal(typeof controller.connect, 'function', 'generated controllers must resolve Looma dependencies outside the package');
     assert.match(customizer, /<looma-preview-choice slot="preview"/);
     assert.match(customizer, /removable/);
     assert.match(customizer, /data-customizer-summary/);

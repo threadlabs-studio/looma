@@ -10,6 +10,7 @@
 <link rel="component" href="../ui-checkbox/ui-checkbox.html">
 <template component="ui-editor-link-form" module="./ui-editor-link-form.js">
   <defs>
+    <prop name="autofocus" type="boolean" default="false">Focus the destination field when this editor connects. The --focus command focuses it again.</prop>
     <prop name="existing" type="boolean" default="false">Whether the link already exists, so the heading reads Edit link rather than Add link.</prop>
     <prop name="searchable" type="boolean" default="false"
     >Whether the destination field searches for a destination as well as taking an address. A searchable field has a search icon and a Clear search

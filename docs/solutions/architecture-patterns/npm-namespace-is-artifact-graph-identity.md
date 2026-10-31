@@ -1,7 +1,7 @@
 ---
 title: Treat an npm namespace change as an artifact-graph identity migration
 date: 2026-08-30
-last_updated: 2026-08-31
+last_updated: 2026-10-30
 category: architecture-patterns
 module: release-tooling
 problem_type: architecture_pattern
@@ -24,7 +24,6 @@ tags:
   - public-facade
   - release-tooling
   - cross-project-testing
-  - knit
   - evidence-integrity
 ---
 
@@ -38,32 +37,16 @@ generated metadata, lockfiles, release evidence, documentation, and consumers.
 Changing it safely therefore requires migrating the whole Package Identity
 Graph rather than performing a repository-wide text replacement.
 
-Looma makes the distinction especially important. Its public Release 1 surface
-is one package, `@threadlabs/looma`, with explicit root, core, loader, layout,
-editor, low-level editor UI, editor-extension, general Vue, Vue editor, and
-stylesheet subpaths
-(`packages/looma/package.json:24`). Core, layout, editor, Vue, and tokens remain
-private workspaces whose package identities are assembly inputs rather than
-separate products. The release configuration consequently admits exactly one
-public artifact and rejects a manifest with any additional public package
-identity (`tools/scripts/release-config.mjs:2`,
-`tools/scripts/release-config.mjs:39`).
+Looma's public surface is one package, `@threadlabs/looma`, with explicit source,
+native runtime, editor, documentation and stylesheet exports. The package manifest
+defines that boundary; the release configuration admits one public artifact.
 
 This architecture superseded an unpublished five-package Candidate graph. The
 underlying lesson did not change: names still participate in executable edges.
-What changed was the public boundary. Internal names now terminate during
-facade assembly, which rewrites declared internal specifiers and then rejects
-private Looma package identities in assembled runtime files
-(`tools/scripts/build-facade.mjs:50`, `tools/scripts/verify-facade.mjs:75`).
-
-Knit extends the graph through a separately versioned internal integration harness. It declares one
-direct Looma dependency ([Knit web manifest](../../../../knit/web/package.json#L33))
-and imports public subpaths such as `@threadlabs/looma/vue`
-([Knit app entry](../../../../knit/web/app/app.vue#L14)). Its unit-test boundary
-mocks other facade subpaths by the same public identity
-([Knit Looma setup](../../../../knit/web/tests/setup/looma-unit.ts#L3)). A package
-rename or public-boundary change is therefore simultaneously a producer,
-consumer, bundler, test-isolation, registry, and release-evidence migration.
+What changed was the public boundary. Applications extend the graph through
+their imports, bundler configuration, test mocks and lockfiles. A package rename
+or public-boundary change is therefore simultaneously a producer, consumer,
+bundler, test-isolation, registry, and release-evidence migration.
 
 Earlier release planning encoded a namespace before ownership was proven. That
 made namespace availability a late discovery after manifests, documentation,
@@ -83,11 +66,10 @@ product.
 
 For a facade, define subpaths as part of the one public identity. A consumer
 should install `@threadlabs/looma` once and import capabilities from explicit
-exports such as `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`,
-`@threadlabs/looma/vue`, or `@threadlabs/looma/vue/editor`; it should not
-coordinate internal workspace versions.
-The facade manifest is the public contract, and its export map must agree with
-the assembly declaration (`tools/scripts/verify-facade.mjs:39`).
+exports such as `@threadlabs/looma/editor`, `@threadlabs/looma/input-modality`,
+or `@threadlabs/looma/docs`. Framework components compile from the root HTML Next
+source export, as described in the [loading guide](../../framework-loading.md).
+The manifest's export map and packed files must agree.
 
 Inventory every identity-bearing edge before editing:
 

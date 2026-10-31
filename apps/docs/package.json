@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-docs",
   "private": true,
-  "version": "0.48.0",
+  "version": "0.50.0",
   "scripts": {
     "dev": "pnpm generate:api && node build-preview.mjs && docusaurus start --port 4173",
     "build": "pnpm generate:api && node build-preview.mjs && BROWSERSLIST_IGNORE_OLD_DATA=true USE_SIMPLE_CSS_MINIFIER=true docusaurus build",
@@ -22,12 +22,11 @@
     "@docusaurus/plugin-content-docs": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "@threadlabs/looma": "workspace:*",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
-    "@tiptap/vue-3": "^2.11.5",
-    "prismjs": "^1.30.0",
-    "vue": "^3.5.43"
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",

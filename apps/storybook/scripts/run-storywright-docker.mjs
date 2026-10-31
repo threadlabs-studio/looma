@@ -41,7 +41,7 @@ const appDirFromRepo = relative(repoRoot, appRoot)
 // Every workspace project's node_modules is a Docker volume, not the bind
 // mount: the container's Linux `pnpm install` would otherwise rewrite the
 // host's workspace symlinks and break host tooling. Mirrors pnpm-workspace.yaml.
-const workspaceDirs = ['packages', 'apps', 'tools'].flatMap((group) =>
+const workspaceDirs = ['packages', 'apps', 'tools', 'tests'].flatMap((group) =>
   readdirSync(resolve(repoRoot, group), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && existsSync(resolve(repoRoot, group, entry.name, 'package.json')))
     .map((entry) => `${group}/${entry.name}`))
@@ -159,6 +159,8 @@ function restoreWorkspaceOwnership(dockerEnv) {
   const generatedPaths = [
     '/work/packages',
     '/work/apps',
+    '/work/tools',
+    '/work/tests',
     '/work/generated',
     '/work/.context',
   ]

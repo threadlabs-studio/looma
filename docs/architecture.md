@@ -7,7 +7,7 @@ whose explicit subpaths preserve those runtime boundaries.
 ## Release 1 Public Package
 
 `@threadlabs/looma` is the only public artifact. Consumers select core, layout,
-editor, low-level editor UI, editor-extension, Vue, loader, and CSS behavior through explicit
+editor, low-level editor UI, editor-extension, native loader, and CSS behavior through explicit
 `@threadlabs/looma/*` subpaths.
 
 The repository also contains React and Svelte adapters, docs, and Storybook
@@ -23,8 +23,7 @@ Release 1 and are not public Candidate packages.
 - `@threadlabs/looma/editor`: the complete ESM Tiptap-backed editor surface: declarative UI, the extension preset, and command helpers.
 - `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent declarative UI for advanced composition.
 - `@threadlabs/looma/editor/extensions`: the focused domain-neutral Tiptap preset and command-helper surface. Save, upload, collaboration, and presence remain app concerns.
-- `@threadlabs/looma/vue`: ESM wrappers for public layout and core elements, with no editor or Tiptap edge.
-- `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` Vue integration. It owns the Tiptap instance, default extensions, commands, selection/focus orchestration, and themed editor controls while exposing content and upload boundaries to the host.
+- Vue, React and Svelte applications compile those HTML definitions through the HTML Next Vite plugin. All use prefixed imports such as `UiButton` and `UiEditor` from the package root.
 
 ## DOM And Progressive-Enhancement Contract
 
@@ -58,7 +57,7 @@ state with `:host(:state(name))`.
 Release documentation follows built artifacts, not a blanket format claim:
 
 - Tokens are CSS-only.
-- Editor and Vue expose ESM entry points.
+- Editor helpers and native runtime support expose ESM entry points; framework components compile from the HTML definitions in the consumer.
 - Layout and core expose real ESM and CommonJS build targets. Layout retains
   CommonJS because the production documentation server bundle consumes it.
 - An export map must never advertise a format the build does not create.
@@ -73,7 +72,7 @@ Release documentation follows built artifacts, not a blanket format claim:
 ## Contract Ownership
 
 The declarative contracts define canonical native roots, attributes, properties,
-events, slots, SSR/no-JS behavior, and accessibility expectations. The supported Vue adapter
-translates framework conventions without introducing behavior divergence. The
+events, slots, SSR/no-JS behavior, and accessibility expectations. Consumer-side Vue, React
+and Svelte compilation translates framework conventions without introducing behavior divergence. The
 [support matrix](./release-support-matrix.md) defines which surfaces receive
 Candidate proof in Release 1.

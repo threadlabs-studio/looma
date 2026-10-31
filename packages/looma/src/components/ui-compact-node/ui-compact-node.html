@@ -1,0 +1,14 @@
+<link rel="component" href="../ui-compact-mark/ui-compact-mark.html">
+<template component="ui-compact-node">
+  <defs><prop name="node" type="object({ type: string, ... })" required>The node to render. Unknown node kinds retain their text children.</prop></defs>
+  <template $match>
+    <p $when="$node.type = 'paragraph'"><ui-compact-node $each="child of $node.content" from:node="$child"></ui-compact-node></p>
+    <br $when="$node.type = 'hardBreak'">
+    <span $when="$node.type = 'text'"><ui-compact-mark
+        from:text="$node.text"
+        from:marks="default($node.marks, [])"
+        from:index="default($node.marks.length, 0) - 1"
+      ></ui-compact-mark></span>
+    <span $else><ui-compact-node $each="child of $node.content" from:node="$child"></ui-compact-node></span>
+  </template>
+</template>

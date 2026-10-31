@@ -2,11 +2,13 @@ import type { Editor } from "@tiptap/core";
 import { page, userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import "../tokens.css";
 import "../theme-light.css";
-import "../vue/components.css";
 
 const apps: App[] = [];
 
@@ -33,11 +35,12 @@ async function mount(markdown: string) {
   document.body.append(outside, host);
   let editor: Editor | null = null;
   const app = createApp({
-    render: () => h(LoomaEditor, { modelValue: markdownToEditorDocument(markdown), onReady: (instance: Editor) => { editor = instance; } }),
+    render: () => h(LoomaEditor, { content: markdownToEditorDocument(markdown), extensions: captureEditor(instance => { editor = instance; }) }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.poll(() => editor, { timeout: 10_000 }).toBeTruthy();
   const popover = () => document.querySelector<HTMLElement>('[role="dialog"][aria-label="Edit footnote"]')?.closest<HTMLElement>("[popover]") ?? null;
   return { host, outside, editor: editor!, popover, markdown: () => editorDocumentToMarkdown(editor!.getJSON(), { original: markdown }) };
 }

@@ -1,0 +1,59 @@
+<link rel="component" href="../ui-editor-toolbar/ui-editor-toolbar.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-button/ui-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-separator/ui-separator.html">
+<link rel="component" href="../ui-tooltip/ui-tooltip.html">
+<template component="ui-editor-formatting-tools" module="./ui-editor-formatting-tools.js">
+  <defs>
+    <prop
+      name="items"
+      type="list(object({ id: string, kind: keyword, label: string, icon: string, active: boolean, disabled: boolean, expanded: boolean, shortcut: string }))"
+      default="[]"
+    >The document session's current formatting and passage actions.</prop>
+    <prop name="floating" type="boolean" default="false">Use the shared toolbar's floating presentation.</prop>
+    <state
+      name="hint"
+      type="object({ for: string, open: boolean, label: string, shortcut: string })"
+      value="{ for: '', open: false, label: '', shortcut: '' }"
+    ></state>
+    <event name="tool-action" type="object({ id: string })">An enabled action was activated.</event>
+    <event name="tool-focus" type="object({ id: string })">An action received keyboard focus.</event>
+    <event name="tool-press" type="object({ id: string })">An action was pressed while the document selection was retained.</event>
+  </defs>
+  <ui-editor-toolbar from:floating="$floating">
+    <template $each="item of $items" $key="$item.id">
+      <ui-separator $if="$item.kind = 'separator'" orientation="vertical"></ui-separator>
+      <ui-icon-button
+        $if="$item.kind = 'icon'"
+        class="looma-editor__toolbar-button"
+        size="sm"
+        variant="ghost"
+        from:id="$item.id"
+        from:label="$item.label"
+        from:disabled="$item.disabled"
+        from:aria-pressed="$item.active"
+        from:aria-expanded="$item.expanded"
+        from:data-active="$item.active"
+        from:data-editor-tool="$item.id"
+      >
+        <ui-icon from:name="$item.icon"></ui-icon>
+      </ui-icon-button>
+      <ui-button
+        $if="$item.kind = 'text'"
+        size="sm"
+        variant="ghost"
+        tone="neutral"
+        type="button"
+        from:id="$item.id"
+        from:aria-label="$item.label"
+        from:disabled="$item.disabled"
+        from:aria-expanded="$item.expanded"
+        from:data-editor-tool="$item.id"
+      >{$item.label}</ui-button>
+    </template>
+    <ui-tooltip trigger="focus" from:for="$hint.for" from:open="$hint.open" from:placement="$floating ? 'top' : 'bottom'">
+      {$hint.label}<kbd slot="shortcut" $if="$hint.shortcut">{$hint.shortcut}</kbd>
+    </ui-tooltip>
+  </ui-editor-toolbar>
+</template>

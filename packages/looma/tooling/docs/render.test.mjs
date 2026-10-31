@@ -82,7 +82,28 @@ test('native reference tabs expose literal Markdown fences to the standard parse
   };
   collect(document);
   assert.match(page, /<ui-tabs slot="code"[^>]*><section aria-label="HTML Next">/);
-  assert.equal(codes.length, 1);
+  assert.equal(codes.length, 4);
   assert.equal(codes[0].language, 'html');
-  assert.equal(codes[0].value, '<script type="module">\nimport "example";\n</script>\n\n' + example.markup);
+  assert.equal(codes[0].value, '<link rel="component" href="example/components/ui-status/ui-status.html">\n\n' + example.markup);
+  for (const label of ['Vue', 'React', 'Svelte']) assert.ok(page.includes(`aria-label="${label}"`));
+});
+
+
+test('local component snippets import the authored HTML file in every framework', async () => {
+  const { frameworkExamples } = await import('./framework-examples.mjs');
+  const codes = frameworkExamples({ markup: '<acme-status label="Ready"></acme-status>' }, [{
+    tag: 'acme-status', package: 'project-catalog', importSource: './app/components/acme-status.html',
+  }]);
+  for (const target of ['vue', 'react', 'svelte']) {
+    assert.ok(codes[target].code.includes('import { AcmeStatus } from "./app/components/acme-status.html";'));
+    assert.ok(!codes[target].code.includes('from "project-catalog"'));
+  }
+});
+
+test('framework examples import resource dependencies that have no reference page', () => {
+  const example = { id: 'example/ui-status/icon', title: 'Icon', description: '', markup: '<ui-status><ui-icon name="search"></ui-icon></ui-status>' };
+  const component = { title: 'Status', tag: 'ui-status', id: 'example/ui-status', package: 'example', examples: [example] };
+  const page = referencePage(component, { components: [component], resources: [{ tag: 'ui-icon', package: 'example' }] }, '/card.html', '/');
+  assert.match(page, /import \{ UiIcon, UiStatus \} from "example"/);
+  assert.match(page, /<UiIcon name="search" \/>/);
 });

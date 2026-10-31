@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { formatType, parseComponentResource, typeScriptType } from "../../packages/looma/node_modules/@nextwebwg/html-next/dist/index.js";
+import { formatType, normalizeType, parseComponentResource, typeScriptType } from "../../packages/looma/node_modules/@nextwebwg/html-next/dist/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
@@ -234,6 +234,8 @@ export async function readDeclarativeContractGroups() {
         propOptions: Object.freeze(propOptions),
         propFields: Object.freeze(propFields),
         propValueTypes: Object.freeze(propValueTypes),
+        propTypeNodes: Object.freeze(Object.fromEntries(Object.entries(definition.contract.props)
+          .map(([name, prop]) => [name, normalizeType(prop.type)]))),
         propDescriptions: Object.freeze(Object.fromEntries(Object.entries(definition.contract.props)
           .map(([name, prop]) => [name, prop.description.replace(/\s+/g, " ").trim()]))),
         events: Object.freeze(events),

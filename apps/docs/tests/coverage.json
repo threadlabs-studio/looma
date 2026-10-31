@@ -10,7 +10,7 @@
     },
     {
       "path": "adapter-parity",
-      "title": "Adapter Support",
+      "title": "Framework adapters",
       "source": "apps/docs/docs/adapter-parity.md",
       "component": null,
       "examples": []
@@ -560,6 +560,32 @@
       ]
     },
     {
+      "path": "components/ui-compact-content",
+      "title": "CompactContent",
+      "source": "apps/docs/docs/components/forms/ui-compact-content.mdx",
+      "component": "ui-compact-content",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Short rich-text content",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-compact-editor",
+      "title": "CompactEditor",
+      "source": "apps/docs/docs/components/forms/ui-compact-editor.mdx",
+      "component": "ui-compact-editor",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Short rich-text field",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-container",
       "title": "Container",
       "source": "apps/docs/docs/components/layout/ui-container.mdx",
@@ -805,6 +831,19 @@
         {
           "id": "05-constraints",
           "title": "Required short text",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor",
+      "title": "Editor",
+      "source": "apps/docs/docs/components/forms/ui-editor.mdx",
+      "component": "ui-editor",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Document editor",
           "behavior": false
         }
       ]

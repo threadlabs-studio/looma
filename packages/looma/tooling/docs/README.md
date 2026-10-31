@@ -4,22 +4,20 @@ title: Weave your design system
 
 # Weave your design system
 
-Looma ships the documentation generator and theme customizer used by its public site. Run it in your project to browse Looma and your own HTML Next components as one design system. The customizer uses the same authored component cards as the reference.
+Looma ships the documentation generator and theme customizer used by its public site. Run it in your project to browse Looma and your own HTML Next components as one design system. Framework examples for local components import their authored HTML files; those paths are relative to the project root. The customizer uses the same authored component cards as the reference.
 
 ## Start a local design system
 
 In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
-pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D 'markupress@>=0.12.0 <0.14.4 || >=0.14.5 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
+pnpm add @threadlabs/looma '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+pnpm add -D markupress @threadlabs/markupkit vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Markupress 0.14.4 is excluded because its declared Looma peer range ends below 0.45.
-
-Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.12.0 and later compatible 0.x releases render authored documentation with Expressmark’s standard syntax and supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Looma installs its HTML Next runtime automatically. Use the tool versions accepted by Looma's optional peer dependencies. Markupress renders authored documentation with Expressmark’s standard syntax and supplies section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. The full built-in catalog includes document and compact editor examples; the commands above install their supported Tiptap 2 peers. Tiptap remains optional for applications and catalogs using only controls.
 
 Initialization creates three project-owned files:
 
@@ -302,7 +300,9 @@ The first example also appears in the component directory, so keep it representa
 
 Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not make arbitrary components respond to Looma's tokens.
 
-The planned HTML Next-only distribution will use the HTML Next Vite plugin or converter for Vue consumption. Author components and documentation examples in HTML Next; framework conversion belongs in the consuming application. The current package still includes Vue exports while that packaging migration is pending.
+Author components and documentation examples in HTML Next. Vue, React and Svelte applications compile those definitions with the HTML Next Vite plugin or converter; framework conversion belongs in the consuming application. See the [loading guide](https://threadlabs.studio/looma/getting-started/) for framework setup, imports and styles.
+
+The shared example generator parses HTML invocations into props, children and named slots, then prints each framework's public API. Catalog attributes carry the HTML Next parser's `valueType` node alongside the displayed `type`; the generator uses HTML Next's public value parser for booleans, numbers, collections and types selected by another prop. Svelte snippets use their slot's role as a name, with component names disambiguating repeated roles. React examples use slot objects and only the fragments required for multiple children. Vue named templates retain their position in the authored example. Structural indentation is rebuilt while inline spacing and preformatted text are preserved. The framework consumer tests compile and render representative generated examples through the actual adapters.
 
 ## Combine installed catalogs
 

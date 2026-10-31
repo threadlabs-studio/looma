@@ -3,8 +3,10 @@ import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
-import "../vue/components.css";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 import "../theme-light.css";
 
@@ -24,14 +26,15 @@ async function mountEditor() {
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
-      modelValue: modelValue.value,
-      "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
-      onReady: (instance: Editor) => { editor = instance; },
+      content: modelValue.value,
+      onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
+      extensions: captureEditor(instance => { editor = instance; }),
     }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.poll(() => editor).toBeTruthy();
   return { editor: editor!, host };
 }
 

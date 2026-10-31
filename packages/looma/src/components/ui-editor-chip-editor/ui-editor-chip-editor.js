@@ -3,6 +3,11 @@
 export function connect(host) {
   const element = host.element;
   const text = () => element.querySelector("[data-chip-label]");
+  const onCommand = event => {
+    if (event.target === element && event.command === "--focus") { event.stopPropagation(); text()?.focus(); }
+  };
+  element.addEventListener("command", onCommand);
+  if (host.props.autofocus.value) queueMicrotask(() => text()?.focus());
   const onInput = (event) => {
     if (event.target === text()) host.dispatch("label", { label: event.target.value });
   };
@@ -21,6 +26,7 @@ export function connect(host) {
   element.addEventListener("select", onSelect);
   element.addEventListener("keydown", onKeyDown);
   return () => {
+    element.removeEventListener("command", onCommand);
     element.removeEventListener("input", onInput);
     element.removeEventListener("select", onSelect);
     element.removeEventListener("keydown", onKeyDown);

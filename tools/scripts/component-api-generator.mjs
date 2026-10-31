@@ -145,7 +145,7 @@ export function validateComponentProjections({
 }
 
 export async function readRepositoryProjectionTags() {
-  // Every component converts to Vue and is exported from @threadlabs/looma/vue.
+  // Every source definition is available to the consumer-side framework adapters.
   const componentTags = CONTRACT_GROUPS.flatMap(({ contracts }) => Object.keys(contracts));
 
   return {
@@ -194,6 +194,7 @@ export function declarativeTypeToTypeScript(type) {
   const object = /^object\(\{([\s\S]*)\}\)$/.exec(normalized);
   if (object) {
     const fields = splitTopLevel(object[1], ",").map((field) => {
+      if (field === "...") return "[key: string]: unknown";
       const match = /^([A-Za-z_$][\w$]*)(\?)?\s*:\s*([\s\S]+)$/.exec(field);
       if (!match) throw new TypeError(`Invalid declarative object field: ${field}`);
       return `${match[1]}${match[2] ?? ""}: ${declarativeTypeToTypeScript(match[3])}`;
@@ -452,6 +453,7 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
       property: name,
       description: describe(name),
       type: contract.propValueTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+      ...(contract.propTypeNodes?.[name] ? { valueType: contract.propTypeNodes[name] } : {}),
       ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
       ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))

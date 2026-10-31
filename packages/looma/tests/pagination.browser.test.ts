@@ -1,11 +1,10 @@
 import { page, userEvent } from "@vitest/browser/context";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import { afterEach, expect, it, vi } from "vitest";
-import Pagination from "../vue/UiPagination.js";
+import { UiPagination as Pagination } from "@threadlabs/looma";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
-import "../vue/components.css";
 
 let app: App;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });

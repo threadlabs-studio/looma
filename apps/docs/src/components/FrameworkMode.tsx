@@ -2,11 +2,11 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import CodeBlock from "@theme/CodeBlock";
 import type { Props as RootProps } from "@theme/Root";
 
-export type FrameworkMode = "html-next" | "vue";
+export type FrameworkMode = "html-next" | "vue" | "react" | "svelte";
 
 export interface FrameworkExample {
   code: string;
-  language: "html" | "vue";
+  language: "html" | "vue" | "tsx" | "svelte";
 }
 
 export type FrameworkExamples = Readonly<Record<FrameworkMode, FrameworkExample>>;
@@ -16,7 +16,9 @@ const DEFAULT_MODE: FrameworkMode = "html-next";
 
 const modes = [
   { id: "html-next", label: "HTML Next" },
-  { id: "vue", label: "Vue" }
+  { id: "vue", label: "Vue" },
+  { id: "react", label: "React" },
+  { id: "svelte", label: "Svelte" }
 ] as const;
 
 interface FrameworkModeContextValue {

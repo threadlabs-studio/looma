@@ -164,11 +164,10 @@ from 1.0; it must not be used to recreate compatibility layers before then.
   `packages/looma/tooling/docs`; the public site supplies configuration and authored
   guides. Read that directory's `README.md` for discovery and theme contracts.
   Fix shared behavior there rather than creating a public-site-only implementation.
-- Author new design-system components and documentation examples in HTML Next.
-  The approved next packaging phase removes distributed Vue components; Vue
-  consumers will use the HTML Next Vite plugin or converter. Until that migration
-  lands, existing generated Vue checks still apply; do not add a second authored
-  Vue implementation.
+- Author design-system components and documentation examples in HTML Next.
+  Framework consumers compile the shipped definitions with the HTML Next Vite
+  plugin or converter. Vue tests use that source path; do not distribute generated
+  Vue components or add a second authored Vue implementation.
 - Looma is pre-1.0: breaking changes bump the minor version.
 
 ## Public Repository Hygiene
@@ -186,4 +185,7 @@ This repository and its docs are public.
 - Branch from `main`; commit or push only when asked.
 - Use Conventional Commit messages (`feat(scope): ...`, `fix(scope): ...`).
 
-- Use minimum-version ranges for Threadlabs and Nextwebwg dependencies without speculative 1.0 or later-major ceilings. Lockfiles record exact tested resolutions. Restrict a range only for a demonstrated API requirement or verified incompatible release, and record the evidence. Experimental status does not justify exact pins.
+- Use minimum-version ranges for Threadlabs and Nextwebwg dependencies without a
+  speculative 1.0 or later major-version ceiling. Lockfiles record exact tested
+  resolutions. Restrict a range only for a demonstrated API requirement or verified
+  incompatible release, and record the reason.

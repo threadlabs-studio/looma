@@ -1,10 +1,6 @@
-import { createApp, h, ref } from 'vue';
-import { LoomaEditor } from '@threadlabs/looma/vue/editor';
-import '@threadlabs/looma/vue.css';
-
-/** The same published editor used by applications; MarkupKit owns this demo's lifecycle. */
+/** The guide composes the native HTML Next editor and retains its controlled document. */
 export function connect(host) {
-  const content = ref({ type: 'doc', content: [
+  host.state.content = { type: 'doc', content: [
     { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'The Fellowship office' }] },
     ...[
       'Frodo is drafting the quarterly journey report. Sam has already booked second breakfast, and Sméagol would like the conference room all to himself.',
@@ -13,16 +9,9 @@ export function connect(host) {
       'Try a list, quote, callout, code block or table. Your changes stay here while you switch toolbar modes.',
       'The office policy on precious objects is under review. Please contact Sam with questions about lunch.'
     ].map(text => ({ type: 'paragraph', content: [{ type: 'text', text }] }))
-  ] });
-  const mode = ref('sticky');
-  const app = createApp({ render: () => h(LoomaEditor, {
-    modelValue: content.value, label: 'Editor guide playground', toolbarMode: mode.value,
-    mentionItems: [{ id: 'frodo', label: 'Frodo Baggins', detail: 'Delivery', initials: 'FB' }, { id: 'sam', label: 'Samwise Gamgee', detail: 'Operations', initials: 'SG' }, { id: 'smeagol', label: 'Sméagol', detail: 'Asset management', initials: 'S' }],
-    'onUpdate:modelValue': value => { content.value = value; }
-  }) });
-  const change = event => { mode.value = event.target.value; };
-  try { app.mount(host.refs.editor); }
-  catch (error) { host.refs.message.textContent = 'The editor demo could not load.'; host.refs.message.setAttribute('role', 'alert'); throw error; }
-  host.refs.mode.addEventListener('change', change);
-  return () => { host.refs.mode.removeEventListener('change', change); app.unmount(); };
+  ] };
+  return host.on("change", event => {
+    if (event.target === host.refs.mode) host.state.mode = event.target.value;
+    else if (event.target === host.refs.editor && event.detail?.content) host.state.content = event.detail.content;
+  });
 }

@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { findForbiddenTarballEntries } from "./verify-packages.mjs";
+import { findForbiddenTarballEntries, validateTarballContents } from "./verify-packages.mjs";
+
+test("directory exports require a packed file beneath their exact directory", () => {
+  const releasePackage = { requiredFiles: [] };
+  const manifest = { name: "@threadlabs/looma", exports: { ".": { "html-next": "./components/" } } };
+  validateTarballContents(releasePackage, manifest, ["package/components/ui-button/ui-button.html"], false);
+  for (const entries of [[], ["package/components/"], ["package/components-other/ui-button.html"]]) {
+    assert.throws(() => validateTarballContents(releasePackage, manifest, entries, false), /export target is missing/);
+  }
+});
 
 test("release tarballs reject compiler internals and embedded build-machine paths", () => {
   const entries = [

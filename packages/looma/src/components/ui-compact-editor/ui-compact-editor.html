@@ -1,0 +1,22 @@
+<link rel="component" href="../ui-compact-content/ui-compact-content.html">
+<template component="ui-compact-editor" module="./ui-compact-editor.js">
+  <defs>
+    <prop name="content" type="object({ type: string, ... })" default="{ type: 'doc', content: [{ type: 'paragraph' }] }"
+    >The controlled short rich-text document.</prop>
+    <prop name="label" type="string" default="Message">Accessible name of the textbox.</prop>
+    <prop name="id" type="string" default="">ID of the native textbox, including for a native commandfor invoker.</prop>
+    <prop
+      name="editable"
+      type="boolean"
+      default="true"
+      default-true-reason="An editor accepts writing by default; read-only rendering is an explicit use of the same document contract."
+    >Allow editing the short rich-text document.</prop>
+    <state name="ready" type="boolean" value="false"></state>
+    <event name="change" type="object"><prop name="content" type="object({ type: string, ... })" required></prop>The edited document changed.</event>
+    <request name="extensions" returns="list(unknown)">Additional Tiptap extensions installed when the field is created.</request>
+  </defs>
+  <div class="looma-compact-editor">
+    <ui-compact-content $if="not $ready" from:content="$content"></ui-compact-content>
+    <div $ref="mount" from:hidden="not $ready"></div>
+  </div>
+</template>

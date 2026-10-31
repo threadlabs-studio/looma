@@ -88,7 +88,9 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await writeFile(path.join(generated, 'catalog-view.html'), catalogResource(catalogGroups, base));
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
-  for (const file of ['customizer.js', 'theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
+  for (const file of ['theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
+  // Keep the controller's imports in Looma's package scope, where its runtime dependency lives.
+  await writeFile(path.join(generated, 'customizer.js'), `export { connect } from ${JSON.stringify(own('customizer.js'))};\n`);
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
   const examples = [];
   // MarkupKit route groups retain their labels/order in navigation without changing public URLs.

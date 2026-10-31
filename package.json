@@ -1,7 +1,7 @@
 {
   "name": "looma-monorepo",
   "private": true,
-  "version": "0.48.0",
+  "version": "0.50.0",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
   "license": "MIT",
   "author": "Threadlabs Studio",
@@ -44,7 +44,7 @@
     "release:verify-public-consumer": "node tools/scripts/verify-public-consumer.mjs",
     "release:verify-registry": "node tools/scripts/verify-registry-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
-    "test": "node --test tools/scripts/*.test.mjs && pnpm --filter @threadlabs/looma build && pnpm -r run test",
+    "test": "node --test tools/scripts/*.test.mjs && pnpm --filter @threadlabs/looma build && pnpm -r --workspace-concurrency=1 run test",
     "test:browser": "pnpm --filter @threadlabs/looma test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs",
     "typecheck": "pnpm -r run typecheck"

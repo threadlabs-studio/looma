@@ -41,7 +41,7 @@ export interface LoomaEditorSession<E extends Editor = Editor> {
 
 /**
  * Creates the session's editor from `options`. A framework layer may pass its own `Editor`
- * subclass, such as `@tiptap/vue-3`'s reactive one, so the editor it exposes keeps that behavior.
+ * subclass so integrations retain their chosen editor behavior.
  */
 export function createEditorSession<E extends Editor = Editor>(
   options: Partial<EditorOptions>,
@@ -70,16 +70,16 @@ export function createEditorSession<E extends Editor = Editor>(
       editor.chain().setContent(content, false).command(({ tr }) => {
         try {
           tr.setSelection(previous.text
-            ? TextSelection.create(tr.doc, previous.from, previous.to)
+            ? TextSelection.between(tr.doc.resolve(previous.from), tr.doc.resolve(previous.to))
             : previous.bookmark.resolve(tr.doc));
         } catch {
           // A genuine remote replacement can make the old selection invalid.
           // Preserve the closest valid text range instead of Tiptap's default
           // behavior of moving the caret to the document end.
           const max = tr.doc.content.size;
-          const from = Math.max(1, Math.min(previous.from, max));
+          const from = Math.max(0, Math.min(previous.from, max));
           const to = Math.max(from, Math.min(previous.to, max));
-          tr.setSelection(TextSelection.create(tr.doc, from, to));
+          tr.setSelection(TextSelection.between(tr.doc.resolve(from), tr.doc.resolve(to)));
         }
         return true;
       }).run();

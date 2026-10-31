@@ -47,6 +47,8 @@ const config: Config = {
     () => ({
       name: "looma-examples",
       configureWebpack: () => ({
+        // The browser-only native editor integration imports HTML Next's ESM entry.
+        resolve: { conditionNames: ["import", "..."] },
         module: {
           rules: [{
             test: /\/examples\/[^/]+\.(html|vue)$/,

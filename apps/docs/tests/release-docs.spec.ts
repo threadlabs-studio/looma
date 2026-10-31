@@ -1366,7 +1366,7 @@ test("framework mode defaults to HTML Next and follows the reader between pages"
 
   await modeGroup.getByRole("button", { name: "Vue" }).click();
   await expect(page.locator(".looma-mode-code").first()).toContainText(
-    '@threadlabs/looma/vue'
+    '@threadlabs/looma'
   );
 
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
@@ -1384,8 +1384,7 @@ test("framework examples preserve typed inputs and authored semantics", async ({
 
   await modeGroup.getByRole("button", { name: "Vue" }).click();
   await expect(modeCode).toContainText('near-radius="8"');
-  // React support is in development and Svelte is not offered: only HTML Next and Vue examples.
-  await expect(modeGroup.getByRole("button")).toHaveText(["HTML Next", "Vue"]);
+  await expect(modeGroup.getByRole("button")).toHaveText(["HTML Next", "Vue", "React", "Svelte"]);
 
   await page.goto("components/ui-menu", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-component-mode-example .looma-mode-code").first()).toContainText("First item");

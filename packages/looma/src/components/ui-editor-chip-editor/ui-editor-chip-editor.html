@@ -4,6 +4,7 @@
 <link rel="component" href="../ui-swatch/ui-swatch.html">
 <template component="ui-editor-chip-editor" module="./ui-editor-chip-editor.js">
   <defs>
+    <prop name="autofocus" type="boolean" default="false">Focus the label field when this editor connects. The --focus command focuses it again.</prop>
     <prop name="label" type="string" default="">The chip's text, shown in the field as the reader edits it.</prop>
     <prop name="color" type="keyword" values="neutral, blue, green, yellow, red, purple" default="neutral">The chip's colour, checked among the swatches.</prop>
     <event name="label" type="object">
@@ -19,7 +20,7 @@
   <div role="dialog" aria-label="Edit chip">
     <ui-stack gap="s">
       <ui-input data-chip-label size="sm" placeholder="Set a label" aria-label="Chip text" from:value="$label"></ui-input>
-      <ui-radio-group label="Chip color" label-visibility="sr-only" from:value="$color">
+      <ui-radio-group form="" label="Chip color" label-visibility="sr-only" from:value="$color">
         <ui-swatch tone="neutral"></ui-swatch>
         <ui-swatch tone="blue"></ui-swatch>
         <ui-swatch tone="green"></ui-swatch>

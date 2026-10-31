@@ -1,33 +1,20 @@
-# Adapter Support
+# Framework adapters
 
-Adapters project framework props, slots, and callbacks onto Looma's declarative component contracts. They create native roots directly and do not own separate component behavior.
+Looma publishes HTML Next definitions. Applications compile them with `@nextwebwg/html-next-unplugin/vite` and their framework's Vite compiler. The adapters project the same props, slots, native events, controllers and semantic roots; Looma does not publish a separate framework component library.
 
-## Release 1 status
-
-| Adapter | Status | Release 1 promise |
+| Application | Vite plugins, in order | Component import |
 | --- | --- | --- |
-| `@threadlabs/looma/vue` | Published | Named wrappers for every published layout and core element |
-| `@threadlabs/looma/vue/editor` | Published | The complete rich-text editor and its integration helpers |
-| React | In development | Not published |
+| Vue | `htmlNext({ target: "vue" })`, `vue()` | `import { UiButton, UiEditor } from "@threadlabs/looma"` |
+| React | `htmlNext({ target: "react" })`, `react()` | Same prefixed names |
+| Svelte 5 | `htmlNext({ target: "svelte" })`, `svelte()` | Same prefixed names |
+| HTML Next | Resolve `<link rel="component">` definitions | `<ui-button>`, `<ui-editor>` |
 
-Vue and direct declarative HTML examples are the supported public paths.
+See [Getting started](/getting-started/) for installation, plugin imports, themes and generated declarations. React declaration generation in HTML Next alpha.70 still has errors against the complete Looma graph; it is not yet qualified for release.
 
-## Vue mapping
+Component names follow the source tag: `ui-site-header` becomes `UiSiteHeader`, `ui-editor` becomes `UiEditor`, and `ui-compact-editor` becomes `UiCompactEditor`. Types and headless editor helpers remain at `@threadlabs/looma/editor`; compact schema helpers live at `/editor/compact`.
 
-The source-derived release check requires a named Vue projection and export for every published element:
+## Slots, events and server rendering
 
-| Family | Published elements | Vue names |
-| --- | --- | --- |
-| Layout | `ui-stack`, `ui-action-bar`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-scroll-area`, `ui-cover`, `ui-separator` | Same names in PascalCase |
-| Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-select`, `ui-listbox`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
-| Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-group`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item`, `ui-nav-item` | Same names in PascalCase |
-| Display and app shell | `ui-text`, `ui-page-header`, `ui-section`, `ui-status-message`, `ui-spinner`, `ui-meter`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-list`, `ui-list-item`, `ui-toast`, `ui-toast-region`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
-| Editor | Complete rich-text editor | `LoomaEditor` |
+Vue uses named slots, React uses the `slots` prop, and Svelte uses snippets supplied through `slots`. Default content follows each framework's normal syntax. Declared event handlers receive native `CustomEvent`s; read `event.detail`. The editors use `content` and `change.detail.content` for controlled documents. Function-valued integration services answer declared HTML Next requests.
 
-## Event and SSR rules
-
-- Vue wrappers preserve Looma event names and detail payloads.
-- Adapter modules must import in a server process without browser globals.
-- Wrappers attach the same definitions and controllers used by direct HTML invocations.
-- Wrappers preserve authored semantic fallback content instead of replacing it with framework-only markup.
-- A missing projection or named export is a release defect.
+Public modules must import during SSR without browser globals. Controllers attach in the browser and preserve authored semantic fallback. The document editor has a `fallback` slot; compact content renders escaped semantic JSON during SSR. Native HTML invocations and framework components share the same sessions and behavior tests.

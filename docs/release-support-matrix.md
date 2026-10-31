@@ -7,9 +7,9 @@ declaration, and not a promise that every repository package and roadmap item is
 
 | Package/workspace | R1 classification | Format and DOM contract | Required proof |
 | --- | --- | --- | --- |
-| `@threadlabs/looma` | Published | Explicit root/core, loader, layout, editor, editor-extension, Vue, and CSS subpaths | Singleton package integrity and behavioral qualification |
+| `@threadlabs/looma` | Published | HTML Next source condition, native runtime/factories, editor helpers, documentation tooling and CSS subpaths | Singleton package integrity and behavioral qualification |
 | implementation workspaces | Internal | Private modular build inputs | Not public artifacts |
-| React | In development | Not published | None |
+| Vue, React, Svelte projections | Consumer compiled | HTML Next Vite targets; no distributed framework exports | Framework graph build/types; native and converted Vue behavior parity |
 | docs, Storybook, examples, tooling | Internal | Private workspaces | Release tooling/docs gates only |
 
 The owner-approved public identity is `@threadlabs/looma`. Exact-name publish
@@ -33,13 +33,14 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Editor: published
 
+`ui-editor`, `ui-compact-editor`, `ui-compact-content`, `ui-editor-formatting-tools`,
 `ui-editor-insert-table-grid`, `ui-editor-mention-menu`, `ui-editor-mention-menu-item`,
 `ui-editor-slash-menu`, `ui-editor-slash-menu-group`, `ui-editor-slash-menu-item`,
 `ui-editor-table-context-menu`, `ui-editor-table-overlay`,
 `ui-editor-table-toolbar`, `ui-editor-toolbar`.
 
 Every component above must appear in contract-derived API metadata, public docs,
-navigation, and the supported Vue projection where applicable. A missing projection
+navigation, and the consumer-compiled framework graph. A missing projection
 is a release defect, not a reason to silently shrink the source inventory.
 
 ## Accepted And Deferred Product Surface
@@ -66,7 +67,7 @@ is a release defect, not a reason to silently shrink the source inventory.
 - No-JS fallback is the author's semantic light DOM; lowering and controller behavior require JavaScript.
 - Public imports must be SSR-safe at module evaluation time.
 - A consumer qualification harness must demonstrate server-process imports of `@threadlabs/looma`,
-  `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`, `@threadlabs/looma/editor/extensions`, `@threadlabs/looma/vue`, and `@threadlabs/looma/vue/editor`. The
+  `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`, `@threadlabs/looma/editor/extensions`, and `@threadlabs/looma/editor/compact`. The
   release gate repeats that proof from packed artifacts outside the workspace.
 
 Qualification scope and execution limits are defined in

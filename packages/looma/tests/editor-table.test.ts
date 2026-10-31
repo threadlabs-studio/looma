@@ -2,6 +2,8 @@
 // Chromium, through the public surface only: roles, accessible names, ARIA state, the component marker,
 // computed styles, and geometry. Helpers are copied from browser.test.ts on purpose.
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { vueSourcePlugins } from "./framework-plugins";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,12 +23,13 @@ async function bundle(name: string, source: string): Promise<string> {
     configFile: false,
     logLevel: "silent",
     root: directory,
-    resolve: { alias: { "@threadlabs/looma": root } },
-    define: { "process.env.NODE_ENV": JSON.stringify("production") },
+    plugins: vueSourcePlugins(),
+    resolve: { alias: { "@looma-test/runtime": join(root, "dist/index.js") } },
+    define: { "process.env.NODE_ENV": JSON.stringify("production"), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "vue") },
     build: {
       outDir: join(directory, name),
       minify: false,
-      lib: { entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
+      lib: { cssFileName: "components", entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
     },
   });
   return join(directory, name, "bundle.js");
@@ -38,6 +41,8 @@ async function open(bundlePath: string, body: string, css: readonly string[], op
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
   for (const path of css) await page.addStyleTag({ path });
+  const convertedCss = join(dirname(bundlePath), "components.css");
+  if (existsSync(convertedCss)) await page.addStyleTag({ path: convertedCss });
   await page.addScriptTag({ path: bundlePath });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
@@ -64,7 +69,6 @@ const style = (locator: Locator, property: string) => () =>
 async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky", links = false, options: BrowserContextOptions = {}, inventory?: string): Promise<Page> {
   const page = await open(editorBundle, `<div id="app" style="width: 720px"></div><button id="outside">Outside</button>`, [
     join(root, "tokens.css"),
-    join(root, "vue/components.css"),
   ], options);
   await page.route(/https:\/\/example\.test\/(?:image|rendition)\.svg/, route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160"><rect width="320" height="160" fill="#e4f1ed"/><circle cx="252" cy="42" r="22" fill="#f0c569"/><path d="M0 160V112L80 64L184 144L240 108L320 156V160Z" fill="#569d86"/></svg>' }));
   await page.evaluate(({ value, mode, links, inventory }) => (window as unknown as { mountEditor(html: string, mode: string, links: boolean, inventory?: string): void }).mountEditor(value, mode, links, inventory), { value: html, mode, links, inventory });
@@ -103,25 +107,31 @@ async function selectFirstTwoCells(page: Page): Promise<void> {
 }
 
 beforeAll(async () => {
-  await mkdir(join(root, ".build"), { recursive: true });
-  directory = await mkdtemp(join(root, ".build", "editor-table-"));
+  await mkdir(join(root, ".test-build"), { recursive: true });
+  directory = await mkdtemp(join(root, ".test-build", "editor-table-"));
   browser = await chromium.launch();
   editorBundle = await bundle("vue-looma-editor-table", `
     import { createApp, h, ref } from "vue";
-    import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-    window.mountEditor = (html, mode = "sticky", links = false, inventory) => {
-      const content = ref(html);
+    import { UiEditor as ConvertedEditor } from "@threadlabs/looma";
+    import { nativeEditorFixture } from "../../tests/editor-native-fixture.ts";
+    const LoomaEditor = __LOOMA_EDITOR_TARGET__ === "native" ? nativeEditorFixture() : ConvertedEditor;
+    import { Extension, generateJSON } from "@tiptap/core";
+    import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+    window.mountEditor = async (html, mode = "sticky", links = false, inventory) => {
+      if (__LOOMA_EDITOR_TARGET__ === "native") await import("@looma-test/runtime");
+      const content = ref(typeof html === "string" ? generateJSON(html, getDefaultEditorExtensions()) : html);
       const editable = ref(true);
       window.fixtureSetEditable = value => { editable.value = value; };
       window.fixtureActivations = [];
       window.fixtureRenditionErrors = [];
       window.fixtureDocumentUpdates = 0;
       const sourceResolver = ref(inventory === "source" ? image => image.src.replace("https://example.test/image.svg", "https://example.test/master.svg") : undefined);
-      window.fixtureSetImageSource = resolver => { sourceResolver.value = resolver; };
+      const refreshServices = () => document.querySelector('.looma-editor')?.dispatchEvent(new CommandEvent("command", { command: "--refresh-services" }));
+      window.fixtureSetImageSource = resolver => { sourceResolver.value = resolver; refreshServices(); };
       const toolbarOpen = ref(false);
       const slashMode = ref(inventory);
       const emptyCommands = [];
-      window.fixtureSetSlashMode = mode => { slashMode.value = mode; };
+      window.fixtureSetSlashMode = mode => { slashMode.value = mode; queueMicrotask(refreshServices); };
       const hostCommands = ["alpha", "beta"].map(name => ({
         id: "host-" + name, title: "Host content", description: name + " content", group: "Host content", icon: "tag", keywords: ["host", name],
         command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertContent(name.toUpperCase()).run(),
@@ -136,17 +146,16 @@ beforeAll(async () => {
         render: () => [
           mode === "popover" ? h("button", { id: "format-trigger", type: "button" }, "Formatting tools") : null,
           h(LoomaEditor, {
-            modelValue: content.value,
+            content: content.value,
             editable: editable.value,
-            onImageActivate: value => window.fixtureActivations.push(value),
-            onImageRenditionError: value => window.fixtureRenditionErrors.push(value),
-            resolveImageAttributes: inventory === "rendition" ? () => ({ src: "https://example.test/rendition.svg", srcset: "https://example.test/rendition.svg 2x", sizes: "320px", decoding: "async" }) : undefined,
-            ...(inventory === "source" ? {
-              resolveImageSource: sourceResolver.value,
-              resolveImageAttributes: image => ({ src: image.src + "?rendition", srcset: image.src + "?rendition 2x" }),
-            } : {}),
+            "onImage-activate": event => window.fixtureActivations.push(event.detail),
+            "onImage-rendition-error": event => window.fixtureRenditionErrors.push(event.detail),
+            imageDelivery: () => ({
+              resolveSource: sourceResolver.value,
+              resolveAttributes: inventory === "rendition" ? () => ({ src: "https://example.test/rendition.svg", srcset: "https://example.test/rendition.svg 2x", sizes: "320px", decoding: "async" }) : inventory === "source" ? image => ({ src: image.src + "?rendition", srcset: image.src + "?rendition 2x" }) : undefined,
+            }),
             slashCommands: slashMode.value === "extend" ? extend : slashMode.value === "replace" ? () => hostCommands : slashMode.value === "empty" ? () => emptyCommands : undefined,
-            onReady: (editor) => { window.fixtureEditor = editor; },
+            extensions: () => [Extension.create({ name: "fixture", onCreate() { window.fixtureEditor = this.editor; } })],
             linkSearch: links ? async ({ query }) => targets.filter(target => target.label.toLowerCase().includes(query.toLowerCase())) : undefined,
             linkResolve: links ? async ({ href }) => targets.find(target => target.href === href) ?? null : undefined,
             linkTargetLabel: "Page",
@@ -154,8 +163,9 @@ beforeAll(async () => {
             toolbarMode: mode,
             toolbarTriggerId: mode === "popover" ? "format-trigger" : undefined,
             toolbarOpen: toolbarOpen.value,
-            "onUpdate:toolbarOpen": (value) => { toolbarOpen.value = value; },
-            "onUpdate:modelValue": (value) => { content.value = value; window.fixtureDocumentUpdates += 1; },
+            "onToolbar-open": () => { toolbarOpen.value = true; },
+            "onToolbar-close": () => { toolbarOpen.value = false; },
+            onChange: event => { content.value = event.detail.content; window.fixtureDocumentUpdates += 1; },
           }),
         ],
       }).mount("#app");
@@ -236,7 +246,7 @@ describe("LoomaEditor links", () => {
     assert.equal(await form.getByRole("searchbox").getAttribute("placeholder"), "Search pages or paste a URL…");
     assert.equal(await form.getByRole("tab").count(), 0, "one field replaces destination modes");
     assert.equal(await form.getByRole("searchbox").evaluate(element => getComputedStyle(element).outlineStyle), "none", "input group owns one focus treatment");
-    await page.screenshot({ animations: "disabled", path: join(root, ".build", "link-picker-desktop.png") });
+    await page.screenshot({ animations: "disabled", path: join(root, ".test-build", "link-picker-desktop.png") });
     await form.locator("input").first().press("Escape");
     assert.equal(await prose(page).locator("a").count(), 0, "cancel keeps content unchanged");
     await form.waitFor({ state: "hidden" });
@@ -292,7 +302,7 @@ describe("LoomaEditor links", () => {
       assert.ok(resultBox && rowBox && resultBox.height >= rowBox.height * 3 + 24 - 1, "three complete rows stay ahead of the overflow fade");
       assert.ok(resultBox && rowBox && resultBox.height < rowBox.height * 4, "the next row is only an overflow hint");
       assert.ok(await results.evaluate(element => element.scrollHeight > element.clientHeight), "additional results scroll");
-      await page.screenshot({ animations: "disabled", path: join(root, ".build", `link-picker-three-${width}.png`) });
+      await page.screenshot({ animations: "disabled", path: join(root, ".test-build", `link-picker-three-${width}.png`) });
       await results.hover();
       await page.mouse.wheel(0, 300);
       await until(() => results.evaluate(element => element.scrollTop), value => value > 0, "last result remains reachable by scrolling");
@@ -388,7 +398,7 @@ describe("LoomaEditor links", () => {
     const titleBox = await title.boundingBox();
     const detailBox = await detail.boundingBox();
     assert.ok(titleBox && detailBox && detailBox.y - titleBox.y - titleBox.height <= 2, "title and location form a compact label");
-    await page.screenshot({ animations: "disabled", path: join(root, ".build", "link-context-desktop.png") });
+    await page.screenshot({ animations: "disabled", path: join(root, ".test-build", "link-context-desktop.png") });
     await page.close();
   });
 
@@ -444,7 +454,7 @@ describe("LoomaEditor links", () => {
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 375, "link form fits phone viewport");
     await linkForm(phone).getByRole("searchbox", { name: "Link destination" }).fill("Guide");
     await equals(() => linkForm(phone).getByLabel("Destination search results").getByRole("button").count(), 2, "rich results fit phone picker");
-    await phone.screenshot({ animations: "disabled", path: join(root, ".build", "link-picker-375.png") });
+    await phone.screenshot({ animations: "disabled", path: join(root, ".test-build", "link-picker-375.png") });
     await phone.close();
   });
 
@@ -867,7 +877,7 @@ describe("LoomaEditor tables", () => {
     await page.close();
   });
   it("accepts empty native overlay geometry and hovered actions without controller errors", async () => {
-    const path = await bundle("native-table-overlay", 'import "@threadlabs/looma";');
+    const path = await bundle("native-table-overlay", 'import "@looma-test/runtime";');
     const geometry = { rowBoundaries: [0, 40, 80], columnBoundaries: [0, 80, 160], activeCell: null, hoveredCell: null };
     const activeCell = { left: 0, top: 0, width: 80, height: 40, rowIndex: 0, columnIndex: 0 };
     const hoveredCell = { ...activeCell, left: 80, top: 40, rowIndex: 1, columnIndex: 1 };
@@ -1356,7 +1366,7 @@ describe("atomic editor blocks", () => {
 
 describe("image controls", () => {
   it.each(["json", "html"])("resolves legacy masters and responsive fallback without changing durable identity from %s", async (format) => {
-    const page = await open(editorBundle, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(editorBundle, '<div id="app"></div>', [join(root, "tokens.css")]);
     const protocol = await page.context().newCDPSession(page);
     await protocol.send("Network.enable");
     const originalSourceInitiators: unknown[] = [];
