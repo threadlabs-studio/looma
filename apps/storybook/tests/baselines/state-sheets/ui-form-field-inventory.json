@@ -60,5 +60,10 @@
     "name": "Example: 03-label-action",
     "props": {},
     "example": 2
+  },
+  {
+    "name": "Example: 04-validation-summary",
+    "props": {},
+    "example": 3
   }
 ]

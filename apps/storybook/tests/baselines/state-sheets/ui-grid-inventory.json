@@ -5,6 +5,27 @@
     "example": 0
   },
   {
+    "name": "fixed: false",
+    "props": {
+      "fixed": false
+    },
+    "example": 0
+  },
+  {
+    "name": "fixed: true",
+    "props": {
+      "fixed": true
+    },
+    "example": 0
+  },
+  {
+    "name": "gap: none",
+    "props": {
+      "gap": "none"
+    },
+    "example": 0
+  },
+  {
     "name": "gap: xs",
     "props": {
       "gap": "xs"
@@ -61,6 +82,20 @@
     "example": 0
   },
   {
+    "name": "shade-tone: neutral",
+    "props": {
+      "shadeTone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "shade-tone: accent",
+    "props": {
+      "shadeTone": "accent"
+    },
+    "example": 0
+  },
+  {
     "name": "Example: 01-default",
     "props": {},
     "example": 0
@@ -74,5 +109,15 @@
     "name": "Example: 03-column-cap",
     "props": {},
     "example": 2
+  },
+  {
+    "name": "Example: 03-fixed-columns",
+    "props": {},
+    "example": 3
+  },
+  {
+    "name": "Example: 04-shaded-columns",
+    "props": {},
+    "example": 4
   }
 ]
