@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.50.0",
+  "version": "0.50.1",
   "type": "module",
   "description": "HTML Next UI components, native DOM support and design tokens.",
   "license": "MIT",
