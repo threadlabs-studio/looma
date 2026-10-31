@@ -7507,6 +7507,14 @@ describe("Bounded Cluster", () => {
       assert.ok((await metrics()).visible<12,'additional items are collapsed');
       assert.equal((await metrics()).mask,'none');
       assert.ok((await metrics()).overflow<=1);
+      const restingVisible=(await metrics()).visible;
+      await page.addStyleTag({content:'#add {inline-size:130px}'});
+      await page.waitForFunction(previous=>Array.from(document.querySelectorAll('#bounded > .item')).filter(el=>!el.hasAttribute('hidden')).length<previous,restingVisible);
+      await page.evaluate(()=>new Promise<void>(resolve=>{
+        let frames=5; const settle=()=>--frames?requestAnimationFrame(settle):resolve();requestAnimationFrame(settle);
+      }));
+      await page.addStyleTag({content:'#add {inline-size:auto}'});
+      await page.waitForFunction(previous=>Array.from(document.querySelectorAll('#bounded > .item')).filter(el=>!el.hasAttribute('hidden')).length===previous,restingVisible,{timeout:1500});
       await page.locator('#overflow').focus();await page.keyboard.press('Enter');
       await page.waitForFunction(()=>document.getElementById('all')!.matches(':popover-open'));
       assert.equal(await page.locator('#all').locator('a,button').count(),12,'the popup retains the complete collection');

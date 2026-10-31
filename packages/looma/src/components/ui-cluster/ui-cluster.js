@@ -88,6 +88,8 @@ export function connect(host) {
       resize ??= new view.ResizeObserver(schedule);
       changes ??= new view.MutationObserver(schedule);
       resize.observe(element);
+      resize.observe(overflow);
+      resize.observe(trailing);
       changes.observe(element, { childList: true, subtree: true, characterData: true });
       element.ownerDocument.fonts?.addEventListener('loadingdone', schedule);
       schedule();
