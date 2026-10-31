@@ -17,10 +17,16 @@
 ## Install
 
 ```sh
-pnpm add '@threadlabs/looma@>=0.49.0'
+pnpm add @threadlabs/looma
 ```
 
-Looma's HTML definitions are converted by the HTML Next Vite adapter in your application.
+Looma installs its HTML Next runtime automatically. In a framework Vite project, also install the build adapter:
+
+```sh
+pnpm add -D @nextwebwg/html-next-unplugin
+```
+
+Looma's HTML definitions are converted by the adapter in your application.
 Configure `htmlNext({ target: "vue" })`, `target: "react"`, or `target: "svelte"`
 before the framework's standard Vite plugin, then import components from the package root:
 
@@ -31,7 +37,7 @@ import { UiButton, UiSiteHeader } from "@threadlabs/looma";
 ```
 
 See the [loading guide](docs/framework-loading.md) for installation, Vite configuration,
-framework calls, styles and types. Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for Vue, React and Svelte; dependency ranges admit later releases beyond 1.0.
+framework calls, styles, types and compatibility requirements.
 
 ## Package
 

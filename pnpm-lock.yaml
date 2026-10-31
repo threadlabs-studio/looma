@@ -142,6 +142,9 @@ importers:
 
   packages/looma:
     dependencies:
+      '@nextwebwg/html-next':
+        specifier: '>=1.0.0-alpha.74'
+        version: 1.0.0-alpha.76
       '@threadlabs/markupkit':
         specifier: '>=0.4.2'
         version: 0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
@@ -167,9 +170,6 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
     devDependencies:
-      '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.74'
-        version: 1.0.0-alpha.76
       '@nextwebwg/html-next-unplugin':
         specifier: '>=1.0.0-alpha.76'
         version: 1.0.0-alpha.76(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
