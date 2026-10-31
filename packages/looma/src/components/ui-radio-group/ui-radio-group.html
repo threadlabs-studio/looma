@@ -6,6 +6,8 @@
     <prop name="name" type="string" default=""
     >The native name given to every radio in the group, under which a form submits the chosen value. Left empty, the group generates a unique name that keeps
       the radios together, so set it when the choice submits with a form.</prop>
+    <prop name="form" type="string"
+    >Associate the group’s native radios with this form ID. Omit it to use their containing form; an empty string leaves them outside form submission.</prop>
     <prop name="label" type="string" default="Options"
     >The group's legend, shown above the radios and announced as the group's name. Phrase it as the question the radios answer.</prop>
     <prop name="labelVisibility" type="keyword" values="visible, sr-only" default="visible"
@@ -33,7 +35,7 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <fieldset role="radiogroup" from:aria-required="$required" from:aria-invalid="$invalid" from:disabled="$disabled">
+  <fieldset role="radiogroup" from:form="$form" from:aria-required="$required" from:aria-invalid="$invalid" from:disabled="$disabled">
     <legend class:sr-only="$labelVisibility = 'sr-only'">{$label}</legend>
     <slot></slot>
   </fieldset>

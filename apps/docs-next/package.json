@@ -15,15 +15,13 @@
     "typecheck": "echo \"docs-next: typecheck not configured\""
   },
   "dependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.69",
-    "@threadlabs/markupkit": ">=0.2.0 <1",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "@threadlabs/looma": "workspace:*",
+    "@threadlabs/markupkit": ">=0.4.2",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
-    "@tiptap/vue-3": "^2.11.5",
-    "markupress": ">=0.12.0 <1",
-    "vite": "8.3.4",
-    "vue": "^3.5.43"
+    "markupress": ">=0.14.6",
+    "vite": "8.3.4"
   },
   "devDependencies": {
     "@playwright/test": "~1.60.0"

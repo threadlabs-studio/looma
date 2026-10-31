@@ -67,10 +67,10 @@ for (const component of api.components) {
     states.push({ name: 'Mobile navigation open', props: {}, example: defaultExample, viewport: { width: 375, height: 480 }, run: async (_page, stage) => {
       await expect(stage.getByRole('link', { name: 'Folio home' })).toBeVisible();
       await stage.getByRole('button', { name: 'Open navigation' }).click();
-      await expect(stage.getByRole('navigation', { name: 'Compact navigation' })).toBeVisible();
+      await expect(stage.getByRole('dialog', { name: 'Main', exact: true }).getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
     } });
   }
-  const themes = themed.has(component.tag) ? ['looma', 'clear', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['clear'];
+  const themes = themed.has(component.tag) ? ['looma', 'minimal', 'gold', 'bookish', 'wiki', 'editorial', 'night', 'garden'] : ['minimal'];
   for (const theme of themes)
     for (const mode of ['light', 'dark'])
       test(`${component.tag} ${theme} ${mode}: complete state sheet`, async ({ page, context }) => {

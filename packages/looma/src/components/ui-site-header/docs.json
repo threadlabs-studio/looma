@@ -1,5 +1,11 @@
 {
-  "description": "A site-wide header with branding, primary navigation, actions, and a mobile menu trigger. Branding remains visible when navigation collapses. Applications supply links, routing, and menu behavior; use TopBar for contextual application tools.",
+  "description": "Supply brand, navigation, and optional actions once. Below the breakpoint, SiteHeader automatically puts the hamburger in the inline navigation's position beside the brand, with compact mobile spacing (mirrored in RTL). Optional actions stay at the trailing edge. It presents the same navigation in a full-height, scrollable drawer with a dark backdrop. It handles focus, Escape, outside press, link selection, and page scroll locking. Applications supply links and routing; no menu slot, duplicate links, IDs, or drawer wiring are needed. Before JavaScript, navigation remains available inline unless a custom native menu supplies its mobile navigation. Native custom menu controls remain usable before upgrade. Use TopBar for contextual application tools.",
   "group": "display",
-  "summary": "Site branding, primary navigation, and actions with a mobile menu."
+  "summary": "Site branding and navigation with an automatic mobile drawer.",
+  "slots": {
+    "brand": "Site logo or home link. Remains visible at every width.",
+    "navigation": "Primary navigation links, authored once for desktop and mobile. Selecting a link closes the mobile drawer.",
+    "actions": "Optional persistent actions such as search or account controls. Supply each action directly so the header can reserve its adjustable hit area.",
+    "menu": "Optional custom mobile trigger for a separately owned navigation surface, such as a combined documentation sidebar. Omit this slot for the automatic drawer; supplying it replaces the automatic trigger and leaves its target and behavior to the application."
+  }
 }

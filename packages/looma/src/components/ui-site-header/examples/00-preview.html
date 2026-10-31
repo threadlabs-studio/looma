@@ -1,7 +1,8 @@
 <!--
 title: Compact header
-description: Branding and a trailing action in a compact header.
+description: Branding, navigation, and an action. On mobile, the header supplies the menu automatically.
 -->
-<ui-site-header><a slot="brand" href="#home"><ui-icon name="compass"></ui-icon>Folio</a><ui-icon-button slot="actions" label="Search" size="sm"><ui-icon
-      name="search"
-    ></ui-icon></ui-icon-button></ui-site-header>
+<ui-site-header><a slot="brand" href="#home"><ui-icon name="compass"></ui-icon>Folio</a><a slot="navigation" href="#guide">Guide</a><a
+    slot="navigation"
+    href="#components"
+  >Components</a><ui-icon-button slot="actions" label="Search" size="sm"><ui-icon name="search"></ui-icon></ui-icon-button></ui-site-header>

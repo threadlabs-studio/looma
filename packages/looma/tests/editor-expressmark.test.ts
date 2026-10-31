@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { headingAnchors, parse } from "expressmark";
+import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 
 describe("Expressive Markdown editor documents", () => {
@@ -53,27 +55,17 @@ describe("Expressive Markdown editor documents", () => {
   });
 });
 
-it("materializes table-of-contents links from the document headings", () => {
-  const document = editorDocumentToExpressmark({ type: "doc", content: [
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
-    { type: "heading", attrs: { level: 2, id: "start" }, content: [{ type: "text", text: "Start here" }] },
-  ] });
-  expect(document.body[0]).toMatchObject({ type: "container", subType: "toc", body: [
-    { type: "list", children: [{ type: "listItem", body: [{ type: "paragraph", children: [{ type: "link", url: "#start", value: "Start here" }] }] }] },
-  ] });
-});
-
-it("excludes headings inside authored TOCs from other generated navigation", () => {
-  const doc = editorDocumentToExpressmark({ type: "doc", content: [
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "plain" }, content: [
-      { type: "heading", attrs: { level: 1, id: "nav-label" }, content: [{ type: "text", text: "Navigation label" }] },
-    ] },
-    { type: "loomaTableOfContents", attrs: { depth: 3, format: "bulleted" } },
-    { type: "heading", attrs: { level: 2, id: "actual" }, content: [{ type: "text", text: "Actual section" }] },
-  ] });
-  expect(doc.body[0]?.body?.[0]).toMatchObject({ type: "heading", id: "nav-label", value: "Navigation label" });
-  expect(doc.body[1]?.body?.[0]?.children).toHaveLength(1);
-  expect(doc.body[1]?.body?.[0]?.children?.[0]?.body?.[0]?.children?.[0]).toMatchObject({ type: "link", url: "#actual", value: "Actual section" });
+it("keeps a table of contents where it is written, with its settings, and lets readers build its entries", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", attrs: { depth: 2, format: "bulleted" } },
+    { type: "heading", attrs: { level: 2, id: "start-here" }, content: [{ type: "text", text: "Start here" }] },
+  ] };
+  expect(editorDocumentToExpressmark(editor).body).toEqual([
+    { type: "leaf", subType: "toc", attributes: { depth: "2", format: "bulleted" } },
+    { type: "heading", level: 2, value: "Start here" },
+  ]);
+  expect(editorDocumentToMarkdown(editor)).toBe('::toc {depth="2" format="bulleted"}\n\n## Start here\n');
+  expect(markdownToEditorDocument(editorDocumentToMarkdown(editor))).toEqual(editor);
 });
 
 it("keeps authored TOC navigation instead of replacing it with generated links", () => {
@@ -161,35 +153,85 @@ it('rejects supplied AST URLs and CSS values that the safe HTML policy would dis
   expect(() => expressmarkToEditorDocument({ type: 'document', version: 1, body: [{ type: 'table', children: [{ type: 'tableRow', children: [{ type: 'tableCell', value: 'Cell', attributes: { backgroundColor: 'url(https://example.com/pixel)' } }] }] }] })).toThrow(/table background/)
 })
 
-it('preserves duplicate authored IDs and keeps materialized TOC links on actual targets', () => {
+it('preserves duplicate authored IDs', () => {
   const diagnostics: string[] = []
   const editor = { type: 'doc', content: [
-    { type: 'loomaTableOfContents', attrs: { depth: 3, format: 'bulleted' } },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'First' }] },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Second' }] },
   ] }
   const ast = editorDocumentToExpressmark(editor, { onDiagnostic: diagnostic => diagnostics.push(diagnostic.code) })
-  expect(ast.body.slice(1).map(node => node.id)).toEqual(['same', 'same'])
-  const links = ast.body[0]?.body?.[0]?.children?.map(item => item.body?.[0]?.children?.[0]?.url)
-  expect(links).toEqual(['#same', '#same'])
+  expect(ast.body.map(node => node.id)).toEqual(['same', 'same'])
   expect(diagnostics).toContain('duplicate-id')
-  expect(editor.content[1]?.attrs?.id).toBe('same')
 })
 
-it('reserves authored IDs before assigning TOC targets to headings that need them', () => {
+it('writes only the heading IDs a reader would not derive from the text', () => {
   const editor = { type: 'doc', content: [
-    { type: 'loomaTableOfContents', attrs: { depth: 3, format: 'bulleted' } },
-    { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Same' }] },
     { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Custom' }] },
-    { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Duplicate' }] },
-    { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Same' }] },
+    { type: 'heading', attrs: { level: 2, id: 'same-1' }, content: [{ type: 'text', text: 'Same' }] },
+    { type: 'heading', attrs: { level: 2, id: 'same-2' }, content: [{ type: 'text', text: 'Same' }] },
   ] }
-  const ast = editorDocumentToExpressmark(editor)
-  expect(ast.body.slice(1).map(node => node.id)).toEqual(['same-1', 'same', 'same', 'same-2'])
-  expect(editor.content[1]?.attrs?.id).toBeUndefined()
+  expect(editorDocumentToExpressmark(editor).body.map(node => node.id)).toEqual(['same', undefined, undefined])
+  expect(markdownToEditorDocument(editorDocumentToMarkdown(editor))).toEqual(editor)
 })
 
 it('rejects colored highlights that the default schema cannot preserve', () => {
   expect(() => editorDocumentToExpressmark({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Marked', marks: [{ type: 'highlight', attrs: { color: 'red;position:fixed' } }] }] }] })).toThrow(/colored highlight/)
   expect(() => expressmarkToEditorDocument({ type: 'document', version: 1, body: [{ type: 'paragraph', children: [{ type: 'highlight', value: 'Marked', attributes: { color: 'red' } }] }] })).toThrow(/color/)
 })
+
+
+it("can export self-contained TOC entries without changing native content or the default", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", attrs: { depth: 2, format: "numbered" } },
+    { type: "heading", attrs: { level: 1, id: "intro" }, content: [{ type: "text", text: "Introduction" }] },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Résumé" }] },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Résumé" }] },
+    { type: "heading", attrs: { level: 3 }, content: [{ type: "text", text: "Hidden" }] },
+  ] };
+  const before = JSON.stringify(editor);
+  expect(editorDocumentToExpressmark(editor).body[0]?.type).toBe("leaf");
+  const written = editorDocumentToMarkdown(editor, { tableOfContents: "entries" });
+  expect(written).toContain("::: toc");
+  expect(written).toContain("#intro");
+  expect(written).toContain("#résumé");
+  expect(written).toContain("#résumé-1");
+  const toc = editorDocumentToExpressmark(editor, { tableOfContents: "entries" }).body[0]!;
+  expect(toc.body?.[0]).toMatchObject({ type: "list", ordered: true });
+  expect(JSON.stringify(toc)).not.toContain("Hidden");
+  expect(JSON.stringify(editor)).toBe(before);
+  const imported = markdownToEditorDocument(written);
+  imported.content![1]!.content![0]!.text = "Changed heading";
+  expect(editorDocumentToMarkdown(imported, { tableOfContents: "entries" })).toContain("Introduction");
+  expect(editorDocumentToMarkdown(editor, { original: editorDocumentToMarkdown(editor), tableOfContents: "entries" })).toContain("::: toc");
+});
+
+it("exports empty automatic TOCs and excludes headings inside authored navigation", () => {
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", content: [{ type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Navigation" }] }] },
+    { type: "loomaTableOfContents" },
+  ] };
+  const ast = editorDocumentToExpressmark(editor, { tableOfContents: "entries" });
+  expect(ast.body[1]).toMatchObject({ type: "container", subType: "toc", body: [] });
+  expect(ast.body[0]?.body?.[0]).toMatchObject({ type: "heading", value: "Navigation" });
+});
+
+
+it.each([undefined, "navigation", "same"])("pins portable TOC targets when authored navigation contains a matching heading (%s)", id => {
+  const heading = { type: "heading", attrs: { level: 2, ...(id ? { id } : {}) }, content: [{ type: "text", text: "Same" }] };
+  const editor = { type: "doc", content: [
+    { type: "loomaTableOfContents", content: [heading] },
+    { type: "loomaTableOfContents" },
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Same" }] },
+  ] };
+  const before = JSON.stringify(editor);
+  for (const original of [undefined, editorDocumentToMarkdown(editor)]) {
+    const saved = parse(editorDocumentToMarkdown(editor, { tableOfContents: "entries", original }));
+    const documentHeading = saved.body[2]!;
+    const target = saved.body[1]!.body![0]!.children![0]!.body![0]!.children![0]!.url;
+    expect(documentHeading.id).toBeTruthy();
+    expect(target).toBe(`#${documentHeading.id}`);
+    expect(headingAnchors(saved).get(documentHeading)).toBe(documentHeading.id);
+    expect(renderHtml(saved, { headingIds: true })).toContain(`id="${documentHeading.id}"`);
+  }
+  expect(JSON.stringify(editor)).toBe(before);
+});

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button } from "@threadlabs/looma/vue";
+import { UiButton as Button } from "@threadlabs/looma";
 
 const loading = ref(false);
 async function saveChanges() {

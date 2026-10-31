@@ -155,7 +155,7 @@ test('component browser searches the complete catalog in bounded groups', async 
   const search=page.getByRole('searchbox',{name:'Search components',exact:true});
   await search.fill('ui-slider');await expect(previews).toHaveCount(1);
   await expect(previews).toHaveAttribute('data-component-card','ui-slider');
-  await expect(previews.getByRole('link',{name:'View component',exact:true})).toHaveAttribute('href',/components\/ui-slider\/$/);
+  await expect(previews.locator('h3 a')).toHaveAttribute('href',/components\/ui-slider\/$/);
   await search.fill('no-component-has-this-name');await expect(previews).toHaveCount(0);
   await expect(page.locator('[data-example-count]')).toContainText('No components match');
   await search.clear();await expect(previews).toHaveCount(9);
@@ -313,7 +313,7 @@ test('Bookish themes the whole documentation, survives navigation and reload, an
   await page.getByRole('searchbox', { name: 'Search components', exact: true }).fill('ui-button');
   await expect(buttonCard).toBeVisible();
   await expect(page.locator('[data-refinement-view="components"] [data-component-card="ui-input"]')).toHaveCount(0);
-  await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'View component', exact: true }), 'Button');
+  await followDocumentationLink(page, buttonCard.getByRole('link', { name: 'Button', exact: true }), 'Button');
   await expect(page).toHaveURL(/\/components\/ui-button\/$/);
   await expect(page.getByRole('heading', { name: 'Button', exact: true, level: 1 })).toBeVisible();
   await expect.poll(() => page.getByRole('heading', { name: 'Button', exact: true, level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).toContain('Newsreader');
@@ -447,7 +447,7 @@ test('coordinated palettes preserve geometry and document both resolved modes', 
   await expect.poll(() => text.getByRole('heading', { level: 1 }).evaluate(element => getComputedStyle(element).fontFamily)).not.toContain('Newsreader');
 });
 
-test('material refinement shares a movable light, remembers customized presets and restores only that family', async ({ page }, info) => {
+test('material refinement shares a movable light, remembers customized presets and uses shared history', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'bookish');
@@ -498,9 +498,12 @@ test('material refinement shares a movable light, remembers customized presets a
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'material-mobile-dark.png'), fullPage: false });
   }
-  await material.getByRole('button', { name: 'Reset material', exact: true }).click();
-  await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Polished');
-  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('50%');
+  await handle.press('Shift+ArrowRight');
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('70%');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('60%');
+  await page.getByRole('button', { name: 'Redo', exact: true }).click();
+  await expect(material.getByRole('spinbutton', { name: 'Light horizontal position', exact: true })).toHaveValue('70%');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe(size);
   await openOverview(page);
   await expect(page.locator('[data-customizer-overview]')).toBeVisible();
@@ -526,7 +529,7 @@ test('starting theme refinements remember their material and palette without res
   await expect(material.locator('[data-refinement-preset] input[role="combobox"]')).toHaveValue('Frosted glass · customized');
 });
 
-test('palette refinement persists its origin and restoring it leaves material refinements intact', async ({ page }, info) => {
+test('palette refinement persists its origin and shared history preserves other refinements', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'wiki');
   await chooseRefinement(page, 'palette', 'bookish');
@@ -538,13 +541,16 @@ test('palette refinement persists its origin and restoring it leaves material re
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Palette preset', exact: true })).toHaveValue('Plum & paper · customized');
   await openEditor(page, 'palette');
-  await palette.getByRole('button', { name: 'Reset palette', exact: true }).click();
-  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#2e1228');
+  await setBaseColor(page, 'Action', '#552255');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#442244');
+  await page.getByRole('button', { name: 'Redo', exact: true }).click();
+  await expect(palette.locator('[data-token="action"]')).toHaveAttribute('data-ui-color-picker-prop-value', '#552255');
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).getPropertyValue('--ui-control-size'))).toBe('34px');
 });
 
 const readableRecipes = [...Object.entries(startingPoints), ['imported white seeds', {
-  ...startingPoints.clear, values: { ...startingPoints.clear.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
+  ...startingPoints.minimal, values: { ...startingPoints.minimal.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
 }]];
 for (const [preset, recipe] of readableRecipes) {
   test(`solid action tones and icon actions stay readable in both modes and states: ${preset}`, async ({ page }, info) => {
@@ -708,7 +714,7 @@ test('status relationship presets reduce color or share primary while keeping ic
   await expect(relationship).toHaveValue('primary');
   await chooseOption(palette.getByRole('combobox', {name:'Warning relationship',exact:true}), 'derived');
   await expect(relationship.locator('option:checked')).toHaveText('Primary + icons · customized');
-  await palette.getByRole('button', {name:'Reset status colors',exact:true}).click();
+  await page.getByRole('button', {name:'Undo',exact:true}).click();
   await expect(palette.getByRole('combobox', {name:'Warning relationship',exact:true})).toHaveValue('primary');
   await relationship.selectOption('semantic');
   await page.setViewportSize({width:375,height:900});

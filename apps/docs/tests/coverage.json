@@ -10,7 +10,7 @@
     },
     {
       "path": "adapter-parity",
-      "title": "Adapter Support",
+      "title": "Framework adapters",
       "source": "apps/docs/docs/adapter-parity.md",
       "component": null,
       "examples": []
@@ -370,6 +370,29 @@
       ]
     },
     {
+      "path": "components/ui-card-group",
+      "title": "CardGroup",
+      "source": "apps/docs/docs/components/layout/ui-card-group.mdx",
+      "component": "ui-card-group",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Aligned card regions",
+          "behavior": false
+        },
+        {
+          "id": "02-column-cap",
+          "title": "Column limit and nested content",
+          "behavior": false
+        },
+        {
+          "id": "03-optional-header",
+          "title": "Body content with optional headers",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-checkbox",
       "title": "Checkbox",
       "source": "apps/docs/docs/components/forms/ui-checkbox.mdx",
@@ -522,6 +545,37 @@
         {
           "id": "08-discard-unfinished-query",
           "title": "Discard unfinished search",
+          "behavior": false
+        },
+        {
+          "id": "08-multiple-rows",
+          "title": "Wrap selected items before scrolling",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-compact-content",
+      "title": "CompactContent",
+      "source": "apps/docs/docs/components/forms/ui-compact-content.mdx",
+      "component": "ui-compact-content",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Short rich-text content",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-compact-editor",
+      "title": "CompactEditor",
+      "source": "apps/docs/docs/components/forms/ui-compact-editor.mdx",
+      "component": "ui-compact-editor",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Short rich-text field",
           "behavior": false
         }
       ]
@@ -772,6 +826,19 @@
         {
           "id": "05-constraints",
           "title": "Required short text",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor",
+      "title": "Editor",
+      "source": "apps/docs/docs/components/forms/ui-editor.mdx",
+      "component": "ui-editor",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Document editor",
           "behavior": false
         }
       ]
@@ -1461,6 +1528,11 @@
           "id": "02-card-and-danger",
           "title": "Cards and danger",
           "behavior": false
+        },
+        {
+          "id": "03-fieldset",
+          "title": "Connected headings",
+          "behavior": false
         }
       ]
     },
@@ -1965,6 +2037,11 @@
         {
           "id": "02-leading-search-and-actions-slots",
           "title": "leading, search, and actions slots",
+          "behavior": false
+        },
+        {
+          "id": "02-scroll-title",
+          "title": "Reveal the title after its heading",
           "behavior": false
         }
       ]

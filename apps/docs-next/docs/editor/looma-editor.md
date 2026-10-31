@@ -4,7 +4,7 @@ title: Turnkey editor
 
 # Turnkey editor
 
-`LoomaEditor` (from `@threadlabs/looma/vue/editor`) is a complete rich-text editor.
+`ui-editor` (imported as `UiEditor` from `@threadlabs/looma` through the HTML Next Vite plugin) is a complete rich-text editor.
 The application passes content and editability, answers the
 editor's [requests](#requests) for uploads, mentions, and links, and persists the document the editor emits; Looma owns the extensions,
 formatting commands, selection and focus, and every editor control. See
@@ -14,23 +14,20 @@ formatting commands, selection and focus, and every editor control. See
 
 | Prop | Default | Purpose |
 |---|---|---|
-| `modelValue` | an empty document | The document, as Tiptap JSON. Use `v-model`. |
+| `content` | an empty document | The document, as Tiptap JSON. Read `event.detail.content` from `change`. |
 | `editable` | `true` | Whether the document can be edited. |
 | `contentDensity` | `comfortable` | `compact` fits a read-only excerpt to its content without outer padding. Editable documents retain the standard canvas. |
 | `placeholder` | `Type “/” for commands, or start writing…` | Shown in an empty document. |
 | `label` | `Document` | The editing surface's accessible name. |
-| `extensions` | none | Answers [`extensions`](#extensions): extra Tiptap extensions, added after Looma's own. |
-| `slashCommands` | none | Answers [`slash-commands`](#slash-commands): the slash menu's commands, given the defaults. |
-| `codeLanguages` | built-in catalog | Override the built-in code language list with application-owned grammars. Pass `{}` to disable syntax highlighting. |
-| `mentionItems`, `mentionQuery`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, and the answer to [`mention-query`](#mention-query) that searches. |
-| `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Answer [`link-search`](#link-search) and [`link-resolve`](#link-resolve): search host destinations for links and describe a saved destination from its `href`. |
-| `fileUpload` | none | Answers `file-upload` with a retained file link. |
-| `imageUpload` | none | Answers [`image-upload`](#image-upload): uploads a chosen, pasted, or dropped image and returns the image to insert. |
-| `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
-| `resolveImageSource` | none | Resolves a browser-only master URL for every image; stored content and event identities retain their original source. |
-| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
+| `references` | none | Cached reference labels; replacing the map refreshes their display without changing document content. |
+| `compactToolbar` | `false` | Keep frequent inline commands visible and open the full command set through Format. |
+| `selectionActions` | `[]` | Application commands for a selected passage, reported through `selection-action`. |
+| `rangeActions` | `[]` | Application commands at a matching caret range, reported through `range-action`. |
+| `mentionItems`, `mentionLimit` | `[]`, 8 | Fixed mention choices and maximum results. Answer `mention-query` to search. |
+| `linkTargetLabel`, `linkBaseUrl` | `Item`, `""` | Destination label and origin used to resolve relative links. |
+| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `contextual` offers complete selection tools; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
 | `toolbarTriggerId` | `""` | In `popover` mode, the ID of the button that toggles the toolbar and anchors it. |
-| `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Bind it with `v-model:toolbar-open`. |
+| `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Listen for `toolbar-open` and `toolbar-close` to update the host state. |
 | `disableHighlight` | `false` | Authors can't highlight text. Highlights already in the document still show; see [Reserving highlight](#reserving-highlight). |
 
 ## Requests
@@ -42,7 +39,7 @@ with a function prop, which receives the request's detail and `{ signal, progres
 answer, `null` for none, or a promise of either:
 
 ```vue
-<LoomaEditor :mention-query="({ query, limit }, { signal }) => searchPeople(query, limit, signal)" />
+<UiEditor :mention-query="({ query, limit }, { signal }) => searchPeople(query, limit, signal)" />
 ```
 
 The same request also arrives as an event: a `RequestEvent` that bubbles from the editor and is
@@ -52,7 +49,7 @@ responder answers: the function prop first, then the event form, then ancestors,
 An application can set a default for every editor on `document` and override it for one editor.
 
 ```ts
-import { RequestEvent } from "@nextwebwg/html-next";
+import { RequestEvent } from "@nextwebwg/html-next/runtime";
 
 const { respond } = RequestEvent;
 const stop = respond(document, "image-upload", async ({ file }, { signal, progress }) => ({
@@ -72,35 +69,36 @@ Each request's function prop is its name in camelCase: `image-upload` is `imageU
 
 | Request | Detail | Answer |
 |---|---|---|
-| `extensions` | `null` | Tiptap extensions |
 | `slash-commands` | `{ defaults }` | slash commands |
 | `mention-query` | `{ query, limit }` | mention items |
 | `link-search` | `{ query }` | link targets |
 | `link-resolve` | `{ href }` | a link target |
 | `image-upload` | `{ file }` | an image to insert |
 | `file-upload` | `{ file }` | `{ href, name, size, contentType }` |
+| `code-languages` | `null` | grammar map; `null` keeps lazy defaults, `{}` disables highlighting |
+| `image-delivery` | `null` | `{ resolveSource?, resolveAttributes? }` transient image policy |
 
 ### extensions
 
 The editor asks when it mounts, and again when a responder first appears. The answer's Tiptap
 extensions are added after Looma's own. When the answer arrives after the editor was built, for example from a lazily imported module or a responder that appears later, the editor
 rebuilds with them and keeps its document. A document nobody has edited yet is read again from
-`modelValue`, so nodes and marks the new extensions define are kept.
+`content`, so nodes and marks the new extensions define are kept.
 
 ```ts
-import type { LoomaEditorExtensions } from "@threadlabs/looma/vue/editor";
+import type { LoomaEditorExtensions } from "@threadlabs/looma/editor";
 
 const extensions: LoomaEditorExtensions = async () => [(await import("./footnote")).Footnote];
 ```
 
 ### slash-commands
 
-The editor asks when it mounts, when the prop changes, and when image uploads become available. The
+The editor asks when it mounts, when a responder appears, and when image uploads become available. After changing an existing responder’s inventory, send the editor a native `--refresh-services` command. The
 detail carries the editor's default commands. Return them changed or extended; `null` keeps the
 defaults and an empty array offers no commands. See [Host commands](/editor#host-commands).
 
 ```ts
-import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
+import type { LoomaEditorSlashCommands } from "@threadlabs/looma/editor";
 
 const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => defaults.filter(({ id }) => id !== "table");
 ```
@@ -111,7 +109,7 @@ The editor asks as the author types after `@`. Answer with at most `limit` peopl
 shows an empty menu. Each new character aborts the previous query's `signal`.
 
 ```ts
-import type { LoomaMentionQuery } from "@threadlabs/looma/vue/editor";
+import type { LoomaMentionQuery } from "@threadlabs/looma/editor";
 
 const mentionQuery: LoomaMentionQuery = async ({ query, limit }, { signal }) =>
   (await fetch(`/api/people?q=${encodeURIComponent(query)}&limit=${limit}`, { signal })).json();
@@ -124,7 +122,7 @@ With a responder the link field searches; without one it asks for a URL. A rejec
 retryable search error.
 
 ```ts
-import type { LoomaLinkSearch } from "@threadlabs/looma/vue/editor";
+import type { LoomaLinkSearch } from "@threadlabs/looma/editor";
 
 const linkSearch: LoomaLinkSearch = async ({ query }, { signal }) =>
   (await fetch(`/api/pages?q=${encodeURIComponent(query)}`, { signal })).json();
@@ -136,7 +134,7 @@ The editor asks when a saved link shows its card. Answer with the current destin
 name in the link card. The saved `href` never changes.
 
 ```ts
-import type { LoomaLinkResolve } from "@threadlabs/looma/vue/editor";
+import type { LoomaLinkResolve } from "@threadlabs/looma/editor";
 
 const linkResolve: LoomaLinkResolve = ({ href }) => pagesByHref.get(href) ?? null;
 ```
@@ -146,11 +144,11 @@ const linkResolve: LoomaLinkResolve = ({ href }) => pagesByHref.get(href) ?? nul
 The editor asks for each chosen, pasted, or dropped image. Upload `file` and answer with the image to
 insert, `{ src, alt?, width?, height?, responsive? }`, or `null` to insert nothing. The editor shows the
 upload's progress from `progress(loaded, total)` with a **Cancel** button, which aborts `signal`. A
-rejection leaves the document unchanged, shows **Retry**, and emits `uploadError`; a canceled upload
+rejection leaves the document unchanged, shows **Retry**, and emits `upload-error`; a canceled upload
 reports nothing.
 
 ```ts
-import type { LoomaImageUploader } from "@threadlabs/looma/vue/editor";
+import type { LoomaImageUploader } from "@threadlabs/looma/editor";
 
 const imageUpload: LoomaImageUploader = ({ file }, { signal, progress }) => new Promise((resolve, reject) => {
   const request = new XMLHttpRequest();
@@ -171,7 +169,11 @@ or `null` to insert nothing. The application owns storage, access and size limit
 the file picker when a responder is available. Looma inserts the filename as an
 ordinary link, followed by its type and byte-size label. The caret is mapped
 through intervening edits while transport runs. Cancel or unmount prevents a
-late answer from inserting; rejection emits `uploadError` and keeps the document.
+late answer from inserting; rejection emits `upload-error` and keeps the document.
+
+### image-delivery
+
+Answer with synchronous `resolveSource` and/or `resolveAttributes` functions. The editor resolves this policy before constructing image node views. URLs returned by the policy are browser-only: stored JSON and image events retain the original source. Register the responder before mounting; send `--refresh-services` after changing the policy.
 
 ## Toolbar
 
@@ -203,8 +205,8 @@ clicking again, pressing Escape, or clicking elsewhere closes it. The button nee
 Selecting text still shows a small bubble with the text controls (Bold through Inline code).
 
 ```vue
-<IconButton id="formatting" label="Formatting">…</IconButton>
-<LoomaEditor toolbar-mode="popover" toolbar-trigger-id="formatting" v-model:toolbar-open="formattingOpen" />
+<UiIconButton id="formatting" label="Formatting">…</UiIconButton>
+<UiEditor toolbar-mode="popover" toolbar-trigger-id="formatting" :toolbar-open="formattingOpen" @toolbar-open="formattingOpen = true" @toolbar-close="formattingOpen = false" />
 ```
 
 ### Reserving highlight
@@ -215,7 +217,7 @@ no Highlight button, `Mod-Shift-H` does nothing, typing or pasting `==text==` st
 and pasted HTML `<mark>` keeps its text without the highlight. Highlights already stored in the
 document's JSON still load and render as `<mark>`; the mark stays in the schema because removing
 it would make the editor discard any document that uses it. The setting is read when the editor
-is created. Outside `LoomaEditor`, pass `disableHighlight: true` to
+is created. Outside `UiEditor`, pass `disableHighlight: true` to
 `getDefaultEditorExtensions`.
 
 ### Code block syntax
@@ -227,21 +229,20 @@ CSS, Go, HTML, Java, JavaScript, JSON, Kotlin, Markdown, PHP, Python, Ruby, Rust
 TypeScript, and YAML) when its code block has text. Documents without code do not download the
 grammars. HTML uses Highlight.js's XML grammar under the name `html`.
 
-An application can replace that list with its own grammars by passing `codeLanguages` when the
-editor is created:
+Answer the `code-languages` request before the editor is created to replace that list:
 
 ```ts
 import sql from 'highlight.js/lib/languages/sql'
 
-const codeLanguages = { sql }
+const codeLanguages = () => ({ sql })
 ```
 
 ```vue
-<LoomaEditor :code-languages="codeLanguages" />
+<UiEditor :code-languages="codeLanguages" />
 ```
 
 Install `highlight.js` in the application that imports a grammar. The example offers only SQL;
-pass an empty object to keep code blocks plain. For a headless editor,
+return an empty object to keep code blocks plain. For a headless editor,
 `getDefaultEditorExtensions({ codeLanguages })` takes an explicit grammar map. Untagged code blocks
 can be detected from the registered languages.
 Paste SQL into a code block to keep it as code. Plain text pasted into a paragraph stays prose.
@@ -349,7 +350,7 @@ editing dock retains its formatting controls.
 `selectionActions` accepts `{ id, label }` commands owned by the application.
 They appear only for a nonempty text selection, before formatting in the narrow
 dock. Read-only selections expose the actions without exposing edit controls.
-`selectionAction` emits `{ id, from, to, text, before, after }`, captured before
+`selection-action` emits `{ id, from, to, text, before, after }`, captured before
 the host moves focus. These actions never mutate the document. The host owns
 permissions, durable annotation identity, panels and return navigation; positions
 are from the current editor snapshot, not a lasting anchor.
@@ -357,7 +358,19 @@ are from the current editor snapshot, not a lasting anchor.
 `rangeActions` accepts `{ id, label, from, to }` actions for a collapsed text
 caret. Clicking inside a matching range opens the contextual toolbar, including
 in read-only documents; narrow viewports use the existing editing dock. Actions
-with the same ID share one button. `rangeAction` emits `{ id, ranges }`, with
+with the same ID share one button. `range-action` emits `{ id, ranges }`, with
 unique matching `{ from, to }` pairs captured before focus moves. Invalid or
 out-of-document ranges are ignored. The host recalculates these ephemeral
 positions after content changes and owns annotation persistence and paint.
+
+## Compact fields and rendering
+
+`UiCompactEditor` uses the same `content` and `change.detail.content` contract for short rich text. It supports bold, italic, inline code, Markdown shortcuts, Undo and Redo without a document toolbar. Set `label` and optionally `id` for a stable textbox reference. Answer its `extensions` request before creation to add a schema extension.
+
+`UiCompactContent` renders that JSON as escaped semantic HTML and works during SSR. Neither component imports the complete document editor.
+
+## Commands and migration
+
+Send native `CommandEvent`s to the editor root: `--focus` focuses the beginning, `--focus-end` focuses the end, and `--refresh-services` refreshes the document editor’s slash inventory and image delivery policy. Import `CommandEvent` from `@nextwebwg/html-next/runtime`. For a compact field, `id` identifies its textbox, so a native button can also use `commandfor="message" command="--focus-end"` with `<UiCompactEditor id="message" />`.
+
+The source-only API uses HTML definitions. When migrating the former Vue entry points, use the following replacements: `LoomaEditor`, `LoomaCompactEditor`, and `LoomaCompactContent` become `UiEditor`, `UiCompactEditor`, and `UiCompactContent` from the package root with `htmlNext({ target: "vue" })`. Replace `modelValue` / `update:modelValue` with `content` / `change.detail.content`; event names use kebab case. There is no `ready` event, exposed editor instance, or exposed `focus` method. Types and headless extensions come from `@threadlabs/looma/editor` and `/editor/compact`. Applications that install Tiptap extensions can use their normal extension lifecycle for imperative integration.

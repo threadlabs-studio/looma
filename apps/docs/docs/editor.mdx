@@ -36,22 +36,21 @@ separate Done action.
 
 ## Add it to a Vue app
 
-Install Looma and the editor peers, import the theme and Vue component styles, then use
-`LoomaEditor` with `v-model`:
+Install Looma and the editor peers, import the theme, then use
+`UiEditor` with controlled JSON content:
 
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import { UiEditor } from "@threadlabs/looma";
 import "@threadlabs/looma/tokens.css";
 import "@threadlabs/looma/theme-light.css";
-import "@threadlabs/looma/vue.css";
 
-const document = ref({ type: "doc", content: [] });
+const document = ref({ type: "doc", content: [{ type: "paragraph" }] });
 </script>
 
 <template>
-  <LoomaEditor v-model="document" label="Article body" />
+  <UiEditor :content="document" @change="document = $event.detail.content" label="Article body" />
 </template>
 ```
 
@@ -96,7 +95,7 @@ request. It receives fresh defaults and returns the inventory to use; an empty a
 commands and `null` keeps the defaults:
 
 ```ts
-import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
+import type { LoomaEditorSlashCommands } from "@threadlabs/looma/editor";
 
 const slashCommands: LoomaEditorSlashCommands = ({ defaults }) => [
   ...defaults,
@@ -118,9 +117,39 @@ Use a unique `id` for each command, especially when titles repeat. `group` is op
 existing headless command objects keep working. Each command owns removal of the supplied
 range. Supply a pure `isAvailable({ editor, range })` predicate to omit a command when a host
 capability or editing context is unavailable; Looma checks it again before execution.
-A new function whose answer is a different inventory dismisses the open menu and keeps the typed
-query intact; one that answers the same commands leaves the menu open, so an inline function is safe.
+After changing an existing inventory, send the editor a native `--refresh-services` command. A different inventory dismisses the open menu and keeps the typed query intact; the same inventory leaves the menu open.
 Return new arrays rather than mutating one in place.
+
+Use this extension point for document templates, snippets, decision outlines, and date macros.
+The application owns its catalog, preview or date picker, and the text it inserts. A template
+uses ordinary editor nodes; validate a fresh copy with `editor.schema.nodeFromJSON` and
+`check()` before removing the command range. Keep an asynchronous picker's insertion range
+mapped through edits, and cancel its pending result when that range is no longer valid.
+
+For example, a host can add a **Today** command whose value is fixed when selected:
+
+```ts
+{
+  id: "today",
+  title: "Today",
+  description: "Insert today's date",
+  icon: "tag",
+  keywords: ["today", "date"],
+  command: ({ editor, range }) => {
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+    editor.chain().focus().deleteRange(range).insertContent(date).run();
+  },
+}
+```
+
+This writes the local calendar date as unambiguous `YYYY-MM-DD` text. A host date picker can
+insert its chosen date in the same format. No live date node, reminder, or scheduling state is
+created.
 
 Headless consumers use `createLoomaSlashCommandExtension({ commands, onStateChange })` and
 `filterLoomaSlashCommands`. Menu snapshots supply `select(index)` and `highlight(index)`;
@@ -173,15 +202,19 @@ editor JSON, HTML and Markdown. `editor.getHTML()` includes the current
 entries as a named navigation landmark with real links.
 
 For Expressive Markdown, call `editorDocumentToMarkdown(editor.getJSON())` from
-`@threadlabs/looma/editor/expressmark`. It writes the current TOC entries and settings into the
-file. Reading that file preserves the saved navigation instead of regenerating it from surrounding
-headings. The editor's internal JSON can retain configuration only; it does not need an entry copy.
-Authored navigation imported from a file retains its body.
+`@threadlabs/looma/editor/expressmark`. It writes the TOC as its `::toc` placeholder with its
+settings, where it stands, and readers build the entries from the headings. Authored navigation
+imported from a file retains its body. For a self-contained export, pass
+`{ tableOfContents: "entries" }` to `editorDocumentToMarkdown` or
+`editorDocumentToExpressmark`: automatic TOCs receive current links using the document's
+heading anchors, while authored navigation and the original editor JSON remain unchanged.
+This also expands a placeholder when `original` is supplied. Portable exports write explicit
+heading IDs, including inside authored navigation, so repeated labels cannot redirect saved links.
 
 
 Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
 they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
-`tableOfContentsNodeView` for their own settings composition. Turnkey Vue editors already supply
+`tableOfContentsNodeView` for their own settings composition. The HTML Next editor already supply
 settings built with shared FormField, Button, Menu, and Popover controls.
 
 For search, Markdown, plain text, or change-review projections, hosts can import
@@ -201,7 +234,7 @@ Code blocks retain their language in the document. The searchable language picke
 bundled Highlight.js grammar, including HTML, JavaScript, TypeScript, CSS, JSON, Python, SQL, and
 Bash. An explicit choice loads only its grammar on demand. **Auto** uses 20 common grammars when
 code is present to keep detection light. Pass
-`codeLanguages` to replace the list with your own grammars, or
+a `codeLanguages` responder to replace the list with your own grammars, or
 `{}` for plain code blocks. Headless editors pass grammars to `getDefaultEditorExtensions`.
 Untyped code blocks can be detected from the registered languages.
 While the cursor is in an editable code block, an **Auto** language control floats above it; choose a language to save an explicit
@@ -220,16 +253,17 @@ Use the portable Expressmark adapter for Markdown import and export:
 ```ts
 import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
 
-const markdown = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard" });
 const content = markdownToEditorDocument(markdown, { syntax: "standard" });
 editor.commands.setContent(content);
+// Later, write the edited document back over the Markdown it was read from.
+const saved = editorDocumentToMarkdown(editor.getJSON(), { syntax: "standard", original: markdown });
 ```
 
 The adapter defaults to `compatible` syntax for existing CommonMark/GFM interchange;
 select `standard` explicitly when exchanging content with Markupress. It reports content the
-editor schema cannot preserve instead of silently discarding it. Keep page front matter in
-the host application. The older `loomaMarkdownToHtml` and `loomaMarkdownFromDoc` helpers retain
-their editor-specific format; they do not define Markupress's documentation syntax.
+editor schema cannot preserve instead of silently discarding it. With `original`, an unedited
+document is written back byte for byte, front matter included, and an edit leaves the source of
+every other block alone. Footnote and link reference definitions stay where they are written.
 
 ## Mentions
 
@@ -262,6 +296,20 @@ users can reach the same controls. The editor updates the document; consumers do
 wire a separate table menu.
 
 ## Images and links
+
+Answer the `file-upload` request with `fileUpload` to enable **Attach file**, `/file`, and
+`/attachment`. It receives `{ file }` plus `signal` and `progress` callbacks, and returns
+`{ href, name, size, contentType }` or `null`. The host retains the file and owns permissions
+and its durable download URL. The editor stores an ordinary link followed by its MIME type
+and size. JSON, HTML, and Markdown retain its destination. `editor.getText()` returns its name
+and metadata; applications that need URLs in plain-text exports can project the saved link marks
+or use the Markdown export.
+
+The editor shows upload progress and **Cancel**. Failure leaves authored content intact and
+offers **Retry** and **Dismiss**, while still emitting `uploadError`. Retry keeps the insertion
+point mapped through edits instead of following a newly moved caret. Removing that insertion
+point cancels the pending result. Cancel or dismiss drops the pending file. A successful insertion
+is one undo step, separate from intervening typing.
 
 Answer the [`image-upload`](/editor/looma-editor#image-upload) request with `imageUpload` to
 enable image insertion from a file, paste, or drop. It receives `{ file }` and returns the image to

@@ -1,0 +1,21 @@
+<!--
+title: Connected headings
+description: A native legend joins the heading to the frame. Descriptions, actions and fields stay comfortably inside it.
+-->
+<ui-stack gap="l">
+  <ui-section heading="Profile" variant="fieldset">
+    <span slot="description">The details people see when you work together.</span>
+    <ui-form-field>
+      <label slot="label" for="profile-name">Display name</label>
+      <ui-input id="profile-name" value="Ada Lovelace"></ui-input>
+    </ui-form-field>
+    <ui-button slot="actions" variant="outline" tone="accent" size="sm">Reset</ui-button>
+  </ui-section>
+  <ui-section heading="Notifications" variant="fieldset">
+    <ui-text>Choose which updates you receive.</ui-text>
+  </ui-section>
+  <ui-section heading="Delete account" variant="fieldset" tone="danger">
+    <span slot="description">Permanently remove this account and its saved preferences.</span>
+    <ui-button slot="actions" variant="outline" tone="danger">Delete account</ui-button>
+  </ui-section>
+</ui-stack>

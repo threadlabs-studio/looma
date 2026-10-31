@@ -13,6 +13,7 @@ const SURFACE = "the scroller is the bordered, shadowed surface; it needs an inn
 const EXEMPT = {
   "ui-combobox .popup": SURFACE,
   "ui-combobox :host([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
+  "ui-combobox :host([multiple]) .entry.multiline": "the growing input keeps selected labels and the text cursor fully visible without a fading mask",
   "ui-context-menu .menu": SURFACE,
   "ui-editor-table-context-menu :host": SURFACE,
   "ui-editor-table-toolbar .menu": SURFACE,

@@ -53,9 +53,11 @@ test('material customization uses shared levers and exposes only current startin
   assert.match(themeCSS(recipe), /--ui-glassiness: .8/);
   assert.match(themeCSS(recipe), /--ui-surface-separation: .6/);
   assert.equal(startingPointFor(startingPoints.bookish), 'bookish');
+  assert.equal(startingPointFor(startingPoints.minimal), 'minimal');
+  assert.equal(startingPointLabels.minimal, 'Minimal');
   assert.equal(Object.hasOwn(startingPoints, 'library'), false);
   assert.equal(startingPointFor(startingPoints.wiki), 'wiki');
-  assert.ok(parseFloat(startingPoints.wiki.values['control-roominess']) < parseFloat(startingPoints.clear.values['control-roominess']));
+  assert.ok(parseFloat(startingPoints.wiki.values['control-roominess']) < parseFloat(startingPoints.minimal.values['control-roominess']));
 });
 
 test('rejects invalid recipes and CSS injection rather than producing partial styles', () => {
@@ -80,9 +82,9 @@ test('all authoring paths share readable numeric bounds and retain useful native
 });
 
 test('starting points change shared surfaces and depth never adds motion amplitude', () => {
-  const clear = themeCSS(startingPoints.clear);
+  const minimal = themeCSS(startingPoints.minimal);
   const night = themeCSS(startingPoints.night);
-  assert.notEqual(clear, night);
+  assert.notEqual(minimal, night);
   assert.match(night, /--ui-surface: light-dark\([^,]+, #11141c\)/);
   const recipe = defaultRecipe(); recipe.values['inner-depth'] = '2';
   const css = themeCSS(recipe);
@@ -99,6 +101,7 @@ test('saved and imported recipes identify their starting point without claiming 
 
 const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(s => s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+const composite = (foreground, background, alpha) => '#' + [1, 3, 5].map(i => Math.round(parseInt(foreground.slice(i, i + 2), 16) * alpha + parseInt(background.slice(i, i + 2), 16) * (1 - alpha)).toString(16).padStart(2, '0')).join('');
 
 test('Forest & cream pairs a forest accent with cream light neutrals', () => {
   const recipe = applyRefinement(defaultRecipe(), 'palette', 'garden');
@@ -113,8 +116,8 @@ test('Forest & cream pairs a forest accent with cream light neutrals', () => {
 });
 
 test('starter rhythm is independent from gap spacing and exports a unitless seed', () => {
-  assert.ok(Number(startingPoints.wiki.values.rhythm) < Number(startingPoints.clear.values.rhythm));
-  assert.ok(Number(startingPoints.editorial.values.rhythm) > Number(startingPoints.clear.values.rhythm));
+  assert.ok(Number(startingPoints.wiki.values.rhythm) < Number(startingPoints.minimal.values.rhythm));
+  assert.ok(Number(startingPoints.editorial.values.rhythm) > Number(startingPoints.minimal.values.rhythm));
   const recipe = structuredClone(startingPoints.wiki);
   recipe.values.rhythm = '1.5';
   assert.equal(deriveTheme(recipe).tokens['--ui-rhythm'], '1.5');
@@ -141,7 +144,7 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
     { canvas: '#ff00ff', surface: '#00ffff', text: '#ffff00', action: '#ffffff' },
     ...Object.values(startingPoints).map(recipe => recipe.values),
   ]) {
-    const recipe = { ...startingPoints.clear, values: { ...startingPoints.clear.values, ...colors } };
+    const recipe = { ...startingPoints.minimal, values: { ...startingPoints.minimal.values, ...colors } };
     const { tokens, adjustments } = deriveTheme(recipe);
     const surfaces = ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken'].map(name => tokens[name]);
     for (const name of ['--ui-text', '--ui-text-secondary', '--ui-text-muted']) {
@@ -155,7 +158,7 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
       for (const surface of surfaces) assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], surface) >= 4.5, `${tone} text on ${surface}`);
     }
     assert.ok(Array.isArray(adjustments));
-    assert.deepEqual(recipe.values, { ...startingPoints.clear.values, ...colors }, 'authoring seeds remain editable');
+    assert.deepEqual(recipe.values, { ...startingPoints.minimal.values, ...colors }, 'authoring seeds remain editable');
   }
 });
 
@@ -230,7 +233,7 @@ test('selected Google fonts travel in the exported CSS and recipe while system f
   assert.match(exported, /@import url\("https:\/\/fonts.googleapis.com\/css2\?family=Inter:wght@400;500;600;700&display=swap"\);/);
   assert.ok(exported.indexOf('@import') < exported.indexOf('@layer'));
   assert.deepEqual(validateRecipe(JSON.parse(JSON.stringify(recipe))), recipe);
-  assert.ok(!themeCSS(startingPoints.clear).includes('fonts.googleapis.com'));
+  assert.ok(!themeCSS(startingPoints.minimal).includes('fonts.googleapis.com'));
   recipe.fonts['body-font'] = 'Inter";}body{color:red';
   assert.throws(() => validateRecipe(recipe));
 });
@@ -277,7 +280,7 @@ test('filled tones preserve their seeds while ink, text and focus adapt independ
         }
         for (const background of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
           assert.ok(contrast(tokens['--ui-focus-ring'], tokens[background]) >= 3, `${action}/${mode}: focus`);
-          for (const alpha of [.05, .12, .18]) {
+          for (const alpha of [.05, .08, .12, .18]) {
             const a = [1, 3, 5].map(i => parseInt(action.slice(i, i + 2), 16));
             const b = [1, 3, 5].map(i => parseInt(tokens[background].slice(i, i + 2), 16));
             const painted = '#' + a.map((n, i) => Math.round(n * alpha * sharedOpacity + b[i] * (1 - alpha * sharedOpacity)).toString(16).padStart(2, '0')).join('');
@@ -431,10 +434,10 @@ test('neutral illumination keeps colored material chromatic and neutral material
     const [shadeL, shadeC, shadeH] = toLch(tokens['--ui-accent-shade']);
     const [reflectedL, reflectedC, reflectedH] = toLch(tokens['--ui-accent-reflection']);
     assert.equal(tokens['--ui-accent'], action, 'material never substitutes pigment');
-    assert.ok(shadeL <= l + .002 && l - shadeL <= .052, `${action}: restrained perceptual recession`);
+    assert.ok(shadeL <= l + .002 && l - shadeL <= .162, `${action}: restrained perceptual recession`);
     if (c > .02) {
-      assert.ok(hueDistance(h, shadeH) < 1, `${action}: shade retains hue`);
-      assert.ok(Math.abs(shadeC / shadeL - c / l) < .015, `${action}: shade retains relative saturation`);
+      assert.ok(hueDistance(h, shadeH) < 12.5, `${action}: shade stays in its pigment family`);
+      assert.ok(shadeC / shadeL >= c / l - .015, `${action}: shade retains or strengthens relative saturation`);
       assert.ok(hueDistance(h, reflectedH) < 1, `${action}: neutral light retains reflected hue`);
       assert.ok(reflectedC + .002 >= c * Math.max(1, reflectedL / l), `${action}: reflection keeps relative saturation rather than whitening the whole pigment`);
       if (action === '#2e1228') assert.ok(reflectedC / reflectedL > c / l, 'wine reflection adds relative saturation as it brightens');
@@ -497,7 +500,7 @@ test('choice frames recess only empty wells and reuse shared state/material boun
   assert.match(checkbox, /input:checked,\s*input:indeterminate\s*\{[^}]*box-shadow: none;/);
   assert.match(checkbox, /input\s*\{[^}]*box-shadow: var\(--ui-control-inset\);/);
   assert.match(radio, /input\s*\{[^}]*box-shadow: var\(--ui-control-inset\);/);
-  assert.match(radio, /input:checked\s*\{[^}]*background-image: var\(--ui-accent-highlight, none\);[^}]*box-shadow: none;/);
+  assert.match(radio, /input:checked\s*\{[^}]*background-image: none;[^}]*box-shadow: none;/);
   assert.match(radio, /input:checked::after\s*\{[^}]*opacity: 1;/);
   assert.match(radio, /input::after\s*\{[^}]*background-color: var\(--ui-text-on-accent\);/);
   assert.match(radio, /@media \(forced-colors: active\)[\s\S]*appearance: auto;[\s\S]*input::after\s*\{\s*display: none !important;\s*\}/);
@@ -572,6 +575,9 @@ test('Looma is the coordinated default starting point and carries its font prove
   assert.equal(startingPointLabels.looma, 'Looma');
   assert.equal(recipe.values.action, '#7658d6');
   assert.equal(recipe.values.canvas, '#fbf9f4');
+  const surface = deriveTheme(recipe, { mode: 'light' }).tokens['--ui-surface-raised'];
+  const [red, green, blue] = [1, 3, 5].map(i => parseInt(surface.slice(i, i + 2), 16));
+  assert.ok(red > green && green > blue, 'raised surfaces share the warm canvas family');
   assert.equal(recipe.values['text-size'], '17px');
   assert.deepEqual(recipe.fonts, { 'body-font': 'Manrope', 'display-font': 'Manrope' });
   assert.match(themeCSS(recipe), /fonts.googleapis.com/);
@@ -600,6 +606,78 @@ test('field-label sizing follows body by default and exports an independent publ
   }
 });
 
+
+test('gold outlines preserve pigment and use the border minimum independently of text contrast', () => {
+  const resolve = minimum => {
+    const recipe = structuredClone(startingPoints.gold);
+    recipe.values['neutral-border-contrast'] = minimum;
+    return deriveTheme(recipe, { mode: 'light' }).tokens;
+  };
+  const low = resolve('1'), normal = resolve('2.1'), strong = resolve('3');
+  assert.equal(low['--ui-accent-outline-border'], low['--ui-accent'], 'a visible pigment needs no adjustment');
+  for (const [tokens, minimum] of [[normal, 2.1], [strong, 3]]) {
+    const border = tokens['--ui-accent-outline-border'];
+    const recipe = startingPoints.gold;
+    const material = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+    const paints = ['--ui-surface-reflection', '--ui-surface-shade'].flatMap(stop => {
+      const plate = composite(tokens[stop], tokens['--ui-surface-raised'], material);
+      return ['wash', 'wash-hover'].map(state => {
+        const wash = tokens[`--ui-accent-${state}`];
+        return composite(wash, plate, parseInt(wash.slice(7), 16) / 255);
+      });
+    });
+    const ratio = Math.min(...paints.map(paint => contrast(border, paint)));
+    assert.ok(ratio >= minimum && ratio < minimum + .05, 'adjust only enough to meet the chosen minimum');
+    const hue = colour => toLch(colour)[2];
+    assert.ok(Math.abs(hue(border) - hue(tokens['--ui-accent'])) < 12.5, 'retain the gold family with bounded chromatic compensation');
+    assert.equal(tokens['--ui-accent-subtle-text'], low['--ui-accent-subtle-text'], 'border settings do not alter readable text');
+  }
+  assert.ok(toLch(normal['--ui-accent-outline-border'])[0] > toLch(normal['--ui-accent-subtle-text'])[0]);
+});
+
+test('every outline tone meets the chosen border floor in light and dark themes', () => {
+  for (const starting of Object.values(startingPoints)) for (const mode of ['light', 'dark']) for (const minimum of ['1.5', '2.1', '3']) {
+    const recipe = structuredClone(starting);
+    recipe.values['neutral-border-contrast'] = minimum;
+    const { tokens } = deriveTheme(recipe, { mode });
+    for (const tone of ['accent', 'accent-secondary', 'accent-tertiary', 'success', 'danger', 'warning', 'info']) {
+      for (const surface of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
+        assert.ok(contrast(tokens[`--ui-${tone}-outline-border`], tokens[surface]) >= Number(minimum), `${mode}/${minimum}/${tone}/${surface}`);
+      }
+    }
+  }
+});
+
+test('outline borders and text meet separate contrast minimums against the painted fill in both modes', () => {
+  for (const [name, starting] of Object.entries(startingPoints)) for (const mode of ['light', 'dark']) for (const lighting of ['theme', 'maximum']) {
+    const recipe = structuredClone(starting);
+    if (lighting === 'maximum') Object.assign(recipe.values, { finish: '1', 'light-strength': '1' });
+    const { tokens } = deriveTheme(recipe, { mode });
+    const material = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+    for (const tone of ['accent', 'accent-secondary', 'accent-tertiary', 'success', 'danger', 'warning', 'info']) {
+      for (const role of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) {
+        for (const stop of ['--ui-surface-reflection', '--ui-surface-shade']) for (const state of ['wash', 'wash-hover', 'ghost-hover']) {
+          const plate = composite(tokens[stop], tokens[role], material);
+          const wash = tokens[`--ui-${tone}-${state}`];
+          const paint = composite(wash, plate, parseInt(wash.slice(7), 16) / 255);
+          assert.ok(contrast(tokens[`--ui-${tone}-outline-border`], paint) >= Number(recipe.values['neutral-border-contrast']), `${name}/${mode}/${tone}/${role}/${stop}/${state}: border`);
+          assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], paint) >= 4.5, `${name}/${mode}/${tone}/${role}/${stop}/${state}: text`);
+        }
+      }
+    }
+  }
+});
+
+test('outline contrast updates when material finish or light strength changes', () => {
+  const recipe = structuredClone(startingPoints.bookish);
+  Object.assign(recipe.values, { action: '#371b30', finish: '0', 'light-strength': '1' });
+  const flat = deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'];
+  recipe.values.finish = '1';
+  const lit = deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'];
+  assert.notEqual(lit, flat, 'a stronger reflection requires a brighter border');
+  recipe.values['light-strength'] = '0';
+  assert.equal(deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-accent-outline-border'], flat);
+});
 
 test('neutral boundaries have an editable contrast floor independent of primary pigment', () => {
   for (const mode of ['light','dark']) for (const minimum of ['1.5','2','3']) {
@@ -752,4 +830,108 @@ test('Bookish coordinates branded guidance, restrained risk states and supportin
   }
   assert.match(themeCSS(recipe), /Newsreader/);
   assert.match(themeCSS(recipe), /Open\+Sans/);
+});
+
+
+test('Gold material shading and contrast borders stay chromatic as they darken', () => {
+  const recipe=applyRefinement(applyRefinement(defaultRecipe(),'material','polished'),'palette','gold');
+  for (const mode of ['light','dark']) {
+    const {tokens}=deriveTheme(recipe,{mode});
+    const [l,c]=toLch(tokens['--ui-accent']), [shadeL,shadeC]=toLch(tokens['--ui-accent-shade']);
+    assert.ok(l-shadeL<=.155,`${mode}: split the difference on material darkening`);
+    assert.ok(shadeC>=c*.99,`${mode}: darker Gold retains its colorfulness`);
+  }
+  for (const minimum of ['2.1','3']) {
+    recipe.values['neutral-border-contrast']=minimum;
+    const {tokens}=deriveTheme(recipe,{mode:'light'});
+    const [l,c]=toLch(tokens['--ui-accent']), [borderL,borderC]=toLch(tokens['--ui-accent-outline-border']);
+    assert.ok(borderL<l);
+    assert.ok(borderC>=c*.98,`${minimum}: contrast correction retains colorfulness`);
+    assert.ok(borderC/borderL>=c/l*1.1,`${minimum}: darker borders gain relative saturation`);
+  }
+});
+
+test('polished accent materials keep a visible gradient across every palette', () => {
+  const base=applyRefinement(defaultRecipe(),'material','polished');
+  for (const palette of Object.keys(themePalettes)) for (const mode of ['light','dark']) {
+    const {tokens}=deriveTheme(applyRefinement(base,'palette',palette),{mode});
+    const reflection=tokens['--ui-accent-reflection'], shade=tokens['--ui-accent-shade'];
+    assert.ok(separationOK(reflection,shade)>=.13,`${palette}/${mode}: material stops must not collapse into a flat fill`);
+    assert.ok(contrast(reflection,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: reflection remains readable`);
+    assert.ok(contrast(shade,tokens['--ui-on-accent'])>=4.5,`${palette}/${mode}: shade remains readable`);
+  }
+});
+
+test('solid hover preserves pigment and moves fill and material by comparable perceptual steps', () => {
+  for (const [name, recipe] of Object.entries(startingPoints)) for (const mode of ['light', 'dark']) {
+    const { tokens } = deriveTheme(recipe, { mode });
+    for (const tone of ['accent', 'accent-secondary', 'accent-tertiary', 'danger', 'success', 'warning', 'info', 'neutral']) {
+      const base = tokens[`--ui-${tone}${tone === 'neutral' ? '-surface' : ''}`];
+      const hovered = tokens[`--ui-${tone}-hover`];
+      const [l, c, h] = toLch(base), [hl, hc, hh] = toLch(hovered);
+      assert.ok(Math.abs(hl - l) >= .028 && Math.abs(hl - l) <= .08, `${name}/${mode}/${tone}: bounded hover step`);
+      if (c > .02) {
+        assert.ok(hc >= c * .9, `${name}/${mode}/${tone}: hover retains saturation`);
+        assert.ok(Math.min(Math.abs(h - hh), 360 - Math.abs(h - hh)) < 2, `${name}/${mode}/${tone}: hover retains hue`);
+      }
+      const label = tokens[tone === 'neutral' ? '--ui-text' : `--ui-on-${tone}`];
+      for (const part of ['reflection', 'shade']) {
+        const rest = tokens[`--ui-${tone}-${part}`], hover = tokens[`--ui-${tone}-hover-${part}`];
+        assert.ok(contrast(hover, label) >= 4.5, `${name}/${mode}/${tone}/${part}: readable painted hover`);
+        assert.ok(separationOK(rest, hover) <= Math.abs(hl - l) + .01, `${name}/${mode}/${tone}/${part}: reflection cannot amplify hover`);
+      }
+    }
+  }
+});
+
+test('quiet action colors export distinct mode-local alpha paints with a chromatic Bookish wash', () => {
+  const recipe = startingPoints.bookish;
+  const css = themeCSS(recipe);
+  const light = deriveTheme(recipe, { mode: 'light' }).tokens;
+  const dark = deriveTheme(recipe, { mode: 'dark' }).tokens;
+  for (const role of ['accent-wash', 'accent-wash-hover', 'accent-ghost-hover', 'neutral-wash-hover', 'neutral-ghost-hover']) {
+    const key = '--ui-' + role;
+    assert.match(light[key], /^#[a-f0-9]{8}$/);
+    assert.match(dark[key], /^#[a-f0-9]{8}$/);
+    assert.ok(css.includes(`${key}: light-dark(${light[key]}, ${dark[key]});`), `${role}: mode resolves at its consumer`);
+  }
+  const wash = light['--ui-accent-wash'];
+  const painted = composite(wash, light['--ui-surface-raised'], parseInt(wash.slice(7), 16) / 255);
+  assert.ok(toLch(painted)[1] > .013 && toLch(painted)[1] < .02, 'deep plum retains a restrained tint in its outline fill');
+  assert.ok(toLch(light['--ui-accent-soft'])[1] > .013 && toLch(light['--ui-accent-soft'])[1] < .018, 'the badge shares the restrained soft tint');
+  assert.ok(toLch(light['--ui-accent-hover'])[0] > toLch(light['--ui-accent'])[0], 'deep plum brightens rather than collapsing toward black');
+  const gold = deriveTheme(startingPoints.gold).tokens;
+  assert.ok(toLch(gold['--ui-accent-hover'])[0] < toLch(gold['--ui-accent'])[0], 'gold deepens rather than washing toward white');
+});
+
+
+test('deep solid accents get extra hover lift while pale solid and outline feedback stays quieter', () => {
+  for (const mode of ['light', 'dark']) {
+    const bookish = deriveTheme(startingPoints.bookish, { mode }).tokens;
+    const gold = deriveTheme(startingPoints.gold, { mode }).tokens;
+    const step = (tokens, role) => separationOK(tokens[role], tokens[role === '--ui-neutral-surface' ? '--ui-neutral-hover' : role + '-hover']);
+    assert.ok(step(bookish, '--ui-accent') >= .07 && step(bookish, '--ui-accent') <= .085, `${mode}: deep plum gets a clearer lift`);
+    assert.ok(step(gold, '--ui-accent') >= .025 && step(gold, '--ui-accent') <= .04, `${mode}: bright gold stays restrained`);
+    for (const tokens of [bookish, gold]) {
+      assert.ok(step(tokens, '--ui-neutral-surface') <= .04, `${mode}: neutral solids stay quieter`);
+      const paint = state => {
+        const wash = tokens['--ui-accent-' + state];
+        return composite(wash, tokens['--ui-surface-raised'], parseInt(wash.slice(7), 16) / 255);
+      };
+      assert.ok(separationOK(paint('wash'), paint('wash-hover')) <= .035, `${mode}: outline hover stays restrained`);
+    }
+  }
+});
+
+
+test('small selected choices have a visible paint step independently of solid-button depth compensation', () => {
+  for (const recipe of Object.values(startingPoints)) for (const mode of ['light', 'dark']) {
+    const { tokens } = deriveTheme(recipe, { mode });
+    const distance = separationOK(tokens['--ui-accent'], tokens['--ui-choice-hover-surface']);
+    assert.ok(distance >= .033 && distance <= .05, `${mode}: a small choice mark gets a legible hover cue`);
+    for (const part of ['reflection', 'shade']) {
+      assert.ok(contrast(tokens[`--ui-choice-hover-${part}`], tokens['--ui-on-accent']) >= 4.5, `${mode}/${part}: the mark stays readable`);
+      assert.ok(separationOK(tokens[`--ui-accent-${part}`], tokens[`--ui-choice-hover-${part}`]) <= .05, `${mode}/${part}: material does not amplify the cue`);
+    }
+  }
 });

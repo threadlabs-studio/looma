@@ -2,8 +2,8 @@ import { JSDOM } from "jsdom";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Skeleton from "../vue/UiSkeleton.js";
-import StatusMessage from "../vue/UiStatusMessage.js";
+import { UiSkeleton as Skeleton } from "@threadlabs/looma";
+import { UiStatusMessage as StatusMessage } from "@threadlabs/looma";
 
 describe("Skeleton before upgrade", () => {
   it("renders an empty decorative placeholder without a focus target or announcement", async () => {

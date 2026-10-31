@@ -51,6 +51,8 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   });
   assert.match(contracts["ui-checkbox"].events[0].detailType, /trigger: "keyboard" \| "pointer" \| "programmatic"/);
   assert.ok(contracts["ui-combobox"].propFields.items.some((field) => field.path === "[].tag.tone"));
+  assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer", default: 1 });
+  assert.deepEqual(contracts["ui-top-bar"].props.titleFor, { type: "string", default: "" });
 });
 
 test("raw HTML contracts use native state names and false-default booleans", async () => {
@@ -255,13 +257,13 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "choose", "clear", "color", "delete", "describe", "destination", "dismiss", "done", "edit", "highlight", "insert", "label", "language", "new-tab", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "save", "select", "select-column", "select-row", "text"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "choose", "clear", "color", "delete", "describe", "destination", "dismiss", "done", "edit", "highlight", "insert", "label", "language", "new-tab", "open-cell-menu", "open-column-menu", "open-row-menu", "placement", "remove", "reorder-column", "reorder-row", "save", "select", "select-column", "select-row", "text", "tool-action", "tool-focus", "tool-press"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 
   const adapterSources = await Promise.all([
-    "../../packages/looma/src/vue/editor/primitives.ts",
-    "../../packages/looma/src/vue/editor/LoomaEditor.ts",
+    "../../packages/looma/src/components/ui-editor-formatting-tools/ui-editor-formatting-tools.js",
+    "../../packages/looma/src/editor/document-session.ts",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
   for (const source of adapterSources) {
     assert.doesNotMatch(source, /looma-editor-[a-z-]+-(?:action|highlight|insert|select)/);

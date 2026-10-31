@@ -2,22 +2,34 @@
   <defs>
     <prop name="heading" type="string" default=""
     >The section's heading, an h2. Leave it empty for a section with no visible heading, and name the section with aria-label.</prop>
-    <prop name="variant" type="keyword" values="plain, card, divided" default="plain"
+    <prop name="variant" type="keyword" values="plain, card, divided, fieldset" default="plain"
     >How the section is set apart. plain is a heading and content in the flow of the page; card sits it on a bordered surface, for a settings group; divided
-      rules it off from the section before it, for a long form.</prop>
+      rules it off from the section before it, for a long form. fieldset joins the heading to a bordered frame using a native legend.</prop>
     <prop name="tone" type="keyword" values="neutral, danger" default="neutral"
-    >danger marks a section of destructive actions (a danger zone): its heading and a card's border take the danger colour.</prop>
+    >danger marks a section of destructive actions (a danger zone): its heading and a framed section's border take the danger colour.</prop>
   </defs>
-  <section>
-    <span class="head">
-      <span class="copy">
-        <h2 class="heading" from:hidden="not $heading">{$heading}</h2>
-        <span class="description"><slot name="description"></slot></span>
+  <template $match>
+    <fieldset $when="$variant = 'fieldset'">
+      <legend class="legend" from:hidden="not $heading"><h2 class="heading">{$heading}</h2></legend>
+      <span class="content">
+        <span class="head">
+          <span class="copy"><span class="description"><slot name="description"></slot></span></span>
+          <span class="actions"><slot name="actions"></slot></span>
+        </span>
+        <span class="body"><slot></slot></span>
       </span>
-      <span class="actions"><slot name="actions"></slot></span>
-    </span>
-    <span class="body"><slot></slot></span>
-  </section>
+    </fieldset>
+    <section $else>
+      <span class="head">
+        <span class="copy">
+          <h2 class="heading" from:hidden="not $heading">{$heading}</h2>
+          <span class="description"><slot name="description"></slot></span>
+        </span>
+        <span class="actions"><slot name="actions"></slot></span>
+      </span>
+      <span class="body"><slot></slot></span>
+    </section>
+  </template>
   <style>
     /* A part of a view: a heading, an optional line under it, actions for the whole section at its
        end, and the content. Sections space themselves out through the Stack around them. */
@@ -28,7 +40,8 @@
       min-inline-size: 0;
     }
 
-    :host([variant="card"]) {
+    :host([variant="card"]),
+    :host([variant="fieldset"]) {
       --_ui-selection-context-surface: initial;
       --_ui-selection-context-border: initial;
       --_ui-selection-context-text: initial;
@@ -38,9 +51,50 @@
       background: var(--ui-surface-raised);
     }
 
+    :host([variant="fieldset"]) {
+      display: block !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+      padding-block-start: var(--ui-space-4) !important;
+      padding-inline: calc(var(--ui-space-5) - var(--ui-space-2)) !important;
+    }
+
+    .legend {
+      max-inline-size: 100%;
+      box-sizing: border-box !important;
+      padding-inline: var(--ui-space-2) !important;
+      margin: 0 !important;
+      overflow-wrap: anywhere;
+    }
+
+    .legend .heading {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: var(--ui-space-4) !important;
+      padding-inline: var(--ui-space-2) !important;
+      min-inline-size: 0;
+    }
+
+    :host([variant="fieldset"]) .body {
+      display: contents !important;
+    }
+
+    :host([variant="fieldset"]) .head:has(.description:empty):has(.actions:empty) {
+      display: none !important;
+    }
+
     :host([variant="divided"]) {
       padding-block-start: var(--ui-space-6) !important;
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+
+    :host([variant="card"][tone="danger"]),
+    :host([variant="fieldset"][tone="danger"]) {
+      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
     }
 
     :host([variant="card"][tone="danger"]) {
@@ -53,7 +107,6 @@
         oklch(from var(--ui-danger-soft) calc(l + 0.085) calc(max(c, min(0.045, c * 3))) h)
       );
       --_ui-selection-context-text: var(--ui-text-primary);
-      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
       border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
       /* An accent edge keeps the corners on its side straight. */
       border-start-start-radius: 0;

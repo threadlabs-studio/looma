@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
-import { getCompactEditorExtensions } from "../src/vue/editor/compact/extensions";
+import { getCompactEditorExtensions } from "../src/editor/compact-extensions";
 
 describe("compact editing schema", () => {
   it("keeps inline marks while reducing pasted document structure", () => {

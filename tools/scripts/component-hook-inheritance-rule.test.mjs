@@ -14,7 +14,7 @@ async function sources() {
     const source = await readFile(path.join(componentsRoot, tag, `${tag}.html`), "utf8");
     return { tag, name: `${tag}.html`, css: source.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? "" };
   }));
-  files.push({ name: "looma-editor.css", css: await readFile(path.join(repoRoot, "packages/looma/src/vue/editor/looma-editor.css"), "utf8") });
+  files.push({ name: "looma-editor.css", css: await readFile(path.join(repoRoot, "packages/looma/src/components/ui-editor/ui-editor.css"), "utf8") });
   const tokens = new Set();
   for (const file of await readdir(tokensRoot)) {
     const css = await readFile(path.join(tokensRoot, file), "utf8");

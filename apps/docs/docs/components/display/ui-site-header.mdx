@@ -6,6 +6,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Site Header
 
-A site-wide header with branding, primary navigation, actions, and a mobile menu trigger. Branding remains visible when navigation collapses. Applications supply links, routing, and menu behavior; use TopBar for contextual application tools.
+Supply brand, navigation, and optional actions once. Below the breakpoint, SiteHeader automatically puts the hamburger in the inline navigation's position beside the brand, with compact mobile spacing (mirrored in RTL). Optional actions stay at the trailing edge. It presents the same navigation in a full-height, scrollable drawer with a dark backdrop. It handles focus, Escape, outside press, link selection, and page scroll locking. Applications supply links and routing; no menu slot, duplicate links, IDs, or drawer wiring are needed. Before JavaScript, navigation remains available inline unless a custom native menu supplies its mobile navigation. Native custom menu controls remain usable before upgrade. Use TopBar for contextual application tools.
 
 <ComponentExamplesApiTabs component="ui-site-header" />

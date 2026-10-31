@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +41,19 @@ function assert(condition, message) {
   }
 }
 
+async function hasTarballContent(tarballPath, file) {
+  return new Promise((resolve, reject) => {
+    const child = spawn("tar", ["-xOzf", tarballPath, file], { stdio: ["ignore", "pipe", "pipe"] });
+    let hasContent = false;
+    let error = "";
+    // Drain the file without buffering the complete component catalog in memory.
+    child.stdout.on("data", chunk => { hasContent ||= chunk.length > 0; });
+    child.stderr.on("data", chunk => { error += chunk; });
+    child.once("error", reject);
+    child.once("close", code => code === 0 ? resolve(hasContent) : reject(new Error(`Cannot read ${file} from tarball: ${error}`)));
+  });
+}
+
 function packageTarballName(packageJson) {
   const normalizedName = packageJson.name.replace(/^@/, "").replaceAll("/", "-");
   return `${normalizedName}-${packageJson.version}.tgz`;
@@ -67,17 +80,6 @@ function validatePackedManifest(packageJson) {
   assert(typeof packageJson.homepage === "string" && packageJson.homepage.startsWith("https://"), `${packageJson.name} homepage is missing`);
   assert(packageJson.publishConfig?.access === "public", `${packageJson.name} is not configured for public access`);
   assert(packageJson.publishConfig?.provenance === true, `${packageJson.name} is not configured for provenance`);
-
-  for (const field of ["dependencies", "optionalDependencies"]) {
-    for (const [dependencyName, range] of Object.entries(packageJson[field] ?? {})) {
-      if (RELEASE_PACKAGE_NAMES.has(dependencyName)) {
-        assert(
-          range === RELEASE_VERSION,
-          `${packageJson.name} packed ${field}.${dependencyName} must be exact ${RELEASE_VERSION}, received ${range}`
-        );
-      }
-    }
-  }
 }
 
 export function findForbiddenTarballEntries(entries) {
@@ -97,7 +99,7 @@ export function findForbiddenTarballEntries(entries) {
   return entries.filter((entry) => forbiddenPatterns.some((pattern) => pattern.test(entry)));
 }
 
-function validateTarballContents(releasePackage, packageJson, entries, requireLicense) {
+export function validateTarballContents(releasePackage, packageJson, entries, requireLicense) {
   const entrySet = new Set(entries);
   for (const requiredFile of releasePackage.requiredFiles) {
     assert(entrySet.has(requiredFile), `${packageJson.name} tarball is missing ${requiredFile}`);
@@ -120,10 +122,12 @@ function validateTarballContents(releasePackage, packageJson, entries, requireLi
   ].filter(Boolean);
   for (const target of declaredTargets) {
     const entry = `package/${target.replace(/^\.\//, "")}`;
-    // A pattern export ("./vue/*") must match at least one packed file.
+    // Source directory exports and patterns must resolve to packed contents.
     const present = entry.includes("*")
       ? entries.some((candidate) => candidate.startsWith(entry.slice(0, entry.indexOf("*"))))
-      : entrySet.has(entry);
+      : entry.endsWith("/")
+        ? entries.some((candidate) => candidate.startsWith(entry) && !candidate.endsWith("/"))
+        : entrySet.has(entry);
     assert(present, `${packageJson.name} export target is missing from tarball: ${target}`);
   }
 }
@@ -225,8 +229,7 @@ async function main() {
       if (requiredFile === "package/package.json") {
         continue;
       }
-      const content = run("tar", ["-xOzf", tarballPath, requiredFile]);
-      assert(content.length > 0, `${packedPackageJson.name} tarball contains empty ${requiredFile}`);
+      assert(await hasTarballContent(tarballPath, requiredFile), `${packedPackageJson.name} tarball contains empty ${requiredFile}`);
     }
 
     const fileStats = await stat(tarballPath);

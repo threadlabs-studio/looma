@@ -4,20 +4,20 @@ title: Weave your design system
 
 # Weave your design system
 
-Looma ships the documentation generator and theme customizer used by its public site. Run it in your project to browse Looma and your own HTML Next components as one design system. The customizer uses the same authored component cards as the reference.
+Looma ships the documentation generator and theme customizer used by its public site. Run it in your project to browse Looma and your own HTML Next components as one design system. Framework examples for local components import their authored HTML files; those paths are relative to the project root. The customizer uses the same authored component cards as the reference.
 
 ## Start a local design system
 
 In a project with a `package.json`, install Looma and its documentation tools:
 
 ```sh
-pnpm add @threadlabs/looma @nextwebwg/html-next@1.0.0-alpha.69
-pnpm add -D 'markupress@>=0.12.0 <1' '@threadlabs/markupkit@>=0.2.0 <1' vite
+pnpm add '@threadlabs/looma@>=0.49.0' '@nextwebwg/html-next@>=1.0.0-alpha.74' '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+pnpm add -D 'markupress@>=0.14.6' '@threadlabs/markupkit@>=0.4.2' vite
 pnpm exec looma-docs init --title "The Fellowship"
 pnpm exec looma-docs dev
 ```
 
-Use the tool versions accepted by Looma's optional peer dependencies. Markupress 0.12.0 and later compatible 0.x releases render authored documentation with Expressmark’s standard syntax and supply section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. Regular component imports do not load the documentation server. Vue and Tiptap remain optional; install them when your own authored documentation mounts the Vue editor.
+Use the tool versions accepted by Looma's optional peer dependencies. These minimum-version ranges admit future releases beyond 1.0. Markupress renders authored documentation with Expressmark’s standard syntax and supplies section navigation with category overview links, a full-height sidebar, the shared Looma site header, mobile home-page navigation, and one appearance button that cycles Automatic, Light and Dark. The full built-in catalog includes document and compact editor examples; the commands above install their supported Tiptap 2 peers. Tiptap remains optional for applications and catalogs using only controls.
 
 Initialization creates three project-owned files:
 
@@ -43,7 +43,7 @@ Component navigation keeps every category linked and lists reference pages only 
 Open the local address printed by `dev`, choose **Customize**, and save your theme. Saving updates those shared theme files and rebuilds the documentation. Your application consumes the same CSS import. A static or public site instead offers CSS and recipe downloads.
 
 Starting points set a complete identity across color, typography, shape, spacing,
-material and motion. Looma is the default identity; Gold pairs a warm action color with Lato/Fraunces and restrained polished surfaces. Clear remains a neutral starting point. Palette and material refinements then change only their own
+material and motion. Looma is the default identity; Gold pairs a warm action color with Lato/Fraunces and restrained polished surfaces. Minimal remains a neutral starting point. Palette and material refinements then change only their own
 families. The compact sampler includes heading, body and supporting text beside
 the controls. Search components searches your whole discovered catalog; nine
 previews render initially, and **Show more components** reveals the next group.
@@ -105,7 +105,7 @@ The generated values follow rules. The medium control height is base text size t
 
 Choose a coordinated palette, then refine surface warmth, color intensity and palette relationship. Warmth runs from cool to warm paper and ink, with 0.5 neutral; intensity runs from quiet to vivid, with 0.5 retaining original seed intensity. Keep my colors preserves the base hues; Related colors and Contrasting colors tint quiet surfaces toward neighboring and opposite hues. These decisions regenerate paired light/dark colors through Oklab/OKLCH operations, gamut repair and readability checks. They do not transform existing CSS colors live. Four base colors remain visible for precise edits. Supporting accents optionally adds second and third brand seeds. They feed `tone="accent-secondary"` and `tone="accent-tertiary"` on Button, IconButton, Badge, Card, Meter and Text, with the same derived readable text, states and material response as the primary. Unset supporting accents follow primary; the primary remains the normal action voice.
 
-Palette details expose relationships rather than arbitrary status colors. **Neutrals & shared borders** derives restrained neutrals from text, an accent family or untinted gray, with fill strength and a shared minimum boundary contrast (default 2:1). Neutral solid/outline actions and form fields all consume `--ui-control-border` and its hover role. **Status colors** lets each role retain its semantic hue, harmonize toward the primary hue by at most 15 degrees, or use one of the three brand families. Perceptual saturation is coordinated with the primary; readability and material stops are resolved for both modes. Dark derivation separates canvas and content elevations, compensates quiet neutral fills and borders, and derives selection washes from readable contextual pigment. Subtle badges, toned cards, callouts, toasts and generated notifications share semantic background, foreground and border roles. Composed Text inherits the containing foreground; the document root supplies the normal body color. These roles provide paler light fills and visible dark tints. Optional overlay group overrides remain explicit choices instead of masking semantic defaults. There are no per-status color pickers. Words and icons preserve meaning when all statuses use one family. **Accent assignments** selects families for links, focus rings and selected rows. Light/dark specimens show these roles together, including an actual field beside the shared neutral actions.
+Palette details expose relationships rather than arbitrary status colors. **Neutrals & shared borders** derives restrained neutrals from text, an accent family or untinted gray, with fill strength and a shared minimum boundary contrast (default 2:1). Neutral solid/outline actions and form fields all consume `--ui-control-border` and its hover role. Colored outlines resolve from their pigment against the same minimum over the finished wash and material gradient in light and dark modes, independently of readable text; outline hover retains that boundary color. Button and IconButton washes use translucent tone pigment rather than contextual text ink. Their shared wash roles lift deep pigment before compositing, then calibrate opacity against the material plate for a restrained perceptual hover step. Solid states change lightness while preserving hue and chroma, with extra lift for deep pigments; their reflections move with the fill. Outline hover keeps the same material layer, and ghost feedback uses the same paint in text and icon actions. **Status colors** lets each role retain its semantic hue, harmonize toward the primary hue by at most 15 degrees, or use one of the three brand families. Perceptual saturation is coordinated with the primary; readability and material stops are resolved for both modes. Dark derivation separates canvas and content elevations, compensates quiet neutral fills and borders, and derives selection washes from readable contextual pigment. Subtle badges, toned cards, callouts, toasts and generated notifications share semantic background, foreground and border roles. Composed Text inherits the containing foreground; the document root supplies the normal body color. These roles provide paler light fills and visible dark tints. Optional overlay group overrides remain explicit choices instead of masking semantic defaults. There are no per-status color pickers. Words and icons preserve meaning when all statuses use one family. **Accent assignments** selects families for links, focus rings and selected rows. Light/dark specimens show these roles together, including an actual field beside the shared neutral actions.
 
 Documentation navigation stays out of the customization workspace. **Material & light** opens a movable light source, real component samples and bounded surface controls. **Palette** opens light/dark specimens, base seeds and advanced relationship controls. Each editor changes the same persistent theme. Returning to the overview, navigating to a component, or reloading keeps the result.
 
@@ -113,7 +113,7 @@ Material groups finish, transparency, frosting, lighting and depth in a compact 
 
 The starting themes make different choices within the same controls:
 
-- **Clear:** gray neutrals, restrained status tints and minimal depth.
+- **Minimal:** gray neutrals, restrained status tints and minimal depth.
 - **Gold:** warm primary actions, readable amber links and plum selection, rounded polished surfaces, and Lato/Fraunces.
 - **Bookish:** wine guidance and confirmations, coral and leather accents, restrained risk colors, and Open Sans/Newsreader.
 - **Editorial:** flat ink-and-paper surfaces, rust links, serif type, and primary-color statuses distinguished by icons and labels.
@@ -122,7 +122,7 @@ The starting themes make different choices within the same controls:
 
 The summary stays above the editor and updates as decisions change; Undo, Redo and Reset remain available there. Optional accent swatches offer None inside the picker, without a separate mode selector.
 
-A refined preset keeps its name with “customized” beside it. **Reset material** resets only material and light; **Reset palette** resets only the palette. Status color relationships offer **Semantic colors**, **Less color**, and **Primary + icons**. **Reset status colors** restores the selected status relationship without changing brand colors, type, or material; advanced per-status relationships remain available. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
+A refined preset keeps its name with “customized” beside it. The shared toolbar provides Undo, Redo, and a single Reset for the theme. Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z also undo and redo theme changes, including while a dropdown has focus; text fields retain their native editing history. Status color relationships offer **Semantic colors**, **Less color**, and **Primary + icons**, with advanced per-status relationships available. These family choices are recorded in the recipe's optional `presets` mapping. The `values` mapping remains the complete source of the generated theme; a preset is a named combination of those values.
 
 Number controls accept arithmetic such as `1rem / 1.2` or `150ms * 2`, calculate on entry and show the result. Unit changes preserve the quantity. Sliders include exact entry, and curve handles support dragging and arrow keys alongside numeric coordinates. LightEditor keeps its coordinate fields under **Exact position**. Light and curve drags preserve the grab offset; Escape or pointer cancellation restores the gesture start without creating a saved edit.
 
@@ -300,7 +300,7 @@ The first example also appears in the component directory, so keep it representa
 
 Discovery reads definitions and descriptions without executing their controllers. New resources under a selected root appear after the local server rebuilds. External components keep their own contracts and supported token hooks; discovery does not make arbitrary components respond to Looma's tokens.
 
-The planned HTML Next-only distribution will use the HTML Next Vite plugin or converter for Vue consumption. Author components and documentation examples in HTML Next; framework conversion belongs in the consuming application. The current package still includes Vue exports while that packaging migration is pending.
+Author components and documentation examples in HTML Next. Vue, React and Svelte applications compile those definitions with the HTML Next Vite plugin or converter; framework conversion belongs in the consuming application. See the [loading guide](https://threadlabs.studio/looma/getting-started/) for framework setup, imports and styles.
 
 ## Combine installed catalogs
 

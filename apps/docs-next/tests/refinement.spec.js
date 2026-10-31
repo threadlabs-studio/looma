@@ -1,6 +1,7 @@
 import { chooseOption, openEditor, chooseStartingPoint, waitForThemeFonts, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { startingPoints } from '../../../packages/looma/tooling/docs/theme.mjs';
 
 const session = page => page.evaluate(() => window[Symbol.for('looma.documentation.theme')].recipe);
 const enter = async (page, info) => {
@@ -9,6 +10,54 @@ const enter = async (page, info) => {
   await chooseStartingPoint(page, 'bookish');
   return errors;
 };
+
+test('palette specimens align with the heading and persistent toolbar', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'bookish');
+  const palette = await openEditor(page, 'palette');
+  for (const width of [1440,375]) for (const dir of ['ltr','rtl']) {
+    await page.setViewportSize({width,height:1000});
+    await page.locator('html').evaluate((el,dir)=>el.dir=dir,dir);
+    const edges=await palette.evaluate((pane,dir)=>{
+      const start=el=>{const box=el.getBoundingClientRect();return dir==='rtl'?box.right:box.left;};
+      return {heading:start(pane.querySelector('h2')),specimen:start(pane.querySelector('.palette-preview [data-theme="light"]')),toolbar:start(document.querySelector('[data-customizer-summary]'))};
+    },dir);
+    expect(Math.abs(edges.heading-edges.specimen),`${width}/${dir}: specimen edge`).toBeLessThan(1);
+    expect(Math.abs(edges.heading-edges.toolbar),`${width}/${dir}: toolbar edge`).toBeLessThan(1);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  }
+});
+
+test('theme history shortcuts work while a status dropdown has focus', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  const palette=await openEditor(page,'palette');
+  const relationship=palette.getByRole('combobox',{name:'Status color relationship',exact:true});
+  await relationship.selectOption('primary');
+  for (const modifier of ['Control','Meta']) {
+    await relationship.focus();
+    await page.keyboard.press(`${modifier}+z`);
+    await expect(relationship).toHaveValue('semantic');
+    await page.keyboard.press(`${modifier}+Shift+z`);
+    await expect(relationship).toHaveValue('primary');
+  }
+});
+
+test('theme sampler delivers checked-choice hover over both marks and labels', async ({page}, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'looma');
+  for (const tag of ['ui-checkbox', 'ui-switch', 'ui-radio']) {
+    const control = page.locator(`[data-theme-sampler] [data-component~="${tag}"]`).first();
+    const input = control.locator('input');
+    await expect(input).toBeChecked();
+    const paint = () => input.evaluate(el => getComputedStyle(el).backgroundColor);
+    await page.mouse.move(0, 0); const rest = await paint();
+    await control.locator('.label').hover();
+    await expect.poll(paint).not.toBe(rest);
+    await page.mouse.move(0, 0); await expect.poll(paint).toBe(rest);
+    await input.hover(); await expect.poll(paint).not.toBe(rest);
+    await expect(input).toBeChecked();
+  }
+});
 
 test('touch taps commit starting theme, palette, material and font selections', async ({browser}, info) => {
   const context = await browser.newContext({ viewport: {width:390,height:844}, isMobile:true, hasTouch:true });
@@ -321,7 +370,7 @@ test('palette and material defaults are muted until their family is overridden',
 
 test('one main font also styles headings until an optional heading font is chosen', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page, 'clear');
+  await chooseStartingPoint(page, 'minimal');
   await openEditor(page, 'typography');
   const font=page.getByRole('combobox',{name:'Font',exact:true});
   const heading=page.getByRole('combobox',{name:'Heading font',exact:true});
@@ -383,7 +432,7 @@ for (const width of [1280,390]) test(`styled palette choices show four swatches 
 
 test('field label sizing follows body text or keeps an independent persisted size', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'typography');
   const label=editor.locator('label').filter({hasText:'Memo title'});
   const source=editor.locator('[data-label-size-source]');
@@ -404,7 +453,7 @@ test('field label sizing follows body text or keeps an independent persisted siz
 
 test('rhythm separates stacked size groups without spreading navigation or action rows', async ({page},info) => {
   await page.goto(info.config.metadata.markupress+'customize/');
-  await chooseStartingPoint(page,'clear');
+  await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'layout');
   const measure=()=>page.evaluate(()=>({
     groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
@@ -435,7 +484,7 @@ test('material samples show ordinary and expressive surfaces with working floati
 for (const width of [1440,375]) test(`palette relationships govern neutral boundaries and status families at ${width}px`, async ({page},info) => {
   await page.setViewportSize({width,height:1000});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'clear');
+  await page.goto(info.config.metadata.markupress+'customize/');await chooseStartingPoint(page,'minimal');
   const editor=await openEditor(page,'palette');
   const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
     const border=element=>getComputedStyle(element).borderTopColor;
@@ -444,7 +493,7 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   await page.mouse.move(1,1);
   for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
   const before=await boundaries();
-  const minimum=editor.getByRole('spinbutton',{name:'Neutral border contrast',exact:true});
+  const minimum=editor.getByRole('spinbutton',{name:'Border contrast',exact:true});
   await minimum.fill('3');await minimum.press('Enter');
   await page.mouse.move(1,1);
   await expect.poll(boundaries).not.toEqual(before);
@@ -467,4 +516,62 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
   expect(errors).toEqual([]);
+});
+
+test('Gold outline borders respond to the visibility minimum without changing their text', async ({ page }, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, 'gold');
+  const editor = await openEditor(page, 'palette');
+  const outline = editor.locator('.palette-preview [data-theme="light"]').getByRole('button', { name: 'Outline', exact: true });
+  const colors = () => outline.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { border: style.borderTopColor, text: style.color };
+  });
+  await page.mouse.move(1, 1);
+  const before = await colors();
+  const minimum = editor.getByRole('spinbutton', { name: 'Border contrast', exact: true });
+  await minimum.fill('3');
+  await minimum.press('Enter');
+  await page.mouse.move(1, 1);
+  await expect.poll(async () => (await colors()).border).not.toBe(before.border);
+  expect((await colors()).text).toBe(before.text);
+  const resting = await colors();
+  await outline.hover();
+  await expect.poll(colors).toEqual(resting);
+});
+
+for (const startingPoint of Object.keys(startingPoints)) test(`${startingPoint} outline wash uses calibrated translucent accent roles at rest and on hover`, async ({ page }, info) => {
+  await page.goto(info.config.metadata.markupress + 'customize/');
+  await chooseStartingPoint(page, startingPoint);
+  const editor = await openEditor(page, 'palette');
+  for (const mode of ['light', 'dark']) {
+    const outline = editor.locator(`.palette-preview [data-theme="${mode}"]`).getByRole('button', { name: 'Outline', exact: true });
+    const wash = role => outline.evaluate((element, role) => {
+      const probe = document.createElement('span');
+      probe.style.color = `var(--ui-accent-${role})`;
+      element.append(probe);
+      const color = getComputedStyle(probe).color;
+      const background = getComputedStyle(element).backgroundImage;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d');
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      const alpha = context.getImageData(0, 0, 1, 1).data[3] / 255;
+      probe.remove();
+      return { expected: `linear-gradient(${color}, ${color})`, background, alpha };
+    }, role);
+    await page.mouse.move(0, 0);
+    const rest = await wash('wash');
+    expect(rest.background).toContain(rest.expected);
+    await outline.hover();
+    const hover = await wash('wash-hover');
+    expect(hover.background).toContain(hover.expected);
+    expect(hover.expected).not.toBe(rest.expected);
+    expect(hover.background.replace(hover.expected, '')).toBe(rest.background.replace(rest.expected, ''));
+    for (const { alpha } of [rest, hover]) {
+      expect(alpha).toBeGreaterThan(0);
+      expect(alpha).toBeLessThan(1);
+    }
+  }
 });

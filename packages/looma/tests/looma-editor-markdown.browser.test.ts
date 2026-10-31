@@ -2,9 +2,11 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import { loomaMarkdownFromDoc, loomaMarkdownToHtml } from "../src/editor/extensions";
-import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
-import "../vue/components.css";
+import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
+import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { editorUnderTest } from "./editor-test-target";
+const LoomaEditor = await editorUnderTest(UiEditor);
+import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 import "../theme-light.css";
 
@@ -24,14 +26,15 @@ async function mountEditor() {
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
-      modelValue: modelValue.value,
-      "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
-      onReady: (instance: Editor) => { editor = instance; },
+      content: modelValue.value,
+      onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
+      extensions: captureEditor(instance => { editor = instance; }),
     }),
   });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.poll(() => editor).toBeTruthy();
   return { editor: editor!, host };
 }
 
@@ -57,7 +60,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     pasteSource(editor, [
       "Status :chip[Ready]{tone=green}, owned by @[Ada]#u1.", "",
       "- [x] Read the changelog", "- [ ] Run the migration", "",
-      "::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", ":::",
+      ":::: details More", "::: warning", "Nested.", ":::", "```md", ":::", "```", "::::",
     ].join("\n"));
     await flushBrowser();
 
@@ -68,7 +71,7 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     expect(host.querySelector(".ProseMirror [data-type='mention']")?.textContent).toBe("@Ada");
     const boxes = [...host.querySelectorAll<HTMLInputElement>(".ProseMirror [data-type='taskList'] input[type='checkbox']")];
     expect(boxes.map(box => box.checked)).toEqual([true, false]);
-    // The inner `:::` closes the warning, and the `:::` inside the fence stays code.
+    // The outer fence is longer, the inner `:::` closes the warning, and the `:::` inside the fence stays code.
     expect(editor.getJSON().content?.[2]).toMatchObject({
       attrs: { summary: "More" },
       content: [{ type: "loomaCallout", attrs: { tone: "warning" } }, { type: "codeBlock", content: [{ text: ":::" }] }],
@@ -79,10 +82,11 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     const { editor, host } = await mountEditor();
     const fence = "```";
     const markdown = [
-      "::: tabs install", "== npm", `${fence}sh`, "npm install @threadlabs/looma", fence, "== pnpm", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "",
+      ":::: tabs {group=install}", "::: tab [npm]", `${fence}sh`, "npm install @threadlabs/looma", fence, ":::", "",
+      "::: tab [pnpm]", `${fence}sh`, "pnpm add @threadlabs/looma", fence, ":::", "::::", "",
       "::: figure The build", "![Pipeline](/pipeline.svg){width=320}", ":::",
     ].join("\n");
-    editor.commands.setContent(loomaMarkdownToHtml(markdown));
+    editor.commands.setContent(markdownToEditorDocument(markdown));
     await flushBrowser();
 
     // Editing draws plain panels under their labels rather than the Tabs component.
@@ -102,6 +106,22 @@ describe("LoomaEditor pastes Looma Markdown (real browser)", () => {
     await userEvent.keyboard(" pipeline");
     await flushBrowser();
     expect(caption.textContent).toBe("The build pipeline");
-    expect(loomaMarkdownFromDoc(editor.state.doc)).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
+    expect(editorDocumentToMarkdown(editor.getJSON(), { original: markdown })).toBe(markdown.replace("::: figure The build", "::: figure The build pipeline"));
   });
+});
+
+
+it("pastes a source document with front matter and a quoted pipe table as editable blocks", async () => {
+  const { editor, host } = await mountEditor();
+  editor.commands.focus("start");
+  pasteSource(editor, [
+    "---", "date: 2026-01-01", "---", "", "# Field guide", "",
+    "> | Name | Status |", "> | --- | --- |", "> | Example | Ready |", "",
+    "## Details", "", "Body.",
+  ].join("\n"));
+  await flushBrowser();
+  expect(editor.getJSON().content?.map(node => node.type)).toEqual(["codeBlock", "heading", "blockquote", "heading", "paragraph"]);
+  expect(host.querySelector(".ProseMirror h1")?.textContent).toBe("Field guide");
+  expect(host.querySelector(".ProseMirror blockquote table")?.textContent).toContain("Example");
+  expect(host.querySelector(".ProseMirror pre")?.textContent).toContain("date: 2026-01-01");
 });

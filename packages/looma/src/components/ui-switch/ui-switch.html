@@ -133,6 +133,28 @@
       background-image: var(--ui-knob-on-accent-highlight, none);
     }
 
+    @media (hover: hover) and (forced-colors: none) {
+      :host:hover input:enabled {
+        --_choice-hover-wash: var(--ui-neutral-wash-hover);
+        background-image:
+          linear-gradient(var(--_choice-hover-wash), var(--_choice-hover-wash)),
+          var(--ui-surface-highlight, linear-gradient(transparent, transparent));
+      }
+
+      :host:hover input:enabled:not([aria-invalid="true"]) {
+        border-color: var(--ui-control-border-hover, var(--ui-border-strong));
+      }
+
+      :host:hover input:enabled:checked {
+        background-color: var(--ui-choice-hover-surface);
+        background-image: var(--ui-choice-hover-highlight, none);
+      }
+
+      :host:hover input:enabled:checked:not([aria-invalid="true"]) {
+        border-color: var(--ui-choice-hover-surface);
+      }
+    }
+
     input:focus-visible {
       outline: var(--ui-focus-width) solid var(--ui-focus-ring, var(--ui-accent-solid));
       outline-offset: var(--ui-focus-width);

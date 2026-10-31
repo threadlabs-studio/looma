@@ -138,7 +138,6 @@ export function connect(host) {
         const muted = Boolean(origin && Object.keys(Object.values(presets)[0].values).every(key => origin.values[key] === recipe.values[key]));
         componentRegistry.update(select, { muted });
       }
-      componentRegistry.update(root.querySelector(`[data-action="restore-${family}"]`), { disabled: state.id === 'custom' || !state.customized });
     }
     for (const control of root.querySelectorAll('[data-font-picker]')) {
       control.querySelector('option[value=custom]').textContent = recipe.values[control.dataset.fontPicker].split(',')[0].replaceAll('"', '').trim();
@@ -305,11 +304,6 @@ export function connect(host) {
         }
         case 'back': navigate(''); break;
         case 'use-glass': show(applyRefinement(recipe, 'material', 'glass')); sayApplied('Frosted glass applied. Your colors and type are unchanged.'); break;
-        case 'restore-material': case 'restore-palette': case 'restore-status': {
-          const family = button.dataset.action.slice(8), state = refinementState(recipe, family);
-          if (state.id !== 'custom') { show(applyRefinement(recipe, family, state.id)); sayApplied(`${{ material: 'Material', palette: 'Palette', status: 'Status color' }[family]} preset restored; other theme decisions are unchanged.`); }
-          break;
-        }
         case 'add': {
           const option = [...root.querySelectorAll('[data-add-example] option')].find(option => option.value === selectedExample);
           if (!option) break;
@@ -396,7 +390,7 @@ export function connect(host) {
   const synchronize = () => { if (!pending && theme && JSON.stringify(recipe) !== JSON.stringify(theme.recipe)) show(theme.recipe, false); };
   const cancel = event => { if (event.target.matches('[data-light-editor], [data-editor-kind="curve"]')) { flush(false); say('Drag cancelled; the previous value is restored.'); } };
   const keyboard = event => {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.target.closest?.('input,textarea,select,[contenteditable="true"]')) return;
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.target.closest?.('input,textarea,[contenteditable="true"]')) return;
     event.preventDefault(); flush(); theme?.[event.shiftKey ? 'redo' : 'undo'](); show(theme?.recipe ?? recipe, false);
   };
   const remove = event => {

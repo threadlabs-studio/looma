@@ -10,7 +10,7 @@ proposal for the component language itself; this page covers what Looma adds on 
 ## Release 1 public package
 
 `@threadlabs/looma` is the complete public artifact. Its explicit
-subpaths keep core, layout, editor, Vue, and CSS boundaries discoverable without
+subpaths keep core, layout, editor, and CSS boundaries discoverable without
 exposing the private workspace graph. Docs, Storybook, examples, tooling, and
 deferred adapters remain internal workspaces.
 
@@ -20,10 +20,9 @@ deferred adapters remain internal workspaces.
   scoped to it; no component styles live in package CSS.
 - `@threadlabs/looma/*.css`: design tokens and themes.
 - `@threadlabs/looma`: registers every component with the HTML Next runtime for HTML pages.
-- `@threadlabs/looma/vue`: every component converted to a Vue 3.5 component, with no HTML Next runtime.
+- Vue, React and Svelte applications compile those HTML definitions through the HTML Next Vite plugin. All use prefixed imports such as `UiButton` and `UiEditor` from the package root.
 - `@threadlabs/looma/editor`: the editor components' contracts and the Tiptap-backed editor API;
   `/editor/extensions` holds the Tiptap 2 presets and table helpers alone.
-- `@threadlabs/looma/vue/editor`: the turnkey Vue 3 editor integration, including the Tiptap lifecycle, commands, table editing, and themed controls.
 
 ## SSR and upgrade contract
 

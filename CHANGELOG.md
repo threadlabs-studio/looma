@@ -2,13 +2,107 @@
 
 ## Next release
 
-- Support the verified HTML Next alpha.69 and alpha.70 artifacts, building against alpha.70. The components use the same public API in both, so existing documentation consumers and consumers needing distinct alternate-language head links can install without peer overrides.
-
 - Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
 
 - Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
 
+- Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
+
+- **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.
+- Admit future Threadlabs and Nextwebwg releases through minimum-version ranges without a 1.0 or later major-version ceiling. Docs tooling requires MarkupKit 0.4.2 and Markupress 0.14.6 to share the corrected runtime and pass strict peer checks; lockfiles retain exact tested resolutions.
+
+- RadioGroup accepts the native `form` association. The editor’s chip color controls opt out of enclosing forms, so writing inside a form does not submit an internal color choice.
+
+- Author the document editor, compact editor and compact-content renderer in HTML Next. They use `content` and native `change` event details, with host services supplied through requests. The document editor now starts with a valid empty paragraph, avoiding an invalid caret in an empty root document. Controlled replacements that shorten the document keep the caret inside a valid text block.
+
+- Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs.
+
+- CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
+
+- Matched icon actions retain a larger vertical touch target without intercepting the edge of their neighbouring text action.
+
+- Notification stacks keep their content height in Safari instead of expanding over the viewport.
+
+- Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
+
+- Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.
+- Card exposes header and actions slots around its default body content without changing ordinary stacked spacing.
+- SiteHeader centers the brand and navigation containers individually beside actions, including a logo with mixed-size text.
+
+- TopBar can observe a page heading with `titleFor`, revealing its duplicate title with an upward fade after the heading scrolls out. Navigation and actions stay available, and reduced motion removes the transition.
+
+- Multiple Combobox fields can set `maxRows` to wrap and grow before scrolling vertically. The default remains one row, and keyboard chip navigation and typing stay inside the field.
+
+- Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
+- Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits. Darker material and contrast-adjusted borders retain colorfulness through chroma and bounded hue compensation; surface lighting remains restrained. Outline buttons and icon buttons keep flat translucent fills at rest and on hover.
+
+- SiteHeader uses compact spacing between the brand and mobile menu while preserving adjustable control targets. Native custom menus keep the same adjacent placement before JavaScript upgrades the header.
+- Self-contained TOC exports write stable IDs for every heading and reserve anchors used inside authored navigation. Matching heading labels cannot redirect a saved link, including when original Markdown spellings are retained.
+
+- Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
+
+- Markdown exports can request `{ tableOfContents: "entries" }` for saved navigation with current heading links. Reader-built placeholders remain the default, authored navigation remains intact, and native editor content is never rewritten.
+
+- Keep SiteHeader's mobile hamburger in the inline navigation's position beside the brand, with the same gap. Only the actions remain at the trailing edge; the brand no longer expands to push the menu away.
+
+- Installed consumer verification refreshes registry metadata while reusing package files, so a newly published compatible peer is not hidden by stale offline metadata.
+
+- Qualify the fixed navigation in 0.46.1 so documentation consumers can admit later compatible versions with a stable minimum. Custom native menu triggers remain usable without JavaScript at every breakpoint.
+
+- SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
+
+
+- Fieldset sections use internal gaps and padding instead of margins. A description and actions without body content no longer leave an extra gap above the bottom padding; legend and content alignment stays consistent.
+
+- **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
+
+- With `original`, the Markdown a document was read from, an unedited document is written back byte for byte, front matter, line endings and spacing included, and an edit leaves the source of every other block alone. An edited block keeps the spellings it still reads as, such as `_` emphasis, `*` bullets or a setext heading; spacing next to it is one blank line. Raw HTML blocks are written through Expressmark's safe HTML profile.
+
+- **Breaking:** A footnote's note stays where its definition is written. `LoomaFootnotes` and the `loomaFootnotes` section node are removed; each note is a `loomaFootnote` block, which the editor shows as a one-item list numbered by its first reference. Saved HTML still collects the notes into one `<section data-footnotes>` in number order, and reads back as before. A definition nothing refers to stays in the document; deleting a note's last reference removes the note, and a note restored for a reference joins the end of the document. To migrate saved editor JSON, replace each `loomaFootnotes` node with its `loomaFootnote` children.
+
+- Link reference definitions, `[label]: url "title"`, are `loomaLinkDefinition` blocks where they are written, rendering nothing. A link that uses one keeps its label and its `full`, `collapsed` or `shortcut` form in the link mark's `reference` and `referenceType` attributes and is written as a reference while the definition still gives its destination and title. Links keep their `title`.
+
+- **Breaking:** A table of contents is written as its `::toc` placeholder with its settings, and readers build its entries; Markdown no longer holds a copy of the entries. Reading Markdown gives each heading without an authored ID the anchor its text derives, and writing adds `{#id}` only where a reader would not derive the ID.
+
+- A task list can hold plain items beside tasks, as `- [x] Done` next to `- Item` reads in GFM.
+
+- Pasted Markdown is read by Expressmark. Pasted HTML source, and Markdown holding content the editor cannot represent, is read as HTML.
+
+- The Looma Markdown fixtures are Expressive Markdown: tabs are `:::: tabs {group=…}` holding `::: tab [Label]` containers, a nested container takes a longer marker than its parent, a title holding braces is bracketed, an alert's marker may be followed by its title, a mixed list's `- [x]` item is a task, and `::: aside` is a container the editor does not hold, so its fixture is removed. Each fixture's canonical Markdown is what Expressmark writes for it, and LoomaEditor writes every fixture back byte for byte.
+
+- Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
+
+- Give fieldset legends the standard Section heading size, clearly larger than body text, and use concise titles in the example. Long headings remain covered by wrapping tests.
+
+- Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
+
+- Keep Looma’s raised surfaces in its warm canvas family, so cards, sidebars and fields share the surface palette.
+
+- Add subtle mark and label hover feedback to Checkbox, Radio and Switch in checked, unchecked and mixed states, while preserving disabled and invalid appearances. Selected marks use their own readable hover paint so compact controls remain visible independently of button strength. Selected radios keep a flat face at rest and on hover so material lighting does not distort the perceived selection dot. Give editable fields a slightly clearer shared hover border.
+
+- **Breaking:** Rename the Clear starting theme and its `clear` identifier to Minimal (`minimal`) so it cannot be mistaken for a reset action. Update saved recipe `origin` and `presets.palette` values from `clear` to `minimal`.
+
+- Balance Button and IconButton hover across solid, outline and ghost appearances using shared perceptual color steps. Reflections move with filled controls, quiet hovers retain their resting material, and deep accent washes retain visible pigment. Gold no longer washes toward white on hover. Outline washes and subtle semantic surfaces, including badges, share a restrained chroma adjustment. Re-export saved theme CSS to adopt the calibrated light/dark paints.
+
+- Exclude Markupress 0.14.4 from documentation integrations: its package metadata caps Looma below 0.45. Compatible versions retain the minimum-version range, and fresh installs keep strict peer checks.
+
+- Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
+
+- **Breaking:** SiteHeader now owns mobile navigation. Supply `brand`, `navigation`, and optional `actions` once; below its breakpoint it provides a hamburger after the logo and a full-height scrolling modal drawer with a dark backdrop, focus management, scroll locking, and dismissal. To use the automatic drawer, remove your custom `menu` slot, duplicated mobile links, panel, and handlers. An explicit `menu` slot still replaces the trigger for separately owned navigation surfaces such as a combined documentation sidebar. The previous consumer-owned menu left basic mobile navigation incomplete and inconsistent; an automatic default removes that assembly work. Use `menu-label` and `close-label` to localize the controls. Drawer links use regular navigation weight rather than inheriting the desktop header’s semibold emphasis.
+
+- Keep documentation cards stationary and make their full lower panel a single link with hover, pressed and keyboard-focus feedback. Tighten the introductory numbered steps so their labels stay with their explanations.
+
+- Keep disabled IconButton actions flat when a neutral outline or solid variant supplies its own shadow.
+
+- Show file-upload progress and retryable errors in the editor. Retry keeps its original mapped insertion point; inserting an attachment is a separate undo step so it does not remove intervening typing.
+
 - Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
+
+- Enforce the outline contrast minimum against the composited wash and material surface in light and dark themes. Recalculate borders when finish or lighting changes; text retains its separate readability threshold. Re-export saved theme CSS to adopt the corrected contrast.
+
+- Use the actual accent pigment for translucent Button and IconButton outline washes, with a clearer tint at rest and on hover, instead of washing the surface with darkened text ink.
+
+- Derive colored outline borders from their pigment and the chosen border contrast minimum, independently of readable text. Keep outline hover borders in the same color family. The default remains 2:1; Gold retains its 2.1:1 setting. Re-export saved theme CSS to adopt the corrected borders.
 
 - Keep inverse count text readable over both light and dark filled controls by deriving its ink from the control’s foreground polarity.
 

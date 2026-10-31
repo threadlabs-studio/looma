@@ -3,8 +3,8 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
-import Icon from "../vue/UiIcon.js";
-import Spinner from "../vue/UiSpinner.js";
+import { UiIcon as Icon } from "@threadlabs/looma";
+import { UiSpinner as Spinner } from "@threadlabs/looma";
 
 const render = (...nodes: ReturnType<typeof h>[]) => renderToString(createSSRApp({ render: () => nodes }));
 const shapes = (html: string) => [...html.matchAll(/<(path|circle|rect|line)\b[^>]*>/g)].map(([shape]) => shape.replace(/ data-v-\w+/g, ""));

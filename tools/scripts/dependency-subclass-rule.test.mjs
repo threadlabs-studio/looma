@@ -5,7 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const sources = ["packages/looma/src/editor", "packages/looma/src/vue"].map((directory) => path.join(repoRoot, directory));
+const sources = ["packages/looma/src/editor"].map((directory) => path.join(repoRoot, directory));
 
 async function files(directory) {
   const found = [];

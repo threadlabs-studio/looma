@@ -10,7 +10,7 @@ const files = {
   "packages/looma/src/components/ui-menu/ui-menu.html": '<link rel="component" href="../ui-button/ui-button.html">',
   "packages/looma/src/components/ui-badge/ui-badge.html": '<template component="ui-badge"></template>',
   "packages/looma/tests/browser.test.ts": 'it("button click", async () => { open("<ui-button>"); });\nit("badge paint", async () => { open("<ui-badge>"); });',
-  "packages/looma/tests/button-ssr.test.ts": 'import Button from "../vue/UiButton.js"; it("button SSR", () => render(Button));',
+  "packages/looma/tests/button-ssr.test.ts": 'import { UiButton as Button } from "@threadlabs/looma"; it("button SSR", () => render(Button));',
   "apps/docs/docs/components/ui-menu.mdx": '<Menu />',
   "apps/docs/tests/page-parity.spec.ts": 'for (const doc of coverage.pages) test(`${doc.path}: content`, () => {});',
   "apps/docs/tests/visual.spec.ts": 'for (const doc of coverage.pages) test(`${doc.path}: reviewed page`, () => {});',
@@ -25,6 +25,14 @@ test("a primitive selects transitive consumers and only related cases in a share
   assert.equal(plan.full, false);
   assert.deepEqual(plan.packageTests["packages/looma/tests/browser.test.ts"], ["button click"]);
   assert.deepEqual(plan.packageTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
+});
+
+test("source consumer manifests and documentation changes compile every framework example", () => {
+  const consumer = "tests/framework-consumer/examples.test.mjs";
+  const graph = { ...files, [consumer]: "test('source imports', () => {});" };
+  for (const changed of [consumer, "tests/framework-consumer/package.json", "tests/framework-consumer/editor-contract.ts", "tests/framework-consumer/tsconfig.editor.json", "packages/looma/tooling/docs/framework-examples.mjs", "pnpm-lock.yaml"]) {
+    assert.ok(selectChecks(graph, [changed]).scripts.includes(consumer), changed);
+  }
 });
 
 test("Looma Markdown's rules and fixtures select the editor and the tests that load them", () => {

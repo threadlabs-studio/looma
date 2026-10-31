@@ -102,6 +102,7 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
     bare: true,
   });
   const host = element.parentElement;
+  const following = element.nextSibling;
   element.hidden = true;
   element.tabIndex = 0;
   element.remove();
@@ -215,6 +216,8 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
       clearTimeout(timer);
       close();
       presentation.destroy();
+      // A new editor can reuse the authored shell after an extensions responder rebuilds it.
+      if (host) host.insertBefore(element, following?.parentNode === host ? following : null);
     },
   };
 }

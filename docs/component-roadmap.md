@@ -147,21 +147,13 @@ Conventions for this checklist:
 - [ ] EditorMentionList
 - [ ] EditorEmojiPicker
 
-## Adapter Coverage
+## Framework coverage
 
-- Vue wrappers: R1 Candidate surface; completeness is a release gate.
-- React wrappers: internal/deferred preview for R1.
-- Svelte bindings: internal/deferred preview for R1.
+Vue, React and Svelte applications compile the same HTML Next definitions through the HTML Next Vite plugin. Imported components use their generated names, such as `UiStack`, `UiDialog` and `UiRadioGroup`. Looma publishes no framework-specific component exports. See [Framework loading](./framework-loading.md) for plugins, type generation and slot syntax.
 
-Wrapper naming policy:
+## Editor (Tiptap)
 
-- Use `Stack`, `Dialog`, `RadioGroup`, etc.
-- Do not prefix wrapper names with `Ui` (`UiStack`, `UiDialog`, etc. are disallowed).
-- Keep shared names domain-neutral (`Avatar`, `AvatarGroup`) and avoid app semantics like `Presence*`.
-
-## Editor (Tiptap) — `@threadlabs/looma/editor`
-
-We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). The private `packages/editor` workspace is projected through `@threadlabs/looma/editor`. All editor UI is **web components** (custom elements); `/vue/editor` wires the R1 supported Vue integration while `/vue` remains editor-free, and the React adapter remains an internal preview. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, mentions, and optional emoji. Domain-neutral; apps wire save, upload, presence, and authorized directory queries. Current shipped editor slice includes the toolbar shell, slash and mention menus, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
+`ui-editor`, `ui-compact-editor` and `ui-compact-content` are authored HTML Next components. Shared orchestration and Tiptap sessions live in `packages/looma/src/editor`; `/editor`, `/editor/compact` and `/editor/extensions` expose the framework-neutral contracts and extension presets. The components lower to native HTML. Applications own persistence, authorization and service requests. See [Editor Roadmap](./editor-roadmap.md) for capabilities and [editor parity](./editor-html-next-parity.md) for qualification.
 
 ## Planned Promotions From Driver Apps (Candidate Queue)
 

@@ -3,6 +3,8 @@ import { createRequire } from 'node:module';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { availableParallelism } from 'node:os';
+import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { affectedComponents, affectedModules } from './ci-selection.mjs';
 import { stateSheetComparison } from '../../apps/storybook/scripts/state-sheet-comparison.mjs';
@@ -107,7 +109,7 @@ export function validCapture(directory, key) {
   }
 }
 
-export function compareCaptures(before, after, output, suite = 'storybook') {
+function comparisonRows(before, after, output, suite, names) {
   mkdirSync(output, { recursive: true });
   const require = createRequire(process.env.LOOMA_VISUAL_COMPARATOR_ROOT
     ? path.join(path.resolve(process.env.LOOMA_VISUAL_COMPARATOR_ROOT), 'package.json')
@@ -115,12 +117,10 @@ export function compareCaptures(before, after, output, suite = 'storybook') {
   const testRequire = createRequire(require.resolve('@playwright/test'));
   const playwright = createRequire(testRequire.resolve('playwright'));
   const compare = playwright('playwright-core/lib/coreBundle').utils.getComparator('image/png');
-  const result = { unchanged: [], changed: [], added: [], removed: [] };
   const old = new Set(imageNames(before));
   const current = new Set(imageNames(after));
-  const rows = [];
 
-  for (const name of [...new Set([...old, ...current])].sort()) {
+  return names.map(name => {
     const beforeImage = old.has(name) ? readFileSync(path.join(before, name)) : null;
     const afterImage = current.has(name) ? readFileSync(path.join(after, name)) : null;
     let difference;
@@ -130,8 +130,7 @@ export function compareCaptures(before, after, output, suite = 'storybook') {
         : { ...stateSheetComparison, comparator: stateSheetComparison._comparator });
     }
     const kind = !beforeImage ? 'added' : !afterImage ? 'removed' : difference ? 'changed' : 'unchanged';
-    result[kind].push(name);
-    if (kind === 'unchanged') continue;
+    if (kind === 'unchanged') return { name, kind, row: null };
 
     const slug = sha(name).slice(0, 16);
     const images = [];
@@ -141,9 +140,39 @@ export function compareCaptures(before, after, output, suite = 'storybook') {
       writeFileSync(path.join(output, file), data);
       images.push(`<figure><figcaption>${label}</figcaption><img src="${file}" alt="${escapeHtml(name)} ${label}"></figure>`);
     }
-    rows.push(`<section><h2>${escapeHtml(name)} — ${kind}</h2>${difference?.errorMessage ? `<p>${escapeHtml(difference.errorMessage)}</p>` : ''}<div>${images.join('')}</div></section>`);
-  }
+    return { name, kind, row: `<section><h2>${escapeHtml(name)} — ${kind}</h2>${difference?.errorMessage ? `<p>${escapeHtml(difference.errorMessage)}</p>` : ''}<div>${images.join('')}</div></section>` };
+  });
+}
 
+// Comparisons are CPU-bound. Keep their existing semantics while sharing a full
+// theme sweep across the runner's cores, within the final CI gate's time budget.
+export async function compareCaptures(before, after, output, suite = 'storybook', workers = Math.min(4, availableParallelism())) {
+  mkdirSync(output, { recursive: true });
+  const names = [...new Set([...imageNames(before), ...imageNames(after)])].sort();
+  const count = Math.max(1, Math.min(workers, names.length));
+  let entries;
+  if (count === 1) entries = comparisonRows(before, after, output, suite, names);
+  else {
+    const pool = [];
+    try {
+      const batches = Array.from({ length: count }, (_, index) => names.filter((_, offset) => offset % count === index));
+      entries = (await Promise.all(batches.map(names => new Promise((resolve, reject) => {
+        const worker = new Worker(new URL(import.meta.url), { workerData: { visualComparison: { before, after, output, suite, names } } });
+        pool.push(worker);
+        worker.once('message', resolve);
+        worker.once('error', reject);
+        worker.once('exit', code => reject(new Error(`Visual comparison worker exited before returning a result (code ${code})`)));
+      })))).flat().sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    } finally {
+      await Promise.all(pool.map(worker => worker.terminate()));
+    }
+  }
+  const result = { unchanged: [], changed: [], added: [], removed: [] };
+  const rows = [];
+  for (const { name, kind, row } of entries) {
+    result[kind].push(name);
+    if (row) rows.push(row);
+  }
   writeFileSync(path.join(output, 'comparison.json'), JSON.stringify(result, null, 2) + '\n');
   writeFileSync(path.join(output, 'index.html'), `<!doctype html><meta charset="utf-8"><title>Visual review</title><style>body{font:16px system-ui;margin:24px}section{border-top:1px solid #ccc;padding-block:16px}section>div{display:flex;gap:16px;overflow:auto}figure{margin:0;min-width:240px}img{max-width:600px;vertical-align:top}</style><h1>Visual review</h1><p>${result.changed.length} changed; ${result.added.length} added; ${result.removed.length} removed; ${result.unchanged.length} unchanged.</p><p>Images are regenerated from the base and candidate sources. Visual differences are reviewed in the PR; rendering and functional failures remain errors.</p>${rows.join('') || '<p>No visual differences.</p>'}`);
   return result;
@@ -317,7 +346,7 @@ function renderSide(plan, side, output) {
   }
 }
 
-function aggregateArtifacts(directory, output) {
+async function aggregateArtifacts(directory, output) {
   const merged = { base: path.join(output, 'base'), head: path.join(output, 'head') };
   for (const destination of Object.values(merged)) mkdirSync(destination, { recursive: true });
   const artifacts = readdirSync(directory, { withFileTypes: true })
@@ -356,7 +385,7 @@ function aggregateArtifacts(directory, output) {
   }
   if (groups.size !== Number(first.shard.split('/')[1])) throw new Error('Visual review is missing a shard');
 
-  const result = compareCaptures(merged.base, merged.head, path.join(output, 'report'), first.suite);
+  const result = await compareCaptures(merged.base, merged.head, path.join(output, 'report'), first.suite);
   writeFileSync(path.join(output, 'report', 'sources.json'), JSON.stringify(first, null, 2) + '\n');
   if (process.env.GITHUB_STEP_SUMMARY) {
     const { changed, added, removed, unchanged } = result;
@@ -425,7 +454,7 @@ async function main() {
     return;
   }
   if (command === 'report') {
-    aggregateArtifacts(path.resolve(flag('input')), path.resolve(flag('output')));
+    await aggregateArtifacts(path.resolve(flag('input')), path.resolve(flag('output')));
     return;
   }
   if (command === 'run') {
@@ -435,14 +464,17 @@ async function main() {
     for (const side of ['base', 'head']) plan.keys[side] = sha(plan.keys[side] + plan.components.join(','));
     const directory = path.join(root, '.context', 'visual-review', suite);
     for (const side of ['base', 'head']) renderSide(plan, side, path.join(directory, side));
-    console.log(JSON.stringify(compareCaptures(path.join(directory, 'base'), path.join(directory, 'head'), path.join(directory, 'report'), suite)));
+    console.log(JSON.stringify(await compareCaptures(path.join(directory, 'base'), path.join(directory, 'head'), path.join(directory, 'report'), suite)));
     return;
   }
   if (command === 'compare') {
-    console.log(JSON.stringify(compareCaptures(path.resolve(args[0]), path.resolve(args[1]), path.resolve(args[2]))));
+    console.log(JSON.stringify(await compareCaptures(path.resolve(args[0]), path.resolve(args[1]), path.resolve(args[2]))));
     return;
   }
   throw new Error('Choose plan, render-side, capture, compare, report, run, install-comparator, or check');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+if (!isMainThread && workerData?.visualComparison) {
+  const { before, after, output, suite, names } = workerData.visualComparison;
+  parentPort.postMessage(comparisonRows(before, after, output, suite, names));
+} else if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

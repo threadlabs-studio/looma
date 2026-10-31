@@ -1,8 +1,10 @@
 // Drives the built package (run `pnpm build` first) in Chromium, the way consumers use it: a Vue app
-// importing @threadlabs/looma/vue, and a plain page registering the components with dist/index.js.
+// importing HTML sources through the Vite adapter, and a plain page registering the same definitions.
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { vueSourcePlugins } from "./framework-plugins";
 import type { Editor } from "@tiptap/core";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
@@ -12,23 +14,34 @@ import { afterAll, beforeAll, describe, it } from "vitest";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 let directory = "";
 let browser: Browser;
+let bundleSequence = 0;
+const bundles = new Map<string, string>();
 
 async function bundle(name: string, source: string, mode = "production"): Promise<string> {
-  const entry = join(directory, `${name}.js`);
+  const editorTarget = process.env.LOOMA_EDITOR_TARGET ?? "vue";
+  const key = JSON.stringify([source, mode, editorTarget]);
+  const cached = bundles.get(key);
+  if (cached) return cached;
+  // Immutable fixture inputs share compiled bytes; each case opens a fresh page below.
+  const outputName = `${name}-${bundleSequence++}`;
+  const entry = join(directory, `${outputName}.js`);
   await writeFile(entry, source);
   await build({
     configFile: false,
     logLevel: "silent",
     root: directory,
-    resolve: { alias: { "@threadlabs/looma": root } },
-    define: { "process.env.NODE_ENV": JSON.stringify(mode) },
+    plugins: vueSourcePlugins(),
+    resolve: { alias: { "@looma-test/runtime": join(root, "dist/index.js") } },
+    define: { "process.env.NODE_ENV": JSON.stringify(mode), __LOOMA_EDITOR_TARGET__: JSON.stringify(editorTarget) },
     build: {
-      outDir: join(directory, name),
+      outDir: join(directory, outputName),
       minify: false,
-      lib: { entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
+      lib: { cssFileName: "components", entry, formats: ["iife"], name: name.replace(/\W/g, "_"), fileName: () => "bundle.js" },
     },
   });
-  return join(directory, name, "bundle.js");
+  const path = join(directory, outputName, "bundle.js");
+  bundles.set(key, path);
+  return path;
 }
 
 async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>): Promise<Page> {
@@ -38,6 +51,8 @@ async function open(bundlePath: string, body: string, css: readonly string[], op
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
   for (const path of css) await page.addStyleTag({ path });
+  const convertedCss = join(dirname(bundlePath), "components.css");
+  if (existsSync(convertedCss)) await page.addStyleTag({ path: convertedCss });
   await page.addScriptTag({ path: bundlePath });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
@@ -46,8 +61,8 @@ async function open(bundlePath: string, body: string, css: readonly string[], op
 
 beforeAll(async () => {
   // Inside the package, so bundles resolve vue and the package's own dependencies.
-  await mkdir(join(root, ".build"), { recursive: true });
-  directory = await mkdtemp(join(root, ".build", "browser-"));
+  await mkdir(join(root, ".test-build"), { recursive: true });
+  directory = await mkdtemp(join(root, ".test-build", "browser-"));
   browser = await chromium.launch();
 });
 
@@ -57,18 +72,17 @@ afterAll(async () => {
 });
 
 describe("SiteHeader", () => {
-  for (const adapter of ["HTML", "Vue"] as const) it(`centers baseline-aligned branding and navigation beside growing actions in ${adapter}`, async () => {
-    const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+  for (const adapter of ["HTML", "Vue"] as const) it(`centers branding and navigation containers beside growing actions in ${adapter}`, async () => {
+    const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
       import { createApp, h } from "vue";
-      import { SiteHeader, Button } from "@threadlabs/looma/vue";
+      import { UiSiteHeader as SiteHeader, UiButton as Button } from "@threadlabs/looma";
       createApp({render:()=>h(SiteHeader,{id:"site",sticky:true},{
-        brand:()=>h("a",{href:"#home",id:"brand"},"Fellowship"),
+        brand:()=>h("a",{href:"#home",id:"brand"},[h("img",{width:40,height:40,alt:"Brand mark",src:"data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"}),h("span",{id:"brand-title"},"Fellowship")]),
         navigation:()=>[h("a",{href:"#guide",id:"destination"},"Guide"),h("a",{href:"#components"},"Components")],
-        menu:()=>h(Button,{id:"menu",popovertarget:"drawer",tone:"neutral"},()=>"Menu"),
         actions:()=>h(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
       })}).mount("#app");
     `);
-    const page=await open(path, `${adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand">Fellowship</a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="menu" id="menu" popovertarget="drawer" tone="neutral">Menu</ui-button><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>'}<nav id="drawer" popover>Mobile destinations</nav>`, [join(root,"tokens.css"),...(adapter === "Vue"?[join(root,"vue/components.css")]:[])], {viewport:{width:1440,height:800}});
+    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand"><img width="40" height="40" alt="Brand mark" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"><span id="brand-title">Fellowship</span></a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css")], {viewport:{width:1440,height:800}});
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');
@@ -85,12 +99,13 @@ describe("SiteHeader", () => {
           await page.locator('#action').evaluate((el,height)=>(el as HTMLElement).style.setProperty('--ui-button-min-block-size',height+'px'),height);
           const alignment=await page.locator('#site').evaluate(header=>{
             const center=(el:Element)=>{const b=el.getBoundingClientRect();return b.y+b.height/2;};
-            const probes=[header.querySelector('#brand')!,header.querySelector('#destination')!].map(el=>{const p=document.createElement('span');p.style.cssText='display:inline-block;width:0;height:0;vertical-align:baseline';el.append(p);return p;});
-            const baseline=Math.abs(probes[0].getBoundingClientRect().y-probes[1].getBoundingClientRect().y);probes.forEach(p=>p.remove());
-            return {center:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),baseline};
+            return {
+              groups:Math.abs(center(header.querySelector('.identity')!)-center(header.querySelector('.actions')!)),
+              text:Math.abs(center(header.querySelector('#brand-title')!)-center(header.querySelector('#destination')!)),
+            };
           });
-          assert.ok(alignment.center<1,`${dir}/${height}: action and text groups stay centred`);
-          assert.ok(alignment.baseline<1,`${dir}/${height}: brand and navigation share a baseline`);
+          assert.ok(alignment.groups<1,`${dir}/${height}: action and text groups stay centred`);
+          assert.ok(alignment.text<1,`${dir}/${height}: branding and navigation containers stay centred`);
         }
       }
       await page.locator('#brand').evaluate(element=>{
@@ -98,6 +113,7 @@ describe("SiteHeader", () => {
         title.style.cssText='min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'; element.replaceChildren(title);
       });
       await page.setViewportSize({width:375,height:800});
+      await page.locator("#destination").waitFor({state:"hidden"});
       const mobile=await page.locator('#site').evaluate(header=>{
         const identity=header.querySelector('.identity')!.getBoundingClientRect(), actions=header.querySelector('.actions')!.getBoundingClientRect();
         return {delta:Math.abs(identity.y+identity.height/2-actions.y-actions.height/2), width:identity.width};
@@ -106,28 +122,255 @@ describe("SiteHeader", () => {
       assert.ok(mobile.width>0,'branding retains visible space');
       assert.equal(await page.locator('#brand').isVisible(),true,'the brand stays visible when navigation collapses');
       assert.equal(await page.locator('#destination').isVisible(),false);
-      assert.equal(await page.locator('#menu').isVisible(),true);
+      const menu=page.getByRole('button',{name:'Open navigation',exact:true});
+      assert.equal(await menu.isVisible(),true);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-      await page.locator('#menu').click();
-      assert.equal(await page.locator('#drawer').isVisible(),true);
+      await menu.click();
+      assert.equal(await page.getByRole('dialog',{name:'Main'}).isVisible(),true);
+      assert.equal(await page.locator('#destination').isVisible(),true);
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#drawer').isVisible(),false);
-      await page.locator('#menu').evaluate(element=>element.remove());
-      assert.equal(await page.locator('#destination').isVisible(),true,'destinations remain available without a menu trigger');
+      await page.getByRole('dialog',{name:'Main'}).waitFor({state:'hidden'});
+      assert.equal(await menu.getAttribute('aria-expanded'),'false');
     } finally {await page.close();}
   });
 });
 
+describe("CardGroup", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`aligns native Card regions, wraps and isolates nested cards in ${adapter}`, async () => {
+    const path=await bundle(`card-group-${adapter}`,adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+      import {createApp,h} from "vue"; import { UiCardGroup as CardGroup, UiCard as Card } from "@threadlabs/looma";
+      createApp({render:()=>h(CardGroup,{id:"group",gap:"l"},()=>[0,1,2].map(i=>h(Card,{class:"card"},{
+        header:()=>h("header",{"data-region":"header"},i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"),
+        default:()=>h("section",{"data-region":"content"},[i===1?"Long content. ".repeat(30):"Short content.",...(i===0?[h(Card,{id:"nested"},()=>"Independent nested card")]:[])]),
+        actions:()=>h("footer",{"data-region":"actions"},[h("a",{href:"#read"},"Read"),h("a",{href:"#offer"},"Offer")]),
+      })))}).mount("#app");
+    `);
+    const cards=[0,1,2].map(i=>`<ui-card class="card"><header slot="header" data-region="header">${i===0?"A short title":"A deliberately longer heading that wraps across multiple lines"}</header><section data-region="content">${i===1?"Long content. ".repeat(30):"Short content."}${i===0?'<ui-card id="nested">Independent nested card</ui-card>':''}</section><footer slot="actions" data-region="actions"><a href="#read">Read</a><a href="#offer">Offer</a></footer></ui-card>`).join('');
+    const page=await open(path,adapter === "HTML" ? `<ui-card-group id="group" gap="l">${cards}</ui-card-group>` : '<div id="app"></div>',[join(root,"tokens.css")],{viewport:{width:700,height:900}});
+    await page.addStyleTag({content:'#group .card { display:block; grid-template-rows:none; grid-row:auto; gap:0; }'});
+    try {
+      for(const dir of ["ltr","rtl"]) {
+        await page.locator('html').evaluate((el,dir)=>el.setAttribute('dir',dir),dir);
+        const rows=await page.locator('.card').evaluateAll(cards=>cards.map(card=>{
+          const box=card.getBoundingClientRect();
+          return {top:box.top,bottom:box.bottom,rows:[...card.querySelectorAll('[data-region]')].map(region=>region.getBoundingClientRect().top),display:getComputedStyle(card).display,tracks:getComputedStyle(card).gridTemplateRows};
+        }));
+        assert.equal(rows[0].display,'grid');
+        assert.match(rows[0].tracks,/subgrid/);
+        for(let region=0;region<3;region++) assert.ok(Math.abs(rows[0].rows[region]-rows[1].rows[region])<1,`${dir}: region ${region} aligns despite different text lengths`);
+        assert.ok(rows[2].top>rows[0].bottom,'a wrapped row has its own tracks');
+      }
+      assert.equal(await page.locator('#nested').evaluate(el=>getComputedStyle(el).display),'flex','nested cards do not join the outer group');
+      await page.setViewportSize({width:375,height:900});
+      const stacked=await page.locator('.card').evaluateAll(cards=>cards.map(card=>card.getBoundingClientRect().toJSON()));
+      assert.ok(stacked[1].top>stacked[0].bottom);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      await page.locator('#group').evaluate(el=>el.setAttribute('hidden',''));
+      assert.equal(await page.locator('.card').first().isVisible(),false,'hidden groups hide their delegated grid');
+    } finally {await page.close();}
+  });
+});
+
+describe("CardGroup optional header", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`keeps headerless body content in natural flow with trailing primary actions in ${adapter}`, async () => {
+    const path = await bundle(`headerless-cards-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+      import {createApp,h} from "vue"; import { UiCardGroup as CardGroup, UiCard as Card, UiStack as Stack, UiText as Text, UiActionBar as ActionBar, UiButton as Button } from "@threadlabs/looma";
+      createApp({render:()=>h(CardGroup,{columns:2},()=>[0,1].map(i=>h(Card,{class:"card"},{
+        default:()=>h(Stack,{gap:"s"},()=>[h(Text,{"data-title":"",as:"h2"},()=>i?"A longer title that wraps naturally across several lines":"Archive"),h(Text,{"data-summary":""},()=>"A summary that stays beside its own title.")]),
+        actions:()=>h(ActionBar,{}, {primary:()=>h(Button,{"data-action":""},()=>"Open")}),
+      })))}).mount("#app");
+    `);
+    const cards=[0,1].map(i=>`<ui-card class="card"><ui-stack gap="s"><ui-text data-title as="h2">${i?"A longer title that wraps naturally across several lines":"Archive"}</ui-text><ui-text data-summary>A summary that stays beside its own title.</ui-text></ui-stack><ui-action-bar slot="actions"><ui-button data-action slot="primary">Open</ui-button></ui-action-bar></ui-card>`).join('');
+    const page=await open(path,adapter === "HTML"?`<ui-card-group columns="2">${cards}</ui-card-group>`:'<div id="app"></div>',[join(root,"tokens.css")],{viewport:{width:1100,height:800}});
+    try {
+      for(const width of [1100,375]) for(const dir of ["ltr","rtl"]) {
+        await page.setViewportSize({width,height:800});
+        await page.locator('html').evaluate((element,value)=>element.setAttribute('dir',value),dir);
+        const geometry=await page.locator('.card').evaluateAll(cards=>cards.map(card=>{
+          const box=card.getBoundingClientRect(),style=getComputedStyle(card),title=card.querySelector('[data-title]')!.getBoundingClientRect(),summary=card.querySelector('[data-summary]')!.getBoundingClientRect(),action=card.querySelector('[data-action]')!.getBoundingClientRect();
+          return {top:title.top-box.top-parseFloat(style.paddingTop)-parseFloat(style.borderTopWidth),bodyGap:summary.top-title.bottom,actionTop:action.top,end:style.direction==='rtl'?action.left-box.left-parseFloat(style.paddingLeft)-parseFloat(style.borderLeftWidth):box.right-action.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth)};
+        }));
+        for(const card of geometry){assert.ok(Math.abs(card.top)<1,'an omitted header reserves no empty band before the body');assert.ok(card.bodyGap>=0&&card.bodyGap<24,'each summary follows its own title');assert.ok(Math.abs(card.end)<1,'primary actions reach the logical trailing edge');}
+        if(width===1100)assert.ok(Math.abs(geometry[0].actionTop-geometry[1].actionTop)<1,'actions still align across different body lengths');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+      }
+    } finally {await page.close();}
+  });
+});
+
+describe("SiteHeader automatic drawer", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`keeps one live navigation through mobile interactions and breakpoints in ${adapter}`, async () => {
+    const links = Array.from({length:30},(_,index)=>`<a slot="navigation" href="#section-${index}" id="link-${index}">Section ${index+1}</a>`).join('');
+    const path=await bundle(`site-drawer-${adapter}`,adapter==="HTML"?'import "@looma-test/runtime"; import {componentRegistry} from "@nextwebwg/html-next/runtime"; window.setSiteBreakpoint=value=>componentRegistry.update(document.querySelector("#site"),{breakpoint:value});':`
+      import {createApp,h,ref} from "vue"; import { UiSiteHeader as SiteHeader, UiIconButton as IconButton } from "@threadlabs/looma";
+      const breakpoint=ref("lg");window.setSiteBreakpoint=value=>breakpoint.value=value;
+      const app=createApp({render:()=>h(SiteHeader,{id:"site",label:"Explore",breakpoint:breakpoint.value},{
+        brand:()=>h("a",{href:"#home",id:"brand"},"Folio"),
+        navigation:()=>Array.from({length:30},(_,i)=>h("a",{href:"#section-"+i,id:"link-"+i},"Section "+(i+1))),
+        actions:()=>h(IconButton,{label:"Account"},()=>"A")
+      })});app.mount("#app");window.siteApp=app;
+    `);
+    const page=await open(path,adapter==="HTML"?`<ui-site-header id="site" label="Explore"><a slot="brand" id="brand" href="#home">Folio</a>${links}<ui-icon-button slot="actions" label="Account">A</ui-icon-button></ui-site-header><button id="outside">Outside</button>`:'<div id="app"></div><button id="outside">Outside</button>',[join(root,"tokens.css")],{viewport:{width:375,height:640},hasTouch:true});
+    try {
+      const menu=page.getByRole('button',{name:'Open navigation',exact:true});
+      const panel=page.getByRole('dialog',{name:'Explore',exact:true});
+      const close=page.getByRole('button',{name:'Close navigation',exact:true});
+      await page.locator('#link-0').waitFor({state:'hidden'});
+      await page.locator('#link-0').evaluate(el=>{
+        (window as any).originalNavigation=el;
+        el.addEventListener('click',event=>{event.preventDefault();document.body.dataset.selected='yes';});
+      });
+      assert.equal(await menu.locator('svg path').count(),3,'the default control has a Lucide hamburger');
+      assert.equal(await page.locator('#link-0').count(),1,'desktop and mobile share one set of links');
+      for(const dir of ['ltr','rtl']) {
+        await page.locator('html').evaluate((el,value)=>el.setAttribute('dir',value),dir);
+        const brand=await page.locator('#brand').boundingBox(),button=await menu.boundingBox();
+        assert.ok(dir==='ltr'?button!.x>=brand!.x+brand!.width:button!.x+button!.width<=brand!.x,'menu follows the brand in reading order');
+        const placement=await page.locator('#site').evaluate(header=>{
+          const brand=header.querySelector('#brand')!.getBoundingClientRect();
+          const menu=header.querySelector('button[aria-label="Open navigation"]')!.getBoundingClientRect();
+          const identity=getComputedStyle(header.querySelector('.identity')!);
+          return {gap:identity.direction==='rtl'?brand.left-menu.right:menu.left-brand.right,buttonWidth:menu.width,columnGap:parseFloat(identity.columnGap),compactGap:parseFloat(identity.rowGap)};
+        });
+        assert.equal(placement.columnGap,placement.compactGap,`${dir}: mobile branding uses compact spacing instead of the desktop navigation gap`);
+        assert.ok(placement.gap < placement.buttonWidth,`${dir}: the actual hamburger button stays close to the brand, including reserved target space`);
+        await menu.focus();await page.keyboard.press('Enter');
+        await panel.waitFor({state:'visible'});
+        await page.waitForFunction(()=>getComputedStyle(document.querySelector('dialog')!).transform==='matrix(1, 0, 0, 1, 0, 0)');
+        const geometry=await panel.evaluate(el=>{
+          const box=el.getBoundingClientRect(),nav=el.querySelector('nav')!;
+          return {x:box.x,right:box.right,height:box.height,scrolls:nav.scrollHeight>nav.clientHeight,backdrop:getComputedStyle(el,'::backdrop').backgroundColor};
+        });
+        assert.equal(geometry.height,640);
+        assert.ok(Math.abs(dir==='ltr'?geometry.x:375-geometry.right)<1,'drawer enters from the logical start edge');
+        assert.equal(geometry.scrolls,true,'long menus scroll inside the panel');
+        assert.equal(await page.locator('#link-0').evaluate(el=>getComputedStyle(el).fontWeight),'400','drawer destinations use the regular navigation weight');
+        assert.notEqual(geometry.backdrop,'rgba(0, 0, 0, 0)');
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),true);
+        assert.equal(await panel.evaluate(el=>el.contains(document.activeElement)),true,'focus enters the drawer');
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(await page.locator('#outside').evaluate(el=>document.activeElement===el),false,'Tab cannot reach background controls');
+        await page.locator('#outside').evaluate(el=>(el as HTMLElement).focus());
+        assert.equal(await page.locator('#outside').evaluate(el=>document.activeElement===el),false,'the background is inert');
+        await page.locator('#link-29').focus();
+        assert.ok(await page.locator('#link-29').evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight),'keyboard navigation reveals destinations');
+        await page.keyboard.press('Escape');
+        await panel.waitFor({state:'hidden'});
+        assert.equal(await menu.evaluate(el=>document.activeElement===el),true,'dismissal restores the trigger');
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+        await menu.click();await close.click();await panel.waitFor({state:'hidden'});
+        await menu.click();await page.mouse.click(dir==='ltr'?365:10,400);await panel.waitFor({state:'hidden'});
+      }
+      await menu.click();
+      await page.locator('#link-0').click();await panel.waitFor({state:'hidden'});
+      assert.equal(await page.locator('body').getAttribute('data-selected'),'yes','router-style prevented navigation still selects and closes');
+      await menu.click();
+      await page.setViewportSize({width:1440,height:800});
+      await menu.waitFor({state:'hidden'});
+      await page.locator('#link-0').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>document.querySelectorAll('dialog:modal').length),0,'desktop transition releases the modal');
+      assert.equal(await page.locator('dialog[open]').count(),0,'desktop navigation is a navigation region, not a dialog');
+      assert.equal(await page.locator('dialog').evaluate(el=>getComputedStyle(el).overlay),'none','desktop has no pending top-layer backdrop');
+      assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+      assert.equal(await page.locator('#link-0').evaluate(el=>el===(window as any).originalNavigation),true,'link identity survives resizing');
+      for (const [breakpoint,width] of [['sm',640],['md',768],['lg',1024]] as const) {
+        await page.evaluate(value=>(window as any).setSiteBreakpoint(value),breakpoint);
+        await page.setViewportSize({width:width-1,height:640});
+        await menu.waitFor({state:'visible'});
+        await menu.click();await panel.waitFor({state:'visible'});
+        await page.setViewportSize({width,height:640});
+        await menu.waitFor({state:'hidden'});
+        assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-ui-scroll-lock')),false);
+      }
+      await page.setViewportSize({width:375,height:640});
+      await menu.waitFor({state:'visible'});
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await menu.click();
+      assert.equal(await panel.evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+      await page.locator('#site').evaluate((el,adapter)=>{
+        if(adapter==='Vue') (window as any).siteApp.unmount();
+        else el.remove();
+      },adapter);
+      await page.waitForFunction(()=>!document.documentElement.hasAttribute('data-ui-scroll-lock'));
+    } finally {await page.close();}
+  });
+});
+
+describe("SiteHeader custom navigation surface", () => {
+  for(const adapter of ['HTML','Vue'] as const) it(`allows a custom documentation-sidebar trigger without duplicating the automatic control in ${adapter}`, async()=>{
+    const path=await bundle(`site-custom-${adapter}`,adapter==='HTML'?'import "@looma-test/runtime";':`
+      import {createApp,h,ref} from "vue";import { UiSiteHeader as SiteHeader, UiIconButton as IconButton } from "@threadlabs/looma";
+      const custom=ref(true);window.useAutomaticNavigation=()=>custom.value=false;
+      createApp({render:()=>h(SiteHeader,null,{
+        brand:()=>h('a',{href:'#home'},'Folio'),
+        navigation:()=>h('a',{id:'guide',href:'#guide'},'Guide'),
+        menu:()=>custom.value?h(IconButton,{id:'custom',label:'Browse documentation',popovertarget:'docs'},()=> 'Docs'):null,
+      })}).mount('#app');
+    `);
+    const page=await open(path,`${adapter==='HTML'?'<ui-site-header><a slot="brand" href="#home">Folio</a><a slot="navigation" id="guide" href="#guide">Guide</a><ui-icon-button slot="menu" id="custom" label="Browse documentation" popovertarget="docs">Docs</ui-icon-button></ui-site-header>':'<div id="app"></div>'}<nav id="docs" popover>Documentation sidebar</nav>`,[join(root,'tokens.css')],{viewport:{width:375,height:700}});
+    try{
+      const custom=page.getByRole('button',{name:'Browse documentation',exact:true});
+      const automatic=page.getByRole('button',{name:'Open navigation',exact:true});
+      assert.equal(await custom.isVisible(),true);
+      assert.equal(await automatic.isVisible(),false);
+      await page.locator('#guide').waitFor({state:'hidden'});
+      await custom.click();assert.equal(await page.locator('#docs').isVisible(),true);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({width:1440,height:800});
+      await custom.waitFor({state:'hidden'});assert.equal(await page.locator('#guide').isVisible(),true);
+      await page.setViewportSize({width:375,height:700});
+      await custom.waitFor({state:'visible'});
+      if(adapter==='HTML') await custom.evaluate(el=>el.remove());
+      else await page.evaluate(()=>(window as any).useAutomaticNavigation());
+      await automatic.waitFor({state:'visible'});await automatic.click();
+      assert.equal(await page.getByRole('dialog',{name:'Main',exact:true}).isVisible(),true);
+    }finally{await page.close();}
+  });
+});
+
+it("keeps native custom navigation usable without JavaScript at every SiteHeader breakpoint", async () => {
+  const {createSSRApp,h}=await import("vue"), {renderToString}=await import("vue/server-renderer");
+  const {UiSiteHeader:SiteHeader,UiIconButton:IconButton}=await import("@threadlabs/looma");
+  const headers=await renderToString(createSSRApp({render:()=>(["sm","md","lg"] as const).map(breakpoint=>h(SiteHeader,{breakpoint},{
+    brand:()=>h("a",{href:"#home"},"Fellowship documentation"),
+    navigation:()=>h("a",{href:"#guide"},"Guide"),
+    menu:()=>h(IconButton,{label:"Navigation "+breakpoint,popovertarget:"docs-"+breakpoint},()=>"Docs"),
+  }))}));
+  const page=await browser.newPage({javaScriptEnabled:false,viewport:{width:375,height:800}});
+  page.setDefaultTimeout(5000);
+  const stylesheetBundle = await bundle("site-header-no-script-styles", 'import { UiSiteHeader, UiIconButton } from "@threadlabs/looma"; window.fixtureComponents = [UiSiteHeader, UiIconButton];');
+  const css=await Promise.all([join(root,"tokens.css"),join(dirname(stylesheetBundle),"components.css")].map(path=>readFile(path,"utf8")));
+  await page.goto("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><style>'+css.join("\n")+'</style>'+headers+["sm","md","lg"].map(name=>'<nav id="docs-'+name+'" popover>Documentation</nav>').join("")));
+  try {
+    for(const [name,width] of [["sm",640],["md",768],["lg",1024]] as const) {
+      const trigger=page.getByRole("button",{name:"Navigation "+name,exact:true});
+      await page.setViewportSize({width:width-1,height:800});
+      assert.equal(await trigger.isVisible(),true);
+      const placement=await trigger.evaluate(button=>{
+        const brand=button.closest('.ui-site-header')!.querySelector('.brand')!.getBoundingClientRect();
+        const box=button.getBoundingClientRect();
+        return {gap:box.left-brand.right,width:box.width};
+      });
+      assert.ok(placement.gap < placement.width,'native custom menus also stay close to the brand before upgrade');
+      await trigger.click();assert.equal(await page.locator("#docs-"+name).isVisible(),true);
+      await page.keyboard.press("Escape");assert.equal(await page.locator("#docs-"+name).isVisible(),false);
+      await page.setViewportSize({width,height:800});await trigger.waitFor({state:"hidden"});
+    }
+    assert.equal(await page.locator("dialog[open]").count(),0);
+  } finally {await page.close();}
+});
+
 describe("SiteHeader action targets", () => {
   for (const adapter of ["HTML", "Vue"] as const) it(`reserves adjustable space for compact actions in ${adapter}`, async () => {
-    const path=await bundle(`site-header-targets-${adapter}`,adapter==="HTML"?'import "@threadlabs/looma";':`
-      import {createApp,h} from "vue"; import {SiteHeader,IconButton,Icon} from "@threadlabs/looma/vue";
+    const path=await bundle(`site-header-targets-${adapter}`,adapter==="HTML"?'import "@looma-test/runtime";':`
+      import {createApp,h} from "vue"; import { UiSiteHeader as SiteHeader, UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
       createApp({render:()=>h(SiteHeader,{id:"targets"},{brand:()=>h("a",{href:"#home"},"Folio"),actions:()=>[
         h(IconButton,{id:"first-target",size:"sm",label:"Search"},()=>h(Icon,{name:"search"})),
         h(IconButton,{id:"second-target",size:"sm",label:"Account"},()=>h(Icon,{name:"user-round"}))
       ]})}).mount("#app");`);
-    const page=await open(path,adapter==="HTML"?'<ui-site-header id="targets"><a slot="brand" href="#home">Folio</a><ui-icon-button slot="actions" id="first-target" size="sm" label="Search"><ui-icon name="search"></ui-icon></ui-icon-button><ui-icon-button slot="actions" id="second-target" size="sm" label="Account"><ui-icon name="user-round"></ui-icon></ui-icon-button></ui-site-header>':'<div id="app"></div>',[join(root,"tokens.css"),...(adapter==="Vue"?[join(root,"vue/components.css")]:[])],{viewport:{width:375,height:700},hasTouch:true});
+    const page=await open(path,adapter==="HTML"?'<ui-site-header id="targets"><a slot="brand" href="#home">Folio</a><ui-icon-button slot="actions" id="first-target" size="sm" label="Search"><ui-icon name="search"></ui-icon></ui-icon-button><ui-icon-button slot="actions" id="second-target" size="sm" label="Account"><ui-icon name="user-round"></ui-icon></ui-icon-button></ui-site-header>':'<div id="app"></div>',[join(root,"tokens.css")],{viewport:{width:375,height:700},hasTouch:true});
     try {
+      assert.equal(await page.getByRole('button',{name:'Open navigation',exact:true}).isVisible(),false,'no empty menu without navigation');
       const widths=[];
       for(const preferred of [44,30]) {
         await page.locator('html').evaluate((element,value)=>(element as HTMLElement).style.setProperty('--ui-control-min-block-size',value+'px'),preferred);
@@ -145,9 +388,9 @@ describe("SiteHeader action targets", () => {
 describe("Skeleton", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`matches content geometry and respects motion preferences in ${adapter}`, async () => {
-      const path = await bundle(`skeleton-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.stopSkeleton = () => componentRegistry.update(document.querySelector("#still"), { animated: false }); window.addLateSkeleton = () => { const late = document.createElement("ui-skeleton"); late.id = "late"; late.setAttribute("width", "35%"); const surface = document.createElement("div"); surface.style.cssText = "transform:translateX(32px) scale(0.9);transform-origin:0 0"; surface.append(late); document.querySelector("main").append(surface); };` : `
+      const path = await bundle(`skeleton-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.stopSkeleton = () => componentRegistry.update(document.querySelector("#still"), { animated: false }); window.addLateSkeleton = () => { const late = document.createElement("ui-skeleton"); late.id = "late"; late.setAttribute("width", "35%"); const surface = document.createElement("div"); surface.style.cssText = "transform:translateX(32px) scale(0.9);transform-origin:0 0"; surface.append(late); document.querySelector("main").append(surface); };` : `
         import { createApp, h, ref } from "vue";
-        import { Skeleton, Text, Avatar } from "@threadlabs/looma/vue";
+        import { UiSkeleton as Skeleton, UiText as Text, UiAvatar as Avatar } from "@threadlabs/looma";
         const late = ref(false); window.addLateSkeleton = () => { late.value = true; };
         createApp({ render: () => [
           late.value ? h("div", { style: { transform: "translateX(32px) scale(0.9)", transformOrigin: "0 0" } }, h(Skeleton, { id: "late", width: "35%" })) : null,
@@ -169,7 +412,6 @@ describe("Skeleton", () => {
         <ui-skeleton id="still" from:animated="false" width="75%"></ui-skeleton>
         <ui-skeleton id="hidden" hidden></ui-skeleton>` : '<div id="app"></div>'}</main>`, [
         join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"),
-        ...(adapter === "Vue" ? [join(root, "vue/components.css")] : []),
       ], { viewport: { width: 375, height: 400 } }, page => page.emulateMedia({ reducedMotion: "no-preference" }));
       try {
         for (const theme of ["light", "dark"]) {
@@ -250,7 +492,7 @@ describe("Skeleton", () => {
 
 describe("Pagination", () => {
   it("keeps native HTML page requests controlled and preserves keyboard focus at 375px", async () => {
-    const path = await bundle("pagination-html", `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.requests = []; document.addEventListener("navigate", event => { window.requests.push(event.detail); const page = event.detail.page; const pages = [...new Set([1, page - 1, page, page + 1, 10])].filter(value => value >= 1 && value <= 10).sort((a, b) => a - b).map(value => ({ value })); componentRegistry.update(event.target, { page, pages }); });`);
+    const path = await bundle("pagination-html", `import "@looma-test/runtime"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.requests = []; document.addEventListener("navigate", event => { window.requests.push(event.detail); const page = event.detail.page; const pages = [...new Set([1, page - 1, page, page + 1, 10])].filter(value => value >= 1 && value <= 10).sort((a, b) => a - b).map(value => ({ value })); componentRegistry.update(event.target, { page, pages }); });`);
     const page = await open(path, `<main style="font-family:var(--ui-font-family-sans)"><ui-pagination id="pager" page="2" has-previous has-next pages='[{"value":1},{"value":2},{"value":3}]'></ui-pagination></main>`, [join(root, "tokens.css")], { viewport: { width: 375, height: 240 } });
     try {
       const next = page.getByRole("button", { name: "Next", exact: true });
@@ -275,13 +517,13 @@ describe("Reactive form-field control state", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`updates disabled, required and invalid on a nested textarea in ${adapter}`, async () => {
       const path = await bundle(`form-field-state-${adapter}`, adapter === "HTML" ? `
-        import "@threadlabs/looma";
+        import "@looma-test/runtime";
         import { componentRegistry } from "@nextwebwg/html-next/runtime";
         window.updateField = value => componentRegistry.update(document.querySelector("#field"), value);
         window.addControl = () => document.querySelector("#control-slot").innerHTML = '<textarea id="message"></textarea>';
       ` : `
         import { createApp, h, ref } from "vue";
-        import { FormField, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        import { UiFormField as FormField, UiInputGroup as InputGroup, UiTextarea as Textarea } from "@threadlabs/looma";
         const state = ref({ disabled: true, required: true, invalid: true }), visible = ref(false);
         window.updateField = value => { state.value = value; };
         window.addControl = () => { visible.value = true; };
@@ -321,8 +563,8 @@ describe("Reactive form-field control state", () => {
 describe("Cycling state button", () => {
   it("shares neutral action and field boundaries below accent emphasis", async () => {
     for (const adapter of ['html', 'vue']) {
-      const path = await bundle('neutral-outline-' + adapter, adapter === 'html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {Button,IconButton,Input,Select,Textarea,Combobox,NumberInput} from '@threadlabs/looma/vue';createApp({render:()=>[h(Textarea,{id:'textarea'}),h(Combobox,{id:'combo',label:'Colleague'},()=>h('option',{value:'sam'},'Sam')),h(NumberInput,{id:'number',label:'Amount'}),h(Button,{id:'solid',variant:'solid',tone:'neutral'},()=>'File'),h(IconButton,{id:'solid-icon',variant:'solid',tone:'neutral',label:'File'}),h(Input,{id:'field',value:'Frodo'}),h(Select,{id:'select'},()=>h('option',{},'Sam')),h(Button,{id:'text',variant:'outline',tone:'neutral'},()=>'Archive'),h(IconButton,{id:'icon',variant:'outline',tone:'neutral',label:'Archive'}),h(Button,{id:'accent',variant:'outline',tone:'accent'},()=>'Accent')]}).mount('#app');`);
-      const page = await open(path, adapter === 'html' ? '<ui-textarea id="textarea"></ui-textarea><ui-combobox id="combo" label="Colleague"><option value="sam">Sam</option></ui-combobox><ui-number-input id="number" label="Amount"></ui-number-input><ui-button id="solid" variant="solid" tone="neutral">File</ui-button><ui-icon-button id="solid-icon" variant="solid" tone="neutral" label="File"></ui-icon-button><ui-input id="field" value="Frodo"></ui-input><ui-select id="select"><option>Sam</option></ui-select><ui-button id="text" variant="outline" tone="neutral">Archive</ui-button><ui-icon-button id="icon" variant="outline" tone="neutral" label="Archive"></ui-icon-button><ui-button id="accent" variant="outline" tone="accent">Accent</ui-button>' : '<div id="app"></div>', [join(root,'tokens.css'), join(root,'theme-light.css'), join(root,'theme-dark.css'), ...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])]);
+      const path = await bundle('neutral-outline-' + adapter, adapter === 'html' ? `import '@looma-test/runtime';` : `import {createApp,h} from 'vue';import { UiButton as Button, UiIconButton as IconButton, UiInput as Input, UiSelect as Select, UiTextarea as Textarea, UiCombobox as Combobox, UiNumberInput as NumberInput } from '@threadlabs/looma';createApp({render:()=>[h(Textarea,{id:'textarea'}),h(Combobox,{id:'combo',label:'Colleague'},()=>h('option',{value:'sam'},'Sam')),h(NumberInput,{id:'number',label:'Amount'}),h(Button,{id:'solid',variant:'solid',tone:'neutral'},()=>'File'),h(IconButton,{id:'solid-icon',variant:'solid',tone:'neutral',label:'File'}),h(Input,{id:'field',value:'Frodo'}),h(Select,{id:'select'},()=>h('option',{},'Sam')),h(Button,{id:'text',variant:'outline',tone:'neutral'},()=>'Archive'),h(IconButton,{id:'icon',variant:'outline',tone:'neutral',label:'Archive'}),h(Button,{id:'accent',variant:'outline',tone:'accent'},()=>'Accent')]}).mount('#app');`);
+      const page = await open(path, adapter === 'html' ? '<ui-textarea id="textarea"></ui-textarea><ui-combobox id="combo" label="Colleague"><option value="sam">Sam</option></ui-combobox><ui-number-input id="number" label="Amount"></ui-number-input><ui-button id="solid" variant="solid" tone="neutral">File</ui-button><ui-icon-button id="solid-icon" variant="solid" tone="neutral" label="File"></ui-icon-button><ui-input id="field" value="Frodo"></ui-input><ui-select id="select"><option>Sam</option></ui-select><ui-button id="text" variant="outline" tone="neutral">Archive</ui-button><ui-icon-button id="icon" variant="outline" tone="neutral" label="Archive"></ui-icon-button><ui-button id="accent" variant="outline" tone="accent">Accent</ui-button>' : '<div id="app"></div>', [join(root,'tokens.css'), join(root,'theme-light.css'), join(root,'theme-dark.css')]);
       const paint = (id: string) => page.locator(id).evaluate(el => { const s=getComputedStyle(el); return {border:s.borderColor,surface:s.backgroundColor,text:s.color}; });
       try {
         for (const mode of ['light','dark']) {
@@ -348,8 +590,8 @@ describe("Cycling state button", () => {
   });
   for(const adapter of ['html','vue']) it(`cycles named icon states without moving focus in ${adapter}`, async () => {
     const items=[{value:'automatic',label:'Automatic',icon:'monitor'},{value:'light',label:'Light',icon:'sun'},{value:'dark',label:'Dark',icon:'moon'}];
-    const path=await bundle('cycle-state-'+adapter,adapter==='html'?`import '@threadlabs/looma';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.changes=[];document.addEventListener('change',event=>window.changes.push(event.detail));window.selectCycle=()=>componentRegistry.update(document.getElementById('cycle'),{index:2});window.disableCycle=()=>componentRegistry.update(document.getElementById('cycle'),{disabled:true});`:`import {createApp,h,ref} from 'vue';import {CycleButton} from '@threadlabs/looma/vue';const index=ref(0),disabled=ref(false);window.changes=[];window.selectCycle=()=>index.value=2;window.disableCycle=()=>disabled.value=true;createApp({render:()=>h(CycleButton,{id:'cycle',label:'Appearance',items:${JSON.stringify(items)},index:index.value,disabled:disabled.value,'onUpdate:index':value=>index.value=value,onChange:event=>window.changes.push(event.detail)})}).mount('#app');`);
-    const page=await open(path,adapter==='html'?`<ui-cycle-button id="cycle" label="Appearance" items='${JSON.stringify(items)}'></ui-cycle-button>`:'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const path=await bundle('cycle-state-'+adapter,adapter==='html'?`import '@looma-test/runtime';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.changes=[];document.addEventListener('change',event=>window.changes.push(event.detail));window.selectCycle=()=>componentRegistry.update(document.getElementById('cycle'),{index:2});window.disableCycle=()=>componentRegistry.update(document.getElementById('cycle'),{disabled:true});`:`import {createApp,h,ref} from 'vue';import { UiCycleButton as CycleButton } from '@threadlabs/looma';const index=ref(0),disabled=ref(false);window.changes=[];window.selectCycle=()=>index.value=2;window.disableCycle=()=>disabled.value=true;createApp({render:()=>h(CycleButton,{id:'cycle',label:'Appearance',items:${JSON.stringify(items)},index:index.value,disabled:disabled.value,'onUpdate:index':value=>index.value=value,onChange:event=>window.changes.push(event.detail)})}).mount('#app');`);
+    const page=await open(path,adapter==='html'?`<ui-cycle-button id="cycle" label="Appearance" items='${JSON.stringify(items)}'></ui-cycle-button>`:'<div id="app"></div>',[join(root,'tokens.css')]);
     try {
       const button=page.locator('#cycle button');
       await page.addStyleTag({content:'#cycle {display:block;align-items:stretch;justify-content:start;padding:20px;gap:30px}'});
@@ -371,7 +613,7 @@ describe("Cycling state button", () => {
 
 describe("Pressed icon controls and circular marks", () => {
   it("keeps card corner geometry consistent when changing danger tone in either writing direction", async () => {
-    const path = await bundle('card-tone-geometry', 'import "@threadlabs/looma";');
+    const path = await bundle('card-tone-geometry', 'import "@looma-test/runtime";');
     const page = await open(path, '<ui-card id="ordinary">Ordinary</ui-card><ui-card id="danger" tone="danger">Danger</ui-card>', [join(root, 'tokens.css')]);
     for (const direction of ['ltr', 'rtl']) {
       await page.locator('body').evaluate((element, direction) => element.setAttribute('dir', direction), direction);
@@ -390,12 +632,12 @@ describe("Pressed icon controls and circular marks", () => {
   });
   it("keeps a translated icon button centered while pressed in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-pressed-translation`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-pressed-translation`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { IconButton } from "@threadlabs/looma/vue";
+        import { UiIconButton as IconButton } from "@threadlabs/looma";
         createApp({ render: () => h(IconButton, { id: "action", label: "Toggle panel", class: "positioned" }, () => "X") }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" class="positioned">X</ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" class="positioned">X</ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css")]);
       const button = page.getByRole("button", { name: "Toggle panel" });
       await page.addStyleTag({ content: ".positioned { position: fixed; top: 50%; left: 200px; transform: translateY(-50%); }" });
       const before = (await button.boundingBox())!;
@@ -412,12 +654,12 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("shows a neutral rounded bar until hover or keyboard focus in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-bar-guide`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-bar-guide`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { IconButton, Icon } from "@threadlabs/looma/vue";
+        import { UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => h(IconButton, { id: "action", label: "Toggle panel", tone: "neutral", anticipatory: true, guide: "bar" }, () => h(Icon, { name: "panel-left-close" })) }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" tone="neutral" anticipatory guide="bar"><ui-icon name="panel-left-close"></ui-icon></ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel" tone="neutral" anticipatory guide="bar"><ui-icon name="panel-left-close"></ui-icon></ui-icon-button>' : '<div id="app"></div>', [join(root, "tokens.css")], { reducedMotion: "reduce" });
       const button = page.getByRole("button", { name: "Toggle panel" });
       await page.mouse.move(600, 400);
       const guide = await button.evaluate(element => {
@@ -449,12 +691,12 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("dismisses action hints on activation and retains only keyboard focus hints in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-action-tooltip`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-action-tooltip`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { IconButton, Tooltip } from "@threadlabs/looma/vue";
+        import { UiIconButton as IconButton, UiTooltip as Tooltip } from "@threadlabs/looma";
         createApp({ render: () => h("div", [h(IconButton, { id: "action", label: "Toggle panel" }, () => "X"), h(Tooltip, { id: "hint", for: "action", showDelay: 100, hideDelay: 0 }, () => "Toggle panel"), h("button", { id: "next" }, "Next")]) }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel">X</ui-icon-button><ui-tooltip id="hint" for="action" show-delay="100" hide-delay="0">Toggle panel</ui-tooltip><button id="next">Next</button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? '<ui-icon-button id="action" label="Toggle panel">X</ui-icon-button><ui-tooltip id="hint" for="action" show-delay="100" hide-delay="0">Toggle panel</ui-tooltip><button id="next">Next</button>' : '<div id="app"></div>', [join(root, "tokens.css")]);
       const button = page.getByRole("button", { name: "Toggle panel" }), hint = page.locator("#hint");
       await button.click();
       await page.waitForTimeout(150);
@@ -490,16 +732,16 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("opens a tooltip whose trigger already has keyboard focus when it attaches, in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-focused-trigger-tooltip`, adapter === "html" ? `import "@threadlabs/looma";
+      const path = await bundle(`${adapter}-focused-trigger-tooltip`, adapter === "html" ? `import "@looma-test/runtime";
         window.attach = () => document.body.insertAdjacentHTML("beforeend", '<ui-tooltip id="hint" for="action">Act now</ui-tooltip>');
       ` : `
         import { createApp, h, ref } from "vue";
-        import { Tooltip } from "@threadlabs/looma/vue";
+        import { UiTooltip as Tooltip } from "@threadlabs/looma";
         const shown = ref(false);
         window.attach = () => { shown.value = true; };
         createApp({ render: () => h("div", [h("button", { id: "action" }, "Act"), shown.value ? h(Tooltip, { id: "hint", for: "action" }, () => "Act now") : null]) }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<button id="action">Act</button>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? '<button id="action">Act</button>' : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.keyboard.press("Tab");
       assert.equal(await page.locator("#action").evaluate(element => element.matches(":focus-visible")), true);
       await page.evaluate(() => (window as unknown as { attach: () => void }).attach());
@@ -510,9 +752,9 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("trims optional text edges for aligned headers while preserving prose in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-text-trim`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Card, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        import { UiCard as Card, UiCluster as Cluster, UiText as Text, UiButton as Button } from "@threadlabs/looma";
         createApp({ render: () => h(Card, { id: "panel", padding: "sm" }, () => [
           h(Cluster, { id: "header", align: "center", gap: "s", wrap: "nowrap" }, () => [
             h("svg", { id: "mark", width: 16, height: 16, "aria-hidden": true }, () => h("circle", { cx: 8, cy: 8, r: 7 })),
@@ -533,7 +775,7 @@ describe("Pressed icon controls and circular marks", () => {
           <ui-text id="clipped" trim truncate style="width:80px">Typography with hanging gyp descenders</ui-text>
           <ui-button id="continue">Continue</ui-button>
         </ui-card>
-      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      ` : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.waitForSelector('#title:is([data-component~="ui-text"], .ui-text)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -561,9 +803,9 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("keeps a readable Container bounded around scrolling content in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-container-fill`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Container, Stack, ScrollArea, Button } from "@threadlabs/looma/vue";
+        import { UiContainer as Container, UiStack as Stack, UiScrollArea as ScrollArea, UiButton as Button } from "@threadlabs/looma";
         createApp({ render: () => h(Container, { id: "reading", fill: true }, () => h(Stack, { fill: true }, () => [
           h(ScrollArea, { id: "scroll", fill: true }, () => Array.from({ length: 50 }, (_, i) => h("p", "Reading line " + i))),
           h(Button, { id: "continue" }, () => "Continue")
@@ -571,7 +813,7 @@ describe("Pressed icon controls and circular marks", () => {
       `);
       const content = adapter === "html" ? `<ui-container id="reading" fill><ui-stack fill><ui-scroll-area id="scroll" fill>${Array.from({ length: 50 }, (_, i) => `<p>Reading line ${i}</p>`).join("")}</ui-scroll-area><ui-button id="continue">Continue</ui-button></ui-stack></ui-container>` : "";
       const page = await open(path, `<div id="app" style="display:grid;height:320px;width:100%">${content}</div>`,
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css")]);
       await page.waitForSelector('#reading:is([data-component~="ui-container"], .ui-container)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -594,9 +836,9 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("keeps an accent outline toggle pressed after release in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-pressed-icon`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-pressed-icon`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { IconButton, Icon, Tooltip } from "@threadlabs/looma/vue";
+        import { UiIconButton as IconButton, UiIcon as Icon, UiTooltip as Tooltip } from "@threadlabs/looma";
         createApp({ render: () => [
           h(IconButton, { id: "toggle", label: "Notifications", variant: "outline", tone: "accent", anticipatory: true, "aria-pressed": true }, () => h(Icon, { name: "bell" })),
           h(IconButton, { id: "neutral", label: "Neutral", variant: "outline" }, () => h(Icon, { name: "bell" })),
@@ -607,7 +849,7 @@ describe("Pressed icon controls and circular marks", () => {
         <ui-icon-button id="toggle" label="Notifications" variant="outline" tone="accent" anticipatory aria-pressed="true"><ui-icon name="bell"></ui-icon></ui-icon-button>
         <ui-icon-button id="neutral" label="Neutral" variant="outline"><ui-icon name="bell"></ui-icon></ui-icon-button>
         <ui-tooltip for="toggle">Notifications</ui-tooltip>
-      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      ` : '<div id="app"></div>', [join(root, "tokens.css")], { reducedMotion: "reduce" });
       const paint = (id: string) => page.locator(id).evaluate(element => {
         const style = getComputedStyle(element);
         return { border: style.borderColor, color: style.color, surface: style.backgroundColor, image: style.backgroundImage, shadow: style.boxShadow,
@@ -646,9 +888,9 @@ describe("Pressed icon controls and circular marks", () => {
 
   it("centers visible circular glyphs with fixed geometry in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-circle-badge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-circle-badge`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiButton as Button, UiCluster as Cluster, UiIcon as Icon, UiIconButton as IconButton } from "@threadlabs/looma";
         createApp({ render: () => [h(Badge, { id: "small", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category D" }, () => "D"),
           h(Badge, { id: "letter", shape: "circle", size: "xs", variant: "outline", "aria-label": "Category R" }, () => "R"),
           h(Badge, { id: "count", shape: "circle", size: "xs" }, () => "3"),
@@ -661,7 +903,7 @@ describe("Pressed icon controls and circular marks", () => {
             h(IconButton, { id: "joined-menu", variant: "solid", size: "sm", matchButton: true, label: "More actions" }, () => h(Icon, { name: "chevron-down" }))]) ] }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? '<ui-badge id="small" shape="circle" size="xs" variant="outline" aria-label="Category D">D</ui-badge><ui-badge id="letter" shape="circle" size="xs" variant="outline" aria-label="Category R">R</ui-badge><ui-badge id="count" shape="circle" size="xs">3</ui-badge><ui-badge id="double" shape="circle" size="xs">12</ui-badge><ui-badge id="large" shape="circle" size="lg">30</ui-badge><ui-badge id="maximum" shape="circle" size="lg">99+</ui-badge><ui-badge id="medium" shape="circle" tone="accent"><ui-icon name="check"></ui-icon></ui-badge><ui-cluster align="center" wrap="nowrap"><ui-button id="joined-primary" variant="solid" size="sm" aria-label="Submit 120 items">Submit <ui-badge id="joined-count" shape="circle" size="lg" variant="inverse" tone="accent" aria-hidden="true">99+</ui-badge></ui-button><ui-icon-button id="joined-menu" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button></ui-cluster>' : '<div id="app"></div>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css")]);
       await page.waitForSelector('#small:is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -716,13 +958,13 @@ describe("Pressed icon controls and circular marks", () => {
   it("keeps translucent inverse counts readable on filled controls in both themes", async () => {
     const tones = ["accent", "neutral", "danger", "success", "warning", "info"];
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-inverse-count-overlay`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-inverse-count-overlay`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Button } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiButton as Button } from "@threadlabs/looma";
         createApp({ render: () => ${JSON.stringify(tones)}.map(tone => h(Button, { variant: "solid", tone }, () => ["Submit", h(Badge, { id: tone, shape: "circle", size: "lg", variant: "inverse", tone }, () => "99+")])) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? tones.map(tone => `<ui-button variant="solid" tone="${tone}">Submit <ui-badge id="${tone}" shape="circle" size="lg" variant="inverse" tone="${tone}">99+</ui-badge></ui-button>`).join(" ") : '<div id="app"></div>',
-        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")]);
       await page.waitForSelector('#accent:is([data-component~="ui-badge"], .ui-badge)');
       await page.addStyleTag({ content: ":root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
       // Both on-fill polarities must remain readable in either document scheme.
@@ -754,7 +996,7 @@ describe("Pressed icon controls and circular marks", () => {
             paint(style.color); const ink = luminance();
             return { tone: element.id, opacity, borderOpacity, shadow: style.boxShadow, geometry: [box.width, box.height], foreground: style.color, surface: style.backgroundColor, control: control.backgroundColor, contrast: (Math.max(ink, background) + 0.05) / (Math.min(ink, background) + 0.05) };
           }));
-          await writeFile(join(root, ".build", sample + "-" + `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
+          await writeFile(join(root, ".test-build", sample + "-" + `${adapter}-inverse-count-contrast-${theme}.json`), JSON.stringify(overlays, null, 2));
           for (const overlay of overlays) {
             assert.ok(theme === "light" ? overlay.opacity >= 0.64 && overlay.opacity <= 0.68 : overlay.opacity >= 0.54 && overlay.opacity <= 0.58, `${adapter}/${theme}/${overlay.tone}: a quiet tone-tinted overlay instead of a bright cutout ${JSON.stringify(overlay)}`);
             assert.ok(theme === "light" ? overlay.borderOpacity > overlay.opacity : overlay.borderOpacity < overlay.opacity, "the separate border offsets the filled count surface");
@@ -781,7 +1023,7 @@ describe("Pressed icon controls and circular marks", () => {
 
 describe("Anchored overlay placement", () => {
   it("presents an open popover and menu without for in the top layer at their written place, traveling with it", async () => {
-    const path = await bundle("html-unanchored-popups", `import "@threadlabs/looma";`);
+    const path = await bundle("html-unanchored-popups", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="height: 300px"></div>
       <div id="stage" style="margin-inline-start: 40px; padding: 20px"><ui-popover id="popover" open>Popover content</ui-popover></div>
@@ -812,9 +1054,9 @@ describe("Anchored overlay placement", () => {
 
   it("shares one viewport listener across HTML and Vue popups, follows nested scrolling, and releases closed surfaces", async () => {
     const path = await bundle("mixed-overlay-coordinator", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { createApp, h, ref } from "vue";
-      import { Popover } from "@threadlabs/looma/vue";
+      import { UiPopover as Popover } from "@threadlabs/looma";
       const visible = ref(true);
       window.vuePopupOpen = visible;
       createApp({ render: () => h(Popover, { id: "vue-popup", open: visible.value, for: "vue-anchor" }, () => "Vue popup") }).mount("#app");
@@ -836,7 +1078,7 @@ describe("Anchored overlay placement", () => {
         <div id="app"></div>
         <div style="height: 1200px"></div>
       </div>
-    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    `, [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
     const activeListeners = () => page.evaluate(() => (window as any).viewportListeners.filter((signal: AbortSignal) => !signal.aborted).length);
     assert.equal(await activeListeners(), 1, "mixed adapters share one capture scroll listener");
     const before = await page.locator("#html-popup").boundingBox();
@@ -861,7 +1103,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
-    const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
+    const path = await bundle("html-popover-unavailable-anchor", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
       <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
@@ -889,7 +1131,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("waits for a usable anchor instead of opening at zero-size trigger bounds", async () => {
-    const path = await bundle("html-popover-hidden-anchor", `import "@threadlabs/looma";`);
+    const path = await bundle("html-popover-hidden-anchor", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="anchor" style="display: none; position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
       <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
@@ -903,7 +1145,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("positions Popover and Tooltip on every side and alignment, then flips at an edge", async () => {
-    const path = await bundle("html-overlay-placement", `import "@threadlabs/looma";`);
+    const path = await bundle("html-overlay-placement", `import "@looma-test/runtime";`);
     const placements = ["top", "top-start", "top-end", "bottom", "bottom-start", "bottom-end", "left", "left-start", "left-end", "right", "right-start", "right-end"];
     for (const placement of placements) {
       const page = await open(path, `
@@ -959,7 +1201,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("keeps a Tooltip beside its trigger after an ancestor moves without resizing", async () => {
-    const path = await bundle("html-tooltip-moving-anchor", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tooltip-moving-anchor", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div id="moving" style="position: fixed; left: 100px; top: 200px; transition: transform 100ms linear">
         <button id="anchor" style="width: 40px; height: 40px">Anchor</button>
@@ -978,7 +1220,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("lets one Popover set its main-axis offset in CSS", async () => {
-    const path = await bundle("html-popover-offset", `import "@threadlabs/looma";`);
+    const path = await bundle("html-popover-offset", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
       <ui-popover id="popover" for="anchor" open placement="bottom" style="--ui-popover-offset: 20px">Offset content</ui-popover>
@@ -989,7 +1231,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("shows the next Tooltip without another hover delay and reads its local offset", async () => {
-    const path = await bundle("html-tooltip-warmup", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tooltip-warmup", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="one" style="position: fixed; left: 300px; top: 200px">One</button>
       <button id="two" style="position: fixed; left: 500px; top: 200px">Two</button>
@@ -1008,7 +1250,7 @@ describe("Anchored overlay placement", () => {
   });
 
   it("closes a tooltip when another popup opens and cancels delayed tooltips", async () => {
-    const path = await bundle("html-tooltip-overlay-coordination", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tooltip-overlay-coordination", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="hint-trigger">Hint</button>
       <ui-tooltip id="hint" for="hint-trigger" show-delay="0">Helpful hint</ui-tooltip>
@@ -1063,12 +1305,12 @@ describe("Anchored overlay placement", () => {
 
   it("lets bare Popovers delegate their surface in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-bare-popover`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-bare-popover`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Popover, EditorToolbar } from "@threadlabs/looma/vue";
+        import { UiPopover as Popover, UiEditorToolbar as EditorToolbar } from "@threadlabs/looma";
         createApp({ render: () => h(Popover, { id: "popup", open: true, bare: true }, () => h(EditorToolbar, { floating: true }, () => h("button", "Bold"))) }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? '<ui-popover id="popup" open bare><ui-editor-toolbar floating><button>Bold</button></ui-editor-toolbar></ui-popover>' : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const page = await open(path, adapter === "html" ? '<ui-popover id="popup" open bare><ui-editor-toolbar floating><button>Bold</button></ui-editor-toolbar></ui-popover>' : '<div id="app"></div>', [join(root, "tokens.css")], { reducedMotion: "reduce" });
       await page.waitForFunction(() => document.querySelector("#popup")?.matches(":popover-open"));
       const styles = await page.locator("#popup .surface").evaluate(element => {
         const style = getComputedStyle(element);
@@ -1082,14 +1324,18 @@ describe("Anchored overlay placement", () => {
   it("keeps selection toolbar shadows outside their positioning shell", async () => {
     const path = await bundle("vue-editor-toolbar-shadow", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       createApp({ render: () => h(LoomaEditor, {
         toolbarMode: "contextual", compactToolbar: true,
-        modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
-        onReady: (editor) => { window.fixtureEditor = editor; },
+        content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+        extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.fixtureEditor = editor; } })],
       }) }).mount("#app");
+      });
     `);
-    const page = await open(path, '<div id="app" style="margin: 150px 40px"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const page = await open(path, '<div id="app" style="margin: 150px 40px"></div>', [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
     const shell = page.locator(".looma-editor__formatting-shell:popover-open");
     await shell.waitFor();
@@ -1101,14 +1347,17 @@ describe("Anchored overlay placement", () => {
     for (const mode of ["contextual", "popover"]) {
       const path = await bundle(`vue-editor-format-surface-${mode}`, `
         import { createApp, h } from "vue";
-        import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+        import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+        import { Extension } from "@tiptap/core";
+        editorBrowserTarget().then(LoomaEditor => {
         createApp({ render: () => h(LoomaEditor, {
           toolbarMode: "${mode}", compactToolbar: ${mode === "contextual"}, toolbarTriggerId: "format-trigger",
-          modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
-          onReady: (editor) => { window.fixtureEditor = editor; },
+          content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+          extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.fixtureEditor = editor; } })],
         }) }).mount("#app");
+        });
       `);
-      const page = await open(path, '<button id="format-trigger" style="margin: 100px 40px 40px">Formatting tools</button><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+      const page = await open(path, '<button id="format-trigger" style="margin: 100px 40px 40px">Formatting tools</button><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
       if (mode === "contextual") {
         await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
         await page.getByRole("button", { name: "Format", exact: true }).click();
@@ -1134,20 +1383,23 @@ describe("Anchored overlay placement", () => {
 
   it("closes a tooltip when the editor selection toolbar opens", async () => {
     const path = await bundle("vue-editor-tooltip-coordination", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension } from "@tiptap/core";
+      editorBrowserTarget().then(LoomaEditor => {
       createApp({ render: () => h(LoomaEditor, {
         label: "Writing",
-        modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
-        onReady: (editor) => { window.fixtureEditor = editor; },
+        content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+        extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.fixtureEditor = editor; } })],
       }) }).mount("#app");
+      });
     `);
     const page = await open(path, `
       <button id="hint-trigger">Hint</button>
       <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
       <div id="app"></div>
-    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    `, [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
     // Select "some" through the editor. Keys pressed right after focus race ProseMirror's post-focus
     // selection restore, which can put back the caret it last read and drop the selection.
     await page.waitForFunction(() => "fixtureEditor" in window);
@@ -1162,7 +1414,7 @@ describe("Table context menu placement", () => {
   // Owner model: a menu is shown at the place it is written and travels with that place; only a
   // menu written in a fixed or absolutely positioned box, as LoomaEditor places it, answers to the viewport.
   it("shows a menu at its written place and keeps a floating menu inside the viewport", async () => {
-    const path = await bundle("html-table-context-menu", `import "@threadlabs/looma";`);
+    const path = await bundle("html-table-context-menu", `import "@looma-test/runtime";`);
     const actions = `actions='["add-row-before","add-row-after","add-column-before","add-column-after","delete-table"]'`;
     const page = await open(path, `
       <div style="height: 1500px"></div>
@@ -1199,7 +1451,7 @@ describe("Table context menu placement", () => {
   });
 
   it("separates sections only between them and fits fewer swatches to a row in a narrow menu", async () => {
-    const path = await bundle("html-table-context-menu-sections", `import "@threadlabs/looma";`);
+    const path = await bundle("html-table-context-menu-sections", `import "@looma-test/runtime";`);
     const swatches = `actions='["background-none","background-gray","background-yellow","background-blue","background-green","background-red","add-row-after","delete-table"]'`;
     const page = await open(path, `
       <ui-editor-table-context-menu id="plain" actions='["add-row-after","delete-table"]' open></ui-editor-table-context-menu>
@@ -1231,13 +1483,13 @@ describe("Touch input typography", () => {
   it("keeps editable fields readable inside caption typography", async () => {
     const path = await bundle("touch-caption-input", `
       import { createApp, h } from "vue";
-      import { Input } from "@threadlabs/looma/vue";
+      import { UiInput as Input } from "@threadlabs/looma";
       createApp({ render: () => h("div", { style: "font-size:12px" }, () => [
         h(Input, { id: "normal", placeholder: "Search people" }),
         h(Input, { id: "small", size: "sm", placeholder: "Search pages" }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], {
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")], {
       viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
     });
     for (const id of ["normal", "small"]) {
@@ -1254,12 +1506,12 @@ describe("Touch input typography", () => {
 describe("Tooltip arrow geometry", () => {
   it("keeps the arrow symmetric around its tip on every side in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-tooltip-arrow`, adapter === "html" ? 'import "@threadlabs/looma";' : `
+      const path = await bundle(`${adapter}-tooltip-arrow`, adapter === "html" ? 'import "@looma-test/runtime";' : `
         import { createApp, h } from "vue";
-        import { Tooltip } from "@threadlabs/looma/vue";
+        import { UiTooltip as Tooltip } from "@threadlabs/looma";
         createApp({ render: () => h(Tooltip, { id: "hint", for: "anchor", open: true }, () => "Office hours") }).mount("#app");
       `);
-      const page = await open(path, '<button id="anchor" style="position: fixed; left: 300px; top: 250px">Office</button>' + (adapter === "html" ? '<ui-tooltip id="hint" for="anchor" open>Office hours</ui-tooltip>' : '<div id="app"></div>'), [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const page = await open(path, '<button id="anchor" style="position: fixed; left: 300px; top: 250px">Office</button>' + (adapter === "html" ? '<ui-tooltip id="hint" for="anchor" open>Office hours</ui-tooltip>' : '<div id="app"></div>'), [join(root, "tokens.css")], { reducedMotion: "reduce" });
       for (const side of ["top", "bottom", "left", "right"]) {
         // Inspect the painted arrow on each resolved side, independently of overlay collision policy.
         const symmetry = await page.locator("#hint").evaluate((element, side) => {
@@ -1277,7 +1529,7 @@ describe("Tooltip arrow geometry", () => {
 
 describe("Tooltip shortcut", () => {
   it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
-    const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tooltip-shortcut", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <button id="one" style="position: fixed; left: 200px; top: 200px">Search</button>
       <button id="two" style="position: fixed; left: 500px; top: 200px">Close</button>
@@ -1309,7 +1561,7 @@ describe("Tooltip shortcut", () => {
   it("sets a slotted kbd in the label's type, not the browser's monospace, in Vue", async () => {
     const path = await bundle("vue-shortcut-kbd", `
       import { createApp, h } from "vue";
-      import { Menu, MenuItem, Tooltip } from "@threadlabs/looma/vue";
+      import { UiMenu as Menu, UiMenuItem as MenuItem, UiTooltip as Tooltip } from "@threadlabs/looma";
       createApp({ render: () => h("main", [
         h("button", { id: "one", style: { position: "fixed", left: "200px", top: "200px" } }, "Search"),
         h(Tooltip, { for: "one", open: true, placement: "bottom" }, { default: () => "Search", shortcut: () => h("kbd", "⌘K") }),
@@ -1318,7 +1570,7 @@ describe("Tooltip shortcut", () => {
         ]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
     const fonts = await page.evaluate(() => Array.from(document.querySelectorAll("kbd"), (kbd) => ({
       kbd: getComputedStyle(kbd).fontFamily,
       region: getComputedStyle(kbd.parentElement!).fontFamily,
@@ -1330,11 +1582,57 @@ describe("Tooltip shortcut", () => {
 });
 
 describe("Toast composition and placement", () => {
+  for (const adapter of ['html', 'vue'] as const) it(`keeps the ${adapter} notification stack at content height in WebKit`, async () => {
+    const path = await bundle(`toast-intrinsic-${adapter}`, adapter === 'html' ? `
+      import '@looma-test/runtime';
+      import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      window.place = placement => componentRegistry.update(document.getElementById('region'), {placement});
+    ` : `
+      import {createApp,h,ref} from 'vue';
+      import { UiToastRegion as ToastRegion, UiToast as Toast } from '@threadlabs/looma';
+      const placement=ref('top');window.place=value=>placement.value=value;
+      createApp({render:()=>h(ToastRegion,{id:'region',placement:placement.value},()=>h(Toast,{id:'notice',tone:'danger'},()=> 'The change could not be saved. Please try again.'))}).mount('#app');
+    `);
+    // An installed compatibility driver also exercises older supported WebKit builds.
+    const driver = process.env.LOOMA_WEBKIT_MODULE || "playwright";
+    const {webkit} = await import(/* @vite-ignore */ driver);
+    const safari = await webkit.launch();
+    let page: Page | undefined;
+    try {
+      page = await safari.newPage({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+      const errors: string[] = [];
+      page.on('pageerror',error=>errors.push(error.message));
+      const markup = adapter === 'html'
+        ? '<ui-toast-region id="region"><ui-toast id="notice" tone="danger">The change could not be saved. Please try again.</ui-toast></ui-toast-region>'
+        : '<div id="app"></div>';
+      await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${markup}</body></html>`);
+      for (const css of [join(root,'tokens.css'),join(dirname(path),'components.css')]) await page.addStyleTag({path:css});
+      await page.addScriptTag({path});
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      await page.waitForFunction(()=>document.getElementById('region')!.matches(':popover-open'));
+      for (const placement of ['top','top-start','top-end','bottom','bottom-start','bottom-end']) {
+        await page.evaluate(value=>(window as unknown as {place:(value:string)=>void}).place(value),placement);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const geometry=await page.evaluate(()=>{
+          const region=document.getElementById('region')!,toast=document.getElementById('notice')!;
+          const box=region.getBoundingClientRect(),surface=toast.getBoundingClientRect(),style=getComputedStyle(toast);
+          const intrinsic=Math.max(toast.querySelector('.message')!.getBoundingClientRect().height,toast.querySelector('button')!.getBoundingClientRect().height)
+            +['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+Number.parseFloat(style[key as keyof CSSStyleDeclaration] as string),0);
+          return {height:surface.height,stack:box.height,intrinsic,top:box.top,bottom:box.bottom,viewport:innerHeight};
+        });
+        assert.ok(Math.abs(geometry.height-geometry.intrinsic)<=1,`${adapter}/${placement}: notifications retain content height: ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry.stack-geometry.height)<=1,'a single notification does not create an empty viewport-sized grid row');
+        assert.ok(geometry.top>=0 && geometry.bottom<=geometry.viewport,'the notification remains inside the phone viewport');
+      }
+      assert.deepEqual(errors,[]);
+    } finally {await page?.close();await safari.close();}
+  });
+
   it("balances toast content insets without external margins or smaller dismiss targets in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-toast-optical-insets`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Toast, ToastRegion } from "@threadlabs/looma/vue";
+        import { UiToast as Toast, UiToastRegion as ToastRegion } from "@threadlabs/looma";
         createApp({ render: () => h("div", {}, [
           h(Toast, { id: "authored", tone: "success" }, { default: () => "Notification received.", action: () => h("button", "Undo") }),
           h(ToastRegion, { id: "region", duration: 0 })
@@ -1342,7 +1640,7 @@ describe("Toast composition and placement", () => {
       `);
       const body = adapter === "html" ? `<ui-toast id="authored" tone="success">Notification received.<button slot="action">Undo</button></ui-toast><ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
       const page = await open(path, `<div id="app">${body}</div>`,
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { hasTouch: true });
+        [join(root, "tokens.css")], { hasTouch: true });
       await page.locator("#region").evaluate(element => element.dispatchEvent(new CustomEvent("show-toast", {
         detail: { id: "generated", message: "Notification received.", duration: 0 },
       })));
@@ -1381,9 +1679,9 @@ describe("Toast composition and placement", () => {
   it("keeps rounded notification borders even across tones, themes and adapters", async () => {
     const tones = ["neutral", "info", "success", "warning", "danger"];
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-notification-borders`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-notification-borders`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Callout, Toast, ToastRegion } from "@threadlabs/looma/vue";
+        import { UiCallout as Callout, UiToast as Toast, UiToastRegion as ToastRegion } from "@threadlabs/looma";
         createApp({ render: () => h("div", {}, [
           ...${JSON.stringify(tones)}.flatMap(tone => [h(Callout, { id: "callout-" + tone, tone }, () => tone + " notice"),
             h(Toast, { id: "toast-" + tone, tone }, () => tone + " notification")]),
@@ -1393,7 +1691,7 @@ describe("Toast composition and placement", () => {
       const body = adapter === "html" ? tones.map(tone => `<ui-callout id="callout-${tone}" tone="${tone}">${tone} notice</ui-callout><ui-toast id="toast-${tone}" tone="${tone}">${tone} notification</ui-toast>`).join("")
         + `<ui-toast-region id="region" duration="0"></ui-toast-region>` : "";
       const page = await open(path, `<div id="app">${body}</div>`,
-        ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css", ...(adapter === "vue" ? ["vue/components.css"] : [])].map(file => join(root, file)));
+        ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map(file => join(root, file)));
       await page.addStyleTag({ content: ":root { --ui-accent-line-width: 4px; } #app { display:grid; gap:12px; }" });
       for (const tone of tones) await page.locator("#region").evaluate((element, tone) => element.dispatchEvent(new CustomEvent("show-toast", {
         detail: { id: "generated-" + tone, message: tone + " generated notification", tone, duration: 0 },
@@ -1448,7 +1746,7 @@ describe("Toast composition and placement", () => {
 
   it("shows authored toasts, hides one on dismissal, and shows it again when hidden clears", async () => {
     const path = await bundle("html-authored-toast", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.dismissals = [];
       document.querySelector("#region").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
     `);
@@ -1482,7 +1780,7 @@ describe("Toast composition and placement", () => {
 
   it("pauses an authored duration on hover and dismisses after leaving", async () => {
     const path = await bundle("html-timed-toast", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.dismissals = [];
       document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
     `);
@@ -1499,7 +1797,7 @@ describe("Toast composition and placement", () => {
 
   it("times an authored hidden toast only once it is shown, and again each time it is shown", async () => {
     const path = await bundle("html-hidden-timed-toast", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.dismissals = [];
       document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail.reason));
     `);
@@ -1518,7 +1816,7 @@ describe("Toast composition and placement", () => {
 
   it("pauses while an action has focus and supports keyboard dismissal across themes", async () => {
     const path = await bundle("html-toast-focus", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.dismissals = [];
       document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
     `);
@@ -1549,7 +1847,7 @@ describe("Toast composition and placement", () => {
   });
 
   it("adds generated messages with tone and duration through a native event", async () => {
-    const path = await bundle("html-generated-toast", `import "@threadlabs/looma";`);
+    const path = await bundle("html-generated-toast", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-toast-region id="region" placement="top-start" duration="0"></ui-toast-region>`, [join(root, "tokens.css")]);
     await page.locator("#region").evaluate((element) => element.dispatchEvent(new CustomEvent("show-toast", {
       detail: { message: "Saved", id: "saved-notice", tone: "success", duration: 0 },
@@ -1571,7 +1869,7 @@ describe("Toast composition and placement", () => {
 
 describe("Intrinsic layout limits", () => {
   it("caps Grid columns and stacks Switcher children above its count limit in HTML", async () => {
-    const path = await bundle("html-layout-limits", `import "@threadlabs/looma";`);
+    const path = await bundle("html-layout-limits", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-grid id="grid" columns="3" min="sm" style="width: 1000px">
         <div>A</div><div>B</div><div>C</div><div>D</div><div>E</div>
@@ -1596,7 +1894,7 @@ describe("Intrinsic layout limits", () => {
   });
 
   it("lays out slotted components in Switcher, Reel and Cover from their own boxes", async () => {
-    const path = await bundle("html-layout-slotted-components", `import "@threadlabs/looma";`);
+    const path = await bundle("html-layout-slotted-components", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-switcher id="switcher" style="width: 1000px">
         <ui-card>A</ui-card><ui-stack><span>B</span></ui-stack><ui-card>C</ui-card>
@@ -1636,13 +1934,13 @@ describe("Intrinsic layout limits", () => {
   it("passes Grid and Switcher limits through Vue", async () => {
     const path = await bundle("vue-layout-limits", `
       import { createApp, h } from "vue";
-      import { Grid, Switcher } from "@threadlabs/looma/vue";
+      import { UiGrid as Grid, UiSwitcher as Switcher } from "@threadlabs/looma";
       createApp({ render: () => h("main", [
         h(Grid, { id: "grid", columns: 2, style: { width: "1000px" } }, () => [h("div", "A"), h("div", "B"), h("div", "C")]),
         h(Switcher, { id: "switcher", limit: 2, style: { width: "1000px" } }, () => [h("div", "A"), h("div", "B"), h("div", "C")]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.equal(await page.locator("#grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length), 2);
     assert.equal(await page.locator("#switcher").evaluate((element) => new Set(Array.from(element.children, (child) => Math.round(child.getBoundingClientRect().top))).size), 3);
     await page.close();
@@ -1653,9 +1951,9 @@ describe("Shared block vocabulary", () => {
   it("draws every callout tone with its own icon and an optional heading in HTML and Vue", async () => {
     const tones = ["note", "tip", "info", "important", "warning", "danger", "caution", "success"];
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-callout-vocabulary`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-callout-vocabulary`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Callout } from "@threadlabs/looma/vue";
+        import { UiCallout as Callout } from "@threadlabs/looma";
         createApp({ render: () => h("div", {}, [
           ...${JSON.stringify(tones)}.map(tone => h(Callout, { id: tone, tone }, () => tone + " message")),
           h(Callout, { id: "titled", tone: "tip", heading: "Before you start" }, () => "Body"),
@@ -1663,7 +1961,7 @@ describe("Shared block vocabulary", () => {
       `);
       const body = adapter === "html" ? tones.map(tone => `<ui-callout id="${tone}" tone="${tone}">${tone} message</ui-callout>`).join("")
         + `<ui-callout id="titled" tone="tip" heading="Before you start">Body</ui-callout>` : "";
-      const page = await open(path, `<div id="app">${body}</div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, `<div id="app">${body}</div>`, [join(root, "tokens.css")]);
       const look = (id: string) => page.locator(`#${id}`).evaluate(element => ({
         icon: element.querySelector(".icon svg")?.innerHTML ?? "",
         surface: getComputedStyle(element).backgroundColor,
@@ -1683,7 +1981,7 @@ describe("Shared block vocabulary", () => {
   });
 
   it("syncs authored tab values across different labels and preserves a missing choice", async () => {
-    const path = await bundle("html-tabs-values", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tabs-values", `import "@looma-test/runtime";`);
     const markup = (id: string, labels: string[], values: string[], initial = "") => `<ui-tabs id="${id}" group="language" value="${initial}">${labels.map((label, index) => `<section id="${id}-${index}" aria-label="${label}" data-value="${values[index]}">${label}</section>`).join("")}</ui-tabs>`;
     const page = await open(path, markup("one", ["JavaScript", "TypeScript"], ["js", "ts"], "ts") + markup("two", ["JavaScript example", "Typed example"], ["js", "ts"]) + markup("other", ["Python", "Ruby"], ["py", "rb"]), [join(root, "tokens.css")]);
     assert.equal(await page.locator("#one-1").isVisible(), true, "initial value selects an authored data-value");
@@ -1706,7 +2004,7 @@ describe("Shared block vocabulary", () => {
 
   it("syncs grouped tabs by label across the page and remembers the choice", async () => {
     const path = await bundle("html-tabs-group", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.selections = [];
       document.addEventListener("select", (event) => window.selections.push([event.target.id, event.detail.value, event.detail.trigger]));
     `);
@@ -1740,13 +2038,17 @@ describe("Expressive Markdown editor integration", () => {
   it("bundles the safe converter in a browser and loads its JSON into LoomaEditor", async () => {
     const path = await bundle("expressmark-editor", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
       import { editorDocumentToMarkdown, markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+      editorBrowserTarget().then(LoomaEditor => {
       const content = markdownToEditorDocument('::: warning [Read first]\\nHello, @[Ada]#user-123 and :chip[Ready]{tone=green}.\\n:::\\n\\n<script>window.injection = true</script>');
       window.markdown = editorDocumentToMarkdown(content);
-      createApp({ render: () => h(LoomaEditor, { modelValue: content, editable: false }) }).mount("#app");
+      createApp({ render: () => h(LoomaEditor, { content: content, editable: false }) }).mount("#app");
+      });
     `);
-    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
     await page.getByText("Read first", { exact: true }).waitFor();
     assert.equal(await page.locator('[data-looma-chip]').getAttribute("data-label"), "Ready");
     assert.equal(await page.locator('.looma-mention').count(), 1);
@@ -1762,10 +2064,14 @@ describe("Editor callouts", () => {
   async function openCalloutFixture() {
     const path = await bundle("vue-editor-callout-layout", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-      createApp({ render: () => h(LoomaEditor, { onReady: editor => { window.fixtureEditor = editor; } }) }).mount("#app");
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
+      createApp({ render: () => h(LoomaEditor, { extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.fixtureEditor = editor; } })] }) }).mount("#app");
+      });
     `);
-    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), join(root, "vue/components.css")]);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")]);
     await page.waitForFunction(() => "fixtureEditor" in window);
     return page;
   }
@@ -1893,7 +2199,8 @@ describe("Editor callouts", () => {
       const hueDistance = Math.abs(((hue! - paint.source[2]! + 540) % 360) - 180);
       assert.equal(paint.rgba[3], 255, `${theme}/${tone}: opacity must not wash the hue into the backdrop`);
       assert.ok(theme === "light" ? lightness! >= .92 : lightness! >= .30 && lightness! <= (hue! > 35 && hue! < 105 ? .44 : .39), `${theme}/${tone}: background lightness ${lightness}`);
-      assert.ok(chroma! >= .015, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
+      // Quiet surfaces use chroma .02 × .74; allow for the final 8-bit paint quantization.
+      assert.ok(chroma! >= .02 * .74 - .001, `${theme}/${tone}: the painted tint must retain visible chroma ${chroma}`);
       assert.ok(hueDistance < 10, `${theme}/${tone}: painted hue follows its tone ${hueDistance}`);
       assert.ok(paint.contrast >= 4.5, `${theme}/${tone}: readable text contrast ${paint.contrast}`);
     }
@@ -1910,7 +2217,7 @@ describe("Editor callouts", () => {
     });
     const { rendered: [lightness, chroma, hue], contrast } = await paintedCallout(page, "success");
     assert.ok(lightness! >= .94, `a light background must stay pale: ${lightness}`);
-    assert.ok(chroma! >= .015 && chroma! <= .022, `green stays visibly tinted without exceeding the shared quiet chroma: ${chroma}`);
+    assert.ok(Math.abs(chroma! - .02 * .74) <= .001, `green stays visibly tinted without exceeding the shared quiet chroma: ${chroma}`);
     assert.ok(hue! >= 125 && hue! <= 140, `the background retains the muted green hue: ${hue}`);
     assert.ok(contrast >= 4.5);
     await page.close();
@@ -1939,19 +2246,23 @@ describe("Editor callouts", () => {
   it("draws editor callouts, older asides included, with Callout and saves them as Callout", async () => {
     const path = await bundle("vue-editor-callout", `
       import { createApp, h } from "vue";
-      import { Callout } from "@threadlabs/looma/vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { UiCallout as Callout } from "@threadlabs/looma";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       window.saved = [];
       createApp({ render: () => h("div", [
         h(Callout, { id: "reference", tone: "tip", heading: "Before you start" }, () => "Reference"),
         h(LoomaEditor, {
           label: "Writing",
-          modelValue: '<ui-callout tone="tip" heading="Before you start"><p>Install first.</p></ui-callout><aside data-looma-callout data-tone="warning"><p>Older.</p></aside>',
-          onReady: (editor) => { window.fixtureEditor = editor; },
+          content: generateJSON('<ui-callout tone="tip" heading="Before you start"><p>Install first.</p></ui-callout><aside data-looma-callout data-tone="warning"><p>Older.</p></aside>', getDefaultEditorExtensions()),
+          extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.fixtureEditor = editor; } })],
         }),
       ]) }).mount("#app");
+      });
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
     await page.waitForFunction(() => "fixtureEditor" in window);
     const callouts = page.locator(".ProseMirror :is([data-component~='ui-callout'], .ui-callout)");
     assert.equal(await callouts.count(), 2, "both callouts draw as Callout");
@@ -1977,7 +2288,7 @@ describe("Editor callouts", () => {
 
 describe("Tabs activation", () => {
   it("lets vertical wheel scrolling reach the page over fitting and overflowing tabs", async () => {
-    const path = await bundle("html-tabs-wheel", 'import "@threadlabs/looma";');
+    const path = await bundle("html-tabs-wheel", 'import "@looma-test/runtime";');
     const page = await open(path, '<div style="height: 3000px"><ui-tabs style="max-inline-size: 12rem"><section aria-label="HTML Next">HTML</section><section aria-label="Vue">Vue</section><section aria-label="Long additional example">More</section></ui-tabs></div>', [join(root, "tokens.css")]);
     for (const width of ["12rem", "60rem"]) {
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -1991,7 +2302,7 @@ describe("Tabs activation", () => {
 
   it("moves focus without selecting in manual mode and selects on Enter or Space", async () => {
     const path = await bundle("html-manual-tabs", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.selections = [];
       document.querySelector("#tabs").addEventListener("select", (event) => window.selections.push(event.detail));
     `);
@@ -2022,13 +2333,13 @@ describe("Tabs activation", () => {
   it("keeps automatic activation when the Vue prop is omitted", async () => {
     const path = await bundle("vue-auto-tabs", `
       import { createApp, h } from "vue";
-      import { Tabs } from "@threadlabs/looma/vue";
+      import { UiTabs as Tabs } from "@threadlabs/looma";
       createApp({ render: () => h(Tabs, { id: "tabs", label: "Views" }, () => [
         h("section", { id: "overview", "aria-label": "Overview" }, "Overview content"),
         h("section", { id: "details", "aria-label": "Details" }, "Details content"),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.getByRole("tab", { name: "Overview" }).focus();
     await page.keyboard.press("ArrowRight");
     assert.equal(await page.getByRole("tab", { name: "Details" }).getAttribute("aria-selected"), "true");
@@ -2036,7 +2347,7 @@ describe("Tabs activation", () => {
   });
 
   it("uses authored tab buttons with rich labels in HTML", async () => {
-    const path = await bundle("html-rich-tabs", `import "@threadlabs/looma";`);
+    const path = await bundle("html-rich-tabs", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-tabs label="Views">
         <button slot="tab" value="overview"><ui-icon name="check"></ui-icon> Overview</button>
@@ -2056,7 +2367,7 @@ describe("Tabs activation", () => {
   it("projects rich tab buttons through Vue", async () => {
     const path = await bundle("vue-rich-tabs", `
       import { createApp, h } from "vue";
-      import { Tabs, Icon } from "@threadlabs/looma/vue";
+      import { UiTabs as Tabs, UiIcon as Icon } from "@threadlabs/looma";
       createApp({ render: () => h(Tabs, { label: "Views" }, {
         tab: () => [
           h("button", { value: "overview" }, [h(Icon, { name: "check" }), " Overview"]),
@@ -2068,7 +2379,7 @@ describe("Tabs activation", () => {
         ],
       }) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.equal(await page.getByRole("tab", { name: "Details (2)" }).count(), 1);
     await page.getByRole("tab", { name: "Details (2)" }).click();
     assert.equal(await page.locator("#details").isVisible(), true);
@@ -2078,7 +2389,7 @@ describe("Tabs activation", () => {
 
 describe("Disclosure composition", () => {
   it("initializes required groups independently and transfers ownership when an open member is removed", async () => {
-    const path = await bundle("html-disclosure-required", `import "@threadlabs/looma";`);
+    const path = await bundle("html-disclosure-required", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-disclosure id="first" name="required" required-open summary="First"><a href="#first-link">First link</a></ui-disclosure>
       <ui-disclosure id="second" name="required" required-open summary="Second"><a href="#second-link">Second link</a></ui-disclosure>
@@ -2099,9 +2410,9 @@ describe("Disclosure composition", () => {
 
   it("shares neutral navigation colors, columns, typography, hover, and corners in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Disclosure, NavItem, Icon } from "@threadlabs/looma/vue";
+        import { UiDisclosure as Disclosure, UiNavItem as NavItem, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => h("div", { style: "width:240px" }, [
           h(Disclosure, { id: "section", variant: "navigation", density: "compact", fill: true, open: true, summary: "Library" }, {
             leading: () => h(Icon, { name: "files" }), indicator: () => h(Icon, { name: "chevron-up" }),
@@ -2116,7 +2427,7 @@ describe("Disclosure composition", () => {
           <ui-disclosure id="section" variant="navigation" density="compact" fill open summary="Library"><ui-icon slot="leading" name="files"></ui-icon><ui-icon slot="indicator" name="chevron-up"></ui-icon></ui-disclosure>
           <ui-nav-item id="destination" density="compact"><ui-icon slot="leading" name="trash"></ui-icon>Archived<ui-icon slot="trailing" name="chevrons-up-down"></ui-icon></ui-nav-item>
         </div>
-      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      ` : `<div id="app"></div>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
       const geometry = await page.evaluate(() => {
         const summary = document.querySelector("#section button")!;
         const nav = document.querySelector("#destination")!;
@@ -2147,9 +2458,9 @@ describe("Disclosure composition", () => {
 
   it("fills the remaining height with unboxed headers and a scrolling body in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const source = adapter === "html" ? `import "@threadlabs/looma";` : `
+      const source = adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Disclosure, Icon } from "@threadlabs/looma/vue";
+        import { UiDisclosure as Disclosure, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => h("div", { id: "panels", style: "display:flex;flex-direction:column;height:480px;width:240px" }, [
           h(Disclosure, { id: "first", fill: true, requiredOpen: true, name: "panels", summary: "Overview", open: true }, {
             indicator: () => h(Icon, { name: "chevron-down", "aria-hidden": "true" }),
@@ -2167,7 +2478,7 @@ describe("Disclosure composition", () => {
           </ui-disclosure>
           <ui-disclosure id="second" fill required-open name="panels" summary="Library"><p>Library content</p></ui-disclosure>
         </div>` : `<div id="app"></div>`;
-      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const page = await open(path, body, [join(root, "tokens.css")], { reducedMotion: "reduce" });
       assert.equal(await page.locator("#first .chevron").count(), 0, "custom indicator replaces the default");
       const measure = () => page.evaluate(() => {
         const first = document.querySelector("#first")!;
@@ -2200,7 +2511,7 @@ describe("Disclosure composition", () => {
   });
 
   it("animates bounded fill transfer and a persistent custom indicator", async () => {
-    const path = await bundle("html-disclosure-motion", `import "@threadlabs/looma";`);
+    const path = await bundle("html-disclosure-motion", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms">
         <ui-disclosure id="first" fill name="motion" summary="Overview" open><p>Overview content</p></ui-disclosure>
@@ -2238,7 +2549,7 @@ describe("Disclosure composition", () => {
 
   it("reveals closed content when a fragment targets it and closes its named peer", async () => {
     const path = await bundle("html-disclosure-beforematch", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.opens = [];
       document.querySelector("#target").addEventListener("open", (event) => window.opens.push(event.detail));
     `);
@@ -2259,7 +2570,7 @@ describe("Disclosure composition", () => {
 
   it("uses named exclusive groups, a rich summary, and an optional heading in HTML", async () => {
     const path = await bundle("html-disclosure-group", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.closes = [];
       document.querySelector("#first").addEventListener("close", (event) => window.closes.push(event.detail));
     `);
@@ -2286,7 +2597,7 @@ describe("Disclosure composition", () => {
   it("keeps named groups and summary slots through Vue", async () => {
     const path = await bundle("vue-disclosure-group", `
       import { createApp, h } from "vue";
-      import { Disclosure } from "@threadlabs/looma/vue";
+      import { UiDisclosure as Disclosure } from "@threadlabs/looma";
       createApp({ render: () => h("div", [
         h(Disclosure, { id: "first", name: "faq", summary: "First", headingLevel: 2 }, () => h("p", "First answer")),
         h(Disclosure, { id: "second", name: "faq", summary: "Second", headingLevel: 2 }, {
@@ -2295,7 +2606,7 @@ describe("Disclosure composition", () => {
         }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.equal(await page.getByRole("heading", { level: 2, name: "Rich second" }).count(), 1);
     await page.locator("#first .trigger").click();
     await page.locator("#second .trigger").click();
@@ -2307,9 +2618,9 @@ describe("Disclosure composition", () => {
 describe("Menu structure and navigation", () => {
   it("aligns icon and label columns across grouped and iconless items in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-menu-columns`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-menu-columns`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Menu, MenuItem, MenuGroup, Icon } from "@threadlabs/looma/vue";
+        import { UiMenu as Menu, UiMenuItem as MenuItem, UiMenuGroup as MenuGroup, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => h(Menu, { inline: true, icons: true }, () => [
           h(MenuItem, { id: "first", value: "edit" }, { icon: () => h(Icon, { name: "pencil" }), default: () => "Edit", shortcut: () => "Cmd E" }),
           h(MenuGroup, {}, () => [
@@ -2327,7 +2638,7 @@ describe("Menu structure and navigation", () => {
             <ui-menu-item id="link" href="/history" value="history"><ui-icon slot="icon" name="history"></ui-icon>History<span slot="shortcut">Cmd H</span></ui-menu-item>
             <ui-menu-item id="danger" tone="danger" value="delete"><ui-icon slot="icon" name="trash-2"></ui-icon>Delete</ui-menu-item>
           </ui-menu-group>
-        </ui-menu>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        </ui-menu>` : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.waitForSelector('#first:is([data-component~="ui-menu-item"], .ui-menu-item)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -2350,7 +2661,7 @@ describe("Menu structure and navigation", () => {
     }
   });
   it("dismisses only the top menu when Escape bubbles through its containing popover", async () => {
-    const path = await bundle("html-nested-menu-escape", `import "@threadlabs/looma";`);
+    const path = await bundle("html-nested-menu-escape", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="settings-trigger">Settings</ui-button>
       <ui-popover id="settings" for="settings-trigger">
@@ -2373,7 +2684,7 @@ describe("Menu structure and navigation", () => {
   });
 
   it("spaces slotted icons and keeps ghost triggers pressed while overlays are open", async () => {
-    const path = await bundle("html-menu-icon-and-ghost-trigger", `import "@threadlabs/looma";`);
+    const path = await bundle("html-menu-icon-and-ghost-trigger", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-icon-button id="menu-trigger" variant="ghost" label="Page actions"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" /></svg></ui-icon-button>
       <ui-menu id="actions" for="menu-trigger" density="compact" aria-label="Page actions">
@@ -2421,7 +2732,7 @@ describe("Menu structure and navigation", () => {
   it("clears trigger expansion when a Vue menu or popover unmounts", async () => {
     const path = await bundle("vue-overlay-trigger-cleanup", `
       import { createApp, h, ref } from "vue";
-      import { Button, IconButton, Menu, MenuItem, Popover } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiIconButton as IconButton, UiMenu as Menu, UiMenuItem as MenuItem, UiPopover as Popover } from "@threadlabs/looma";
       const menuVisible = ref(true);
       const popoverVisible = ref(true);
       window.hideOverlays = () => { menuVisible.value = false; popoverVisible.value = false; };
@@ -2432,7 +2743,7 @@ describe("Menu structure and navigation", () => {
         popoverVisible.value ? h(Popover, { id: "popover", for: "popover-trigger", open: true }, () => "Details") : null,
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const menuTrigger = page.locator("#menu-trigger");
     const popoverTrigger = page.locator("#popover-trigger");
     assert.equal(await menuTrigger.getAttribute("aria-expanded"), "true");
@@ -2448,7 +2759,7 @@ describe("Menu structure and navigation", () => {
     for (const kind of ["menu", "popover"]) {
       const path = await bundle(`vue-controlled-${kind}-cleanup`, `
         import { createApp, h, ref } from "vue";
-        import { Button, Menu, MenuItem, Popover } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiMenu as Menu, UiMenuItem as MenuItem, UiPopover as Popover } from "@threadlabs/looma";
         const visible = ref(false);
         window.hideOverlay = () => visible.value = false;
         createApp({ render: () => h("div", [
@@ -2459,7 +2770,7 @@ describe("Menu structure and navigation", () => {
           h(Button, { id: "outside" }, () => "Outside"),
         ]) }).mount("#app");
       `);
-      const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
       const trigger = page.locator("#trigger");
       for (const dismissal of ["choice", "escape", "outside", "trigger", "programmatic"]) {
         await trigger.click();
@@ -2480,7 +2791,7 @@ describe("Menu structure and navigation", () => {
 
   it("keeps link semantics, groups and separators, and moves through enabled items in HTML", async () => {
     const path = await bundle("html-menu-structure", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.selections = [];
       document.querySelector("#menu").addEventListener("select", (event) => window.selections.push(event.detail));
     `);
@@ -2522,7 +2833,7 @@ describe("Menu structure and navigation", () => {
   it("projects groups and links through Vue and navigates a context menu", async () => {
     const path = await bundle("vue-menu-structure", `
       import { createApp, h } from "vue";
-      import { ContextMenu, MenuGroup, MenuItem } from "@threadlabs/looma/vue";
+      import { UiContextMenu as ContextMenu, UiMenuGroup as MenuGroup, UiMenuItem as MenuItem } from "@threadlabs/looma";
       createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () => [
         h(MenuGroup, { label: "View" }, () => [
           h(MenuItem, { id: "one", value: "one" }, () => "One"),
@@ -2531,7 +2842,7 @@ describe("Menu structure and navigation", () => {
         h(MenuItem, { id: "three", value: "three" }, () => "Three"),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css")]);
     const menu = page.locator("#menu");
     assert.equal(await menu.getByRole("group", { name: "View" }).count(), 1);
     assert.equal(await page.locator("#two").evaluate((element) => element.localName), "a");
@@ -2545,7 +2856,7 @@ describe("Menu structure and navigation", () => {
 
   it("toggles checkboxes and keeps radio choices exclusive within their groups", async () => {
     const path = await bundle("html-menu-checks", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.menuEvents = [];
       document.querySelector("#menu").addEventListener("select", (event) => window.menuEvents.push(["select", event.detail]));
       document.addEventListener("change", (event) => { if (event.target.closest("#menu")) window.menuEvents.push(["change", event.detail]); });
@@ -2597,14 +2908,14 @@ describe("Menu structure and navigation", () => {
   it("keeps a controlled Vue check item in sync inside a context menu", async () => {
     const path = await bundle("vue-menu-check", `
       import { createApp, h, ref } from "vue";
-      import { ContextMenu, MenuItem } from "@threadlabs/looma/vue";
+      import { UiContextMenu as ContextMenu, UiMenuItem as MenuItem } from "@threadlabs/looma";
       const checked = ref(false);
       window.changes = [];
       createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () =>
         h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (event) => { window.changes.push(event.detail); checked.value = event.detail.checked; } }, () => "Show grid"))
       }).mount("#app");
     `);
-    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css")]);
     await page.locator("#grid").click();
     assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "true");
     assert.deepEqual(await page.evaluate(() => (window as any).changes), [{ checked: true, value: "grid", type: "checkbox", trigger: "pointer" }]);
@@ -2612,7 +2923,7 @@ describe("Menu structure and navigation", () => {
   });
 
   it("keeps checked indicators and keyboard focus visible across themes", async () => {
-    const path = await bundle("html-menu-themes", `import "@threadlabs/looma";`);
+    const path = await bundle("html-menu-themes", `import "@looma-test/runtime";`);
     const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
     const page = await open(path, `<ui-menu open aria-label="Options"><ui-menu-item id="grid" type="checkbox" checked>Show grid</ui-menu-item><ui-menu-item id="date" type="radio" checked>Date</ui-menu-item></ui-menu>`, css);
     // Material gradients can paint an opaque surface while backgroundColor stays transparent.
@@ -2669,15 +2980,15 @@ describe("Menu structure and navigation", () => {
 describe("Dialog close policy and presentation", () => {
   for (const adapter of ["html", "vue"]) {
     for (const alert of [false, true]) it(`keeps ${adapter} ${alert ? "alert" : "regular"} dialog content inset and actions equally padded with early or late CSS`, async () => {
-      const path = await bundle(`${adapter}-${alert ? "alert" : "regular"}-dialog-spacing`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-${alert ? "alert" : "regular"}-dialog-spacing`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Button, Dialog } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiDialog as Dialog } from "@threadlabs/looma";
         createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, alert: ${alert}, label: "Publish changes?" }, {
           default: () => h("p", { id: "message" }, "Your edits will be visible to everyone with access to this project."),
           actions: () => [h(Button, { variant: "outline" }, () => "Cancel"), h(Button, {}, () => "Publish")],
         }) }).mount("#app");
       `);
-      const css = [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])];
+      const css = [join(root, "tokens.css"), join(root, "theme-light.css")];
       for (const width of [1024, 375]) {
         for (const late of [false, true]) {
           const page = await open(path, adapter === "html" ? `
@@ -2725,9 +3036,9 @@ describe("Dialog close policy and presentation", () => {
     });
 
     it(`keeps ${adapter} dialog chrome pinned while the body grows, scrolls, and shrinks`, async () => {
-      const path = await bundle(`${adapter}-dialog-scroll`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-dialog-scroll`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Button, Dialog } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiDialog as Dialog } from "@threadlabs/looma";
         createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Review changes" }, {
           default: () => h("div", { id: "content" }, "Short content"),
           actions: () => h(Button, {}, () => "Accept"),
@@ -2735,7 +3046,7 @@ describe("Dialog close policy and presentation", () => {
       `);
       const page = await open(path, adapter === "html" ? `
         <ui-dialog id="dialog" open modal label="Review changes"><div id="content">Short content</div><ui-button slot="actions">Accept</ui-button></ui-dialog>
-      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+      ` : '<div id="app"></div>', [join(root, "tokens.css")],
         { viewport: { width: 375, height: 600 }, reducedMotion: "reduce" });
       const dialog = page.locator("#dialog");
       const short = await dialog.boundingBox();
@@ -2760,11 +3071,11 @@ describe("Dialog close policy and presentation", () => {
   it("fits short content with equal action gutters and caps growing HTML and Vue bodies at the viewport", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-dialog-content-size`, adapter === "html" ? `
-        import "@threadlabs/looma";
+        import "@looma-test/runtime";
         window.setLines = (count) => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
       ` : `
         import { createApp, h, ref } from "vue";
-        import { Button, Dialog } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiDialog as Dialog } from "@threadlabs/looma";
         const lines = ref(1);
         window.setLines = (count) => { lines.value = count; };
         createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, {
@@ -2773,7 +3084,7 @@ describe("Dialog close policy and presentation", () => {
         }) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p><ui-button slot="actions">Done</ui-button></ui-dialog>' : '<div id="app"></div>',
-        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 600 }, reducedMotion: "reduce" });
+        [join(root, "tokens.css"), join(root, "theme-light.css")], { viewport: { width: 1100, height: 600 }, reducedMotion: "reduce" });
       await page.addStyleTag({ content: "body {font:16px/24px system-ui} p {white-space:pre-line; margin-block:20px}" });
       const measure = () => page.locator("#dialog").evaluate(element => {
         const rect = element.getBoundingClientRect();
@@ -2808,17 +3119,17 @@ describe("Dialog close policy and presentation", () => {
   it("animates content growth and shrinkage, retargets an active resize, and respects reduced motion in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-dialog-height-motion`, adapter === "html" ? `
-        import "@threadlabs/looma";
+        import "@looma-test/runtime";
         window.setLines = count => { document.querySelector("#content").textContent = Array(count).fill("Content line").join("\\n"); };
       ` : `
         import { createApp, h, ref } from "vue";
-        import { Dialog } from "@threadlabs/looma/vue";
+        import { UiDialog as Dialog } from "@threadlabs/looma";
         const lines = ref(1);
         window.setLines = count => { lines.value = count; };
         createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", { id: "content" }, Array(lines.value).fill("Content line").join("\\n"))) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p id="content">Content line</p></ui-dialog>' : '<div id="app"></div>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 1100, height: 1000 }, reducedMotion: "no-preference" });
+        [join(root, "tokens.css")], { viewport: { width: 1100, height: 1000 }, reducedMotion: "no-preference" });
       await page.addStyleTag({ content: 'body {font:16px/24px system-ui} p {white-space:pre-line} #dialog {--ui-dialog-duration:200ms}' });
       await page.waitForFunction(() => document.querySelector("#dialog")!.getAnimations().length === 0);
       const short = await page.locator("#dialog").evaluate(element => element.getBoundingClientRect().height);
@@ -2858,9 +3169,9 @@ describe("Dialog close policy and presentation", () => {
 
   it("keeps HTML and Vue non-modal dialogs above transformed, clipped ancestors without a backdrop", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-dialog-top-layer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-dialog-top-layer`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Dialog } from "@threadlabs/looma/vue";
+        import { UiDialog as Dialog } from "@threadlabs/looma";
         createApp({ render: () => h(Dialog, { id: "dialog", open: true, label: "Details" }, () => h("p", "Body")) }).mount("#app");
       `);
       const page = await open(path, `
@@ -2868,7 +3179,7 @@ describe("Dialog close policy and presentation", () => {
           ${adapter === "html" ? '<ui-dialog id="dialog" open label="Details"><p>Body</p></ui-dialog>' : '<div id="app"></div>'}
         </div>
         <div style="position: fixed; inset: 0; z-index: 2147483647; background: red"></div>
-      `, [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      `, [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
       const dialog = page.locator("#dialog");
       assert.equal(await dialog.evaluate((element) => element.matches(":popover-open")), true, `${adapter}: non-modal dialogs belong to the top layer`);
       assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
@@ -2894,7 +3205,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("honors authored close commands outside a non-modal dialog", async () => {
-    const path = await bundle("html-dialog-external-close", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-external-close", `import "@looma-test/runtime";`);
     const page = await open(path, '<button id="dismiss" command="close" commandfor="dialog">Dismiss dialog</button><ui-dialog id="dialog" open label="Details">Body</ui-dialog>', [join(root, "tokens.css")]);
     await page.locator("#dismiss").click();
     await page.waitForTimeout(50);
@@ -2904,7 +3215,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("keeps nested modal dialogs open with only one visible backdrop", async () => {
-    const path = await bundle("html-dialog-nested-backdrops", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-nested-backdrops", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-dialog id="parent" open modal label="Parent">
         <button id="child-trigger">Open child</button>
@@ -2930,7 +3241,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("shares one backdrop when a modal Search Shell opens inside a modal Dialog", async () => {
-    const path = await bundle("html-dialog-search-shell-backdrop", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-search-shell-backdrop", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-dialog id="parent" open modal label="Parent">
         <ui-search-shell id="search" open modal label="Search"><input slot="search" aria-label="Query"></ui-search-shell>
@@ -2950,7 +3261,7 @@ describe("Dialog close policy and presentation", () => {
 
   it("is non-modal by default, like native show(): no backdrop, no scroll lock, Escape and outside presses do not close it", async () => {
     const path = await bundle("html-dialog-default", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       const dialog = document.querySelector("#dialog");
       window.dialogEvents = [];
       dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
@@ -2982,7 +3293,7 @@ describe("Dialog close policy and presentation", () => {
 
   it("opens modally with modal, locks scroll, closes on Escape, returns focus, and reports trigger and close events", async () => {
     const path = await bundle("html-dialog-close-policy", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       const dialog = document.querySelector("#dialog");
       window.dialogEvents = [];
       dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
@@ -3007,7 +3318,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("keeps modeless as a no-op: non-modal alone, and modal wins when both are set", async () => {
-    const path = await bundle("html-dialog-modeless", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-modeless", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-dialog id="modeless" open modeless label="Modeless">Body</ui-dialog>
       <ui-dialog id="both" open modal modeless label="Both">Body</ui-dialog>
@@ -3020,7 +3331,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("follows closedby in each mode", async () => {
-    const path = await bundle("html-dialog-closedby", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-closedby", `import "@looma-test/runtime";`);
     for (const modal of [false, true]) {
       const attribute = modal ? " modal" : "";
       const page = await open(path, `
@@ -3048,12 +3359,12 @@ describe("Dialog close policy and presentation", () => {
   it("switches between non-modal and modal while open in Vue, and keeps the close default in step", async () => {
     const path = await bundle("vue-dialog-modal-switch", `
       import { createApp, h, ref } from "vue";
-      import { Dialog } from "@threadlabs/looma/vue";
+      import { UiDialog as Dialog } from "@threadlabs/looma";
       const modal = ref(false);
       window.dialogModal = modal;
       createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: modal.value, label: "Switch" }, () => "Body") }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const dialog = page.locator("#dialog");
     assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
     assert.equal(await dialog.getAttribute("closedby"), "none");
@@ -3068,7 +3379,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("separates outside dismissal from Escape and keeps alerts modal and action-only when requested", async () => {
-    const path = await bundle("html-dialog-alert", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-alert", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-dialog id="dialog" open modal closedby="any" label="Info">Body</ui-dialog>
       <ui-button id="alert-trigger">Show alert</ui-button>
@@ -3096,7 +3407,7 @@ describe("Dialog close policy and presentation", () => {
   });
 
   it("supports size choices while retaining the local width hook", async () => {
-    const path = await bundle("html-dialog-size", `import "@threadlabs/looma";`);
+    const path = await bundle("html-dialog-size", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-dialog id="small" open size="sm" label="Small">Body</ui-dialog>
       <ui-dialog id="large" open size="lg" label="Large">Body</ui-dialog>
@@ -3118,7 +3429,7 @@ describe("Dialog close policy and presentation", () => {
   it("reports a controlled Vue open once when the consumer changes it", async () => {
     const path = await bundle("vue-dialog-open", `
       import { createApp, h, ref } from "vue";
-      import { Dialog } from "@threadlabs/looma/vue";
+      import { UiDialog as Dialog } from "@threadlabs/looma";
       const open = ref(false);
       window.dialogEvents = [];
       createApp({ render: () => [
@@ -3126,7 +3437,7 @@ describe("Dialog close policy and presentation", () => {
         h(Dialog, { id: "dialog", open: open.value, label: "Details", onOpen: (event) => window.dialogEvents.push(event.detail) }, () => "Body"),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), []);
     await page.locator("#show").click();
     await page.waitForFunction(() => (document.querySelector("#dialog") as HTMLDialogElement).open);
@@ -3138,7 +3449,7 @@ describe("Dialog close policy and presentation", () => {
 
 describe("Editable constraints", () => {
   it("keeps invalid drafts open and uses authored action labels in HTML", async () => {
-    const path = await bundle("html-editable-constraints", `import "@threadlabs/looma";`);
+    const path = await bundle("html-editable-constraints", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-editable id="name" value="Old" label="Name" actions required max-length="4" save-label="Apply" cancel-label="Discard" placeholder="Name"></ui-editable>`, [join(root, "tokens.css")]);
     const editable = page.locator("#name");
     await editable.locator(".preview").click();
@@ -3164,7 +3475,7 @@ describe("Editable constraints", () => {
 
 describe("Form Field error visibility", () => {
   it("shows and describes an authored error only while invalid in HTML", async () => {
-    const path = await bundle("html-form-field-error", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form-field-error", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-form-field id="valid"><label slot="label">Name</label><ui-input aria-label="Name"></ui-input><small slot="help">A short name.</small><small slot="error" id="valid-error">Required.</small></ui-form-field>
       <ui-form-field id="invalid" invalid><label slot="label">Email</label><ui-input aria-label="Email"></ui-input><small slot="error" id="invalid-error">Enter an email.</small></ui-form-field>
@@ -3181,7 +3492,7 @@ describe("Form Field error visibility", () => {
 
 describe("Textarea autosize", () => {
   it("keeps rows as the minimum and grows and shrinks with input in HTML", async () => {
-    const path = await bundle("html-textarea-autosize", `import "@threadlabs/looma";`);
+    const path = await bundle("html-textarea-autosize", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-textarea id="note" aria-label="Note" autosize rows="3"></ui-textarea>`, [join(root, "tokens.css")]);
     const textarea = page.locator("#note");
     const dimensions = () => textarea.evaluate((element) => ({
@@ -3201,10 +3512,10 @@ describe("Textarea autosize", () => {
   it("passes autosize and rows through the Vue projection", async () => {
     const path = await bundle("vue-textarea-autosize", `
       import { createApp, h } from "vue";
-      import { Textarea } from "@threadlabs/looma/vue";
+      import { UiTextarea as Textarea } from "@threadlabs/looma";
       createApp({ render: () => h(Textarea, { id: "note", "aria-label": "Note", autosize: true, rows: 2 }) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const textarea = page.locator("#note");
     const initial = await textarea.evaluate((element) => element.getBoundingClientRect().height);
     await textarea.fill("One\nTwo\nThree\nFour\nFive\nSix");
@@ -3224,7 +3535,7 @@ describe("Choice invalid states", () => {
   };
 
   it("exposes and styles invalid choices in HTML", async () => {
-    const path = await bundle("html-invalid-choices", `import "@threadlabs/looma";`);
+    const path = await bundle("html-invalid-choices", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="--ui-field-danger: rgb(146, 36, 64)">
         <ui-checkbox id="terms" invalid>Accept terms</ui-checkbox>
@@ -3238,13 +3549,13 @@ describe("Choice invalid states", () => {
   it("exposes and styles invalid choices in Vue", async () => {
     const path = await bundle("vue-invalid-choices", `
       import { createApp, h } from "vue";
-      import { Checkbox, Radio, RadioGroup } from "@threadlabs/looma/vue";
+      import { UiCheckbox as Checkbox, UiRadio as Radio, UiRadioGroup as RadioGroup } from "@threadlabs/looma";
       createApp({ render: () => h("div", { style: "--ui-field-danger: rgb(146, 36, 64)" }, [
         h(Checkbox, { id: "terms", invalid: true }, () => "Accept terms"),
         h(RadioGroup, { id: "choice", label: "Choose", invalid: true }, () => h(Radio, { value: "one" }, () => "One")),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await verify(page);
     await page.close();
   });
@@ -3263,7 +3574,7 @@ describe("Combobox option modes", () => {
   };
 
   it("opens on focus, leaves externally filtered options visible, and keeps invalid in HTML", async () => {
-    const path = await bundle("html-combobox-option-modes", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-option-modes", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-combobox id="fruit" label="Fruit" filter="none" open-on-focus invalid>
         <option value="apple">Apple</option><option value="pear">Pear</option>
@@ -3276,20 +3587,20 @@ describe("Combobox option modes", () => {
   it("passes option modes through Vue", async () => {
     const path = await bundle("vue-combobox-option-modes", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", filter: "none", openOnFocus: true, invalid: true }, () => [
         h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear"),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await verify(page);
     await page.close();
   });
 
   for (const adapter of ["html", "vue"]) it(`opens committed choices and toggles disclosure without reopening in ${adapter}`, async () => {
-    const path = await bundle(`${adapter}-combobox-committed-opening`, adapter === "html" ? `import "@threadlabs/looma";` : `
+    const path = await bundle(`${adapter}-combobox-committed-opening`, adapter === "html" ? `import "@looma-test/runtime";` : `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const options = () => [h("option", {value:"apple"}, "Apple"), h("option", {value:"pear"}, "Pear")];
       createApp({render:()=>h("div", [
         h(Combobox, {id:"fruit",label:"Fruit",value:"apple",openOnFocus:true,disclosure:true},options),
@@ -3297,7 +3608,7 @@ describe("Combobox option modes", () => {
       ])}).mount("#app");
     `);
     const options = '<option value="apple">Apple</option><option value="pear">Pear</option>';
-    const page = await open(path, adapter === "html" ? `<ui-combobox id="fruit" label="Fruit" value="apple" open-on-focus disclosure>${options}</ui-combobox><ui-combobox id="draft" label="Draft" value="apple" query="Ap" open-on-focus>${options}</ui-combobox>` : '<div id="app"></div>', [join(root,"tokens.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])]);
+    const page = await open(path, adapter === "html" ? `<ui-combobox id="fruit" label="Fruit" value="apple" open-on-focus disclosure>${options}</ui-combobox><ui-combobox id="draft" label="Draft" value="apple" query="Ap" open-on-focus>${options}</ui-combobox>` : '<div id="app"></div>', [join(root,"tokens.css")]);
     try {
       const input = page.locator('#fruit input[role="combobox"]');
       await input.click();
@@ -3322,11 +3633,11 @@ describe("Combobox option modes", () => {
       // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.
       const path = await bundle(`${adapter}-combobox-scoped-slots`, adapter === "html" ? `
         import { lowerDocument } from "@nextwebwg/html-next/live";
-        import "@threadlabs/looma";
+        import "@looma-test/runtime";
         lowerDocument();
       ` : `
         import { createApp, h } from "vue";
-        import { Combobox } from "@threadlabs/looma/vue";
+        import { UiCombobox as Combobox } from "@threadlabs/looma";
         createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", multiple: true, openOnFocus: true, items: [{ id: "apple", value: "apple", label: "Apple" }] }, {
           default: () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear", "data-description": "Green" }, "Pear")],
           option: ({ option }) => h("b", { class: "custom-option" }, option.label + (option.description ? " / " + option.description : "")),
@@ -3339,7 +3650,7 @@ describe("Combobox option modes", () => {
           <template slot="option"><b class="custom-option">{$option.label}<template $if="$option.description"> / {$option.description}</template></b></template>
           <template slot="item"><i class="custom-item">{$item.label}</i></template>
         </ui-combobox>
-      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      ` : `<div id="app"></div>`, [join(root, "tokens.css")]);
       await page.locator("#fruit input[role=combobox]").focus();
       await page.locator("#fruit .custom-option").first().waitFor();
       assert.deepEqual(await page.locator("#fruit [role=option] .custom-option").allTextContents(), ["Apple", "Pear / Green"], adapter);
@@ -3349,7 +3660,7 @@ describe("Combobox option modes", () => {
   });
 
   it("announces loading and shows an authored empty state when settled in HTML", async () => {
-    const path = await bundle("html-combobox-loading", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-loading", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-combobox id="fruit" label="Fruit" loading open-on-focus>
         <span slot="empty">No fruit found</span>
@@ -3374,14 +3685,14 @@ describe("Combobox option modes", () => {
   it("follows a Vue consumer's loading state", async () => {
     const path = await bundle("vue-combobox-loading", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const loading = ref(true);
       window.finishLoading = () => { loading.value = false; };
       createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", openOnFocus: true, loading: loading.value }, {
         empty: () => h("span", "No fruit found"),
       }) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const input = page.locator("#fruit input[role=combobox]");
     await input.focus();
     assert.equal(await input.getAttribute("aria-busy"), "true");
@@ -3394,7 +3705,7 @@ describe("Combobox option modes", () => {
 
 describe("Loading actions", () => {
   it("keeps focus and labels while blocking button submits, icon clicks, and link navigation in HTML", async () => {
-    const path = await bundle("html-loading-actions", `import "@threadlabs/looma";`);
+    const path = await bundle("html-loading-actions", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form"><ui-button id="save" type="submit" loading><span>Save</span></ui-button></form>
       <ui-icon-button id="more" label="More" loading><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
@@ -3437,7 +3748,7 @@ describe("Loading actions", () => {
   it("reactivates when a Vue consumer clears loading", async () => {
     const path = await bundle("vue-loading-actions", `
       import { createApp, h, ref } from "vue";
-      import { Button, IconButton } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiIconButton as IconButton } from "@threadlabs/looma";
       const loading = ref(true);
       window.finish = () => { loading.value = false; };
       createApp({ render: () => h("div", [
@@ -3445,7 +3756,7 @@ describe("Loading actions", () => {
         h(IconButton, { id: "more", label: "More", loading: loading.value }, () => h("svg", { viewBox: "0 0 24 24" })),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.evaluate(() => {
       (window as unknown as { activations: number }).activations = 0;
       for (const id of ["save", "more"]) document.getElementById(id)?.addEventListener("click", () => (window as unknown as { activations: number }).activations++);
@@ -3466,7 +3777,7 @@ describe("Disabled link activation", () => {
   it("blocks Vue click consumers until disabled is cleared", async () => {
     const path = await bundle("vue-disabled-link-consumer", `
       import { createApp, h, ref } from "vue";
-      import { Button } from "@threadlabs/looma/vue";
+      import { UiButton as Button } from "@threadlabs/looma";
       const disabled = ref(true);
       window.activations = 0;
       window.enableLink = () => { disabled.value = false; };
@@ -3475,7 +3786,7 @@ describe("Disabled link activation", () => {
         onClick: event => { event.preventDefault(); window.activations++; },
       }, () => "Open") }).mount("#app");
     `);
-    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")]);
     const link = page.locator("#link");
     assert.equal(await link.evaluate(element => element.localName), "a");
     assert.equal(await link.getAttribute("href"), null);
@@ -3494,7 +3805,7 @@ describe("Disabled link activation", () => {
 
 describe("Disabled action appearance", () => {
   it("uses a flat neutral palette instead of retaining active button tones", async () => {
-    const path = await bundle("html-disabled-actions", `import "@threadlabs/looma";`);
+    const path = await bundle("html-disabled-actions", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="active">Publish</ui-button>
       <ui-button id="outline" disabled>Publish</ui-button>
@@ -3521,7 +3832,7 @@ describe("Disabled action appearance", () => {
 
 describe("Avatar fallbacks and counts", () => {
   it("shows a person glyph, supports square and decorative avatars, and counts unauthored people in HTML", async () => {
-    const path = await bundle("html-avatar-coverage", `import "@threadlabs/looma";`);
+    const path = await bundle("html-avatar-coverage", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-avatar id="anonymous"></ui-avatar>
       <ui-avatar id="decorative" name="Ada Lovelace" decorative></ui-avatar>
@@ -3545,12 +3856,12 @@ describe("Avatar fallbacks and counts", () => {
   it("passes decorative, shape, total, and overflow label through Vue", async () => {
     const path = await bundle("vue-avatar-coverage", `
       import { createApp, h } from "vue";
-      import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
+      import { UiAvatar as Avatar, UiAvatarGroup as AvatarGroup } from "@threadlabs/looma";
       createApp({ render: () => h(AvatarGroup, { id: "group", max: 1, total: 4, overflowLabel: "{count} more teammates" }, () => [
         h(Avatar, { id: "square", name: "Ada Lovelace", shape: "square", decorative: true }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.equal(await page.locator("#square").getAttribute("aria-hidden"), "true");
     assert.equal(await page.locator("#square").evaluate((element) => getComputedStyle(element).borderTopLeftRadius), "8px");
     assert.equal(await page.locator("#group .overflow").getAttribute("aria-label"), "3 more teammates");
@@ -3562,7 +3873,7 @@ describe("Vue components", () => {
   it("update a v-model prop once per choice, though the choice is two events", async () => {
     const path = await bundle("vue-radio-model", `
       import { createApp, h, ref } from "vue";
-      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      import { UiRadio as Radio, UiRadioGroup as RadioGroup } from "@threadlabs/looma";
       const choice = ref("open");
       const updates = [];
       window.updates = updates;
@@ -3578,7 +3889,7 @@ describe("Vue components", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
 
     // A choice is reported as select and as change; a v-model consumer hears it once.
     await page.locator('#access input[value="private"]').click();
@@ -3591,7 +3902,7 @@ describe("Vue components", () => {
   it("name a choice by its label and describe it by its description", async () => {
     const path = await bundle("vue-radio-description", `
       import { createApp, h } from "vue";
-      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      import { UiRadio as Radio, UiRadioGroup as RadioGroup } from "@threadlabs/looma";
       createApp({
         render: () => [
           h(RadioGroup, { label: "Who can open it", value: "open" }, () => [
@@ -3601,7 +3912,7 @@ describe("Vue components", () => {
         ],
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
 
     // The description is on its own line and is not part of the name.
     const open_ = page.getByRole("radio", { name: "Open", exact: true });
@@ -3619,7 +3930,7 @@ describe("Vue components", () => {
   it("frames a multiline textarea and its bottom action in one accessible input group", async () => {
     const path = await bundle("vue-multiline-input-group", `
       import { createApp, h } from "vue";
-      import { Button, Textarea, InputGroup } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiTextarea as Textarea, UiInputGroup as InputGroup } from "@threadlabs/looma";
       createApp({ render: () => h("form", { id: "form" }, [
         h(InputGroup, { id: "multiline", multiline: true }, {
           default: () => h(Textarea, { id: "message", name: "message", rows: 3, value: "A draft", "aria-label": "Message" }),
@@ -3628,7 +3939,7 @@ describe("Vue components", () => {
         }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
     await page.addStyleTag({ content: "* { transition: none !important; }" });
     const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
     assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "the textarea shares the outer frame");
@@ -3653,7 +3964,7 @@ describe("Vue components", () => {
   it("put an input group's action at its end, inside its border, at the field's height", async () => {
     const path = await bundle("vue-input-group-action", `
       import { createApp, h } from "vue";
-      import { Button, Input, InputGroup } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiInput as Input, UiInputGroup as InputGroup } from "@threadlabs/looma";
       createApp({
         render: () => [
           h(InputGroup, { id: "plain" }, { default: () => h(Input, { "aria-label": "Site" }), suffix: () => ".example.com" }),
@@ -3665,7 +3976,7 @@ describe("Vue components", () => {
         ],
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const box = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().toJSON());
     const plain = await box("#plain");
     const group = await box("#with-action");
@@ -3685,7 +3996,7 @@ describe("Vue components", () => {
   it("ring an active avatar, and not another", async () => {
     const path = await bundle("vue-avatar-active", `
       import { createApp, h } from "vue";
-      import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
+      import { UiAvatar as Avatar, UiAvatarGroup as AvatarGroup } from "@threadlabs/looma";
       createApp({
         render: () => [h(AvatarGroup, { label: "On this page" }, () => [
           h(Avatar, { id: "editing", name: "Ada Lovelace", alt: "Ada Lovelace, editing", active: true }),
@@ -3696,7 +4007,7 @@ describe("Vue components", () => {
         ])],
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const outline = (id: string) => page.locator(`#${id}`).evaluate((element) => getComputedStyle(element).outlineStyle);
     assert.equal(await outline("editing"), "solid");
     assert.equal(await outline("viewing"), "none");
@@ -3712,7 +4023,8 @@ describe("Vue components", () => {
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
-      import { Button, Checkbox, Tabs, Combobox, Callout, Stack, Input, trackInputModality } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiCheckbox as Checkbox, UiTabs as Tabs, UiCombobox as Combobox, UiCallout as Callout, UiStack as Stack, UiInput as Input } from "@threadlabs/looma";
+      import { trackInputModality } from "@threadlabs/looma/components/shared/input-modality.js";
       trackInputModality(document);
       const checked = ref(false);
       const name = ref("Ada");
@@ -3736,7 +4048,7 @@ describe("Vue components", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
 
     const button = page.locator("#save");
     assert.equal(await button.evaluate((element) => element.localName), "button");
@@ -3784,18 +4096,18 @@ describe("Vue components", () => {
 describe("Shared action edges", () => {
   for (const adapter of ["html", "vue"]) {
     it(`shares fine raised action edges and retains quiet, focused and disabled ${adapter} controls`, async () => {
-      const path = await bundle(`${adapter}-shared-action-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-shared-action-edges`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiButton as Button, UiCluster as Cluster, UiIcon as Icon, UiIconButton as IconButton } from "@threadlabs/looma";
         const icon = () => h(Icon, { name: "chevron-down" });
         createApp({ render: () => [
           ...["3", "30", "99+"].map((count, index) => h(Cluster, { align: "center", wrap: "nowrap", style: { "--ui-cluster-gap": "0", "--ui-action-radius": "0" } }, () => [
-            h(Button, { id: "primary-" + index, variant: "solid", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
-            h(IconButton, { id: "more-" + index, variant: "solid", size: "sm", matchButton: true, label: "More actions" }, icon),
+            h(Button, { id: "primary-" + index, variant: "solid", tone: "accent", size: "sm" }, { default: () => "Submit", badge: () => h(Badge, { shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => count) }),
+            h(IconButton, { id: "more-" + index, variant: "solid", tone: "accent", size: "sm", matchButton: true, label: "More actions" }, icon),
           ])),
           h(Button, { id: "stop", variant: "solid", tone: "neutral" }, () => "Stop"),
           h(IconButton, { id: "stop-icon", variant: "solid", tone: "neutral", label: "Stop" }, icon),
-          h(Button, { id: "outline" }, () => "View changes"),
+          h(Button, { id: "outline", tone: "accent" }, () => "View changes"),
           h(IconButton, { id: "outline-icon", variant: "outline", tone: "accent", label: "More" }, icon),
           h(Button, { id: "ghost", variant: "ghost" }, () => "Quiet"),
           h(Button, { id: "link", variant: "link", href: "#" }, () => "Link"),
@@ -3806,16 +4118,16 @@ describe("Shared action edges", () => {
       `);
       const body = adapter === "vue" ? '<div id="app"></div>' : ["3", "30", "99+"].map((count, index) => `
         <ui-cluster align="center" wrap="nowrap" style="--ui-cluster-gap: 0; --ui-action-radius: 0">
-          <ui-button id="primary-${index}" variant="solid" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
-          <ui-icon-button id="more-${index}" variant="solid" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+          <ui-button id="primary-${index}" variant="solid" tone="accent" size="sm">Submit <ui-badge slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">${count}</ui-badge></ui-button>
+          <ui-icon-button id="more-${index}" variant="solid" tone="accent" size="sm" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         </ui-cluster>`).join("") + `
         <ui-button id="stop" variant="solid" tone="neutral">Stop</ui-button><ui-icon-button id="stop-icon" variant="solid" tone="neutral" label="Stop"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
-        <ui-button id="outline">View changes</ui-button>
+        <ui-button id="outline" tone="accent">View changes</ui-button>
         <ui-icon-button id="outline-icon" variant="outline" tone="accent" label="More"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="ghost" variant="ghost">Quiet</ui-button><ui-button id="link" variant="link" href="#">Link</ui-button>
         <ui-icon-button id="ghost-icon" label="Quiet"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         <ui-button id="disabled" variant="solid" disabled>Disabled</ui-button><ui-icon-button id="disabled-icon" variant="solid" disabled label="Disabled"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
-      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")], { reducedMotion: "reduce" });
       try {
         await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); color: var(--ui-text-primary); background: var(--ui-surface-default); display: grid; gap: 16px; justify-items: start; } :root { --ui-motion-fast: 0ms; --ui-motion-base: 0ms; }" });
         const shadow = async (id: string) => (await page.locator("#" + id).evaluate(element => getComputedStyle(element).boxShadow)).split(/,(?![^()]*\))/).filter(layer => !layer.trim().startsWith("rgba(0, 0, 0, 0) ")).join(",");
@@ -3826,11 +4138,37 @@ describe("Shared action edges", () => {
           assert.ok((await shadow("primary-0")).includes("-1px -1px 0px 0px inset"), "a fine lowlight at bottom/end");
           assert.equal(await shadow("outline"), await shadow("outline-icon"), "outline actions use the same recipe");
           assert.equal(await shadow("stop"), await shadow("stop-icon"), "neutral filled actions share the restrained recipe");
-          for (const id of ["primary-0", "more-0", "outline", "outline-icon", "stop", "stop-icon"]) {
-            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting boxed controls have one edge without a face gradient");
+          for (const id of ["primary-0", "more-0"]) {
+            assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "resting filled accents have one edge without a face gradient");
             assert.equal((await shadow(id)).match(/inset/g)?.length, 2, "one highlight and one lowlight do not stack with another bevel");
             assert.equal((await shadow(id)).split(/,(?![^()]*\))/).length, 3, "the edge pair has only one ambient lift layer");
           }
+          for (const id of ["outline", "outline-icon", "stop", "stop-icon"]) {
+            const quietShadow = await shadow(id);
+            assert.equal(quietShadow, await shadow("stop"), "outlines and neutral fills share quiet elevation");
+            assert.ok(!quietShadow.includes("inset"), `${id} has no raised bevel`);
+            assert.equal(quietShadow.split(/,(?![^()]*\))/).length, 1, `${id} retains one ambient lift layer`);
+            assert.notEqual(quietShadow, "none", `${id} retains quiet elevation`);
+          }
+          for (const id of ["stop", "stop-icon"]) assert.equal(await page.locator("#" + id).evaluate(element => getComputedStyle(element).backgroundImage), "none", "neutral fills do not acquire an accent wash");
+          for (const id of ["outline", "outline-icon"]) {
+            const wash = async (state: string) => page.locator("#" + id).evaluate((element, state) => {
+              const probe = document.createElement("span");
+              probe.style.color = `var(--ui-accent-${state})`;
+              element.append(probe);
+              const color = getComputedStyle(probe).color;
+              const background = getComputedStyle(element).backgroundImage;
+              probe.remove();
+              return { expected: `linear-gradient(${color}, ${color})`, background };
+            }, state);
+            await page.mouse.move(0, 0);
+            let colors = await wash("wash");
+            assert.ok(colors.background.startsWith(colors.expected), `${id} rests over a translucent accent wash`);
+            await page.locator("#" + id).hover();
+            colors = await wash("wash-hover");
+            assert.ok(colors.background.startsWith(colors.expected), `${id} strengthens its accent wash on hover`);
+          }
+          await page.mouse.move(0, 0);
           for (const id of ["ghost", "link", "ghost-icon", "disabled", "disabled-icon"]) assert.equal(await shadow(id), "none", `${id} stays flat`);
           for (let index = 0; index < 3; index++) {
             const count = await page.locator(`#primary-${index} :is([data-component~="ui-badge"], .ui-badge)`).evaluate(element => {
@@ -3860,7 +4198,7 @@ describe("Shared action edges", () => {
           await page.locator("#ghost-icon").blur();
           for (const width of [1280, 375]) {
             await page.setViewportSize({ width, height: 720 });
-            await page.screenshot({ path: join(root, ".build", `${adapter}-shared-action-edges-${theme}-${width}.png`) });
+            await page.screenshot({ path: join(root, ".test-build", `${adapter}-shared-action-edges-${theme}-${width}.png`) });
           }
           for (const id of ["primary-0", "more-0"]) {
             const rect = await page.locator("#" + id).boundingBox();
@@ -3872,8 +4210,8 @@ describe("Shared action edges", () => {
             await page.mouse.up();
           }
           await page.evaluate(() => document.documentElement.dir = "rtl");
-          assert.ok((await shadow("outline")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
-          assert.ok((await shadow("outline")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
+          assert.ok((await shadow("primary-0")).includes("-1px 1px 0px 0px inset"), "the leading highlight mirrors in RTL");
+          assert.ok((await shadow("primary-0")).includes("1px -1px 0px 0px inset"), "the end lowlight mirrors in RTL");
           await page.evaluate(() => document.documentElement.dir = "ltr");
         }
         await page.evaluate(() => document.documentElement.style.setProperty("--ui-action-shadow", "0 0 0 2px rgb(1 2 3)"));
@@ -3882,7 +4220,7 @@ describe("Shared action edges", () => {
         await page.locator("#primary-0").evaluate(element => (element as HTMLElement).style.setProperty("--ui-button-solid-shadow", "none"));
         assert.equal(await shadow("primary-0"), "none", "an instance hook wins over its action-group theme");
       } finally { await page.close(); }
-      const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+      const touch = await open(path, body, [join(root, "tokens.css")], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
       try {
         const heights = await touch.locator('#primary-0, #more-0').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
         assert.deepEqual(heights, [32, 32], "primary and companion retain the same compact visible geometry on touch");
@@ -3894,9 +4232,9 @@ describe("Shared action edges", () => {
 describe("Button layout", () => {
   for (const adapter of ["html", "vue"]) {
     it(`keeps a compact circular count and ordinary ${adapter} actions at the same standard height`, async () => {
-      const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Button, Cluster, Icon, IconButton } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiButton as Button, UiCluster as Cluster, UiIcon as Icon, UiIconButton as IconButton } from "@threadlabs/looma";
         createApp({ render: () => ["sm", "md"].map(size => h(Cluster, { align: "center", wrap: "nowrap" }, () => [
           h(Button, { id: size + "-ordinary", size }, () => "View changes"),
           h(Button, { id: size + "-counted", size, variant: "solid" }, { default: () => "Submit", badge: () => h(Badge, { id: size + "-count", shape: "circle", size: "sm", variant: "inverse", tone: "accent" }, () => "99+") }),
@@ -3909,7 +4247,7 @@ describe("Button layout", () => {
           <ui-button id="${size}-counted" size="${size}" variant="solid">Submit <ui-badge id="${size}-count" slot="badge" shape="circle" size="sm" variant="inverse" tone="accent">99+</ui-badge></ui-button>
           <ui-icon-button id="${size}-more" size="${size}" match-button label="More actions"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
         </ui-cluster>`).join("");
-      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, body, [join(root, "tokens.css")]);
       try {
         await page.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
         for (const width of [1280, 375]) for (const font of ["system-ui", "Arial"]) {
@@ -3932,8 +4270,8 @@ describe("Button layout", () => {
             assert.ok(geometry.text <= geometry.available, `the complete 99+ count fits ${JSON.stringify(geometry)}`);
           }
         }
-        await page.screenshot({ path: join(root, ".build", `${adapter}-compact-count-buttons-375.png`) });
-        const touch = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
+        await page.screenshot({ path: join(root, ".test-build", `${adapter}-compact-count-buttons-375.png`) });
+        const touch = await open(path, body, [join(root, "tokens.css")], { viewport: { width: 375, height: 720 }, hasTouch: true, isMobile: true });
         try {
           await touch.addStyleTag({ content: "body { font-family: var(--ui-font-family-sans); }" });
           for (const size of ["sm", "md"]) {
@@ -3948,7 +4286,7 @@ describe("Button layout", () => {
   it("lays content out from the start and stretches to its container when asked", async () => {
     const path = await bundle("vue-button-layout", `
       import { createApp, h } from "vue";
-      import { Button } from "@threadlabs/looma/vue";
+      import { UiButton as Button } from "@threadlabs/looma";
       createApp({
         render: () => h("div", { style: "inline-size: 300px" }, [
           h(Button, { id: "option", variant: "ghost", align: "start", stretch: true }, () => "New page"),
@@ -3956,7 +4294,7 @@ describe("Button layout", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const layout = (id: string) => page.locator(id).evaluate((element) => {
       const style = getComputedStyle(element);
       return { width: (element as HTMLElement).offsetWidth, justify: style.justifyContent, text: style.textAlign };
@@ -3981,14 +4319,14 @@ describe("Button as a link", () => {
   for (const adapter of ["HTML", "Vue"]) {
     it(`switches Button roots when href changes in ${adapter}`, async () => {
       const path = await bundle(`button-href-${adapter}`, adapter === "HTML" ? `
-        import "@threadlabs/looma";
+        import "@looma-test/runtime";
         import { componentRegistry } from "@nextwebwg/html-next/runtime";
         window.setButtonProps = (props) => {
           for (const id of ["regular", "card"]) componentRegistry.update(document.getElementById(id), props);
         };
       ` : `
         import { createApp, h, ref } from "vue";
-        import { Button } from "@threadlabs/looma/vue";
+        import { UiButton as Button } from "@threadlabs/looma";
         const props = ref({});
         window.setButtonProps = (next) => { props.value = { ...props.value, ...next }; };
         createApp({ render: () => ["regular", "card"].map(id => h(Button, {
@@ -3998,7 +4336,7 @@ describe("Button as a link", () => {
       const page = await open(path, adapter === "HTML" ? `
         <ui-button id="regular" variant="solid">Guide</ui-button>
         <ui-button id="card" variant="card">Guide</ui-button>
-      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])]);
+      ` : '<div id="app"></div>', [join(root, "tokens.css")]);
       try {
         for (const props of [
           { href: "/guide" }, { href: "" }, { loading: true },
@@ -4038,7 +4376,7 @@ describe("Button as a link", () => {
     const variants = ["outline", "solid", "danger", "ghost", "link"];
     const path = await bundle("vue-button-link", `
       import { createApp, h } from "vue";
-      import { Button } from "@threadlabs/looma/vue";
+      import { UiButton as Button } from "@threadlabs/looma";
       const pair = (id, props) => [
         h(Button, { id: id + "-button", ...props }, () => "Go"),
         h(Button, { id: id + "-link", href: "#next", ...props }, () => "Go"),
@@ -4054,7 +4392,7 @@ describe("Button as a link", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     // End states, not the transition between them.
     await page.addStyleTag({ content: "* { transition: none !important; }" });
 
@@ -4110,7 +4448,7 @@ describe("Button as a link", () => {
   });
 
   it("lowers to a link from HTML", async () => {
-    const path = await bundle("html-button-link", `import "@threadlabs/looma";`);
+    const path = await bundle("html-button-link", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="button" variant="solid">Go</ui-button>
       <ui-button id="link" href="#next" variant="solid">Go</ui-button>
@@ -4133,9 +4471,9 @@ describe("Button as a link", () => {
 describe("Badge shape", () => {
   it("keeps compact text pills padded without enlarging fixed marks in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-compact-pill`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-compact-pill`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge } from "@threadlabs/looma";
         createApp({ render: () => [
           h(Badge, { id: "compact", size: "xs" }, () => "On track"),
           h(Badge, { id: "regular" }, () => "On track"),
@@ -4148,7 +4486,7 @@ describe("Badge shape", () => {
         <ui-badge id="regular">On track</ui-badge>
         <ui-badge id="circle" shape="circle" size="xs">7</ui-badge>
         <ui-badge id="square" shape="square" size="xs">A</ui-badge>
-      ` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      ` : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.waitForSelector('#compact:is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -4174,7 +4512,7 @@ describe("Badge shape", () => {
   });
 
   it("draws a tag flat at the start and pointed at the end, leaving the pill as it was", async () => {
-    const path = await bundle("html-badge-shape", `import "@threadlabs/looma";`);
+    const path = await bundle("html-badge-shape", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-badge id="pill">Pill</ui-badge>
       <ui-badge id="tag" shape="tag">Tag</ui-badge>
@@ -4199,7 +4537,7 @@ describe("Badge shape", () => {
   });
 
   it("keeps an outline around pill and pointed tag shapes in light, dark, and forced colours", async () => {
-    const path = await bundle("html-badge-outline", `import "@threadlabs/looma";`);
+    const path = await bundle("html-badge-outline", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-badge id="pill" variant="outline" tone="danger">Danger</ui-badge>
       <ui-badge id="tag" variant="outline" shape="tag" tone="danger">Danger</ui-badge>
@@ -4260,7 +4598,7 @@ describe("Badge colour", () => {
   const variants = ["subtle", "solid", "outline", "inverse"];
 
   it("overrides the tone, yields to explicit hooks, and keeps text contrast", async () => {
-    const path = await bundle("html-badge-color", `import "@threadlabs/looma";`);
+    const path = await bundle("html-badge-color", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-badge id="tone" tone="danger">Tone</ui-badge>
       <ui-badge id="neutral">Plain</ui-badge>
@@ -4383,13 +4721,13 @@ describe("Badge box", () => {
       { id: "square", label: "R", size: "xs", shape: "square" },
     ];
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-badge-text-center`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-badge-text-center`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge } from "@threadlabs/looma";
         createApp({ render: () => ${JSON.stringify(cases)}.map(({ label, ...props }) => h(Badge, props, () => label)) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? cases.map(({ id, label, size, shape }) => `<ui-badge id="${id}" size="${size}" shape="${shape}">${label}</ui-badge>`).join(" ") : '<div id="app"></div>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css")]);
       await page.waitForSelector('#status-md-0:is([data-component~="ui-badge"], .ui-badge)');
       await page.locator('[id$="-4"]').evaluateAll(elements => elements.forEach(element => { (element as HTMLElement).style.maxWidth = "110px"; }));
       for (const font of ["system-ui", "Arial"]) {
@@ -4431,13 +4769,13 @@ describe("Badge box", () => {
   it("spaces and centers ordinary SVG plus text children in badges and buttons", async () => {
     const icon = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-ordinary-icon-text`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-ordinary-icon-text`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Button } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiButton as Button } from "@threadlabs/looma";
         const icon = () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]);
         createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"]), h(Badge, { id: "ordinary-square", shape: "square" }, () => icon()), h(Badge, { id: "slot-square", shape: "square" }, { icon })] }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.waitForSelector(':is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -4468,12 +4806,12 @@ describe("Badge box", () => {
   it("keeps an icon centered and unclipped beside chip text in HTML and Vue", async () => {
     const svg = '<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-badge-icon-label`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-badge-icon-label`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge } from "@threadlabs/looma";
         createApp({ render: () => h(Badge, { id: "chip", tone: "success" }, { icon: () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]), default: () => "Yes" }) }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? `<ui-badge id="chip" tone="success">${svg} Yes</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="chip" tone="success">${svg} Yes</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css")]);
       await page.waitForSelector('#chip:is([data-component~="ui-badge"], .ui-badge)');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -4513,7 +4851,7 @@ describe("Badge box", () => {
 
 
   it("sizes to its label and shades subtle edges in every tone, in HTML", async () => {
-    const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
+    const path = await bundle("html-badge-box", `import "@looma-test/runtime";`);
     const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
     await checkBadges(page);
     await page.close();
@@ -4522,7 +4860,7 @@ describe("Badge box", () => {
   it("sizes to its label and shades subtle edges in every tone, in Vue", async () => {
     const path = await bundle("vue-badge-box", `
       import { createApp, h } from "vue";
-      import { Badge } from "@threadlabs/looma/vue";
+      import { UiBadge as Badge } from "@threadlabs/looma";
       const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
       createApp({ render: () => [
         h("div", { id: "compact" }, [h(Badge, { size: "xs", variant: "solid", tone: "warning" }, () => "1")]),
@@ -4532,7 +4870,7 @@ describe("Badge box", () => {
         h("div", { id: "tones" }, variants.flatMap((variant) => tones.map((tone) => h(Badge, { variant, tone }, () => tone)))),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkBadges(page);
     await page.close();
   });
@@ -4540,7 +4878,7 @@ describe("Badge box", () => {
 
 describe("Combobox validation message", () => {
   it("shows its validation message in HTML, not only in Vue", async () => {
-    const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-validation", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#fruit:is([data-component~="ui-combobox"], .ui-combobox)');
     assert.equal(await page.locator('#fruit input[role="combobox"]').evaluate((input) => {
@@ -4577,15 +4915,15 @@ function scrollFades(page: Page, selector: string) {
 describe("Scroll area", () => {
   it("trims only projected edge margins when requested in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-scroll-area-trim`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-scroll-area-trim`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { ScrollArea } from "@threadlabs/looma/vue";
+        import { UiScrollArea as ScrollArea } from "@threadlabs/looma";
         createApp({ render: () => [false, true].map(trim => h(ScrollArea, { id: trim ? "trimmed" : "default", trim },
           () => [h("p", "First"), h("section", [h("p", "Nested")]), h("p", "Last")])) }).mount("#app");
       `);
       const content = '<p>First</p><section><p>Nested</p></section><p>Last</p>';
       const page = await open(path, adapter === "html" ? `<ui-scroll-area id="default">${content}</ui-scroll-area><ui-scroll-area id="trimmed" trim>${content}</ui-scroll-area>` : '<div id="app"></div>',
-        [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css")]);
       await page.addStyleTag({ content: "p { margin-block: 20px }" });
       const margins = async (id: string) => page.locator(`#${id} p`).evaluateAll(elements => elements.map(element => {
         const style = getComputedStyle(element);
@@ -4622,7 +4960,7 @@ describe("Scroll area", () => {
   }
 
   it("fades only the edges that hide content, in HTML", async () => {
-    const path = await bundle("html-scroll-area", `import "@threadlabs/looma";`);
+    const path = await bundle("html-scroll-area", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-scroll-area id="area" style="height: 120px">${items}</ui-scroll-area>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#area:is([data-component~="ui-scroll-area"], .ui-scroll-area)');
     await checkFades(page);
@@ -4632,17 +4970,17 @@ describe("Scroll area", () => {
   it("fades only the edges that hide content, in Vue", async () => {
     const path = await bundle("vue-scroll-area", `
       import { createApp, h } from "vue";
-      import { ScrollArea } from "@threadlabs/looma/vue";
+      import { UiScrollArea as ScrollArea } from "@threadlabs/looma";
       createApp({ render: () => h(ScrollArea, { id: "area", style: "height: 120px" },
         () => Array.from({ length: 30 }, (_, index) => h("p", "Item " + index))) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkFades(page);
     await page.close();
   });
 
   it("fades sideways, from the start edge, in a right-to-left horizontal area", async () => {
-    const path = await bundle("html-scroll-area-rtl", `import "@threadlabs/looma";`);
+    const path = await bundle("html-scroll-area-rtl", `import "@looma-test/runtime";`);
     const page = await open(path, `<div dir="rtl"><ui-scroll-area id="area" orientation="horizontal" style="width: 200px"><p style="width: 2000px">Wide</p></ui-scroll-area></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#area:is([data-component~="ui-scroll-area"], .ui-scroll-area)');
     await settle(page);
@@ -4665,7 +5003,7 @@ describe("Authoring warnings", () => {
     <ui-input-group id="group"><ui-input id="site" aria-label="Site"></ui-input><span slot="suffix">.example.com</span></ui-input-group>`;
 
   async function warnings(mode: string): Promise<string[]> {
-    const path = await bundle(`html-authoring-${mode}`, `import "@threadlabs/looma";`, mode);
+    const path = await bundle(`html-authoring-${mode}`, `import "@looma-test/runtime";`, mode);
     const page = await browser.newPage();
     const messages: string[] = [];
     page.on("console", (message) => {
@@ -4726,7 +5064,7 @@ describe("Input group", () => {
   }
 
   it("frames an input and its affixes as one field, in HTML", async () => {
-    const path = await bundle("html-input-group", `import "@threadlabs/looma";`);
+    const path = await bundle("html-input-group", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <ui-input-group id="group"><ui-input id="site" name="site"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
@@ -4738,12 +5076,12 @@ describe("Input group", () => {
   it("frames an input and its affixes as one field, in Vue", async () => {
     const path = await bundle("vue-input-group", `
       import { createApp, h } from "vue";
-      import { Input, InputGroup } from "@threadlabs/looma/vue";
+      import { UiInput as Input, UiInputGroup as InputGroup } from "@threadlabs/looma";
       createApp({ render: () => h("form", { id: "form" }, [
         h(InputGroup, { id: "group" }, { default: () => h(Input, { id: "site", name: "site" }), suffix: () => h("span", ".example.com") }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkGroup(page);
     await page.close();
   });
@@ -4752,9 +5090,9 @@ describe("Input group", () => {
 describe("Multiline input group behavior", () => {
   it("gives a subtle multiline composer one shared frame with a bottom-end icon action in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-subtle-composer`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-subtle-composer`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Icon, IconButton, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        import { UiIcon as Icon, UiIconButton as IconButton, UiInputGroup as InputGroup, UiTextarea as Textarea } from "@threadlabs/looma";
         createApp({ render: () => [h(InputGroup, { id: "composer", multiline: true, variant: "subtle" }, {
           default: () => h(Textarea, { id: "message", rows: 3, "aria-label": "Message" }),
           action: () => h(IconButton, { id: "send", variant: "solid", label: "Send message" }, () => h(Icon, { name: "check" })),
@@ -4763,7 +5101,7 @@ describe("Multiline input group behavior", () => {
       const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : `
         <ui-input-group id="composer" multiline variant="subtle"><ui-textarea id="message" rows="3" aria-label="Message"></ui-textarea><ui-icon-button id="send" slot="action" variant="solid" label="Send message"><ui-icon name="check"></ui-icon></ui-icon-button></ui-input-group>
         <ui-input-group id="ordinary"><ui-textarea aria-label="Ordinary"></ui-textarea></ui-input-group>`,
-      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      [join(root, "tokens.css")]);
       try {
         await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
         for (const width of [1280, 375]) for (const dir of ["ltr", "rtl"]) {
@@ -4792,16 +5130,16 @@ describe("Multiline input group behavior", () => {
         assert.notEqual(await page.locator("#composer").evaluate(element => getComputedStyle(element).boxShadow), "none", "the quiet composer retains the input focus ring");
         await page.locator("html").evaluate(element => element.setAttribute("dir", "ltr"));
         await page.locator("#message").blur();
-        await page.screenshot({ path: join(root, ".build", `${adapter}-subtle-composer-375.png`) });
+        await page.screenshot({ path: join(root, ".test-build", `${adapter}-subtle-composer-375.png`) });
       } finally { await page.close(); }
     }
   });
 
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
-      const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      const source = adapter === "HTML" ? `import "@looma-test/runtime";` : `
         import { createApp, h, ref } from "vue";
-        import { Button, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiInputGroup as InputGroup, UiTextarea as Textarea } from "@threadlabs/looma";
         const pending = ref(false);
         window.setPending = value => { pending.value = value; };
         createApp({ render: () => h(InputGroup, { id: "group", multiline: true, actionPosition: "top-end" }, {
@@ -4813,7 +5151,7 @@ describe("Multiline input group behavior", () => {
         <ui-input-group id="group" multiline action-position="top-end">
           <ui-textarea id="message" rows="4" aria-label="Message"></ui-textarea>
           <ui-button id="send" slot="action">Send</ui-button>
-        </ui-input-group>` : `<div id="app"></div>`, adapter === "HTML" ? [join(root, "tokens.css")] : [join(root, "tokens.css"), join(root, "vue/components.css")]);
+        </ui-input-group>` : `<div id="app"></div>`, adapter === "HTML" ? [join(root, "tokens.css")] : [join(root, "tokens.css")]);
       const field = page.getByRole("textbox", { name: "Message" }), send = page.locator("#send");
       for (const width of [800, 375, 240]) {
         await page.setViewportSize({ width, height: 812 });
@@ -4854,7 +5192,7 @@ describe("Multiline input group behavior", () => {
   }
 
   it("shares frame, labeling and native form behavior for a multiline HTML textarea at 375px", async () => {
-    const path = await bundle("html-multiline-input-group", `import "@threadlabs/looma";`);
+    const path = await bundle("html-multiline-input-group", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <label for="message">Message</label>
@@ -4928,7 +5266,7 @@ describe("Input group behavior", () => {
     <ui-input-group><ui-input id="auto" aria-label="Autofocus" autofocus></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>`;
   const vue = `
     import { createApp, h, ref } from "vue";
-    import { FormField, Input, InputGroup } from "@threadlabs/looma/vue";
+    import { UiFormField as FormField, UiInput as Input, UiInputGroup as InputGroup } from "@threadlabs/looma";
     const site = ref("example.com");
     const log = [];
     const siteRef = ref(null);
@@ -5132,7 +5470,7 @@ describe("Input group behavior", () => {
   const touch = { hasTouch: true };
 
   it("focuses, describes, and submits like a lone Input, in HTML", async () => {
-    const path = await bundle("html-input-group-behavior", `import "@threadlabs/looma";`);
+    const path = await bundle("html-input-group-behavior", `import "@looma-test/runtime";`);
     const page = await open(path, html, [join(root, "tokens.css")], touch);
     await checkInputGroup(page);
     await page.close();
@@ -5140,7 +5478,7 @@ describe("Input group behavior", () => {
 
   it("focuses, describes, and submits like a lone Input, in Vue", async () => {
     const path = await bundle("vue-input-group-behavior", vue);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], touch);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")], touch);
     await checkInputGroup(page);
 
     // v-model, listeners, and a template ref reach the inner input.
@@ -5158,7 +5496,7 @@ describe("Input group behavior", () => {
 
 describe("Button touch target", () => {
   it("takes a press within the control minimum under touch, link-style and xs included", async () => {
-    const path = await bundle("html-button-touch", `import "@threadlabs/looma";`);
+    const path = await bundle("html-button-touch", `import "@looma-test/runtime";`);
     const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button><p style="margin-top: 80px">Looked after by <ui-button id="pill" variant="ghost" size="xs" shape="pill">Grace</ui-button></p></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#see-all:is([data-component~="ui-button"], .ui-button)');
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
@@ -5182,9 +5520,9 @@ describe("Button touch target", () => {
 describe("Form control sizes", () => {
   for (const adapter of ["html", "vue"] as const) {
     it(`shares field edges and size heights with raised selects and inset text in ${adapter}`, async () => {
-      const path = await bundle(`${adapter}-field-surfaces`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-field-surfaces`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Button, Input, Select, InputGroup, Combobox } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiInput as Input, UiSelect as Select, UiInputGroup as InputGroup, UiCombobox as Combobox } from "@threadlabs/looma";
         const size = window.fieldSize;
         createApp({ render: () => h("div", { id: "fields", style: "display:grid;gap:16px;width:240px;font-family:var(--ui-font-sans)" }, [
           h(Input, { id: "text", size, value: "Text input", "aria-label": "Name" }),
@@ -5204,7 +5542,7 @@ describe("Form control sizes", () => {
             <ui-input-group id="group"><ui-input value="Grouped input" aria-label="Address"></ui-input></ui-input-group>
             <ui-combobox id="combo" placeholder="Search owner" label="Owner" label-visibility="sr-only" disclosure><option value="ada">Ada</option></ui-combobox>
           </div>`.replace(/<ui-(input|select|button|combobox) /g, `<ui-$1 size="${size}" `);
-        const page = await open(path, adapter === "html" ? markup : '<meta name="viewport" content="width=device-width,initial-scale=1"><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], {
+        const page = await open(path, adapter === "html" ? markup : '<meta name="viewport" content="width=device-width,initial-scale=1"><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-dark.css")], {
           viewport: { width: touch ? 375 : 1024, height: 800 }, hasTouch: touch, isMobile: touch, reducedMotion: "reduce",
         }, page => page.evaluate(size => { (window as unknown as { fieldSize: string }).fieldSize = size; }, size));
         for (const theme of ["light", "dark"]) {
@@ -5224,7 +5562,7 @@ describe("Form control sizes", () => {
             assert.notEqual(look.shadow, "none", "selects have a slight resting lift");
             assert.doesNotMatch(look.shadow, /inset/, "selects are raised, not inset");
           }
-          if (adapter === "html" && size === "md") await page.locator("#fields").screenshot({ path: join(root, ".build", `field-surfaces-${theme}-${touch ? 375 : 1024}.png`) });
+          if (adapter === "html" && size === "md") await page.locator("#fields").screenshot({ path: join(root, ".test-build", `field-surfaces-${theme}-${touch ? 375 : 1024}.png`) });
           await page.locator("#picker").focus();
           assert.notEqual(await page.locator("#picker").evaluate(element => getComputedStyle(element).boxShadow), looks[2].shadow, "keyboard focus adds a visible halo");
           await page.locator("#picker").evaluate(element => element.setAttribute("aria-expanded", "true"));
@@ -5267,7 +5605,7 @@ describe("Form control sizes", () => {
   const small = { input: 32, select: 32, combobox: 32, multiple: 32, button: 32, checkbox: 32, radio: 32, switch: 32 };
 
   it("line up small fields, buttons, and choices on one row, and leave md alone", async () => {
-    const path = await bundle("html-form-sizes", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form-sizes", `import "@looma-test/runtime";`);
     const page = await open(path, row, [join(root, "tokens.css")]);
     await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.match((await page.locator("#input").getAttribute("data-ui-input-state")) ?? "", /(^| )size=sm( |$)/);
@@ -5283,7 +5621,7 @@ describe("Form control sizes", () => {
   });
 
   it("line up large fields, buttons, and choices on one row", async () => {
-    const path = await bundle("html-form-sizes-lg", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form-sizes-lg", `import "@looma-test/runtime";`);
     const page = await open(path, sizedRow("lg"), [join(root, "tokens.css")]);
     await page.waitForSelector('#switch:is([data-component~="ui-switch"], .ui-switch)');
     assert.match((await page.locator("#radio").getAttribute("data-ui-radio-state")) ?? "", /(^| )size=lg( |$)/);
@@ -5295,7 +5633,7 @@ describe("Form control sizes", () => {
   });
 
   it("keep small control geometry on touch, with body-size native field text", async () => {
-    const path = await bundle("html-form-sizes-touch", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form-sizes-touch", `import "@looma-test/runtime";`);
     const context = await browser.newContext({ hasTouch: true, isMobile: true });
     const page = await context.newPage();
     await page.setContent(`<!doctype html><html><body>${row}</body></html>`);
@@ -5312,7 +5650,7 @@ describe("Form control sizes", () => {
   });
 
   it("size an input group from its input", async () => {
-    const path = await bundle("html-form-sizes-group", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form-sizes-group", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-input-group id="sm"><span slot="prefix">https://</span><ui-input size="sm" aria-label="Site"></ui-input></ui-input-group>
       <ui-input-group id="md"><span slot="prefix">https://</span><ui-input aria-label="Site"></ui-input></ui-input-group>
@@ -5327,7 +5665,7 @@ describe("Form control sizes", () => {
   it("take size as a Vue prop", async () => {
     const path = await bundle("vue-form-sizes", `
       import { createApp, h } from "vue";
-      import { Button, Checkbox, Input, Select } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiCheckbox as Checkbox, UiInput as Input, UiSelect as Select } from "@threadlabs/looma";
       createApp({ render: () => h("div", { style: "display: flex; align-items: flex-start; gap: 8px" }, [
         h(Input, { id: "input", size: "sm", "aria-label": "Search" }),
         h(Select, { id: "select", size: "sm", "aria-label": "Status" }, () => h("option", "Open")),
@@ -5335,7 +5673,7 @@ describe("Form control sizes", () => {
         h(Checkbox, { id: "checkbox", size: "sm" }, () => "Mine"),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector("#checkbox");
     assert.match((await page.locator("#input").getAttribute("data-ui-input-state")) ?? "", /(^| )size=sm( |$)/);
     const heights = await page.evaluate(() => ["input", "select", "button", "checkbox"].map((id) => Math.round(document.getElementById(id)!.getBoundingClientRect().height)));
@@ -5346,7 +5684,7 @@ describe("Form control sizes", () => {
 
 describe("Cluster justify", () => {
   it("spreads a row's items to its ends with justify=between", async () => {
-    const path = await bundle("html-cluster-justify", `import "@threadlabs/looma";`);
+    const path = await bundle("html-cluster-justify", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-cluster id="between" justify="between" style="inline-size: 400px"><span id="first">Title</span><span id="last">Action</span></ui-cluster>
       <ui-cluster id="end" justify="end"><span>Action</span></ui-cluster>
@@ -5385,7 +5723,7 @@ describe("Cluster wrap", () => {
   }
 
   it("keeps a nowrap cluster on one row, in HTML", async () => {
-    const path = await bundle("html-cluster-wrap", `import "@threadlabs/looma";`);
+    const path = await bundle("html-cluster-wrap", `import "@looma-test/runtime";`);
     const page = await open(path, fixture, [join(root, "tokens.css")]);
     await checkWrap(page);
     await page.close();
@@ -5394,14 +5732,14 @@ describe("Cluster wrap", () => {
   it("keeps a nowrap cluster on one row, in Vue", async () => {
     const path = await bundle("vue-cluster-wrap", `
       import { createApp, h } from "vue";
-      import { Cluster } from "@threadlabs/looma/vue";
+      import { UiCluster as Cluster } from "@threadlabs/looma";
       const item = (id) => h("span", { id, style: "display: inline-block; inline-size: 40px; flex: none" }, "x");
       createApp({ render: () => h("div", { style: "inline-size: 60px" }, [
         h(Cluster, { id: "wraps" }, () => [item("wraps-a"), item("wraps-b")]),
         h(Cluster, { id: "nowrap", wrap: "nowrap" }, () => [item("nowrap-a"), item("nowrap-b")]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkWrap(page);
     await page.close();
   });
@@ -5409,7 +5747,7 @@ describe("Cluster wrap", () => {
 
 describe("Help toggletip", () => {
   it("sizes the help icon like any icon, and opens its tooltip from the keyboard", async () => {
-    const path = await bundle("html-help-toggletip", `import "@threadlabs/looma";`);
+    const path = await bundle("html-help-toggletip", `import "@looma-test/runtime";`);
     const svg = `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14" /></svg>`;
     const page = await open(path, `
       <ui-icon-button id="help-sm" size="sm" variant="ghost" round label="Help for Email"><ui-icon name="help"></ui-icon></ui-icon-button>
@@ -5442,7 +5780,7 @@ describe("Help toggletip", () => {
 
 describe("Text links", () => {
   it("underlines a link in running text", async () => {
-    const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
+    const path = await bundle("html-text-link", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#line:is([data-component~="ui-text"], .ui-text)');
     assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
@@ -5452,7 +5790,7 @@ describe("Text links", () => {
 
 describe("Text tones", () => {
   it("colours info and warning with the tone's text token", async () => {
-    const path = await bundle("html-text-tones", `import "@threadlabs/looma";`);
+    const path = await bundle("html-text-tones", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-text id="info" tone="info">Scheduled for pickup.</ui-text>
       <ui-text id="warning" tone="warning">Needs a carrier.</ui-text>`, [join(root, "tokens.css")]);
@@ -5480,7 +5818,7 @@ describe("Text tones", () => {
 
 describe("Form field error", () => {
   it("reads in the danger colour", async () => {
-    const path = await bundle("html-field-error", `import "@threadlabs/looma";`);
+    const path = await bundle("html-field-error", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-form-field invalid>
         <label slot="label" for="name">Name</label>
@@ -5501,7 +5839,7 @@ describe("Form field error", () => {
   });
 
   it("keeps the label-to-control gap when a label action is taller than the label text", async () => {
-    const path = await bundle("html-field-label-action", `import "@threadlabs/looma";`);
+    const path = await bundle("html-field-label-action", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-grid style="width: 800px">
         <ui-form-field id="plain">
@@ -5530,7 +5868,7 @@ describe("Form field error", () => {
 
 describe("Script focus targets", () => {
   it("draw no ring on a tabindex=-1 heading while controls and widgets keep theirs", async () => {
-    const path = await bundle("html-focus-targets", `import "@threadlabs/looma";`);
+    const path = await bundle("html-focus-targets", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <h1 id="heading" tabindex="-1" style="width: 120px">A page title long enough to wrap</h1>
       <button id="button">Save</button>
@@ -5555,7 +5893,7 @@ describe("Script focus targets", () => {
 
 describe("Compact list", () => {
   it("sets items close together, with no row padding", async () => {
-    const path = await bundle("html-compact-list", `import "@threadlabs/looma";`);
+    const path = await bundle("html-compact-list", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-list id="rows" aria-label="Rows"><ui-list-item id="row">One</ui-list-item></ui-list>
       <ui-list id="facts" density="compact" aria-label="Facts"><ui-list-item id="fact">One</ui-list-item></ui-list>`, [join(root, "tokens.css")]);
@@ -5570,6 +5908,67 @@ describe("Compact list", () => {
 });
 
 describe("View primitives", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`joins a fieldset heading to its frame without crowding content in ${adapter}`, async () => {
+    const path = await bundle(`fieldset-section-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
+      import { createApp, h } from "vue";
+      import { UiSection as Section, UiText as Text, UiButton as Button, UiInput as Input } from "@threadlabs/looma";
+      createApp({render:()=>[h(Section,{id:"framed",variant:"fieldset",heading:"Profile and preferences"},{
+        description:()=>"Choose the details people see when you work together.",
+        actions:()=>h(Button,{id:"reset",variant:"outline",tone:"accent"},()=>"Reset"),
+        default:()=>[h("label",{for:"name"},"Display name"),h(Input,{id:"name",value:"Ada Lovelace"}),h(Text,null,()=>"Your existing work stays available.")],
+      }),h(Section,{id:"danger-frame",variant:"fieldset",tone:"danger",heading:"Delete account"},{description:()=>h(Text,null,()=>"Permanently remove this account."),actions:()=>h(Button,{variant:"solid",tone:"danger"},()=>"Delete account")})]}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML" ? `<ui-section id="framed" variant="fieldset" heading="Profile and preferences"><span slot="description">Choose the details people see when you work together.</span><ui-button id="reset" slot="actions" variant="outline" tone="accent">Reset</ui-button><label for="name">Display name</label><ui-input id="name" value="Ada Lovelace"></ui-input><ui-text>Your existing work stays available.</ui-text></ui-section><ui-section id="danger-frame" variant="fieldset" tone="danger" heading="Delete account">
+<span slot="description">Permanently remove this account.</span>
+<ui-button slot="actions" variant="solid" tone="danger">Delete account</ui-button>
+</ui-section>` : '<div id="app"></div>', [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css")]);
+    try {
+      await page.locator("#framed").waitFor();
+      assert.equal(await page.locator("#framed").evaluate(element=>element.tagName),"FIELDSET");
+      assert.equal(await page.getByRole("group",{name:"Profile and preferences",exact:true}).count(),1);
+      assert.equal(await page.locator("#framed > legend h2").textContent(),"Profile and preferences");
+      await page.getByRole("button",{name:"Reset",exact:true}).focus();
+      await page.keyboard.press("Tab");
+      assert.equal(await page.getByRole("textbox").evaluate(element=>element===document.activeElement),true);
+      await page.getByRole("textbox").fill("Grace Hopper");
+      assert.equal(await page.getByRole("textbox").inputValue(),"Grace Hopper");
+      await page.locator("#framed h2").evaluate(element=>element.textContent="Profile, notification preferences and shared workspace visibility");
+      for (const width of [960,375]) for (const scheme of ["light","dark"] as const) for (const dir of ["ltr","rtl"]) {
+        await page.setViewportSize({width,height:800});
+        await page.emulateMedia({colorScheme:scheme});
+        await page.locator("html").evaluate((element,dir)=>element.setAttribute("dir",dir),dir);
+        const layout=await page.locator("#framed").evaluate(frame=>{
+          const bounds=frame.getBoundingClientRect(), legend=frame.querySelector("legend")!.getBoundingClientRect();
+          const body=frame.querySelector(".body > label")!.getBoundingClientRect();
+          return {border:parseFloat(getComputedStyle(frame).borderInlineStartWidth),overflow:frame.scrollWidth>frame.clientWidth+1,
+            headingFont:parseFloat(getComputedStyle(frame.querySelector(".heading")!).fontSize),bodyFont:parseFloat(getComputedStyle(frame.querySelector(".body p")!).fontSize),
+            headingOffset:frame.querySelector(".heading")!.getBoundingClientRect().top-legend.top,
+            bodyGap:body.top-frame.querySelector(".head")!.getBoundingClientRect().bottom,
+            headingInside:legend.left>=bounds.left&&legend.right<=bounds.right+1,bodyBelow:body.top>=legend.bottom,
+            fieldInside:body.left>=bounds.left&&body.right<=bounds.right+1};
+        });
+        assert.ok(layout.border>0,`${adapter}/${width}/${scheme}/${dir}: visible frame`);
+        assert.ok(Math.abs(layout.bodyGap-16)<1,`${adapter}/${width}/${scheme}/${dir}: only the internal layout supplies the header/body gap`);
+        assert.ok(layout.headingFont>layout.bodyFont,`${adapter}/${width}/${scheme}/${dir}: heading is larger than body text`);
+        assert.ok(Math.abs(layout.headingOffset+1)<0.1,`${adapter}/${width}/${scheme}/${dir}: heading sits one pixel higher`);
+        assert.equal(layout.overflow,false,`${adapter}/${width}/${scheme}/${dir}: no overflow`);
+        assert.equal(layout.headingInside&&layout.bodyBelow&&layout.fieldInside,true,`${adapter}/${width}/${scheme}/${dir}: wrapped heading and content fit`);
+        const danger=await page.locator("#danger-frame").evaluate(frame=>{
+          const css=getComputedStyle(frame),neutral=getComputedStyle(document.querySelector("#framed")!);
+          return {radii:[css.borderTopLeftRadius,css.borderTopRightRadius,css.borderBottomRightRadius,css.borderBottomLeftRadius],
+            borders:[css.borderTopWidth,css.borderRightWidth,css.borderBottomWidth,css.borderLeftWidth],bg:css.backgroundColor,neutralBg:neutral.backgroundColor,
+            bottomSpace:frame.getBoundingClientRect().bottom-frame.querySelector(".head")!.getBoundingClientRect().bottom-parseFloat(css.borderBottomWidth),padding:parseFloat(css.paddingBottom),
+            margins:[...frame.querySelectorAll("*")].flatMap(element=>{const style=getComputedStyle(element);return [style.marginTop,style.marginRight,style.marginBottom,style.marginLeft]})};
+        });
+        assert.ok(danger.radii.every(radius=>radius===danger.radii[0]&&parseFloat(radius)>0),`${adapter}/${scheme}/${dir}: danger keeps all four rounded corners`);
+        assert.ok(danger.borders.every(border=>border===danger.borders[0]),`${adapter}/${scheme}/${dir}: no leading stripe`);
+        assert.equal(danger.bg,danger.neutralBg,`${adapter}/${scheme}/${dir}: danger keeps the neutral surface`);
+        assert.ok(Math.abs(danger.bottomSpace-danger.padding)<1,`${adapter}/${width}/${scheme}/${dir}: header-only frame ends at its padding, got ${danger.bottomSpace} vs ${danger.padding}`);
+        assert.ok(danger.margins.every(margin=>parseFloat(margin)===0),`${adapter}/${width}/${scheme}/${dir}: no external margins`);
+      }
+    } finally { await page.close(); }
+  });
+
   const markup = `
     <ui-page-header id="header">Planning<span slot="description">Roadmaps and decisions.</span></ui-page-header>
     <ui-section id="section" heading="Pinned"><ui-text id="text" tone="muted" size="sm">Edited 2h ago</ui-text></ui-section>
@@ -5612,7 +6011,7 @@ describe("View primitives", () => {
   }
 
   it("give a view its structure and semantics, in HTML", async () => {
-    const path = await bundle("html-view-primitives", `import "@threadlabs/looma";`);
+    const path = await bundle("html-view-primitives", `import "@looma-test/runtime";`);
     const page = await open(path, markup, [join(root, "tokens.css")]);
     await checkPrimitives(page);
     await page.close();
@@ -5621,7 +6020,7 @@ describe("View primitives", () => {
   it("give a view its structure and semantics, in Vue", async () => {
     const path = await bundle("vue-view-primitives", `
       import { createApp, h } from "vue";
-      import { Breadcrumbs, BreadcrumbItem, DescriptionItem, DescriptionList, PageHeader, Section, Spinner, StatusMessage, Text } from "@threadlabs/looma/vue";
+      import { UiBreadcrumbs as Breadcrumbs, UiBreadcrumbItem as BreadcrumbItem, UiDescriptionItem as DescriptionItem, UiDescriptionList as DescriptionList, UiPageHeader as PageHeader, UiSection as Section, UiSpinner as Spinner, UiStatusMessage as StatusMessage, UiText as Text } from "@threadlabs/looma";
       createApp({ render: () => [
         h(PageHeader, { id: "header" }, { default: () => "Planning", description: () => "Roadmaps and decisions." }),
         h(Section, { id: "section", heading: "Pinned" }, () => h(Text, { id: "text", tone: "muted", size: "sm" }, () => "Edited 2h ago")),
@@ -5636,7 +6035,7 @@ describe("View primitives", () => {
         h(Spinner, { id: "spinner", label: "Loading pages" }),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkPrimitives(page);
     await page.close();
   });
@@ -5701,7 +6100,7 @@ describe("Action bar", () => {
   }
 
   it("orders actions by priority, stacks them in a narrow container, and mirrors in RTL, in HTML", async () => {
-    const path = await bundle("html-action-bar", `import "@threadlabs/looma";`);
+    const path = await bundle("html-action-bar", `import "@looma-test/runtime";`);
     const bar = (id: string) => `
       <ui-action-bar id="${id}">
         <ui-button id="${id}-t" slot="tertiary" variant="ghost">Cancel</ui-button>
@@ -5720,7 +6119,7 @@ describe("Action bar", () => {
   it("orders actions by priority, stacks them in a narrow container, and mirrors in RTL, in Vue", async () => {
     const path = await bundle("vue-action-bar", `
       import { createApp, h } from "vue";
-      import { ActionBar, Button, Dialog } from "@threadlabs/looma/vue";
+      import { UiActionBar as ActionBar, UiButton as Button, UiDialog as Dialog } from "@threadlabs/looma";
       const bar = (id, props = {}) => h(ActionBar, { id, ...props }, {
         tertiary: () => h(Button, { id: id + "-t", variant: "ghost" }, () => "Cancel"),
         secondary: () => h(Button, { id: id + "-s" }, () => "Save as draft"),
@@ -5732,7 +6131,7 @@ describe("Action bar", () => {
         h(Dialog, { id: "dialog", open: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkActionBar(page);
     await page.close();
   });
@@ -5773,9 +6172,9 @@ describe("List item", () => {
     for (const adapter of ["html", "vue"]) {
       const title = "A complete title that wraps on a phone without moving its icon";
       const description = "A longer description that wraps onto several lines and keeps its icon beside the title.";
-      const path = await bundle(`${adapter}-list-title-alignment`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-list-title-alignment`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { List, ListItem, Icon } from "@threadlabs/looma/vue";
+        import { UiList as List, UiListItem as ListItem, UiIcon as Icon } from "@threadlabs/looma";
         createApp({render: () => h(List, null, () => ["title", "center"].map(align => h(ListItem, {id: align, wrap: true, ...(align === "title" ? {align} : {})}, {
           leading: () => h(Icon, {name: "file", style: "width:18px;height:18px"}),
           default: () => h("a", {href: "#destination"}, ${JSON.stringify(title)}),
@@ -5784,7 +6183,7 @@ describe("List item", () => {
         }))) }).mount("#app");
       `);
       const html = ["title", "center"].map(align => `<ui-list-item id="${align}" wrap ${align === "title" ? 'align="title"' : ''}><ui-icon slot="leading" name="file" style="width:18px;height:18px"></ui-icon><a href="#destination">${title}</a><span slot="description">${description}</span><ui-icon slot="trailing" name="chevron-right" style="width:16px;height:16px"></ui-icon></ui-list-item>`).join("");
-      const page = await open(path, adapter === "html" ? `<ui-list>${html}</ui-list>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? `<ui-list>${html}</ui-list>` : '<div id="app"></div>', [join(root, "tokens.css")]);
       for (const width of [1280, 375]) {
         await page.setViewportSize({width, height: 720});
         const geometry = await page.evaluate(() => ["title", "center"].map(id => {
@@ -5802,7 +6201,7 @@ describe("List item", () => {
   });
 
   it("follows its title link from anywhere but a trailing control, in HTML", async () => {
-    const path = await bundle("html-list-item", `import "@threadlabs/looma";`);
+    const path = await bundle("html-list-item", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="width: 320px">
         <ui-list id="list" aria-label="Pages">
@@ -5823,7 +6222,7 @@ describe("List item", () => {
   it("follows its title link from anywhere but a trailing control, in Vue", async () => {
     const path = await bundle("vue-list-item", `
       import { createApp, h } from "vue";
-      import { List, ListItem } from "@threadlabs/looma/vue";
+      import { UiList as List, UiListItem as ListItem } from "@threadlabs/looma";
       window.restored = 0;
       createApp({ render: () => h("div", { style: "width: 320px" }, [
         h(List, { id: "list", "aria-label": "Pages" }, () => [
@@ -5837,7 +6236,7 @@ describe("List item", () => {
         ]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkItem(page);
     await page.close();
   });
@@ -5846,9 +6245,9 @@ describe("List item", () => {
 describe("Square icon badges", () => {
   it("centres equal-size heading marks in HTML and Vue and follows shared radius and spacing", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`${framework}-square-badges`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${framework}-square-badges`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, Icon } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => [
           h(Badge, { id: "square", shape: "square", tone: "success", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
           h(Badge, { id: "small", shape: "square", size: "xs", tone: "accent", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
@@ -5861,7 +6260,7 @@ describe("Square icon badges", () => {
         <ui-badge id="small" shape="square" size="xs" tone="accent" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
         <ui-badge id="large" shape="square" size="lg" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
         <ui-badge id="pill">Published</ui-badge>`;
-      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const page = await open(path, body, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
       await page.waitForSelector('#square:is([data-component~="ui-badge"], .ui-badge)');
       for (const [id, size] of [["square", 32], ["small", 24], ["large", 40]] as const) {
         const box = await page.locator(`#${id}`).boundingBox();
@@ -5889,9 +6288,9 @@ describe("Square icon badges", () => {
 describe("Quiet attention presentation", () => {
   it("uses the same highlighted rows and accessible dot geometry in HTML and Vue", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`${framework}-quiet-attention`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${framework}-quiet-attention`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Badge, List, ListItem } from "@threadlabs/looma/vue";
+        import { UiBadge as Badge, UiList as List, UiListItem as ListItem } from "@threadlabs/looma";
         createApp({ render: () => h("div", [
           h(List, () => [
             h(ListItem, { id: "plain" }, () => h("a", { href: "#plain" }, "Earlier message")),
@@ -5910,7 +6309,7 @@ describe("Quiet attention presentation", () => {
         </ui-list>
         <ui-badge id="new-dot" shape="dot" tone="accent" variant="solid">New messages</ui-badge>
         <ui-badge id="pending-dot" shape="dot" tone="warning">Waiting for your reply</ui-badge>`;
-      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const page = await open(path, body, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
       await page.waitForSelector('#new-one:is([data-component~="ui-list-item"], .ui-list-item)');
       const style = (selector: string, property: string) => page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
       assert.notEqual(await style("#new-one", "background-color"), await style("#plain", "background-color"));
@@ -5947,9 +6346,9 @@ describe("Readable explanatory lists", () => {
     const title = "A person asked you to review the updated account recovery guide";
     const description = "Check the recovery steps, device checks, and the contact details before continuing.";
     for (const framework of ["html", "vue"] as const) {
-      const path = await bundle(`${framework}-wrapped-list`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${framework}-wrapped-list`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { List, ListItem, Button, Icon, IconButton } from "@threadlabs/looma/vue";
+        import { UiList as List, UiListItem as ListItem, UiButton as Button, UiIcon as Icon, UiIconButton as IconButton } from "@threadlabs/looma";
         createApp({ render: () => [
           h(IconButton, { id: "bell", label: "Notifications" }, () => h(Icon, { name: "bell" })),
           h(List, {}, () => [
@@ -5964,7 +6363,7 @@ describe("Readable explanatory lists", () => {
           <ui-list-item id="wrapped" wrap>${title}<span slot="description">${description}</span><ui-button slot="trailing" size="sm">Review</ui-button></ui-list-item>
           <ui-list-item id="ordinary">${title}</ui-list-item>
         </ui-list>
-      `, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      `, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
       const geometry = await page.evaluate(() => {
         const title = document.querySelector("#wrapped .title")! as HTMLElement;
         const description = document.querySelector("#wrapped .description")! as HTMLElement;
@@ -5991,9 +6390,9 @@ describe("Shared visual geometry", () => {
   it("keeps row highlights in their surface hue and restores brand selection on nested neutral panels in HTML and Vue", async () => {
     const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-tonal-highlights`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-tonal-highlights`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import {createApp, h} from "vue";
-        import {Card, Stack, Section, Callout, NavItem, Tree, TreeItem, List, ListItem, SearchResultRow, Button} from "@threadlabs/looma/vue";
+        import { UiCard as Card, UiStack as Stack, UiSection as Section, UiCallout as Callout, UiNavItem as NavItem, UiTree as Tree, UiTreeItem as TreeItem, UiList as List, UiListItem as ListItem, UiSearchResultRow as SearchResultRow, UiButton as Button } from "@threadlabs/looma";
         const rows = id => [
           h(NavItem,{id:id+"-nav",current:"page"},()=>"Overview"),
           h(NavItem,{id:id+"-hover"},()=>"Activity"),
@@ -6026,7 +6425,7 @@ describe("Shared visual geometry", () => {
           <ui-callout id="note" tone="neutral">${rows("note")}</ui-callout>
         </ui-card></ui-stack>`;
       for (const theme of ["light", "dark"]) {
-        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")], {reducedMotion:"reduce"});
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css")], {reducedMotion:"reduce"});
         await page.locator("html").evaluate((el, theme)=>el.setAttribute("data-theme",theme),theme);
         const color = (selector: string) => page.locator(selector).evaluate(el=> {
           const probe=document.body.appendChild(document.createElement("i"));
@@ -6082,9 +6481,9 @@ describe("Shared visual geometry", () => {
 
   it("defines pale row highlights on toned panels without moving content or weakening focus in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-highlight-edges`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import {createApp, h} from "vue";
-        import {Card, Stack, NavItem, Tree, TreeItem, List, ListItem} from "@threadlabs/looma/vue";
+        import { UiCard as Card, UiStack as Stack, UiNavItem as NavItem, UiTree as Tree, UiTreeItem as TreeItem, UiList as List, UiListItem as ListItem } from "@threadlabs/looma";
         createApp({render:()=>h(Card,{id:"panel",tone:"success",variant:"subtle",padding:"lg"},()=>h(Stack,{gap:"m"},()=>[
           h(NavItem,{id:"nav",as:"a",href:"#overview",current:"page"},()=>"Overview"),
           h(NavItem,{id:"nav-hover",as:"a",href:"#activity"},()=>"Activity"),
@@ -6111,7 +6510,7 @@ describe("Shared visual geometry", () => {
             <ui-list-item id="card" variant="card"><a href="#card">Framed guide</a></ui-list-item></ui-list>
         </ui-stack></ui-card>`;
       for (const theme of ["light", "dark"]) {
-        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css"),join(root,"vue/components.css")]);
+        const page = await open(path, markup, [join(root,"tokens.css"),join(root,"theme-light.css"),join(root,"theme-dark.css")]);
         await page.addStyleTag({content:"body { margin:0; padding:16px; font-family:var(--ui-font-family-sans); background:var(--ui-surface); }"});
         await page.locator("html").evaluate((el, theme) => el.setAttribute("data-theme",theme),theme);
         const look = (selector: string) => page.locator(selector).evaluate(el=>{
@@ -6180,7 +6579,7 @@ describe("Shared visual geometry", () => {
   });
 
   it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
-    const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
+    const path = await bundle("html-global-visual-geometry", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div id="theme" style="--ui-border-width:3px;--ui-accent-line-width:5px;--ui-focus-width:4px;--ui-selection-radius:13px;--ui-selection-surface:rgb(245,240,255);--ui-selection-text:rgb(81,50,140)">
         <ui-button id="action" variant="outline">Save</ui-button>
@@ -6196,7 +6595,7 @@ describe("Shared visual geometry", () => {
         <ui-search-result-row id="search-row" selected><span slot="title">Guide</span></ui-search-result-row>
         <ui-listbox id="choices"><option selected>Guide</option><option>Notes</option></ui-listbox>
         <div class="looma-editor"><div class="ProseMirror"><blockquote id="quote">Quote</blockquote></div></div>
-      </div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      </div>`, [join(root, "tokens.css")]);
     const css = (selector: string, property: string) => page.locator(selector).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
     for (const selector of ["#action", "#field", "#card", "#callout"]) {
       assert.equal(await css(selector, "border-top-width"), "3px", `${selector} follows ordinary border width`);
@@ -6245,7 +6644,7 @@ describe("Nav item", () => {
   }, color);
 
   it("shares configurable selection colors between compact navigation and tree rows", async () => {
-    const path = await bundle("html-shared-navigation-selection", `import "@threadlabs/looma";`);
+    const path = await bundle("html-shared-navigation-selection", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="--ui-selection-surface:rgb(230,220,255);--ui-selection-text:rgb(81,50,140);width:240px">
         <ui-nav-item id="compact-nav" density="compact" current="page" as="a" href="#overview">Overview</ui-nav-item>
@@ -6276,7 +6675,7 @@ describe("Nav item", () => {
   });
 
   it("separates rounded surface selection from straight continuous line selection", async () => {
-    const path = await bundle("html-navigation-selection-geometry", `import "@threadlabs/looma";`);
+    const path = await bundle("html-navigation-selection-geometry", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="--ui-accent-line-width:5px;--ui-selection-radius:13px">
         <ui-nav-item id="surface" current="page">Overview</ui-nav-item>
@@ -6376,7 +6775,7 @@ describe("Nav item", () => {
   }
 
   it("marks the current item with coherent surface or line geometry and works as a link or a button, in HTML", async () => {
-    const path = await bundle("html-nav-item", `import "@threadlabs/looma";`);
+    const path = await bundle("html-nav-item", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <script>window.clicks = 0;</script>
       <nav aria-label="Main" style="width: 240px">
@@ -6399,7 +6798,7 @@ describe("Nav item", () => {
   it("marks the current item with coherent surface or line geometry and works as a link or a button, in Vue", async () => {
     const path = await bundle("vue-nav-item", `
       import { createApp, h } from "vue";
-      import { List, NavItem } from "@threadlabs/looma/vue";
+      import { UiList as List, UiNavItem as NavItem } from "@threadlabs/looma";
       window.clicks = 0;
       const item = (props, slots) => h("li", [h(NavItem, props, slots)]);
       createApp({ render: () => [
@@ -6414,7 +6813,7 @@ describe("Nav item", () => {
         h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: "true" }, () => "Shipments"), h(NavItem, { id: "rtl-line", variant: "line", current: "true" }, () => "Reports")]),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkNavItem(page);
     await page.close();
   });
@@ -6422,10 +6821,10 @@ describe("Nav item", () => {
 
 describe("Editor toolbar row", () => {
   it("has one Tab stop and roves through enabled controls in HTML and Vue", async () => {
-    const htmlPath = await bundle("html-toolbar-roving", `import "@threadlabs/looma";`);
+    const htmlPath = await bundle("html-toolbar-roving", `import "@looma-test/runtime";`);
     const vuePath = await bundle("vue-toolbar-roving", `
       import { createApp, h } from "vue";
-      import { EditorToolbar } from "@threadlabs/looma/vue/editor";
+      import { UiEditorToolbar as EditorToolbar } from "@threadlabs/looma";
       createApp({ render: () => h("div", [
         h("button", { id: "before" }, "Before"),
         h(EditorToolbar, { id: "toolbar" }, () => [
@@ -6438,7 +6837,7 @@ describe("Editor toolbar row", () => {
     `);
     for (const [path, body, css] of [
       [htmlPath, `<button id="before">Before</button><ui-editor-toolbar id="toolbar"><button id="first">First</button><button id="blocked" disabled>Blocked</button><button id="last">Last</button></ui-editor-toolbar><button id="after">After</button>`, [join(root, "tokens.css")]],
-      [vuePath, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]],
+      [vuePath, `<div id="app"></div>`, [join(root, "tokens.css")]],
     ] as const) {
       const page = await open(path, body, css);
       assert.equal(await page.locator("#toolbar button[tabindex='0']").count(), 1);
@@ -6490,7 +6889,7 @@ describe("Editor toolbar row", () => {
   }
 
   it("keeps one row that scrolls, fading only the edges that hide controls, in HTML", async () => {
-    const path = await bundle("html-toolbar-row", `import "@threadlabs/looma";`);
+    const path = await bundle("html-toolbar-row", `import "@looma-test/runtime";`);
     const page = await open(path, `<div id="frame" style="width: 320px"><ui-editor-toolbar id="toolbar">${buttons}</ui-editor-toolbar></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#toolbar:is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar)');
     await checkRow(page);
@@ -6500,12 +6899,12 @@ describe("Editor toolbar row", () => {
   it("keeps one row that scrolls, fading only the edges that hide controls, in Vue", async () => {
     const path = await bundle("vue-toolbar-row", `
       import { createApp, h } from "vue";
-      import { EditorToolbar } from "@threadlabs/looma/vue/editor";
+      import { UiEditorToolbar as EditorToolbar } from "@threadlabs/looma";
       createApp({ render: () => h("div", { id: "frame", style: "width: 320px" }, [
         h(EditorToolbar, { id: "toolbar" }, () => Array.from({ length: 18 }, (_, index) => h("button", { type: "button" }, "B" + index))),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkRow(page);
     await page.close();
   });
@@ -6515,10 +6914,10 @@ describe("Vue bare boolean props", () => {
   it("reads a bare boolean attribute as true, as Vue does", async () => {
     const path = await bundle("vue-bare-boolean", `
       import { createApp } from "vue/dist/vue.esm-bundler.js";
-      import { Avatar } from "@threadlabs/looma/vue";
+      import { UiAvatar as Avatar } from "@threadlabs/looma";
       createApp({ components: { Avatar }, template: '<Avatar id="bare" name="Ada Lovelace" decorative /><Avatar id="named" name="Ada Lovelace" />' }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector("#named");
     assert.equal(await page.locator("#bare").getAttribute("aria-hidden"), "true");
     assert.notEqual(await page.locator("#named").getAttribute("aria-hidden"), "true");
@@ -6528,7 +6927,7 @@ describe("Vue bare boolean props", () => {
 
 describe("Mention rows", () => {
   it("keep the highlighted row's initials circle distinct from the highlight", async () => {
-    const path = await bundle("html-mention-row-contrast", `import "@threadlabs/looma";`);
+    const path = await bundle("html-mention-row-contrast", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ul role="listbox">
         <ui-editor-mention-menu-item id="active" value="ada" initials="AL" aria-selected="true">Ada Lovelace</ui-editor-mention-menu-item>
@@ -6550,10 +6949,10 @@ describe("Vue editor entry point", () => {
   it("renders authored mention rows from the editor entry alone", async () => {
     const path = await bundle("vue-editor-mention-rows", `
       import { createApp, h } from "vue";
-      import { EditorMentionMenuItem } from "@threadlabs/looma/vue/editor";
+      import { UiEditorMentionMenuItem as EditorMentionMenuItem } from "@threadlabs/looma";
       createApp({ render: () => h("ul", { role: "listbox" }, [h(EditorMentionMenuItem, { id: "ada", value: "ada", initials: "AL", detail: "ada@example.com" }, () => "Ada Lovelace")]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector("#ada");
     assert.equal(await page.locator("#ada").getAttribute("role"), "option");
     assert.match(await page.locator("#ada").innerText(), /Ada Lovelace\s+ada@example.com/);
@@ -6563,7 +6962,7 @@ describe("Vue editor entry point", () => {
 
 describe("Avatar group xs", () => {
   it("overlaps xs avatars and sizes the +N badge to match", async () => {
-    const path = await bundle("html-avatar-group-xs", `import "@threadlabs/looma";`);
+    const path = await bundle("html-avatar-group-xs", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-avatar-group id="xs" size="xs" max="2" label="Looked after by">
         <ui-avatar name="Ada Lovelace" size="xs"></ui-avatar>
@@ -6590,7 +6989,7 @@ describe("Avatar group xs", () => {
 
 describe("Small pill button and small menu", () => {
   it("draws an xs pill at 24px with fully rounded ends", async () => {
-    const path = await bundle("html-button-xs-pill", `import "@threadlabs/looma";`);
+    const path = await bundle("html-button-xs-pill", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="xs" variant="ghost" tone="neutral" size="xs" shape="pill">On track</ui-button>
       <ui-button id="sm" size="sm">Small</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
@@ -6610,7 +7009,7 @@ describe("Small pill button and small menu", () => {
   });
 
   it("holds an open menu's ghost trigger stronger than its hover", async () => {
-    const path = await bundle("html-ghost-open", `import "@threadlabs/looma";`);
+    const path = await bundle("html-ghost-open", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="hovered" variant="ghost" tone="neutral">Hovered</ui-button>
       <ui-button id="open" variant="ghost" tone="neutral" aria-expanded="true">Open</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
@@ -6631,7 +7030,7 @@ describe("Small pill button and small menu", () => {
   });
 
   it("sizes a small menu's rows and checks the chosen radio item", async () => {
-    const path = await bundle("html-menu-sm", `import "@threadlabs/looma";`);
+    const path = await bundle("html-menu-sm", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-menu id="sm" inline size="sm" aria-label="Stage">
         <ui-menu-item type="radio" value="early">Early</ui-menu-item>
@@ -6659,7 +7058,7 @@ describe("Small pill button and small menu", () => {
 
 describe("Avatar sizes", () => {
   it("steps down from md to sm to xs, with initials that still fit", async () => {
-    const path = await bundle("html-avatar-sizes", `import "@threadlabs/looma";`);
+    const path = await bundle("html-avatar-sizes", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-avatar id="md" name="Ada Lovelace"></ui-avatar>
       <ui-avatar id="sm" name="Ada Lovelace" size="sm"></ui-avatar>
@@ -6679,7 +7078,7 @@ describe("Avatar sizes", () => {
   });
 
   it("centres the initials in the circle whatever line of text surrounds it", async () => {
-    const path = await bundle("html-avatar-centred", `import "@threadlabs/looma";`);
+    const path = await bundle("html-avatar-centred", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <span style="font-size: 12px; line-height: 2.2">Looked after by: <ui-avatar id="inline" name="Grace Hopper" size="xs"></ui-avatar> Grace</span>
       <ui-avatar id="alone" name="Grace Hopper" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
@@ -6703,7 +7102,7 @@ describe("Avatar sizes", () => {
 
 describe("Avatar initials", () => {
   it("meet text contrast on their surface", async () => {
-    const path = await bundle("html-avatar-contrast", `import "@threadlabs/looma";`);
+    const path = await bundle("html-avatar-contrast", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-avatar id="person" name="Ada Lovelace"></ui-avatar>
       <ui-badge id="badge" tone="accent" variant="subtle">Tag</ui-badge>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
@@ -6841,12 +7240,12 @@ describe("Text tokens", () => {
 
 describe("Tree link rows", () => {
   for (const adapter of ["HTML", "Vue"] as const) it(`keeps branch hover continuous around the caret with an action cursor in ${adapter}`, async () => {
-    const path = await bundle(`tree-hover-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+    const path = await bundle(`tree-hover-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
       import {createApp,h} from "vue";
-      import {Tree,TreeItem} from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       createApp({render:()=>h(Tree,{label:"Files"},()=>h(TreeItem,{id:"branch",label:"Project",container:true}))}).mount("#app");
     `);
-    const page = await open(path, adapter === "HTML" ? '<ui-tree label="Files"><ui-tree-item id="branch" label="Project" container></ui-tree-item></ui-tree>' : '<div id="app"></div>', [join(root,"tokens.css"), ...(adapter === "Vue" ? [join(root,"vue/components.css")] : [])]);
+    const page = await open(path, adapter === "HTML" ? '<ui-tree label="Files"><ui-tree-item id="branch" label="Project" container></ui-tree-item></ui-tree>' : '<div id="app"></div>', [join(root,"tokens.css")]);
     try {
       const row = page.locator("#branch > .row"), caret = row.locator(".disclosure");
       await row.locator(".label").hover();
@@ -6920,7 +7319,7 @@ describe("Tree link rows", () => {
   }
 
   it("follows a leaf row's label link from the rest of the row, in HTML", async () => {
-    const path = await bundle("html-tree-link-rows", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tree-link-rows", `import "@looma-test/runtime";`);
     const page = await open(path, markup, [join(root, "tokens.css")]);
     await checkRows(page);
     await page.close();
@@ -6929,7 +7328,7 @@ describe("Tree link rows", () => {
   it("follows a leaf row's label link from the rest of the row, in Vue", async () => {
     const path = await bundle("vue-tree-link-rows", `
       import { createApp, h } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       createApp({ render: () => h(Tree, { label: "Pages" }, () => [
         h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, {
           leading: () => h("span", { id: "page-icon" }, "icon"),
@@ -6946,7 +7345,7 @@ describe("Tree link rows", () => {
         }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkRows(page);
     await page.close();
   });
@@ -6979,7 +7378,7 @@ describe("Nested Tree disclosure state", () => {
   }
 
   it("shows a collapsed descendant's own state under an expanded ancestor in HTML", async () => {
-    const path = await bundle("html-nested-tree-disclosure", `import "@threadlabs/looma";`);
+    const path = await bundle("html-nested-tree-disclosure", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-tree label="Files">
         <ui-tree-item id="parent" item-id="parent" label="Parent" container expanded>
@@ -6995,7 +7394,7 @@ describe("Nested Tree disclosure state", () => {
   it("shows a collapsed descendant's own state under an expanded ancestor in Vue", async () => {
     const path = await bundle("vue-nested-tree-disclosure", `
       import { createApp, h } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       createApp({ render: () => h(Tree, { label: "Files" }, () => [
         h(TreeItem, { id: "parent", itemId: "parent", label: "Parent", container: true, expanded: true }, () => [
           h(TreeItem, { id: "branch", itemId: "branch", label: "Branch", container: true }, () => [
@@ -7004,7 +7403,7 @@ describe("Nested Tree disclosure state", () => {
         ]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
     await checkDisclosureState(page);
     await page.close();
   });
@@ -7038,7 +7437,7 @@ describe("Tree drag handle", () => {
   }
 
   it("sits beside what it drags and is bare at rest, in HTML", async () => {
-    const path = await bundle("html-tree-drag-handle", `import "@threadlabs/looma";`);
+    const path = await bundle("html-tree-drag-handle", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-tree label="Pages" style="width: 20rem; margin-inline-start: 3rem">
         <ui-tree-item id="branch" item-id="branch" label="Folder" sortable expanded>
@@ -7055,7 +7454,7 @@ describe("Tree drag handle", () => {
   it("sits beside what it drags and is bare at rest, in Vue", async () => {
     const path = await bundle("vue-tree-drag-handle", `
       import { createApp, h } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       createApp({ render: () => h(Tree, { label: "Pages", style: "width: 20rem; margin-inline-start: 3rem" }, () => [
         h(TreeItem, { id: "branch", itemId: "branch", label: "Folder", sortable: true, expanded: true }, {
           leading: () => h("span", { id: "branch-icon" }, "F"),
@@ -7063,7 +7462,7 @@ describe("Tree drag handle", () => {
         }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkHandles(page);
     await page.close();
   });
@@ -7076,7 +7475,7 @@ describe("Icon", () => {
   // Only a binding or a framework adapter changes a rendered component's options, and a plain page has
   // neither, so "follows its name" is proven in Vue below.
   it("lowers from HTML already drawn", async () => {
-    const path = await bundle("html-icon", `import "@threadlabs/looma";`);
+    const path = await bundle("html-icon", `import "@looma-test/runtime";`);
     // Records each icon as it enters the document, before anything else has had a chance to run.
     const page = await open(path, `
       <script>
@@ -7102,12 +7501,12 @@ describe("Icon", () => {
   it("follows its name, in Vue", async () => {
     const path = await bundle("vue-icon", `
       import { createApp, h, ref } from "vue";
-      import { Icon } from "@threadlabs/looma/vue";
+      import { UiIcon as Icon } from "@threadlabs/looma";
       const name = ref("circle-x");
       window.iconName = name;
       createApp({ render: () => h(Icon, { id: "icon", name: name.value }) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.deepEqual(await shapes(page, "#icon"), ["circle", "path", "path"]);
     await page.evaluate(() => { (window as unknown as { iconName: { value: string } }).iconName.value = "columns"; });
     await page.waitForFunction(() => document.querySelector("#icon rect") !== null);
@@ -7119,11 +7518,63 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  for (const adapter of ["html", "vue"]) it(`keeps matched ${adapter} icon touch targets within their adjacent action boundary`, async () => {
+    const path = await bundle(`${adapter}-paired-touch-boundaries`, adapter === "html" ? `import "@looma-test/runtime";` : `
+      import {createApp,h} from "vue";
+      import { UiButton as Button, UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
+      createApp({render:()=>["sm","md","lg"].map(size=>h("div",{id:size,style:"display:flex;align-items:stretch;padding-block:16px"},[
+        h(Button,{id:size+"-primary",size},()=>"Save changes"),
+        h(IconButton,{id:size+"-more",size,matchButton:true,label:"More options"},()=>h(Icon,{name:"chevron-down"})),
+      ]))}).mount("#app");
+    `);
+    const body = adapter === "html" ? ["sm", "md", "lg"].map(size => `
+      <div id="${size}" style="display:flex;align-items:stretch;padding-block:16px">
+        <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+        <ui-icon-button id="${size}-more" size="${size}" match-button label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+      </div>`).join("") : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,"tokens.css")],
+      {viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+    try {
+      // A raised target preference still expands vertically, with clear space between rows.
+      await page.addStyleTag({content:":root { --ui-control-min-block-size:56px; } body { margin:48px; }"});
+      await page.evaluate(() => {
+        const meta=document.createElement("meta");meta.name="viewport";meta.content="width=device-width,initial-scale=1";document.head.append(meta);
+        (window as unknown as {hits:string[]}).hits=[];
+        for (const button of document.querySelectorAll("button")) button.addEventListener("click",()=> (window as unknown as {hits:string[]}).hits.push(button.id));
+      });
+      await page.waitForFunction(()=>document.documentElement.clientWidth===375);
+      for (const direction of ["ltr","rtl"]) {
+        await page.evaluate(value=>{
+          document.documentElement.dir=value;
+          if (value==="rtl") document.documentElement.dataset.uiInputModality="touch";
+          else delete document.documentElement.dataset.uiInputModality;
+        },direction);
+        for (const size of ["sm","md","lg"]) {
+          const points=await page.evaluate(({size,direction})=>{
+            const primary=document.getElementById(size+"-primary")!.getBoundingClientRect();
+            const more=document.getElementById(size+"-more")!,rect=more.getBoundingClientRect();
+            const minimum=Number.parseFloat(getComputedStyle(more,"::after").height);
+            const edge={x:direction==="ltr"?primary.right-2:primary.left+2,y:primary.y+primary.height/2};
+            const outside={x:rect.x+rect.width/2,y:rect.y+rect.height/2+Math.max(rect.height,minimum)/2-1};
+            const hit=(point:{x:number,y:number})=>document.elementFromPoint(point.x,point.y)?.closest("button")?.id;
+            return {edge,outside,primaryHit:hit(edge),moreHit:hit(outside)};
+          },{size,direction});
+          assert.equal(points.primaryHit,size+"-primary",`${adapter}/${direction}/${size}: the menu must not steal the primary action edge`);
+          assert.equal(points.moreHit,size+"-more","the matched icon retains its configured vertical touch target");
+          await page.evaluate(()=>{(window as unknown as {hits:string[]}).hits=[];});
+          await page.touchscreen.tap(points.edge.x,points.edge.y);
+          await page.touchscreen.tap(points.outside.x,points.outside.y);
+          assert.deepEqual(await page.evaluate(()=>(window as unknown as {hits:string[]}).hits),[size+"-primary",size+"-more"]);
+        }
+      }
+    } finally {await page.close();}
+  });
+
   it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
     for (const adapter of ["vue", "html"]) {
       const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
         import { createApp, h } from "vue";
-        import { Button, IconButton, Icon } from "@threadlabs/looma/vue";
+        import { UiButton as Button, UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
         createApp({ render: () => h("div", {}, [
           ...["sm", "md", "lg"].map(size => h("div", { style: "display: flex; align-items: stretch", id: size }, [
             h(Button, { id: size + "-primary", size }, () => "Save changes"),
@@ -7131,7 +7582,7 @@ describe("Icon Button", () => {
           ])),
           h(IconButton, { id: "compact", size: "sm", label: "Toolbar options" }, () => h(Icon, { name: "chevron-down" })),
         ]) }).mount("#app");
-      ` : `import "@threadlabs/looma";`);
+      ` : `import "@looma-test/runtime";`);
       const body = adapter === "vue" ? '<div id="app"></div>' : `
         ${["sm", "md", "lg"].map(size => `<div style="display: flex; align-items: stretch" id="${size}">
           <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
@@ -7139,7 +7590,7 @@ describe("Icon Button", () => {
         </div>`).join("")}
         <ui-icon-button id="compact" size="sm" label="Toolbar options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
       for (const touch of [false, true]) {
-        const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+        const page = await open(path, body, [join(root, "tokens.css")],
           { viewport: { width: touch ? 375 : 1280, height: 900 }, hasTouch: touch, isMobile: touch });
         // Custom control tokens must work, too; no hard-coded matching dimensions.
         await page.addStyleTag({ content: ":root { --ui-control-size-sm: 36px; --ui-control-size-md: 44px; --ui-control-size-lg: 52px; }" });
@@ -7160,13 +7611,14 @@ describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
       import { createApp, h } from "vue";
-      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      import { UiIconButton as IconButton } from "@threadlabs/looma";
+      import { trackInputModality } from "@threadlabs/looma/components/shared/input-modality.js";
       trackInputModality(document);
       createApp({
         render: () => h("div", { style: "padding: 40px" }, [h(IconButton, { id: "menu", size: "sm", label: "Options" }, () => "…")]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const probe = () => page.evaluate(() => {
       const button = document.querySelector("#menu") as HTMLElement;
       const bounds = button.getBoundingClientRect();
@@ -7185,7 +7637,7 @@ describe("Tree", () => {
   it("lets a slotted label link fill the row through the label padding tokens", async () => {
     const path = await bundle("vue-tree-label", `
       import { createApp, h } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       const item = (id, style) => h(TreeItem, { id, itemId: id, label: "Welcome", style }, {
         label: () => h("a", { href: "#welcome", style: "display: flex; align-self: stretch; align-items: center" }, "Welcome"),
       });
@@ -7196,7 +7648,7 @@ describe("Tree", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const heights = (id: string) => page.locator(`#${id}`).evaluate((item) => ({
       row: (item.querySelector(".row") as HTMLElement).offsetHeight,
       link: (item.querySelector("a") as HTMLElement).offsetHeight,
@@ -7214,7 +7666,7 @@ describe("Overlays", () => {
   it("show search focus and close a dismissible search shell on the first Escape, even from its search field", async () => {
     const path = await bundle("vue-search-shell", `
       import { createApp, h, ref } from "vue";
-      import { SearchShell } from "@threadlabs/looma/vue";
+      import { UiSearchShell as SearchShell } from "@threadlabs/looma";
       const open = ref(true);
       const closes = [];
       window.closes = closes;
@@ -7225,7 +7677,7 @@ describe("Overlays", () => {
         }, { search: () => h("input", { id: "query", type: "search", "aria-label": "Search" }) }),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const field = page.locator("#query");
     await field.fill("wel");
     assert.equal(await field.evaluate((element) => element === document.activeElement), true);
@@ -7240,7 +7692,7 @@ describe("Overlays", () => {
   it("announce each anchor toggle to a controlled popover consumer exactly once, with its trigger", async () => {
     const path = await bundle("vue-popover-controlled", `
       import { createApp, h, ref } from "vue";
-      import { Button, Popover } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiPopover as Popover } from "@threadlabs/looma";
       const open = ref(false);
       const events = [];
       window.popover = { open, events };
@@ -7255,7 +7707,7 @@ describe("Overlays", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     type Probe = { popover: { open: { value: boolean }, events: unknown[] } };
     const state = () => page.evaluate(() => {
       const { open, events } = (window as unknown as Probe).popover;
@@ -7285,11 +7737,12 @@ describe("Overlays", () => {
   it("keeps dialog close visuals equal to a shared small IconButton when touch is used", async () => {
     const path = await bundle("vue-dialog-touch", `
       import { createApp, h } from "vue";
-      import { Dialog, IconButton, Icon, trackInputModality } from "@threadlabs/looma/vue";
+      import { UiDialog as Dialog, UiIconButton as IconButton, UiIcon as Icon } from "@threadlabs/looma";
+      import { trackInputModality } from "@threadlabs/looma/components/shared/input-modality.js";
       trackInputModality(document);
       createApp({ render: () => [h(IconButton, { id: "reference", size: "sm", round: true, label: "Reference" }, () => h(Icon, {name:"x"})), h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body")] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const close = page.locator("#dialog").getByRole("button", {name:"Close",exact:true});
     const size = () => close.evaluate((element) => (element as HTMLElement).offsetWidth);
     const reference = await page.locator("#reference").evaluate(element => (element as HTMLElement).offsetWidth);
@@ -7305,7 +7758,7 @@ describe("Vue form controls", () => {
   it("select the model's option, and style named slots without slot attributes", async () => {
     const path = await bundle("vue-form", `
       import { createApp, h, ref } from "vue";
-      import { FormField, Select } from "@threadlabs/looma/vue";
+      import { UiFormField as FormField, UiSelect as Select } from "@threadlabs/looma";
       const topic = ref("help");
       window.topic = topic;
       createApp({
@@ -7320,7 +7773,7 @@ describe("Vue form controls", () => {
         }),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const select = page.locator("#topic");
     assert.equal(await select.inputValue(), "help");
     await page.evaluate(() => { (window as unknown as { topic: { value: string } }).topic.value = "privacy"; });
@@ -7329,7 +7782,7 @@ describe("Vue form controls", () => {
     assert.equal(await page.evaluate(() => (window as unknown as { topic: { value: string } }).topic.value), "problem");
 
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
-    assert.equal(await fontSize("#topic-label"), "14px");
+    assert.equal(await fontSize("#topic-label"), "16px");
     assert.equal(await fontSize("#topic-help"), "14px");
     // A named slot in Vue has no slot attribute; the field still links its help to the control.
     assert.equal(await select.getAttribute("aria-describedby"), "topic-help");
@@ -7341,14 +7794,14 @@ describe("Help affordance", () => {
   it("sits beside the field and opens its tooltip on click", async () => {
     const path = await bundle("vue-help", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       createApp({
         render: () => h(Combobox, { id: "where", label: "Destination", help: "Where the export lands." }, () => [
           h("option", { value: "alpha" }, "Alpha"),
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const help = page.locator("#where .help");
     const field = page.locator("#where .field");
     const geometry = await page.locator("#where").evaluate((root) => {
@@ -7379,7 +7832,7 @@ describe("Combobox with multiple", () => {
   it("creates on Enter when the consumer also owns the query", async () => {
     const path = await bundle("vue-multi-create-query", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const options = ref([{ value: "bar", label: "Bar" }]);
       const items = ref([]);
       const query = ref("");
@@ -7403,7 +7856,7 @@ describe("Combobox with multiple", () => {
       app.config.errorHandler = (error) => { window.errors.push(String(error && error.stack || error)); };
       app.mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const input = page.locator("#tags input");
     await input.click();
     await input.pressSequentially("Foo");
@@ -7419,7 +7872,7 @@ describe("Combobox with multiple", () => {
   it("offers to create what was typed, creates it on Enter, and checks it once the consumer adds it", async () => {
     const path = await bundle("vue-multi-create", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const options = ref([{ value: "bar", label: "Bar" }]);
       const items = ref([]);
       const created = [];
@@ -7440,7 +7893,7 @@ describe("Combobox with multiple", () => {
         }, () => options.value.map((option) => h("option", { key: option.value, value: option.value }, option.label))),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const input = page.locator("#tags input");
     await input.click();
     await input.pressSequentially("Foo");
@@ -7465,7 +7918,7 @@ describe("Combobox with multiple", () => {
   it("keeps the items it selects, and follows a consumer that owns them", async () => {
     const path = await bundle("vue-multi", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const owned = ref([]);
       window.owned = owned;
       createApp({
@@ -7480,7 +7933,7 @@ describe("Combobox with multiple", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     // Uncontrolled: selecting an option keeps it, with no consumer wiring.
     await page.locator("#free input").click();
     await page.locator("#free input").fill("Al");
@@ -7501,7 +7954,7 @@ describe("Vue v-model on reported props", () => {
   it("keeps v-model:query in step with a Combobox's typing", async () => {
     const path = await bundle("vue-query", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const query = ref("");
       window.query = query;
       createApp({
@@ -7510,7 +7963,7 @@ describe("Vue v-model on reported props", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.locator("#tags input").pressSequentially("Res");
     assert.equal(await page.locator("#tags input").inputValue(), "Res");
     assert.equal(await page.evaluate(() => (window as unknown as { query: { value: string } }).query.value), "Res");
@@ -7522,7 +7975,7 @@ describe("Tree Item label", () => {
   it("fills its cell, so a slotted link is the row's hit area", async () => {
     const path = await bundle("vue-tree-label-fill", `
       import { createApp, h } from "vue";
-      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
       createApp({
         render: () => h("div", { style: "inline-size: 400px" }, [
           h(Tree, { label: "Pages" }, () => [
@@ -7531,7 +7984,7 @@ describe("Tree Item label", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const widths = await page.locator("#page").evaluate((item) => {
       const cell = item.querySelector(".label") as HTMLElement;
       const style = getComputedStyle(cell);
@@ -7550,10 +8003,10 @@ describe("Light dismiss", () => {
   it("needs a real press: a pointerdown with no coordinates keeps a modal dialog open", async () => {
     const path = await bundle("vue-light-dismiss", `
       import { createApp, h } from "vue";
-      import { Dialog } from "@threadlabs/looma/vue";
+      import { UiDialog as Dialog } from "@threadlabs/looma";
       createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const dialog = page.locator("#dialog");
     await dialog.waitFor();
     // An activation with no pointer (assistive technology, or a synthetic event) reports 0,0, and
@@ -7571,11 +8024,12 @@ describe("Compact controls on touch", () => {
   it("keep their size and still meet the touch target", async () => {
     const path = await bundle("vue-compact-touch", `
       import { createApp, h } from "vue";
-      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      import { UiIconButton as IconButton } from "@threadlabs/looma";
+      import { trackInputModality } from "@threadlabs/looma/components/shared/input-modality.js";
       trackInputModality(document);
       createApp({ render: () => h("div", { style: "padding: 60px" }, [h(IconButton, { id: "small", size: "sm", label: "Remove" }, () => "x")]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
     const target = await page.locator("#small").evaluate((element) => {
       const hit = getComputedStyle(element, "::after");
@@ -7599,7 +8053,7 @@ describe("Button tone and disabled", () => {
   it("paints available variants in their tone and gives disabled actions one neutral treatment", async () => {
     const path = await bundle("vue-tone", `
       import { createApp, h } from "vue";
-      import { Button } from "@threadlabs/looma/vue";
+      import { UiButton as Button } from "@threadlabs/looma";
       createApp({
         render: () => h("div", [
           h(Button, { id: "accent", tone: "accent" }, () => "Review"),
@@ -7614,11 +8068,12 @@ describe("Button tone and disabled", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const paint = (id: string) => page.locator(`#${id}`).evaluate((element) => {
       const style = getComputedStyle(element);
       return {
         background: style.backgroundColor,
+        image: style.backgroundImage,
         color: style.color,
         border: style.borderTopColor,
         opacity: style.opacity,
@@ -7632,12 +8087,12 @@ describe("Button tone and disabled", () => {
     const danger = await paint("danger");
     const neutral = await paint("neutral");
     assert.notEqual(danger.border, accent.border, "tone changes an outline's edge");
-    assert.notEqual(danger.background, accent.background, "tone changes an outline's wash");
+    assert.notEqual(danger.image, accent.image, "tone changes an outline's painted wash");
     assert.notEqual(neutral.border, accent.border, "neutral is a tone of its own");
 
-    // Variant is the volume: solid fills with the colour the outline draws with.
+    // A solid action fills the surface that an outline keeps transparent under its wash.
     const solid = await paint("solid");
-    assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
+    assert.notEqual(solid.background, accent.background, "solid paints an opaque tone surface beneath its material layer");
 
     // Disabled actions share a flat neutral palette so no tone still looks actionable.
     const off = await paint("off");
@@ -7669,7 +8124,7 @@ describe("Density", () => {
   it("compacts menu rows and tab rows without rescaling a global token", async () => {
     const path = await bundle("vue-density", `
       import { createApp, h } from "vue";
-      import { Menu, MenuItem, Tabs } from "@threadlabs/looma/vue";
+      import { UiMenu as Menu, UiMenuItem as MenuItem, UiTabs as Tabs } from "@threadlabs/looma";
       const menu = (id, density) => h(Menu, { id, density, open: true }, () => [
         h(MenuItem, { id: id + "-item" }, () => "Rename"),
       ]);
@@ -7678,7 +8133,7 @@ describe("Density", () => {
       ]);
       createApp({ render: () => h("div", [menu("roomy"), menu("tight", "compact"), tabs("roomy-tabs"), tabs("tight-tabs", "compact")]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const box = (selector: string) => page.locator(selector).evaluate((element) => {
       const style = getComputedStyle(element);
       return { padding: style.paddingBlockStart, fontSize: style.fontSize, height: (element as HTMLElement).offsetHeight };
@@ -7702,14 +8157,14 @@ describe("Image toolbar", () => {
     it(`requests placement, description, and deletion, and cancels a description draft (${target})`, async () => {
       const path = target === "html"
         ? await bundle("html-image-toolbar", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             const bar = document.querySelector("#bar");
             for (const name of ["placement", "describe", "delete"]) bar.addEventListener(name, (event) => window.fixtureEvents.push([name, event.detail]));
           `)
         : await bundle("vue-image-toolbar", `
             import { createApp, h, ref } from "vue";
-            import { EditorImageToolbar } from "@threadlabs/looma/vue/editor";
+            import { UiEditorImageToolbar as EditorImageToolbar } from "@threadlabs/looma";
             window.fixtureEvents = [];
             const target = ref("one");
             window.fixtureSetTarget = (value) => { target.value = value; };
@@ -7721,7 +8176,7 @@ describe("Image toolbar", () => {
           `);
       const page = await open(path, target === "html"
         ? `<ui-editor-image-toolbar id="bar" placement="center" alt="Lake" target="one"></ui-editor-image-toolbar>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
       const actions = page.getByRole("toolbar", { name: "Image actions" });
       await actions.waitFor();
@@ -7762,7 +8217,7 @@ describe("Link card", () => {
     it(`shows the destination, offers Open link only with an address to open, and requests edit and removal (${target})`, async () => {
       const path = target === "html"
         ? await bundle("html-link-card", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             for (const card of document.querySelectorAll("#resolved, #unsafe")) {
               for (const name of ["edit", "remove"]) card.addEventListener(name, (event) => window.fixtureEvents.push([card.id, name, event.detail]));
@@ -7770,7 +8225,7 @@ describe("Link card", () => {
           `)
         : await bundle("vue-link-card", `
             import { createApp, h } from "vue";
-            import { EditorLinkCard } from "@threadlabs/looma/vue/editor";
+            import { UiEditorLinkCard as EditorLinkCard } from "@threadlabs/looma";
             window.fixtureEvents = [];
             const record = (id, name) => (event) => window.fixtureEvents.push([id, name, event.detail]);
             createApp({ render: () => [
@@ -7781,7 +8236,7 @@ describe("Link card", () => {
       const page = await open(path, target === "html"
         ? `<ui-editor-link-card id="resolved" href="https://example.com/guide" open-href="https://example.com/guide" label="Guide" detail="Personal / Guides" target-label="Page"></ui-editor-link-card>
            <ui-editor-link-card id="unsafe" href="ftp://files.example.com/archive"></ui-editor-link-card>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
       const resolved = page.locator("#resolved").getByRole("group", { name: "Link actions", exact: true });
       const unsafe = page.locator("#unsafe").getByRole("group", { name: "Link actions", exact: true });
@@ -7803,15 +8258,15 @@ describe("Block actions", () => {
     it(`requests the chosen block action (${target})`, async () => {
       const path = target === "html"
         ? await bundle("html-block-actions", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             const menu = document.querySelector("#actions");
             menu.addEventListener("action", (event) => window.fixtureEvents.push(["action", event.detail]));
           `)
         : await bundle("vue-block-actions", `
             import { createApp, h } from "vue";
-            import { IconButton } from "@threadlabs/looma/vue";
-            import { EditorBlockActions } from "@threadlabs/looma/vue/editor";
+            import { UiIconButton as IconButton } from "@threadlabs/looma";
+            import { UiEditorBlockActions as EditorBlockActions } from "@threadlabs/looma";
             window.fixtureEvents = [];
             const record = (name) => (event) => window.fixtureEvents.push([name, event.detail]);
             createApp({ render: () => [
@@ -7821,7 +8276,7 @@ describe("Block actions", () => {
           `);
       const page = await open(path, target === "html"
         ? `<ui-icon-button id="trigger" label="Block actions">…</ui-icon-button><ui-editor-block-actions id="actions" for="trigger"></ui-editor-block-actions>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: [string, unknown][] }).fixtureEvents);
       await page.getByRole("button", { name: "Block actions", exact: true }).click();
       await page.getByRole("menuitem", { name: "Duplicate block", exact: true }).click();
@@ -7837,7 +8292,7 @@ describe("Link form", () => {
       const results = [{ id: "one", label: "Guide", detail: "Personal / Guides" }, { id: "two", label: "Guide to tables" }];
       const path = target === "html"
         ? await bundle("html-link-form", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             for (const form of document.querySelectorAll("#address, #search")) {
               for (const name of ["destination", "text", "new-tab", "choose", "clear", "save", "dismiss"]) form.addEventListener(name, (event) => window.fixtureEvents.push([form.id, name, event.detail]));
@@ -7845,7 +8300,7 @@ describe("Link form", () => {
           `)
         : await bundle("vue-link-form", `
             import { createApp, h } from "vue";
-            import { EditorLinkForm } from "@threadlabs/looma/vue/editor";
+            import { UiEditorLinkForm as EditorLinkForm } from "@threadlabs/looma";
             window.fixtureEvents = [];
             const on = (id) => Object.fromEntries(["destination", "text", "new-tab", "choose", "clear", "save", "dismiss"].map((name) => [
               "on" + name.replace(/(^|-)(\\w)/g, (_, __, letter) => letter.toUpperCase()), (event) => window.fixtureEvents.push([id, name, event.detail]),
@@ -7858,7 +8313,7 @@ describe("Link form", () => {
       const page = await open(path, target === "html"
         ? `<ui-editor-link-form id="address" existing value="https://example.com" new-tab></ui-editor-link-form>
            <ui-editor-link-form id="search" searchable mode="target" value="Guide" text-editable selected="two" results='${JSON.stringify(results)}'></ui-editor-link-form>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
       const address = page.locator("#address");
       const search = page.locator("#search");
@@ -7906,13 +8361,13 @@ describe("Code language", () => {
       const languages = [{ value: "auto", label: "Auto" }, { value: "css", label: "CSS" }, { value: "javascript", label: "JAVASCRIPT" }];
       const path = target === "html"
         ? await bundle("html-code-language", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             document.querySelector("#picker").addEventListener("language", (event) => window.fixtureEvents.push(event.detail));
           `)
         : await bundle("vue-code-language", `
             import { createApp, h } from "vue";
-            import { EditorCodeLanguage } from "@threadlabs/looma/vue/editor";
+            import { UiEditorCodeLanguage as EditorCodeLanguage } from "@threadlabs/looma";
             window.fixtureEvents = [];
             createApp({ render: () => h(EditorCodeLanguage, {
               value: "javascript", languages: ${JSON.stringify(languages)}, onLanguage: (event) => window.fixtureEvents.push(event.detail),
@@ -7920,7 +8375,7 @@ describe("Code language", () => {
           `);
       const page = await open(path, target === "html"
         ? `<ui-editor-code-language id="picker" value="javascript" languages='${JSON.stringify(languages)}'></ui-editor-code-language>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const input = page.getByRole("combobox", { name: "Code language" });
       await input.waitFor();
       assert.equal(await input.inputValue(), "JAVASCRIPT");
@@ -7939,20 +8394,20 @@ describe("Swatch", () => {
       const tones = ["neutral", "blue", "purple"];
       const path = target === "html"
         ? await bundle("html-swatch", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             document.querySelector("#colors").addEventListener("select", (event) => window.fixtureEvents.push(event.detail.value));
           `)
         : await bundle("vue-swatch", `
             import { createApp, h } from "vue";
-            import { RadioGroup, Swatch } from "@threadlabs/looma/vue";
+            import { UiRadioGroup as RadioGroup, UiSwatch as Swatch } from "@threadlabs/looma";
             window.fixtureEvents = [];
             createApp({ render: () => h(RadioGroup, { id: "colors", label: "Color", value: "blue", onSelect: (event) => window.fixtureEvents.push(event.detail.value) },
               () => ${JSON.stringify(tones)}.map((tone) => h(Swatch, { tone }))) }).mount("#app");
           `);
       const page = await open(path, target === "html"
         ? `<ui-radio-group id="colors" label="Color" value="blue">${tones.map((tone) => `<ui-swatch tone="${tone}"></ui-swatch>`).join("")}</ui-radio-group>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const group = page.getByRole("radiogroup", { name: "Color" });
       await group.waitFor();
       assert.deepEqual(await group.getByRole("radio").evaluateAll((radios) => radios.map((radio) => [radio.getAttribute("aria-label"), (radio as HTMLInputElement).value])),
@@ -7978,21 +8433,21 @@ describe("Chip editor", () => {
     it(`reports text, colour, and done, and keeps the arrow keys among the swatches (${target})`, async () => {
       const path = target === "html"
         ? await bundle("html-chip-editor", `
-            import "@threadlabs/looma";
+            import "@looma-test/runtime";
             window.fixtureEvents = [];
             const editor = document.querySelector("#chip");
             for (const name of ["label", "color", "done"]) editor.addEventListener(name, (event) => window.fixtureEvents.push([name, event.detail]));
           `)
         : await bundle("vue-chip-editor", `
             import { createApp, h } from "vue";
-            import { EditorChipEditor } from "@threadlabs/looma/vue/editor";
+            import { UiEditorChipEditor as EditorChipEditor } from "@threadlabs/looma";
             window.fixtureEvents = [];
             const record = (name) => (event) => window.fixtureEvents.push([name, event.detail]);
             createApp({ render: () => h(EditorChipEditor, { id: "chip", label: "Draft", color: "blue", onLabel: record("label"), onColor: record("color"), onDone: record("done") }) }).mount("#app");
           `);
       const page = await open(path, target === "html"
         ? `<ui-editor-chip-editor id="chip" label="Draft" color="blue"></ui-editor-chip-editor>`
-        : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])]);
+        : `<div id="app"></div>`, [join(root, "tokens.css")]);
       const events = () => page.evaluate(() => (window as unknown as { fixtureEvents: unknown[] }).fixtureEvents);
       const dialog = page.getByRole("dialog", { name: "Edit chip" });
       const text = dialog.getByRole("textbox", { name: "Chip text" });
@@ -8023,7 +8478,7 @@ describe("Chip editor", () => {
 describe("Vue editor components", () => {
   it("updates suggestion visibility when only open, anchor or query changes", async () => {
     const path = await bundle("suggestion-input-tracking", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.updateSuggestion = (values) => componentRegistry.update(document.querySelector("#suggestion"), values);
     `);
@@ -8056,7 +8511,7 @@ describe("Vue editor components", () => {
 
   it("filters authored Slash groups and reports the command value", async () => {
     const path = await bundle("html-authored-slash-menu", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.events = [];
       document.querySelector("#slash").addEventListener("select", (event) => window.events.push(event.detail));
     `);
@@ -8097,7 +8552,7 @@ describe("Vue editor components", () => {
   it("projects authored editor suggestion items through Vue", async () => {
     const path = await bundle("vue-authored-editor-menus", `
       import { createApp, h } from "vue";
-      import { EditorSlashMenu, EditorSlashMenuGroup, EditorSlashMenuItem, EditorMentionMenu, EditorMentionMenuItem } from "@threadlabs/looma/vue";
+      import { UiEditorSlashMenu as EditorSlashMenu, UiEditorSlashMenuGroup as EditorSlashMenuGroup, UiEditorSlashMenuItem as EditorSlashMenuItem, UiEditorMentionMenu as EditorMentionMenu, UiEditorMentionMenuItem as EditorMentionMenuItem } from "@threadlabs/looma";
       const anchorRect = { left: 500, top: 40, right: 520, bottom: 60 };
       createApp({ render: () => h("div", [
         h(EditorSlashMenu, { id: "slash", open: true, query: "heading", anchorRect }, {
@@ -8111,7 +8566,7 @@ describe("Vue editor components", () => {
         }),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     assert.equal(await page.locator("#slash").getByRole("option", { name: "Heading" }).count(), 1);
     assert.equal(await page.locator("#mention").getByRole("option", { name: "Ada" }).count(), 1);
     assert.equal(await page.locator("#mention .header").textContent(), "People in this document");
@@ -8120,7 +8575,7 @@ describe("Vue editor components", () => {
 
   it("renders authored Mention items and empty/header slots with stable value events", async () => {
     const path = await bundle("html-authored-mention-menu", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.events = [];
       document.querySelector("#mention").addEventListener("select", (event) => window.events.push(event.detail));
     `);
@@ -8149,7 +8604,7 @@ describe("Vue editor components", () => {
   it("render menus, toolbars, and grids from their templates", async () => {
     const path = await bundle("vue-editor", `
       import { createApp, h } from "vue";
-      import { EditorSlashMenu, EditorTableToolbar, EditorInsertTableGrid } from "@threadlabs/looma/vue";
+      import { UiEditorSlashMenu as EditorSlashMenu, UiEditorTableToolbar as EditorTableToolbar, UiEditorInsertTableGrid as EditorInsertTableGrid } from "@threadlabs/looma";
       const events = [];
       window.events = events;
       createApp({
@@ -8165,7 +8620,7 @@ describe("Vue editor components", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
 
     const items = page.locator('#slash [role="option"]');
     assert.deepEqual(await items.locator(".title").allTextContents(), ["Table", "Text"]);
@@ -8202,14 +8657,14 @@ describe("Vue editor components", () => {
   it.each(["HTML", "Vue"])("matches equivalent cell backgrounds without selecting custom colors in %s", async (adapter) => {
     const actions = ["background-none", "background-gray", "background-yellow"];
     const path = await bundle(`cell-background-${adapter.toLowerCase()}`, adapter === "HTML" ? `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.setBackground = value => {
         for (const id of ["context", "toolbar"]) componentRegistry.update(document.getElementById(id), { cellBackground: value });
       };
     ` : `
       import { createApp, h, ref } from "vue";
-      import { EditorTableContextMenu, EditorTableToolbar } from "@threadlabs/looma/vue";
+      import { UiEditorTableContextMenu as EditorTableContextMenu, UiEditorTableToolbar as EditorTableToolbar } from "@threadlabs/looma";
       const background = ref("");
       window.setBackground = value => { background.value = value; };
       createApp({ render: () => h("div", [
@@ -8219,7 +8674,7 @@ describe("Vue editor components", () => {
     `);
     const body = adapter === "HTML" ? `<ui-editor-table-context-menu id="context" open actions='${JSON.stringify(actions)}'></ui-editor-table-context-menu>
       <ui-editor-table-toolbar id="toolbar" open actions='${JSON.stringify(actions)}'></ui-editor-table-toolbar>` : '<div id="app"></div>';
-    const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, body, [join(root, "tokens.css")]);
     // Keep the independent fixtures apart so neither menu covers the other.
     await page.locator("#context").evaluate(element => { (element as HTMLElement).style.left = "500px"; });
     await page.locator("#toolbar").getByRole("button", { name: "Table options" }).click();
@@ -8240,7 +8695,7 @@ describe("Vue editor components", () => {
 
   it("inserts from one roving table-picker tab stop and offers 44px touch cells", async () => {
     const path = await bundle("html-table-picker-keyboard", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.inserts = [];
       document.querySelector("#picker").addEventListener("insert", (event) => window.inserts.push(event.detail));
     `);
@@ -8275,11 +8730,15 @@ describe("Editor toolbar tooltips", () => {
   it("labels its buttons with a Looma tooltip, not the browser's title", async () => {
     const path = await bundle("vue-toolbar-tip", `
       import { createApp, h, ref } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-      const content = ref("<p>Hello</p>");
-      createApp({ render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky" }) }).mount("#app");
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
+      const content = ref(generateJSON("<p>Hello</p>", getDefaultEditorExtensions()));
+      createApp({ render: () => h(LoomaEditor, { content: content.value, toolbarMode: "sticky" }) }).mount("#app");
+      });
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const bold = page.locator(':is([data-component~="ui-editor-toolbar"], .ui-editor-toolbar) button').first();
     await bold.waitFor();
     assert.equal(await bold.getAttribute("title"), null, "no native title");
@@ -8317,12 +8776,16 @@ describe("LoomaEditor", () => {
   it("names its editing surface for assistive technology", async () => {
     const path = await bundle("vue-editor-label", `
       import { createApp, h, ref } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       const label = ref("Page content");
       window.label = label;
-      createApp({ render: () => h(LoomaEditor, { modelValue: { type: "doc", content: [] }, label: label.value }) }).mount("#app");
+      createApp({ render: () => h(LoomaEditor, { content: { type: "doc", content: [] }, label: label.value }) }).mount("#app");
+      });
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const prose = page.locator(".ProseMirror");
     await prose.waitFor();
     assert.equal(await prose.getAttribute("aria-label"), "Page content");
@@ -8335,14 +8798,18 @@ describe("LoomaEditor", () => {
   it("edits a document and opens the slash menu", async () => {
     const path = await bundle("vue-looma-editor", `
       import { createApp, h, ref } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-      const content = ref("<p>Hello</p>");
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
+      const content = ref(generateJSON("<p>Hello</p>", getDefaultEditorExtensions()));
       window.content = content;
       createApp({
-        render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky", "onUpdate:modelValue": (value) => { content.value = value; } }),
+        render: () => h(LoomaEditor, { content: content.value, toolbarMode: "sticky", onChange: event => { content.value = event.detail.content; } }),
       }).mount("#app");
+      });
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const prose = page.locator(".ProseMirror");
     await prose.waitFor();
     assert.equal(await prose.textContent(), "Hello");
@@ -8363,7 +8830,7 @@ describe("LoomaEditor", () => {
 
 describe("HTML components", () => {
   it("register and lower from dist/index.js", async () => {
-    const path = await bundle("html-page", `import "@threadlabs/looma";`);
+    const path = await bundle("html-page", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-button id="save" variant="solid" class="consumer">Save</ui-button>
       <ui-switch id="alerts">Alerts</ui-switch>
@@ -8404,7 +8871,7 @@ describe("Radio group initial selection", () => {
   };
 
   it("honors group selection when a child is authored checked, in HTML", async () => {
-    const path = await bundle("html-radio-initial-selection", `import "@threadlabs/looma";`);
+    const path = await bundle("html-radio-initial-selection", `import "@looma-test/runtime";`);
     const page = await open(path, `<form id="form">
       <ui-radio-group id="plan" name="plan" value="pro"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
       <ui-radio-group id="empty" name="empty"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
@@ -8417,7 +8884,7 @@ describe("Radio group initial selection", () => {
   it("honors group selection when a child is authored checked, in Vue", async () => {
     const path = await bundle("vue-radio-initial-selection", `
       import { createApp, h } from "vue";
-      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      import { UiRadio as Radio, UiRadioGroup as RadioGroup } from "@threadlabs/looma";
       const radios = () => [h(Radio, { value: "free", checked: true }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")];
       createApp({ render: () => h("form", { id: "form" }, [
         h(RadioGroup, { id: "plan", name: "plan", value: "pro" }, radios),
@@ -8425,7 +8892,7 @@ describe("Radio group initial selection", () => {
         h("fieldset", { role: "radiogroup" }, [h(Radio, { id: "standalone", name: "standalone", checked: true }, () => "Standalone")]),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -8447,7 +8914,7 @@ describe("Radio group required", () => {
   };
 
   it("marks the group required and its radios required, in HTML", async () => {
-    const path = await bundle("html-radio-required", `import "@threadlabs/looma";`);
+    const path = await bundle("html-radio-required", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <ui-radio-group id="plan" name="plan" label="Plan" required><ui-radio value="free">Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
@@ -8461,7 +8928,7 @@ describe("Radio group required", () => {
   it("marks the group required and its radios required, in Vue", async () => {
     const path = await bundle("vue-radio-required", `
       import { createApp, h } from "vue";
-      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      import { UiRadio as Radio, UiRadioGroup as RadioGroup } from "@threadlabs/looma";
       createApp({
         render: () => h("form", { id: "form" }, [
           h(RadioGroup, { id: "plan", name: "plan", label: "Plan", required: true }, () => [h(Radio, { value: "free" }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")]),
@@ -8469,7 +8936,7 @@ describe("Radio group required", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -8481,7 +8948,7 @@ describe("Combobox events", () => {
   it("reports options and a single choice in their declared shape in Vue", async () => {
     const path = await bundle("vue-combobox-event-shape", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       window.events = [];
       createApp({
         render: () => h(Combobox, {
@@ -8491,7 +8958,7 @@ describe("Combobox events", () => {
         }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.locator('input[role="combobox"]').pressSequentially("pe");
@@ -8552,7 +9019,7 @@ describe("Combobox option detail", () => {
 
   it("names each option by its label and describes it by its tag and description in HTML", async () => {
     const path = await bundle("html-combobox-option-detail", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.changes = [];
       document.addEventListener("value-change", (event) => window.changes.push(event.detail));
     `);
@@ -8576,7 +9043,7 @@ describe("Combobox option detail", () => {
   it("names each option by its label and describes it by its tag and description in Vue", async () => {
     const path = await bundle("vue-combobox-option-detail", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       window.changes = [];
       createApp({
         render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (event) => window.changes.push(event.detail) }, () => [
@@ -8592,7 +9059,7 @@ describe("Combobox option detail", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -8625,7 +9092,7 @@ describe("Combobox filter", () => {
 
   it("lists every option with filter none and filters by label by default in HTML", async () => {
     const path = await bundle("html-combobox-filter", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.changes = [];
       document.addEventListener("value-change", (event) => window.changes.push(event.detail));
     `);
@@ -8650,7 +9117,7 @@ describe("Combobox filter", () => {
   it("lists every option with filter none and filters by label by default in Vue", async () => {
     const path = await bundle("vue-combobox-filter", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       window.changes = [];
       const riley = () => h("option", { value: "riley", "data-description": "Harbor Auto Group" }, "Riley Kim");
       const harbor = () => h("option", { value: "harbor" }, "Harbor Auto Group");
@@ -8664,7 +9131,7 @@ describe("Combobox filter", () => {
         ],
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -8674,7 +9141,7 @@ describe("Controlled strict Combobox search", () => {
   it("keeps a typed search draft, restores an unmatched draft on blur, and commits a chosen option", async () => {
     const path = await bundle("vue-controlled-combobox-search", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const selected = ref("apple");
       window.changes = [];
       createApp({ render: () => h(Combobox, {
@@ -8685,7 +9152,7 @@ describe("Controlled strict Combobox search", () => {
         },
       }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div><button id="after">After</button>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div><button id="after">After</button>`, [join(root, "tokens.css")]);
     const input = page.locator('#fruit input[role="combobox"]');
     assert.equal(await input.inputValue(), "Apple");
     await input.fill("pea");
@@ -8730,7 +9197,7 @@ describe("Combobox disabled", () => {
 
   it("cannot be cleared or opened in HTML", async () => {
     const path = await bundle("html-combobox-disabled", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.changes = [];
       document.addEventListener("value-change", (event) => window.changes.push(event.detail));
     `);
@@ -8745,7 +9212,7 @@ describe("Combobox disabled", () => {
   it("cannot be cleared or opened in Vue", async () => {
     const path = await bundle("vue-combobox-disabled", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       window.changes = [];
       const options = () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")];
       const onValueChange = (event) => window.changes.push(event.detail);
@@ -8757,15 +9224,185 @@ describe("Combobox disabled", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
 });
 
+describe("TopBar scroll title", () => {
+  for (const adapter of ['html','vue'] as const) it(`reveals the ${adapter} title after its heading scrolls out, with reduced-motion support`, async () => {
+    const path=await bundle(`${adapter}-top-bar-scroll-title`,adapter==='html' ? `
+      import "@looma-test/runtime";
+      import {componentRegistry} from "@nextwebwg/html-next/runtime";
+      window.setTarget=id=>componentRegistry.update(document.querySelector('#bar'),{titleFor:id});
+    ` : `
+      import {createApp,h,ref} from "vue";
+      import { UiTopBar as TopBar, UiButton as Button } from "@threadlabs/looma";
+      const target=ref('heading'); window.setTarget=id=>target.value=id;
+      createApp({render:()=>h(TopBar,{id:'bar',titleFor:target.value},{
+        leading:()=>h(Button,{size:'sm'},()=> 'Back'),
+        default:()=> 'A deliberately long document heading for this narrow screen',
+        actions:()=>h(Button,{size:'sm'},()=> 'Save'),
+      })}).mount('#app');
+    `);
+    const page=await open(path,`<div id="scroll">${adapter==='html'
+      ? '<ui-top-bar id="bar" title-for="heading"><ui-button slot="leading" size="sm">Back</ui-button>A deliberately long document heading for this narrow screen<ui-button slot="actions" size="sm">Save</ui-button></ui-top-bar>'
+      : '<div id="app"></div>'}<h1 id="heading">Document heading</h1><div style="height:1000px"></div></div>`,
+      [join(root,'tokens.css')],{viewport:{width:375,height:500}});
+    try {
+      await page.addStyleTag({content:'body { margin:0; } #app { display:contents; } #scroll { height:400px; overflow:auto; } h1 { margin:12px; font-size:24px; }'});
+      const title=page.locator('#bar .title');
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      assert.equal(await page.getByRole('button',{name:'Back',exact:true}).isVisible(),true);
+      assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isVisible(),true);
+      const height=await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height);
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.getAttribute('aria-hidden'),'false');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).textOverflow),'ellipsis');
+      assert.equal(await title.evaluate(el=>el.scrollWidth>el.clientWidth),true);
+      assert.equal(await page.locator('#bar').evaluate(el=>el.getBoundingClientRect().height),height,'revealing the title does not move the bar');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='0');
+      assert.notEqual(await title.evaluate(el=>getComputedStyle(el).transform),'none','the hidden title starts below its resting position');
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#bar .title')!).opacity==='1');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+      assert.equal(await title.evaluate(el=>getComputedStyle(el).transform),'none');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget(''));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      assert.equal(await title.getAttribute('aria-hidden'),'false','an unobserved title keeps the ordinary always-visible behavior');
+      await page.evaluate(()=>(window as unknown as {setTarget:(id:string)=>void}).setTarget('late-heading'));
+      await page.evaluate(()=>{
+        const heading=document.createElement('h2'); heading.id='late-heading'; heading.textContent='A heading rendered later';
+        document.querySelector('#heading')!.after(heading);
+      });
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+      await page.locator('#late-heading').evaluate(el=>el.replaceWith(el.cloneNode(true)));
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=240);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='false');
+      await page.locator('#scroll').evaluate(el=>el.scrollTop=0);
+      await page.waitForFunction(()=>document.querySelector('#bar .title')?.getAttribute('aria-hidden')==='true');
+    } finally {await page.close();}
+  });
+});
+
+describe("Responsive control examples", () => {
+  it("contains the growing field and scroll-title examples at phone widths", async () => {
+    const path = await bundle('responsive-control-examples', 'import "@looma-test/runtime";');
+    for (const example of ['ui-combobox/examples/08-multiple-rows.html', 'ui-top-bar/examples/02-scroll-title.html']) {
+      const markup = (await readFile(join(root, 'src/components', example), 'utf8')).replace('<ui-container', '<ui-container id="example-container"');
+      const page = await open(path, markup, [join(root, 'tokens.css')], {viewport: {width: 375, height: 700}});
+      try {
+        await page.addStyleTag({content: 'body {margin:12px}'});
+        for (const width of [320, 375]) {
+          await page.setViewportSize({width, height:700});
+          const overflow = await page.locator('#example-container').evaluateAll(elements => elements.map(element => {
+            const parent = element.parentElement!.getBoundingClientRect();
+            return element.getBoundingClientRect().right - parent.right;
+          }));
+          assert.equal(overflow.length, 1);
+          assert.ok(overflow.every(value => value <= 1), `${example}/${width}: containers stay inside the reading area: ${overflow}`);
+        }
+      } finally {await page.close();}
+    }
+  });
+});
+
 describe("Combobox authored defaults and affordances", () => {
+  for (const adapter of ["html", "vue"] as const) it(`grows a ${adapter} multiple field through three rows before scrolling vertically`, async () => {
+    const shared = `
+      window.items = [];
+      window.removals = [];
+      const remove = event => {
+        window.removals.push(event.detail);
+        window.setItems(window.items.filter(item => item.value !== event.detail.item.value));
+      };
+    `;
+    const path = await bundle(`${adapter}-combobox-multiline`, adapter === "html" ? `
+      import "@looma-test/runtime";
+      import { componentRegistry } from "@nextwebwg/html-next/runtime";
+      ${shared}
+      window.setItems = items => {
+        window.items = items;
+        componentRegistry.update(document.querySelector('#multi'), {items});
+      };
+      window.setSize = size => componentRegistry.update(document.querySelector('#multi'), {size});
+      document.addEventListener('remove-item', remove);
+    ` : `
+      import { createApp, h, ref } from "vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
+      ${shared}
+      const items = ref([]), size = ref('md');
+      window.setItems = value => { window.items = value; items.value = value; };
+      window.setSize = value => { size.value = value; };
+      createApp({render:()=>h(Combobox,{id:'multi',label:'Topics',multiple:true,maxRows:3,
+        size:size.value,items:items.value,onRemoveItem:remove})}).mount('#app');
+    `);
+    const page = await open(path, adapter === "html"
+      ? '<ui-combobox id="multi" label="Topics" multiple max-rows="3"></ui-combobox>' : '<div id="app"></div>',
+    [join(root,"tokens.css")],
+    {viewport:{width:375,height:700},hasTouch:true,isMobile:true});
+    try {
+      await page.addStyleTag({content:'body { margin:12px; } #multi { inline-size:240px; --ui-control-size-sm:28px; }'});
+      const selected = Array.from({length:10}, (_,i)=>({id:`topic-${i}`,value:`topic-${i}`,label:`Topic number ${i}`}));
+      const setItems = async (items: typeof selected) => {
+        await page.evaluate(items=>(window as unknown as {setItems:(items:unknown[])=>void}).setItems(items),items);
+        await page.waitForFunction(count=>document.querySelectorAll('#multi .item').length===count,items.length);
+      };
+      const field = page.locator('#multi .field'), entry = page.locator('#multi .entry');
+      const input = page.locator('#multi input[role="combobox"]');
+      for (const size of ['sm','md','lg']) {
+        await setItems([]);
+        await page.evaluate(size=>(window as unknown as {setSize:(size:string)=>void}).setSize(size),size);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const empty = await field.evaluate(el=>el.getBoundingClientRect().height);
+        await setItems(selected.slice(0,2));
+        const grown = await field.evaluate(el=>el.getBoundingClientRect().height);
+        assert.ok(grown > empty + 8, `${adapter}/${size}: the field grows before it scrolls`);
+        assert.ok(await entry.evaluate(el=>el.scrollHeight<=el.clientHeight+1), 'two rows remain fully visible');
+        await setItems(selected);
+        const bounds = await entry.evaluate(el=>{
+          const row = Math.max(...Array.from(el.querySelectorAll('.item, input'), item=>item.getBoundingClientRect().height));
+          return {height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth,
+            row,gap:Number.parseFloat(getComputedStyle(el).rowGap),mask:getComputedStyle(el).maskImage};
+        });
+        assert.ok(bounds.height >= 3*bounds.row+2*bounds.gap-1, `three complete rows fit: ${JSON.stringify(bounds)}`);
+        assert.ok(bounds.height <= 3*bounds.row+2*bounds.gap+1, JSON.stringify(bounds));
+        assert.ok(bounds.scroll > bounds.height, 'additional rows scroll inside the field');
+        assert.ok(bounds.scrollWidth<=bounds.width+1, 'the wrapping field has no horizontal tag strip');
+        assert.equal(bounds.mask,'none');
+        await input.focus();
+        const visible = () => input.evaluate(el=>{
+          const box=el.getBoundingClientRect(), area=el.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'the typing row remains visible');
+        await input.press('ArrowLeft');
+        assert.equal(await page.locator('#multi .item').last().evaluate(el=>el===document.activeElement),true);
+        await page.keyboard.press('Delete');
+        await page.waitForFunction(()=>document.querySelectorAll('#multi .item').length===9);
+        await page.waitForFunction(()=>{
+          const input=document.querySelector('#multi input[role="combobox"]')!;
+          const box=input.getBoundingClientRect(), area=input.closest('.entry')!.getBoundingClientRect();
+          return document.activeElement===input && box.top>=area.top-1 && box.bottom<=area.bottom+1;
+        });
+        assert.equal(await visible(),true,'removing the final chip returns to the visible input');
+        await setItems([]);
+        assert.ok(Math.abs((await field.evaluate(el=>el.getBoundingClientRect().height))-empty)<1,'the field shrinks again');
+      }
+    } finally { await page.close(); }
+  });
+
   it("starts from selected options, disables empty Clear, and keeps multiple selections on one row", async () => {
-    const path = await bundle("html-combobox-authored-defaults", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-authored-defaults", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <ui-combobox id="single" name="region" label="Region" clearable disclosure>
@@ -8884,7 +9521,7 @@ describe("Combobox selectedValues", () => {
 
   it("follows selectedValues and reports the user's changes in HTML", async () => {
     const path = await bundle("html-combobox-selected-values", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.reports = [];
       const teams = () => document.querySelector("#teams");
@@ -8909,7 +9546,7 @@ describe("Combobox selectedValues", () => {
   it("binds v-model:selectedValues in Vue", async () => {
     const path = await bundle("vue-combobox-selected-values", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const selected = ref(["docs"]);
       window.reports = [];
       window.setValues = (values) => { selected.value = values; };
@@ -8922,7 +9559,7 @@ describe("Combobox selectedValues", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -8932,14 +9569,14 @@ describe("CycleButton deferred choices", () => {
   for (const adapter of ["HTML", "Vue"] as const) it(`waits for choices and accepts localized hints in ${adapter}`, async () => {
     const items = [{value:"light",label:"Clair",icon:"sun"},{value:"dark",label:"Sombre",icon:"moon"}];
     const path = await bundle(`cycle-deferred-${adapter}`, adapter === "HTML" ? `
-      import "@threadlabs/looma"; import {componentRegistry} from "@nextwebwg/html-next/runtime";
+      import "@looma-test/runtime"; import {componentRegistry} from "@nextwebwg/html-next/runtime";
       window.fillChoices=(empty=false)=>componentRegistry.update(document.getElementById("cycle"),{items:empty?[]:${JSON.stringify(items)}});
     ` : `
-      import {createApp,h,ref} from "vue"; import {CycleButton} from "@threadlabs/looma/vue";
+      import {createApp,h,ref} from "vue"; import {UiCycleButton as CycleButton} from "@threadlabs/looma";
       const items=ref(null); window.fillChoices=(empty=false)=>items.value=empty?[]:${JSON.stringify(items)};
       createApp({render:()=>h(CycleButton,{id:"cycle",label:"Apparence",description:"Choisir l’état suivant",emptyLabel:"Aucun choix",items:items.value})}).mount("#app");
     `);
-    const page = await open(path, adapter === "HTML" ? '<ui-cycle-button id="cycle" label="Apparence" description="Choisir l’état suivant" empty-label="Aucun choix"></ui-cycle-button>' : '<div id="app"></div>', [join(root,"tokens.css"),...(adapter === "Vue" ? [join(root,"vue/components.css")] : [])]);
+    const page = await open(path, adapter === "HTML" ? '<ui-cycle-button id="cycle" label="Apparence" description="Choisir l’état suivant" empty-label="Aucun choix"></ui-cycle-button>' : '<div id="app"></div>', [join(root,"tokens.css")]);
     try {
       await page.evaluate(() => (window as unknown as {fillChoices(empty:boolean):void}).fillChoices(true));
       const button = page.locator("#cycle button");
@@ -8956,14 +9593,14 @@ describe("CycleButton deferred choices", () => {
 
 describe("Search Result Row direction", () => {
   for (const adapter of ["HTML", "Vue"] as const) it(`aligns search result text at the reading start in ${adapter}`, async () => {
-    const path = await bundle(`search-row-direction-${adapter}`, adapter === "HTML" ? 'import "@threadlabs/looma";' : `
+    const path = await bundle(`search-row-direction-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
       import { createApp, h } from "vue";
-      import { SearchResultRow } from "@threadlabs/looma/vue";
+      import { UiSearchResultRow as SearchResultRow } from "@threadlabs/looma";
       createApp({render:()=>h(SearchResultRow,{id:"result"},{title:()=>h("span",{id:"title"},"دليل البحث"),meta:()=>"Documentation"})}).mount("#app");
     `);
     const page = await open(path, adapter === "HTML"
       ? '<ui-search-result-row id="result"><span slot="title" id="title">دليل البحث</span><span slot="meta">Documentation</span></ui-search-result-row>'
-      : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {viewport:{width:375,height:700}});
+      : '<div id="app"></div>', [join(root, "tokens.css")], {viewport:{width:375,height:700}});
     try {
       for (const dir of ["ltr", "rtl"]) {
         await page.locator("html").evaluate((element, value) => element.setAttribute("dir", value), dir);
@@ -8991,7 +9628,7 @@ describe("Search Result Row selected", () => {
   };
 
   it("states the current result to assistive technology in HTML", async () => {
-    const path = await bundle("html-search-row", `import "@threadlabs/looma";`);
+    const path = await bundle("html-search-row", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-search-result-row id="current" selected><span slot="title">Tokens</span></ui-search-result-row>
       <ui-search-result-row id="other"><span slot="title">Themes</span></ui-search-result-row>
@@ -9003,7 +9640,7 @@ describe("Search Result Row selected", () => {
   it("states the current result to assistive technology in Vue", async () => {
     const path = await bundle("vue-search-row", `
       import { createApp, h } from "vue";
-      import { SearchResultRow } from "@threadlabs/looma/vue";
+      import { UiSearchResultRow as SearchResultRow } from "@threadlabs/looma";
       createApp({
         render: () => h("div", [
           h(SearchResultRow, { id: "current", selected: true }, { title: () => "Tokens" }),
@@ -9011,7 +9648,7 @@ describe("Search Result Row selected", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -9019,7 +9656,7 @@ describe("Search Result Row selected", () => {
 
 describe("Search Shell ignores a close from inside it", () => {
   it("stays open when a tooltip or menu inside it reports close", async () => {
-    const path = await bundle("html-search-shell-inner-close", `import "@threadlabs/looma";`);
+    const path = await bundle("html-search-shell-inner-close", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-search-shell id="shell" open label="Search">
         <span slot="search"><input type="search" aria-label="Search"><button id="clear" type="button">x</button></span>
@@ -9053,7 +9690,7 @@ describe("Search Shell keyboard results", () => {
   };
 
   it("moves among enabled rows and closes on Escape in HTML", async () => {
-    const path = await bundle("html-search-shell-keyboard", `import "@threadlabs/looma";`);
+    const path = await bundle("html-search-shell-keyboard", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-search-shell open label="Search">
         <input slot="search" type="search" aria-label="Search">
@@ -9069,7 +9706,7 @@ describe("Search Shell keyboard results", () => {
   });
 
   it("renders and reaches result rows added to its body after it opens in HTML", async () => {
-    const path = await bundle("html-search-shell-added-rows", `import "@threadlabs/looma";`);
+    const path = await bundle("html-search-shell-added-rows", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-search-shell open label="Search">
         <input slot="search" type="search" aria-label="Search">
@@ -9092,14 +9729,14 @@ describe("Search Shell keyboard results", () => {
   it("moves among enabled rows and closes on Escape in Vue", async () => {
     const path = await bundle("vue-search-shell-keyboard", `
       import { createApp, h } from "vue";
-      import { SearchShell, SearchResultRow } from "@threadlabs/looma/vue";
+      import { UiSearchShell as SearchShell, UiSearchResultRow as SearchResultRow } from "@threadlabs/looma";
       const row = (id, title, disabled = false) => h(SearchResultRow, { id, disabled }, { title: () => title });
       createApp({ render: () => h(SearchShell, { open: true, label: "Search" }, {
         search: () => h("input", { type: "search", "aria-label": "Search" }),
         body: () => h("div", [row("first", "First"), row("skip", "Skip", true), row("last", "Last")]),
       }) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -9128,7 +9765,7 @@ describe("Listbox choice rows", () => {
   };
 
   it("uses checked choice rows and form reset in HTML", async () => {
-    const path = await bundle("html-listbox", `import "@threadlabs/looma";`);
+    const path = await bundle("html-listbox", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form"><ui-listbox id="regions" name="regions" rows="4" multiple values='["north","west"]'>
         <option value="north">North</option><option value="south">South</option><option value="west">West</option>
@@ -9141,18 +9778,18 @@ describe("Listbox choice rows", () => {
   it("uses checked choice rows and form reset in Vue", async () => {
     const path = await bundle("vue-listbox", `
       import { createApp, h } from "vue";
-      import { Listbox } from "@threadlabs/looma/vue";
+      import { UiListbox as Listbox } from "@threadlabs/looma";
       createApp({ render: () => h("form", { id: "form" }, [h(Listbox, {
         id: "regions", name: "regions", rows: 4, multiple: true, values: ["north", "west"],
       }, () => ["north", "south", "west"].map((value) => h("option", { value }, value)))]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
 
   it("keeps required form validation and a native label association", async () => {
-    const path = await bundle("html-required-listbox", `import "@threadlabs/looma";`);
+    const path = await bundle("html-required-listbox", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form"><label for="plan">Plan</label><ui-listbox id="plan" name="plan" required>
         <option value="basic">Basic</option><option value="team">Team</option>
@@ -9183,7 +9820,7 @@ describe("Checkbox and Switch name", () => {
   };
 
   it("submits a checked box with its form in HTML", async () => {
-    const path = await bundle("html-checkbox-name", `import "@threadlabs/looma";`);
+    const path = await bundle("html-checkbox-name", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <ui-checkbox name="terms" checked>Terms</ui-checkbox>
@@ -9198,7 +9835,7 @@ describe("Checkbox and Switch name", () => {
   it("submits a checked box with its form in Vue", async () => {
     const path = await bundle("vue-checkbox-name", `
       import { createApp, h } from "vue";
-      import { Checkbox, Switch } from "@threadlabs/looma/vue";
+      import { UiCheckbox as Checkbox, UiSwitch as Switch } from "@threadlabs/looma";
       createApp({
         render: () => h("form", { id: "form" }, [
           h(Checkbox, { name: "terms", checked: true }, () => "Terms"),
@@ -9207,7 +9844,7 @@ describe("Checkbox and Switch name", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -9238,7 +9875,7 @@ describe("Combobox name", () => {
   const tags = `<option value="alpha">Alpha</option><option value="beta">Beta</option>`;
 
   it("submits the value, not the label, in HTML", async () => {
-    const path = await bundle("html-combobox-name", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-name", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <form id="form">
         <ui-combobox id="fruit" name="fruit" label="Fruit">${fruit}</ui-combobox>
@@ -9256,7 +9893,7 @@ describe("Combobox name", () => {
   it("submits the value, not the label, in Vue", async () => {
     const path = await bundle("vue-combobox-name", `
       import { createApp, h } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
       const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
       createApp({
@@ -9270,7 +9907,7 @@ describe("Combobox name", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -9287,7 +9924,7 @@ describe("Editable click away", () => {
   };
 
   it("keeps focus where the user clicked in HTML", async () => {
-    const path = await bundle("html-editable-away", `import "@threadlabs/looma";`);
+    const path = await bundle("html-editable-away", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-editable id="note" value="Inline"></ui-editable><input id="other" aria-label="Other">`, [join(root, "tokens.css")]);
     await page.locator('#note:is([data-component~="ui-editable"], .ui-editable)').waitFor();
     await check(page);
@@ -9297,10 +9934,10 @@ describe("Editable click away", () => {
   it("keeps focus where the user clicked in Vue", async () => {
     const path = await bundle("vue-editable-away", `
       import { createApp, h } from "vue";
-      import { Editable } from "@threadlabs/looma/vue";
+      import { UiEditable as Editable } from "@threadlabs/looma";
       createApp({ render: () => h("div", [h(Editable, { id: "note", value: "Inline" }), h("input", { id: "other", "aria-label": "Other" })]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -9347,6 +9984,9 @@ describe("Form participation", () => {
       <ui-combobox name="country" label="Country" value="no" readonly><option value="no">Norway</option></ui-combobox>
       <ui-combobox name="off-combo" label="Off" value="apple" disabled>${fruit}</ui-combobox>
       <ui-editable id="note" value="Inline"></ui-editable>
+      <ui-editor label="Document" editable="false"></ui-editor>
+      <ui-compact-editor label="Comment"></ui-compact-editor>
+      <ui-radio-group name="external-palette" form="rules" value="blue" label="External palette"><ui-swatch tone="blue"></ui-swatch><ui-swatch tone="green"></ui-swatch></ui-radio-group>
     </form>
     <form id="rules">
       <ui-radio-group id="req-group" name="req" label="Required" required><ui-radio value="x">X</ui-radio><ui-radio value="y">Y</ui-radio></ui-radio-group>
@@ -9355,7 +9995,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, ColorPicker, Combobox, Editable, Input, InputGroup, Listbox, NumberInput, Slider, Radio, RadioGroup, Select, Swatch, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { UiEditor as Editor, UiCompactEditor as CompactEditor, UiCheckbox as Checkbox, UiColorPicker as ColorPicker, UiCombobox as Combobox, UiEditable as Editable, UiInput as Input, UiInputGroup as InputGroup, UiListbox as Listbox, UiNumberInput as NumberInput, UiSlider as Slider, UiRadio as Radio, UiRadioGroup as RadioGroup, UiSelect as Select, UiSwatch as Swatch, UiSwitch as Switch, UiTextarea as Textarea } from "@threadlabs/looma";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -9394,6 +10034,9 @@ describe("Form participation", () => {
           h(Combobox, { name: "country", label: "Country", value: "no", readonly: true }, list([["no", "Norway"]])),
           h(Combobox, { name: "off-combo", label: "Off", value: "apple", disabled: true }, fruit),
           h(Editable, { id: "note", value: "Inline" }),
+          h(Editor, { label: "Document", editable: false }),
+          h(CompactEditor, { label: "Comment" }),
+          h(RadioGroup, { name: "external-palette", form: "rules", value: "blue", label: "External palette" }, () => [h(Swatch, { tone: "blue" }), h(Swatch, { tone: "green" })]),
         ]),
         h("form", { id: "rules" }, [
           h(RadioGroup, { id: "req-group", name: "req", label: "Required", required: true }, () => [h(Radio, { value: "x" }, text("X")), h(Radio, { value: "y" }, text("Y"))]),
@@ -9432,12 +10075,13 @@ describe("Form participation", () => {
   const exercise = async (page: Page) => {
     await page.waitForSelector('#req-tags:is([data-component~="ui-combobox"], .ui-combobox) input[role="combobox"]');
     assert.deepEqual(await entries(page), initial);
+    assert.deepEqual(await entries(page, "#rules"), [["external-palette", "blue"]]);
 
     await page.locator("#title").fill("Final");
     await page.locator('#distance input').fill('42px / 1.2');
     await page.locator('#distance input').press('Enter');
     await page.locator('#progress input[type="range"]').press('End');
-    await page.locator('#brand-colour button').click();
+    await page.getByRole("button", { name: "Brand colour", exact: true }).click();
     await page.locator('#brand-colour input[aria-label="Hex colour"]').fill('#123456');
     await page.locator('#brand-colour input[aria-label="Hex colour"]').press('Escape');
     await page.locator("#site").fill("wiki");
@@ -9481,11 +10125,11 @@ describe("Form participation", () => {
     await pick(page, "req-tags", "Alpha");
     await page.locator("#title").focus();
     assert.equal(await valid(), true);
-    assert.deepEqual(await entries(page, "#rules"), [["req", "y"], ["req-tags", "alpha"]]);
+    assert.deepEqual(await entries(page, "#rules"), [["external-palette", "blue"], ["req", "y"], ["req-tags", "alpha"]]);
   };
 
   it("submits each HTML control's value, leaves out what a native control would, and resets", async () => {
-    const path = await bundle("html-form", `import "@threadlabs/looma";`);
+    const path = await bundle("html-form", `import "@looma-test/runtime";`);
     const page = await open(path, html, [join(root, "tokens.css")]);
     await exercise(page);
     await page.close();
@@ -9493,7 +10137,7 @@ describe("Form participation", () => {
 
   it("submits the same entries from the Vue components", async () => {
     const path = await bundle("vue-form-participation", vue);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await exercise(page);
     await page.close();
   });
@@ -9586,14 +10230,14 @@ describe("Table", () => {
   }
 
   it("styles an authored table, and makes a table too wide a named, scrollable region, in HTML", async () => {
-    const path = await bundle("html-table", `import "@threadlabs/looma";`);
+    const path = await bundle("html-table", `import "@looma-test/runtime";`);
     const page = await open(path, markup, [join(root, "tokens.css")]);
     await checkTable(page);
     await page.close();
   });
 
   it("judges a moved table again, so a table re-inserted and then widened is plain", async () => {
-    const path = await bundle("html-table", `import "@threadlabs/looma";`);
+    const path = await bundle("html-table", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div id="moved-box" style="width: 200px">
         <ui-table id="moved"><table><caption>Moved</caption><tbody><tr>${figures.map((figure) => `<td>${figure}</td>`).join("")}</tr></tbody></table></ui-table>
@@ -9613,7 +10257,7 @@ describe("Table", () => {
   it("styles an authored table, and makes a table too wide a named, scrollable region, in Vue", async () => {
     const path = await bundle("vue-table", `
       import { createApp, h } from "vue";
-      import { Button, Checkbox, Select, Table } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiCheckbox as Checkbox, UiSelect as Select, UiTable as Table } from "@threadlabs/looma";
       const figures = ${JSON.stringify(figures)};
       createApp({ render: () => [
         h("div", { id: "fits-box", style: "width: 640px" }, h(Table, { id: "fits" }, () => h("table", [
@@ -9645,7 +10289,7 @@ describe("Table", () => {
         ])),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkTable(page);
     await page.close();
   });
@@ -9653,7 +10297,7 @@ describe("Table", () => {
   it("renders the authored table on the server, with no region until it scrolls", async () => {
     const { createSSRApp, h } = await import("vue");
     const { renderToString } = await import("vue/server-renderer");
-    const { Table } = await import("@threadlabs/looma/vue");
+    const { UiTable: Table } = await import("@threadlabs/looma");
     const html = await renderToString(createSSRApp({
       render: () => h(Table, { density: "compact", stickyHeader: true }, () => h("table", [h("caption", "Orders"), h("tbody", h("tr", h("td", "1")))])),
     }));
@@ -9711,7 +10355,7 @@ describe("Description list layouts", () => {
   }
 
   it("lays out facts in rows, stacked, and in a grid, in HTML", async () => {
-    const path = await bundle("html-description-list-layouts", `import "@threadlabs/looma";`);
+    const path = await bundle("html-description-list-layouts", `import "@looma-test/runtime";`);
     const attributes = (props: Record<string, unknown>) => Object.entries(props).map(([name, value]) => ` ${name}="${value}"`).join("");
     const page = await open(path, lists.map(({ id, style, props }) => `
       <div style="${style}"><ui-description-list id="${id}"${attributes(props)}>
@@ -9724,13 +10368,13 @@ describe("Description list layouts", () => {
   it("lays out facts in rows, stacked, and in a grid, in Vue", async () => {
     const path = await bundle("vue-description-list-layouts", `
       import { createApp, h } from "vue";
-      import { DescriptionItem, DescriptionList, Text } from "@threadlabs/looma/vue";
+      import { UiDescriptionItem as DescriptionItem, UiDescriptionList as DescriptionList, UiText as Text } from "@threadlabs/looma";
       const lists = ${JSON.stringify(lists)};
       const terms = ${JSON.stringify(terms)};
       createApp({ render: () => lists.map(({ id, style, props }) => h("div", { style }, h(DescriptionList, { id, ...props }, () =>
         terms.map((term, index) => h(DescriptionItem, { id: \`\${id}-\${index + 1}\`, term }, () => id === "grid" && index === 3 ? h(Text, { variant: "code" }, () => "${hash}") : "Value"))))) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkLists(page);
     await page.close();
   });
@@ -9738,7 +10382,7 @@ describe("Description list layouts", () => {
 
 describe("Sidebar", () => {
   it("animates docked occupancy with a fixed content canvas and follows pointer resizing immediately", async () => {
-    const path = await bundle("html-sidebar-layout-motion", `import "@threadlabs/looma";`);
+    const path = await bundle("html-sidebar-layout-motion", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div style="display:flex;width:900px;height:480px;--ui-motion-layout:1000ms">
         <ui-sidebar id="nav" width="280" resizable style="--ui-sidebar-collapsed-width:56px"><a href="#content">Navigation</a></ui-sidebar>
@@ -9801,7 +10445,7 @@ describe("Sidebar", () => {
 
   it("opens and closes as a drawer, announcing each change once, in HTML", async () => {
     const path = await bundle("html-sidebar-drawer", `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       window.probe = { toggles: [], resizes: [] };
       document.getElementById("nav").addEventListener("toggle", (event) => {
         if (event instanceof CustomEvent) window.probe.toggles.push(event.detail);
@@ -9818,7 +10462,7 @@ describe("Sidebar", () => {
   it("opens and closes as a drawer, announcing each change once, in Vue", async () => {
     const path = await bundle("vue-sidebar-drawer", `
       import { createApp, h } from "vue";
-      import { Sidebar } from "@threadlabs/looma/vue";
+      import { UiSidebar as Sidebar } from "@threadlabs/looma";
       window.probe = { toggles: [], resizes: [] };
       createApp({ render: () => [
         h("button", { id: "menu", commandfor: "nav", command: "--toggle" }, "Menu"),
@@ -9826,7 +10470,7 @@ describe("Sidebar", () => {
           () => h("a", { href: "#inbox" }, "Inbox")),
       ] }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkDrawer(page);
     await page.close();
   });
@@ -9834,7 +10478,7 @@ describe("Sidebar", () => {
   it("takes its docked width from the width prop, in Vue", async () => {
     const path = await bundle("vue-sidebar-width", `
       import { createApp, h, ref } from "vue";
-      import { Sidebar } from "@threadlabs/looma/vue";
+      import { UiSidebar as Sidebar } from "@threadlabs/looma";
       window.probe = { toggles: [], resizes: [] };
       const width = ref(256);
       window.width = width;
@@ -9843,7 +10487,7 @@ describe("Sidebar", () => {
         onResize: (event) => window.probe.resizes.push(event.detail),
       }, () => h("a", { href: "#inbox" }, "Inbox")) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const errors = watchErrors(page);
     const width = () => page.locator("#nav").evaluate((element) => element.getBoundingClientRect().width);
     assert.equal(await width(), 256);
@@ -9966,7 +10610,7 @@ describe("Component hooks", () => {
   }
 
   it("inherit from ancestors and allow instance overrides, in HTML", async () => {
-    const path = await bundle("html-hooks", `import "@threadlabs/looma";`);
+    const path = await bundle("html-hooks", `import "@looma-test/runtime";`);
     const page = await open(path, html(tree), [join(root, "tokens.css")]);
     await page.waitForSelector('#nav-themed:is([data-component~="ui-nav-item"], .ui-nav-item)');
     await checkHooks(page);
@@ -9976,15 +10620,15 @@ describe("Component hooks", () => {
   it("inherit from ancestors and allow instance overrides, in Vue", async () => {
     const path = await bundle("vue-hooks", `
       import { createApp, h } from "vue";
-      import * as looma from "@threadlabs/looma/vue";
+      import * as looma from "@threadlabs/looma";
       const render = (node) => {
         if (typeof node === "string") return node;
         const [name, attributes, children = []] = node;
-        return h(/^[A-Z]/.test(name) ? looma[name] : name, attributes, /^[A-Z]/.test(name) ? () => children.map(render) : children.map(render));
+        return h(/^[A-Z]/.test(name) ? looma["Ui" + name] : name, attributes, /^[A-Z]/.test(name) ? () => children.map(render) : children.map(render));
       };
       createApp({ render: () => ${JSON.stringify(tree)}.map(render) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await checkHooks(page);
     await page.close();
   });
@@ -9992,7 +10636,7 @@ describe("Component hooks", () => {
 
 describe("Theme levels", () => {
   it("applies global, inherited group, and instance values in that order across themes", async () => {
-    const path = await bundle("html-theme-levels", `import "@threadlabs/looma";`);
+    const path = await bundle("html-theme-levels", `import "@looma-test/runtime";`);
     const body = `
       <style>:root { --ui-radius-md: 12px; --ui-danger: rgb(180, 10, 30); }</style>
       <ui-input id="global-input" aria-label="Global" invalid></ui-input>
@@ -10024,6 +10668,11 @@ describe("Theme levels", () => {
       return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a! / 255})`;
     }, property);
 
+    const hasSurfacePaint = (selector: string, color: string) => page.locator(selector).evaluate((element, expected) => {
+      const style = getComputedStyle(element);
+      return style.backgroundColor === expected || style.backgroundImage.includes(expected);
+    }, color);
+
     for (const [theme, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [theme, value]);
@@ -10042,11 +10691,11 @@ describe("Theme levels", () => {
         assert.equal(await look(`#${id}`, "border-top-left-radius"), "5px", `${value}: ${id} inherits action radius`);
       }
       assert.equal(await look("#group-menu .surface", "border-top-left-radius"), "9px", `${value}: menu inherits overlay radius`);
-      assert.equal(await look("#group-menu .surface", "background-color"), "rgb(237, 239, 242)", `${value}: menu inherits overlay surface`);
+      assert.equal(await hasSurfacePaint("#group-menu .surface", "rgb(237, 239, 242)"), true, `${value}: menu inherits overlay surface in its material paint`);
       assert.equal(await look("#group-menu .surface", "border-top-color"), "rgb(22, 33, 44)", `${value}: menu inherits overlay border`);
       assert.equal(await look("#group-menu .surface", "box-shadow"), "none", `${value}: menu inherits overlay shadow`);
       assert.equal(await look("#local-menu .surface", "border-top-left-radius"), "4px", `${value}: local menu radius wins`);
-      assert.equal(await look("#local-menu .surface", "background-color"), "rgb(210, 211, 212)", `${value}: local menu surface wins`);
+      assert.equal(await hasSurfacePaint("#local-menu .surface", "rgb(210, 211, 212)"), true, `${value}: local menu surface wins in its material paint`);
       assert.equal(await look("#local-menu .surface", "border-top-color"), "rgb(80, 81, 82)", `${value}: local menu border wins`);
       assert.equal(await look("#global-danger", "background-color"), await look("#group-danger", "background-color"), `${value}: field danger does not change destructive actions`);
     }
@@ -10056,7 +10705,7 @@ describe("Theme levels", () => {
   it("keeps inherited group values in the generated Vue components", async () => {
     const path = await bundle("vue-theme-levels", `
       import { createApp, h } from "vue";
-      import { Button, Icon, IconButton, Input, Menu, MenuItem } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiIcon as Icon, UiIconButton as IconButton, UiInput as Input, UiMenu as Menu, UiMenuItem as MenuItem } from "@threadlabs/looma";
       createApp({ render: () => h("section", {
         style: "--ui-field-radius: 3px; --ui-field-danger: rgb(150, 20, 40); --ui-action-radius: 5px; --ui-overlay-radius: 9px",
       }, [
@@ -10067,7 +10716,7 @@ describe("Theme levels", () => {
         h(Menu, { id: "local-menu", style: "--ui-menu-radius: 4px" }, () => h(MenuItem, { value: "two" }, () => "Two")),
       ]) }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) =>
       getComputedStyle(element).getPropertyValue(name), property);
     assert.equal(await look("#field", "border-top-left-radius"), "3px");
@@ -10080,7 +10729,7 @@ describe("Theme levels", () => {
   });
 
   it("applies the global round radius to round controls and status shapes", async () => {
-    const path = await bundle("html-round-radius", `import "@threadlabs/looma";`);
+    const path = await bundle("html-round-radius", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <ui-avatar id="avatar" name="Ada Lovelace"></ui-avatar>
       <ui-switch id="switch">Enabled</ui-switch>
@@ -10099,9 +10748,9 @@ describe("Meter", () => {
   it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
     for (const target of ["html", "vue"]) {
       const path = await bundle(`localized-meter-${target}`, target === "html"
-        ? `import "@threadlabs/looma";`
+        ? `import "@looma-test/runtime";`
         : `import { createApp, h, ref } from "vue";
-           import { Meter } from "@threadlabs/looma/vue";
+           import { UiMeter as Meter } from "@threadlabs/looma";
            const value = ref(0.29);
            window.localizedMeterValue = value;
            createApp({ render: () => h(Meter, { value: value.value, label: "Progress" }) }).mount("#app");`);
@@ -10254,7 +10903,7 @@ describe("Meter", () => {
   }
 
   it("fills its track, names its value, and keeps its tones legible, in HTML", async () => {
-    const path = await bundle("html-meter", `import "@threadlabs/looma";`);
+    const path = await bundle("html-meter", `import "@looma-test/runtime";`);
     const attributes = (props: Record<string, unknown>) =>
       Object.entries(props).map(([name, value]) => `${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}="${value}"`).join(" ");
     const page = await open(path, hook + meters.map(([id, props]) => `<ui-meter id="${id}" ${attributes(props)}></ui-meter>`).join(""), css);
@@ -10265,13 +10914,13 @@ describe("Meter", () => {
   it("fills its track, names its value, keeps its tones legible, and follows its value, in Vue", async () => {
     const path = await bundle("vue-meter", `
       import { createApp, h, ref } from "vue";
-      import { Meter } from "@threadlabs/looma/vue";
+      import { UiMeter as Meter } from "@threadlabs/looma";
       const value = ref(750);
       window.meterValue = value;
       const meters = ${JSON.stringify(meters)};
       createApp({ render: () => meters.map(([id, props]) => h(Meter, { id, ...props, ...(id === "partial" ? { value: value.value } : {}) })) }).mount("#app");
     `);
-    const page = await open(path, `${hook}<div id="app"></div>`, [...css, join(root, "vue/components.css")]);
+    const page = await open(path, `${hook}<div id="app"></div>`, [...css]);
     await checkMeters(page);
     await page.evaluate(() => { (window as unknown as { meterValue: { value: number } }).meterValue.value = 1240; });
     await page.waitForFunction(() => document.querySelector("#partial")?.getAttribute("aria-valuenow") === "1240");
@@ -10298,7 +10947,7 @@ describe("Input with numbers", () => {
   `;
   const numberField = (name: string, binding: string) => bundle(name, `
     import { createApp, h, ref } from "vue";
-    import { Input } from "@threadlabs/looma/vue";
+    import { UiInput as Input } from "@threadlabs/looma";
     ${spyOnWrites}
     const amount = ref(12);
     const updates = [];
@@ -10343,7 +10992,7 @@ describe("Input with numbers", () => {
 
   it("reports numbers through v-model and never rewrites the text being typed", async () => {
     const path = await numberField("vue-input-number-model", `modelValue: amount.value, "onUpdate:modelValue": record`);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const { updates, writes } = await typing(page);
     assert.deepEqual(writes, []);
     // The declared numeric value is null while the field holds no number.
@@ -10355,7 +11004,7 @@ describe("Input with numbers", () => {
 
   it("takes a number value and follows input events without rewriting the text being typed", async () => {
     const path = await numberField("vue-input-number-value", `value: amount.value, onInput: (event) => record(event.target.value === "" ? null : Number(event.target.value))`);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     const { writes } = await typing(page);
     assert.deepEqual(writes, []);
     await page.close();
@@ -10449,7 +11098,7 @@ describe("App styling hooks", () => {
   }
 
   it("apply from an app class in HTML", async () => {
-    const path = await bundle("html-app-hooks", `import "@threadlabs/looma";`);
+    const path = await bundle("html-app-hooks", `import "@looma-test/runtime";`);
     const page = await open(path, `
       <div class="frame">
         <ui-input id="input" class="narrow-input" aria-label="Amount"></ui-input>
@@ -10477,7 +11126,7 @@ describe("App styling hooks", () => {
   it("apply from an app class in Vue", async () => {
     const path = await bundle("vue-app-hooks", `
       import { createApp, h } from "vue";
-      import { Button, Combobox, FormField, Input, NavItem, Select, Text } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiCombobox as Combobox, UiFormField as FormField, UiInput as Input, UiNavItem as NavItem, UiSelect as Select, UiText as Text } from "@threadlabs/looma";
       createApp({
         render: () => h("div", { class: "frame" }, [
           h(Input, { id: "input", class: "narrow-input", "aria-label": "Amount" }),
@@ -10500,7 +11149,7 @@ describe("App styling hooks", () => {
         ]),
       }).mount("#app");
     `);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     await check(page);
     await page.close();
   });
@@ -10509,15 +11158,15 @@ describe("App styling hooks", () => {
 describe("Combobox completion", () => {
   it("optionally clears unfinished multiple queries on blur in HTML and controlled Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-combobox-query-blur`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-combobox-query-blur`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h, ref } from "vue";
-        import { Combobox } from "@threadlabs/looma/vue";
+        import { UiCombobox as Combobox } from "@threadlabs/looma";
         const query = ref("");
         createApp({ render: () => h(Combobox, { id: "choices", label: "Teams", multiple: true,
           clearQueryOnBlur: true, openOnFocus: true, disclosure: true, autoHighlight: "single", selectOnTab: true,
           query: query.value, "onUpdate:query": value => query.value = value,
           selectedValues: ["docs"] }, () => [h("option", { value: "docs" }, "Docs"), h("option", { value: "design" }, "Design")]) }).mount("#app");`);
-      const page = await open(path, `<button id="before">Before</button>` + (adapter === "html" ? `<ui-combobox id="choices" label="Teams" multiple clear-query-on-blur open-on-focus disclosure auto-highlight="single" select-on-tab selected-values='["docs"]'><option value="docs">Docs</option><option value="design">Design</option></ui-combobox>` : `<div id="app"></div>`) + `<button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, `<button id="before">Before</button>` + (adapter === "html" ? `<ui-combobox id="choices" label="Teams" multiple clear-query-on-blur open-on-focus disclosure auto-highlight="single" select-on-tab selected-values='["docs"]'><option value="docs">Docs</option><option value="design">Design</option></ui-combobox>` : `<div id="app"></div>`) + `<button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css")]);
       try {
         const input = page.locator('#choices input[role="combobox"]');
         await input.focus();
@@ -10549,7 +11198,7 @@ describe("Combobox completion", () => {
   });
 
   it("preserves unfinished multiple queries by default and keeps creation opt-in", async () => {
-    const path = await bundle("html-combobox-preserve-query", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-preserve-query", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-combobox id="choices" label="Teams" multiple><option value="docs">Docs</option></ui-combobox><ui-combobox id="create" label="Create teams" multiple allow-create clear-query-on-blur></ui-combobox><button id="after" style="display:block;margin-top:300px">After</button>`, [join(root, "tokens.css")]);
     try {
       const input = page.locator('#choices input[role="combobox"]');
@@ -10592,7 +11241,7 @@ describe("Combobox completion", () => {
     assert.equal(await page.locator('#choices .item').count(), 1);
   };
   it("keeps default multiple completion manual and excludes disabled suggestions", async () => {
-    const path = await bundle("html-combobox-completion-default", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-completion-default", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-combobox id="manual" label="Manual" multiple><option value="design">Design</option></ui-combobox><ui-combobox id="disabled" label="Disabled" multiple auto-highlight="single" select-on-tab><option value="design" disabled>Design</option></ui-combobox><button>After</button>`, [join(root, "tokens.css")]);
     try {
       for (const id of ["manual", "disabled"]) {
@@ -10605,17 +11254,17 @@ describe("Combobox completion", () => {
     } finally { await page.close(); }
   });
   it("highlights a sole authored result and commits Tab in HTML", async () => {
-    const path = await bundle("html-combobox-completion", `import "@threadlabs/looma";`);
+    const path = await bundle("html-combobox-completion", `import "@looma-test/runtime";`);
     const page = await open(path, `<button id="before">Before</button><ui-combobox id="choices" label="Teams" multiple auto-highlight="single" select-on-tab><option value="design">Design</option><option value="docs">Docs</option><option value="platform">Platform</option></ui-combobox><button id="after">After</button>`, [join(root, "tokens.css")]);
     try { await check(page); } finally { await page.close(); }
   });
   it("highlights a sole authored result and commits Tab in controlled Vue", async () => {
     const path = await bundle("vue-combobox-completion", `
       import { createApp, h, ref } from "vue";
-      import { Combobox } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox } from "@threadlabs/looma";
       const selected = ref([]);
       createApp({ render: () => h("div", [h("button", { id: "before" }, "Before"), h(Combobox, { id: "choices", label: "Teams", multiple: true, autoHighlight: "single", selectOnTab: true, selectedValues: selected.value, "onUpdate:selectedValues": values => selected.value = values }, () => [["design", "Design"], ["docs", "Docs"], ["platform", "Platform"]].map(([value,label]) => h("option", {value}, label))), h("button", {id:"after"}, "After")]) }).mount("#app");`);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     try { await check(page); } finally { await page.close(); }
   });
 });
@@ -10669,7 +11318,7 @@ describe("Combobox chip truncation", () => {
         assert.notDeepEqual(await chip.screenshot(), ellipsis, "horizontal-only clipping still paints an ellipsis");
         await chip.locator(".label").evaluate(label => { (label as HTMLElement).style.textOverflow = ""; });
       }
-      await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
+      await page.screenshot({ path: join(root, ".test-build", `chip-ellipsis-${width}.png`) });
     }
     await page.getByRole("combobox", { name: "Filter" }).focus();
     await page.keyboard.press("ArrowLeft");
@@ -10677,29 +11326,29 @@ describe("Combobox chip truncation", () => {
     assert.equal(await page.locator(".item").count(), 0, "truncation preserves keyboard removal");
   };
   it("ellipsizes native chip labels inside their badge at desktop and 375px", async () => {
-    const path = await bundle("html-chip-truncation", `import "@threadlabs/looma";`);
+    const path = await bundle("html-chip-truncation", `import "@looma-test/runtime";`);
     const page = await open(path, `<ui-combobox label="Filter" multiple items='[{"id":"long","value":"long","label":"${label}"}]'><option value="long">${label}</option></ui-combobox>`, [join(root, "tokens.css")]);
     try { await check(page); } finally { await page.close(); }
   });
   it("ellipsizes Vue chip labels inside their badge at desktop and 375px", async () => {
-    const path = await bundle("vue-chip-truncation", `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: [{id: "long", value: "long", label: ${JSON.stringify(label)}}] }, () => h("option", {value: "long"}, ${JSON.stringify(label)})) }).mount("#app");`);
-    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const path = await bundle("vue-chip-truncation", `import { createApp, h } from "vue"; import { UiCombobox as Combobox } from "@threadlabs/looma"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: [{id: "long", value: "long", label: ${JSON.stringify(label)}}] }, () => h("option", {value: "long"}, ${JSON.stringify(label)})) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css")]);
     try { await check(page); } finally { await page.close(); }
   });
   for (const adapter of ["native", "Vue"]) {
     it(`keeps short ${adapter} chip text and descenders visible at desktop and 375px`, async () => {
       const items = [{ id: "date", value: "date", label: "date:today" }, { id: "entry", value: "entry", label: "entry:review" }];
       const options = items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
-      const source = adapter === "native" ? `import "@threadlabs/looma";`
-        : `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
+      const source = adapter === "native" ? `import "@looma-test/runtime";`
+        : `import { createApp, h } from "vue"; import { UiCombobox as Combobox } from "@threadlabs/looma"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
       const path = await bundle(`${adapter}-chip-descenders`, source);
-      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css")]);
       try {
         for (const width of [1280, 375]) {
           await page.setViewportSize({ width, height: 812 });
           await page.locator(".item .label").first().waitFor();
           await checkTextRoom(page);
-          await page.screenshot({ path: join(root, ".build", `chip-descenders-${adapter}-${width}.png`) });
+          await page.screenshot({ path: join(root, ".test-build", `chip-descenders-${adapter}-${width}.png`) });
         }
       } finally { await page.close(); }
     });
@@ -10709,14 +11358,14 @@ describe("Combobox chip truncation", () => {
 describe("CardButton layout", () => {
   it("uses a decorative neutral card edge while preserving accent outline and neutral navigation colors in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-neutral-card-edge`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-neutral-card-edge`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Button } from "@threadlabs/looma/vue";
+        import { UiButton as Button } from "@threadlabs/looma";
         createApp({ render: () => [h(Button, { id: "card", variant: "card", tone: "neutral" }, () => "Changed files"),
           h(Button, { id: "outline" }, () => "View changes"), h(Button, { id: "navigation", variant: "ghost", tone: "neutral" }, () => "History")] }).mount("#app");
       `);
       const page = await open(path, adapter === "vue" ? '<div id="app"></div>' : '<ui-button id="card" variant="card" tone="neutral">Changed files</ui-button><ui-button id="outline">View changes</ui-button><ui-button id="navigation" variant="ghost" tone="neutral">History</ui-button>',
-        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+        [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")]);
       try {
         await page.addStyleTag({ content: "* { transition: none !important; } body { font-family: var(--ui-font-family-sans); }" });
         const neutral = await page.locator("#card").evaluate(element => {
@@ -10730,7 +11379,7 @@ describe("CardButton layout", () => {
         assert.notEqual(await page.locator("#card").evaluate(element => getComputedStyle(element).borderTopColor), await page.locator("#card").evaluate(element => getComputedStyle(element).color), "hover keeps a decorative edge instead of an ink outline");
         await page.setViewportSize({ width: 375, height: 720 });
         await page.mouse.move(0, 700);
-        await page.screenshot({ path: join(root, ".build", `${adapter}-neutral-card-375.png`) });
+        await page.screenshot({ path: join(root, ".test-build", `${adapter}-neutral-card-375.png`) });
       } finally { await page.close(); }
     }
   });
@@ -10738,10 +11387,10 @@ describe("CardButton layout", () => {
   for (const adapter of ["native", "Vue"]) {
     it(`keeps ${adapter} icon/content top-aligned and action centered with equal edges at 375px and RTL`, async () => {
       const label = "Read the latest project notes and decisions, including the changes that need another look.";
-      const source = adapter === "native" ? `import "@threadlabs/looma";`
-        : `import {createApp,h} from "vue"; import {Button,Icon} from "@threadlabs/looma/vue"; createApp({render:()=>h(Button,{variant:"card",tone:"accent",id:"card"},{default:()=>${JSON.stringify(label)},icon:()=>h(Icon,{name:"book-user","aria-hidden":"true"})})}).mount("#app");`;
+      const source = adapter === "native" ? `import "@looma-test/runtime";`
+        : `import {createApp,h} from "vue"; import { UiButton as Button, UiIcon as Icon } from "@threadlabs/looma"; createApp({render:()=>h(Button,{variant:"card",tone:"accent",id:"card"},{default:()=>${JSON.stringify(label)},icon:()=>h(Icon,{name:"book-user","aria-hidden":"true"})})}).mount("#app");`;
       const path = await bundle(`card-button-${adapter}`, source);
-      const page = await open(path, adapter === "native" ? `<ui-button id="card" variant="card" tone="accent"><ui-icon slot="icon" name="book-user" aria-hidden="true"></ui-icon>${label}</ui-button>` : `<div id="app"></div>`, [join(root,"tokens.css"),join(root,"vue/components.css")]);
+      const page = await open(path, adapter === "native" ? `<ui-button id="card" variant="card" tone="accent"><ui-icon slot="icon" name="book-user" aria-hidden="true"></ui-icon>${label}</ui-button>` : `<div id="app"></div>`, [join(root,"tokens.css")]);
       try {
         for (const width of [1280,375]) for (const dir of ["ltr","rtl"]) {
           await page.setViewportSize({width,height:812});
@@ -10782,12 +11431,12 @@ describe("Image surface", () => {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80"><rect width="160" height="80" fill="#569d86"/></svg>';
   for (const adapter of ["HTML", "Vue"]) {
     it(`owns corner resize, cancellation, and bounds in ${adapter}`, async () => {
-      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Image } from "@threadlabs/looma/vue";
+        import { UiImage as Image } from "@threadlabs/looma";
         createApp({ render: () => h(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, selected: true, resizable: true }) }).mount("#mount");
       `);
-      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css")], {}, async page => {
         await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
       });
       await page.locator("#image img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
@@ -10824,12 +11473,12 @@ describe("Image surface", () => {
   }
   for (const adapter of ["HTML", "Vue"]) {
     it(`fits narrow grid tracks without horizontal scrolling in ${adapter}`, async () => {
-      const path = await bundle(`image-grid-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`image-grid-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Image } from "@threadlabs/looma/vue";
+        import { UiImage as Image } from "@threadlabs/looma";
         createApp({ render: () => h(Image, { src: ${JSON.stringify(source)}, alt: "Landscape", width: 480, height: 240 }) }).mount("#grid");
       `);
-      const page = await open(path, `<div id="grid" style="display: grid; place-items: center; width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image src="${source}" alt="Landscape" width="480" height="240"></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+      const page = await open(path, `<div id="grid" style="display: grid; place-items: center; width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image src="${source}" alt="Landscape" width="480" height="240"></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css")], {}, async page => {
         await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
       });
       await page.locator("#grid img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
@@ -10841,7 +11490,7 @@ describe("Image surface", () => {
   it("renders semantic media on the server before controllers run", async () => {
     const { createSSRApp, h } = await import("vue");
     const { renderToString } = await import("vue/server-renderer");
-    const { Image } = await import("@threadlabs/looma/vue");
+    const { UiImage: Image } = await import("@threadlabs/looma");
     const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
     assert.match(html, /^<figure class="ui-image"/);
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
@@ -10852,9 +11501,9 @@ describe("Image surface", () => {
 describe("Input with files", () => {
   for (const mode of ["HTML", "Vue"] as const) {
     it(`keeps ${mode} file selection and its native change event through prop updates`, async () => {
-      const path = await bundle(`file-input-${mode.toLowerCase()}`, mode === "HTML" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`file-input-${mode.toLowerCase()}`, mode === "HTML" ? `import "@looma-test/runtime";` : `
         import { createApp, h, ref } from "vue";
-        import { Input } from "@threadlabs/looma/vue";
+        import { UiInput as Input } from "@threadlabs/looma";
         const disabled = ref(false);
         window.setFileDisabled = (value) => { disabled.value = value; };
         createApp({ render: () => h(Input, { id: "upload", type: "file", name: "upload", disabled: disabled.value }) }).mount("#app");
@@ -10892,8 +11541,8 @@ describe("Input with files", () => {
 });
 
 it("preserves the native first option when Select has no controlled value", async () => {
-  const htmlPath = await bundle("html-select-uncontrolled", 'import "@threadlabs/looma";');
-  const vuePath = await bundle("vue-select-uncontrolled", `import { createApp, h } from "vue"; import { Select } from "@threadlabs/looma/vue"; createApp({ render: () => h(Select, { value: null }, () => [h('option', { value: 'a' }, 'A'), h('option', { value: 'b' }, 'B')]) }).mount('#app');`);
+  const htmlPath = await bundle("html-select-uncontrolled", 'import "@looma-test/runtime";');
+  const vuePath = await bundle("vue-select-uncontrolled", `import { createApp, h } from "vue"; import { UiSelect as Select } from "@threadlabs/looma"; createApp({ render: () => h(Select, { value: null }, () => [h('option', { value: 'a' }, 'A'), h('option', { value: 'b' }, 'B')]) }).mount('#app');`);
   const html = await open(htmlPath, '<ui-select><option value="a">A</option><option value="b">B</option></ui-select>', []);
   const vue = await open(vuePath, '<div id="app"></div>', []);
   try {
@@ -10908,12 +11557,12 @@ it("preserves the native first option when Select has no controlled value", asyn
 describe("Prop-driven reading surfaces", () => {
   it("keeps soft tones distinct in HTML and Vue without recoloring child actions", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`soft-card-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`soft-card-${framework}`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Card, Button, Stack } from "@threadlabs/looma/vue";
+        import { UiCard as Card, UiButton as Button, UiStack as Stack } from "@threadlabs/looma";
         createApp({ render: () => h(Stack, {}, () => ["neutral", "accent", "info", "success", "warning"].map(tone => h(Card, { id: tone, variant: "subtle", tone }, () => h(Button, { tone: "neutral" }, () => "Inspect")))) }).mount("#app");
       `);
-      const page = await open(path, framework === "html" ? ["neutral", "accent", "info", "success", "warning"].map(tone => `<ui-card id="${tone}" variant="subtle" tone="${tone}"><ui-button tone="neutral">Inspect</ui-button></ui-card>`).join("") : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const page = await open(path, framework === "html" ? ["neutral", "accent", "info", "success", "warning"].map(tone => `<ui-card id="${tone}" variant="subtle" tone="${tone}"><ui-button tone="neutral">Inspect</ui-button></ui-card>`).join("") : `<div id="app"></div>`, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
       const colors = await page.evaluate(() => ["neutral", "accent", "info", "success", "warning"].map(id => {
         const card = document.getElementById(id)!;
         const button = card.querySelector("button, ui-button")!;
@@ -10927,16 +11576,16 @@ describe("Prop-driven reading surfaces", () => {
   });
   it("bounds a scrolling stack and protects its footer in HTML and Vue", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`bounded-stack-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`bounded-stack-${framework}`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Stack, ScrollArea, Cluster, Text, Button } from "@threadlabs/looma/vue";
+        import { UiStack as Stack, UiScrollArea as ScrollArea, UiCluster as Cluster, UiText as Text, UiButton as Button } from "@threadlabs/looma";
         createApp({ render: () => h(Stack, { id:"frame", height: 500 }, () => [
           h(Text, {}, () => "Files"),
           h(ScrollArea, { id:"scroll", fill:true }, () => h(Stack, {}, () => Array.from({length:40}, (_, i) => h(Text, {}, () => "Line " + i)))),
           h(Cluster, { id:"footer", fixed:true, padding:"m", paddingEnd:"xl" }, () => [h(Text, {grow:true, truncate:true}, () => "A long selected document path"), h(Button, {}, () => "Save")])
         ]) }).mount("#app");
       `);
-      const page = await open(path, framework === "html" ? `<ui-stack id="frame" height="500"><ui-text>Files</ui-text><ui-scroll-area id="scroll" fill><ui-stack>${Array.from({length:40}, (_, i) => `<ui-text>Line ${i}</ui-text>`).join("")}</ui-stack></ui-scroll-area><ui-cluster id="footer" fixed padding="m" padding-end="xl"><ui-text grow truncate>A long selected document path</ui-text><ui-button>Save</ui-button></ui-cluster></ui-stack>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const page = await open(path, framework === "html" ? `<ui-stack id="frame" height="500"><ui-text>Files</ui-text><ui-scroll-area id="scroll" fill><ui-stack>${Array.from({length:40}, (_, i) => `<ui-text>Line ${i}</ui-text>`).join("")}</ui-stack></ui-scroll-area><ui-cluster id="footer" fixed padding="m" padding-end="xl"><ui-text grow truncate>A long selected document path</ui-text><ui-button>Save</ui-button></ui-cluster></ui-stack>` : `<div id="app"></div>`, [join(root,"tokens.css")], {viewport:{width:375,height:812}});
       const state = await page.evaluate(() => {
         const frame=document.getElementById("frame")!, scroll=document.getElementById("scroll")!, footer=document.getElementById("footer")!;
         return {height:frame.getBoundingClientRect().height, scrollable:scroll.scrollHeight > scroll.clientHeight, footer:footer.getBoundingClientRect().bottom <= frame.getBoundingClientRect().bottom, clearance:parseFloat(getComputedStyle(footer).paddingInlineEnd), grow:getComputedStyle(footer.querySelector("p, ui-text")!).flexGrow};
@@ -10952,12 +11601,12 @@ describe("Prop-driven reading surfaces", () => {
 
   it("caps a growing textarea through maxRows in HTML and Vue", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`bounded-field-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`bounded-field-${framework}`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Textarea } from "@threadlabs/looma/vue";
+        import { UiTextarea as Textarea } from "@threadlabs/looma";
         createApp({ render: () => h(Textarea, {rows:3, maxRows:6, autosize:true}) }).mount("#app");
       `);
-      const page = await open(path, framework === "html" ? `<ui-textarea rows="3" max-rows="6" autosize></ui-textarea>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const page = await open(path, framework === "html" ? `<ui-textarea rows="3" max-rows="6" autosize></ui-textarea>` : `<div id="app"></div>`, [join(root,"tokens.css")], {viewport:{width:375,height:812}});
       const field = page.locator("textarea");
       await field.fill(Array.from({length:40}, (_, i) => "Line " + i).join("\n"));
       const state = await field.evaluate(element => ({height:element.getBoundingClientRect().height, scrollable:element.scrollHeight > element.clientHeight, maximum:parseFloat(getComputedStyle(element).maxHeight)}));
@@ -10971,15 +11620,19 @@ describe("Prop-driven reading surfaces", () => {
   it("scrolls the document when the pointer is over inline table drag controls", async () => {
     const path = await bundle("editor-table-scroll", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       createApp({ render: () => h(LoomaEditor, {
-        onReady: editor => { window.editor = editor; },
-        modelValue: '<p>Before table</p><table><tr><td>First</td><td>Second</td></tr><tr><td>A</td><td>B</td></tr></table><p>After table</p>',
+        extensions: () => [Extension.create({ name: "fixtureConsumer", onCreate() { const editor = this.editor; window.editor = editor; } })],
+        content: generateJSON('<p>Before table</p><table><tr><td>First</td><td>Second</td></tr><tr><td>A</td><td>B</td></tr></table><p>After table</p>', getDefaultEditorExtensions()),
       }) }).mount("#app");
+      });
     `);
     const page = await open(path,
       '<div id="scroller" style="height:400px;overflow:auto;transform:translateY(0);padding:48px"><div style="height:80px"></div><div id="app" style="width:600px;min-height:1200px"></div></div>',
-      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")],
+      [join(root, "tokens.css"), join(root, "theme-light.css")],
       { viewport: { width: 1280, height: 800 } });
     try {
       const cell = page.locator(".ProseMirror td").first();
@@ -10998,7 +11651,7 @@ describe("Prop-driven reading surfaces", () => {
       assert.ok(Math.abs(shellBox.x - tableBox.x) < 1 && Math.abs(shellBox.y - tableBox.y) < 1, "controls follow the table after nested scrolling");
       await cell.hover();
       await page.getByRole("button", { name: "Column actions", exact: true }).click();
-      const menu = page.locator('.ui-editor-table-context-menu');
+      const menu = page.getByRole("menu", { name: "Column actions", exact: true });
       await menu.waitFor();
       assert.equal(await menu.evaluate(element => element.matches(":popover-open")), true, "menus retain the top layer");
     } finally {
@@ -11009,11 +11662,15 @@ describe("Prop-driven reading surfaces", () => {
   it("delays the column resize hint using the global tooltip delay", async () => {
     const path = await bundle("editor-resize-hint-delay", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-      createApp({ render: () => h(LoomaEditor, { modelValue: '<table><tr><td>First</td><td>Second</td></tr></table>' }) }).mount("#app");
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
+      createApp({ render: () => h(LoomaEditor, { content: generateJSON('<table><tr><td>First</td><td>Second</td></tr></table>', getDefaultEditorExtensions()) }) }).mount("#app");
+      });
     `);
     const page = await open(path, '<div id="app" style="width:600px;margin:100px;--ui-tooltip-show-delay:1200ms"></div>',
-      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { viewport: { width: 1280, height: 800 } });
+      [join(root, "tokens.css"), join(root, "theme-light.css")], { viewport: { width: 1280, height: 800 } });
     try {
       const cell = page.locator(".ProseMirror td").first();
       const box = (await cell.boundingBox())!;
@@ -11035,13 +11692,17 @@ describe("Prop-driven reading surfaces", () => {
   it("keeps one table toolbar below the table and sticks it to the bottom while scrolling", async () => {
     const path = await bundle("editor-sticky-table-toolbar", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       createApp({ render: () => h(LoomaEditor, {
-        modelValue: '<p>Before</p><table>' + Array.from({length:20}, (_, index) => '<tr><td>Row ' + index + '</td><td>Value</td></tr>').join('') + '</table><p>After</p>',
+        content: generateJSON('<p>Before</p><table>' + Array.from({length:20}, (_, index) => '<tr><td>Row ' + index + '</td><td>Value</td></tr>').join('') + '</table><p>After</p>', getDefaultEditorExtensions()),
       }) }).mount("#app");
+      });
     `);
     const page = await open(path, '<div id="scroller" style="height:420px;overflow:auto;padding:40px"><div id="app" style="width:900px"></div></div>',
-      [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { viewport: { width: 1280, height: 800 } });
+      [join(root, "tokens.css"), join(root, "theme-light.css")], { viewport: { width: 1280, height: 800 } });
     try {
       await page.locator(".ProseMirror td").first().click();
       const toolbar = page.locator(".looma-editor__table-toolbar-shell");
@@ -11072,12 +11733,16 @@ describe("Prop-driven reading surfaces", () => {
   it("fits compact read-only editor excerpts while preserving the default canvas", async () => {
     const path = await bundle("compact-editor-surface", `
       import { createApp, h } from "vue";
-      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { Extension, generateJSON } from "@tiptap/core";
+      import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+      editorBrowserTarget().then(LoomaEditor => {
       const content = {type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Rich excerpt",marks:[{type:"bold"}]}]}]};
-      createApp({render: () => h("div", {}, [h(LoomaEditor,{modelValue:content,editable:false,label:"Default excerpt"}),h(LoomaEditor,{modelValue:content,editable:false,contentDensity:"compact",label:"Compact excerpt"})])}).mount("#app");
+      createApp({render: () => h("div", {}, [h(LoomaEditor,{content:content,editable:false,label:"Default excerpt"}),h(LoomaEditor,{content:content,editable:false,contentDensity:"compact",label:"Compact excerpt"})])}).mount("#app");
+      });
     `);
     for (const width of [375,1280]) {
-      const page = await open(path, `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width,height:812}});
+      const page = await open(path, `<div id="app"></div>`, [join(root,"tokens.css")], {viewport:{width,height:812}});
       await page.getByRole("textbox", {name:"Compact excerpt",exact:true}).waitFor();
       const state = await page.evaluate(() => ["Default excerpt","Compact excerpt"].map(label => {
         const node=document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
@@ -11098,9 +11763,9 @@ describe("Prop-driven reading surfaces", () => {
 describe("Independent leading controls and text baselines", () => {
   it("keeps leading checkbox clicks independent, visible row hover and the first text baseline in HTML and Vue", async () => {
     for (const framework of ["html", "vue"]) {
-      const path = await bundle(`${framework}-leading-baselines`, framework === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${framework}-leading-baselines`, framework === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Checkbox, Cluster, List, ListItem, Stack, Text } from "@threadlabs/looma/vue";
+        import { UiCheckbox as Checkbox, UiCluster as Cluster, UiList as List, UiListItem as ListItem, UiStack as Stack, UiText as Text } from "@threadlabs/looma";
         createApp({ render: () => h("div", [
           h(List, () => [
             h(ListItem, { id: "plain", leadingInteractive: true }, { leading: () => h(Checkbox, { id: "include", label: "Include document", size: "sm" }), default: () => h("a", { href: "#document" }, [h("span", { id: "icon" }, "D"), "Document"]) }),
@@ -11116,7 +11781,7 @@ describe("Independent leading controls and text baselines", () => {
         <ui-list><ui-list-item id="plain" leading-interactive><ui-checkbox slot="leading" id="include" label="Include document" size="sm"></ui-checkbox><a href="#document"><span id="icon">D</span>Document</a></ui-list-item>
         <ui-list-item id="current" current><a href="#current">Current document</a></ui-list-item></ui-list>
         <ui-cluster id="baseline" align="baseline" wrap="nowrap"><ui-text id="number" size="md" weight="normal" font="sans">61</ui-text><ui-stack><div style="font: 16px/24px var(--ui-font-family-sans, sans-serif); width: 190px"><p id="prose" style="margin: 0">Existing text that wraps onto more than one line of prose.</p></div></ui-stack></ui-cluster>`;
-      const page = await open(path, html, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const page = await open(path, html, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
       await page.waitForSelector('#plain:is([data-component~="ui-list-item"], .ui-list-item)');
       const input = page.getByRole("checkbox", { name: "Include document", exact: true });
       assert.equal(await input.count(), 1, `${framework} names the unlabeled checkbox`);
@@ -11152,13 +11817,13 @@ describe("Independent leading controls and text baselines", () => {
 describe("Meter categorical distribution", () => {
   it("keeps proportional geometry and descriptions in HTML and Vue at phone width", async () => {
     for (const adapter of ["html", "vue"]) {
-      const path = await bundle(`${adapter}-distribution`, adapter === "html" ? `import "@threadlabs/looma";` : `
+      const path = await bundle(`${adapter}-distribution`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Meter } from "@threadlabs/looma/vue";
+        import { UiMeter as Meter } from "@threadlabs/looma";
         createApp({ render: () => h(Meter, { variant: "distribution", label: "Outcomes", valueText: "2 waiting, 5 accepted, 2 declined",
           parts: [{value:2,color:"#789168"},{value:5,color:"#b97731"},{value:2,color:"#533b29"},{value:0,color:"red"}] }) }).mount("#app");`);
       const page = await open(path, adapter === "html" ? `<ui-meter variant="distribution" label="Outcomes" value-text="2 waiting, 5 accepted, 2 declined" parts='[{"value":2,"color":"#789168"},{"value":5,"color":"#b97731"},{"value":2,"color":"#533b29"},{"value":0,"color":"red"}]'></ui-meter>` : '<div id="app"></div>',
-        [join(root, "tokens.css"), join(root, "theme-light.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { viewport: {width:375,height:700} });
+        [join(root, "tokens.css"), join(root, "theme-light.css")], { viewport: {width:375,height:700} });
       const distribution = page.getByRole("img", {name:"Outcomes: 2 waiting, 5 accepted, 2 declined"});
       const widths = await distribution.locator(".part").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
       assert.equal(widths.length, 3);
@@ -11175,9 +11840,9 @@ describe("Meter categorical distribution", () => {
 describe("Component-owned layout", () => {
   for (const target of ["html", "vue"] as const) {
     it(`${target}: checkbox alignment resists ordinary consumer CSS and retains an explicit important escape hatch`, async () => {
-      const source = target === "html" ? `import "@threadlabs/looma";` : `
+      const source = target === "html" ? `import "@looma-test/runtime";` : `
         import { createApp, h } from "vue";
-        import { Checkbox } from "@threadlabs/looma/vue";
+        import { UiCheckbox as Checkbox } from "@threadlabs/looma";
         createApp({ render: () => h("div", { id: "fixture" }, [
           h(Checkbox, { id: "ordinary", checked: true }, () => "Notify me when my link is ready"),
           h(Checkbox, { id: "overridden", checked: true, style: "align-items:center;gap:60px;padding:12px" }, () => "Notify me when my link is ready"),
@@ -11188,7 +11853,7 @@ describe("Component-owned layout", () => {
         <ui-checkbox id="ordinary" checked>Notify me when my link is ready</ui-checkbox>
         <ui-checkbox id="overridden" checked style="align-items:center;gap:60px;padding:12px">Notify me when my link is ready</ui-checkbox>
         <ui-checkbox id="wrapped">A label long enough to wrap over several lines<span slot="description">A separate description.</span></ui-checkbox>
-      </div>` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(target === "vue" ? [join(root, "vue/components.css")] : [])], {reducedMotion:"reduce"});
+      </div>` : `<div id="app"></div>`, [join(root, "tokens.css")], {reducedMotion:"reduce"});
       await page.addStyleTag({ content: `#fixture #overridden { align-items:center;gap:60px;flex-direction:column;flex-wrap:wrap;justify-content:center; } #fixture #overridden input { margin-top:40px;align-self:center;padding:20px;transform:translateY(20px); } #fixture #overridden .text { font:26px/2 serif;padding:20px;margin:20px;align-self:center;order:-1; } #fixture #overridden .label { position:absolute;transform:translateY(20px);margin-top:20px; } #fixture #overridden input::after { inset:0;inline-size:80px;block-size:80px;translate:0 40px;transform:translateY(30px); } #wrapped { inline-size:16rem; }` });
       for (const fontSize of [12, 16, 24]) {
         await page.locator("#fixture").evaluate((element, size) => { (element as HTMLElement).style.fontSize = `${size}px`; }, fontSize);
@@ -11222,8 +11887,8 @@ describe("Component-owned layout", () => {
 
 describe("Compact numeric controls", () => {
   for (const adapter of ['html','vue']) it(`keeps exact editing and keyboard steps without separate buttons in ${adapter}`, async () => {
-    const path=await bundle('compact-values-'+adapter,adapter==='html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {NumberInput,Slider} from '@threadlabs/looma/vue';createApp({render:()=>h('main',{},[h(NumberInput,{id:'amount',compact:true,size:'sm',value:'10',label:'Compact amount'}),h('div',{style:{width:'144px'}},[h(Slider,{id:'range',compact:true,size:'sm',value:30,min:0,max:100,label:'Compact range'})])])}).mount('#app');`);
-    const page=await open(path,adapter==='html' ? '<ui-number-input id="amount" compact size="sm" value="10" label="Compact amount"></ui-number-input><div style="width:144px"><ui-slider id="range" compact size="sm" value="30" min="0" max="100" label="Compact range"></ui-slider></div>' : '<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])],{viewport:{width:375,height:800}});
+    const path=await bundle('compact-values-'+adapter,adapter==='html' ? `import '@looma-test/runtime';` : `import {createApp,h} from 'vue';import { UiNumberInput as NumberInput, UiSlider as Slider } from '@threadlabs/looma';createApp({render:()=>h('main',{},[h(NumberInput,{id:'amount',compact:true,size:'sm',value:'10',label:'Compact amount'}),h('div',{style:{width:'144px'}},[h(Slider,{id:'range',compact:true,size:'sm',value:30,min:0,max:100,label:'Compact range'})])])}).mount('#app');`);
+    const page=await open(path,adapter==='html' ? '<ui-number-input id="amount" compact size="sm" value="10" label="Compact amount"></ui-number-input><div style="width:144px"><ui-slider id="range" compact size="sm" value="30" min="0" max="100" label="Compact range"></ui-slider></div>' : '<div id="app"></div>',[join(root,'tokens.css')],{viewport:{width:375,height:800}});
     try {
       for (const step of await page.locator('[data-number-step]').all()) assert.equal(await step.isVisible(),false);
       const amount=page.getByRole('spinbutton',{name:'Compact amount',exact:true});await amount.fill('10 + 5');await amount.press('Enter');assert.equal(await amount.inputValue(),'15');await amount.press('ArrowUp');assert.equal(await amount.inputValue(),'16');
@@ -11237,8 +11902,8 @@ describe("Compact numeric controls", () => {
 
 describe("Color picker", () => {
   for (const adapter of ['html','vue']) it(`selects and clears an optional colour in ${adapter}`, async () => {
-    const path=await bundle('optional-colour-'+adapter, adapter==='html' ? `import '@threadlabs/looma';` : `import {createApp,h} from 'vue';import {ColorPicker} from '@threadlabs/looma/vue';createApp({render:()=>h(ColorPicker,{id:'optional',clearable:true,value:'',label:'Optional accent',name:'accent'})}).mount('#app');`);
-    const page=await open(path, adapter==='html' ? '<form><ui-color-picker id="optional" clearable value="" name="accent" label="Optional accent"></ui-color-picker></form>' : '<form><div id="app"></div></form>', [join(root,'tokens.css'),...(adapter==='vue' ? [join(root,'vue/components.css')] : [])]);
+    const path=await bundle('optional-colour-'+adapter, adapter==='html' ? `import '@looma-test/runtime';` : `import {createApp,h} from 'vue';import { UiColorPicker as ColorPicker } from '@threadlabs/looma';createApp({render:()=>h(ColorPicker,{id:'optional',clearable:true,value:'',label:'Optional accent',name:'accent'})}).mount('#app');`);
+    const page=await open(path, adapter==='html' ? '<form><ui-color-picker id="optional" clearable value="" name="accent" label="Optional accent"></ui-color-picker></form>' : '<form><div id="app"></div></form>', [join(root,'tokens.css')]);
     try {
       await page.locator('#optional').evaluate(el=>el.addEventListener('change',event=>{el.setAttribute('data-chosen',(event as CustomEvent).detail.value);}));
       const trigger=page.getByRole('button',{name:'Optional accent',exact:true});
@@ -11253,32 +11918,32 @@ describe("Color picker", () => {
   });
 
   for (const adapter of ["html", "vue"]) it(`toggles, edits and shares field geometry in ${adapter}`, async () => {
-    const path = await bundle(`${adapter}-color-picker`, adapter === "html" ? `import "@threadlabs/looma"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.disablePicker=()=>componentRegistry.update(document.getElementById("picker-sm"), {disabled:true});` : `
+    const path = await bundle(`${adapter}-color-picker`, adapter === "html" ? `import "@looma-test/runtime"; import { componentRegistry } from "@nextwebwg/html-next/runtime"; window.disablePicker=()=>componentRegistry.update(document.getElementById("picker-sm"), {disabled:true});` : `
       import { createApp, h } from "vue";
-      import { ColorPicker, Input } from "@threadlabs/looma/vue";
+      import { UiColorPicker as ColorPicker, UiInput as Input } from "@threadlabs/looma";
       createApp({ render: () => h('main', {}, ['sm','md','lg'].map(size => h('div', {}, [h(ColorPicker,{id:'picker-'+size,size,value:'#7c3aed',label:size+' colour',round:size==='lg'}),h(Input,{id:'field-'+size,size,value:'#7c3aed'})]))) }).mount('#app');
     `);
     const body = adapter === "html" ? ['sm','md','lg'].map(size => `<div><ui-color-picker id="picker-${size}" size="${size}" value="#7c3aed" label="${size} colour" ${size === 'lg' ? 'round' : ''}></ui-color-picker><ui-input id="field-${size}" size="${size}" value="#7c3aed"></ui-input></div>`).join('') : '<div id="app"></div>';
-    const page = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])]);
+    const page = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css")]);
     try {
       for (const size of ['sm','md','lg']) {
-        const box = await page.locator(`#picker-${size} button`).boundingBox();
+        const box = await page.locator(`#picker-${size} button[data-ui-field-control]`).boundingBox();
         const field = await page.locator(`#field-${size}`).boundingBox();
         assert.ok(box && field);
         assert.ok(Math.abs(box.width-box.height)<.6, JSON.stringify({size,box}));
         assert.ok(Math.abs(box.height-field.height)<.6, JSON.stringify({size,box,field}));
       }
       const roundedTheme = await page.addStyleTag({content:'body { --ui-field-radius: 100px; }'});
-      const squareRadius = await page.locator('#picker-md button').evaluate(el=>({radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),width:el.getBoundingClientRect().width}));
+      const squareRadius = await page.locator('#picker-md button[data-ui-field-control]').evaluate(el=>({radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),width:el.getBoundingClientRect().width}));
       assert.ok(squareRadius.radius <= squareRadius.width/4, 'a theme must not turn the default square swatch into a circle');
       await roundedTheme.evaluate(el=>el.remove());
       const largeType = await page.addStyleTag({content:'body { font-size: 32px; }'});
-      const largeSwatch = await page.locator('#picker-md button').boundingBox();
+      const largeSwatch = await page.locator('#picker-md button[data-ui-field-control]').boundingBox();
       const largeField = await page.locator('#field-md').boundingBox();
       assert.ok(Math.abs(largeSwatch!.height-largeField!.height)<.6, 'inherited type grows the field and swatch together');
       await largeType.evaluate(el=>el.remove());
-      assert.equal(await page.locator('#picker-lg button').evaluate(el => getComputedStyle(el).borderRadius),'50%');
-      const trigger = page.locator('#picker-sm button');
+      assert.equal(await page.locator('#picker-lg button[data-ui-field-control]').evaluate(el => getComputedStyle(el).borderRadius),'50%');
+      const trigger = page.locator('#picker-sm button[data-ui-field-control]');
       const editor = page.locator('#picker-sm [role=dialog]');
       assert.equal(await editor.isVisible(), false);
       await trigger.click(); assert.equal(await editor.isVisible(),true);
@@ -11297,10 +11962,10 @@ describe("Color picker", () => {
       await trigger.click();
       await page.locator('#field-md').click(); assert.equal(await editor.isVisible(),false);
       if(adapter==='html') { await page.evaluate(() => (window as any).disablePicker()); assert.equal(await trigger.isDisabled(),true); }
-      const touch = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css"), ...(adapter === "vue" ? [join(root,"vue/components.css")] : [])], {hasTouch:true});
+      const touch = await open(path, body, [join(root,"tokens.css"), join(root,"theme-light.css")], {hasTouch:true});
       try {
         for(const size of ['sm','md','lg']) {
-          const swatch=await touch.locator(`#picker-${size} button`).boundingBox();
+          const swatch=await touch.locator(`#picker-${size} button[data-ui-field-control]`).boundingBox();
           const field=await touch.locator(`#field-${size}`).boundingBox();
           assert.ok(Math.abs(swatch!.height-field!.height)<.6, 'touch sizing stays shared');
           assert.ok(Math.abs(swatch!.width-swatch!.height)<.6, 'touch swatch stays square');
@@ -11312,15 +11977,15 @@ describe("Color picker", () => {
 
 describe("Shared semantic theme roles", () => {
   for(const adapter of ['html','vue']) it(`applies action insets, display typography and press response in ${adapter}`, async()=>{
-    const path=await bundle(adapter+'-semantic-roles',adapter==='html'?`import "@threadlabs/looma";`:`
+    const path=await bundle(adapter+'-semantic-roles',adapter==='html'?`import "@looma-test/runtime";`:`
       import {createApp,h} from 'vue';
-      import {Button,Checkbox,Input,PageHeader,Section,Text} from '@threadlabs/looma/vue';
+      import { UiButton as Button, UiCheckbox as Checkbox, UiInput as Input, UiPageHeader as PageHeader, UiSection as Section, UiText as Text } from '@threadlabs/looma';
       createApp({render:()=>h('div',{},[
         ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'action-'+size,size},()=> 'Share update'),h(Input,{id:'field-'+size,size,value:'Project document'})]),
         h(Checkbox,{id:'semantic-choice',checked:true},()=> 'Notify the team'),h(PageHeader,{id:'heading'},()=> 'Team office'),h(Section,{id:'section',heading:'Weekly update'},()=> 'Project checklist ready.'),h(Text,{id:'text-heading',as:'h2'},()=> 'Notes')
       ])}).mount('#app');`);
     const body=adapter==='html'?['sm','md','lg'].map(size=>`<ui-button id="action-${size}" size="${size}">Share update</ui-button><ui-input id="field-${size}" size="${size}" value="Project document"></ui-input>`).join('')+'<ui-checkbox id="semantic-choice" checked>Notify the team</ui-checkbox><ui-page-header id="heading">Team office</ui-page-header><ui-section id="section" heading="Weekly update">Project checklist ready.</ui-section><ui-text id="text-heading" as="h2">Notes</ui-text>':'<div id="app"></div>';
-    const page=await open(path,body,[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const page=await open(path,body,[join(root,'tokens.css')]);
     try{
       await page.addStyleTag({content:'body {--ui-action-inset-sm:16px;--ui-action-inset-md:20px;--ui-action-inset-lg:24px;--ui-font-display:monospace;--ui-press-scale:.93;--ui-motion-fast:0ms;--ui-motion-base:240ms;--ui-radius-sm:100px;}'});
       const choice=await page.locator('#semantic-choice input').evaluate(el=>({width:el.getBoundingClientRect().width,radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),duration:getComputedStyle(el,'::after').animationDuration}));
@@ -11340,27 +12005,27 @@ describe("Shared semantic theme roles", () => {
 
 describe("Composite field ownership",()=>{
  for(const adapter of ['html','vue'])it(`labels the requested field and supports a swatch field in ${adapter}`,async()=>{
- const path=await bundle(adapter+'-composite-field',adapter==='html'?`import '@threadlabs/looma';`:`
- import {createApp,h} from 'vue';import {FormField,ColorPicker,Input} from '@threadlabs/looma/vue';
+ const path=await bundle(adapter+'-composite-field',adapter==='html'?`import '@looma-test/runtime';`:`
+ import {createApp,h} from 'vue';import { UiFormField as FormField, UiColorPicker as ColorPicker, UiInput as Input } from '@threadlabs/looma';
  createApp({render:()=>h('div',{},[
  h(FormField,{id:'paired'},{label:()=>h('label',{for:'chosen'},'Hex colour'),default:()=>[h(ColorPicker,{value:'#7c3aed',label:'Swatch'}),h(Input,{id:'chosen',value:'#7c3aed'})],help:()=> 'Six hexadecimal digits'}),
  h('form',{id:'disabled-form'},[h(FormField,{disabled:true},{label:()=>h('label',{},'Brand colour'),default:()=>h(ColorPicker,{id:'disabled-picker',name:'brand',value:'#7c3aed'})})])
  ])}).mount('#app');`);
  const body=adapter==='html'?`<ui-form-field id="paired"><label slot="label" for="chosen">Hex colour</label><ui-color-picker value="#7c3aed" label="Swatch"></ui-color-picker><ui-input id="chosen" value="#7c3aed"></ui-input><span slot="help">Six hexadecimal digits</span></ui-form-field><form id="disabled-form"><ui-form-field disabled><label slot="label">Brand colour</label><ui-color-picker id="disabled-picker" name="brand" value="#7c3aed"></ui-color-picker></ui-form-field></form>`:'<div id="app"></div>';
- const page=await open(path,body,[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
- try{assert.ok(await page.locator('#chosen').getAttribute('aria-describedby'),'help belongs to the explicitly labelled text input');assert.equal(await page.locator('#disabled-picker button').isDisabled(),true);assert.deepEqual(await page.locator('#disabled-form').evaluate(el=>[...new FormData(el as HTMLFormElement)]),[]);const id=await page.locator('#disabled-picker button').getAttribute('id');assert.equal(await page.locator('#disabled-form .label > label').getAttribute('for'),id);}finally{await page.close();}
+ const page=await open(path,body,[join(root,'tokens.css')]);
+ try{assert.ok(await page.locator('#chosen').getAttribute('aria-describedby'),'help belongs to the explicitly labelled text input');assert.equal(await page.locator('#disabled-picker button[data-ui-field-control]').isDisabled(),true);assert.deepEqual(await page.locator('#disabled-form').evaluate(el=>[...new FormData(el as HTMLFormElement)]),[]);const id=await page.locator('#disabled-picker button[data-ui-field-control]').getAttribute('id');assert.equal(await page.locator('#disabled-form .label > label').getAttribute('for'),id);}finally{await page.close();}
  });
 });
 
 
 describe("Shared choice geometry", () => {
   for (const adapter of ['html', 'vue']) it(`scales marks with typography and keeps first-line alignment in ${adapter}`, async () => {
-    const path = await bundle(adapter + '-choice-geometry', adapter === 'html' ? `import '@threadlabs/looma';` : `
+    const path = await bundle(adapter + '-choice-geometry', adapter === 'html' ? `import '@looma-test/runtime';` : `
       import { createApp, h } from 'vue';
-      import { Checkbox, Radio, Switch } from '@threadlabs/looma/vue';
+      import { UiCheckbox as Checkbox, UiRadio as Radio, UiSwitch as Switch } from '@threadlabs/looma';
       createApp({ render: () => h('div', {}, [Checkbox, Radio, Switch].flatMap((component, i) => ['sm', 'md', 'lg'].map(size => h(component, { id: 'choice-' + i + '-' + size, size }, { default: () => 'A choice with a label that wraps onto another line', description: () => 'An explanatory description' })))) }).mount('#app');`);
     const body = adapter === 'html' ? ['checkbox', 'radio', 'switch'].flatMap((kind, i) => ['sm', 'md', 'lg'].map(size => `<ui-${kind} id="choice-${i}-${size}" size="${size}">A choice with a label that wraps onto another line<span slot="description">An explanatory description</span></ui-${kind}>`)).join('') : '<div id="app"></div>';
-    const page = await open(path, body, [join(root, 'tokens.css'), ...(adapter === 'vue' ? [join(root, 'vue/components.css')] : [])]);
+    const page = await open(path, body, [join(root, 'tokens.css')]);
     try {
       await page.addStyleTag({content: '[id^="choice-"] { max-width:180px; }'});
       for (const font of [12, 16, 24]) {
@@ -11387,14 +12052,14 @@ describe("Shared choice geometry", () => {
 describe("Optional semantic theme recipe", () => {
   it('preserves compact visible control proportions on touch without imposing a target-size floor', async () => {
     const {startingPoints, themeCSS} = await import('../tooling/docs/theme.mjs');
-    const path=await bundle('compact-visible-touch','import "@threadlabs/looma";');
+    const path=await bundle('compact-visible-touch','import "@looma-test/runtime";');
     const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
     for(const touch of [false,true]) {
       const page=await open(path,['sm','md','lg'].map(size=>`<ui-button id="compact-button-${size}" size="${size}">Solid</ui-button><ui-input id="compact-input-${size}" size="${size}" value="Frodo"></ui-input><ui-color-picker id="compact-color-${size}" size="${size}"></ui-color-picker>`).join(''),[join(root,'tokens.css')],{hasTouch:touch,isMobile:touch,viewport:{width:390,height:850}});
       try {
         await page.addStyleTag({content:themeCSS(startingPoints.wiki,system)});
         for(const [size,height] of [['sm',34/1.15],['md',34],['lg',34*1.15]] as const) {
-          const heights=await page.locator(`#compact-button-${size},#compact-input-${size},#compact-color-${size} button`).evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().height));
+          const heights=await page.locator(`#compact-button-${size},#compact-input-${size},#compact-color-${size} button[data-ui-field-control]`).evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().height));
           assert.ok(heights.every(value=>Math.abs(value-height)<.1),JSON.stringify({touch,size,height,heights}));
         }
         await page.addStyleTag({content:':root {--ui-control-min-block-size:60px}'});
@@ -11405,7 +12070,7 @@ describe("Optional semantic theme recipe", () => {
 
   it('makes the base type token set the document root without multiplying rem twice', async () => {
     const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
-    const path = await bundle('root-type-scale', 'import "@threadlabs/looma";');
+    const path = await bundle('root-type-scale', 'import "@looma-test/runtime";');
     const page = await open(path, '<ui-button id="root-action">Action</ui-button><ui-input id="root-field" value="Sam"></ui-input><div id="root-rem">Root-relative layout</div>', [join(root,'tokens.css')]);
     try {
       await page.addStyleTag({content:'#root-rem {inline-size:2rem;border:1px solid;padding:1rem}'});
@@ -11427,7 +12092,7 @@ describe("Optional semantic theme recipe", () => {
   it('preserves relative length boundary values when the pixel root changes', async () => {
     const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
     const {convertValueUnit} = await import('../tooling/docs/value-editors.mjs');
-    const path=await bundle('root-length-boundaries','import "@threadlabs/looma";');
+    const path=await bundle('root-length-boundaries','import "@looma-test/runtime";');
     const page=await open(path,'<ui-button>Action</ui-button>',[join(root,'tokens.css')]);
     try {
       const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
@@ -11443,14 +12108,14 @@ describe("Optional semantic theme recipe", () => {
 
   it('relates shared control boxes to user-relative type rather than fixed pixel ceilings', async () => {
     const {defaultRecipe, themeCSS} = await import('../tooling/docs/theme.mjs');
-    const path = await bundle('relative-type-layout', 'import "@threadlabs/looma";');
+    const path = await bundle('relative-type-layout', 'import "@looma-test/runtime";');
     const page = await open(path, '<ui-button id="relative-action">Action</ui-button><ui-input id="relative-field" value="Frodo"></ui-input><ui-color-picker id="relative-swatch"></ui-color-picker>', [join(root,'tokens.css')]);
     try {
       const system = await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
       await page.addStyleTag({content:themeCSS(defaultRecipe(),system)});
       for (const size of [16,24,32]) {
         await page.locator('html').evaluate((element,size)=>element.style.fontSize=size+'px',size);
-        const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
+        const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button[data-ui-field-control]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
         assert.ok(boxes.every(height=>Math.abs(height-size*2.5)<.1), `all controls grow with root type at ${size}px: ${boxes}`);
         assert.equal(await page.locator('#relative-field').evaluate(e=>getComputedStyle(e).fontSize),size+'px');
       }
@@ -11458,20 +12123,20 @@ describe("Optional semantic theme recipe", () => {
   });
 
   for (const adapter of ['html', 'vue']) it(`shares native CSS units, independent scales and material roles in ${adapter}`, async () => {
-    const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@threadlabs/looma';` : `
-      import {createApp,h} from 'vue';import {Button,Input,Switch,ColorPicker} from '@threadlabs/looma/vue';
+    const path = await bundle(adapter + '-theme-recipe', adapter === 'html' ? `import '@looma-test/runtime';` : `
+      import {createApp,h} from 'vue';import { UiButton as Button, UiInput as Input, UiSwitch as Switch, UiColorPicker as ColorPicker } from '@threadlabs/looma';
       createApp({render:()=>h('div',{},[
         ...['sm','md','lg'].flatMap(size=>[h(Button,{id:'recipe-action-'+size,size},()=> 'Action'),h(Button,{id:'recipe-link-'+size,size,href:'#next'},()=> 'Action'),h(Input,{id:'recipe-field-'+size,size,value:'A document'}),h(ColorPicker,{id:'recipe-colour-'+size,size})]),
         h(Switch,{id:'recipe-switch',checked:true},()=> 'A switch'),h('div',{'data-theme':'nested',id:'nested'},[h(Button,{id:'nested-action'},()=> 'Nested action')])
       ])}).mount('#app');`);
     const body = adapter === 'html' ? ['sm','md','lg'].map(size=>`<ui-button id="recipe-action-${size}" size="${size}">Action</ui-button><ui-button id="recipe-link-${size}" size="${size}" href="#next">Action</ui-button><ui-input id="recipe-field-${size}" size="${size}" value="A document"></ui-input><ui-color-picker id="recipe-colour-${size}" size="${size}"></ui-color-picker>`).join('') + '<ui-switch id="recipe-switch" checked>A switch</ui-switch><div data-theme="nested" id="nested"><ui-button id="nested-action">Nested action</ui-button></div>' : '<div id="app"></div>';
-    const page = await open(path, body, [join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const page = await open(path, body, [join(root,'tokens.css')]);
     try {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),32,'legacy sizing stays unchanged without the optional recipe');
       await page.addStyleTag({path:join(root,'theme-system.css')});
       await page.addStyleTag({content: ':root {--ui-control-size:3rem;--ui-motion-fast:.2s;--ui-scale-ratio:1.5;--ui-spacing:1;--ui-space-curve:1;--ui-outer-depth:0;--ui-inner-depth:0;--ui-edge-light:0;} #nested {--ui-control-size:2rem;--ui-scale-ratio:1;--ui-space-curve:2;}'});
       for (const [size,height] of [['sm',32],['md',48],['lg',72]] as const) for (const kind of ['field','action','link','colour']) {
-        const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button':'');
+        const selector = '#recipe-'+kind+'-'+size+(kind==='colour'?' button[data-ui-field-control]':'');
         assert.ok(Math.abs((await page.locator(selector).boundingBox())!.height-height)<.6,selector);
       }
       assert.equal(await page.locator('#nested-action').evaluate(el=>el.getBoundingClientRect().height),32);
@@ -11494,7 +12159,7 @@ describe("Optional semantic theme recipe", () => {
       assert.equal(await page.locator('#recipe-field-sm').evaluate(el=>el.getBoundingClientRect().height),35);
       await page.addStyleTag({content: ':root {--ui-control-size:24px;--ui-font-size:28px;--ui-spacing:2;--ui-space-curve:2;--ui-scale-ratio:1.4;} body {font-size:var(--ui-font-size)}'});
       for (const size of ['sm','md','lg']) {
-        const heights = await Promise.all(['action','link','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button':'')).evaluate(el=>el.getBoundingClientRect().height)));
+        const heights = await Promise.all(['action','link','field','colour'].map(kind=>page.locator('#recipe-'+kind+'-'+size+(kind==='colour'?' button[data-ui-field-control]':'')).evaluate(el=>el.getBoundingClientRect().height)));
         assert.ok(Math.max(...heights)-Math.min(...heights)<.6, 'large typography and curved page spacing preserve shared boxes: '+heights.join(','));
       }
       await page.emulateMedia({reducedMotion:'reduce'});
@@ -11506,12 +12171,12 @@ describe("Optional semantic theme recipe", () => {
 describe("Bounded value editors", () => {
   for (const adapter of ["html", "vue"]) it(`calculates, rejects invalid values, drags by touch and disables in ${adapter}`, async () => {
     const path = await bundle(`${adapter}-value-editors`, adapter === "html" ? `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.disableEditors = (disabled = true) => ['amount', 'progress', 'curve'].forEach(id => componentRegistry.update(document.getElementById(id), {disabled}));
     ` : `
       import { createApp, h, ref } from "vue";
-      import { NumberInput, Slider, CurveEditor } from "@threadlabs/looma/vue";
+      import { UiNumberInput as NumberInput, UiSlider as Slider, UiCurveEditor as CurveEditor } from "@threadlabs/looma";
       const disabled = ref(false);
       window.disableEditors = (value = true) => { disabled.value = value; };
       const app = createApp({render: () => h('main', [
@@ -11525,7 +12190,7 @@ describe("Bounded value editors", () => {
       <ui-number-input id="amount" label="Distance" value="16px" unit="px" min="8" max="40"></ui-number-input>
       <ui-slider id="progress" label="Progress" value="25"></ui-slider>
       <ui-curve-editor id="curve" label="Office motion"></ui-curve-editor>
-    ` : '<div id="app"></div>'), [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], {viewport:{width:375,height:900},hasTouch:true,isMobile:true});
+    ` : '<div id="app"></div>'), [join(root, "tokens.css")], {viewport:{width:375,height:900},hasTouch:true,isMobile:true});
     try {
       const amount = page.getByRole('spinbutton', {name:'Distance',exact:true});
       await amount.fill('42px / 1.2'); await amount.press('Enter'); assert.equal(await amount.inputValue(), '35px');
@@ -11566,21 +12231,85 @@ describe("Bounded value editors", () => {
 });
 
 
+describe("Choice control hover", () => {
+  for (const adapter of ['html', 'vue']) it(`gives checked and unchecked choices subtle hover from their label in ${adapter}`, async () => {
+    const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
+    const { toLch } = await import('../tooling/docs/palette.mjs');
+    const states = ['off', 'on', 'disabled', 'disabled-on'];
+    const tags = ['checkbox', 'radio', 'switch'];
+    const path = await bundle('choice-hover-' + adapter, adapter === 'html' ? 'import "@looma-test/runtime";' : `
+      import { createApp, h } from 'vue'; import { UiCheckbox as Checkbox, UiRadio as Radio, UiSwitch as Switch } from '@threadlabs/looma';
+      createApp({ render: () => h('main', [Checkbox, Radio, Switch].flatMap((component, index) =>
+        ['off', 'on', 'disabled', 'disabled-on'].map(state => h(component, {
+          id: ['checkbox', 'radio', 'switch'][index] + '-' + state,
+          checked: state.endsWith('on'), disabled: state.startsWith('disabled')
+        }, () => 'Choice label')))) }).mount('#app');
+    `);
+    const body = tags.flatMap(tag => states.map(state => `<ui-${tag} id="${tag}-${state}" ${state.endsWith('on') ? 'checked' : ''} ${state.startsWith('disabled') ? 'disabled' : ''}>Choice label</ui-${tag}>`)).join('');
+    const page = await open(path, adapter === 'html' ? body : '<div id="app"></div>', [join(root, 'tokens.css')], { reducedMotion: 'reduce' });
+    try {
+      await page.addStyleTag({ path: join(root, 'src/tokens/theme-system.css') });
+      await page.addStyleTag({ content: 'body {background:var(--ui-surface)} body, main {display:grid;gap:12px;justify-items:start}' });
+      const theme = await page.addStyleTag({ content: ' ' });
+      for (const name of ['looma', 'bookish', 'gold'] as const) for (const mode of ['light', 'dark']) {
+        await theme.evaluate((el, css) => el.textContent = css, themeCSS(startingPoints[name]));
+        await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
+        for (const tag of tags) for (const state of states) {
+          const control = page.locator('#' + tag + '-' + state), input = control.locator('input');
+          await page.mouse.move(0, 0);
+          const rest = await input.screenshot(), geometry = await input.boundingBox();
+          if (tag === 'radio' && state === 'on') assert.equal(await input.evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'selected radios keep a flat face so lighting cannot distort the dot');
+          await control.locator('.label').hover();
+          const hovered = await input.screenshot();
+          if (tag === 'radio' && state === 'on') assert.equal(await input.evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'hover preserves the selected radio’s flat face');
+          assert.equal(rest.equals(hovered), state.startsWith('disabled'), `${name}/${mode}/${tag}/${state}: only enabled marks respond when hovering the label`);
+          if (state === 'on') {
+            const samples = await page.evaluate(async sources => Promise.all(sources.map(async base64 => {
+              const image = new Image(); image.src = 'data:image/png;base64,' + base64; await image.decode();
+              const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+              const context = canvas.getContext('2d')!; context.drawImage(image, 0, 0);
+              return Array.from({ length: 36 }, (_, i) => {
+                const rgba = context.getImageData(Math.floor(image.width * (.15 + (i % 6) * .14)), Math.floor(image.height * (.15 + Math.floor(i / 6) * .14)), 1, 1).data;
+                return '#' + Array.from(rgba).slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('');
+              });
+            })), [rest.toString('base64'), hovered.toString('base64')]);
+            const distance = samples[0].reduce((sum, hex, i) => {
+              const [l, c, h] = toLch(hex), [hl, hc, hh] = toLch(samples[1][i]);
+              return sum + Math.sqrt((l - hl) ** 2 + (c - hc) ** 2 + 2 * c * hc * (1 - Math.cos((h - hh) * Math.PI / 180)));
+            }, 0) / samples[0].length;
+            assert.ok(distance >= .01 && distance <= .05, `${name}/${mode}/${tag}: small checked marks need a visible but quiet paint change, got ${distance}`);
+          }
+          assert.deepEqual(await input.boundingBox(), geometry, `${tag}: hover never changes geometry`);
+          assert.equal(await input.isChecked(), state.endsWith('on'), `${tag}: hover never toggles the value`);
+        }
+      }
+      const mixed = page.locator('#checkbox-off input');
+      await mixed.evaluate(el => { (el as HTMLInputElement).indeterminate = true; });
+      await page.mouse.move(0, 0); const rest = await mixed.screenshot();
+      await page.locator('#checkbox-off .label').hover();
+      assert.equal(rest.equals(await mixed.screenshot()), false, 'mixed checkboxes also respond to label hover');
+      await page.mouse.move(0, 0); await mixed.focus();
+      await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+      assert.notEqual(await mixed.evaluate(el => getComputedStyle(el).outlineStyle), 'none', 'keyboard focus remains distinct from hover');
+    } finally { await page.close(); }
+  });
+});
+
 describe("Shared readable material planes", () => {
-  it("paints a full-face reflection with a quieter response on light pigments", async () => {
-    const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
+  it("paints a visible full-face reflection for every polished palette", async () => {
+    const {themeCSS, defaultRecipe, applyRefinement, themePalettes} = await import('../tooling/docs/theme.mjs');
     const {toLch} = await import('../tooling/docs/palette.mjs');
-    const path = await bundle('continuous-button-material', 'import "@threadlabs/looma";');
+    const path = await bundle('continuous-button-material', 'import "@looma-test/runtime";');
     const page = await open(path, `<div style="width:320px"><ui-stack gap="lg"><ui-button id="paint" preset="primary" stretch aria-label="Material sample"> </ui-button>
       <ui-stack id="material-preview"><ui-cluster><ui-button preset="primary">Save</ui-button><ui-button variant="outline" tone="accent">Save</ui-button></ui-cluster>
       <ui-button preset="primary" stretch>Save workspace changes</ui-button></ui-stack></ui-stack></div>`, [join(root,'tokens.css')], {reducedMotion:'reduce'});
     try {
       await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
       await page.addStyleTag({content:'body {font-family:var(--ui-font-sans);}'});
-      const style = await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
-      const ranges = new Map<string,number>();
-      for (const name of ['bookish','gold'] as const) for (const mode of ['light','dark']) {
-        await style.evaluate((el,css)=>el.textContent=css, themeCSS(startingPoints[name]));
+      const base = applyRefinement(defaultRecipe(), 'material', 'polished');
+      const style = await page.addStyleTag({content:themeCSS(base)});
+      for (const name of Object.keys(themePalettes)) for (const mode of ['light','dark']) {
+        await style.evaluate((el,css)=>el.textContent=css, themeCSS(applyRefinement(base, 'palette', name)));
         await page.locator('html').evaluate((el,mode)=>el.setAttribute('data-theme',mode), mode);
         const bytes = await page.locator('#paint').screenshot({animations:'disabled'});
         const pixels = await page.evaluate(async base64 => {
@@ -11594,17 +12323,62 @@ describe("Shared readable material planes", () => {
         const image = await page.locator('#paint').evaluate(el=>getComputedStyle(el).backgroundImage);
         assert.match(image, /radial-gradient/);
         const range=Math.max(...lightness)-Math.min(...lightness);
-        ranges.set(name+'/'+mode,range);
         assert.ok(new Set(pixels.map(rgb=>rgb.join(','))).size>=3, `${name}/${mode}: reflection changes across the face instead of leaving a flat band`);
-        if (name==='bookish') assert.ok(range>.025, `${mode}: the wine reflection is visible across the body`);
+        assert.ok(range>.04, `${name}/${mode}: material remains visible across the body (range ${range})`);
       }
-      for (const mode of ['light','dark']) assert.ok(ranges.get('gold/'+mode)!<ranges.get('bookish/'+mode)!, `${mode}: lighter pigment has quieter reflection contrast`);
+    } finally { await page.close(); }
+  });
+
+  it("balances painted hover strength across Bookish and Gold action variants", async () => {
+    const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
+    const { toLch } = await import('../tooling/docs/palette.mjs');
+    const path = await bundle('balanced-action-hover', 'import "@looma-test/runtime";');
+    const variants = ['solid', 'outline', 'ghost'];
+    const ids: string[] = [];
+    const body = variants.flatMap(variant => ['accent', 'neutral'].flatMap(tone => ['ui-button', 'ui-icon-button'].map(tag => {
+      const id = `${tag}-${variant}-${tone}`; ids.push(id);
+      return `<${tag} id="${id}" variant="${variant}" tone="${tone}" aria-label="Sample" label="Sample"> </${tag}>`;
+    }))).join('');
+    const page = await open(path, body, [join(root, 'tokens.css')], { reducedMotion: 'reduce' });
+    try {
+      await page.addStyleTag({ path: join(root, 'src/tokens/theme-system.css') });
+      await page.addStyleTag({ content: 'body { background:var(--ui-surface); display:flex; gap:16px; padding:24px; }' });
+      const theme = await page.addStyleTag({ content: ' ' });
+      const pixels = async (id: string) => {
+        const bytes = await page.locator('#' + id).screenshot();
+        return page.evaluate(async base64 => {
+          const image = new Image(); image.src = 'data:image/png;base64,' + base64; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d')!; context.drawImage(image, 0, 0);
+          return [.3, .7].map(y => {
+            const rgb = context.getImageData(Math.floor(image.width * .3), Math.floor(image.height * y), 1, 1).data;
+            return '#' + Array.from(rgb).slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('');
+          });
+        }, bytes.toString('base64'));
+      };
+      for (const name of ['bookish', 'gold'] as const) for (const mode of ['light', 'dark']) for (const finish of ['theme', 'maximum']) {
+        const recipe = structuredClone(startingPoints[name]);
+        if (finish === 'maximum') Object.assign(recipe.values, { finish: '1', 'light-strength': '1' });
+        await theme.evaluate((el, css) => el.textContent = css, themeCSS(recipe));
+        await page.locator('html').evaluate((el, mode) => el.setAttribute('data-theme', mode), mode);
+        for (const id of ids) {
+          await page.mouse.move(0, 0); const rest = await pixels(id);
+          await page.locator('#' + id).hover(); const hover = await pixels(id);
+          const distances = rest.map((color, i) => {
+            const [l, c, h] = toLch(color), [hl, hc, hh] = toLch(hover[i]);
+            return Math.sqrt((l - hl) ** 2 + (c - hc) ** 2 + 2 * c * hc * (1 - Math.cos((h - hh) * Math.PI / 180)));
+          });
+          const deepSolid = name === 'bookish' && id.includes('-solid-accent');
+          for (const distance of distances) assert.ok(distance >= (deepSolid ? .06 : .014) && distance <= (deepSolid ? .095 : .05),
+            `${name}/${mode}/${finish}/${id}: painted hover should be noticeable and restrained, got ${distance}`);
+        }
+      }
     } finally { await page.close(); }
   });
 
   it("keeps accent hover visible through full material paint in light and dark", async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
-    const path = await bundle('painted-accent-states', 'import "@threadlabs/looma";');
+    const path = await bundle('painted-accent-states', 'import "@looma-test/runtime";');
     const page = await open(path, '<ui-cluster><ui-button id="solid" preset="primary" aria-label="Solid sample"> </ui-button><ui-button id="outline" variant="outline" tone="accent" aria-label="Outline sample"> </ui-button><ui-icon-button id="icon" variant="solid" tone="accent" label="Icon sample"></ui-icon-button><ui-icon-button id="icon-outline" variant="outline" tone="accent" label="Outline icon sample"></ui-icon-button><ui-button id="outline-neutral" variant="outline" tone="neutral" aria-label="Neutral outline sample"> </ui-button><ui-icon-button id="icon-neutral" variant="outline" tone="neutral" label="Neutral icon sample"></ui-icon-button></ui-cluster>', [join(root,'tokens.css')], {reducedMotion:'reduce'});
     try {
       await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
@@ -11626,7 +12400,9 @@ describe("Shared readable material planes", () => {
           const target=page.locator('#'+id);await page.mouse.move(500,500);
           await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());
           const restingShadow=await target.evaluate(el=>getComputedStyle(el).boxShadow);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat at rest`);
           const rest=await pixels(target);await target.hover();const hover=await pixels(target);
+          if (id.includes('outline') || id.includes('neutral')) assert.doesNotMatch(await target.evaluate(el=>getComputedStyle(el).backgroundImage), /radial-gradient/, `${mode}/${id}: outline fill stays flat on hover`);
           const difference=rest.reduce((sum,value,index)=>sum+Math.abs(value-hover[index]),0)/rest.length;
           assert.ok(difference>=4, `${mode}/${id}: painted hover must remain visible at maximum finish, got ${difference}`);
           await page.mouse.down();
@@ -11648,7 +12424,7 @@ describe("Shared readable material planes", () => {
 
   it('lets maximum transparency reveal only a little scene through the content face', async () => {
     const {themeCSS,defaultRecipe}=await import('../tooling/docs/theme.mjs');
-    const path=await bundle('material-transmission','import "@threadlabs/looma";');
+    const path=await bundle('material-transmission','import "@looma-test/runtime";');
     const page=await open(path,'<ui-combobox id="transmission-combobox" label="Material"><option>Polished</option></ui-combobox><div style="width:240px;background:black"><ui-card id="glass" treatment="expressive"><div style="height:100px"></div></ui-card></div><ui-button id="glass-anchor">Hint</ui-button><ui-tooltip id="transmission-tooltip" for="glass-anchor" open placement="bottom"><span style="display:block;width:80px;height:30px"></span></ui-tooltip>',[join(root,'tokens.css')],{reducedMotion:'reduce'});
     try {
       await page.addStyleTag({path:join(root,'src/tokens/theme-system.css')});
@@ -11670,7 +12446,7 @@ describe("Shared readable material planes", () => {
 
   it('lets glass and glow reach expressive maxima', async () => {
     const {defaultRecipe,themeCSS}=await import('../tooling/docs/theme.mjs');
-    const path=await bundle('expressive-material-ceiling','import "@threadlabs/looma";');
+    const path=await bundle('expressive-material-ceiling','import "@looma-test/runtime";');
     const page=await open(path,'<ui-button id="strong-action" preset="primary">Share route</ui-button><ui-card id="strong-panel" treatment="expressive">Fellowship office</ui-card>',[join(root,'tokens.css')]);
     try {
       const system=await import('node:fs/promises').then(fs=>fs.readFile(join(root,'theme-system.css'),'utf8'));
@@ -11685,15 +12461,15 @@ describe("Shared readable material planes", () => {
 
   for (const adapter of ['html','vue']) it(`edits a bounded light position by keyboard, pointer and exact entry in ${adapter}`, async () => {
     const path = await bundle(adapter + '-light-position', adapter === 'html' ? `
-      import '@threadlabs/looma'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      import '@looma-test/runtime'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
       window.disableLight=()=>componentRegistry.update(document.getElementById('light'),{disabled:true});
     ` : `
-      import {createApp,h,ref} from 'vue'; import {LightEditor,Button} from '@threadlabs/looma/vue';
+      import {createApp,h,ref} from 'vue'; import { UiLightEditor as LightEditor, UiButton as Button } from '@threadlabs/looma';
       const disabled=ref(false); window.disableLight=()=>{disabled.value=true;};
       const app=createApp({render:()=>h(LightEditor,{id:'light',x:.5,y:.2,disabled:disabled.value},()=>h(Button,()=> 'Sample'))});
       app.mount('#app'); window.removeLight=()=>app.unmount();
     `);
-    const page = await open(path, adapter === 'html' ? '<ui-light-editor id="light" x=".5" y=".2"><ui-button>Sample</ui-button></ui-light-editor>' : '<div id="app"></div>', [join(root,'tokens.css'),...(adapter === 'vue' ? [join(root,'vue/components.css')] : [])], { viewport: { width: 375, height: 800 }, hasTouch: true });
+    const page = await open(path, adapter === 'html' ? '<ui-light-editor id="light" x=".5" y=".2"><ui-button>Sample</ui-button></ui-light-editor>' : '<div id="app"></div>', [join(root,'tokens.css')], { viewport: { width: 375, height: 800 }, hasTouch: true });
     try {
       const handle=page.getByRole('button',{name:/Light position. Arrow keys/});
       const x=page.getByRole('spinbutton',{name:'Light horizontal position',exact:true});
@@ -11734,7 +12510,7 @@ describe("Shared readable material planes", () => {
   });
   it('shares Bookish lighting across surfaces while neutral fills stay calm and elevation stays independent', async () => {
     const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
-    const path = await bundle('shared-lighting', 'import "@threadlabs/looma"; import {componentRegistry} from "@nextwebwg/html-next/runtime"; window.disableChoices=()=>{for(const id of ["material-check","material-switch"])componentRegistry.update(document.getElementById(id),{disabled:true});};');
+    const path = await bundle('shared-lighting', 'import "@looma-test/runtime"; import {componentRegistry} from "@nextwebwg/html-next/runtime"; window.disableChoices=()=>{for(const id of ["material-check","material-switch"])componentRegistry.update(document.getElementById(id),{disabled:true});};');
     const page = await open(path, `<ui-button id="primary" preset="primary">Join briefing</ui-button><ui-button id="neutral" preset="standard">Read memo</ui-button>
       <ui-input id="field" label="Office"></ui-input><ui-select id="material-select"><option>Office</option></ui-select><ui-checkbox id="material-check" checked>Notify Sam</ui-checkbox><ui-switch id="material-switch" checked>Office alerts</ui-switch><ui-card id="standard" variant="elevated">Quiet</ui-card>
       <ui-card id="expressive" treatment="expressive">Expressive</ui-card>`, [join(root, 'tokens.css')], { reducedMotion: 'reduce' });
@@ -11772,14 +12548,14 @@ describe("Shared readable material planes", () => {
     await page.mouse.up();
     await page.close();
   });
-  for (const adapter of ['html', 'vue']) it(`keeps translucent material around opaque readable content and scales dialog size in ${adapter}`, async () => {
+  for (const adapter of ['html', 'vue']) it(`keeps layered material readable at maximum transparency and scales dialog size in ${adapter}`, async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
     const recipe = structuredClone(startingPoints.bookish); recipe.values.translucency = '1';
     const path = await bundle(adapter + '-readable-materials', adapter === 'html' ? `
-      import '@threadlabs/looma'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
+      import '@looma-test/runtime'; import {componentRegistry} from '@nextwebwg/html-next/runtime';
       window.enlargeDialog=()=>componentRegistry.update(document.getElementById('material-dialog'),{size:'lg'});
     ` : `
-      import {createApp,h,ref} from 'vue'; import {Dialog,Menu,MenuItem,Popover,Tooltip,Card} from '@threadlabs/looma/vue';
+      import {createApp,h,ref} from 'vue'; import { UiDialog as Dialog, UiMenu as Menu, UiMenuItem as MenuItem, UiPopover as Popover, UiTooltip as Tooltip, UiCard as Card } from '@threadlabs/looma';
       const size=ref('sm'); window.enlargeDialog=()=>{size.value='lg';};
       createApp({render:()=>h('main',[
         h(Dialog,{id:'material-dialog',open:true,size:size.value,label:'Fellowship briefing'},()=>h('p','Sam and Frodo are reviewing the route to the next office.')),
@@ -11795,24 +12571,46 @@ describe("Shared readable material planes", () => {
       <ui-popover id="material-popover">Frodo has updated the map.</ui-popover>
       <ui-tooltip id="material-tooltip">Office route</ui-tooltip>
       <ui-card id="material-card" variant="elevated" treatment="expressive">Sam has prepared the briefing.</ui-card>
-    ` : '<div id="app"></div>', [join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])], {reducedMotion:'reduce'});
+    ` : '<div id="app"></div>', [join(root,'tokens.css'),join(root,'theme-system.css')], {reducedMotion:'reduce'});
     try {
       await page.addStyleTag({content:themeCSS(recipe) + 'body {background:repeating-linear-gradient(45deg,black 0 20px,white 20px 40px);color:var(--ui-text)}'});
       const selectors=['#material-dialog','#material-menu .surface','#material-popover .surface','#material-tooltip .surface','#material-card'];
       for (const mode of ['light','dark']) {
         await page.locator('html').evaluate((element,mode)=>{element.dataset.theme=mode;},mode);
         for (const selector of selectors) {
-          const result=await page.locator(selector).evaluate(element=>{
-            const style=getComputedStyle(element), context=document.createElement('canvas').getContext('2d')!;
-            const channels=(color:string)=>{context.clearRect(0,0,1,1);context.fillStyle=color;context.fillRect(0,0,1,1);return [...context.getImageData(0,0,1,1).data];};
-            const bg=channels(style.backgroundColor), fg=channels(style.color);
-            const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
-            const a=luminance(bg),b=luminance(fg);
-            return {alpha:bg[3],contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),filter:style.backdropFilter};
+          const foreground=await page.locator(selector).evaluate(element=>{
+            const style=getComputedStyle(element);
+            document.querySelector('#material-paint-probe')?.remove();
+            const probe=document.createElement('div');probe.id='material-paint-probe';
+            Object.assign(probe.style,{position:'fixed',inset:'0 auto auto 0',width:'64px',height:'64px',zIndex:'2147483647',background:'black'});
+            const face=document.createElement('div');
+            Object.assign(face.style,{width:'100%',height:'100%',backgroundImage:style.backgroundImage,backgroundColor:style.backgroundColor,backgroundBlendMode:style.backgroundBlendMode});
+            probe.append(face);document.body.append(probe);
+            const context=document.createElement('canvas').getContext('2d')!;
+            context.fillStyle=style.color;context.fillRect(0,0,1,1);
+            return {rgba:[...context.getImageData(0,0,1,1).data],filter:style.backdropFilter};
           });
-          assert.equal(result.alpha,255,`${adapter}/${mode}/${selector}: content stays opaque at maximum translucency`);
-          assert.ok(result.contrast>=4.5,`${selector}: ${result.contrast}`);
-          assert.ok(result.filter.includes('blur('));
+          const paints:number[][]=[];
+          for(const backdrop of ['black','white']) {
+            await page.locator('#material-paint-probe').evaluate((element,color)=>(element as HTMLElement).style.background=color,backdrop);
+            const bytes=await page.locator('#material-paint-probe').screenshot();
+            paints.push(await page.evaluate(async base64=>{
+              const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();
+              const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+              const context=canvas.getContext('2d')!;context.drawImage(image,0,0);
+              return [...context.getImageData(32,32,1,1).data];
+            },bytes.toString('base64')));
+          }
+          // Layered backgrounds can have a transparent backgroundColor while their gradients
+          // paint a nearly opaque face. Measure that paint against both extreme backdrops.
+          const luminance=(rgba:number[])=>rgba.slice(0,3).map(channel=>channel/255).map(channel=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index]!,0);
+          for(const paint of paints) {
+            const a=luminance(paint),b=luminance(foreground.rgba);
+            assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,`${adapter}/${mode}/${selector}: painted content retains readable contrast`);
+          }
+          assert.ok(paints[0].slice(0,3).every((channel,index)=>Math.abs(channel-paints[1][index])<=28),`${selector}: the face transmits at most about ten percent of the scene`);
+          assert.ok(foreground.filter.includes('blur('));
+          await page.locator('#material-paint-probe').evaluate(element=>element.remove());
         }
       }
       const dialog=page.locator('#material-dialog');
@@ -11831,9 +12629,9 @@ describe("Shared readable material planes", () => {
 describe("Nested portable theme boundaries", () => {
   for (const adapter of ['html', 'vue']) it(`keeps controls and open floating surfaces in their nearest mode in ${adapter}`, async () => {
     const {themeCSS, startingPoints} = await import('../tooling/docs/theme.mjs');
-    const path = await bundle(adapter + '-nested-theme-boundaries', adapter === 'html' ? `import '@threadlabs/looma';` : `
+    const path = await bundle(adapter + '-nested-theme-boundaries', adapter === 'html' ? `import '@looma-test/runtime';` : `
       import {createApp,h} from 'vue';
-      import {Button,Input,Select,Dialog,Menu,MenuItem,Popover,Tooltip} from '@threadlabs/looma/vue';
+      import { UiButton as Button, UiInput as Input, UiSelect as Select, UiDialog as Dialog, UiMenu as Menu, UiMenuItem as MenuItem, UiPopover as Popover, UiTooltip as Tooltip } from '@threadlabs/looma';
       const controls = name => [h(Button,{id:name+'-action'},()=>name),h(Input,{id:name+'-field',value:name}),h(Select,{id:name+'-select'},()=>h('option',{},name))];
       createApp({render:()=>h('main',[
         ...controls('outside'),
@@ -11853,7 +12651,7 @@ describe("Nested portable theme boundaries", () => {
       <ui-button id="popover-trigger">Office briefing</ui-button><ui-popover id="mode-popover" for="popover-trigger">Frodo has the maps.</ui-popover>
       <ui-button id="tooltip-trigger">Help</ui-button><ui-tooltip id="mode-tooltip" for="tooltip-trigger" delay="0">Office help</ui-tooltip>
       <section id="inner" data-theme="light">${controls('inner')}<section data-theme="dark">${controls('deep')}</section></section></section>`;
-    const page = await open(path, body, [join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])], {reducedMotion:'reduce'});
+    const page = await open(path, body, [join(root,'tokens.css'),join(root,'theme-system.css')], {reducedMotion:'reduce'});
     try {
       await page.addStyleTag({content:themeCSS(startingPoints.bookish)});
       await page.locator('html').evaluate(element=>{element.dataset.theme='light';});
@@ -11893,7 +12691,7 @@ describe("Nested portable theme boundaries", () => {
 describe('Shared interaction paint', () => {
   it('keeps menu selection visible and makes ghost press stronger than hover in every starter mode', async () => {
     const {startingPoints,themeCSS}=await import('../tooling/docs/theme.mjs');
-    const path=await bundle('interaction-paint',`import '@threadlabs/looma';`);
+    const path=await bundle('interaction-paint',`import '@looma-test/runtime';`);
     const page=await open(path,'<ui-button id="ghost" variant="ghost">Ghost</ui-button><ui-menu-item id="menu">Read memo</ui-menu-item><ui-menu-item id="selected" type="checkbox" checked>Notify Sam</ui-menu-item>',[join(root,'tokens.css'),join(root,'theme-system.css')],{reducedMotion:'reduce'});
     try {
       for(const [name,recipe] of Object.entries(startingPoints)) for(const mode of ['light','dark']) {
@@ -11919,8 +12717,8 @@ describe('Shared interaction paint', () => {
 
 describe('Muted inherited choices', () => {
   for(const adapter of ['html','vue']) it(`keeps selected defaults muted and option text normal in ${adapter}`, async () => {
-    const path=await bundle('muted-select-'+adapter,adapter==='html'?`import '@threadlabs/looma';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.unmute=()=>componentRegistry.update(document.getElementById('choice'),{muted:false});`:`import {createApp,h,ref} from 'vue';import {Select} from '@threadlabs/looma/vue';const muted=ref(true);window.unmute=()=>muted.value=false;createApp({render:()=>h(Select,{id:'choice',muted:muted.value},()=>[h('option',{},'Default palette'),h('optgroup',{label:'Other'},[h('option',{},'Alternative')])])}).mount('#app');`);
-    const page=await open(path,adapter==='html'?'<ui-select id="choice" muted><option>Default palette</option><optgroup label="Other"><option>Alternative</option></optgroup></ui-select>':'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const path=await bundle('muted-select-'+adapter,adapter==='html'?`import '@looma-test/runtime';import {componentRegistry} from '@nextwebwg/html-next/runtime';window.unmute=()=>componentRegistry.update(document.getElementById('choice'),{muted:false});`:`import {createApp,h,ref} from 'vue';import { UiSelect as Select } from '@threadlabs/looma';const muted=ref(true);window.unmute=()=>muted.value=false;createApp({render:()=>h(Select,{id:'choice',muted:muted.value},()=>[h('option',{},'Default palette'),h('optgroup',{label:'Other'},[h('option',{},'Alternative')])])}).mount('#app');`);
+    const page=await open(path,adapter==='html'?'<ui-select id="choice" muted><option>Default palette</option><optgroup label="Other"><option>Alternative</option></optgroup></ui-select>':'<div id="app"></div>',[join(root,'tokens.css')]);
     try {
       await page.addStyleTag({content:':root {--ui-text-primary:rgb(20,30,40);--ui-text-secondary:rgb(90,100,110)}'});
       assert.equal(await page.locator('#choice').evaluate(el=>getComputedStyle(el).color),'rgb(90, 100, 110)');
@@ -11932,8 +12730,8 @@ describe('Muted inherited choices', () => {
 });
 
 describe('Readable overlay content', () => {
-  it('keeps notification and choice content opaque at every translucency extreme', async () => {
-    const path=await bundle('opaque-overlay-content',`import '@threadlabs/looma';`);
+  it('keeps notifications opaque and bounds choice-surface translucency', async () => {
+    const path=await bundle('opaque-overlay-content',`import '@looma-test/runtime';`);
     const page=await open(path,'<ui-toast id="notice" tone="info">Frodo saved the agenda.</ui-toast><ui-combobox id="choices" label="Colleague" value="sam" disclosure><option value="sam">Sam</option></ui-combobox>',[join(root,'tokens.css'),join(root,'theme-light.css'),join(root,'theme-dark.css'),join(root,'theme-system.css')]);
     try {
       for (const mode of ['light','dark']) for (const translucency of [0,0.5,1]) {
@@ -11943,7 +12741,7 @@ describe('Readable overlay content', () => {
           context.fillStyle=getComputedStyle(element).backgroundColor;context.fillRect(0,0,1,1);
           return context.getImageData(0,0,1,1).data[3];
         }));
-        assert.deepEqual(alphas,[255,255],`${mode}/${translucency}: decorative transparency must not transmit through readable content`);
+        assert.deepEqual(alphas,[255,Math.round(255*(1-translucency*0.1))],`${mode}/${translucency}: notifications stay opaque and choices follow the shared material transmission bound`);
       }
     } finally {await page.close();}
   });
@@ -11967,12 +12765,12 @@ describe("Keyboard item reveal", () => {
   });
   const fixtureBundle = (adapter: "HTML" | "Vue") => {
     if (!paths.has(adapter)) paths.set(adapter, bundle(`keyboard-reveal-${adapter}`, adapter === "HTML" ? `
-      import "@threadlabs/looma";
+      import "@looma-test/runtime";
       import { componentRegistry } from "@nextwebwg/html-next/runtime";
       window.configure = props => componentRegistry.update(document.querySelector('#fixture'), props);
     ` : `
       import { createApp, h, ref } from "vue";
-      import { Combobox, Listbox, Menu, MenuItem, ContextMenu, SearchShell, ScrollArea, SearchResultRow, EditorSlashMenu, EditorMentionMenu, EditorLinkForm } from "@threadlabs/looma/vue";
+      import { UiCombobox as Combobox, UiListbox as Listbox, UiMenu as Menu, UiMenuItem as MenuItem, UiContextMenu as ContextMenu, UiSearchShell as SearchShell, UiScrollArea as ScrollArea, UiSearchResultRow as SearchResultRow, UiEditorSlashMenu as EditorSlashMenu, UiEditorMentionMenu as EditorMentionMenu, UiEditorLinkForm as EditorLinkForm } from "@threadlabs/looma";
       const kind = document.querySelector('#app').dataset.kind;
       const props = ref({ id: 'fixture' });
       const labels = Array.from({length:20},(_,index)=>'Item '+(index+1));
@@ -12001,7 +12799,7 @@ describe("Keyboard item reveal", () => {
   for (const adapter of ["HTML", "Vue"] as const) {
     it(`honors reduced motion and retargets or cancels pending reveals in ${adapter}`, async () => {
       const page = await open(await fixtureBundle(adapter), adapter === "HTML" ? markup("slash") : '<div id="app" data-kind="slash"></div>',
-        [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 960, height: 360 }, reducedMotion: "reduce" });
+        [join(root, "tokens.css")], { viewport: { width: 960, height: 360 }, reducedMotion: "reduce" });
       try {
         await page.evaluate(props => (window as any).configure(props), properties("slash"));
         const port = page.locator(viewport("slash"));
@@ -12034,7 +12832,7 @@ describe("Keyboard item reveal", () => {
       it(`quickly reveals keyboard-selected ${kind} items without scrolling the page in ${adapter}`, async () => {
         const path = await fixtureBundle(adapter);
         const page = await open(path, `<button id="trigger">Actions</button>${adapter === "HTML" ? markup(kind) : `<div id="app" data-kind="${kind}"></div>`}<div style="height:1500px"></div>`,
-          [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], { viewport: { width: 960, height: 360 }, reducedMotion: "no-preference" });
+          [join(root, "tokens.css")], { viewport: { width: 960, height: 360 }, reducedMotion: "no-preference" });
         try {
           await page.evaluate(props => (window as unknown as { configure: (value: unknown) => void }).configure(props), properties(kind));
           if (["menu", "context"].includes(kind)) await page.addStyleTag({ content: "#fixture .surface, #fixture [role=menu] { max-height: 160px; }" });
@@ -12090,9 +12888,9 @@ describe("Brand palette families", () => {
   for(const adapter of ['html','vue']) it(`applies supporting accents without changing neutral or disabled intent in ${adapter}`, async () => {
     const { defaultRecipe, themeCSS } = await import('../tooling/docs/theme.mjs');
     const recipe=defaultRecipe(); Object.assign(recipe.values,{'secondary-action':'#dd7045','tertiary-action':'#208676'});
-    const path=await bundle('extra-accents-'+adapter,adapter==='html'?`import '@threadlabs/looma';`:`import {createApp,h} from 'vue';import {Button,IconButton,Badge,Card,Meter,Text} from '@threadlabs/looma/vue';createApp({render:()=>['accent','accent-secondary','accent-tertiary'].flatMap(tone=>[h(Button,{id:tone,variant:'solid',tone},()=>tone),h(IconButton,{id:tone+'-icon',variant:'solid',tone,label:tone}),h(Badge,{id:tone+'-badge',variant:'solid',tone},()=>tone),h(Badge,{id:tone+'-soft',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>tone),h(Meter,{id:tone+'-meter',value:50,tone,label:tone}),h(Text,{id:tone+'-text',tone},()=>tone),h(Button,{id:tone+'-disabled',variant:'solid',tone,disabled:true},()=>tone)])}).mount('#app');`);
+    const path=await bundle('extra-accents-'+adapter,adapter==='html'?`import '@looma-test/runtime';`:`import {createApp,h} from 'vue';import { UiButton as Button, UiIconButton as IconButton, UiBadge as Badge, UiCard as Card, UiMeter as Meter, UiText as Text } from '@threadlabs/looma';createApp({render:()=>['accent','accent-secondary','accent-tertiary'].flatMap(tone=>[h(Button,{id:tone,variant:'solid',tone},()=>tone),h(IconButton,{id:tone+'-icon',variant:'solid',tone,label:tone}),h(Badge,{id:tone+'-badge',variant:'solid',tone},()=>tone),h(Badge,{id:tone+'-soft',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>tone),h(Meter,{id:tone+'-meter',value:50,tone,label:tone}),h(Text,{id:tone+'-text',tone},()=>tone),h(Button,{id:tone+'-disabled',variant:'solid',tone,disabled:true},()=>tone)])}).mount('#app');`);
     const markup=['accent','accent-secondary','accent-tertiary'].map(tone=>`<ui-button id="${tone}" tone="${tone}" variant="solid">${tone}</ui-button><ui-icon-button id="${tone}-icon" tone="${tone}" variant="solid" label="${tone}"></ui-icon-button><ui-badge id="${tone}-badge" tone="${tone}" variant="solid">${tone}</ui-badge><ui-badge id="${tone}-soft" tone="${tone}">${tone}</ui-badge><ui-card id="${tone}-card" tone="${tone}">${tone}</ui-card><ui-meter id="${tone}-meter" value="50" tone="${tone}" label="${tone}"></ui-meter><ui-text id="${tone}-text" tone="${tone}">${tone}</ui-text><ui-button id="${tone}-disabled" tone="${tone}" variant="solid" disabled>${tone}</ui-button>`).join('');
-    const page=await open(path,adapter==='html'?markup:'<div id="app"></div>',[join(root,'tokens.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const page=await open(path,adapter==='html'?markup:'<div id="app"></div>',[join(root,'tokens.css')]);
     try {
       await page.addStyleTag({content:themeCSS(recipe)});
       for(const mode of ['light','dark']) {
@@ -12128,9 +12926,9 @@ describe("Shared status surfaces", () => {
   for(const adapter of ['html','vue']) it(`shares background, foreground and visible border across status components in ${adapter}`,async()=>{
     const {defaultRecipe,themeCSS}=await import('../tooling/docs/theme.mjs');
     const tones=['info','success','warning','danger'];
-    const path=await bundle('shared-status-'+adapter,adapter==='html'?`import '@threadlabs/looma';`:`import {createApp,h} from 'vue';import {Badge,Card,Callout,Toast,Text} from '@threadlabs/looma/vue';createApp({render:()=>${JSON.stringify(tones)}.flatMap(tone=>[h(Badge,{id:tone+'-badge',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>h(Text,{id:tone+'-content'},()=>tone)),h(Callout,{id:tone+'-callout',tone},()=>tone),h(Toast,{id:tone+'-toast',tone},()=>tone)])}).mount('#app');`);
+    const path=await bundle('shared-status-'+adapter,adapter==='html'?`import '@looma-test/runtime';`:`import {createApp,h} from 'vue';import { UiBadge as Badge, UiCard as Card, UiCallout as Callout, UiToast as Toast, UiText as Text } from '@threadlabs/looma';createApp({render:()=>${JSON.stringify(tones)}.flatMap(tone=>[h(Badge,{id:tone+'-badge',tone},()=>tone),h(Card,{id:tone+'-card',tone},()=>h(Text,{id:tone+'-content'},()=>tone)),h(Callout,{id:tone+'-callout',tone},()=>tone),h(Toast,{id:tone+'-toast',tone},()=>tone)])}).mount('#app');`);
     const body=tones.map(tone=>`<ui-badge id="${tone}-badge" tone="${tone}">${tone}</ui-badge><ui-card id="${tone}-card" tone="${tone}"><ui-text id="${tone}-content">${tone}</ui-text></ui-card><ui-callout id="${tone}-callout" tone="${tone}">${tone}</ui-callout><ui-toast id="${tone}-toast" tone="${tone}">${tone}</ui-toast>`).join('');
-    const page=await open(path,adapter==='html'?body:'<div id="app"></div>',[join(root,'tokens.css'),join(root,'theme-system.css'),...(adapter==='vue'?[join(root,'vue/components.css')]:[])]);
+    const page=await open(path,adapter==='html'?body:'<div id="app"></div>',[join(root,'tokens.css'),join(root,'theme-system.css')]);
     try {
       const style=await page.addStyleTag({content:themeCSS(defaultRecipe())});
       for(const branded of [false,true]) {
@@ -12150,7 +12948,7 @@ describe("Shared status surfaces", () => {
 });
 
 it("keeps warning action labels readable across standalone themes and interaction states", async () => {
-  const path = await bundle("warning-action-contrast", `import "@threadlabs/looma";`);
+  const path = await bundle("warning-action-contrast", `import "@looma-test/runtime";`);
   const page = await open(path, '<ui-button id="warning" tone="warning" variant="solid">Review warning</ui-button>',
     ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map(file => join(root, file)), { reducedMotion: "reduce" });
   const button = page.locator("#warning");
@@ -12187,14 +12985,14 @@ it("keeps warning action labels readable across standalone themes and interactio
 
 it("opens at its final dialog size while retaining content resize animation in HTML and Vue", async () => {
   for (const adapter of ["html", "vue"]) {
-    const path = await bundle(`${adapter}-dialog-initial-size`, adapter === "html" ? `import "@threadlabs/looma";` : `
+    const path = await bundle(`${adapter}-dialog-initial-size`, adapter === "html" ? `import "@looma-test/runtime";` : `
       import { createApp, h } from "vue";
-      import { Button, Dialog } from "@threadlabs/looma/vue";
+      import { UiButton as Button, UiDialog as Dialog } from "@threadlabs/looma";
       createApp({ render: () => [h(Button, { id: "open" }, () => "Open details"),
         h(Dialog, { id: "dialog", for: "open", label: "Details" }, () => h("p", "A note with its final content already present."))] }).mount("#app");
     `);
     const page = await open(path, adapter === "html" ? '<ui-button id="open">Open details</ui-button><ui-dialog id="dialog" for="open" label="Details"><p>A note with its final content already present.</p></ui-dialog>' : '<div id="app"></div>',
-      [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "no-preference" });
+      [join(root, "tokens.css")], { reducedMotion: "no-preference" });
     await page.addStyleTag({ content: ':root {--ui-dialog-duration:400ms}' });
     await page.locator("#open").click();
     const sizes = await page.locator("#dialog").evaluate(async element => {

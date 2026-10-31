@@ -1,0 +1,399 @@
+<link rel="component" href="../ui-button/ui-button.html">
+<link rel="component" href="../ui-card/ui-card.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<link rel="component" href="../ui-compact-editor/ui-compact-editor.html">
+<link rel="component" href="../ui-editor-block-actions/ui-editor-block-actions.html">
+<link rel="component" href="../ui-editor-chip-editor/ui-editor-chip-editor.html">
+<link rel="component" href="../ui-editor-code-language/ui-editor-code-language.html">
+<link rel="component" href="../ui-editor-footnote-editor/ui-editor-footnote-editor.html">
+<link rel="component" href="../ui-editor-formatting-tools/ui-editor-formatting-tools.html">
+<link rel="component" href="../ui-editor-image-toolbar/ui-editor-image-toolbar.html">
+<link rel="component" href="../ui-editor-insert-table-grid/ui-editor-insert-table-grid.html">
+<link rel="component" href="../ui-editor-link-card/ui-editor-link-card.html">
+<link rel="component" href="../ui-editor-link-form/ui-editor-link-form.html">
+<link rel="component" href="../ui-editor-mention-menu/ui-editor-mention-menu.html">
+<link rel="component" href="../ui-editor-slash-menu/ui-editor-slash-menu.html">
+<link rel="component" href="../ui-editor-slash-menu-group/ui-editor-slash-menu-group.html">
+<link rel="component" href="../ui-editor-slash-menu-item/ui-editor-slash-menu-item.html">
+<link rel="component" href="../ui-editor-surface/ui-editor-surface.html">
+<link rel="component" href="../ui-editor-table-context-menu/ui-editor-table-context-menu.html">
+<link rel="component" href="../ui-editor-table-overlay/ui-editor-table-overlay.html">
+<link rel="component" href="../ui-editor-table-toolbar/ui-editor-table-toolbar.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-popover/ui-popover.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-status-message/ui-status-message.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-tooltip/ui-tooltip.html">
+<template component="ui-editor" module="./ui-editor.js">
+  <defs>
+    <prop name="content" type="object({ type: string, ... })" default="{ type: 'doc', content: [{ type: 'paragraph' }] }"
+    >The controlled Tiptap document. A change reports the updated content.</prop>
+    <prop name="references" type="object({ ... })">Cached reference display values. Replacing this map refreshes labels without editing content.</prop>
+    <prop
+      name="editable"
+      type="boolean"
+      default="true"
+      default-true-reason="An editor accepts writing by default; read-only rendering is an explicit use of the same document contract."
+    >Allow authoring. Read-only documents can still expose passage actions.</prop>
+    <prop name="contentDensity" type="keyword" values="comfortable, compact" default="comfortable"
+    >Choose the padding and minimum height of read-only documents.</prop>
+    <prop name="placeholder" type="string" default="Type “/” for commands, or start writing…">The empty document's writing prompt.</prop>
+    <prop name="label" type="string" default="Document">Accessible name of the textbox.</prop>
+    <prop name="mentionItems" type="list(object({ id: string, label: string, detail?: string, initials?: string, ... }))" default="[]"
+    >Default mention choices when nobody answers mention-query.</prop>
+    <prop name="mentionLimit" type="integer" default="8">Maximum number of mention suggestions.</prop>
+    <prop name="linkBaseUrl" type="string" default="">Origin used for newly inserted relative links.</prop>
+    <prop name="linkTargetLabel" type="string" default="Item">The name of a searchable link destination.</prop>
+    <prop name="toolbarMode" type="keyword" values="bubble, sticky, popover, contextual" default="bubble">Where formatting controls appear.</prop>
+    <prop name="compactToolbar" type="boolean" default="false">Keep frequent inline controls visible and put the full inventory behind Format.</prop>
+    <prop name="selectionActions" type="list(object({ id: string, label: string }))" default="[]">Application actions available for a selected passage.</prop>
+    <prop name="rangeActions" type="list(object({ id: string, label: string, ... }))" default="[]"
+    >Application caret actions with host-owned durable ranges.</prop>
+    <prop name="toolbarTriggerId" type="string" default="">External trigger for popover mode.</prop>
+    <prop name="toolbarOpen" type="boolean" default="false">Controlled popover toolbar visibility.</prop>
+    <prop name="disableHighlight" type="boolean" default="false">Disable authoring new highlights while retaining saved highlights.</prop>
+    <state name="view" type="object({ ... })" value="{}"></state>
+    <event name="change" type="object"><prop name="content" type="object({ type: string, ... })" required></prop>The edited document changed.</event>
+    <event name="toolbar-open" type="object({ ... })">The popover toolbar opened.</event>
+    <event name="toolbar-close" type="object({ ... })">The popover toolbar closed.</event>
+    <event name="selection-action" type="object({ ... })">An application passage action was chosen.</event>
+    <event name="range-action" type="object({ ... })">An application caret action was chosen.</event>
+    <event name="upload-error" type="object"><prop name="error" type="unknown" required></prop><prop name="file" type="unknown" required></prop>An upload
+      failed; authored content is retained.</event>
+    <event name="image-activate" type="object({ src: string, trigger: keyword, ... })">An image was activated.</event>
+    <event name="image-rendition-error" type="object({ src: string, trigger: keyword, ... })">A transient image rendition failed.</event>
+    <request name="extensions" returns="list(unknown)">Additional Tiptap extensions.</request>
+    <request name="slash-commands" type="object({ defaults: list(unknown) })" returns="list(unknown)">Customize the default slash commands.</request>
+    <request name="mention-query" type="object({ query: string, limit: integer })" returns="list(object({ id: string, label: string, ... }))"
+    >Find authorized mention choices.</request>
+    <request name="link-search" type="object({ query: string })" returns="list(object({ id: string, label: string, href: string, ... }))"
+    >Find authorized link destinations.</request>
+    <request name="link-resolve" type="object({ href: string })" returns="object({ id: string, label: string, href: string, ... })"
+    >Resolve a saved link's display record.</request>
+    <request name="image-upload" type="object"><prop name="file" type="unknown" required></prop><returns type="object({ src: string, ... })"></returns>Retain an
+      image before insertion.</request>
+    <request name="file-upload" type="object"><prop name="file" type="unknown" required></prop><returns
+        type="object({ href: string, name: string, size: number, contentType: string, ... })"
+      ></returns>Retain a file before inserting its link.</request>
+    <request name="code-languages" returns="object({ ... })"
+    >The code grammar catalog chosen before creation. null keeps the built-in lazy catalog; an empty record disables highlighting.</request>
+    <request name="image-delivery" returns="unknown"
+    >The host's synchronous source and rendition policy, resolved before the editor mounts. This transient policy is never persisted.</request>
+  </defs>
+  <div tabindex="-1" from:class="concat('looma-editor', $editable ? '' : ' looma-editor--readonly', $view.dragOver ? ' looma-editor--drag-over' : '')">
+    <ui-tooltip $if="$view.resizeHintFor" from:for="$view.resizeHintFor" placement="top" inverse>Drag to resize column</ui-tooltip>
+    <div $if="$view.formatting">
+      <div $ref="formattingShell" class="looma-editor__floating-shell looma-editor__formatting-shell" hidden>
+        <ui-stack gap="xs">
+          <ui-editor-formatting-tools floating from:items="$view.selectionTools"></ui-editor-formatting-tools>
+          <ui-card class="looma-editor__link-context" $if="$view.contextual and $view.linkContext and $view.linkForm" variant="elevated" padding="sm" size="sm">
+            <ui-editor-link-form
+              $ref="contextLinkForm"
+              autofocus
+              from:existing="$view.link.existing"
+              from:searchable="$view.link.searchable"
+              from:mode="$view.link.mode"
+              from:value="$view.link.value"
+              from:placeholder="$view.link.placeholder"
+              from:new-tab="$view.link.newTab"
+              from:text-editable="$view.link.textEditable"
+              from:text="$view.link.text"
+              from:error="$view.link.error"
+              from:status="$view.link.status"
+              from:results="$view.link.results"
+              from:selected="$view.link.selected"
+            ></ui-editor-link-form>
+          </ui-card>
+          <ui-editor-link-card
+            class="looma-editor__link-context"
+            $if="$view.contextual and $view.linkContext and not $view.linkForm"
+            $ref="contextLinkCard"
+            from:href="$view.link.href"
+            from:open-href="$view.link.openHref"
+            from:label="$view.link.label"
+            from:detail="$view.link.detail"
+            from:target-label="$view.link.targetLabel"
+          ></ui-editor-link-card>
+        </ui-stack>
+      </div>
+    </div>
+    <div $if="$view.ready and $editable">
+      <div $ref="linkShell" class="looma-editor__floating-shell looma-editor__link-shell" hidden>
+        <ui-card $if="not $view.linkInFormatting and $view.linkForm" variant="elevated" padding="sm" size="sm"><ui-editor-link-form
+            $ref="floatingLinkForm"
+            autofocus
+            from:existing="$view.link.existing"
+            from:searchable="$view.link.searchable"
+            from:mode="$view.link.mode"
+            from:value="$view.link.value"
+            from:placeholder="$view.link.placeholder"
+            from:new-tab="$view.link.newTab"
+            from:text-editable="$view.link.textEditable"
+            from:text="$view.link.text"
+            from:error="$view.link.error"
+            from:status="$view.link.status"
+            from:results="$view.link.results"
+            from:selected="$view.link.selected"
+          ></ui-editor-link-form></ui-card>
+        <ui-editor-link-card
+          $if="not $view.linkInFormatting and not $view.linkForm"
+          $ref="floatingLinkCard"
+          from:href="$view.link.href"
+          from:open-href="$view.link.openHref"
+          from:label="$view.link.label"
+          from:detail="$view.link.detail"
+          from:target-label="$view.link.targetLabel"
+        ></ui-editor-link-card>
+      </div>
+    </div>
+    <ui-popover
+      $if="$view.popover"
+      $ref="toolbarPopover"
+      class="looma-editor__formatting-popover"
+      bare
+      role="region"
+      aria-label="Formatting tools"
+      from:open="$toolbarOpen"
+      from:for="$toolbarTriggerId"
+      placement="bottom-end"
+    >
+      <ui-editor-formatting-tools floating from:items="$view.fullTools"></ui-editor-formatting-tools>
+    </ui-popover>
+    <div $if="$view.sticky" class="looma-editor__sticky-toolbar-shell" role="toolbar" aria-label="Editor tools">
+      <ui-editor-formatting-tools from:items="$view.tools"></ui-editor-formatting-tools>
+    </div>
+    <div $if="$view.ready and $editable">
+      <div $ref="imageShell" class="looma-editor__floating-shell looma-editor__image-shell" hidden>
+        <ui-editor-image-toolbar
+          $ref="imageTools"
+          from:placement="$view.image.placement"
+          from:alt="$view.image.alt"
+          from:target="$view.image.target"
+        ></ui-editor-image-toolbar>
+      </div>
+    </div>
+    <ui-editor-surface from:density="$view.density"><div $if="not $view.ready"><slot name="fallback"></slot></div><div $ref="mount"></div></ui-editor-surface>
+    <div $if="$view.code.open" $ref="codeShell" class="looma-editor__code-language">
+      <ui-editor-code-language $ref="codeTools" from:value="$view.code.language" from:languages="$view.code.languages"></ui-editor-code-language>
+    </div>
+    <div
+      $if="$view.mobileToolbar"
+      $ref="mobileShell"
+      class="looma-editor__mobile-toolbar-shell"
+      from:data-mode="$view.mobileToolbarMode"
+      role="toolbar"
+      from:aria-label="$view.mobileToolbarMode = 'table' ? 'Table editing' : 'Text formatting'"
+    >
+      <ui-button
+        $if="$view.mobileToolbarMode = 'table'"
+        data-editor-action="formatting"
+        size="sm"
+        variant="ghost"
+        tone="neutral"
+        aria-label="Formatting tools"
+      ><ui-icon slot="icon" name="chevron-left"></ui-icon>Formatting</ui-button>
+      <ui-editor-table-toolbar
+        $if="$view.mobileToolbarMode = 'table'"
+        $ref="mobileTableTools"
+        open
+        from:cell-alignment="$view.table.alignment"
+        from:cell-background="$view.table.background"
+        from:header-row="$view.table.headerRow"
+        from:header-column="$view.table.headerColumn"
+        from:actions="$view.table.actions"
+      ></ui-editor-table-toolbar>
+      <ui-editor-formatting-tools $if="$view.mobileToolbarMode != 'table'" from:items="$view.tools"></ui-editor-formatting-tools>
+    </div>
+    <input
+      $ref="fileInput"
+      class="looma-editor__file-input"
+      type="file"
+      accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+      from:multiple="true"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+    <input $ref="attachmentInput" class="looma-editor__file-input" type="file" tabindex="-1" aria-hidden="true">
+    <ui-status-message $if="$view.files.uploading" kind="loading">{$view.files.progress}<ui-button
+        slot="action"
+        data-editor-action="file-cancel"
+        size="sm"
+        variant="ghost"
+      >Cancel</ui-button></ui-status-message>
+    <ui-status-message $if="$view.files.failed" kind="error">Couldn’t attach file.<ui-button
+        slot="action"
+        data-editor-action="file-cancel"
+        size="sm"
+        variant="ghost"
+      >Dismiss</ui-button><ui-button slot="action" data-editor-action="file-retry" size="sm">Retry</ui-button></ui-status-message>
+    <ui-status-message $if="$view.upload.uploading" kind="loading">{$view.upload.progress}<ui-button
+        slot="action"
+        data-editor-action="image-cancel"
+        size="sm"
+        variant="ghost"
+      >Cancel</ui-button></ui-status-message>
+    <ui-status-message $if="$view.upload.failed" kind="error">Couldn’t upload image.<ui-button
+        slot="action"
+        data-editor-action="image-retry"
+        size="sm"
+        variant="ghost"
+        tone="neutral"
+        from:disabled="$view.upload.uploading"
+      >Retry</ui-button></ui-status-message>
+    <div $if="$view.dragOver" class="looma-editor__drop-overlay" aria-hidden="true">
+      <ui-icon name="image"></ui-icon>
+      <span>Drop image to upload</span>
+    </div>
+    <ui-popover $ref="chipPopover" class="looma-editor__chip-popover" from:open="$view.chip.open" from:for="$view.chipAnchorId" placement="bottom-start">
+      <ui-editor-chip-editor $ref="chipEditor" autofocus from:label="$view.chip.label" from:color="$view.chip.color"></ui-editor-chip-editor>
+    </ui-popover>
+    <ui-popover
+      $if="$view.footnote.open and $view.footnote.surface = 'actions'"
+      $ref="footnoteActions"
+      bare
+      open
+      from:for="$view.footnoteAnchorId"
+      role="dialog"
+      aria-label="Footnote actions"
+    >
+      <ui-card variant="elevated" padding="xs" size="sm"><ui-cluster gap="xs" wrap="nowrap" role="group" aria-label="Footnote actions">
+          <ui-icon-button
+            $ref="footnoteGo"
+            data-editor-action="footnote-go"
+            from:id="concat($view.footnoteAnchorId, '-go')"
+            label="Go to note"
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+          ><ui-icon name="external-link"></ui-icon></ui-icon-button>
+          <ui-tooltip from:for="concat($view.footnoteAnchorId, '-go')">Go to note</ui-tooltip>
+          <ui-button data-editor-action="footnote-edit" variant="ghost" tone="neutral" size="sm"><ui-icon name="pencil"></ui-icon>Edit note</ui-button>
+        </ui-cluster></ui-card>
+    </ui-popover>
+    <ui-popover
+      $if="$view.footnote.open and $view.footnote.surface = 'editor'"
+      $ref="footnotePopover"
+      size="md"
+      open
+      from:for="$view.footnoteAnchorId"
+      from:placement="$view.placement"
+    >
+      <ui-editor-footnote-editor $ref="footnoteEditor"><ui-compact-editor
+          $ref="footnoteField"
+          label="Footnote"
+          from:content="$view.footnote.content"
+        ></ui-compact-editor></ui-editor-footnote-editor>
+    </ui-popover>
+    <ui-popover
+      $ref="linkPopover"
+      class="looma-editor__link-popover"
+      size="sm"
+      from:open="$view.linkOpen"
+      from:for="$view.linkAnchorId"
+      from:placement="$view.placement"
+    ><template $if="$view.linkOpen"><ui-editor-link-form
+          $ref="linkForm"
+          autofocus
+          from:existing="$view.link.existing"
+          from:searchable="$view.link.searchable"
+          from:mode="$view.link.mode"
+          from:value="$view.link.value"
+          from:placeholder="$view.link.placeholder"
+          from:new-tab="$view.link.newTab"
+          from:text-editable="$view.link.textEditable"
+          from:text="$view.link.text"
+          from:error="$view.link.error"
+          from:status="$view.link.status"
+          from:results="$view.link.results"
+          from:selected="$view.link.selected"
+        ></ui-editor-link-form></template></ui-popover>
+    <ui-popover
+      $if="$view.compactFormat"
+      $ref="formatPopover"
+      class="looma-editor__compact-formatting"
+      from:for="$view.formatAnchorId"
+      bare
+      from:open="$view.formatOpen"
+      placement="bottom-start"
+    ><ui-editor-formatting-tools floating from:items="$view.fullTools"></ui-editor-formatting-tools></ui-popover>
+    <ui-editor-block-actions $ref="blockActions" from:for="$view.blockActionAnchorId" from:placement="$view.placement"></ui-editor-block-actions>
+    <ui-popover
+      $ref="tablePopover"
+      class="looma-editor__table-picker-popover"
+      from:open="$view.tablePickerOpen"
+      from:for="$view.tablePickerAnchorId"
+      from:placement="$view.placement"
+    ><ui-editor-insert-table-grid $ref="tablePicker" open></ui-editor-insert-table-grid></ui-popover>
+    <ui-editor-slash-menu
+      $if="$view.slash.active"
+      $ref="slashMenu"
+      open
+      from:query="$view.slash.query"
+      from:selected-index="$view.slash.selectedIndex"
+      from:anchor-rect="$view.slash.anchorRect"
+    >
+      <template $each="group of $view.slash.groups">
+        <ui-editor-slash-menu-group $if="$group.label" from:label="$group.label"><ui-editor-slash-menu-item
+            $each="row of $group.rows"
+            $key="$row.id"
+            from:value="$row.value"
+            from:description="$row.description"
+            from:icon="$row.icon"
+            from:keywords="$row.keywords"
+          >{$row.title}</ui-editor-slash-menu-item></ui-editor-slash-menu-group>
+        <template $if="not $group.label"><ui-editor-slash-menu-item
+            $each="row of $group.rows"
+            $key="$row.id"
+            from:value="$row.value"
+            from:description="$row.description"
+            from:icon="$row.icon"
+            from:keywords="$row.keywords"
+          >{$row.title}</ui-editor-slash-menu-item></template>
+      </template>
+      <ui-text slot="empty" role="status" size="sm" tone="muted">No commands found.</ui-text>
+    </ui-editor-slash-menu>
+    <ui-editor-mention-menu
+      $if="$view.mention.active"
+      $ref="mentionMenu"
+      open
+      from:id="$view.mention.id"
+      from:query="$view.mention.query"
+      from:items="$view.mention.items"
+      from:selected-index="$view.mention.selectedIndex"
+      from:anchor-rect="$view.mention.anchorRect"
+      from:loading="$view.mention.loading"
+    ></ui-editor-mention-menu>
+    <div $if="$view.table.toolbarOpen" $ref="tableToolbarShell" class="looma-editor__table-toolbar-shell">
+      <ui-editor-table-toolbar
+        $ref="tableTools"
+        open
+        from:cell-alignment="$view.table.alignment"
+        from:cell-background="$view.table.background"
+        from:header-row="$view.table.headerRow"
+        from:header-column="$view.table.headerColumn"
+        from:actions="$view.table.actions"
+      ></ui-editor-table-toolbar>
+    </div>
+    <div
+      $if="$view.ready and $editable and not $view.mobile"
+      $ref="tableOverlayShell"
+      class="looma-editor__table-overlay-shell"
+      from:hidden="not $view.table.overlayOpen"
+    >
+      <ui-editor-table-overlay $if="$view.table.overlayOpen" $ref="tableOverlay" open from:geometry="$view.table.geometry"></ui-editor-table-overlay>
+    </div>
+    <div $if="$view.table.menuOpen" $ref="tableMenuShell" class="looma-editor__table-menu-shell">
+      <ui-editor-table-context-menu
+        $ref="tableMenu"
+        open
+        from:scope="$view.table.scope"
+        from:cell-background="$view.table.background"
+        from:header-row="$view.table.headerRow"
+        from:header-column="$view.table.headerColumn"
+        from:actions="$view.table.actions"
+      ></ui-editor-table-context-menu>
+    </div>
+  </div>
+</template>

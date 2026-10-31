@@ -17,42 +17,39 @@
 ## Install
 
 ```sh
-pnpm add @threadlabs/looma
+pnpm add '@threadlabs/looma@>=0.49.0'
 ```
+
+Looma's HTML definitions are converted by the HTML Next Vite adapter in your application.
+Configure `htmlNext({ target: "vue" })`, `target: "react"`, or `target: "svelte"`
+before the framework's standard Vite plugin, then import components from the package root:
 
 ```ts
 import "@threadlabs/looma/tokens.css";
-import "@threadlabs/looma/vue.css";
-import { Button, TopBar } from "@threadlabs/looma/vue";
+import "@threadlabs/looma/theme-light.css";
+import { UiButton, UiSiteHeader } from "@threadlabs/looma";
 ```
 
-Import the tokens, one theme, and the components once in your browser entry.
-See the [getting-started guide](apps/docs/docs/getting-started.md) for the exact
-imports and a Vue example.
-
-The root package and the CSS subpaths need no framework. `@threadlabs/looma/vue`
-adds only Vue 3.5 or newer. The editor is built on Tiptap: its extension preset
-ships inside the editor subpath, and editor consumers supply a compatible
-Tiptap 2 core. `@threadlabs/looma/vue/editor` exports a turnkey `LoomaEditor`
-component and uses `@tiptap/vue-3@^2.11.5`.
+See the [loading guide](docs/framework-loading.md) for installation, Vite configuration,
+framework calls, styles and types. Use HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later for Vue, React and Svelte; dependency ranges admit later releases beyond 1.0.
 
 ## Package
 
-Looma ships as a single package, `@threadlabs/looma`:
-
 | Entry | Contents |
 | --- | --- |
-| `@threadlabs/looma` | Registers every component with the HTML Next runtime for HTML pages |
-| `/components/*` | Individual component files for pages without a build |
-| `/vue`, `/vue.css` | Every component as a Vue 3.5 component, plus their scoped styles |
-| `/vue/editor` | The turnkey `LoomaEditor` and the editor components |
-| `/editor` | Editor component contracts, Tiptap extensions, and commands |
-| `/editor/extensions` | The Tiptap extensions alone |
+| `@threadlabs/looma` | HTML source condition for the Vite framework adapter; native registration fallback |
+| `/components/*` | Individual HTML definitions and their controllers |
+| `/editor`, `/editor/compact`, `/editor/ui`, `/editor/extensions` | Framework-neutral editor contracts, Tiptap extensions and commands |
+| `/input-modality` | Shared client input-modality tracking |
 | `tokens.css`, `theme-*.css` | Design tokens and themes |
 
-Looma is pre-1.0: APIs may still change between minor versions. See the
-[support matrix](docs/release-support-matrix.md) for what each component
-currently promises. React support is in development.
+The document and compact editors use the same authored HTML Next component model as the controls. Their framework-neutral sessions own Tiptap; Vue, React and Svelte use the Vite plugin. Looma is pre-1.0: breaking changes require a minor release.
+
+Editing requires the supported Tiptap 2 peers:
+
+```sh
+pnpm add '@tiptap/core@>=2 <3' '@tiptap/pm@>=2 <3'
+```
 
 ## Principles
 
@@ -78,23 +75,8 @@ MIT. See [LICENSE](./LICENSE).
 
 ## Compact rich text
 
-Import `LoomaCompactEditor` and `LoomaCompactContent` from
-`@threadlabs/looma/vue/editor/compact`. Bind a Tiptap JSON document through
-`v-model`; use `label` for the accessible textbox name and `id` for an external
-label. The editor owns its instance and supports paragraphs, hard breaks, bold,
-italic, inline code, Markdown typing rules and undo/redo without toolbars. Enter
-creates a paragraph; Shift+Enter creates a line break. The `editable` prop defaults
-to true, matching the document editor. `focus()` focuses the field.
+Import `UiCompactEditor` and `UiCompactContent` from `@threadlabs/looma` through the HTML Next Vite plugin. Pass a Tiptap JSON document as `content` and handle `change.detail.content`; use `label` for the accessible textbox name and `id` for a stable textbox reference. The field supports paragraphs, hard breaks, bold, italic, inline code, Markdown typing rules and undo/redo without a document toolbar. Enter creates a paragraph; Shift+Enter creates a line break. `editable` defaults to true. Native `--focus` and `--focus-end` commands focus the field.
 
-The compact field uses the same field surface, border, radius and focus tokens
-as Textarea. Its text grows inside a bounded scrolling field; narrow/coarse-pointer
-use keeps body-sized type. The renderer emits escaped Vue nodes and works in SSR.
-It renders only the basic supported nodes and marks; it does not interpret HTML.
+The compact field uses the same field surface, border, radius and focus tokens as Textarea. Its text grows inside a bounded scrolling field; narrow/coarse-pointer use keeps body-sized type. `UiCompactContent` renders escaped semantic HTML, including during SSR.
 
-Optional `extensions` are installed at creation, and `ready` emits the Tiptap
-instance. Hosts can use these for domain-specific reference pickers while keeping
-lookup and persistence outside the shared editor. Extension configuration is fixed
-for an instance; remount to change it. Hosts adding new node types own their
-serialization and read rendering. This entry loads no document toolbar, slash
-menu, tables, image controls or syntax highlighting. Its CSS is included in
-`@threadlabs/looma/vue.css`, alongside the other Vue component styles.
+Answer the `extensions` request before creation to install additional Tiptap extensions. The application owns lookup, persistence and serialization for its custom nodes. Headless compact helpers are available from `@threadlabs/looma/editor/compact`. This entry loads no document toolbar, slash menu, tables, image controls or syntax highlighting. The Vite compiler includes its styles.

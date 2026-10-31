@@ -3,6 +3,12 @@ import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-ite
 // closes on Escape, and moves between the search field and its results with the arrow keys.
 export function connect(host) {
   const element = host.element;
+  const focus = () => element.querySelector(host.props.mode.value === "target" ? "[data-link-search]" : "[data-link-destination]")?.focus();
+  const onCommand = event => {
+    if (event.target === element && event.command === "--focus") { event.stopPropagation(); focus(); }
+  };
+  element.addEventListener("command", onCommand);
+  if (host.props.autofocus.value) queueMicrotask(focus);
   if (host.state.base === "ui-editor-link-form") host.state.base = `ui-editor-link-form-${Math.random().toString(36).slice(2, 11)}`;
   const within = (event, selector) => {
     const match = event.target.closest?.(selector);
@@ -58,6 +64,7 @@ export function connect(host) {
   element.addEventListener("keydown", onKeyDown);
   element.addEventListener("submit", onSubmit);
   return () => {
+    element.removeEventListener("command", onCommand);
     cancelActiveItemReveal(element);
     element.removeEventListener("input", onInput);
     element.removeEventListener("change", onChange);

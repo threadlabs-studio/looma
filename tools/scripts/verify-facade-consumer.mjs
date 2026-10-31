@@ -11,6 +11,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 const facadeRoot = path.join(repoRoot, "packages/looma");
 const releaseConsumerRoot = path.join(repoRoot, "tests/release/consumer");
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const packageManager = JSON.parse(await readFile(path.join(repoRoot, "package.json"), "utf8")).packageManager;
 
 async function run(command, args, cwd) {
   await new Promise((resolve, reject) => {
@@ -24,13 +25,14 @@ async function run(command, args, cwd) {
 }
 
 async function writeJson(filePath, value) {
-  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+  const content = path.basename(filePath) === "package.json" ? { ...value, packageManager } : value;
+  await writeFile(filePath, `${JSON.stringify(content, null, 2)}\n`);
 }
 
-async function installConsumer(directory) {
+async function installConsumer(directory, { strictPeers = false } = {}) {
   await run(
     pnpm,
-    ["install", "--ignore-scripts", "--config.auto-install-peers=false", "--prefer-offline"],
+    ["install", "--ignore-scripts", ...(strictPeers ? ["--strict-peer-dependencies"] : []), "--config.auto-install-peers=false", "--prefer-offline", `--config.cache-dir=${path.join(path.dirname(directory), "registry-metadata")}`],
     directory,
   );
 }
@@ -59,14 +61,19 @@ async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
   await writeFile(
     path.join(directory, "index.mjs"),
     `const { definitions, register, stop } = await import("@threadlabs/looma");\n` +
+      `if (typeof (await import("@threadlabs/looma/input-modality")).trackInputModality !== "function") process.exit(1);\n` +
       `if (!Array.isArray(definitions) || definitions.length === 0 || typeof register !== "function" || stop !== undefined) process.exit(1);\n` +
       `if (!import.meta.resolve("@threadlabs/looma/tokens.css").endsWith("tokens.css")) process.exit(1);\n` +
-      `if (!import.meta.resolve("@threadlabs/looma/components/ui-button/ui-button.html").endsWith("ui-button.html")) process.exit(1);\n`,
+      `if (!import.meta.resolve("@threadlabs/looma/components/ui-button/ui-button.html").endsWith("ui-button.html")) process.exit(1);\n` +
+      `for (const entry of ["vue", "vue.css", "vue/editor", "vue/editor/compact", "vue/UiButton.js"]) {\n` +
+      `  try { import.meta.resolve("@threadlabs/looma/" + entry); throw new Error("Legacy Vue export remains: " + entry); }\n` +
+      `  catch (error) { if (error.code !== "ERR_PACKAGE_PATH_NOT_EXPORTED") throw error; }\n}\n`,
   );
   await writeFile(
     path.join(directory, "index.ts"),
     `import { definitions, register } from "@threadlabs/looma";\n` +
-      `void definitions;\nvoid register;\n`,
+      `import { trackInputModality } from "@threadlabs/looma/input-modality";\n` +
+      `void definitions;\nvoid register;\nvoid trackInputModality;\n`,
   );
   await writeJson(path.join(directory, "tsconfig.json"), {
     compilerOptions: {
@@ -101,117 +108,102 @@ async function verifyMinimalConsumer(directory, tarball, facadeManifest) {
 
 async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
   await mkdir(directory, { recursive: true });
+  const releaseManifest = JSON.parse(await readFile(path.join(releaseConsumerRoot, "package.json"), "utf8"));
   await writeJson(path.join(directory, "package.json"), {
-    name: "looma-vue-only-consumer",
-    private: true,
-    type: "module",
+    name: "looma-vue-only-consumer", private: true, type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
       "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
-      vue: facadeManifest.peerDependencies.vue,
+      vue: facadeManifest.devDependencies.vue,
+      "@vue/server-renderer": facadeManifest.devDependencies.vue,
+    },
+    devDependencies: {
+      "@nextwebwg/html-next-unplugin": facadeManifest.devDependencies["@nextwebwg/html-next-unplugin"],
+      "@vitejs/plugin-vue": facadeManifest.devDependencies["@vitejs/plugin-vue"],
+      "@types/node": releaseManifest.devDependencies["@types/node"],
+      typescript: facadeManifest.devDependencies.typescript,
+      "vue-tsc": facadeManifest.devDependencies["vue-tsc"],
+      vite: facadeManifest.devDependencies.vite,
     },
   });
-  await writeFile(
-    path.join(directory, "index.mjs"),
-    `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
-      `const ui = await import("@threadlabs/looma/editor/ui");\n` +
-      `if (!Button || !TopBar || typeof ui.measureTableOverlayGeometry !== "function") process.exit(1);\n`,
-  );
-  await writeFile(
-    path.join(directory, "index.ts"),
-    `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
-      `import type { InsertTableEventDetail } from "@threadlabs/looma/editor/ui";\n` +
-      `const detail: InsertTableEventDetail = { rows: 2, cols: 3, withHeaderRow: true };\n` +
-      `void Button;\nvoid TopBar;\nvoid detail;\n`,
-  );
+  await writeFile(path.join(directory, "index.ts"),
+    `import { UiButton, UiTopBar } from "@threadlabs/looma";
+` +
+    `import { createSSRApp, h } from "vue";
+import { renderToString } from "@vue/server-renderer";
+` +
+    `const html = await renderToString(createSSRApp({ render: () => h(UiTopBar, { title: "Writing" }, { actions: () => h(UiButton, null, () => "Save") }) }));
+` +
+    `if (!html.includes("Save") || html.includes("<ui-button")) throw new Error(html);
+`);
+  await writeFile(path.join(directory, "vite.config.mjs"),
+    `import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import vue from "@vitejs/plugin-vue";
+` +
+    `export default { plugins: [htmlNext({ target: "vue" }), vue()], build: { ssr: "index.ts", rollupOptions: { output: { entryFileNames: "index.js" } } } };
+`);
+  await writeFile(path.join(directory, "client.ts"),
+    `import { UiButton, UiTopBar } from "@threadlabs/looma";
+import { createApp, h } from "vue";
+` +
+    `createApp({ render: () => h(UiTopBar, { title: "Writing" }, { actions: () => h(UiButton, null, () => "Save") }) }).mount("#app");
+`);
+  await writeFile(path.join(directory, "vite.client.config.mjs"),
+    `import config from "./vite.config.mjs";
+` +
+    `export default { ...config, build: { outDir: "dist-client", lib: { entry: "client.ts", formats: ["es"] } } };
+`);
   await writeJson(path.join(directory, "tsconfig.json"), {
-    compilerOptions: {
-      lib: ["ES2022", "DOM"],
-      module: "ESNext",
-      moduleResolution: "Bundler",
-      noEmit: true,
-      strict: true,
-      target: "ES2022",
-    },
-    include: ["index.ts"],
+    compilerOptions: { lib: ["ES2022", "DOM", "DOM.Iterable"], module: "ESNext", moduleResolution: "Bundler", noEmit: true, strict: true, target: "ES2022" },
+    include: ["index.ts", "client.ts", "src/html-next.d.ts"],
   });
-
-  await installConsumer(directory);
-  await run(process.execPath, ["index.mjs"], directory);
-  await run(
-    pnpm,
-    ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
-    repoRoot,
-  );
-  await assertPackagesAbsent(
-    directory,
-    ["valibot", "@tiptap/core", "@tiptap/pm", "prosemirror-tables"],
-    "a Vue-only consumer",
-  );
+  await installConsumer(directory, { strictPeers: true });
+  await run(pnpm, ["exec", "vite", "build"], directory);
+  await run(process.execPath, ["dist/index.js"], directory);
+  await run(pnpm, ["exec", "vite", "build", "--config", "vite.client.config.mjs"], directory);
+  await run(pnpm, ["exec", "vue-tsc", "-p", "tsconfig.json"], directory);
+  await assertPackagesAbsent(directory, ["valibot", "@tiptap/core", "@tiptap/pm", "prosemirror-tables"], "a Vue-only consumer");
 }
 
 async function verifyPeerConsumer(directory, tarball, facadeManifest) {
   await mkdir(directory, { recursive: true });
   await writeJson(path.join(directory, "package.json"), {
-    name: "looma-peer-consumer",
-    private: true,
-    type: "module",
+    name: "looma-peer-consumer", private: true, type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
-      "@tiptap/vue-3": "^2.11.5",
-      ...facadeManifest.peerDependencies,
+      "@nextwebwg/html-next": facadeManifest.peerDependencies["@nextwebwg/html-next"],
+      "@tiptap/core": facadeManifest.peerDependencies["@tiptap/core"],
+      "@tiptap/pm": facadeManifest.peerDependencies["@tiptap/pm"],
     },
   });
-  await writeFile(
-    path.join(directory, "index.mjs"),
-    `import { EditorContent, useEditor } from "@tiptap/vue-3";\n` +
-      `import { getDefaultEditorExtensions as getEditorExtensions } from "@threadlabs/looma/editor";\n` +
-      `import { getDefaultEditorExtensions as getExtensionPreset } from "@threadlabs/looma/editor/extensions";\n` +
-      `import { TopBar } from "@threadlabs/looma/vue";\n` +
-      `import { EditorToolbar, getDefaultEditorExtensions } from "@threadlabs/looma/vue/editor";\n` +
-      `const editorExtensions = getEditorExtensions();\n` +
-      `const extensionPreset = getExtensionPreset();\n` +
-      `if (typeof useEditor !== "function" || !EditorContent || !TopBar || !EditorToolbar) process.exit(1);\n` +
-      `if (!Array.isArray(editorExtensions) || editorExtensions.length === 0) process.exit(1);\n` +
-      `if (!Array.isArray(extensionPreset) || extensionPreset.length === 0) process.exit(1);\n` +
-      `if (typeof getDefaultEditorExtensions !== "function") process.exit(1);\n`,
-  );
-  await writeFile(
-    path.join(directory, "index.ts"),
-    `import { EditorContent, useEditor } from "@tiptap/vue-3";\n` +
-      `import { getDefaultEditorExtensions as getEditorExtensions } from "@threadlabs/looma/editor";\n` +
-      `import { getDefaultEditorExtensions as getExtensionPreset } from "@threadlabs/looma/editor/extensions";\n` +
-      `import { TopBar } from "@threadlabs/looma/vue";\n` +
-      `import { EditorToolbar, getDefaultEditorExtensions } from "@threadlabs/looma/vue/editor";\n` +
-      `void EditorContent;\nvoid useEditor;\nvoid getEditorExtensions;\nvoid getExtensionPreset;\nvoid TopBar;\n` +
-      `void EditorToolbar;\nvoid getDefaultEditorExtensions;\n`,
-  );
+  const source = `import { getDefaultEditorExtensions } from "@threadlabs/looma/editor";
+` +
+    `import { getDefaultEditorExtensions as preset } from "@threadlabs/looma/editor/extensions";
+` +
+    `import { getCompactEditorExtensions } from "@threadlabs/looma/editor/compact";
+` +
+    `import { measureTableOverlayGeometry } from "@threadlabs/looma/editor/ui";
+` +
+    `if (!getDefaultEditorExtensions().length || !preset().length || !getCompactEditorExtensions().length || typeof measureTableOverlayGeometry !== "function") throw new Error("editor exports missing");
+`;
+  await writeFile(path.join(directory, "index.mjs"), source);
+  await writeFile(path.join(directory, "index.ts"), source);
   await writeJson(path.join(directory, "tsconfig.json"), {
-    compilerOptions: {
-      lib: ["ES2022", "DOM"],
-      module: "ESNext",
-      moduleResolution: "Bundler",
-      noEmit: true,
-      strict: true,
-      target: "ES2022",
-    },
+    compilerOptions: { lib: ["ES2022", "DOM", "DOM.Iterable"], module: "ESNext", moduleResolution: "Bundler", noEmit: true, strict: true, target: "ES2022" },
     include: ["index.ts"],
   });
-
   await installConsumer(directory);
   await run(process.execPath, ["index.mjs"], directory);
-  await run(
-    pnpm,
-    ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
-    repoRoot,
-  );
+  await run(pnpm, ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")], repoRoot);
+  await assertPackagesAbsent(directory, ["vue", "@tiptap/vue-3"], "a headless editor consumer");
 }
 
 async function verifyReleaseConsumer(directory, tarball) {
-  const [fixtureManifest, tsconfig, source] = await Promise.all([
+  const [fixtureManifest, tsconfig, source, viteConfig] = await Promise.all([
     readFile(path.join(releaseConsumerRoot, "package.json"), "utf8").then(JSON.parse),
     readFile(path.join(releaseConsumerRoot, "tsconfig.json"), "utf8").then(JSON.parse),
     readFile(path.join(releaseConsumerRoot, "src/index.ts"), "utf8"),
+    readFile(path.join(releaseConsumerRoot, "vite.config.mjs"), "utf8"),
   ]);
 
   await mkdir(path.join(directory, "src"), { recursive: true });
@@ -220,8 +212,10 @@ async function verifyReleaseConsumer(directory, tarball) {
   await writeJson(path.join(directory, "package.json"), fixtureManifest);
   await writeJson(path.join(directory, "tsconfig.json"), tsconfig);
   await writeFile(path.join(directory, "src/index.ts"), source);
+  await writeFile(path.join(directory, "vite.config.mjs"), viteConfig);
 
   await installConsumer(directory);
+  await run(pnpm, ["run", "build"], directory);
   await run(pnpm, ["run", "typecheck"], directory);
   await run(pnpm, ["run", "verify:ssr"], directory);
 }

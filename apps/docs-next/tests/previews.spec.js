@@ -17,6 +17,45 @@ test('directory previews are prerendered in the page and their images load', asy
   expect(duplicates).toEqual([]);
 });
 
+for (const width of [1440, 375]) for (const mode of ['light', 'dark']) {
+ test(`catalog cards stay still and their entire lower panel is a visible native link at ${width}px in ${mode}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(info.config.metadata.markupress + 'components/');
+  const card = page.locator('[data-component-card="ui-button"]');
+  await page.locator('html').evaluate((element, mode) => element.dataset.theme = mode, mode);
+  const body = card.locator('.body');
+  const preview = card.locator('[data-preview]');
+  await card.scrollIntoViewIfNeeded();
+  await page.evaluate(() => document.fonts.ready);
+  await expect(body).toHaveCSS('background-color', await card.evaluate(element => getComputedStyle(element).backgroundColor));
+  const resting = await body.evaluate(element => getComputedStyle(element).backgroundColor);
+  const position = await card.boundingBox();
+  await preview.hover();
+  await expect(card).toHaveCSS('transform', 'none');
+  await expect(body).toHaveCSS('background-color', resting);
+  await body.hover();
+  await expect(card).toHaveCSS('transform', 'none');
+  await expect(body).not.toHaveCSS('background-color', resting);
+  expect((await card.boundingBox()).y).toBe(position.y);
+  await card.screenshot({ path: info.outputPath('card-hover.png'), animations: 'disabled' });
+  const destination = card.locator('h3 a');
+  await expect(body.getByRole('link')).toHaveCount(1);
+  const href = await destination.getAttribute('href');
+  expect(await body.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return [[4, 4], [rect.width - 4, rect.height - 4], [rect.width / 2, rect.height / 2]].map(([x, y]) =>
+      document.elementFromPoint(rect.x + x, rect.y + y)?.closest('a')?.getAttribute('href'));
+  })).toEqual([href, href, href]);
+  await destination.focus();
+  await destination.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  expect(await destination.evaluate(element => getComputedStyle(element, '::after').outlineStyle)).toBe('solid');
+  await body.click({ position: { x: 4, y: 4 } });
+  await expect(page).toHaveURL(new URL(href, info.config.metadata.markupress).href);
+ });
+}
+
 test('the catalog has meaningful previews before JavaScript', async ({ browser }, info) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   try {

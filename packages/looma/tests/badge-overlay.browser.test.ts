@@ -1,11 +1,10 @@
 import { afterEach, expect, it } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
-import Badge from "../vue/UiBadge.js";
-import Button from "../vue/UiButton.js";
+import { UiBadge as Badge } from "@threadlabs/looma";
+import { UiButton as Button } from "@threadlabs/looma";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
-import "../vue/components.css";
 
 let app: App;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });

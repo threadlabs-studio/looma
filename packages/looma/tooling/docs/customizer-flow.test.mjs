@@ -46,7 +46,7 @@ test('palette exposes governed relationships and shows every status in both mode
   const relationships = palette.querySelector('[data-refinement-preset=status]');
   assert.deepEqual([...relationships.children].map(option => option.value), ['custom','semantic','restrained','primary']);
   assert.equal(relationships.closest('[data-advanced]'), null);
-  assert.ok(palette.querySelector('[data-action=restore-status]'));
+  for (const family of ['palette','material','status']) assert.equal(root.querySelector(`[data-action=restore-${family}]`), null, `${family}: one shared history replaces section resets`);
   assert.equal(palette.querySelectorAll('ui-callout[tone=tip]').length, 2);
   assert.equal(palette.querySelector('#theme-tip-source'), null);
   assert.ok(palette.querySelector('#theme-neutral-source'));

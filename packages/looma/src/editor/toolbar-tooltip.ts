@@ -26,7 +26,11 @@ export interface LoomaToolbarTooltip {
   destroy(): void;
 }
 
-/** Calls `onChange` after every state change. */
+/**
+ * Calls `onChange` after each tooltip state change.
+ * @ownership The host renders the state and calls `show` or `hide` for its shared toolbar controls.
+ * @lifecycle `destroy` cancels the pending delay; call it when the owning toolbar disconnects.
+ */
 export function createToolbarTooltip(onChange: (state: LoomaToolbarTooltipState) => void, delay: () => number = () => LOOMA_TOOLBAR_TOOLTIP_DELAY): LoomaToolbarTooltip {
   let state: LoomaToolbarTooltipState = { for: "", label: "", shortcut: "", open: false };
   let timer: ReturnType<typeof setTimeout> | undefined;

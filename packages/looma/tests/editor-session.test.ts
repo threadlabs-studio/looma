@@ -62,8 +62,9 @@ describe("editor session", () => {
     expect(focus).toHaveBeenCalled();
 
     expect(session.setContent(paragraph("Hi"), { ...remembered, from: 9, to: 12 })).toBe(true);
-    const max = session.editor.state.doc.content.size;
-    expect([session.editor.state.selection.from, session.editor.state.selection.to]).toEqual([max, max]);
+    const textEnd = session.editor.state.doc.content.size - 1;
+    expect([session.editor.state.selection.from, session.editor.state.selection.to]).toEqual([textEnd, textEnd]);
+    expect(session.editor.state.selection.$from.parent.inlineContent).toBe(true);
   });
 
   it("notifies subscribers after each transaction until they unsubscribe", () => {

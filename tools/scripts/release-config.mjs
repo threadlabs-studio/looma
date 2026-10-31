@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.44.0";
+export const RELEASE_VERSION = "0.49.0";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -9,16 +9,15 @@ export const RELEASE_PACKAGES = [
       "package/LICENSE",
       "package/dist/index.js",
       "package/dist/index.d.ts",
-      "package/vue/index.js",
-      "package/vue/index.d.ts",
-      "package/vue/components.css",
-      "package/vue/UiButton.js",
-      "package/vue/UiButton.d.ts",
-      "package/vue/UiButton.vue",
-      "package/vue/editor/index.js",
-      "package/vue/editor/index.d.ts",
+      "package/components/shared/input-modality.js",
+      "package/components/shared/input-modality.d.ts",
       "package/editor/index.js",
       "package/editor/index.d.ts",
+      "package/editor/compact.js",
+      "package/editor/compact.d.ts",
+      "package/components/ui-editor/ui-editor.html",
+      "package/components/ui-compact-editor/ui-compact-editor.html",
+      "package/components/ui-compact-content/ui-compact-content.html",
       "package/editor/expressmark.js",
       "package/editor/expressmark.d.ts",
       "package/editor/ui.js",
@@ -27,8 +26,6 @@ export const RELEASE_PACKAGES = [
       "package/editor/extensions/index.d.ts",
       "package/markdown/index.js",
       "package/markdown/index.d.ts",
-      "package/markdown/markdown-it.js",
-      "package/markdown/markdown-it.d.ts",
       "package/markdown/fixtures.js",
       "package/markdown/fixtures.d.ts",
       "package/vanilla/index.js",

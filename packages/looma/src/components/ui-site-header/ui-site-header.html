@@ -1,16 +1,40 @@
-<template component="ui-site-header">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-site-header" module="./ui-site-header.js">
   <defs>
     <prop name="label" type="string" default="Main">Accessible name for the primary navigation region.</prop>
     <prop name="sticky" type="boolean" default="false">Keeps the header at the top of its scrolling container.</prop>
     <prop name="breakpoint" type="keyword" values="sm, md, lg" default="lg"
-    >The viewport width at which navigation replaces the menu trigger: sm is 40rem, md 48rem, and lg 64rem. The consumer owns the menu or drawer the trigger
-      opens.</prop>
+    >The viewport width at which navigation changes from an automatic mobile drawer to inline links: sm is 40rem, md 48rem, and lg 64rem.</prop>
+    <prop name="menuLabel" type="string" default="Open navigation">Accessible name of the automatic mobile menu button.</prop>
+    <prop name="closeLabel" type="string" default="Close navigation">Accessible name of the drawer's close button.</prop>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="drawer" type="boolean" value="false"></state>
   </defs>
   <header>
-    <span class="menu"><slot name="menu"></slot></span>
     <div class="identity">
       <div class="brand"><slot name="brand"></slot></div>
-      <nav class="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav>
+      <div class="menu">
+        <div class="custom-menu"><slot name="menu"></slot></div>
+        <div class="automatic-menu">
+          <ui-icon-button $ref="trigger" size="sm" from:label="$menuLabel" aria-haspopup="dialog" aria-expanded="false"><ui-icon
+              name="menu"
+            ></ui-icon></ui-icon-button>
+        </div>
+      </div>
+      <div class="inline-navigation" $ref="inline">
+        <nav class="navigation" $ref="navigation" from:aria-label="$label"><slot name="navigation"></slot></nav>
+      </div>
+      <dialog
+        class="navigation-panel"
+        $ref="panel"
+        from:aria-label="$label"
+      >
+        <div class="panel-heading">
+          <span class="panel-title">{$label}</span>
+          <ui-icon-button $ref="close" size="sm" from:label="$closeLabel"><ui-icon name="x"></ui-icon></ui-icon-button>
+        </div>
+      </dialog>
     </div>
     <div class="actions"><slot name="actions"></slot></div>
   </header>
@@ -35,38 +59,37 @@
       inset-block-start: 0;
       z-index: var(--ui-site-header-z-index, 10);
     }
-    .menu, .actions {
-      display: flex !important;
+    .actions {
+      display: grid !important;
       flex: none;
       align-items: center !important;
       gap: var(--ui-space-2) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
-    }
-    .actions {
-      display: grid !important;
       grid-auto-flow: column !important;
       grid-auto-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
       justify-items: center !important;
       margin-inline-start: auto !important;
     }
-    /* Text shares a baseline inside one group; the group is centred beside any control height. */
+    /* Brand, navigation and actions centre their own containers, including mixed font sizes. */
     .identity {
       display: flex !important;
       flex: 1 1 0;
       flex-wrap: wrap !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-2) var(--ui-space-6) !important;
       min-inline-size: 0;
     }
     .brand {
+      display: flex !important;
+      align-items: center !important;
       min-inline-size: 0;
       font-size: var(--ui-font-size-lg);
       font-weight: var(--ui-font-bold);
     }
     .brand > :slotted(a) {
       display: inline-flex !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-3) !important;
       min-inline-size: 0;
       max-inline-size: 100%;
@@ -76,15 +99,11 @@
     .navigation {
       display: flex !important;
       flex-wrap: wrap !important;
-      align-items: baseline !important;
+      align-items: center !important;
       gap: var(--ui-space-2) var(--ui-space-5) !important;
       min-inline-size: 0;
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-semibold);
-    }
-    /* Without a supplied menu trigger, keep the destinations available on narrow screens. */
-    :host:has(> .menu:not(:empty)) .navigation {
-      display: none !important;
     }
     .navigation > :slotted(a) {
       color: inherit;
@@ -97,7 +116,7 @@
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);
       outline-offset: var(--ui-focus-width);
     }
-    .menu:empty, .actions:empty, .brand:empty, .navigation:empty {
+    .actions:empty, .brand:empty, .navigation:empty {
       display: none !important;
     }
     @media (min-width: 40rem) {
@@ -105,23 +124,11 @@
         min-block-size: var(--ui-site-header-height, 4.25rem);
         column-gap: var(--ui-space-4) !important;
       }
-      :host([breakpoint="sm"]) .navigation:not(:empty) {
-        display: flex !important;
-      }
-      :host([breakpoint="sm"]) .menu {
-        display: none !important;
-      }
     }
     @media (min-width: 48rem) {
       :host([breakpoint="md"]) {
         min-block-size: var(--ui-site-header-height, 4.25rem);
         column-gap: var(--ui-space-4) !important;
-      }
-      :host([breakpoint="md"]) .navigation:not(:empty) {
-        display: flex !important;
-      }
-      :host([breakpoint="md"]) .menu {
-        display: none !important;
       }
     }
     @media (min-width: 64rem) {
@@ -129,11 +136,189 @@
         min-block-size: var(--ui-site-header-height, 4.25rem);
         column-gap: var(--ui-space-4) !important;
       }
-      :host([breakpoint="lg"]) .navigation:not(:empty) {
-        display: flex !important;
+    }
+    /* One live navigation stays inline until its native mobile dialog opens. */
+    .inline-navigation {
+      position: static;
+      display: flex !important;
+      align-items: center !important;
+      min-inline-size: 0;
+      max-inline-size: none;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0;
+      background: transparent;
+      color: inherit;
+    }
+    :host(:state(drawer)) .inline-navigation,
+    .navigation-panel:not([open]),
+    .menu,
+    .panel-heading {
+      display: none !important;
+    }
+    :host(:state(drawer)) .identity {
+      column-gap: var(--ui-space-2) !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+    }
+    :host(:state(enhanced):state(drawer)):has(.navigation:not(:empty), .custom-menu:not(:empty)) .menu {
+      display: grid !important;
+      grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+      justify-items: center !important;
+      flex: none;
+    }
+    /* Authored native sidebar triggers remain usable before JavaScript upgrades the header. */
+    @media (width < 40rem) {
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
       }
-      :host([breakpoint="lg"]) .menu {
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="sm"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
         display: none !important;
+      }
+    }
+    @media (width < 48rem) {
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
+      }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="md"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
+        display: none !important;
+      }
+    }
+    @media (width < 64rem) {
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .identity {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        column-gap: var(--ui-space-2) !important;
+      }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .menu {
+        display: grid !important;
+        grid-template-columns: minmax(max-content, var(--ui-control-min-block-size)) !important;
+        justify-items: center !important;
+        flex: none;
+      }
+      :host([breakpoint="lg"]):not(:state(enhanced)):has(.custom-menu:not(:empty)) .inline-navigation {
+        display: none !important;
+      }
+    }
+
+    .automatic-menu {
+      display: grid !important;
+      justify-items: center !important;
+    }
+    .custom-menu:empty, .menu:has(> .custom-menu:not(:empty)) .automatic-menu {
+      display: none !important;
+    }
+    :host(:state(drawer)) .navigation-panel {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inset-inline-end: auto;
+      box-sizing: border-box !important;
+      inline-size: min(var(--ui-site-header-navigation-width, 280px), 85vw);
+      max-inline-size: none;
+      block-size: 100dvh;
+      max-block-size: none;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden;
+      border: 0;
+      border-inline-end: var(--ui-border-width) solid var(--ui-overlay-border, var(--ui-border-divider));
+      background: var(--ui-overlay-surface, var(--ui-surface-elevated));
+      color: var(--ui-text-primary);
+      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      transform: translateX(-100%);
+      transition:
+        transform var(--ui-motion-reveal) var(--ui-motion-reveal-ease),
+        display var(--ui-motion-reveal) allow-discrete,
+        overlay var(--ui-motion-reveal) allow-discrete;
+    }
+    :host(:state(drawer)) .navigation-panel[open] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      transform: translateX(0);
+    }
+    :host(:state(drawer)) .navigation-panel:dir(rtl):not([open]) {
+      transform: translateX(100%);
+    }
+    @starting-style {
+      :host(:state(drawer)) .navigation-panel[open] {
+        transform: translateX(-100%);
+      }
+      :host(:state(drawer)) .navigation-panel[open]:dir(rtl) {
+        transform: translateX(100%);
+      }
+    }
+    :host {
+      --_ui-site-header-backdrop: var(--ui-overlay-backdrop, rgb(0 0 0 / 0.32));
+    }
+    .navigation-panel::backdrop {
+      background: var(--_ui-site-header-backdrop);
+    }
+    .navigation-panel[data-ui-backdrop-hidden]::backdrop {
+      background: transparent;
+    }
+    :host(:state(drawer)) .panel-heading {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: var(--ui-space-3) !important;
+      padding: var(--ui-space-4) !important;
+      flex: none;
+      border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+    .panel-title {
+      font-size: var(--ui-font-size-lg);
+      font-weight: var(--ui-font-semibold);
+      line-height: var(--ui-line-height-tight);
+    }
+    :host(:state(drawer)) .navigation {
+      font-weight: var(--ui-font-normal);
+      flex: 1 1 auto;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+      align-items: stretch !important;
+      gap: var(--ui-space-4) !important;
+      min-block-size: 0;
+      overflow: auto;
+      --_ui-scroll-fade-direction: to bottom;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self block);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
+      overscroll-behavior: contain;
+      padding: var(--ui-space-4) !important;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :host(:state(drawer)) .navigation-panel {
+        transition: none;
       }
     }
     :host[hidden] {
