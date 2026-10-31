@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add `IconButton size="xs"` to match compact Button and badge rows. Its separate inline touch-target preference keeps neighboring links and actions reachable without increasing row height.
+
 - Give authored HTML Next examples the same separate attribute lines and nesting as generated examples. Place named slots and their default text labels on separate indented lines.
 - Give generated documentation examples readable line breaks, separate attribute lines and consistent nesting in every framework. Keep React's Example component while removing return parentheses and redundant fragments.
 - Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.

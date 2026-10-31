@@ -152,6 +152,13 @@
     "example": 0
   },
   {
+    "name": "size: xs",
+    "props": {
+      "size": "xs"
+    },
+    "example": 0
+  },
+  {
     "name": "size: sm",
     "props": {
       "size": "sm"
