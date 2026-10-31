@@ -104,9 +104,12 @@
 
     /* Controls: the contract every button and field shares. */
     --ui-control-size: 2.5rem;
+    --ui-control-size-xs: 1.5rem;
     --ui-control-size-sm: 2rem;
     /* Adjustable comfort preference for expanded targets, independent of visible control size. */
     --ui-control-min-block-size: 44px;
+    /* Dense inline icon actions have their own adjustable comfort target. */
+    --ui-inline-control-min-block-size: var(--ui-control-size-xs);
   }
 
   /* Derived values.
@@ -360,6 +363,7 @@
     --ui-choice-track-width: calc(1rem * 2.5);
 
     /* Icon sizes, used by icon buttons and field affordances. */
+    --ui-icon-size-xs: calc(1rem * 0.875);
     --ui-icon-size-sm: 1rem;
     --ui-icon-size-md: calc(1rem * 1.25);
     --ui-icon-size-lg: calc(1rem * 1.5);
