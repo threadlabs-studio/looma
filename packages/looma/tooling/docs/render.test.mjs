@@ -84,7 +84,7 @@ test('native reference tabs expose literal Markdown fences to the standard parse
   assert.match(page, /<ui-tabs slot="code"[^>]*><section aria-label="HTML Next">/);
   assert.equal(codes.length, 4);
   assert.equal(codes[0].language, 'html');
-  assert.equal(codes[0].value, '<link rel="component" href="example/components/ui-status/ui-status.html">\n\n' + example.markup);
+  assert.equal(codes[0].value, '<link\n  rel="component"\n  href="example/components/ui-status/ui-status.html"\n>\n\n<ui-status\n  label="Ready"\n>**literal**</ui-status>');
   for (const label of ['Vue', 'React', 'Svelte']) assert.ok(page.includes(`aria-label="${label}"`));
 });
 
@@ -105,5 +105,5 @@ test('framework examples import resource dependencies that have no reference pag
   const component = { title: 'Status', tag: 'ui-status', id: 'example/ui-status', package: 'example', examples: [example] };
   const page = referencePage(component, { components: [component], resources: [{ tag: 'ui-icon', package: 'example' }] }, '/card.html', '/');
   assert.match(page, /import \{ UiIcon, UiStatus \} from "example"/);
-  assert.match(page, /<UiIcon name="search" \/>/);
+  assert.match(page, /<UiIcon\n +name="search"\n +\/>/);
 });

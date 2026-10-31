@@ -3,6 +3,7 @@ import { camel, componentName, exampleInvocations, nativeBooleans } from './exam
 const escapeHtml = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const indent = depth => '  '.repeat(depth);
 const textValue = node => node.preserve ? node.value : node.value.replace(/[\t\n\r\f ]+/g, ' ');
+const formattingSpace = node => node?.kind === 'text' && !node.preserve && /^[\t\n\r\f ]*$/.test(node.value);
 const key = value => /^[a-zA-Z_$][\w$]*$/.test(value) ? value : JSON.stringify(value);
 const kebab = value => value.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
@@ -13,17 +14,17 @@ const reserved = new Set('await break case catch class const continue debugger d
 
 export const frameworkLabels = { 'html-next': 'HTML Next', vue: 'Vue', react: 'React', svelte: 'Svelte' };
 
-// Newline-only indentation can be rebuilt. Mixed text and explicit inline spaces stay together.
-function layout(nodes, owner) {
-  const formattingSpace = node => node.kind === 'text' && !node.preserve && /^[\t\n\r\f ]*$/.test(node.value);
-  const inline = !owner?.component && nodes.every(node => node.kind === 'text' || node.kind === 'element' && inlineElements.has(node.component?.root ?? node.tag));
-  const multiline = !inline && nodes.some(node => formattingSpace(node) && node.value.includes('\n'))
+// Derive block layout from the tree. Mixed text and inline adjacency stay together.
+function layout(nodes) {
+  const structural = nodes.some(node => node.kind === 'slot' || node.kind === 'element' && (node.component || !inlineElements.has(node.tag)));
+  const multiline = structural
     && !nodes.some(node => node.kind === 'text' && !formattingSpace(node));
   return { multiline, nodes: multiline ? nodes.filter(node => !formattingSpace(node)) : nodes };
 }
 
 function text(node, target) {
   const value = textValue(node);
+  if (target === 'html-next') return escapeHtml(value);
   if (target === 'react') {
     if (node.preserve || /[\n\r\t]/.test(node.value)) {
       return `{${JSON.stringify(value)}}`;
@@ -37,6 +38,7 @@ function text(node, target) {
 function attribute(value, target, component) {
   let name = value.property;
   let data = value.value;
+  if (target === 'html-next') return data === true || data === '' ? name : `${name}="${escapeHtml(data)}"`;
   if (target === 'react') {
     name = reactAttributes[name] ?? name;
     if (name === 'style') {
@@ -88,14 +90,18 @@ function snippetBindings(model) {
 function printer(model, target) {
   const bindings = target === 'svelte' ? snippetBindings(model) : new Map();
 
-  function sequence(nodes, depth, forceLines = false, owner) {
-    const arranged = layout(nodes, owner);
+  function sequence(nodes, depth, forceLines = false) {
+    const arranged = layout(nodes);
     const content = arranged.nodes.map(node => (arranged.multiline ? indent(depth) : '') + render(node, depth)).join(arranged.multiline ? '\n' : '');
     return (forceLines && !arranged.multiline ? indent(depth) : '') + content;
   }
 
   function reactValue(nodes, depth) {
-    const arranged = layout(nodes);
+    const content = [...nodes];
+    const boundaryIndentation = node => formattingSpace(node) && /[\n\r]/.test(node.value);
+    while (boundaryIndentation(content[0])) content.shift();
+    while (boundaryIndentation(content.at(-1))) content.pop();
+    const arranged = layout(content);
     if (!arranged.nodes.length) return 'null';
     if (arranged.nodes.length === 1) {
       const node = arranged.nodes[0];
@@ -104,8 +110,8 @@ function printer(model, target) {
       return render(node, depth);
     }
     return arranged.multiline
-      ? `<>\n${sequence(nodes, depth + 1)}\n${indent(depth)}</>`
-      : `<>${sequence(nodes, depth)}</>`;
+      ? `<>\n${sequence(content, depth + 1)}\n${indent(depth)}</>`
+      : `<>${sequence(content, depth)}</>`;
   }
 
   function render(node, depth) {
@@ -121,14 +127,13 @@ function printer(model, target) {
     if (node.slots.length && target === 'react') {
       attrs.push(`slots={{\n${node.slots.map(slot => `${indent(depth + 2)}${key(slot.name)}: ${reactValue(slot.children, depth + 2)},`).join('\n')}\n${indent(depth + 1)}}}`);
     }
-    const opening = `<${node.tag}${attrs.length ? ' ' + attrs.join(' ') : ''}`;
-    const wrapped = attrs.some(value => value.includes('\n')) || indent(depth).length + opening.length + 2 > 100;
-    const start = wrapped ? `<${node.tag}\n${attrs.map(value => indent(depth + 1) + value).join('\n')}\n${indent(depth)}` : opening;
+    const wrapped = attrs.length > 0;
+    const start = wrapped ? `<${node.tag}\n${attrs.map(value => indent(depth + 1) + value).join('\n')}\n${indent(depth)}` : `<${node.tag}`;
     const children = target === 'vue' ? node.children : node.children.filter(child => child.kind !== 'slot');
-    const arranged = layout(children, node);
+    const arranged = layout(children);
     if (!arranged.nodes.length && (node.component || target === 'react')) return `${start}${wrapped ? '' : ' '}/>`;
     if (voidElements.has(node.tag)) return `${start}>`;
-    const content = sequence(children, depth + 1, false, node);
+    const content = sequence(children, depth + 1);
     return arranged.multiline
       ? `${start}>\n${content}\n${indent(depth)}</${node.tag}>`
       : `${start}>${content}</${node.tag}>`;
@@ -136,8 +141,8 @@ function printer(model, target) {
 
   function body(depth) {
     const arranged = layout(model.nodes);
-    if (target !== 'react') return (arranged.multiline ? '' : indent(depth)) + sequence(model.nodes, depth);
-    return reactValue(model.nodes, depth);
+    if (target === 'react') return reactValue(model.nodes, depth);
+    return (arranged.multiline ? '' : indent(depth)) + sequence(model.nodes, depth);
   }
 
   return {
@@ -155,15 +160,14 @@ export function frameworkExamples(example, components) {
     const line = `import { ${names.join(', ')} } from ${JSON.stringify(owner)};`;
     return line.length <= 100 ? line : `import {\n${names.map(name => `  ${name},`).join('\n')}\n} from ${JSON.stringify(owner)};`;
   }).join('\n');
-  const links = model.components.map(component => `<link rel="component" href="${component.resource ?? `${component.package}/components/${component.tag}/${component.tag}.html`}">`).join('\n');
-  const codes = { 'html-next': { language: 'html', code: `${links}\n\n${example.markup}` } };
+  const links = model.components.map(component => `<link\n  rel="component"\n  href="${escapeHtml(component.resource ?? `${component.package}/components/${component.tag}/${component.tag}.html`)}"\n>`).join('\n');
+  const html = printer(exampleInvocations(example.markup, []), 'html-next').body(0);
+  const codes = { 'html-next': { language: 'html', code: [links, html].filter(Boolean).join('\n\n') } };
   for (const target of ['vue', 'react', 'svelte']) {
     const output = printer(model, target);
     const script = imports ? `<script${target === 'vue' ? ' setup' : ''}>\n${imports.split('\n').map(line => '  ' + line).join('\n')}\n</script>\n\n` : '';
-    const jsx = target === 'react' ? output.body(2) : '';
-    const reactReturn = jsx.includes('\n') || jsx.length + 10 > 100 ? `return (\n    ${jsx}\n  );` : `return ${jsx};`;
     codes[target] = target === 'react'
-      ? { language: 'tsx', code: `${imports ? imports + '\n\n' : ''}export default function Example() {\n  ${reactReturn}\n}` }
+      ? { language: 'tsx', code: `${imports ? imports + '\n\n' : ''}export default function Example() {\n  return ${output.body(1)};\n}` }
       : { language: target, code: script + (target === 'vue' ? `<template>\n${output.body(1)}\n</template>` : [output.snippets(), output.body(0)].filter(Boolean).join('\n\n')) };
   }
   return { ...codes, ...example.frameworks };
