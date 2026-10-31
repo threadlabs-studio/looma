@@ -74,7 +74,16 @@ export function plan(base) {
   return { base, revision, changes, selection: automaticChecks(files, changes, hunks) };
 }
 
-function packageTests(tests) {
+function packageTests(tests, full = false) {
+  if (full && Object.keys(tests).length) {
+    const report = path.join(directory, "native-report.json");
+    run(vitestArguments(Object.keys(tests), null, report));
+    const result = JSON.parse(readFileSync(report, "utf8"));
+    for (const [file, titles] of Object.entries(tests)) {
+      validateVitestReport({ ...result, testResults: result.testResults.filter(suite => path.resolve(suite.name) === path.join(root, file)) }, titles);
+    }
+    return;
+  }
   for (const [file, titles] of Object.entries(tests)) {
     const report = path.join(directory, `${path.basename(file)}-report.json`);
     run(vitestArguments(file, titles, report));
@@ -109,7 +118,7 @@ async function main() {
     }
     if (selection.source || Object.keys(selection.nativeTests).length) {
       if (!builtBeforeScripts) run(["--filter", "@threadlabs/looma", "build"]);
-      packageTests(selection.nativeTests);
+      packageTests(selection.nativeTests, selection.full);
     }
   } else if (stage === "browser") {
     if (!Object.keys(selection.browserTests).length) return;
