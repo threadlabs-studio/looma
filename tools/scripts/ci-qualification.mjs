@@ -99,8 +99,8 @@ async function main() {
   }
   if (command !== "run") throw new Error("Choose plan or run quality/browser/package-consumer/docs");
   if (stage === "quality") {
-    const builtDocs = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/") || file.startsWith("apps/docs-next/"));
-    if (builtDocs) run(["--filter", "@threadlabs/looma", "build"]);
+    const builtBeforeScripts = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/") || file.startsWith("apps/docs-next/") || file.startsWith("tests/framework-consumer/"));
+    if (builtBeforeScripts) run(["--filter", "@threadlabs/looma", "build"]);
     // Run the selected script files together instead of spawning Node once for every case/file.
     if (selection.scripts.length) {
       const result = spawnSync(process.execPath, ["--test", ...selection.scripts], { cwd: root, stdio: "inherit" });
@@ -108,7 +108,7 @@ async function main() {
       if (result.status !== 0) throw new Error("Selected script fixtures failed");
     }
     if (selection.source || Object.keys(selection.nativeTests).length) {
-      if (!builtDocs) run(["--filter", "@threadlabs/looma", "build"]);
+      if (!builtBeforeScripts) run(["--filter", "@threadlabs/looma", "build"]);
       packageTests(selection.nativeTests);
     }
   } else if (stage === "browser") {
