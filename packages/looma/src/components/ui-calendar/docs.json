@@ -1,0 +1,5 @@
+{
+  "description": "Selection values and events always contain only a YYYY-MM-DD civil date, with no time or timezone. Temporal calendar navigation with one day-grid tab stop, locale-aware Gregorian labels, direct month/year selection and typed year navigation. Availability combines inclusive bounds, allowed dates/ranges and disabled dates/ranges/ISO weekdays. Navigation leaves selection unchanged; input and change report a changed selection, and select reports every accepted day activation. Compose with Date Field for typed date entry and native form submission. The server-safe model producer is prepared through HTML Next's existing module binding hooks. Day choices use centered circular ghost hover/selection paint; unavailable dates retain transparent surfaces and muted text. Week order follows locale information, falling back to Sunday first. week-starts-on overrides it, including Sunday (7), Saturday (6), or Monday (1). Sunday and Saturday columns have a faint theme-derived surface. Month/year controls provide the visible heading.",
+  "group": "forms",
+  "summary": "Keyboard-accessible day, month and year navigation with shared availability rules."
+}

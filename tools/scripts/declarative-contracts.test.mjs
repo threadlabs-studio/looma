@@ -30,6 +30,12 @@ test("derives the public contract from one maintained declarative definition", (
   assert.deepEqual(contract.slots, []);
 });
 
+test("root discovery skips formatting comments but still requires a rendered native element", () => {
+  const source = '<template component="ui-example"><defs></defs><!-- <button> is commentary --><!-- markup-fmt-ignore --><input></template>';
+  assert.equal(parseDeclarativeContract(source, "ui-example").root, "input");
+  assert.throws(() => parseDeclarativeContract('<template component="ui-example"><defs></defs><!-- <input> is commentary --></template>', "ui-example"), /no native root/);
+});
+
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
@@ -54,6 +60,10 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   assert.deepEqual(contracts["ui-combobox"].props.grow, { type: "boolean", default: false });
   assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer" });
   assert.deepEqual(contracts["ui-top-bar"].props.titleFor, { type: "string", default: "" });
+  // Numeric bounds constrain a nested field without supplying an enum values list.
+  assert.deepEqual(contracts["ui-date-field"].propFields.displayOptions.find((field) => field.path === "fractionalSecondDigits"), {
+    path: "fractionalSecondDigits", type: "integer", required: false,
+  });
 });
 
 test("raw HTML contracts use native state names and false-default booleans", async () => {

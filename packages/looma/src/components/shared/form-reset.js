@@ -11,7 +11,7 @@ export function afterFormReset(control, callback) {
   const document = control.ownerDocument;
   let timer;
   const onReset = (event) => {
-    if (event.target === control.form) timer = setTimeout(callback);
+    if (event.target === control.form) timer = setTimeout(() => { if (!event.defaultPrevented) callback(); });
   };
   document.addEventListener("reset", onReset);
   return () => {

@@ -1,0 +1,213 @@
+<link rel="component" href="../ui-date-field/ui-date-field.html">
+<link rel="component" href="../ui-calendar/ui-calendar.html">
+<link rel="component" href="../ui-time-picker/ui-time-picker.html">
+<link rel="component" href="../ui-input-group/ui-input-group.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-popover/ui-popover.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<template component="ui-date-picker" module="./ui-date-picker.js">
+  <defs>
+    <prop name="value" type="string" default=""
+    >Initial canonical value, and a replacement when changed externally. Valid edits update live state and emit input/change; a form reset returns to the last
+      external value.</prop>
+    <prop name="type" type="keyword" values="date, datetime-local, instant, zoned" default="date"
+    >The value's meaning and export format. Date is the default and exports only YYYY-MM-DD, without a time or timezone. Local date-time is a wall-clock value;
+      instant uses a UTC timestamp; zoned retains a named zone. Time-zone and display options alone never change this type.</prop>
+    <prop name="valueFormat" type="keyword" values="iso, space" default="iso"
+    >Local date-time bindings use T by default; space emits YYYY-MM-DD HH:mm[:ss]. Other types retain their ISO form.</prop>
+    <prop name="locale" type="string" default="en-US">Explicit Intl locale for numeric editing order, digits and display. ISO input is always accepted.</prop>
+    <prop name="timeZone" type="string" default=""
+    >Display/editing zone for instant values, required for localized instant editing. Zoned values otherwise use their saved zone; an override preserves that
+      saved zone. Required when creating a new zoned value. Date and local date-time bindings remain without a zone.</prop>
+    <prop name="disambiguation" type="keyword" values="reject, earlier, later, compatible" default="reject"
+    >How zoned edits resolve a skipped or repeated wall-clock time. Reject leaves the draft visible with a validation error.</prop>
+    <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24">Intl hour cycle. Omit to follow locale conventions.</prop>
+    <prop name="granularity" type="keyword" values="minute, second" default="minute"
+    >Smallest displayed time unit. Existing nonzero seconds and fractions remain editable without precision loss.</prop>
+    <prop name="displayOptions" type="object">Intl display options while unfocused. Focusing uses the numeric editing grammar; formatting does not change the
+      binding. Calendar identity and editing timezone stay with the field.
+      <prop name="dateStyle" type="keyword" values="full, long, medium, short"></prop>
+      <prop name="timeStyle" type="keyword" values="full, long, medium, short"></prop>
+      <prop name="weekday" type="keyword" values="long, short, narrow"></prop>
+      <prop name="era" type="keyword" values="long, short, narrow"></prop>
+      <prop name="year" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="month" type="keyword" values="numeric, 2-digit, long, short, narrow"></prop>
+      <prop name="day" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="hour" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="minute" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="second" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="timeZoneName" type="keyword" values="long, short, shortOffset, longOffset, shortGeneric, longGeneric"></prop>
+      <prop name="dayPeriod" type="keyword" values="long, short, narrow"></prop>
+      <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24"></prop>
+      <prop name="localeMatcher" type="string" values="lookup, best fit"></prop>
+      <prop name="formatMatcher" type="string" values="basic, best fit"></prop>
+      <prop name="fractionalSecondDigits" type="integer" min="1" max="3"></prop>
+      <prop name="hour12" type="boolean"></prop>
+      <prop name="numberingSystem" type="string"></prop>
+    </prop>
+    <prop name="min" type="string" default="">Inclusive minimum in the bound value's format.</prop>
+    <prop name="max" type="string" default="">Inclusive maximum in the bound value's format.</prop>
+    <prop name="disabledDates" type="list(string)" default="[]">Unavailable ISO dates, applied in the editing zone for exact values.</prop>
+    <prop name="disabledRanges" type="list" default="[]">Unavailable inclusive ISO-date intervals.<prop type="object"><prop
+          name="start"
+          type="string"
+          required
+        ></prop><prop name="end" type="string" required></prop></prop></prop>
+    <prop name="disabledWeekdays" type="list(integer)" default="[]">Unavailable ISO weekdays, from 1 (Monday) to 7 (Sunday).</prop>
+    <prop name="allowedDates" type="list(string)"
+    >Allowed ISO dates, unioned with allowedRanges. Omission imposes no allow restriction; an explicitly empty allow set permits nothing.</prop>
+    <prop name="allowedRanges" type="list">Allowed inclusive ISO-date intervals, unioned with allowedDates.<prop type="object"><prop
+          name="start"
+          type="string"
+          required
+        ></prop><prop name="end" type="string" required></prop></prop></prop>
+    <prop name="name" type="string" default="">Native form field name. The enhanced field submits its canonical value.</prop>
+    <prop name="form" type="string" default="">Optional ID of a form outside this component’s ancestor tree.</prop>
+    <prop name="inputId" type="string" default="">ID of the active native input for an authored label's for attribute, preserved across upgrade.</prop>
+    <prop name="label" type="string" default=""
+    >Optional accessible name. Prefer an authored visible label associated with input-id; a supplied label overrides that name.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Input's shared size scale.</prop>
+    <prop name="placeholder" type="string" default="">Optional editing hint. A placeholder never replaces the label.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing and omits the value from submission.</prop>
+    <prop name="readonly" type="boolean" default="false">Retains selection and submission while preventing edits.</prop>
+    <prop name="required" type="boolean" default="false">Requires a complete value.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid state, independent of parsing and availability.</prop>
+    <prop name="today" type="string" default="">Optional YYYY-MM-DD date to mark as today in the calendar.</prop>
+    <prop name="weekStartsOn" type="integer" min="1" max="7"
+    >Week order override using ISO weekdays: Sunday 7, Saturday 6, or Monday 1. Omission follows the locale's week information, with Sunday as the fallback when
+      unavailable.</prop>
+    <prop name="pickerLabel" type="string" default="Choose date">Accessible name of the calendar action and its dialog.</prop>
+    <prop name="timeLabel" type="string" default="Time">Label of the time field.</prop>
+    <prop name="monthLabel" type="string" default="Choose month">Accessible name of the month navigation toggle.</prop>
+    <prop name="yearLabel" type="string" default="Choose year">Accessible name of the year navigation toggle and direct year input.</prop>
+    <prop name="previousLabel" type="string" default="Previous">Accessible name of the previous-page action.</prop>
+    <prop name="nextLabel" type="string" default="Next">Accessible name of the next-page action.</prop>
+    <prop
+      name="model"
+      type="object({ date: string, time: string, minDate: string, maxDate: string, weekStartsOn: integer, allowedDates: list(string), allowedRanges: list(object({ start: string, end: string })) })"
+    >Server-prepared civil date/time projection owned by the component module.</prop>
+    <state name="current" type="string" from="$value"></state>
+    <state name="draftDate" type="string" value=""></state>
+    <state name="draftTime" type="string" value=""></state>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="opened" type="boolean" value="false"></state>
+    <state name="fieldBlocked" type="boolean" value="false"></state>
+    <state name="anchorId" type="string" value=""></state>
+    <state name="error" type="string" value=""></state>
+    <event name="input" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="query-change" type="object"><prop name="query" type="string" required></prop></event>
+    <event name="validation-change" type="object"><prop name="invalid" type="boolean" required></prop><prop
+        name="message"
+        type="string"
+        required
+      ></prop></event>
+    <event name="open" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+    <event name="close" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+  </defs>
+  <span>
+    <ui-input-group from:disabled="$disabled">
+      <ui-date-field
+        data-picker-field
+        from:value="$current"
+        from:type="$type"
+        from:value-format="$valueFormat"
+        from:locale="$locale"
+        from:time-zone="$timeZone"
+        from:disambiguation="$disambiguation"
+        from:hour-cycle="$hourCycle"
+        from:granularity="$granularity"
+        from:display-options="$displayOptions"
+        from:min="$min"
+        from:max="$max"
+        from:allowed-dates="$allowedDates"
+        from:allowed-ranges="$allowedRanges"
+        from:disabled-dates="$disabledDates"
+        from:disabled-ranges="$disabledRanges"
+        from:disabled-weekdays="$disabledWeekdays"
+        from:name="$name"
+        from:form="$form"
+        from:input-id="$inputId"
+        from:label="$label"
+        from:size="$size"
+        from:placeholder="$placeholder"
+        from:disabled="$disabled"
+        from:readonly="$readonly"
+        from:required="$required"
+        from:invalid="$invalid"
+      ></ui-date-field>
+      <ui-icon-button
+        data-picker-trigger
+        slot="action"
+        from:id="$anchorId"
+        from:hidden="not $enhanced"
+        from:size="$size"
+        variant="ghost"
+        from:label="$pickerLabel"
+        from:disabled="$disabled or $readonly or $fieldBlocked"
+        aria-haspopup="dialog"
+      ><ui-icon name="calendar"></ui-icon></ui-icon-button>
+    </ui-input-group>
+    <ui-popover data-picker-popover size="sm" from:for="$anchorId" from:open="$opened" role="dialog" from:aria-label="$pickerLabel">
+      <ui-stack gap="s">
+        <ui-calendar
+          data-picker-calendar
+          from:value="$opened ? $draftDate : $model.date"
+          from:min="$model.minDate"
+          from:max="$model.maxDate"
+          from:allowed-dates="$model.allowedDates"
+          from:allowed-ranges="$model.allowedRanges"
+          from:week-starts-on="$model.weekStartsOn"
+          from:label="$pickerLabel"
+          from:locale="$locale"
+          from:today="$today"
+          from:disabled-dates="$disabledDates"
+          from:disabled-ranges="$disabledRanges"
+          from:disabled-weekdays="$disabledWeekdays"
+          from:month-label="$monthLabel"
+          from:year-label="$yearLabel"
+          from:previous-label="$previousLabel"
+          from:next-label="$nextLabel"
+        ></ui-calendar>
+        <ui-cluster gap="s" align="center" justify="between" wrap="nowrap" from:hidden="$type = 'date'">
+          <ui-text as="label" variant="label" from:for="{ true: concat($anchorId, '-time'), false: null }[concat($anchorId != '')]">{$timeLabel}</ui-text>
+          <ui-cluster fixed><ui-time-picker
+              data-picker-time
+              from:input-id="{ true: concat($anchorId, '-time'), false: null }[concat($anchorId != '')]"
+              from:label="$timeLabel"
+              from:value="$opened ? $draftTime : $model.time"
+              from:locale="$locale"
+              from:hour-cycle="$hourCycle"
+              from:granularity="$granularity"
+              from:disabled="not $opened or $type = 'date'"
+              size="sm"
+            ></ui-time-picker></ui-cluster>
+        </ui-cluster>
+        <ui-text tone="danger" role="alert" from:hidden="$error = ''">{$error}</ui-text>
+      </ui-stack>
+    </ui-popover>
+  </span>
+</template>

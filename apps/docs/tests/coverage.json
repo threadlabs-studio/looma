@@ -314,6 +314,29 @@
       ]
     },
     {
+      "path": "components/ui-calendar",
+      "title": "Calendar",
+      "source": "apps/docs/docs/components/forms/ui-calendar.mdx",
+      "component": "ui-calendar",
+      "examples": [
+        {
+          "id": "01-date",
+          "title": "Choose a date",
+          "behavior": false
+        },
+        {
+          "id": "02-availability",
+          "title": "Available weekdays",
+          "behavior": false
+        },
+        {
+          "id": "03-range",
+          "title": "Highlight a range",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-callout",
       "title": "Callout",
       "source": "apps/docs/docs/components/display/ui-callout.mdx",
@@ -691,6 +714,80 @@
       ]
     },
     {
+      "path": "components/ui-date-field",
+      "title": "DateField",
+      "source": "apps/docs/docs/components/forms/ui-date-field.mdx",
+      "component": "ui-date-field",
+      "examples": [
+        {
+          "id": "01-date",
+          "title": "Type a date",
+          "behavior": false
+        },
+        {
+          "id": "02-availability",
+          "title": "Available dates",
+          "behavior": false
+        },
+        {
+          "id": "03-time-and-instant",
+          "title": "Wall-clock and exact time",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-date-picker",
+      "title": "DatePicker",
+      "source": "apps/docs/docs/components/forms/ui-date-picker.mdx",
+      "component": "ui-date-picker",
+      "examples": [
+        {
+          "id": "01-date",
+          "title": "Choose a date",
+          "behavior": false
+        },
+        {
+          "id": "02-date-time",
+          "title": "Preserve a local time",
+          "behavior": false
+        },
+        {
+          "id": "03-exact-time",
+          "title": "Edit an exact time",
+          "behavior": false
+        },
+        {
+          "id": "04-zoned",
+          "title": "Keep the appointment's zone",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-date-range-picker",
+      "title": "DateRangePicker",
+      "source": "apps/docs/docs/components/forms/ui-date-range-picker.mdx",
+      "component": "ui-date-range-picker",
+      "examples": [
+        {
+          "id": "01-range",
+          "title": "Edit a date range",
+          "behavior": false
+        },
+        {
+          "id": "02-new-range",
+          "title": "Select a new range",
+          "behavior": false
+        },
+        {
+          "id": "03-availability",
+          "title": "Keep unavailable dates outside the range",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-description-item",
       "title": "Description Item",
       "source": "apps/docs/docs/parts/ui-description-item.mdx",
@@ -849,6 +946,24 @@
       ]
     },
     {
+      "path": "components/ui-file-input",
+      "title": "FileInput",
+      "source": "apps/docs/docs/components/forms/ui-file-input.mdx",
+      "component": "ui-file-input",
+      "examples": [
+        {
+          "id": "01-files",
+          "title": "Choose or drop files",
+          "behavior": false
+        },
+        {
+          "id": "02-filtered",
+          "title": "Limit selection",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-form-field",
       "title": "Form Field",
       "source": "apps/docs/docs/components/forms/ui-form-field.mdx",
@@ -867,6 +982,11 @@
         {
           "id": "03-label-action",
           "title": "Label action",
+          "behavior": false
+        },
+        {
+          "id": "04-validation-summary",
+          "title": "Validation summary",
           "behavior": false
         }
       ]
@@ -890,6 +1010,16 @@
         {
           "id": "03-column-cap",
           "title": "Cap the column count",
+          "behavior": false
+        },
+        {
+          "id": "03-fixed-columns",
+          "title": "Fixed columns",
+          "behavior": false
+        },
+        {
+          "id": "04-shaded-columns",
+          "title": "Shaded columns",
           "behavior": false
         }
       ]
@@ -994,6 +1124,16 @@
         {
           "id": "05-compact-row",
           "title": "Compact row",
+          "behavior": false
+        },
+        {
+          "id": "06-segmented-time",
+          "title": "Edit blocks within one field",
+          "behavior": false
+        },
+        {
+          "id": "07-authentication-code",
+          "title": "Enter an authentication code",
           "behavior": false
         }
       ]
@@ -1950,6 +2090,42 @@
         {
           "id": "05-autosize",
           "title": "Grow with content",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-time-field",
+      "title": "TimeField",
+      "source": "apps/docs/docs/components/forms/ui-time-field.mdx",
+      "component": "ui-time-field",
+      "examples": [
+        {
+          "id": "01-time",
+          "title": "Opening time",
+          "behavior": false
+        },
+        {
+          "id": "02-seconds",
+          "title": "Include seconds",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-time-picker",
+      "title": "TimePicker",
+      "source": "apps/docs/docs/components/forms/ui-time-picker.mdx",
+      "component": "ui-time-picker",
+      "examples": [
+        {
+          "id": "01-typed-or-picked",
+          "title": "Type or choose a time",
+          "behavior": false
+        },
+        {
+          "id": "02-overnight-seconds",
+          "title": "Overnight bounds and seconds",
           "behavior": false
         }
       ]

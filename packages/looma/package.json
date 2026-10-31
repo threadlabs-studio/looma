@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.50.0",
+  "version": "0.51.0",
   "type": "module",
   "description": "HTML Next UI components, native DOM support and design tokens.",
   "license": "MIT",
@@ -110,6 +110,7 @@
   },
   "dependencies": {
     "@nextwebwg/html-next": ">=1.0.0-alpha.74",
+    "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
     "expressmark": ">=0.5.1",
     "highlight.js": "11.11.2",
@@ -118,7 +119,7 @@
     "parse5": "^8.0.1"
   },
   "peerDependencies": {
-    "@threadlabs/markupkit": ">=0.4.2",
+    "@threadlabs/markupkit": ">=0.4.3",
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "markupress": ">=0.14.6",
@@ -142,7 +143,7 @@
     }
   },
   "devDependencies": {
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.76",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.79",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-blockquote": "^2.11.5",
     "@tiptap/extension-bold": "^2.11.5",
@@ -186,7 +187,8 @@
     "vite": "^8.3.0",
     "vitest": "^3.2.6",
     "vue": "^3.5.43",
-    "vue-tsc": "^3.3.11"
+    "vue-tsc": "^3.3.11",
+    "@threadlabs/markupkit": ">=0.4.3"
   },
   "engines": {
     "node": ">=22.22.2 <23 || >=24.15 <25"

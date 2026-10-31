@@ -26,7 +26,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
 `ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-meter`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`,
-`ui-form-field`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-list`, `ui-list-item`, `ui-listbox`, `ui-menu`, `ui-menu-group`, `ui-menu-item`,
+`ui-form-field`, `ui-date-field`, `ui-date-picker`, `ui-date-range-picker`, `ui-calendar`, `ui-time-field`, `ui-time-picker`, `ui-file-input`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-list`, `ui-list-item`, `ui-listbox`, `ui-menu`, `ui-menu-group`, `ui-menu-item`,
 `ui-nav-item`, `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
 `ui-toast`, `ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
@@ -77,7 +77,7 @@ Qualification scope and execution limits are defined in
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Contract-derived classification and projection gates cover 73 definitions: 71 published, one deferred, one internal | Must stay clean through publication |
+| Exact source inventory | Contract-derived classification and projection gates cover every authored component definition | Must stay clean through publication |
 | Browser, accessibility and adapter gates | Affected HTML/Vue and editor regressions run in Chromium; exhaustive docs axe/contrast/theme and other-engine checks are explicit extended verification | Keep selected cases mandatory and unskipped; inspect deferred coverage |
 | Docs and component catalog | Changed docs build and route/example coverage run automatically; Storybook and exhaustive docs browser/visual checks run explicitly | Keep source definitions, examples and navigation in sync |
 | Packed package | A local `@threadlabs/looma@0.15.0` tarball passes the facade consumer matrix, TypeScript checks, and SSR imports | Repeat from the final release commit |

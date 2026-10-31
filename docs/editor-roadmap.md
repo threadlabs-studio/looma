@@ -23,7 +23,7 @@
 
 ## Release 1 Classification
 
-Editor definitions ship under the package’s HTML Next source condition. Framework-neutral extension and session helpers ship through `@threadlabs/looma/editor`. The complete Vue, React and Svelte source graph requires HTML Next runtime alpha.74 or later and Vite adapter alpha.76 or later. Native and Vite-converted Vue browser parity is recorded in the [editor ledger](./editor-html-next-parity.md). All later phases and ecosystem-parity gaps below are deferred.
+Editor definitions ship under the package’s HTML Next source condition. Framework-neutral extension and session helpers ship through `@threadlabs/looma/editor`. The complete Vue, React and Svelte source graph requires HTML Next runtime alpha.74 or later and Vite adapter alpha.79 or later. Native and Vite-converted Vue browser parity is recorded in the [editor ledger](./editor-html-next-parity.md). All later phases and ecosystem-parity gaps below are deferred.
 
 E-TBL-003 is not silently waived: release must either fix it or record explicit
 owner acceptance after browser evidence establishes an adequate Candidate flow

@@ -17,7 +17,7 @@
   "dependencies": {
     "@nextwebwg/html-next": ">=1.0.0-alpha.74",
     "@threadlabs/looma": "workspace:*",
-    "@threadlabs/markupkit": ">=0.4.2",
+    "@threadlabs/markupkit": ">=0.4.3",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "markupress": ">=0.15.0",

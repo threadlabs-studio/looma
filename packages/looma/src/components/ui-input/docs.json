@@ -1,4 +1,4 @@
 {
-  "description": "Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.",
+  "description": "A native input with Looma\u2019s shared control theme. Optional segments support block selection, character filtering, automatic or typed separator advancement, and continuous authentication-code entry.",
   "group": "forms"
 }

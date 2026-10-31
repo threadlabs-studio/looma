@@ -1,0 +1,9 @@
+<!--
+title: Overnight bounds and seconds
+description: A maximum before the minimum wraps midnight. Existing fractions stay intact while the picker edits hours, minutes and seconds.
+-->
+<ui-form-field>
+  <label slot="label" for="overnight-time">Time</label>
+  <ui-time-picker input-id="overnight-time" name="time" value="23:15:30.125" min="21:00" max="03:00" granularity="second" locale="en-US"></ui-time-picker>
+  <small slot="help">Available from 9:00 PM through 3:00 AM.</small>
+</ui-form-field>

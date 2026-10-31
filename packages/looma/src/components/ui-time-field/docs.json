@@ -1,0 +1,5 @@
+{
+  "description": "A typed time of day with locale-aware 12/24-hour entry, ISO string submission, optional seconds, inclusive bounds and native form reset. Time Field shares Date Field's Temporal validation and draft handling without acquiring a date or timezone. It accepts the same validate and set-value controller requests.",
+  "group": "forms",
+  "summary": "Editable times with canonical values and locale-aware display."
+}

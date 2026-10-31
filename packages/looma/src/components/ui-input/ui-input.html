@@ -27,7 +27,16 @@
     <prop name="value" type="input-value"
     >The input's value: text, or a number for type="number" and type="range" fields. Setting or changing it replaces the live text; between changes the user's
       typing stands, so follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's
-      default, so a form reset returns to it.</prop>
+      default, so a form reset returns to it. Native edits made before the first browser connection stay live when that external value is unchanged.</prop>
+    <prop name="segments" type="list">Optional text-entry blocks. A placeholder defines an editable block’s maximum length; pattern matches one allowed Unicode
+      character. A literal is skipped automatically or by typing it. Focus selects the first block; arrows and deletion move between blocks. Native paste,
+      composition and autofill remain available. Placeholder text is never inserted into the value; empty fields use the native placeholder attribute. Applies
+      to text, tel and search inputs.
+      <prop type="object"><prop name="placeholder" type="string"></prop><prop name="pattern" type="string"></prop><prop
+          name="literal"
+          type="string"
+        ></prop></prop>
+    </prop>
     <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>

@@ -1,0 +1,79 @@
+<link rel="component" href="../ui-card/ui-card.html">
+<link rel="component" href="../ui-input/ui-input.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-list/ui-list.html">
+<link rel="component" href="../ui-list-item/ui-list-item.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-file-input" module="./ui-file-input.js">
+  <defs>
+    <prop name="name" type="string" default=""
+    >Native form field name. Selected files submit as File entries; upload transport remains with the application.</prop>
+    <prop name="form" type="string" default="">Optional ID of a form outside the component's ancestor tree.</prop>
+    <prop name="inputId" type="string" default="">Optional native file input ID for an external label.</prop>
+    <prop name="label" type="string" default="Files">Visible heading and accessible name for the file input and group.</prop>
+    <prop name="accept" type="string" default=""
+    >Comma-separated extensions or MIME types, such as .pdf,image/*. Applies to browsing and dropping after upgrade; servers still validate files.</prop>
+    <prop name="multiple" type="boolean" default="false"
+    >Allows several files in one selection. A new browse or drop replaces the selection, matching the native input.</prop>
+    <prop name="maxFileSize" type="number" min="0">Optional per-file byte limit. Omit for no size restriction; an explicit zero permits only empty files.</prop>
+    <prop name="locale" type="string" default="en-US">Intl locale used to display file sizes.</prop>
+    <prop name="removeLabel" type="string" default="Remove">Accessible action prefix, followed by the file name.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents browsing, dropping and removal, and omits files from native submission.</prop>
+    <prop name="required" type="boolean" default="false">Requires at least one selected file for submission.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid appearance supplied by the application.</prop>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="dragging" type="boolean" value="false"></state>
+    <state name="invalidSelection" type="boolean" value="false"></state>
+    <state name="error" type="string" value=""></state>
+    <state name="files" type="list(object({ id: string, name: string, size: number }))" value="[]"></state>
+    <event name="change" type="object">
+      <prop name="files" type="list" required><prop type="unknown"></prop></prop>
+      <prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop>
+      Accepted native File objects, in selection order. No requests or uploads are started.
+    </event>
+    <event name="reject" type="object">
+      <prop name="files" type="list" required><prop type="unknown"></prop></prop>
+      <prop name="message" type="string" required></prop>
+      A rejected proposal leaves the previous selection intact.
+    </event>
+  </defs>
+  <ui-card padding="sm" role="group" from:aria-label="$label" from:tone="{ true: 'accent', false: 'neutral' }[concat($dragging)]">
+    <ui-text weight="semibold">{$label}</ui-text>
+    <ui-text tone="secondary" from:hidden="not $enhanced"><slot>Drop files here, or choose files below.</slot></ui-text>
+    <ui-input
+      data-file-control
+      data-ui-field-control
+      type="file"
+      from:id="{ true: $inputId, false: null }[concat($inputId != '')]"
+      from:name="$name"
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:accept="$accept"
+      from:multiple="$multiple"
+      from:disabled="$disabled"
+      from:required="$required"
+      from:invalid="$invalid or $invalidSelection"
+      from:aria-label="$label"
+    ></ui-input>
+    <ui-list density="compact" from:hidden="not $files.0" from:aria-label="$label">
+      <template $each="file of $files" $key="$file.id">
+        <ui-list-item wrap align="title">
+          {$file.name}
+          <span slot="description">{format($file.size, 'unit', { unit: 'byte', unitDisplay: 'short', maximumFractionDigits: 0 }, $locale)}</span>
+          <ui-icon-button
+            slot="trailing"
+            data-file-remove
+            from:data-file-id="$file.id"
+            size="sm"
+            variant="ghost"
+            tone="neutral"
+            from:label="concat($removeLabel, ' ', $file.name)"
+            from:disabled="$disabled"
+          ><ui-icon name="x"></ui-icon></ui-icon-button>
+        </ui-list-item>
+      </template>
+    </ui-list>
+    <ui-text tone="danger" role="alert" from:hidden="$error = ''">{$error}</ui-text>
+    <slot name="footer"></slot>
+  </ui-card>
+</template>

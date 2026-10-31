@@ -110,7 +110,14 @@ for (const component of api.components) {
               if (!await opened.count() && !await surface.isVisible() && await surface.evaluate(element => element.matches('dialog,[popover]'))) {
                 const targetId = await surface.getAttribute('for');
                 const trigger = targetId ? stage.locator(`[id=${JSON.stringify(targetId)}]`) : component.tag === 'ui-context-menu' ? stage.locator('button:visible,[tabindex]:visible').first() : stage.getByRole('button').first();
-                if (component.tag === 'ui-tooltip') {
+                if (component.tag === 'ui-popover' && state.props.trigger === 'manual') {
+                  await trigger.click();
+                  await expect(opened).toHaveCount(0);
+                  await page.evaluate(({ props, example }) => (window as unknown as {
+                    renderVisualCase: (props: Record<string, unknown>, example: number) => Promise<void>;
+                  }).renderVisualCase({ ...props, open: true }, example), { props: state.props, example: state.example });
+                }
+                else if (component.tag === 'ui-tooltip') {
                   const method = state.props.trigger ?? await surface.getAttribute('trigger') ?? 'hover';
                   if (method === 'click') await trigger.click();
                   else if (method === 'focus') { await page.keyboard.press('Shift'); await trigger.focus(); }

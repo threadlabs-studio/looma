@@ -1,0 +1,5 @@
+{
+  "description": "Native file browsing and drag/drop selection with permitted file types, optional size limits, individual removal and form submission. A rejected proposal preserves the previous selection. Applications own upload transport, progress, cancellation and retry.",
+  "group": "forms",
+  "summary": "Choose or drop files, with native forms and accessible removal."
+}

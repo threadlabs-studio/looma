@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { UiButton as Button, UiContextMenu as ContextMenu, UiStack as Stack, UiEditorToolbar as EditorToolbar, UiEditor, UiCompactContent } from "@threadlabs/looma";
+import { UiCalendar as Calendar, UiDateField as DateField, UiDatePicker as DatePicker, UiDateRangePicker as DateRangePicker, UiFileInput as FileInput, UiTimeField as TimeField, UiTimePicker as TimePicker, UiButton as Button, UiContextMenu as ContextMenu, UiStack as Stack, UiEditorToolbar as EditorToolbar, UiEditor, UiCompactContent } from "@threadlabs/looma";
 import {
   getDefaultEditorExtensions,
   type LoomaImageAttributeResolver,
@@ -17,6 +17,8 @@ const resolveImageAttributes: LoomaImageAttributeResolver = (image) => image.res
   ? { src: image.src, loading: "lazy", decoding: "async" }
   : undefined;
 const resolveImageSource: LoomaImageSourceResolver = image => image.src;
+type FileSelectionEvent = Parameters<NonNullable<InstanceType<typeof FileInput>["$props"]["onChange"]>>[0];
+const countFiles = (event: FileSelectionEvent) => event.detail.files.length;
 
 const extensions = getDefaultEditorExtensions();
 if (
@@ -59,3 +61,17 @@ if (!html.includes("<button") || html.includes("<ui-button")) {
 }
 
 if (!html.includes("Saved document") || !html.includes("&lt;literal&gt;")) throw new Error("editor SSR fallback was not preserved");
+const dates = await renderToString(createSSRApp({ render: () => h(Stack, {}, () => [
+  h(Calendar, { value: "2024-02-29", today: "2024-02-12" }),
+  h(DateField, { value: "2024-02-29", name: "plain", inputId: "release-plain" }),
+  h(DatePicker, { value: "2024-02-29", today: "2024-02-12", name: "day", label: "Date" }),
+  h(DateRangePicker, { value: { start: "2024-02-10", end: "2024-02-15" }, today: "2024-02-12", startName: "start", endName: "end" }),
+  h(TimeField, { value: "09:30", name: "time", inputId: "release-time" }),
+  h(TimePicker, { value: "09:30", name: "clock", inputId: "release-clock" }),
+  h(FileInput, { name: "attachments", inputId: "release-files", onChange: countFiles }),
+]) }));
+if ((dates.match(/data-calendar-day="/g) ?? []).length !== 126) throw new Error("installed date controls did not prepare all calendar grids before SSR");
+for (const [name, value] of [["plain", "2024-02-29"], ["day", "2024-02-29"], ["start", "2024-02-10"], ["end", "2024-02-15"], ["time", "09:30"], ["clock", "09:30"]]) {
+  if (!new RegExp(`<input\\b(?=[^>]*\\bname="${name}")(?=[^>]*\\bvalue="${value}")[^>]*>`).test(dates)) throw new Error(`installed SSR lost the canonical ${name} form value`);
+}
+if (!/<input\b(?=[^>]*\btype="file")(?=[^>]*\bname="attachments")[^>]*>/.test(dates)) throw new Error("installed File Input lost its native form control");

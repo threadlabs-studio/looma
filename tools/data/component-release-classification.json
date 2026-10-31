@@ -33,6 +33,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-calendar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-callout": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -94,6 +98,18 @@
       "package": "@threadlabs/looma"
     },
     "ui-cycle-button": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-date-field": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-date-picker": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-date-range-picker": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -195,6 +211,10 @@
     },
     "ui-editor-toolbar": {
       "status": "internal",
+      "package": "@threadlabs/looma"
+    },
+    "ui-file-input": {
+      "status": "published",
       "package": "@threadlabs/looma"
     },
     "ui-floating-action-button": {
@@ -370,6 +390,14 @@
       "package": "@threadlabs/looma"
     },
     "ui-textarea": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-time-field": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-time-picker": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

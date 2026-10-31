@@ -1,0 +1,62 @@
+<link rel="component" href="../ui-date-field/ui-date-field.html">
+<template component="ui-time-field" module="./ui-time-field.js">
+  <defs>
+    <prop name="value" type="string" default=""
+    >Initial ISO time, replaced when changed externally. Live edits emit input/change; reset restores this value.</prop>
+    <prop name="locale" type="string" default="en-US">Intl locale for digits and 12/24-hour conventions. ISO time paste is always accepted.</prop>
+    <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24">Hour cycle; omission follows the locale.</prop>
+    <prop name="granularity" type="keyword" values="minute, second" default="minute"
+    >Smallest displayed unit. Nonzero seconds and fractions are preserved.</prop>
+    <prop name="min" type="string" default="">Inclusive earliest permitted time.</prop>
+    <prop name="max" type="string" default=""
+    >Inclusive latest permitted time. A maximum before the minimum wraps across midnight, matching native time inputs.</prop>
+    <prop name="name" type="string" default="">Native form field name for the canonical time.</prop>
+    <prop name="form" type="string" default="">Optional ID of a form outside this component’s ancestor tree.</prop>
+    <prop name="inputId" type="string" default="">ID of the active native input, for an authored label.</prop>
+    <prop name="label" type="string" default="">Optional accessible input name; prefer a visible label associated with input-id.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Input's shared size scale.</prop>
+    <prop name="placeholder" type="string" default="">Optional hint inside the empty input.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing and omits submission.</prop>
+    <prop name="readonly" type="boolean" default="false">Preserves selection and submission while preventing edits.</prop>
+    <prop name="required" type="boolean" default="false">Requires a complete time.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid state supplied by the application.</prop>
+    <event name="input" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="query-change" type="object"><prop name="query" type="string" required></prop></event>
+    <event name="validation-change" type="object"><prop name="invalid" type="boolean" required></prop><prop
+        name="message"
+        type="string"
+        required
+      ></prop></event>
+  </defs>
+  <span><ui-date-field
+      data-time-field
+      type="time"
+      from:value="$value"
+      from:locale="$locale"
+      from:hour-cycle="$hourCycle"
+      from:granularity="$granularity"
+      from:min="$min"
+      from:max="$max"
+      from:name="$name"
+      from:form="$form"
+      from:input-id="$inputId"
+      from:label="$label"
+      from:size="$size"
+      from:placeholder="$placeholder"
+      from:disabled="$disabled"
+      from:readonly="$readonly"
+      from:required="$required"
+      from:invalid="$invalid"
+    ></ui-date-field></span>
+</template>

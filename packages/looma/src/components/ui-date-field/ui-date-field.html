@@ -1,0 +1,143 @@
+<link rel="component" href="../ui-input/ui-input.html">
+<template component="ui-date-field" module="./ui-date-field.js">
+  <defs>
+    <prop name="value" type="string" default=""
+    >Initial canonical value, and a replacement when changed externally. Valid edits update live state and emit input/change; a form reset returns to the last
+      external value.</prop>
+    <prop name="type" type="keyword" values="date, time, datetime-local, instant, zoned" default="date"
+    >The value's meaning and export format. Date is the default and exports only YYYY-MM-DD, without a time or timezone. Time and local date-time remain
+      wall-clock values; instant uses a UTC timestamp; zoned retains a named zone. Display options alone never change this type.</prop>
+    <prop name="valueFormat" type="keyword" values="iso, space" default="iso"
+    >Local date-time bindings use T by default; space emits YYYY-MM-DD HH:mm[:ss]. Other types retain their ISO form.</prop>
+    <prop name="locale" type="string" default="en-US">Explicit Intl locale for numeric editing order, digits and display. ISO input is always accepted.</prop>
+    <prop name="timeZone" type="string" default=""
+    >Display/editing zone for instant values, required for localized instant editing. Zoned values otherwise use their saved zone; local typing through an
+      override preserves that saved zone. Required for a new zoned value. Date, time and local date-time bindings remain without a zone.</prop>
+    <prop name="disambiguation" type="keyword" values="reject, earlier, later, compatible" default="reject"
+    >How zoned edits resolve a skipped or repeated wall-clock time. Reject leaves the draft visible with a validation error.</prop>
+    <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24">Intl hour cycle. Omit to follow locale conventions.</prop>
+    <prop name="granularity" type="keyword" values="minute, second" default="minute"
+    >Smallest displayed time unit. Existing nonzero seconds and fractions remain editable without precision loss.</prop>
+    <prop name="displayOptions" type="object">Intl display options while unfocused. Focusing uses the numeric editing grammar; formatting does not change the
+      binding. Calendar identity and editing timezone stay with the field.
+      <prop name="dateStyle" type="keyword" values="full, long, medium, short"></prop>
+      <prop name="timeStyle" type="keyword" values="full, long, medium, short"></prop>
+      <prop name="weekday" type="keyword" values="long, short, narrow"></prop>
+      <prop name="era" type="keyword" values="long, short, narrow"></prop>
+      <prop name="year" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="month" type="keyword" values="numeric, 2-digit, long, short, narrow"></prop>
+      <prop name="day" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="hour" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="minute" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="second" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="timeZoneName" type="keyword" values="long, short, shortOffset, longOffset, shortGeneric, longGeneric"></prop>
+      <prop name="dayPeriod" type="keyword" values="long, short, narrow"></prop>
+      <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24"></prop>
+      <prop name="localeMatcher" type="string" values="lookup, best fit"></prop>
+      <prop name="formatMatcher" type="string" values="basic, best fit"></prop>
+      <prop name="fractionalSecondDigits" type="integer" min="1" max="3"></prop>
+      <prop name="hour12" type="boolean"></prop>
+      <prop name="numberingSystem" type="string"></prop>
+    </prop>
+    <prop name="min" type="string" default="">Inclusive minimum in the bound value's format.</prop>
+    <prop name="max" type="string" default="">Inclusive maximum in the bound value's format.</prop>
+    <prop name="disabledDates" type="list(string)" default="[]">Unavailable ISO dates, applied in the editing zone for exact values.</prop>
+    <prop name="disabledRanges" type="list" default="[]">Unavailable inclusive ISO-date intervals.<prop type="object"><prop
+          name="start"
+          type="string"
+          required
+        ></prop><prop name="end" type="string" required></prop></prop></prop>
+    <prop name="disabledWeekdays" type="list(integer)" default="[]">Unavailable ISO weekdays, from 1 (Monday) to 7 (Sunday).</prop>
+    <prop name="allowedDates" type="list(string)"
+    >Allowed ISO dates, unioned with allowedRanges. Omission imposes no allow restriction; an explicitly empty allow set permits nothing.</prop>
+    <prop name="allowedRanges" type="list">Allowed inclusive ISO-date intervals, unioned with allowedDates.<prop type="object"><prop
+          name="start"
+          type="string"
+          required
+        ></prop><prop name="end" type="string" required></prop></prop></prop>
+    <prop name="name" type="string" default="">Native form field name. The enhanced field submits its canonical value.</prop>
+    <prop name="form" type="string" default="">Optional ID of a form outside this component’s ancestor tree.</prop>
+    <prop name="inputId" type="string" default="">ID of the active native input for an authored label's for attribute, preserved across upgrade.</prop>
+    <prop name="label" type="string" default=""
+    >Optional accessible name. Prefer an authored visible label associated with input-id; a supplied label overrides that name.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Input's shared size scale.</prop>
+    <prop name="placeholder" type="string" default="">Optional editing hint. A placeholder never replaces the label.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing and omits the value from submission.</prop>
+    <prop name="readonly" type="boolean" default="false">Retains selection and submission while preventing edits.</prop>
+    <prop name="required" type="boolean" default="false">Requires a complete value.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid state, independent of parsing and availability.</prop>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="current" type="string" from="$value"></state>
+    <state name="editingPlaceholder" type="string" value=""></state>
+    <state name="segments" type="list(object({ placeholder?: string, pattern?: string, literal?: string }))" value="[]"></state>
+    <state name="localInvalid" type="boolean" value="false"></state>
+    <computed
+      name="nativeType"
+      from="{ date: 'date', time: { true: 'text', false: 'time' }[concat($current.length > 12)], 'datetime-local': { true: 'text', false: 'datetime-local' }[concat($valueFormat = 'space' or $current.length > 23)], instant: 'text', zoned: 'text' }[$type]"
+    ></computed>
+    <event name="input" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="query-change" type="object"><prop name="query" type="string" required></prop></event>
+    <event name="validation-change" type="object"><prop name="invalid" type="boolean" required></prop><prop
+        name="message"
+        type="string"
+        required
+      ></prop></event>
+  </defs>
+  <span>
+    <ui-input
+      data-date-fallback
+      from:id="{ true: $inputId, false: null }[concat(not $enhanced and $inputId != '')]"
+      from:type="$nativeType"
+      from:value="$current"
+      from:name="$name"
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:aria-label="$label"
+      from:size="$size"
+      from:hidden="$enhanced"
+      from:disabled="$disabled or $enhanced"
+      from:readonly="$readonly"
+      from:required="$required"
+      from:min="$min"
+      from:max="$max"
+      step="any"
+    ></ui-input>
+    <!-- Input owns its styling; this uncontrolled input leaves draft text and selection with the field controller. -->
+    <ui-input
+      data-date-editor
+      from:segments="$segments"
+      data-ui-field-control
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:id="{ true: $inputId, false: null }[concat($enhanced and $inputId != '')]"
+      from:aria-label="$label"
+      from:size="$size"
+      from:placeholder="{ true: $placeholder, false: $editingPlaceholder }[concat($placeholder != '')]"
+      from:hidden="not $enhanced"
+      from:disabled="$disabled or not $enhanced"
+      from:readonly="$readonly"
+      from:required="$required"
+      from:invalid="$invalid or $localInvalid"
+      spellcheck="false"
+      autocomplete="off"
+    ></ui-input>
+    <input
+      data-date-value
+      data-ui-field-value
+      type="hidden"
+      from:name="$name"
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:value="$current"
+      from:disabled="$disabled or not $enhanced"
+    >
+  </span>
+</template>

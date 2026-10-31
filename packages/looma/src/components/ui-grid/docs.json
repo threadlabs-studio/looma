@@ -1,4 +1,4 @@
 {
-  "description": "Responsive auto-fit grid primitive.",
+  "description": "Responsive auto-fit grid primitive, with explicit fixed columns for aligned matrices and optional neutral or accent shading for chosen columns using the theme palette.",
   "group": "layout"
 }

@@ -1,4 +1,4 @@
 {
-  "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
+  "description": "Non-modal overlay primitive with shared open/close lifecycle. Click activation toggles from its anchor by default; trigger=manual retains anchoring, expanded state, Escape and light dismissal while the caller controls open, including when switching between anchor controls.",
   "group": "overlay"
 }

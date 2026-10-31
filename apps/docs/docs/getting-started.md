@@ -19,7 +19,7 @@ pnpm add -D @nextwebwg/html-next-unplugin
 
 Looma installs its HTML Next runtime dependency automatically. Configure the adapter before your framework's Vite plugin, then import components from `@threadlabs/looma`. The adapter generates the framework code and types in your project.
 
-Framework conversion requires Vite adapter alpha.76 or later. Looma declares its runtime minimum in its package dependencies; both packages admit later releases beyond 1.0.
+Framework conversion requires Vite adapter alpha.79 or later, which includes Vue server preparation for date controls. Looma declares its runtime minimum in its package dependencies; both packages admit later releases beyond 1.0.
 
 ## Vue
 
