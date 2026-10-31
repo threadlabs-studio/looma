@@ -74,11 +74,8 @@ jobs:
         run: node tools/scripts/ci-qualification.mjs plan
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
         if: steps.select.outputs.browser == 'true'
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        if: steps.select.outputs.browser == 'true'
-        with:
-          node-version: 24.21.0
-          cache: pnpm
+      # Cold installs take seconds here; compressing the container's pnpm store
+      # after successful tests can exhaust the job deadline. Keep this job uncached.
       - name: Install dependencies
         if: steps.select.outputs.browser == 'true'
         run: pnpm install --frozen-lockfile --prefer-offline
