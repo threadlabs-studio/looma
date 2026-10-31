@@ -41,14 +41,14 @@ HTML Next is selected by default. Framework examples import the same definitions
 ::: tab [Vue]
 ```vue
 <script setup>
-import { UiButton, UiStack } from "@threadlabs/looma";
+  import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
 
 <template>
-<UiStack gap="m">
-  <h2>Account</h2>
-  <UiButton variant="solid">Save</UiButton>
-</UiStack>
+  <UiStack gap="m">
+    <h2>Account</h2>
+    <UiButton variant="solid">Save</UiButton>
+  </UiStack>
 </template>
 ```
 :::
@@ -58,10 +58,12 @@ import { UiButton, UiStack } from "@threadlabs/looma";
 import { UiButton, UiStack } from "@threadlabs/looma";
 
 export default function Example() {
-  return (<><UiStack gap="m">
-  <h2>Account</h2>
-  <UiButton variant="solid">Save</UiButton>
-</UiStack></>);
+  return (
+    <UiStack gap="m">
+      <h2>Account</h2>
+      <UiButton variant="solid">Save</UiButton>
+    </UiStack>
+  );
 }
 ```
 :::
@@ -69,9 +71,8 @@ export default function Example() {
 ::: tab [Svelte]
 ```svelte
 <script>
-import { UiButton, UiStack } from "@threadlabs/looma";
+  import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
-
 
 <UiStack gap="m">
   <h2>Account</h2>
