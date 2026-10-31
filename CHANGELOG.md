@@ -2,8 +2,13 @@
 
 ## Next release
 
-- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+- Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
+
+- Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
+
 - Match generated editor responder and event types to the framework-neutral host contracts, including mention/link records, passage ranges and image activation triggers.
+
+- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
 
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
 
