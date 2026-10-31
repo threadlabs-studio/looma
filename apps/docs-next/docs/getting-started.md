@@ -28,12 +28,22 @@ HTML Next is selected by default. Framework examples import the same definitions
 
 ::: tab [HTML Next]
 ```html
-<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
-<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<link
+  rel="component"
+  href="@threadlabs/looma/components/ui-stack/ui-stack.html"
+>
+<link
+  rel="component"
+  href="@threadlabs/looma/components/ui-button/ui-button.html"
+>
 
-<ui-stack gap="m">
+<ui-stack
+  gap="m"
+>
   <h2>Account</h2>
-  <ui-button variant="solid">Save</ui-button>
+  <ui-button
+    variant="solid"
+  >Save</ui-button>
 </ui-stack>
 ```
 :::
@@ -45,9 +55,13 @@ HTML Next is selected by default. Framework examples import the same definitions
 </script>
 
 <template>
-  <UiStack gap="m">
+  <UiStack
+    gap="m"
+  >
     <h2>Account</h2>
-    <UiButton variant="solid">Save</UiButton>
+    <UiButton
+      variant="solid"
+    >Save</UiButton>
   </UiStack>
 </template>
 ```
@@ -58,12 +72,14 @@ HTML Next is selected by default. Framework examples import the same definitions
 import { UiButton, UiStack } from "@threadlabs/looma";
 
 export default function Example() {
-  return (
-    <UiStack gap="m">
-      <h2>Account</h2>
-      <UiButton variant="solid">Save</UiButton>
-    </UiStack>
-  );
+  return <UiStack
+    gap="m"
+  >
+    <h2>Account</h2>
+    <UiButton
+      variant="solid"
+    >Save</UiButton>
+  </UiStack>;
 }
 ```
 :::
@@ -74,9 +90,13 @@ export default function Example() {
   import { UiButton, UiStack } from "@threadlabs/looma";
 </script>
 
-<UiStack gap="m">
+<UiStack
+  gap="m"
+>
   <h2>Account</h2>
-  <UiButton variant="solid">Save</UiButton>
+  <UiButton
+    variant="solid"
+  >Save</UiButton>
 </UiStack>
 ```
 :::
