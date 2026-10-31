@@ -51,7 +51,8 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   });
   assert.match(contracts["ui-checkbox"].events[0].detailType, /trigger: "keyboard" \| "pointer" \| "programmatic"/);
   assert.ok(contracts["ui-combobox"].propFields.items.some((field) => field.path === "[].tag.tone"));
-  assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer", default: 1 });
+  assert.deepEqual(contracts["ui-combobox"].props.grow, { type: "boolean", default: false });
+  assert.deepEqual(contracts["ui-combobox"].props.maxRows, { type: "integer" });
   assert.deepEqual(contracts["ui-top-bar"].props.titleFor, { type: "string", default: "" });
 });
 
@@ -169,7 +170,7 @@ test("redundant layout aliases stay compatible without remaining public componen
   const navigationTags = Object.keys(classifications)
     .filter((tag) => classifications[tag].status === "published" && !classifications[tag].navigationParent);
 
-  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "padding", "paddingEnd", "wrap"]);
+  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "maxRows", "padding", "paddingEnd", "wrap"]);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
   assert.ok(!navigationTags.includes("ui-floating-action-button"));
   assert.equal(classifications["ui-search-result-row"].navigationParent, "ui-search-shell");

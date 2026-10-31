@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Cluster can bound wrapped content with `maxRows`, reserving an `overflow` action and an optional always-visible `trailing` control. Hidden items leave the keyboard sequence; resizing restores items as space permits.
+- **Breaking:** Combobox growth now requires `grow`; `maxRows` optionally caps that growth. Add `grow` to existing multiple fields using `maxRows`. Without a cap, a growing field expands to fit its selections. This separates opting into growth from choosing its limit.
 - Build the public documentation with Markupress 0.15.0. Align the declared Looma baseline with published 0.49.4 so strict packed documentation consumers satisfy Markupress's shared-control requirements.
 
 - Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.

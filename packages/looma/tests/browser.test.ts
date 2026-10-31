@@ -7551,6 +7551,61 @@ describe("Icon", () => {
   });
 });
 
+describe("Bounded Cluster", () => {
+  for (const adapter of ["html", "vue"]) it(`caps ${adapter} wrapped items and reserves accessible overflow and trailing actions`, async () => {
+    const path=await bundle(`bounded-cluster-${adapter}`,adapter==="html"?`import "@looma-test/runtime";`:`
+      import {createApp,h} from "vue";
+      import {UiCluster as Cluster,UiButton as Button,UiPopover as Popover} from "@threadlabs/looma";
+      const items=()=>Array.from({length:12},(_,i)=>h('a',{id:'item-'+i,class:'item '+(i===0?'overflow':i===1?'trailing':''),href:'#item-'+i},'Item '+String(i+1).padStart(2,'0')));
+      createApp({render:()=>[
+        h(Cluster,{id:'bounded',maxRows:3,gap:'xs'},{default:items,
+          overflow:()=>h(Button,{id:'overflow',size:'sm'},()=> 'More'),
+          trailing:()=>h(Button,{id:'add',size:'sm'},()=> 'Add')}),
+        h(Popover,{id:'all',for:'overflow'},()=>h(Cluster,{gap:'xs'},()=>Array.from({length:12},(_,i)=>h(Button,{size:'sm'},()=> 'Item '+String(i+1).padStart(2,'0'))))),
+      ]}).mount('#app');
+    `);
+    const items=Array.from({length:12},(_,i)=>`<a id="item-${i}" class="item ${i===0?'overflow':i===1?'trailing':''}" href="#item-${i}">Item ${String(i+1).padStart(2,'0')}</a>`).join('');
+    const body=adapter==="html"?`<ui-cluster id="bounded" max-rows="3" gap="xs">${items}<ui-button slot="overflow" id="overflow" size="sm">More</ui-button><ui-button slot="trailing" id="add" size="sm">Add</ui-button></ui-cluster><ui-popover id="all" for="overflow"><ui-cluster gap="xs">${items.replaceAll(/ id="[^"]+"/g,'')}</ui-cluster></ui-popover>`:'<div id="app"></div>';
+    const page=await open(path,body,[join(root,'tokens.css')],{viewport:{width:375,height:812},hasTouch:true});
+    try {
+      await page.addStyleTag({content:'body {margin:12px} #bounded {inline-size:220px} .item {display:inline-flex; padding:4px; white-space:nowrap}'});
+      const metrics=()=>page.locator('#bounded').evaluate(root=>{
+        const children=Array.from(root.children).filter(el=>el.getBoundingClientRect().height>0);
+        return {rows:new Set(children.map(el=>Math.round(el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2))).size,
+          visible:Array.from(root.querySelectorAll(':scope > .item')).filter(el=>el.getBoundingClientRect().height>0).length,
+          overflow:root.scrollWidth-root.clientWidth,mask:getComputedStyle(root).maskImage};
+      });
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      assert.ok((await metrics()).rows<=3,`the entire group including its controls stays within three rows: ${JSON.stringify(await metrics())}`);
+      assert.ok((await metrics()).visible<12,'additional items are collapsed');
+      assert.equal((await metrics()).mask,'none');
+      assert.ok((await metrics()).overflow<=1);
+      const restingVisible=(await metrics()).visible;
+      await page.addStyleTag({content:'#add {inline-size:130px}'});
+      await page.waitForFunction(previous=>Array.from(document.querySelectorAll('#bounded > .item')).filter(el=>!el.hasAttribute('hidden')).length<previous,restingVisible);
+      await page.evaluate(()=>new Promise<void>(resolve=>{
+        let frames=5; const settle=()=>--frames?requestAnimationFrame(settle):resolve();requestAnimationFrame(settle);
+      }));
+      await page.addStyleTag({content:'#add {inline-size:auto}'});
+      await page.waitForFunction(previous=>Array.from(document.querySelectorAll('#bounded > .item')).filter(el=>!el.hasAttribute('hidden')).length===previous,restingVisible,{timeout:1500});
+      await page.locator('#overflow').focus();await page.keyboard.press('Enter');
+      await page.waitForFunction(()=>document.getElementById('all')!.matches(':popover-open'));
+      assert.equal(await page.locator('#all').locator('a,button').count(),12,'the popup retains the complete collection');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(()=>document.activeElement===document.getElementById('overflow'));
+      await page.keyboard.press('Tab');assert.equal(await page.locator('#add').evaluate(el=>el===document.activeElement),true);
+      await page.addStyleTag({content:'#bounded {inline-size:1200px}'});
+      await page.waitForFunction(()=>Array.from(document.querySelectorAll('#bounded > .item')).every(el=>!el.hasAttribute('hidden')));
+      assert.equal((await metrics()).visible,12);
+      assert.equal(await page.locator('#overflow').isVisible(),false,'the overflow control disappears when everything fits');
+      await page.addStyleTag({content:'#bounded {inline-size:220px}'});
+      await page.evaluate(()=>document.documentElement.dir='rtl');
+      await page.waitForFunction(()=>document.querySelectorAll('#bounded > .item[hidden]').length>0);
+      assert.ok((await metrics()).rows<=3,'RTL keeps the same row cap');
+    } finally {await page.close();}
+  });
+});
+
 describe("Icon Button", () => {
   for (const adapter of ["html", "vue"]) it(`keeps matched ${adapter} icon touch targets within their adjacent action boundary`, async () => {
     const path = await bundle(`${adapter}-paired-touch-boundaries`, adapter === "html" ? `import "@looma-test/runtime";` : `
@@ -9326,7 +9381,7 @@ describe("TopBar scroll title", () => {
 describe("Responsive control examples", () => {
   it("contains the growing field and scroll-title examples at phone widths", async () => {
     const path = await bundle('responsive-control-examples', 'import "@looma-test/runtime";');
-    for (const example of ['ui-combobox/examples/08-multiple-rows.html', 'ui-top-bar/examples/02-scroll-title.html']) {
+    for (const example of ['ui-cluster/examples/06-bounded-rows.html', 'ui-combobox/examples/08-multiple-rows.html', 'ui-top-bar/examples/02-scroll-title.html']) {
       const markup = (await readFile(join(root, 'src/components', example), 'utf8')).replace('<ui-container', '<ui-container id="example-container"');
       const page = await open(path, markup, [join(root, 'tokens.css')], {viewport: {width: 375, height: 700}});
       try {
@@ -9364,19 +9419,23 @@ describe("Combobox authored defaults and affordances", () => {
         componentRegistry.update(document.querySelector('#multi'), {items});
       };
       window.setSize = size => componentRegistry.update(document.querySelector('#multi'), {size});
+      window.setGrow = grow => componentRegistry.update(document.querySelector('#multi'), {grow});
+      window.setMaxRows = maxRows => componentRegistry.update(document.querySelector('#multi'), {maxRows});
       document.addEventListener('remove-item', remove);
     ` : `
       import { createApp, h, ref } from "vue";
       import { UiCombobox as Combobox } from "@threadlabs/looma";
       ${shared}
-      const items = ref([]), size = ref('md');
+      const items = ref([]), size = ref('md'), grow = ref(true), maxRows = ref(3);
       window.setItems = value => { window.items = value; items.value = value; };
       window.setSize = value => { size.value = value; };
-      createApp({render:()=>h(Combobox,{id:'multi',label:'Topics',multiple:true,maxRows:3,
+      window.setGrow = value => { grow.value = value; };
+      window.setMaxRows = value => { maxRows.value = value; };
+      createApp({render:()=>h(Combobox,{id:'multi',label:'Topics',multiple:true,grow:grow.value,maxRows:maxRows.value,
         size:size.value,items:items.value,onRemoveItem:remove})}).mount('#app');
     `);
     const page = await open(path, adapter === "html"
-      ? '<ui-combobox id="multi" label="Topics" multiple max-rows="3"></ui-combobox>' : '<div id="app"></div>',
+      ? '<ui-combobox id="multi" label="Topics" multiple grow max-rows="3"></ui-combobox>' : '<div id="app"></div>',
     [join(root,"tokens.css")],
     {viewport:{width:375,height:700},hasTouch:true,isMobile:true});
     try {
@@ -9432,6 +9491,16 @@ describe("Combobox authored defaults and affordances", () => {
         await setItems([]);
         assert.ok(Math.abs((await field.evaluate(el=>el.getBoundingClientRect().height))-empty)<1,'the field shrinks again');
       }
+      await setItems(selected);
+      await page.evaluate(()=>(window as unknown as {setGrow:(grow:boolean)=>void}).setGrow(false));
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      assert.equal(await entry.evaluate(el=>el.classList.contains('multiline')),false,'grow=false keeps one horizontal row even with a row cap');
+      await page.evaluate(()=>{
+        (window as unknown as {setMaxRows:(rows?:number)=>void}).setMaxRows(undefined);
+        (window as unknown as {setGrow:(grow:boolean)=>void}).setGrow(true);
+      });
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      assert.equal(await entry.evaluate(el=>el.scrollHeight<=el.clientHeight+1),true,'grow without a row cap expands to include all selected items');
     } finally { await page.close(); }
   });
 

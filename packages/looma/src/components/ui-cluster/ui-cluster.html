@@ -1,4 +1,4 @@
-<template component="ui-cluster">
+<template component="ui-cluster" module="./ui-cluster.js">
   <defs>
     <prop name="padding" type="keyword" values="none, s, m, l" default="none"
     >Optional internal space for an action group, using the shared spacing scale.</prop>
@@ -18,8 +18,19 @@
     >Whether items move onto a new row when they run out of space: wrap (the default) or nowrap, which keeps them on one row at their own sizes. Use nowrap for
       a small group that must read as one unit, such as a meter and its value in a table cell, so the cell grows to fit it; a whole row of actions should keep
       wrapping so it fits narrow screens.</prop>
+    <prop name="maxRows" type="integer" default="0"
+    >Maximum complete visible rows when wrapping. Zero leaves the group unbounded. Supply an overflow slot with a control that opens the complete collection;
+      extra direct items are hidden and leave keyboard navigation. The trailing slot stays visible and counts toward the row cap.</prop>
+    <state name="overflowCount" type="integer" value="0"></state>
+    <event name="overflow-change" type="object">
+      <prop name="count" required type="integer"></prop>
+    </event>
   </defs>
-  <div><slot></slot></div>
+  <div>
+    <slot></slot>
+    <span class="overflow" $ref="overflow" from:hidden="$overflowCount = 0"><slot name="overflow"></slot></span>
+    <span class="trailing" $ref="trailing"><slot name="trailing"></slot></span>
+  </div>
   <style>
     :host {
       --_layout-gap: var(--ui-space-3);
@@ -30,6 +41,23 @@
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0 !important;
+    }
+
+    .overflow,
+    .trailing {
+      display: flex !important;
+      align-items: center !important;
+      gap: inherit !important;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+    }
+    :slotted([hidden]) {
+      display: none !important;
+    }
+
+    .overflow[hidden],
+    .trailing:empty {
+      display: none !important;
     }
 
     :host([fixed]) {

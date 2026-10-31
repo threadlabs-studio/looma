@@ -219,8 +219,13 @@
     "example": 4
   },
   {
-    "name": "Example: 99-theme-sampler",
+    "name": "Example: 06-bounded-rows",
     "props": {},
     "example": 5
+  },
+  {
+    "name": "Example: 99-theme-sampler",
+    "props": {},
+    "example": 6
   }
 ]
