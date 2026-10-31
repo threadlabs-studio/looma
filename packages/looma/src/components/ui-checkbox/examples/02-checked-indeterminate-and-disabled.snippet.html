@@ -1,4 +1,6 @@
-<script type="module">
+<script
+  type="module"
+>
   import "@threadlabs/looma";
   import { componentRegistry } from "@nextwebwg/html-next/runtime";
 
@@ -19,11 +21,26 @@
   });
 </script>
 
-<ui-stack gap="s">
-  <ui-checkbox id="docs-checkbox-all" indeterminate>Select all</ui-checkbox>
-  <ui-stack gap="xs" style="padding-inline-start: 1.5rem">
-    <ui-checkbox class="docs-checkbox-item" checked>Design</ui-checkbox>
-    <ui-checkbox class="docs-checkbox-item">Build</ui-checkbox>
-    <ui-checkbox class="docs-checkbox-item">Review</ui-checkbox>
+<ui-stack
+  gap="s"
+>
+  <ui-checkbox
+    id="docs-checkbox-all"
+    indeterminate
+  >Select all</ui-checkbox>
+  <ui-stack
+    gap="xs"
+    style="padding-inline-start: 1.5rem"
+  >
+    <ui-checkbox
+      class="docs-checkbox-item"
+      checked
+    >Design</ui-checkbox>
+    <ui-checkbox
+      class="docs-checkbox-item"
+    >Build</ui-checkbox>
+    <ui-checkbox
+      class="docs-checkbox-item"
+    >Review</ui-checkbox>
   </ui-stack>
 </ui-stack>
