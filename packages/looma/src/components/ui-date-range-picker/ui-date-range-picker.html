@@ -1,0 +1,202 @@
+<link rel="component" href="../ui-date-field/ui-date-field.html">
+<link rel="component" href="../ui-calendar/ui-calendar.html">
+<link rel="component" href="../ui-form-field/ui-form-field.html">
+<link rel="component" href="../ui-input-group/ui-input-group.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-popover/ui-popover.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-grid/ui-grid.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<template component="ui-date-range-picker" module="./ui-date-range-picker.js">
+  <defs>
+    <prop name="value" type="object({ start: string, end: string })" default="{ start: '', end: '' }"
+    >Initial inclusive date range, replaced on external changes. Each endpoint is YYYY-MM-DD, without a time or timezone. A complete accepted edit emits both
+      endpoints together. Reset restores this external value.</prop>
+    <prop name="locale" type="string" default="en-US"
+    >Intl Gregorian editing order, digits, labels and default week order. ISO date paste is always accepted.</prop>
+    <prop name="displayOptions" type="object">Intl date display options while fields are unfocused. Focus restores numeric entry; canonical endpoints remain
+      YYYY-MM-DD.
+      <prop name="dateStyle" type="keyword" values="full, long, medium, short"></prop>
+      <prop name="weekday" type="keyword" values="long, short, narrow"></prop>
+      <prop name="year" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="month" type="keyword" values="numeric, 2-digit, long, short, narrow"></prop>
+      <prop name="day" type="keyword" values="numeric, 2-digit"></prop>
+      <prop name="era" type="keyword" values="long, short, narrow"></prop>
+      <prop name="numberingSystem" type="string"></prop>
+      <prop name="localeMatcher" type="string" values="lookup, best fit"></prop>
+      <prop name="formatMatcher" type="string" values="basic, best fit"></prop>
+    </prop>
+    <prop name="min" type="string" default="">Inclusive earliest YYYY-MM-DD endpoint.</prop>
+    <prop name="max" type="string" default="">Inclusive latest YYYY-MM-DD endpoint.</prop>
+    <prop name="allowedDates" type="list(string)"
+    >Allowed ISO dates, unioned with allowed-ranges. Omission is unrestricted; an explicit empty allow set permits nothing.</prop>
+    <prop name="allowedRanges" type="list(object({ start: string, end: string }))">Inclusive allowed date intervals, unioned with allowed-dates.</prop>
+    <prop name="disabledDates" type="list(string)" default="[]">Unavailable ISO dates, subtracted after bounds and allowed rules.</prop>
+    <prop name="disabledRanges" type="list(object({ start: string, end: string }))" default="[]">Inclusive unavailable date intervals.</prop>
+    <prop name="disabledWeekdays" type="list(integer)" default="[]">Unavailable ISO weekdays: Monday 1 through Sunday 7.</prop>
+    <prop name="allowUnavailableWithinRange" type="boolean" default="false"
+    >Allows crossing unavailable interior dates. Both endpoints must still be available.</prop>
+    <prop name="weekStartsOn" type="integer" min="1" max="7">ISO week order override. Omission follows the locale, falling back to Sunday (7).</prop>
+    <prop name="today" type="string" default="">Optional explicit YYYY-MM-DD date to mark as today.</prop>
+    <prop name="startName" type="string" default="">Native form name for the start date.</prop>
+    <prop name="endName" type="string" default="">Native form name for the end date.</prop>
+    <prop name="startInputId" type="string" default="">ID for the start field and its visible label, including before JavaScript.</prop>
+    <prop name="endInputId" type="string" default="">ID for the end field and its visible label, including before JavaScript.</prop>
+    <prop name="form" type="string" default="">Optional ID of a form outside this component's ancestor tree.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared input and action size.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing and omits both endpoints from submission.</prop>
+    <prop name="readonly" type="boolean" default="false">Retains selection and submission while preventing edits.</prop>
+    <prop name="required" type="boolean" default="false">Requires both endpoints. A partially entered optional range also requires its missing endpoint.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid appearance supplied by the application.</prop>
+    <prop name="label" type="string" default="Date range">Accessible name of the range group.</prop>
+    <prop name="startLabel" type="string" default="Start date">Visible label of the start field.</prop>
+    <prop name="endLabel" type="string" default="End date">Visible label of the end field.</prop>
+    <prop name="pickerLabel" type="string" default="Choose date range">Accessible name of the picker dialog and actions.</prop>
+    <prop name="monthLabel" type="string" default="Choose month">Accessible name of the month navigation toggle.</prop>
+    <prop name="yearLabel" type="string" default="Choose year">Accessible name of year navigation and direct year entry.</prop>
+    <prop name="previousLabel" type="string" default="Previous">Accessible name of the previous-page action.</prop>
+    <prop name="nextLabel" type="string" default="Next">Accessible name of the next-page action.</prop>
+    <prop
+      name="model"
+      type="object({ startRanges: list(object({ start: string, end: string })), endRanges: list(object({ start: string, end: string })), calendarRanges: list(object({ start: string, end: string })), weekStartsOn: integer })"
+    >Server-prepared endpoint availability, owned by the component module's producer.</prop>
+    <state name="current" type="object({ start: string, end: string })" from="$value"></state>
+    <state name="draft" type="object({ start: string, end: string })" from="$value"></state>
+    <state name="selection" type="object({ start: string, end: string })" value="{ start: '', end: '' }"></state>
+    <state name="preview" type="object({ start: string, end: string })" value="{ start: '', end: '' }"></state>
+    <state name="anchor" type="string" value=""></state>
+    <state name="mode" type="string" value="range"></state>
+    <state name="popupValue" type="string" value=""></state>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="opened" type="boolean" value="false"></state>
+    <state name="idPrefix" type="string" value=""></state>
+    <state name="activeAnchor" type="string" value=""></state>
+    <state name="blocked" type="boolean" value="false"></state>
+    <state name="error" type="string" value=""></state>
+    <event name="input" type="object"><prop name="value" type="object({ start: string, end: string })" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="object({ start: string, end: string })" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="query-change" type="object"><prop name="endpoint" type="keyword" values="start, end" required></prop><prop
+        name="query"
+        type="string"
+        required
+      ></prop></event>
+    <event name="validation-change" type="object"><prop name="invalid" type="boolean" required></prop><prop name="message" type="string" required></prop><prop
+        name="endpoint"
+        type="keyword"
+        values="start, end"
+      ></prop></event>
+    <event name="open" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+    <event name="close" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+  </defs>
+  <span role="group" from:aria-label="$label">
+    <ui-stack gap="s">
+      <ui-grid columns="2" gap="s">
+        <template $each="endpoint of ['start', 'end']" $key="$endpoint">
+          <ui-form-field from:disabled="$disabled" from:required="$required or $draft.start != '' or $draft.end != ''" from:invalid="$invalid">
+            <ui-text slot="label" as="label" variant="label" from:for="{ start: $startInputId, end: $endInputId }[$endpoint]"
+            >{{ start: $startLabel, end: $endLabel }[$endpoint]}</ui-text>
+            <ui-input-group from:disabled="$disabled">
+              <ui-date-field
+                from:data-range-field="$endpoint"
+                from:value="$draft[$endpoint]"
+                from:label="{ start: $startLabel, end: $endLabel }[$endpoint]"
+                from:input-id="{ start: $startInputId, end: $endInputId }[$endpoint]"
+                from:name="{ true: '', false: { start: $startName, end: $endName }[$endpoint] }[concat($enhanced)]"
+                from:form="$form"
+                from:locale="$locale"
+                from:display-options="$displayOptions"
+                from:size="$size"
+                from:min="$min"
+                from:max="$max"
+                from:allowed-ranges="{ start: $model.startRanges, end: $model.endRanges }[$endpoint]"
+                from:disabled-dates="$disabledDates"
+                from:disabled-ranges="$disabledRanges"
+                from:disabled-weekdays="$disabledWeekdays"
+                from:disabled="$disabled"
+                from:readonly="$readonly"
+                from:required="$required or $draft.start != '' or $draft.end != ''"
+                from:invalid="$invalid"
+              ></ui-date-field>
+              <ui-icon-button
+                slot="action"
+                from:data-range-trigger="$endpoint"
+                from:id="{ true: concat($idPrefix, '-', $endpoint), false: null }[concat($idPrefix != '')]"
+                from:label="concat($pickerLabel, ': ', { start: $startLabel, end: $endLabel }[$endpoint])"
+                from:hidden="not $enhanced"
+                from:size="$size"
+                variant="ghost"
+                from:disabled="$disabled or $readonly or $blocked"
+                aria-haspopup="dialog"
+                from:aria-expanded="$opened and $activeAnchor = concat($idPrefix, '-', $endpoint)"
+              ><ui-icon name="calendar"></ui-icon></ui-icon-button>
+            </ui-input-group>
+          </ui-form-field>
+        </template>
+      </ui-grid>
+      <ui-text data-range-error tone="danger" role="alert" from:hidden="$error = '' or $opened">{$error}</ui-text>
+    </ui-stack>
+    <input
+      data-range-value="start"
+      type="hidden"
+      from:name="$startName"
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:value="$current.start"
+      from:disabled="not $enhanced or $disabled"
+    >
+    <input
+      data-range-value="end"
+      type="hidden"
+      from:name="$endName"
+      from:form="{ true: $form, false: null }[concat($form != '')]"
+      from:value="$current.end"
+      from:disabled="not $enhanced or $disabled"
+    >
+    <ui-popover data-range-popover trigger="manual" size="sm" from:for="$activeAnchor" from:open="$opened" role="dialog" from:aria-label="$pickerLabel">
+      <ui-stack gap="s">
+        <ui-calendar
+          data-range-calendar
+          from:value="{ true: $popupValue, false: $current.start }[concat($opened)]"
+          from:start="{ true: $preview.start, false: $current.start }[concat($opened)]"
+          from:end="{ true: $preview.end, false: $current.end }[concat($opened)]"
+          from:allowed-ranges="$model.calendarRanges"
+          from:min="$min"
+          from:max="$max"
+          from:disabled-dates="$disabledDates"
+          from:disabled-ranges="$disabledRanges"
+          from:disabled-weekdays="$disabledWeekdays"
+          from:week-starts-on="$model.weekStartsOn"
+          from:locale="$locale"
+          from:today="$today"
+          from:label="$pickerLabel"
+          from:month-label="$monthLabel"
+          from:year-label="$yearLabel"
+          from:previous-label="$previousLabel"
+          from:next-label="$nextLabel"
+          from:disabled="not $opened or $disabled or $readonly"
+        ></ui-calendar>
+        <ui-text data-range-popup-error tone="danger" role="alert" from:hidden="$error = ''">{$error}</ui-text>
+      </ui-stack>
+    </ui-popover>
+  </span>
+</template>

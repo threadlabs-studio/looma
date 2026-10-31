@@ -1,0 +1,160 @@
+<link rel="component" href="../ui-time-field/ui-time-field.html">
+<link rel="component" href="../ui-input-group/ui-input-group.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-popover/ui-popover.html">
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<link rel="component" href="../ui-select/ui-select.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<template component="ui-time-picker" module="./ui-time-picker.js">
+  <defs>
+    <prop name="value" type="string" default="">Initial canonical time, replaced when changed externally. Reset restores this external value.</prop>
+    <prop name="locale" type="string" default="en-US">Intl locale for typed time and display. ISO time paste is always accepted.</prop>
+    <prop name="hourCycle" type="keyword" values="h11, h12, h23, h24">Hour cycle for the field and picker choices; omission follows the locale.</prop>
+    <prop name="granularity" type="keyword" values="minute, second" default="minute"
+    >Smallest displayed time unit. Existing seconds and fractions are preserved.</prop>
+    <prop name="min" type="string" default="">Inclusive earliest time. Bounds may wrap midnight when max precedes min.</prop>
+    <prop name="max" type="string" default="">Inclusive latest permitted time, in canonical ISO time format.</prop>
+    <prop name="name" type="string" default="">Native form field name for the canonical time.</prop>
+    <prop name="form" type="string" default="">Optional external form ID.</prop>
+    <prop name="inputId" type="string" default="">ID of the active native input for an authored label.</prop>
+    <prop name="label" type="string" default="">Optional accessible field name; prefer an authored visible label.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg" default="md">Shared field and trigger size.</prop>
+    <prop name="placeholder" type="string" default="">Optional hint inside the empty field.</prop>
+    <prop name="pickerLabel" type="string" default="Choose time">Accessible name of the trigger and picker dialog.</prop>
+    <prop name="hourLabel" type="string" default="Hour">Visible hour editor label.</prop>
+    <prop name="minuteLabel" type="string" default="Minute">Visible minute editor label.</prop>
+    <prop name="secondLabel" type="string" default="Second">Visible second editor label.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing/opening and omits native submission.</prop>
+    <prop name="readonly" type="boolean" default="false">Prevents editing/opening while retaining selection and submission.</prop>
+    <prop name="required" type="boolean" default="false">Requires a complete time.</prop>
+    <prop name="invalid" type="boolean" default="false">External invalid appearance supplied by the application, independent of parsed validity.</prop>
+    <state name="current" type="string" from="$value"></state>
+    <state name="enhanced" type="boolean" value="false"></state>
+    <state name="anchorId" type="string" value=""></state>
+    <state name="opened" type="boolean" value="false"></state>
+    <state name="fieldBlocked" type="boolean" value="false"></state>
+    <state name="hourFormat" type="object({ hour: string, timeZone: string, hourCycle?: string })" value="{ hour: 'numeric', timeZone: 'UTC' }"></state>
+    <computed name="hourValues" from="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]"></computed>
+    <computed
+      name="ticks"
+      from="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]"
+    ></computed>
+    <state name="showSeconds" type="boolean" value="false"></state>
+    <state name="error" type="string" value=""></state>
+    <event name="input" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="query-change" type="object"><prop name="query" type="string" required></prop></event>
+    <event name="validation-change" type="object"><prop name="invalid" type="boolean" required></prop><prop
+        name="message"
+        type="string"
+        required
+      ></prop></event>
+    <event name="open" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+    <event name="close" type="object"><prop name="open" type="boolean" required></prop><prop
+        name="reason"
+        type="keyword"
+        values="action, programmatic, light-dismiss, escape"
+        required
+      ></prop><prop name="trigger" type="keyword" values="keyboard, pointer, programmatic" required></prop></event>
+  </defs>
+  <span>
+    <ui-input-group from:disabled="$disabled">
+      <ui-time-field
+        data-time-field
+        from:value="$current"
+        from:locale="$locale"
+        from:hour-cycle="$hourCycle"
+        from:granularity="$granularity"
+        from:min="$min"
+        from:max="$max"
+        from:name="$name"
+        from:form="$form"
+        from:input-id="$inputId"
+        from:label="$label"
+        from:size="$size"
+        from:placeholder="$placeholder"
+        from:disabled="$disabled"
+        from:readonly="$readonly"
+        from:required="$required"
+        from:invalid="$invalid"
+      ></ui-time-field>
+      <ui-icon-button
+        data-time-trigger
+        slot="action"
+        from:id="$anchorId"
+        from:hidden="not $enhanced"
+        from:size="$size"
+        variant="ghost"
+        from:label="$pickerLabel"
+        from:disabled="$disabled or $readonly or $fieldBlocked"
+        aria-haspopup="dialog"
+      ><ui-icon name="clock"></ui-icon></ui-icon-button>
+    </ui-input-group>
+    <ui-popover data-time-popover from:for="$anchorId" from:open="$opened" role="dialog" from:aria-label="$pickerLabel">
+      <ui-stack gap="s">
+        <ui-cluster gap="xs" align="start">
+          <ui-stack gap="xs"><ui-text
+              as="label"
+              variant="label"
+              tone="secondary"
+              from:for="{ true: concat($anchorId, '-hour'), false: null }[concat($anchorId != '')]"
+            >{$hourLabel}</ui-text><ui-select
+              data-time-hour
+              size="sm"
+              from:id="{ true: concat($anchorId, '-hour'), false: null }[concat($anchorId != '')]"
+              from:aria-label="$hourLabel"
+              from:disabled="not $opened"
+            ><template $each="hour of $hourValues"><option from:value="concat($hour)">
+                  {format($hour * 3600000, 'time', $hourFormat, $locale)}
+                </option></template></ui-select></ui-stack>
+          <ui-stack gap="xs"><ui-text
+              as="label"
+              variant="label"
+              tone="secondary"
+              from:for="{ true: concat($anchorId, '-minute'), false: null }[concat($anchorId != '')]"
+            >{$minuteLabel}</ui-text><ui-select
+              data-time-minute
+              size="sm"
+              from:id="{ true: concat($anchorId, '-minute'), false: null }[concat($anchorId != '')]"
+              from:aria-label="$minuteLabel"
+              from:disabled="not $opened"
+            ><template $each="tick of $ticks"><option from:value="concat($tick)">
+                  {format($tick, 'number', { minimumIntegerDigits: 2 }, $locale)}
+                </option></template></ui-select></ui-stack>
+          <ui-stack gap="xs" from:hidden="not $showSeconds"><ui-text
+              as="label"
+              variant="label"
+              tone="secondary"
+              from:for="{ true: concat($anchorId, '-second'), false: null }[concat($anchorId != '')]"
+            >{$secondLabel}</ui-text><ui-select
+              data-time-second
+              size="sm"
+              from:id="{ true: concat($anchorId, '-second'), false: null }[concat($anchorId != '')]"
+              from:aria-label="$secondLabel"
+              from:disabled="not $opened or not $showSeconds"
+            ><template $each="tick of $ticks"><option from:value="concat($tick)">
+                  {format($tick, 'number', { minimumIntegerDigits: 2 }, $locale)}
+                </option></template></ui-select></ui-stack>
+        </ui-cluster>
+        <ui-text tone="danger" role="alert" from:hidden="$error = ''">{$error}</ui-text>
+      </ui-stack>
+    </ui-popover>
+  </span>
+</template>

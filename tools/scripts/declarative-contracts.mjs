@@ -46,6 +46,7 @@ function inferRoot(source, tag) {
   const body = template
     .replace(/^\s*<template\b[^>]*>/, "")
     .replace(/<\/template>\s*$/, "")
+    .replace(/^(?:\s*<!--[\s\S]*?-->)+\s*/, "")
     .trim();
   // A polymorphic root (`<template $match>`) renders its `$else` arm by default, as HTML Next records it.
   const match = /^<template\s+\$match\b/.test(body)
@@ -171,7 +172,7 @@ function shapeFields(node, prefix = "") {
       path,
       type: fieldType(field.type),
       required: !field.optional,
-      ...(base.kind === "constrained" ? { values: base.values.map(String) } : {}),
+      ...(base.kind === "constrained" && base.values ? { values: base.values.map(String) } : {}),
     }, ...shapeFields(base, path)];
   });
 }

@@ -145,6 +145,20 @@
     "example": 0
   },
   {
+    "name": "trigger: click",
+    "props": {
+      "trigger": "click"
+    },
+    "example": 0
+  },
+  {
+    "name": "trigger: manual",
+    "props": {
+      "trigger": "manual"
+    },
+    "example": 0
+  },
+  {
     "name": "Example: 01-trigger-binding",
     "props": {},
     "example": 0

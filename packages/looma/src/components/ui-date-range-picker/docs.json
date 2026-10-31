@@ -1,0 +1,5 @@
+{
+  "description": "Type either endpoint or use its calendar action. An existing range commits the chosen endpoint immediately, preserving its opposite until crossed and then collapsing both to the chosen date. A new range commits on the second click, putting the earlier date first. Hover and keyboard focus preview a continuous highlight across week rows. Escape or clicking outside closes an unfinished selection. Bounds and allowed or disabled dates apply equally to typing and selection, including interior dates unless explicitly allowed. Native fields submit before JavaScript; partial or invalid text keeps the accepted pair while blocking submission. Values contain only YYYY-MM-DD dates.",
+  "group": "forms",
+  "summary": "Type or select date ranges without shifting an already chosen endpoint."
+}

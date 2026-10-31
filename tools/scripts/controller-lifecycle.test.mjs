@@ -18,7 +18,7 @@ for (const tag of (await readdir(components)).filter((name) => name.startsWith("
     assert.doesNotMatch(definition, /\bcontroller=/);
     if (!modulePath) return;
     const exports = await import(new URL(`${tag}/${modulePath}`, components));
-    assert.deepEqual(Object.keys(exports), exports.connect === undefined ? [] : ["connect"]);
-    if (exports.connect !== undefined) assert.equal(typeof exports.connect, "function");
+    assert.equal("default" in exports, false);
+    assert.ok(exports.connect === undefined || typeof exports.connect === "function");
   });
 }

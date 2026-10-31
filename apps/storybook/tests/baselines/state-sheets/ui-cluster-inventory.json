@@ -124,6 +124,13 @@
     "example": 0
   },
   {
+    "name": "padding: xs",
+    "props": {
+      "padding": "xs"
+    },
+    "example": 0
+  },
+  {
     "name": "padding: s",
     "props": {
       "padding": "s"

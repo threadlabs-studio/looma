@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "disabled: false",
+    "props": {
+      "disabled": false
+    },
+    "example": 0
+  },
+  {
+    "name": "disabled: true",
+    "props": {
+      "disabled": true
+    },
+    "example": 0
+  },
+  {
+    "name": "readonly: false",
+    "props": {
+      "readonly": false
+    },
+    "example": 0
+  },
+  {
+    "name": "readonly: true",
+    "props": {
+      "readonly": true
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-date",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-availability",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-range",
+    "props": {},
+    "example": 2
+  }
+]

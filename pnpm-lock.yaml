@@ -78,8 +78,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/looma
       '@threadlabs/markupkit':
-        specifier: '>=0.4.2'
-        version: 0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+        specifier: '>=0.4.3'
+        version: 0.4.3(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -142,12 +142,12 @@ importers:
 
   packages/looma:
     dependencies:
+      '@js-temporal/polyfill':
+        specifier: ^0.5.1
+        version: 0.5.1
       '@nextwebwg/html-next':
         specifier: '>=1.0.0-alpha.74'
-        version: 1.0.0-alpha.76
-      '@threadlabs/markupkit':
-        specifier: '>=0.4.2'
-        version: 0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+        version: 1.0.0-alpha.79
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
@@ -165,14 +165,17 @@ importers:
         version: 0.554.0
       markupress:
         specifier: '>=0.14.6'
-        version: 0.14.6(@nextwebwg/html-next@1.0.0-alpha.76)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        version: 0.14.6(@nextwebwg/html-next@1.0.0-alpha.79)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       parse5:
         specifier: ^8.0.1
         version: 8.0.1
     devDependencies:
       '@nextwebwg/html-next-unplugin':
-        specifier: '>=1.0.0-alpha.76'
-        version: 1.0.0-alpha.76(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
+        specifier: '>=1.0.0-alpha.79'
+        version: 1.0.0-alpha.79(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
+      '@threadlabs/markupkit':
+        specifier: '>=0.4.3'
+        version: 0.4.3(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -316,8 +319,8 @@ importers:
         version: 3.5.43(typescript@5.9.3)
     devDependencies:
       '@nextwebwg/html-next-unplugin':
-        specifier: '>=1.0.0-alpha.76'
-        version: 1.0.0-alpha.76(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
+        specifier: '>=1.0.0-alpha.79'
+        version: 1.0.0-alpha.79(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.1
         version: 7.3.1(svelte@5.57.3)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
@@ -2105,6 +2108,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@js-temporal/polyfill@0.5.1':
+    resolution: {integrity: sha512-hloP58zRVCRSpgDxmqCWJNlizAlUgJFqG2ypq79DCvyv9tHjRYMDOcPFjzfl/A1/YxDvRCZz8wvZvmapQnKwFQ==}
+    engines: {node: '>=12'}
+
   '@jsonjoy.com/base64@1.1.2':
     resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
     engines: {node: '>=10.0'}
@@ -2250,13 +2257,13 @@ packages:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
 
-  '@nextwebwg/html-next-converter@1.0.0-alpha.76':
-    resolution: {integrity: sha512-Ri84HT1C0PY0gktvykWkuOBf3CiMv7kE71rPZlrc98j5m9LLlJVyrX1cv2Z6KFVrjaWQlhSnVjmjYZC4m6dfHw==}
+  '@nextwebwg/html-next-converter@1.0.0-alpha.79':
+    resolution: {integrity: sha512-BNz9ABT8FTmoyu0oLQsAw7dtoMN4PmfOUd7AR3W1Zh/4hda7wOy0Kay//9wAm1LcAcKsrmkvuNflL8xpAvzTSw==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.76':
-    resolution: {integrity: sha512-fm8A2JoamDkUZmvc2LvR5XIWZCoTQ0D/JHW0vsSkkroagVRrwouCRb2ICQ12BJqiZgYAdqSTahc2ntsJsuwsHg==}
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.79':
+    resolution: {integrity: sha512-tZ7m7oJ82ymE6JXox3rLRNJIOGXPqB+olDML8bXcL6mWWLT6E+tZV4NJudXlxwDYEEPlSoVyMz5iFglNQ5INaQ==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
@@ -2267,6 +2274,16 @@ packages:
 
   '@nextwebwg/html-next@1.0.0-alpha.76':
     resolution: {integrity: sha512-u3/wypijpqvNc/8cW88mmDng49MPFjLSCdonArDkV/RqxMZ9TywhpamaK1uvo9n1kJy3VfTKOcfnQiJaYUpJqA==}
+    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
+    hasBin: true
+
+  '@nextwebwg/html-next@1.0.0-alpha.78':
+    resolution: {integrity: sha512-78NORg51cOe7tdUW3cnXufCO1w/fJ87RXD+YzfL+TXUvtC/EAi4j8OqZlx3cbUGdAO0Hc3wO5B1askjO8sgnbw==}
+    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
+    hasBin: true
+
+  '@nextwebwg/html-next@1.0.0-alpha.79':
+    resolution: {integrity: sha512-UuJb+ome2qrTkDPJPPSZDsYnljjaAsx4paKMQMYuP0G7uUSG1PpDDjK5WsFf+49tBFMhZ5Iu/Q58GbQuunNhyw==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
@@ -3181,8 +3198,8 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
-  '@threadlabs/markupkit@0.4.2':
-    resolution: {integrity: sha512-9qK3+pP6fT+kBReMXducUb/Ib7BkzwZGiQpp+BFOWYelefunM6ikXalGAmRaWUstwZyhL80GKh/CS5L6yd1fjQ==}
+  '@threadlabs/markupkit@0.4.3':
+    resolution: {integrity: sha512-v82MOdNJNxniVbHO20VdBpEMnlo0uFqgbwa9zN57x8qptxU+ZYfaUCt4tV1igDPq4+C8gMjrYwd4MexKzg/JQg==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
@@ -5774,6 +5791,9 @@ packages:
   js-yaml@4.1.1:
     resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
     hasBin: true
+
+  jsbi@4.3.2:
+    resolution: {integrity: sha512-9fqMSQbhJykSeii05nxKl4m6Eqn2P6rOlYiS+C5Dr/HPIU/7yZxu5qzbs40tgaFORiw2Amd0mirjxatXYMkIew==}
 
   jsbn@0.1.1:
     resolution: {integrity: sha512-UVU9dibq2JcFWxQPA6KCqj5O42VOmAY3zQUfEKxU0KpTGXwNoCjkX1e13eHNvw/xPynt6pU0rZ1htjWTNTSXsg==}
@@ -11183,6 +11203,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@js-temporal/polyfill@0.5.1':
+    dependencies:
+      jsbi: 4.3.2
+
   '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
       tslib: 2.8.1
@@ -11367,17 +11391,17 @@ snapshots:
       '@tybys/wasm-util': 0.10.4
     optional: true
 
-  '@nextwebwg/html-next-converter@1.0.0-alpha.76':
+  '@nextwebwg/html-next-converter@1.0.0-alpha.79':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.76
+      '@nextwebwg/html-next': 1.0.0-alpha.79
     transitivePeerDependencies:
       - '@noble/hashes'
       - canvas
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.76(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.79(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.76
-      '@nextwebwg/html-next-converter': 1.0.0-alpha.76
+      '@nextwebwg/html-next': 1.0.0-alpha.79
+      '@nextwebwg/html-next-converter': 1.0.0-alpha.79
       css-tree: 3.2.1
       cssstyle: 6.2.0
       magic-string: 0.30.21
@@ -11403,10 +11427,10 @@ snapshots:
       - unloader
       - webpack
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.76(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.79(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.76
-      '@nextwebwg/html-next-converter': 1.0.0-alpha.76
+      '@nextwebwg/html-next': 1.0.0-alpha.79
+      '@nextwebwg/html-next-converter': 1.0.0-alpha.79
       css-tree: 3.2.1
       cssstyle: 6.2.0
       magic-string: 0.30.21
@@ -11433,6 +11457,36 @@ snapshots:
       - webpack
 
   '@nextwebwg/html-next@1.0.0-alpha.76':
+    dependencies:
+      '@dprint/formatter': 0.6.0
+      '@dprint/typescript': 0.96.1
+      '@formatjs/intl-durationformat': 0.11.1
+      dprint-plugin-malva: 0.16.0
+      dprint-plugin-markup: 0.27.6
+      jsdom: 30.1.2
+      parse5: 8.0.1
+      postcss: 8.5.30
+      typescript-compiler: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - canvas
+
+  '@nextwebwg/html-next@1.0.0-alpha.78':
+    dependencies:
+      '@dprint/formatter': 0.6.0
+      '@dprint/typescript': 0.96.1
+      '@formatjs/intl-durationformat': 0.11.1
+      dprint-plugin-malva: 0.16.0
+      dprint-plugin-markup: 0.27.6
+      jsdom: 30.1.2
+      parse5: 8.0.1
+      postcss: 8.5.30
+      typescript-compiler: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - canvas
+
+  '@nextwebwg/html-next@1.0.0-alpha.79':
     dependencies:
       '@dprint/formatter': 0.6.0
       '@dprint/typescript': 0.96.1
@@ -12245,9 +12299,9 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.1
 
-  '@threadlabs/markupkit@0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
+  '@threadlabs/markupkit@0.4.3(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.76
+      '@nextwebwg/html-next': 1.0.0-alpha.78
       parse5: 8.0.1
       typescript-compiler: '@typescript/typescript6@6.0.2'
       vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
@@ -14927,7 +14981,7 @@ snapshots:
 
   history@4.10.1:
     dependencies:
-      '@babel/runtime': 7.29.7
+      '@babel/runtime': 7.29.10
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.3.3
@@ -15319,6 +15373,8 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
+  jsbi@4.3.2: {}
+
   jsbn@0.1.1: {}
 
   jsdoc-type-pratt-parser@4.8.0: {}
@@ -15642,11 +15698,11 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.14.6(@nextwebwg/html-next@1.0.0-alpha.76)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@0.14.6(@nextwebwg/html-next@1.0.0-alpha.79)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.76
+      '@nextwebwg/html-next': 1.0.0-alpha.79
       '@threadlabs/looma': link:packages/looma
-      '@threadlabs/markupkit': 0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+      '@threadlabs/markupkit': 0.4.3(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       expressmark: 0.5.1
       minisearch: 7.2.0
       parse5: 8.0.1
@@ -15674,7 +15730,7 @@ snapshots:
     dependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.76
       '@threadlabs/looma': link:packages/looma
-      '@threadlabs/markupkit': 0.4.2(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
+      '@threadlabs/markupkit': 0.4.3(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       expressmark: 0.5.1
       minisearch: 7.2.0
       parse5: 8.0.1

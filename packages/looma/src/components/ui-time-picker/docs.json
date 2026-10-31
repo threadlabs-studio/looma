@@ -1,0 +1,5 @@
+{
+  "description": "Type a localized time in editable hour, minute and optional second blocks, or open native time choices. Valid edits update immediately. Hour choices follow the locale and hour-cycle override. Unavailable choices are disabled, including overnight bounds. Native forms submit one canonical time, and native time entry remains available before JavaScript.",
+  "group": "forms",
+  "summary": "Block-based time entry with localized pointer choices."
+}

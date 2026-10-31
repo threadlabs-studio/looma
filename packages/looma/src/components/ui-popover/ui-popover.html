@@ -7,6 +7,8 @@
       surface separation adapts to popover purpose and rendered size.</prop>
     <prop name="open" type="boolean" default="false">Whether the popover is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the popover.</prop>
+    <prop name="trigger" type="keyword" values="click, manual" default="click"
+    >Click toggles the popover from its for control. Manual retains anchoring, aria-expanded, Escape and light dismissal while the caller controls open.</prop>
     <prop
       name="placement"
       type="keyword"

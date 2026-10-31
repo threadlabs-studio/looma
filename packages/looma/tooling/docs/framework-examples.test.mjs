@@ -95,6 +95,36 @@ test('every output prints nested invocations with separate attribute lines and c
   assert.match(codes.react.code, /<UiInput\n +id="site"\n +placeholder="your-site"\n +\/>/);
 });
 
+test('Vue bindings use single-quoted strings in object and array expressions', () => {
+  const catalog = [{ tag: 'ui-date-field', package: '@threadlabs/looma', attributes: [
+    { name: 'display-options', property: 'displayOptions', valueType: { kind: 'object', fields: [{ name: 'dateStyle', type: { kind: 'terminal', name: 'string' }, optional: true }] } },
+    { name: 'disabled-dates', property: 'disabledDates', valueType: { kind: 'list', item: { kind: 'terminal', name: 'string' } } },
+  ] }];
+  const example = { markup: `<ui-date-field display-options='{"dateStyle":"long"}' disabled-dates='["2026-11-11"]'></ui-date-field>` };
+  const codes = frameworkExamples(example, catalog);
+  assert.ok(codes.vue.code.includes(`:display-options="{ dateStyle: 'long' }"`));
+  assert.ok(codes.vue.code.includes(`:disabled-dates="['2026-11-11']"`));
+  assert.doesNotMatch(codes.vue.code, /&quot;/);
+  assert.ok(codes.react.code.includes('displayOptions={{"dateStyle":"long"}}'));
+  assert.ok(codes.svelte.code.includes('disabledDates={["2026-11-11"]}'));
+});
+
+test('Vue expression quoting preserves apostrophes, quotes, backslashes and HTML-like text', async () => {
+  const { parseFragment } = await import('parse5');
+  const { runInNewContext } = await import('node:vm');
+  const values = ["O'Reilly", 'a "quote"', '\\"', "\\'", '<tag>&copy;', 'line\nnext', 'tab\there'];
+  const json = JSON.stringify(values).replaceAll('\\n', '\n').replaceAll('\\t', '\t')
+    .replaceAll('&', '&amp;').replaceAll("'", '&#39;').replaceAll('<', '&lt;');
+  const catalog = [{ tag: 'ui-example', package: '@threadlabs/looma', attributes: [
+    { name: 'values', valueType: { kind: 'list', item: { kind: 'terminal', name: 'string' } } },
+  ] }];
+  const code = frameworkExamples({ markup: `<ui-example values='${json}'></ui-example>` }, catalog).vue.code;
+  const template = parseFragment(code.slice(code.indexOf('<template>'))).childNodes[0];
+  const component = template.content.childNodes.find(node => node.tagName === 'uiexample');
+  const expression = component.attrs.find(attribute => attribute.name === ':values').value;
+  assert.deepEqual(JSON.parse(JSON.stringify(runInNewContext(expression))), values);
+});
+
 test('HTML Next separates named slots from a single default text label', () => {
   const markup = '<ui-page-header><ui-icon slot="leading" name="folder"></ui-icon> Planning <span slot="description">Roadmaps</span></ui-page-header>';
   const code = frameworkExamples({ markup }, [])['html-next'].code;

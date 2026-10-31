@@ -1,0 +1,17 @@
+<!--
+title: Enter an authentication code
+description: Each digit advances to the next block. Backspace moves backwards, and a pasted code fills the remaining blocks. One native input retains browser autofill, clipboard and form behavior.
+-->
+<ui-form-field required>
+  <label slot="label" for="authentication-code">Authentication code</label>
+  <ui-input
+    id="authentication-code"
+    name="code"
+    inputmode="numeric"
+    autocomplete="one-time-code"
+    placeholder="······"
+    pattern="[0-9]{6}"
+    segments='[{ placeholder: "·", pattern: "[0-9]" }, { placeholder: "·", pattern: "[0-9]" }, { placeholder: "·", pattern: "[0-9]" }, { placeholder: "·", pattern: "[0-9]" }, { placeholder: "·", pattern: "[0-9]" }, { placeholder: "·", pattern: "[0-9]" }]'
+  ></ui-input>
+  <small slot="help">Enter the six digits from your authentication message.</small>
+</ui-form-field>

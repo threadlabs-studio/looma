@@ -212,6 +212,16 @@
     "example": 4
   },
   {
+    "name": "Example: 06-segmented-time",
+    "props": {},
+    "example": 5
+  },
+  {
+    "name": "Example: 07-authentication-code",
+    "props": {},
+    "example": 6
+  },
+  {
     "name": "hover",
     "props": {},
     "example": 0,

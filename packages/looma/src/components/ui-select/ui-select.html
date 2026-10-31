@@ -20,6 +20,7 @@
     :host {
       --_ui-select-size: var(--ui-control-size-md);
       --_ui-select-inset-block: var(--ui-control-inset-block-md, var(--ui-space-2));
+      --_ui-select-chevron-inset: var(--ui-space-3);
       box-sizing: border-box !important;
       display: inline-block !important;
       inline-size: var(--ui-select-inline-size, 100%);
@@ -55,8 +56,12 @@
         ),
         var(--_ui-select-highlight);
       background-repeat: no-repeat;
-      background-position: right var(--ui-space-3) center, center;
+      background-position: right var(--_ui-select-chevron-inset) center, center;
       background-size: 1.125rem 1.125rem, 100% 100%;
+    }
+
+    :host:dir(rtl) {
+      background-position: left var(--_ui-select-chevron-inset) center, center;
     }
 
     :host([muted]) {
@@ -110,7 +115,7 @@
       min-block-size: var(--ui-control-size-sm);
       padding: var(--_ui-select-inset-block) var(--ui-space-2) !important;
       padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1)) !important;
-      background-position: right var(--ui-space-2) center, center;
+      --_ui-select-chevron-inset: var(--ui-space-2);
       background-size:
         var(--ui-icon-size-sm) var(--ui-icon-size-sm),
         100% 100%;
@@ -123,7 +128,7 @@
       min-block-size: var(--ui-control-size-lg);
       padding: var(--_ui-select-inset-block) var(--ui-space-4) !important;
       padding-inline-end: calc(var(--ui-space-4) + 1.5rem) !important;
-      background-position: right var(--ui-space-4) center, center;
+      --_ui-select-chevron-inset: var(--ui-space-4);
       font-size: var(--ui-font-size-md);
     }
 

@@ -1,0 +1,221 @@
+<link rel="component" href="../ui-stack/ui-stack.html">
+<link rel="component" href="../ui-cluster/ui-cluster.html">
+<link rel="component" href="../ui-grid/ui-grid.html">
+<link rel="component" href="../ui-button/ui-button.html">
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-text/ui-text.html">
+<link rel="component" href="../ui-input/ui-input.html">
+<template component="ui-calendar" module="./ui-calendar.js">
+  <defs>
+    <prop name="value" type="string" default=""
+    >Initial selected YYYY-MM-DD civil date, replaced on an external change. Selection events always export just the date, without a time or timezone.
+      Navigation does not select.</prop>
+    <prop name="month" type="string" default=""
+    >Initial visible YYYY-MM, replaced on an external change. Omission follows value, today, then the current UTC month.</prop>
+    <prop name="locale" type="string" default="en-US">Intl Gregorian labels, digits and default week order.</prop>
+    <prop name="today" type="string" default="">Optional explicit YYYY-MM-DD date to mark as today; omission adds no today marker.</prop>
+    <prop name="weekStartsOn" type="integer" min="1" max="7"
+    >Week order override using ISO weekdays: Sunday 7, Saturday 6, or Monday 1. Omission follows the locale's week information, with Sunday as the fallback when
+      unavailable.</prop>
+    <prop name="min" type="string" default="">Inclusive earliest selectable YYYY-MM-DD date.</prop>
+    <prop name="max" type="string" default="">Inclusive latest selectable YYYY-MM-DD date.</prop>
+    <prop name="allowedDates" type="list(string)">Allow-listed dates; omission is unrestricted, an explicit empty list allows none.</prop>
+    <prop name="allowedRanges" type="list(object({ start: string, end: string }))">Inclusive allowed intervals, unioned with allowed-dates.</prop>
+    <prop name="disabledDates" type="list(string)" default="[]">Unavailable dates, subtracted after bounds and allowed rules.</prop>
+    <prop name="disabledRanges" type="list(object({ start: string, end: string }))" default="[]"
+    >Inclusive unavailable intervals with YYYY-MM-DD start and end dates, subtracted after bounds and allowed rules.</prop>
+    <prop name="disabledWeekdays" type="list(integer)" default="[]">Unavailable ISO weekdays: Monday 1 through Sunday 7.</prop>
+    <prop name="start" type="string" default="">Optional range highlight's inclusive YYYY-MM-DD start.</prop>
+    <prop name="end" type="string" default="">Optional range highlight's inclusive YYYY-MM-DD end. The caller owns range coordination.</prop>
+    <prop name="label" type="string" default="Calendar">Accessible name of the calendar group.</prop>
+    <prop name="previousLabel" type="string" default="Previous">Accessible name of the previous month, year or year-page action.</prop>
+    <prop name="nextLabel" type="string" default="Next">Accessible name of the next month, year or year-page action.</prop>
+    <prop name="monthLabel" type="string" default="Choose month">Accessible name of the month view toggle.</prop>
+    <prop name="yearLabel" type="string" default="Choose year">Accessible name of the year view toggle and direct year input.</prop>
+    <prop name="emptyLabel" type="string" default="No available dates this month.">Message when the displayed month has no selectable date.</prop>
+    <prop name="yearErrorLabel" type="string" default="Enter a year from 1 to 9999.">Direct year entry error.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents selection and navigation.</prop>
+    <prop name="readonly" type="boolean" default="false">Allows navigation while preventing selection.</prop>
+    <prop
+      name="model"
+      type="object({ rangeBands: list(object({ start: integer, end: integer })), month: string, title: string, monthLabel: string, yearLabel: string, weekStartsOn: integer, weekendColumns: list(integer), weekdays: list(object({ day: integer, label: string, fullLabel: string })), rows: list(list(object({ value: string, day: integer, outside: boolean, label: string, disabled: boolean, selected: boolean, today: boolean, rangeStart: boolean, rangeEnd: boolean, inRange: boolean, tabIndex: integer }))), focusDate: string, empty: boolean, previousMonth: string, nextMonth: string, months: list(object({ value: string, label: string, fullLabel: string, current: boolean, outsideBounds: boolean, disabled: boolean, tabIndex: integer })), years: list(object({ value: integer, label: string, current: boolean, outsideBounds: boolean, disabled: boolean, tabIndex: integer })), yearPageStart: integer, yearPageLabel: string, monthRows: list(list(object({ value: string, label: string, fullLabel: string, current: boolean, outsideBounds: boolean, disabled: boolean, tabIndex: integer }))), yearRows: list(list(object({ value: integer, label: string, current: boolean, outsideBounds: boolean, disabled: boolean, tabIndex: integer }))) })"
+    >Calendar data supplied by the component module's server-safe producer. Hosts prepare this input before SSR; caller-supplied fixtures override
+      production.</prop>
+    <state name="current" type="string" from="$value"></state>
+    <state name="visibleMonth" type="string" from="$month"></state>
+    <state name="focusedDate" type="string" value=""></state>
+    <state name="yearPageStart" type="integer" value="0"></state>
+    <state name="mode" type="string" value="days"></state>
+    <state name="viewHeight" type="number"></state>
+    <state name="yearError" type="string" value=""></state>
+    <event name="input" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="change" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="select" type="object"><prop name="value" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+    <event name="month-change" type="object"><prop name="month" type="string" required></prop><prop
+        name="trigger"
+        type="keyword"
+        values="keyboard, pointer, programmatic"
+        required
+      ></prop></event>
+  </defs>
+  <section role="group" from:aria-label="$label">
+    <ui-stack gap="s">
+      <ui-cluster justify="between" gap="xs" padding="s" wrap="nowrap">
+        <ui-icon-button
+          data-calendar-previous
+          size="sm"
+          variant="ghost"
+          from:label="$previousLabel"
+          from:disabled="$disabled or ($mode = 'days' and $model.previousMonth = '') or ($mode = 'months' and $model.month &lt; '0002-01') or ($mode = 'years' and $model.yearPageStart = 1)"
+        ><ui-icon name="chevron-left" directional></ui-icon></ui-icon-button>
+        <ui-cluster fixed gap="xs" wrap="nowrap" aria-live="polite" aria-atomic="true">
+          <ui-button
+            data-calendar-month-toggle
+            size="sm"
+            variant="ghost"
+            from:aria-label="concat($monthLabel, ': ', $model.monthLabel)"
+            from:aria-expanded="$mode = 'months'"
+            from:selected="$mode = 'months'"
+            from:disabled="$disabled"
+          ><ui-text as="span">{$model.monthLabel}</ui-text><ui-icon name="chevron-down"></ui-icon></ui-button>
+          <ui-button
+            data-calendar-year-toggle
+            size="sm"
+            variant="ghost"
+            from:aria-label="concat($yearLabel, ': ', $model.yearLabel)"
+            from:aria-expanded="$mode = 'years'"
+            from:selected="$mode = 'years'"
+            from:disabled="$disabled"
+          >{$model.yearLabel}<ui-icon name="chevron-down"></ui-icon></ui-button>
+        </ui-cluster>
+        <ui-icon-button
+          data-calendar-next
+          size="sm"
+          variant="ghost"
+          from:label="$nextLabel"
+          from:disabled="$disabled or ($mode = 'days' and $model.nextMonth = '') or ($mode = 'months' and $model.month &gt; '9998-12') or ($mode = 'years' and $model.yearPageStart &gt;= 9997)"
+        ><ui-icon name="chevron-right" directional></ui-icon></ui-icon-button>
+      </ui-cluster>
+      <ui-stack data-calendar-viewport gap="none" from:height="{ true: null, false: $viewHeight }[concat($mode = 'days')]">
+        <ui-stack
+          data-calendar-days
+          gap="none"
+          role="grid"
+          from:tabindex="{ true: 0, false: null }[concat($model.empty)]"
+          from:aria-label="$model.title"
+          from:aria-readonly="$readonly"
+          from:aria-multiselectable="$start != '' or $end != ''"
+          from:hidden="$mode != 'days'"
+        >
+          <ui-grid fixed columns="7" gap="none" role="row" shaded-columns="[1,2,3,4,5,6,7]" shade-tone="accent">
+            <template $each="weekday of $model.weekdays" $key="$weekday.day"><ui-cluster
+                justify="center"
+                padding="s"
+                wrap="nowrap"
+                role="columnheader"
+                from:aria-label="$weekday.fullLabel"
+              ><ui-text variant="caption" weight="semibold" tone="secondary">{$weekday.label}</ui-text></ui-cluster></template>
+          </ui-grid>
+          <template $each="row, index of $model.rows" $key="$row[0].value">
+            <ui-grid
+              fixed
+              columns="7"
+              gap="none"
+              role="row"
+              from:shaded-columns="$model.weekendColumns"
+              from:selection-start="$model.rangeBands[$index].start"
+              from:selection-end="$model.rangeBands[$index].end"
+            >
+              <template $each="day of $row" $key="$day.value">
+                <ui-cluster
+                  justify="center"
+                  padding="xs"
+                  wrap="nowrap"
+                  role="gridcell"
+                  from:aria-selected="$day.selected or $day.inRange or $day.rangeStart or $day.rangeEnd"
+                  from:aria-disabled="$day.disabled or $disabled = true"
+                >
+                  <ui-button
+                    from:data-calendar-day="$day.value"
+                    size="sm"
+                    square
+                    shape="pill"
+                    variant="ghost"
+                    from:selected="($day.selected and $start = '' and $end = '') or $day.rangeStart or $day.rangeEnd"
+                    from:disabled="$disabled or $day.disabled"
+                    from:tabindex="$day.tabIndex"
+                    from:aria-label="$day.label"
+                    from:aria-current="{ true: 'date', false: null }[concat($day.today)]"
+                  ><ui-text
+                      as="span"
+                      variant="label"
+                      from:weight="{ true: 'semibold', false: { true: 'normal', false: 'inherit' }[concat($day.outside)] }[concat($day.today)]"
+                      from:tone="{ true: 'muted', false: 'default' }[concat($day.outside and not $day.inRange and not $day.selected)]"
+                    >{format($day.day, 'number', {}, $locale)}</ui-text></ui-button>
+                </ui-cluster>
+              </template>
+            </ui-grid>
+          </template>
+        </ui-stack>
+        <ui-text variant="caption" align="center" from:hidden="not $model.empty or $mode != 'days'">{$emptyLabel}</ui-text>
+        <ui-stack data-calendar-months fill justify="center" gap="m" role="grid" from:aria-label="$monthLabel" from:hidden="$mode != 'months'">
+          <template $each="row of $model.monthRows" $key="$row[0].value"><ui-grid fixed columns="3" gap="xs" role="row">
+              <template $each="choice of $row" $key="$choice.value"><span role="gridcell" from:aria-selected="$choice.current"><ui-button
+                    from:data-calendar-month="$choice.value"
+                    from:aria-label="$choice.fullLabel"
+                    from:title="$choice.fullLabel"
+                    size="sm"
+                    stretch
+                    variant="ghost"
+                    shape="pill"
+                    from:selected="$choice.current"
+                    from:disabled="$disabled or $choice.disabled"
+                    from:tabindex="$choice.tabIndex"
+                  ><ui-text as="span" wrap="anywhere" align="center">{$choice.label}</ui-text></ui-button></span></template>
+            </ui-grid></template>
+        </ui-stack>
+        <ui-stack data-calendar-years fill justify="center" gap="s" from:hidden="$mode != 'years'">
+          <ui-input
+            data-calendar-year-input
+            size="sm"
+            inputmode="numeric"
+            from:aria-label="$yearLabel"
+            from:disabled="$disabled"
+            from:invalid="$yearError != ''"
+          ></ui-input>
+          <ui-text variant="caption" tone="danger" role="alert" from:hidden="$yearError = ''">{$yearError}</ui-text>
+          <ui-stack gap="m" role="grid" from:aria-label="$yearLabel">
+            <template $each="row of $model.yearRows" $key="$row[0].value"><ui-grid fixed columns="3" gap="xs" role="row">
+                <template $each="year of $row" $key="$year.value"><span role="gridcell" from:aria-selected="$year.current"><ui-button
+                      from:data-calendar-year="$year.value"
+                      size="sm"
+                      stretch
+                      variant="ghost"
+                      shape="pill"
+                      from:selected="$year.current"
+                      from:disabled="$disabled or $year.disabled"
+                      from:tabindex="$year.tabIndex"
+                    >{$year.label}</ui-button></span></template>
+              </ui-grid></template>
+          </ui-stack>
+        </ui-stack>
+      </ui-stack>
+    </ui-stack>
+  </section>
+</template>
