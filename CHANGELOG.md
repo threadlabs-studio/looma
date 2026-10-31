@@ -5,6 +5,10 @@
 - Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.
 - Remove the extra padded Card around each documentation example so its own card uses the reference page's available width.
 
+- Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
+
+- Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
+
 - Match generated editor responder and event types to the framework-neutral host contracts, including mention/link records, passage ranges and image activation triggers.
 
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.

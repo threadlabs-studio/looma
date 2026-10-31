@@ -1,4 +1,4 @@
-import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
+import { chooseOption, openEditor, chooseStartingPoint, waitForThemeFonts, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startingPoints } from '../../../packages/looma/tooling/docs/theme.mjs';
@@ -112,7 +112,7 @@ test('palette transformations change both mode specimens, keep geometry and surv
   await openEditor(page, 'palette');
   const palette=page.locator('[data-refinement-view="palette"]');
   const colors=()=>palette.locator('.palette-canvas').evaluateAll(es=>es.map(e=>getComputedStyle(e).backgroundColor));
-  await page.evaluate(()=>document.fonts.ready);
+  await waitForThemeFonts(page);
   const before=await colors(), geometry=(await session(page)).values['control-roominess'];
   const specimenSizes=()=>palette.locator('[data-theme]').evaluateAll(es=>es.map(el=>{const b=el.getBoundingClientRect();return [b.width,b.height]}));
   const beforeSizes=await specimenSizes();
@@ -126,6 +126,7 @@ test('palette transformations change both mode specimens, keep geometry and surv
   expect(await related.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe(await preserved.evaluate(el=>getComputedStyle(el).backgroundColor));
   expect((await session(page)).values['control-roominess']).toBe(geometry);
   expect((await session(page)).values['palette-relationship']).toBe('neighboring');
+  await waitForThemeFonts(page);
   expect(await specimenSizes()).toEqual(beforeSizes);
   await expect(palette.locator('.palette-preview')).toHaveAttribute('data-page-flow','');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
