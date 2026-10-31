@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep wide SiteHeader brand images inside their available width beside mobile controls, preserving image proportions in both reading directions.
+
 - Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
 
 - Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
