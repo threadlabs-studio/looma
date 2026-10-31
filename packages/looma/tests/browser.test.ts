@@ -9565,6 +9565,57 @@ describe("Combobox selectedValues", () => {
   });
 });
 
+describe("CycleButton deferred choices", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`waits for choices and accepts localized hints in ${adapter}`, async () => {
+    const items = [{value:"light",label:"Clair",icon:"sun"},{value:"dark",label:"Sombre",icon:"moon"}];
+    const path = await bundle(`cycle-deferred-${adapter}`, adapter === "HTML" ? `
+      import "@looma-test/runtime"; import {componentRegistry} from "@nextwebwg/html-next/runtime";
+      window.fillChoices=(empty=false)=>componentRegistry.update(document.getElementById("cycle"),{items:empty?[]:${JSON.stringify(items)}});
+    ` : `
+      import {createApp,h,ref} from "vue"; import {UiCycleButton as CycleButton} from "@threadlabs/looma";
+      const items=ref(null); window.fillChoices=(empty=false)=>items.value=empty?[]:${JSON.stringify(items)};
+      createApp({render:()=>h(CycleButton,{id:"cycle",label:"Apparence",description:"Choisir l’état suivant",emptyLabel:"Aucun choix",items:items.value})}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML" ? '<ui-cycle-button id="cycle" label="Apparence" description="Choisir l’état suivant" empty-label="Aucun choix"></ui-cycle-button>' : '<div id="app"></div>', [join(root,"tokens.css")]);
+    try {
+      await page.evaluate(() => (window as unknown as {fillChoices(empty:boolean):void}).fillChoices(true));
+      const button = page.locator("#cycle button");
+      assert.equal(await button.isDisabled(), true);
+      assert.equal(await button.getAttribute("aria-label"), "Apparence: Aucun choix");
+      assert.equal(await button.getAttribute("aria-description"), "Choisir l’état suivant");
+      await page.evaluate(() => (window as unknown as {fillChoices():void}).fillChoices());
+      await page.waitForFunction(() => document.querySelector("#cycle button")?.getAttribute("aria-label") === "Apparence: Clair");
+      await button.press("Enter");
+      assert.equal(await button.getAttribute("aria-label"), "Apparence: Sombre");
+    } finally { await page.close(); }
+  });
+});
+
+describe("Search Result Row direction", () => {
+  for (const adapter of ["HTML", "Vue"] as const) it(`aligns search result text at the reading start in ${adapter}`, async () => {
+    const path = await bundle(`search-row-direction-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
+      import { createApp, h } from "vue";
+      import { UiSearchResultRow as SearchResultRow } from "@threadlabs/looma";
+      createApp({render:()=>h(SearchResultRow,{id:"result"},{title:()=>h("span",{id:"title"},"دليل البحث"),meta:()=>"Documentation"})}).mount("#app");
+    `);
+    const page = await open(path, adapter === "HTML"
+      ? '<ui-search-result-row id="result"><span slot="title" id="title">دليل البحث</span><span slot="meta">Documentation</span></ui-search-result-row>'
+      : '<div id="app"></div>', [join(root, "tokens.css")], {viewport:{width:375,height:700}});
+    try {
+      for (const dir of ["ltr", "rtl"]) {
+        await page.locator("html").evaluate((element, value) => element.setAttribute("dir", value), dir);
+        const alignment = await page.locator("#result .title").evaluate(element => {
+          const range = document.createRange(); range.selectNodeContents(element);
+          const text = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+          return {left:Math.abs(text.left-box.left), right:Math.abs(text.right-box.right)};
+        });
+        assert.ok((dir === "rtl" ? alignment.right : alignment.left) < 1, `${dir}: text starts at the reading edge`);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      }
+    } finally { await page.close(); }
+  });
+});
+
 describe("Search Result Row selected", () => {
   // A row is a button in the shell's results, not an option in a listbox, so the current result is
   // stated with aria-current, which a button supports; aria-selected would be ignored on it.

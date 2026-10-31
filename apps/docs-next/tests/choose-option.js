@@ -23,6 +23,19 @@ export async function chooseStartingPoint(page, value) {
   await chooseOption(editor.getByRole('combobox', { name: 'Starting point', exact: true }), value);
 }
 
+/** FontFaceSet.ready can resolve before a theme's imported stylesheet registers its faces. */
+export async function waitForThemeFonts(page) {
+  await page.waitForFunction(() => {
+    const families = Object.values(window[Symbol.for('looma.documentation.theme')].recipe.fonts ?? {});
+    return families.every(family => [...document.fonts].some(face => face.family.replace(/^["']|["']$/g, '') === family));
+  });
+  await page.evaluate(async () => {
+    const families = Object.values(window[Symbol.for('looma.documentation.theme')].recipe.fonts ?? {});
+    await Promise.all(families.map(family => document.fonts.load(`400 16px ${JSON.stringify(family)}`)));
+    await document.fonts.ready;
+  });
+}
+
 export async function setBaseColor(page, label, value) {
   const editor = await openEditor(page, 'palette');
   await editor.getByRole('button', { name: `${label} colour picker`, exact: true }).click();

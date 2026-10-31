@@ -6,6 +6,8 @@
     >Ordered states with a value, readable label and Looma icon name. Activation advances to the next state and wraps.</prop>
     <prop name="index" type="number" default="0">Initial or externally selected zero-based state. The first state is the default.</prop>
     <prop name="label" type="string" default="State">What the button changes, such as Appearance. The selected state is included in its accessible name.</prop>
+    <prop name="description" type="string" default="Activate to choose the next state.">Accessible instruction for cycling; accepts localized reader text.</prop>
+    <prop name="emptyLabel" type="string" default="No choices">Selected-state label while no choices are available.</prop>
     <prop name="size" type="keyword" values="sm, md, lg" default="md">Uses IconButton's compact visible sizes and adjustable invisible touch area.</prop>
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="outline">Uses IconButton's standard emphasis.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents cycling while keeping the selected state visible.</prop>
@@ -14,13 +16,13 @@
     <event name="change" type="object"><prop name="value" type="string" required></prop><prop name="index" type="number" required></prop></event>
   </defs>
   <span><ui-icon-button
-      from:label="concat($label, ': ', default($selected.label, 'No choices'))"
-      from:title="concat($label, ': ', default($selected.label, 'No choices'))"
+      from:label="concat($label, ': ', default($selected.label, $emptyLabel))"
+      from:title="concat($label, ': ', default($selected.label, $emptyLabel))"
       from:size="$size"
       from:variant="$variant"
       from:disabled="$disabled or $items.length &lt; 2"
       tone="neutral"
-      aria-description="Activate to choose the next state."
+      from:aria-description="$description"
     >
       <ui-icon from:name="default($selected.icon, '')"></ui-icon>
     </ui-icon-button></span>
