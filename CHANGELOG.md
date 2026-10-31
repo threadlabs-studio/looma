@@ -1,175 +1,205 @@
 # Changelog
 
-## Next release
+## v0.49.3
 
 - Improve generated React, Vue and Svelte examples with semantic Svelte snippet names, readable slot layouts, consistent indentation and fewer React fragments. Preserve inline spacing and preformatted text, parse typed values with HTML Next's shared contract parser, and import component dependencies from the catalog's resource inventory.
 - Remove the extra padded Card around each documentation example so its own card uses the reference page's available width.
+- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+- Rework the public homepage around a live component showcase and clearer paths to building and theming. Center the documentation header while preserving its text baseline, and give home actions an explicit themed accent.
+### Focused theme customization
+- The starting-point API uses `bookish`; remove uses of the obsolete `library` name.
+### Material and palette refinement
+- IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
+### Improvements
+
+## v0.49.2
 
 - Keep CycleButton safe while bound choices are absent; accept localized accessible instructions and empty-state labels through description and emptyLabel.
-
 - Align Search Result Row text with the reading direction, including right-aligned text in RTL documents.
+
+## v0.49.1
 
 - Match generated editor responder and event types to the framework-neutral host contracts, including mention/link records, passage ranges and image activation triggers.
 
-- Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+## v0.49.0
 
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
-
 - **Breaking:** Ship HTML Next component definitions and remove all distributed Vue exports (`/vue`, `/vue.css`, `/vue/editor`, `/vue/editor/compact` and `/vue/*`). Vue, React and Svelte applications compile the definitions with the HTML Next Vite plugin (alpha.76 or later) and import prefixed `Ui*` components from `@threadlabs/looma`. Replace editor model bindings with `content` and `change.detail.content`, supply services through requests, and use native commands for focus and selection. Framework-neutral editor APIs remain under `/editor`; shared editor styles use `/editor.css`. Import `trackInputModality` from `/input-modality` instead of the removed Vue barrel. Loading guides and component examples show the new imports and slot syntax.
 - Admit future Threadlabs and Nextwebwg releases through minimum-version ranges without a 1.0 or later major-version ceiling. Docs tooling requires MarkupKit 0.4.2 and Markupress 0.14.6 to share the corrected runtime and pass strict peer checks; lockfiles retain exact tested resolutions.
-
 - RadioGroup accepts the native `form` association. The editor’s chip color controls opt out of enclosing forms, so writing inside a form does not submit an internal color choice.
-
 - Author the document editor, compact editor and compact-content renderer in HTML Next. They use `content` and native `change` event details, with host services supplied through requests. The document editor now starts with a valid empty paragraph, avoiding an invalid caret in an empty root document. Controlled replacements that shorten the document keep the caret inside a valid text block.
-
 - Expose component definitions through the HTML Next source export condition. Vue consumers can compile them with the HTML Next Vite adapter; documentation shows HTML Next, Vue, React and Svelte invocations with their actual prefixed imports and slot APIs.
+
+## v0.47.6
 
 - CardGroup no longer reserves an empty heading band when the header slot is omitted. Documentation shows optional slots and shared ActionBar primary actions at the trailing edge.
 
+## v0.47.5
+
 - Matched icon actions retain a larger vertical touch target without intercepting the edge of their neighbouring text action.
+
+## v0.47.4
 
 - Notification stacks keep their content height in Safari instead of expanding over the viewport.
 
-- Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
+## v0.47.3
 
+- Combobox multiline rows retain their field-size geometry without reading a nested Badge sizing hook.
 - Add CardGroup, a native responsive control that composes Grid and aligns Card header, content and action regions through subgrid. Nested cards retain their independent layout.
 - Card exposes header and actions slots around its default body content without changing ordinary stacked spacing.
 - SiteHeader centers the brand and navigation containers individually beside actions, including a logo with mixed-size text.
 
-- TopBar can observe a page heading with `titleFor`, revealing its duplicate title with an upward fade after the heading scrolls out. Navigation and actions stay available, and reduced motion removes the transition.
+## v0.47.2
 
+- TopBar can observe a page heading with `titleFor`, revealing its duplicate title with an upward fade after the heading scrolls out. Navigation and actions stay available, and reduced motion removes the transition.
 - Multiple Combobox fields can set `maxRows` to wrap and grow before scrolling vertically. The default remains one row, and keyboard chip navigation and typing stay inside the field.
+
+## v0.47.1
 
 - Theme customization uses shared Undo/Redo and one toolbar Reset instead of section resets. History shortcuts also work while a dropdown has focus, and preview cards align with their section heading.
 - Filled accent materials retain a visible chromatic gradient on brighter palettes, within label-contrast limits. Darker material and contrast-adjusted borders retain colorfulness through chroma and bounded hue compensation; surface lighting remains restrained. Outline buttons and icon buttons keep flat translucent fills at rest and on hover.
 
+## v0.46.5
+
 - SiteHeader uses compact spacing between the brand and mobile menu while preserving adjustable control targets. Native custom menus keep the same adjacent placement before JavaScript upgrades the header.
+
+## v0.46.4
+
 - Self-contained TOC exports write stable IDs for every heading and reserve anchors used inside authored navigation. Matching heading labels cannot redirect a saved link, including when original Markdown spellings are retained.
 
-- Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
+## v0.46.3
 
+- Require Expressmark 0.5.1 or later so quoted pipe tables paste as editable tables instead of unsupported literal blocks.
 - Markdown exports can request `{ tableOfContents: "entries" }` for saved navigation with current heading links. Reader-built placeholders remain the default, authored navigation remains intact, and native editor content is never rewritten.
+
+## v0.46.2
 
 - Keep SiteHeader's mobile hamburger in the inline navigation's position beside the brand, with the same gap. Only the actions remain at the trailing edge; the brand no longer expands to push the menu away.
 
+## v0.46.1
+
 - Installed consumer verification refreshes registry metadata while reusing package files, so a newly published compatible peer is not hidden by stale offline metadata.
-
 - Qualify the fixed navigation in 0.46.1 so documentation consumers can admit later compatible versions with a stable minimum. Custom native menu triggers remain usable without JavaScript at every breakpoint.
-
 - SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
-
-
 - Fieldset sections use internal gaps and padding instead of margins. A description and actions without body content no longer leave an extra gap above the bottom padding; legend and content alignment stays consistent.
-
 - **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
-
 - With `original`, the Markdown a document was read from, an unedited document is written back byte for byte, front matter, line endings and spacing included, and an edit leaves the source of every other block alone. An edited block keeps the spellings it still reads as, such as `_` emphasis, `*` bullets or a setext heading; spacing next to it is one blank line. Raw HTML blocks are written through Expressmark's safe HTML profile.
-
 - **Breaking:** A footnote's note stays where its definition is written. `LoomaFootnotes` and the `loomaFootnotes` section node are removed; each note is a `loomaFootnote` block, which the editor shows as a one-item list numbered by its first reference. Saved HTML still collects the notes into one `<section data-footnotes>` in number order, and reads back as before. A definition nothing refers to stays in the document; deleting a note's last reference removes the note, and a note restored for a reference joins the end of the document. To migrate saved editor JSON, replace each `loomaFootnotes` node with its `loomaFootnote` children.
-
 - Link reference definitions, `[label]: url "title"`, are `loomaLinkDefinition` blocks where they are written, rendering nothing. A link that uses one keeps its label and its `full`, `collapsed` or `shortcut` form in the link mark's `reference` and `referenceType` attributes and is written as a reference while the definition still gives its destination and title. Links keep their `title`.
-
 - **Breaking:** A table of contents is written as its `::toc` placeholder with its settings, and readers build its entries; Markdown no longer holds a copy of the entries. Reading Markdown gives each heading without an authored ID the anchor its text derives, and writing adds `{#id}` only where a reader would not derive the ID.
-
 - A task list can hold plain items beside tasks, as `- [x] Done` next to `- Item` reads in GFM.
-
 - Pasted Markdown is read by Expressmark. Pasted HTML source, and Markdown holding content the editor cannot represent, is read as HTML.
-
 - The Looma Markdown fixtures are Expressive Markdown: tabs are `:::: tabs {group=…}` holding `::: tab [Label]` containers, a nested container takes a longer marker than its parent, a title holding braces is bracketed, an alert's marker may be followed by its title, a mixed list's `- [x]` item is a task, and `::: aside` is a container the editor does not hold, so its fixture is removed. Each fixture's canonical Markdown is what Expressmark writes for it, and LoomaEditor writes every fixture back byte for byte.
 
-- Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
+## v0.45.2
 
+- Keep danger fieldsets on a neutral surface with a uniform rounded frame; heading, border and action colors carry the warning. Raise fieldset heading text one pixel for optical alignment.
 - Give fieldset legends the standard Section heading size, clearly larger than body text, and use concise titles in the example. Long headings remain covered by wrapping tests.
+
+## v0.45.1
 
 - Add Section’s `fieldset` variant: a native legend joins its heading to a rounded bordered frame, with descriptions, actions, wrapped titles and danger groups supported in HTML and Vue.
 
+## v0.47.0
+
 - Keep Looma’s raised surfaces in its warm canvas family, so cards, sidebars and fields share the surface palette.
-
 - Add subtle mark and label hover feedback to Checkbox, Radio and Switch in checked, unchecked and mixed states, while preserving disabled and invalid appearances. Selected marks use their own readable hover paint so compact controls remain visible independently of button strength. Selected radios keep a flat face at rest and on hover so material lighting does not distort the perceived selection dot. Give editable fields a slightly clearer shared hover border.
-
 - **Breaking:** Rename the Clear starting theme and its `clear` identifier to Minimal (`minimal`) so it cannot be mistaken for a reset action. Update saved recipe `origin` and `presets.palette` values from `clear` to `minimal`.
-
 - Balance Button and IconButton hover across solid, outline and ghost appearances using shared perceptual color steps. Reflections move with filled controls, quiet hovers retain their resting material, and deep accent washes retain visible pigment. Gold no longer washes toward white on hover. Outline washes and subtle semantic surfaces, including badges, share a restrained chroma adjustment. Re-export saved theme CSS to adopt the calibrated light/dark paints.
-
 - Exclude Markupress 0.14.4 from documentation integrations: its package metadata caps Looma below 0.45. Compatible versions retain the minimum-version range, and fresh installs keep strict peer checks.
 
-- Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
+## v0.45.0
 
+- Keep colored outline Button and IconButton hover visible at maximum material finish by using the shared neutral reflection for their raised hover surface. The accent pigment wash and pressed appearance remain intact.
 - **Breaking:** SiteHeader now owns mobile navigation. Supply `brand`, `navigation`, and optional `actions` once; below its breakpoint it provides a hamburger after the logo and a full-height scrolling modal drawer with a dark backdrop, focus management, scroll locking, and dismissal. To use the automatic drawer, remove your custom `menu` slot, duplicated mobile links, panel, and handlers. An explicit `menu` slot still replaces the trigger for separately owned navigation surfaces such as a combined documentation sidebar. The previous consumer-owned menu left basic mobile navigation incomplete and inconsistent; an automatic default removes that assembly work. Use `menu-label` and `close-label` to localize the controls. Drawer links use regular navigation weight rather than inheriting the desktop header’s semibold emphasis.
+
+## v0.44.6
 
 - Keep documentation cards stationary and make their full lower panel a single link with hover, pressed and keyboard-focus feedback. Tighten the introductory numbered steps so their labels stay with their explanations.
 
+## v0.44.5
+
 - Keep disabled IconButton actions flat when a neutral outline or solid variant supplies its own shadow.
-
-- Show file-upload progress and retryable errors in the editor. Retry keeps its original mapped insertion point; inserting an attachment is a separate undo step so it does not remove intervening typing.
-
-- Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
-
 - Enforce the outline contrast minimum against the composited wash and material surface in light and dark themes. Recalculate borders when finish or lighting changes; text retains its separate readability threshold. Re-export saved theme CSS to adopt the corrected contrast.
-
 - Use the actual accent pigment for translucent Button and IconButton outline washes, with a clearer tint at rest and on hover, instead of washing the surface with darkened text ink.
-
 - Derive colored outline borders from their pigment and the chosen border contrast minimum, independently of readable text. Keep outline hover borders in the same color family. The default remains 2:1; Gold retains its 2.1:1 setting. Re-export saved theme CSS to adopt the corrected borders.
 
+## v0.44.4
+
+- Show file-upload progress and retryable errors in the editor. Retry keeps its original mapped insertion point; inserting an attachment is a separate undo step so it does not remove intervening typing.
+- Regenerate visual review images from base and candidate source checkouts, cache them temporarily, and attach appearance differences for normal PR review. Stop committing baseline PNGs; rendering, functional, text-inventory, and accessibility checks remain enforced. Replace `visual:update` with source changes followed by `visual:test`.
+
+## v0.44.3
+
 - Keep inverse count text readable over both light and dark filled controls by deriving its ink from the control’s foreground polarity.
-
 - Select the starting theme directly in the customizer summary, preview font names in their own typefaces with glyph-only downloads, and load complete font families when selected.
-
-- Give expanded Disclosure content more space above and below while keeping closed panels fully collapsed. Group the named accordion example into adjacent rows and use Text so paragraph margins do not add uneven space.
-
-- Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.
-
 - Keep customizer settings compact and backed by opaque panels, with on-demand help and a persistent theme summary/history toolbar. Optional accents use one clearable swatch each; numeric controls offer compact exact editing without separate step buttons.
-
 - Balance filled and outlined hover through material reflections, add faint accent outline fills, and keep supporting accents explicitly selectable. Outlines share quiet elevation and retain their keyboard focus halo. Bookish defaults focus to primary. Maximum material transparency primarily affects the rim and adds slight content transmission. Re-export saved recipes to adopt the updated material and state derivations.
-
 - Keep editor controls internal to the complete Editor documentation instead of listing their implementation parts as public components. Move Curve Editor to Extras.
-
 - Keep Tree row hover continuous behind the expansion caret and use action cursors for expandable and selectable rows. Strengthen field recession in the Looma starting theme.
-
 - Spread material reflection across the complete control face without a localized bright dot, with a gentler response on light pigments and a stronger, saturation-preserving reflection on dark fills. Gold links use readable amber derived from the primary hue.
 
+## v0.44.2
+
+- Give expanded Disclosure content more space above and below while keeping closed panels fully collapsed. Group the named accordion example into adjacent rows and use Text so paragraph margins do not add uneven space.
+- Make the tokens guide easier to scan with a layer diagram, focused examples and collapsible reference tables. Move detailed theme settings into a theme reference. Remove documentation-site syntax and repository maintenance pages from the public guide; link to Markupress for site syntax. Documentation navigation links can set `position: "start"` to appear before generated sections; the public site now leads with Get started.
+
+## v0.44.1
 
 - Render documentation and catalog descriptions with Expressmark's standard syntax, requiring Markupress 0.12 and Expressmark 0.2.2 to preserve native code literally. Guides use bracketed callout titles and adjacent tab panels; component invocations and code examples keep their meaning. The portable editor adapter still defaults to compatible interchange; select `syntax: "standard"` when exchanging content with Markupress.
 
+## v0.43.2
+
 - Use contextual link ink for SiteHeader selected and hovered navigation, preserving contrast when a theme has deep action fills.
 
+## v0.44.0
+
 - **Breaking:** Footnote editing follows document numbering automatically. Remove EditorFootnoteEditor’s `label`, `editable`, and `error` props and `label`/`go` event handlers. Use its default slot for rich editing and `done` for Escape dismissal. Changes apply live; Escape or clicking away closes the editor. Adding a footnote opens its floating rich-text editor; an existing reference offers a one-line action bar with an icon-only Go to note control and an Edit note button. Rich note blocks and marks remain intact.
-
 - Fade dialogs in at their final rendered size. Keep intrinsic height animation for content changes after opening.
-
 - Use the shared raised surface behind component previews, removing the decorative grid and accent tint. The public docs no longer replace shared sunken-surface and border roles with fixed cream/beige colors.
-
 - Curate Clear, Gold, Bookish, Editorial, Night and Garden using supporting accents, neutral relationships, status mappings, typography and material controls. Bookish uses primary-color info/success with restrained warning/error colors, coral/leather accents and Open Sans/Newsreader. Preserve the Looma and Wiki recipes.
-
 - Rebalance shared status colors: quiet green surfaces use the same chroma budget as other hues, semantic pigments stay subordinate to the primary accent, and warning uses amber rather than the red-orange family. Contextual semantic ink adjusts lightness while retaining hue. Dark warm surfaces receive a bounded tonal and chroma lift to retain their color. Tip shares the existing Info palette and its governed relationship controls, using an advice icon to distinguish its purpose. The customizer offers Semantic colors, Less color, and Primary + icons relationships; individual status mappings remain available in advanced controls. Standalone amber actions use `--ui-on-warning` and contrast-safe hover/pressed fills; re-export saved recipes to update existing CSS.
-
 - Give documentation cards concise authored summaries while retaining full reference introductions. Clarify Application toolbar versus SiteHeader, and show inline status messages inside an existing content boundary.
-
 - Require Markupress 0.10.3 for section navigation with a continuous sidebar background to the footer. Category links open filtered card galleries; only the current category’s reference links appear beneath it. Galleries preserve section selection across navigation and render their cards before JavaScript. The Section dropdown navigates; a wider responsive Filter components field searches only the current view and resets when changing sections.
-
 - Use authored component display names in the documentation catalog, removing redundant Editor prefixes from editor reference headings, cards and navigation.
 
+## v0.43.0
+
 - Share semantic background, foreground and border roles across subtle Badge, toned Card, Callout, Toast and generated notifications. Text inherits its containing surface or control’s foreground, with the document root supplying the body-text role, so composed status content keeps the same colors. Optional overlay group overrides remain available without masking semantic defaults.
-
 - Separate dark canvas and content elevations, strengthen shared dark neutral and selection derivation, and use shared mode-aware soft-color roles for subtle badges so light status backgrounds remain pale.
-
 - Add optional secondary and tertiary brand families to Button, IconButton, Badge, Card, Meter and Text. Palette controls expose neutral relationships, fill strength, shared boundary contrast, semantic/harmonized/brand status relationships, derived saturation, and accent assignments for selection, focus and links. Light/dark specimens include all statuses and shared control boundaries; saved recipes and exports retain the relationships.
-
 - Require Markupress 0.10.2 for package-generated documentation so the shared responsive header includes native section navigation on mobile home pages and keeps its logo visible.
+- **Breaking:** Public component styling hooks now inherit from `:root` and ancestors, with nearer instance declarations taking precedence. Inherited hooks retain their documented precedence over component props; use `initial` to restore a subtree’s prop-driven fallback. Internal stack measurements and affordance state use private properties. Remove ancestor hook declarations that previously had no effect if those components should keep their defaults.
+- Let Typography customize field-label size independently or follow body text by default, preserving that choice in recipes and CSS exports.
+- Give rhythm a vertical role: it opens text lines and stacked groups without spreading horizontal navigation or action rows. Spacing still adjusts gaps and padding. Size and Material editors now include grouped actions, fields, ordinary and expressive surfaces, and usable floating previews.
+- **Breaking:** Share neutral solid/outline action and form-field borders through `--ui-control-border` and its hover role. A configurable contrast floor (default 2:1) balances quiet boundaries against declared surfaces. Replace separate `--ui-neutral-border` / hover / active settings with the shared control roles.
+- Render the theme customizer’s status paragraph at the base body-text size, keeping field help and captions on the supporting-text scale.
+- **Breaking:** Default FormField and Combobox labels to the body-text size so the field’s instruction is larger than its supporting help. This increases labels for themes that did not explicitly size them. Set the shared `--ui-field-label-font-size` to `var(--ui-font-size-sm)` to retain compact labels; existing per-component label-size hooks still take precedence.
+
+## v0.43.1
 
 - Pre-render documentation examples directly in their cards and share the page's CSS and HTML Next runtime. Remove preview iframes, standalone frame routes, and cross-frame theme/resize messages. Project examples now run as trusted page code; example IDs and their control relationships are scoped per specimen.
 - Give the directory compact, readable examples, portable image assets, and short plain-text summaries while retaining full examples and descriptions in the reference. Image uses a pastoral vector illustration; Avatar keeps its portrait. Skeleton samples fill their stage, floating pickers start closed, and Table Overlay can contain an optional table surface whose real cells supply its geometry.
 - Reuse self-hosted fonts in documentation without a redundant Google Fonts stylesheet, and serve font assets once instead of embedding copies for isolated frames.
 - Keep editor suggestion surfaces reactive when only their open state, anchor geometry or slash query changes, including keyboard and touch interaction in the compact examples.
 
+## v0.41.2
+
 - Keep SiteHeader full width in centered layouts and let long branding shrink within its mobile row, preserving the visible logo and trailing controls. Direct action slots reserve adjustable space for compact controls’ invisible targets.
 
+## v0.41.1
+
 - Keep colored callout backgrounds pale and visibly tinted with opaque perceptual colors, preserving hue and readable text in light and dark themes.
-- **Breaking:** Public component styling hooks now inherit from `:root` and ancestors, with nearer instance declarations taking precedence. Inherited hooks retain their documented precedence over component props; use `initial` to restore a subtree’s prop-driven fallback. Internal stack measurements and affordance state use private properties. Remove ancestor hook declarations that previously had no effect if those components should keep their defaults.
+
+## v0.41.0
 
 - Add SiteHeader with brand, navigation, action and menu-trigger slots. It owns responsive layout and keeps branding and navigation aligned beside controls of different heights; applications retain routing and drawer behavior.
+
+## v0.40.0
+
 - **Breaking:** Button now renders a native link whenever `href` is supplied, including `href=""`, and a native button otherwise. Remove Button's `as` prop: replace `as="a" href="…"` with `href="…"`; omit `href` for button actions. Disabled and loading links retain their navigation guards.
+
+## v0.42.0
 
 - Start the shared customizer with the Looma identity and add Gold as a complete selectable theme with portable Lato/Fraunces fonts. Keep Clear as an explicit neutral starting point; move standalone LightEditor documentation into Extras.
 - Derive filled-action colors, readable labels and quieter secondary edges as a shared family. Preserve chromatic reflections and separate decorative glass transparency from frosting while keeping content plates opaque.
@@ -177,18 +207,19 @@
 - Suppress disabled link activation before application click handlers, including router callbacks, and restore it when disabled is cleared.
 - Keep single-column editor specimens in page flow on narrow screens so tall material samples cannot cover controls being touched or dragged.
 
+## v0.39.6
+
 - Use a lighter relative-color wash for colored callout backgrounds, deriving the hue from their tone while preserving borders, text and document spacing.
 
-- Let Typography customize field-label size independently or follow body text by default, preserving that choice in recipes and CSS exports.
-- Give rhythm a vertical role: it opens text lines and stacked groups without spreading horizontal navigation or action rows. Spacing still adjusts gaps and padding. Size and Material editors now include grouped actions, fields, ordinary and expressive surfaces, and usable floating previews.
-- **Breaking:** Share neutral solid/outline action and form-field borders through `--ui-control-border` and its hover role. A configurable contrast floor (default 2:1) balances quiet boundaries against declared surfaces. Replace separate `--ui-neutral-border` / hover / active settings with the shared control roles.
-
-- Render the theme customizer’s status paragraph at the base body-text size, keeping field help and captions on the supporting-text scale.
-- **Breaking:** Default FormField and Combobox labels to the body-text size so the field’s instruction is larger than its supporting help. This increases labels for themes that did not explicitly size them. Set the shared `--ui-field-label-font-size` to `var(--ui-font-size-sm)` to retain compact labels; existing per-component label-size hooks still take precedence.
+## v0.39.5
 
 - Isolate component-template whitespace at the shared editor surface, keeping callouts and disclosures compact while preserving authored spaces and line breaks. Colored callouts use the same tone-tinted subtle surface as subtle badges in light and dark themes.
 
+## v0.39.4
+
 - Schedule customizer preview layout outside resize notification delivery, preventing intermittent Safari ResizeObserver loop warnings while preserving preview sizing.
+
+## v0.39.3
 
 - Keep Combobox option taps working in Safari by retaining input focus during `mousedown` rather than cancelling touch `pointerdown`. Exercise theme, palette, material and font selection with real taps in the Safari audit.
 - Use the shared small IconButton for Dialog close actions, including its icon, visible sizing and focus treatment. Touch no longer enlarges the visible close control.
@@ -196,81 +227,92 @@
 - Resolve the actual root-font unit before deriving shared control heights, keeping Safari's registered lengths aligned with both the base-font token and direct root-font changes.
 - Keep native text fields inside the shared control box in Safari, including grouped fields, instead of letting native text metrics enlarge them beyond matching buttons.
 
+## v0.39.2
+
 - Use published Markupress 0.10 instead of a bootstrap tarball for corrected header alignment, themed home actions, and live hero content.
-- Rework the public homepage around a live component showcase and clearer paths to building and theming. Center the documentation header while preserving its text baseline, and give home actions an explicit themed accent.
-- Admit Vite 7 and 8 for the optional documentation tooling peer after installed documentation build and local-writer verification.
-
-- Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
-
-
-### Focused theme customization
-
 - Start customization on a dashboard of current theme decisions. Open Palette, Material & light, Typography, Size & spacing, or Motion as separate editors, with relevant live samples beside their controls. Editor links support reload and browser navigation; Overview restores the dashboard position and focus.
 - Move the full component browser and export/save actions into their own destinations. Keep exact adjustments within their subject and remove nearby-style locks and the preview/apply/cancel workflow.
 - Keep LightEditor focused on direct manipulation and keyboard movement; open **Exact position** when coordinate entry is needed.
 - Centre Button label text using its own cap-height text box; keep inline link actions inline and boxed links the same height as buttons. Draw Checkbox ticks with a centred mask, independent of font metrics and the mixed-state bar.
 - Give choice hover a subtle accent fill without a focus-ring outline; preserve keyboard focus and forced-color indication. Relax Wiki and Night spacing defaults and give the sampler a clearer content hierarchy.
 
-### Neutral controls, rhythm and state coverage
+## v0.39.0
 
+- Admit Vite 7 and 8 for the optional documentation tooling peer after installed documentation build and local-writer verification.
+- Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
+- Allow compatible later pre-1.0 minor releases of Threadlabs dependencies instead of restricting consumers to individual minor versions. Lockfiles retain the tested versions.
+- Use MarkupKit 0.2 and Markupress 0.10 in the documentation generator and public docs, including the `mk:` HTML API.
+
+## v0.38.0
+
+### Neutral controls, rhythm and state coverage
 - Open all choices from a committed Combobox label, preserve actual search drafts, and let the disclosure button close without focus reopening the popup.
 - Buttons and IconButtons now default to neutral. Use `tone="accent"` or `preset="primary"` for accent emphasis. IconButton’s superseded `auto` tone is removed; select an explicit tone. This changes existing unqualified action colors and is released on the 0.38 line.
 - Coordinate gaps and unitless tight/body/relaxed line-height multipliers through `--ui-rhythm`. Starter themes demonstrate distinct typography, geometry, material, motion and rhythm.
 - Use subtle accent for menu hover and the shared selection surface for checked rows. Ghost pressed/open backgrounds strengthen their tone wash instead of becoming lighter than hover.
 - Keep Base colors visible; explain color relationships with selectable cards and color previews; compare compact light/dark samples. Main and optional heading fonts can be shared or selected separately. Theme changes groups Undo/Redo/Reset; Reset restores the selected starter, while removing the Custom theme header chip clears the browser override. Inherited palette/material selections use muted selected-value emphasis through Select’s and Combobox’s `muted` option. Starting-point, palette, material and nearby-style choices use the styled dropdown; palette choices show four color swatches in the list and selected field.
 - Replace redundant full-viewport component gallery captures with compact state sheets and inventories, including finite prop values, authored examples, pointer/keyboard states and authored interactions. Core controls also run through every starter palette in both modes.
-
 - Search the full component catalog from the theme customizer, with nine previews initially and a Show more action; explicitly added examples remain alongside existing choices. Include typography in the compact sampler, give starting themes broader type/spacing/material/motion identities, and pair Forest & cream with warm cream surfaces and neutral fills.
 - Give neutral-outline text and icon actions the same restrained border and transparent resting surface, with shared neutral hover/pressed fills. The sampler compares solid accent, outline accent, solid neutral, outline neutral, icon and ghost in that order.
+- Documentation customization requires Markupress 0.9.1 for the shared removable header status chip. Sidebar navigation examples render real links.
+- Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch retains the visible small/medium/large ladder; adjustable hit areas remain separate.
+- Add undo/redo, reset to the retained starting point, and preview/apply/cancel for nearby variations with palette, material and type/spacing locks.
+
+## v0.37.6
+
 - Add Skeleton placeholders for incoming text, avatars and media, with responsive dimensions and optional reduced-motion-aware animation. Placeholders stay decorative; the application owns loading status and content replacement.
+
+## v0.39.1
 
 - Skeleton now shimmers from left to right by default instead of remaining static or fading in and out. The previous default made pending content look like a static placeholder; the travelling highlight now communicates loading on every ordinary Skeleton. Reduced-motion preferences still keep it static. To retain a static placeholder, pass `animated: false` in Vue or `from:animated="false"` in HTML Next. This default change is a pre-1.0 breaking minor.
 
-- Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
+## v0.37.5
 
+- Keep keyboard-active suggestions, choices, menu actions and search/link results in view with the fast motion token. Reveal scrolls only the control's own panel, follows rapid navigation, stops on close, and honors reduced motion. This corrects invisible selections and abrupt focus scrolling for keyboard users; no consumer API changes are needed.
 - Add Pagination for controlled result navigation, including native links, bounded numbered pages and previous/next navigation without known totals. Its number and navigation actions share Button’s new opt-in square minimum size; longer values remain readable.
 
-- Allow compatible later pre-1.0 minor releases of Threadlabs dependencies instead of restricting consumers to individual minor versions. Lockfiles retain the tested versions.
-
-- Use MarkupKit 0.2 and Markupress 0.10 in the documentation generator and public docs, including the `mk:` HTML API.
+## v0.37.4
 
 - Keep nested form controls in sync when a field changes its disabled, required or invalid state, including re-enabling a textarea.
 
+## v0.37.3
+
 - Show the editor writing prompt only while the whole document is empty, including when an empty first line precedes text, an image or a divider.
+
+## v0.37.2
 
 - Use the shared Markupress appearance control to cycle Automatic, Light and Dark from one button; local setup guidance selects the corresponding documentation theme. Correct field and choice descriptions so they no longer promise a visible touch-size floor.
 
-- Documentation customization requires Markupress 0.9.1 for the shared removable header status chip. Sidebar navigation examples render real links.
+## v0.37.1
 
 ### Expressive materials and compact controls
-
 - Keep the theme's visible control sizes on touch instead of raising the whole family from a 44px floor. Buttons, fields, swatches and companion icon buttons retain matching sizes. Hit-area dimensions remain adjustable and separate from visible geometry; compact choices are valid.
 - Let glassiness and glow reach a richer upper response while retaining gentle lower settings, opaque readable content planes and reduced-transparency behavior. Action edge light follows the outer silhouette instead of drawing an inner frame.
 - Add CycleButton, a compact reusable icon control that cycles named states without replacing its native button or moving keyboard focus. It uses IconButton's existing visual semantics.
 - Put a dense live documentation sampler in the customizer on desktop and mobile, reserve sidebar space for focus treatment, and remove the ambiguous page-entry theme comparison. Undo/Redo and staged nearby-style previews remain available.
 - Explain local design-system naming, logo configuration, HTML Next component discovery, categories and ownership attribution.
 
+## v0.37.0
 
 ### Document-root theme scale
-
 - `--ui-font-size` sets the document root in px (16px by default); type, choice geometry, spacing and control roominess derive from `1rem` so they scale once. Base text editing accepts 14–24px, with arithmetic calculated on entry. Other length editors retain px/rem conversion, and visible size samples show actual rem/px heights.
 - This changes the scope of customized base type: ordinary rem-based page layout now scales too. Set the seed on `:root`, rather than nested theme boundaries. Replace relative recipe `text-size` values with an explicit px base; for example, `1.0625rem` under the former 16px root becomes `17px`. No compatibility conversion guesses a previous root.
 - Keep document-root font sizing free of registered relative-length dependency cycles; derived type roles and geometry read the resolved root.
 - Allow six minutes for the public docs build: measured build/setup/upload work exceeded the former five-minute cutoff despite completing its steps.
 
-### Relational theme editing and reversible exploration
+## v0.36.0
 
-- Replace recipe `control-size` with numeric `control-roominess` (desired control height divided by base type size). Shared buttons, fields and swatches derive their boxes from the same type relationship. Relative-length bounds scale with the root font. Touch retains the visible small/medium/large ladder; adjustable hit areas remain separate.
+### Relational theme editing and reversible exploration
 - Rename recipe `density` and CSS `--ui-density` to `spacing` and `--ui-spacing`, matching the direction of the control: increasing it adds space. These pre-1.0 replacements have no compatibility aliases. `--ui-control-size` remains a derived height role.
 - Generate coordinated warmth, intensity and neighboring/complementary surface relationships with perceptual color operations and gamut/readability bounds. Both color modes retain the palette identity; disabled roles stay distinct. These palette transformations are recipe inputs, compiled into resolved color roles rather than inert CSS properties.
 - Preserve finger grab offsets in LightEditor, support background placement and directional presets, and restore the gesture start on Escape or pointer cancellation. LightEditor adds a `cancel` event with restored x/y coordinates; CurveEditor shares the same grab-offset and cancellation contract, reporting its restored value. Frame-coalesced previews avoid storage writes during a drag; release commits one undoable decision.
-- Add undo/redo, reset to the retained starting point, and preview/apply/cancel for nearby variations with palette, material and type/spacing locks.
 - Explain material dependencies and reuse documentation cards in the focused material and paired palette editors. Geometry shows aligned size samples and spacing progression; motion includes an interactive documentation example.
 - Add searchable Google font selection and actual face loading for body/display roles, with the operating system's font as the default. Optional recipe `fonts` provenance travels with JSON; downloaded CSS and locally saved CSS include Google Fonts imports before rules. Self-hosted/custom stacks remain an advanced option.
 - Organize the complete theme-property reference by palette, type, geometry, material, illumination and motion, distinguishing generator inputs, live CSS levers and derived roles.
 
-### Documentation workspaces and control polish
+## v0.35.1
 
+### Documentation workspaces and control polish
 - Customize uses its Starting point, Palette and Material controls as its sidebar. Detailed decisions, example selection and export tools open on demand; the Editor playground also leaves out documentation navigation while editor reference pages keep their own section.
 - Shared catalog cards use Stack spacing for their content and the directory groups. Keep the directory's cards inside Grid through Markdown rendering, restoring columns and gaps. Separator examples use Stack and Cluster spacing rather than adding component margins.
 - Vertical wheel gestures over Tabs scroll the page instead of being captured by the tab strip. Horizontal gestures retain native strip scrolling.
@@ -278,15 +320,12 @@
 - Reel examples have enough items to show meaningful overflow and use native item wrappers for scroll snapping without reaching into component roots.
 - Derive a distinct placeholder color against the field surface, so hints stay readable and visibly quieter than entered text in paired themes.
 
-### Migration: semantic surface treatment
+## v0.35.0
 
+### Migration: semantic surface treatment
 - Replace Card `variant="glass"` with `treatment="expressive"`; add `variant="elevated"` only when the surface also needs a lift. Standard elevated cards retain their subtle treatment. The removed glass value has no compatibility alias on this pre-1.0 release line.
 - Card danger tone now changes only its palette. The previous squared corners and leading stripe made a danger card a different shape from other cards, even when the theme reduced the stripe to an ordinary border. Alerts retain their own accent treatment.
 - Solid neutral Button and IconButton use calm surface fills in both modes instead of text-color fills. Appearance remains independent of tone; existing solid neutral actions keep their labels and behavior.
-- The starting-point API uses `bookish`; remove uses of the obsolete `library` name.
-
-### Material and palette refinement
-
 - Add focused Material and Palette views backed by the same persistent recipe as the main customizer. Presets retain their identity after refinement, show customized status, and restore one family without discarding other decisions.
 - Add LightEditor with pointer, touch, keyboard and exact coordinate editing. Shared relative light position, spread, strength, finish and glow generate material responses across controls, fields, expressive cards and floating surfaces. Bookish uses a top-centre radial reflection; edge lighting remains present when a theme supplies action shadows.
 - Bound reflection peaks and neutral fills for readable text in the generated light/dark pair. Export the complete formula-based theme, including reduced-transparency behavior and the optional preset identities in recipes.
@@ -296,11 +335,8 @@
 - Keep editor references in the Editor section rather than appending them to the general Components navigation.
 - Keep shared depth, spacing and light response consistent between the documentation shell and isolated examples when a remembered theme restores before baseline styles.
 - Bundle independent preview entries with bounded concurrency and overlap isolated consumer checks with the installed documentation build; retain the complete qualification matrix and its time limits.
-- IconButton’s `auto` tone names its previous variant-dependent omitted behavior. Explicit tones and existing variant names remain supported; use `auto` when code explicitly represents the default.
-
-### Improvements
-
 - Add ColorPicker: square or circular swatch buttons with shared control sizing, RGB/hex editing, repeat-click toggle, Escape and outside dismissal.
+
 ## v0.34.0
 
 ### Migration: readable theme recipes
