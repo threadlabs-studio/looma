@@ -3,6 +3,7 @@
 ## Next release
 
 - Install the HTML Next runtime as a Looma dependency, so applications only add Looma and their framework build adapter. Generated documentation controllers retain their package dependency resolution. Installation guides separate existing-project setup from framework tooling and use current npm releases without repeating version ranges.
+- Match generated editor responder and event types to the framework-neutral host contracts, including mention/link records, passage ranges and image activation triggers.
 
 - Keep meter fills at their documented 3:1 contrast against the track and page by using contextual semantic ink. The light warning pigment previously measured 2.91:1 against its track.
 

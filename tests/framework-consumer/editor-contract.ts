@@ -38,3 +38,30 @@ export const rendered: ContentProps = { content };
 // Removed component APIs must stay absent; these are compile-time assertions, not adapters.
 type Removed = Extract<"modelValue" | "onReady" | "editor" | "getEditor" | "focus", keyof DocumentProps | keyof DocumentInstance | keyof CompactProps | keyof InstanceType<typeof UiCompactEditor>>;
 export const removed: Record<Removed, never> = {};
+
+// Typed host providers and event handlers must compose with generated props.
+import type { LoomaMentionItem, LoomaEditorRangeAction, LoomaMentionQuery, LoomaLinkSearch, LoomaLinkResolve, LoomaImageActivationDetail, LoomaImageRenditionErrorDetail } from "@threadlabs/looma/editor";
+declare const mentionItems: LoomaMentionItem[];
+declare const rangeActions: LoomaEditorRangeAction[];
+declare const mentionQuery: LoomaMentionQuery;
+declare const linkSearch: LoomaLinkSearch;
+declare const linkResolve: LoomaLinkResolve;
+declare const imageActivate: (detail: LoomaImageActivationDetail) => void;
+declare const imageRenditionError: (detail: LoomaImageRenditionErrorDetail) => void;
+declare const selectionAction: (detail: { id: string; from: number; to: number }) => void;
+declare const rangeAction: (detail: { id: string; ranges: readonly { from: number; to: number }[] }) => void;
+export const hostServices: DocumentProps = {
+  mentionItems, rangeActions, mentionQuery, linkSearch, linkResolve,
+  imageUpload: ({ file }) => {
+    if (!(file instanceof File)) throw new TypeError("Expected an image file");
+    return { src: `/uploads/${file.name}` };
+  },
+  fileUpload: ({ file }) => {
+    if (!(file instanceof File)) throw new TypeError("Expected an attachment file");
+    return { href: `/uploads/${file.name}`, name: file.name, size: file.size, contentType: file.type };
+  },
+  "onSelection-action": event => selectionAction(event.detail),
+  "onRange-action": event => rangeAction(event.detail),
+  "onImage-activate": event => imageActivate(event.detail),
+  "onImage-rendition-error": event => imageRenditionError(event.detail),
+};

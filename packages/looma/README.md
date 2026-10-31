@@ -99,7 +99,7 @@ is needed. `breakpoint="sm"` and `breakpoint="md"` switch at 40rem and 48rem.
 </ui-site-header>
 ```
 
-In Vue, use `SiteHeader` with `#brand`, `#navigation`, and optional `#actions`.
+In Vue, use `UiSiteHeader` with `#brand`, `#navigation`, and optional `#actions`.
 Router links keep their original handlers and state. Localize `label`, `menuLabel`,
 and `closeLabel` as needed. Without JavaScript, navigation stays available inline.
 

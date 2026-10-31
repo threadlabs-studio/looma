@@ -41,7 +41,8 @@ test('direct canonical docs capture installs the detached checkout dependencies 
 for (const suite of ['storybook', 'docs']) test(`${suite} Docker capture returns writable outputs for host sealing and worktree cleanup`, t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'looma-visual-ownership-')), bin = path.join(directory, 'bin');
   const script = suite === 'storybook' ? 'apps/storybook/scripts/run-storywright-docker.mjs' : 'apps/docs/scripts/browser.mjs';
-  for (const folder of ['.git', 'packages', 'apps', 'tools', 'bin', path.dirname(script)]) mkdirSync(path.join(directory, folder), { recursive: true });
+  for (const folder of ['.git', 'packages', 'apps', 'tools', 'tests/framework-consumer', 'bin', path.dirname(script)]) mkdirSync(path.join(directory, folder), { recursive: true });
+  writeFileSync(path.join(directory, 'tests/framework-consumer/package.json'), '{"private":true}');
   writeFileSync(path.join(directory, script), readFileSync(script));
   if (suite === 'storybook') writeFileSync(path.join(directory, 'apps/storybook/scripts/storywright-runtime.mjs'), readFileSync('apps/storybook/scripts/storywright-runtime.mjs'));
   const makeWritable = target => {
@@ -70,11 +71,14 @@ if (args[0] === 'info') process.exit(0);
 if (args[0] !== 'run') throw new Error('Unexpected Docker command');
 const root = args[args.indexOf('--volume') + 1].slice(0, -':/work'.length);
 const command = args.at(-1);
+if (!command.includes('chown -R') && !args.some(arg => arg.includes('/work/tests/framework-consumer/node_modules'))) {
+  throw new Error('Framework consumer dependencies must be isolated from the host');
+}
 if (command.includes('chown -R')) {
   const result = spawnSync('sh', ['-c', command.replaceAll('/work', root)], { stdio: 'inherit' });
   process.exit(result.status ?? 1);
 }
-for (const relative of ['.context/capture', 'apps/generated-output']) {
+for (const relative of ['.context/capture', 'apps/generated-output', 'tools/generated-output', 'tests/framework-consumer/generated-output']) {
   const output = path.join(root, relative);
   mkdirSync(path.join(output, 'nested'), { recursive: true });
   writeFileSync(path.join(output, 'capture.json'), '{}');
@@ -90,7 +94,7 @@ for (const relative of ['.context/capture', 'apps/generated-output']) {
   delete env.STORYWRIGHT_DOCKER_DIRECT;
   for (const name of ['JENKINS_URL', 'JENKINS_HOME', 'BUILD_TAG']) delete env[name];
   execFileSync(process.execPath, [path.join(directory, script), 'capture'], { env, stdio: 'pipe' });
-  for (const relative of ['.context/capture', 'apps/generated-output']) {
+  for (const relative of ['.context/capture', 'apps/generated-output', 'tools/generated-output', 'tests/framework-consumer/generated-output']) {
     const output = path.join(directory, relative);
     assert.ok(statSync(path.join(output, 'capture.json')).mode & 0o200, 'capture manifest is writable by the host');
     writeFileSync(path.join(output, 'capture.json'), '{"sealed":true}');
