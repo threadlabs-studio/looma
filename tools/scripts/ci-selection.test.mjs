@@ -289,3 +289,14 @@ test('shared and colocated component documentation metadata select catalog fixtu
     assert.ok(selected.scripts.includes(fixture), file);
   }
 });
+
+test('a full native selection shares one serial Vitest invocation without losing files', () => {
+  const files = ['packages/looma/tests/editor-session.test.ts', 'packages/looma/tests/source-editor-ssr.test.ts'];
+  const args = vitestArguments(files, null, 'native-report.json');
+  for (const file of files) assert.ok(args.includes(file.replace('packages/looma/', '')));
+  assert.equal(args[args.indexOf('--config') + 1], 'vitest.config.ts');
+  assert.ok(args.includes('--fileParallelism=false'));
+  assert.ok(args.includes('--maxWorkers=1'));
+  assert.throws(() => vitestArguments([...files, 'packages/looma/tests/source-editor.browser.test.ts'], null, 'report.json'), /configuration/);
+  assert.throws(() => vitestArguments([], null, 'report.json'), /empty/);
+});
