@@ -37,6 +37,22 @@ describe("CardButton before upgrade", () => {
 
 
 describe("Button semantic presets before upgrade", () => {
+  it("keeps interaction settings optional and preserves preset, link and loading semantics", async () => {
+    const defaults = await renderToString(createSSRApp({ render: () => h(Button, { preset: "standard" }, () => "Choose project") }));
+    expect(defaults).not.toMatch(/data-interaction-(?:tone|appearance)=/);
+    const inherited = await renderToString(createSSRApp({ render: () => h(Button, { preset: "standard", interactionTone: "accent" }, () => "Choose project") }));
+    expect(inherited).toContain('data-interaction-appearance="solid"');
+    expect(inherited).toContain('data-tone="neutral"');
+    const configured = await renderToString(createSSRApp({ render: () => h(Button, { preset: "standard", interactionTone: "accent", interactionVariant: "ghost", href: "/projects", loading: true }, () => "Choose project") }));
+    expect(configured).toMatch(/<a\b/);
+    expect(configured).toContain('data-appearance="solid"');
+    expect(configured).toContain('data-tone="neutral"');
+    expect(configured).toContain('data-interaction-tone="accent"');
+    expect(configured).toContain('data-interaction-appearance="ghost"');
+    expect(configured).toContain('aria-disabled="true"');
+    expect(configured).not.toMatch(/<a[^>]*\shref=/);
+  });
+
   it.each([
     ["primary", "solid", "accent"],
     ["standard", "solid", "neutral"],

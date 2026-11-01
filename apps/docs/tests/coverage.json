@@ -310,6 +310,11 @@
           "id": "12-tones",
           "title": "Appearance and tone",
           "behavior": false
+        },
+        {
+          "id": "13-interaction",
+          "title": "Interaction emphasis",
+          "behavior": false
         }
       ]
     },

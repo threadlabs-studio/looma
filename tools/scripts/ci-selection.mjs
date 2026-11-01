@@ -221,11 +221,12 @@ export function automaticChecks(files, changes, hunks = {}) {
       const focused = selection.components.some(tag => references(entry.source, tag)) || selection.editor && /editor|mention/i.test(file);
       if (selection.full && !edited && !smoke && !focused) { deferred.push({ file, name: entry.name }); continue; }
       candidates.push({ file, name: entry.name, priority: edited ? 0 : smoke ? 1 : direct.some(tag => references(entry.source, tag)) ? 2 : 3,
-        weight: entry.dynamic ? 3 : 1 });
+        weight: entry.dynamic ? 4 : 1 });
     }
     if (!cases.length) throw new Error(`Unmapped browser discovery: ${file}`);
   }
-  // 80 browser instances reserve room for install/build and slow hosted runners.
+  // The existing 80-instance budget includes setup and slow hosted runners.
+  // Dynamic cases reserve a native/framework by engine grid (four instances).
   // A changed assertion never loses priority to a neighbouring component's sweep.
   let instances = 0;
   for (const entry of candidates.sort((a, b) => a.priority - b.priority)) {

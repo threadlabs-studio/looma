@@ -33,6 +33,97 @@
     "example": 0
   },
   {
+    "name": "interaction-tone: inherit",
+    "props": {
+      "interactionTone": "inherit"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: accent",
+    "props": {
+      "interactionTone": "accent"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: accent-secondary",
+    "props": {
+      "interactionTone": "accent-secondary"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: accent-tertiary",
+    "props": {
+      "interactionTone": "accent-tertiary"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: neutral",
+    "props": {
+      "interactionTone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: danger",
+    "props": {
+      "interactionTone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: success",
+    "props": {
+      "interactionTone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: warning",
+    "props": {
+      "interactionTone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-tone: info",
+    "props": {
+      "interactionTone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-variant: inherit",
+    "props": {
+      "interactionVariant": "inherit"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-variant: outline",
+    "props": {
+      "interactionVariant": "outline"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-variant: solid",
+    "props": {
+      "interactionVariant": "solid"
+    },
+    "example": 0
+  },
+  {
+    "name": "interaction-variant: ghost",
+    "props": {
+      "interactionVariant": "ghost"
+    },
+    "example": 0
+  },
+  {
     "name": "loading: false",
     "props": {
       "loading": false
@@ -374,6 +465,11 @@
     "name": "Example: 12-tones",
     "props": {},
     "example": 13
+  },
+  {
+    "name": "Example: 13-interaction",
+    "props": {},
+    "example": 14
   },
   {
     "name": "hover",

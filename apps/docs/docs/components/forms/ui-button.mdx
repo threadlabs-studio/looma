@@ -8,6 +8,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Essential button primitive that enhances semantic button markup and styling hooks. Ghost choices use the shared selection surface and text tokens for their selected visual state while the composing control owns ARIA selection semantics. Unselected disabled ghost actions stay transparent; an unavailable selected choice keeps a muted selection wash.
 
+Use `interaction-tone="accent"` to keep a neutral button quiet at rest and accent it on hover or press.
+`interaction-variant` can choose `outline`, `solid`, or `ghost` paint without changing layout.
+Both settings default to `inherit`, following the resting tone and variant, including presets. Pressed feedback remains distinct from hover.
+
 <ComponentExamplesApiTabs component="ui-button" />
 
 Supply `href` to render a native link automatically: `<ui-button href="/guide">Read the guide</ui-button>`

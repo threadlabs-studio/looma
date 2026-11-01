@@ -69,7 +69,8 @@ work, including `tree.test.ts` and `editor-table.test.ts`.
 
 Browser priority is edited regressions, integration smoke checks, direct component
 behavior, then composed consumers. Automatic browser work is capped at 80 estimated
-instances; a parameterized case reserves three. Every deferred case is listed in
+instances. A parameterized case reserves four for native/framework by engine
+grids. Every deferred case is listed in
 `.qualification/plan.json` and the job log. The cap bounds the scope, not a claim
 that every test costs the same time; job timeouts enforce the execution ceiling.
 Unit/SSR and selected tooling tests are retained independently of the browser cap.

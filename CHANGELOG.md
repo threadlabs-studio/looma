@@ -4,6 +4,13 @@
 
 - Animate progress-meter value and tone changes with shared motion settings, and give radio selection surfaces the same feedback as their indicators. Checkbox, radio and meter transitions honor reduced motion even with custom timing overrides.
 
+- Account for native/framework by engine grids when estimating browser qualification, preserving edited regressions within the existing time limit.
+
+- Button adds `interactionTone` and `interactionVariant`, inheriting the resting tone and variant by default. Optional hover/press emphasis retains distinct pressed feedback, keyboard focus and the control's layout.
+- Keep outline buttons' pressed fill and inset shadow from being overridden by their tone-specific hover and resting styles.
+
+- Keep Button image marks and composed icons beside their labels, and let start-aligned rows use the available width for trailing actions.
+
 - Strengthen continuous selection bands in light mode and add a little more accent tint in dark mode, using the shared selection palette for calendar ranges.
 
 - Add `IconButton size="xs"` to match compact Button and badge rows. Its separate inline touch-target preference keeps neighboring links and actions reachable without increasing row height.
