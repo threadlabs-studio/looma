@@ -19,8 +19,8 @@
     <prop name="selectionStart" type="integer"
     >First selected one-based column in a fixed grid row. Pair with selection-end to paint a continuous rounded interval behind the cells.</prop>
     <prop name="selectionEnd" type="integer"
-    >Last selected one-based column, inclusive. The interval uses the theme's selection surface; --ui-grid-selection-inset and --ui-grid-selection-surface
-      customize its inset and paint.</prop>
+    >Last selected one-based column, inclusive. The interval combines the theme's selection surface and border colors; --ui-grid-selection-inset and
+      --ui-grid-selection-surface customize its inset and paint.</prop>
   </defs>
   <!-- Keep decorations adjacent so an empty grid has no generated text cells. -->
   <!-- markup-fmt-ignore -->
@@ -93,7 +93,13 @@
       grid-column: var(--_grid-selection-start) / var(--_grid-selection-end) !important;
       inset: var(--ui-grid-selection-inset, var(--ui-space-1)) !important;
       border-radius: var(--ui-radius-round);
-      background: var(--ui-grid-selection-surface, var(--ui-selection-surface));
+      background: var(
+        --ui-grid-selection-surface,
+        light-dark(
+          color-mix(in oklab, var(--ui-selection-border) 80%, var(--ui-selection-surface)),
+          color-mix(in oklab, var(--ui-selection-border) 28%, var(--ui-selection-surface))
+        )
+      );
       pointer-events: none;
       z-index: -1;
     }

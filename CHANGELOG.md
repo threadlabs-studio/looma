@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Strengthen continuous selection bands in light mode and add a little more accent tint in dark mode, using the shared selection palette for calendar ranges.
+
 - Add `IconButton size="xs"` to match compact Button and badge rows. Its separate inline touch-target preference keeps neighboring links and actions reachable without increasing row height.
 - Add Calendar, Date Field, Date Picker, Date Range Picker, Time Field and Time Picker with Temporal validation, localized typing and canonical string values. Date selection exports `YYYY-MM-DD` by default; explicit local date-time, instant and zoned modes preserve their distinct meanings and fractional precision.
 - Calendar supports month/year navigation, direct year entry, locale week order with explicit overrides, inclusive bounds, allowed/disabled dates and intervals, and disabled weekdays. Shared theme tokens style weekday/weekend bands, circular choices and continuous range highlights in light and dark themes.
