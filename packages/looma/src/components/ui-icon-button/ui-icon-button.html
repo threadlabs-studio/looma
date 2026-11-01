@@ -13,9 +13,10 @@
       cleared.</prop>
     <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
-    <prop name="size" type="keyword" values="sm, md, lg" default="md"
-    >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. Touch can use an invisible hit area sized
-      by the adjustable control target preference.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
+    >Button and icon size together: xs is the compact control height (1.5rem), matching Button xs for inline actions; sm is 1.75rem with a small icon, md is
+      2rem, and lg is 2.5rem with a large icon. Touch uses the adjustable control target preference; xs uses --ui-inline-control-min-block-size so dense inline
+      actions keep independent targets.</prop>
     <prop name="matchButton" type="boolean" default="false"
     >Matches a boxed Button of the same size when the two share a flex row. Uses the control-size theme tokens and stretches to the row's height, on mouse and
       touch alike. Touch expansion stays vertical so an adjacent action keeps its own horizontal boundary. Leave it off for compact toolbar and inline icon
@@ -318,6 +319,7 @@
     :host {
       /* The size prop resolves here; --ui-icon-button-size overrides it on an element. */
       --_size: 2rem;
+      --_icon-button-hit-size: var(--ui-control-min-block-size);
       appearance: none;
       inline-size: var(--ui-icon-button-size, var(--_size));
       block-size: var(--ui-icon-button-size, var(--_size));
@@ -358,8 +360,8 @@
         content: "";
         position: absolute;
         inset: 50% auto auto 50%;
-        inline-size: max(100%, var(--ui-control-min-block-size));
-        block-size: max(100%, var(--ui-control-min-block-size));
+        inline-size: max(100%, var(--_icon-button-hit-size));
+        block-size: max(100%, var(--_icon-button-hit-size));
         transform: translate(-50%, -50%);
       }
     }
@@ -372,9 +374,14 @@
       content: "";
       position: absolute;
       inset: 50% auto auto 50%;
-      inline-size: max(100%, var(--ui-control-min-block-size));
-      block-size: max(100%, var(--ui-control-min-block-size));
+      inline-size: max(100%, var(--_icon-button-hit-size));
+      block-size: max(100%, var(--_icon-button-hit-size));
       transform: translate(-50%, -50%);
+    }
+
+    :host([size="xs"]) {
+      --_size: var(--ui-control-size-xs);
+      --_icon-button-hit-size: var(--ui-inline-control-min-block-size);
     }
 
     :host([size="sm"]) {
@@ -404,6 +411,10 @@
     :host([matchButton])::after,
     html[data-ui-input-modality="touch"] :host([matchButton])::after {
       inline-size: 100%;
+    }
+
+    :host([matchButton][size="xs"]) {
+      --_size: var(--ui-control-size-xs);
     }
 
     :host([matchButton][size="sm"]) {
@@ -587,6 +598,10 @@
          defaults, which its own --ui-icon-* hooks still override. */
       --_ui-default-icon-size: var(--_ui-icon-button-icon-size, var(--_icon-button-icon-default));
       --_ui-default-icon-stroke-width: var(--_ui-icon-button-icon-stroke-width, 1.75);
+    }
+
+    :host([size="xs"]) {
+      --_icon-button-icon-default: var(--ui-icon-size-xs);
     }
 
     :host([size="sm"]) {
