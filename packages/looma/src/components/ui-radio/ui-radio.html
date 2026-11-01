@@ -93,6 +93,10 @@
       background-image: var(--ui-surface-highlight, none);
       box-shadow: var(--ui-control-inset);
       cursor: pointer;
+      transition:
+        background-color var(--ui-motion-feedback) var(--ui-motion-feedback-ease),
+        border-color var(--ui-motion-feedback) var(--ui-motion-feedback-ease),
+        box-shadow var(--ui-motion-feedback) var(--ui-motion-feedback-ease);
     }
 
     /* The native radio retains grouping, validation and keyboard behavior.
@@ -165,6 +169,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      input,
       input::after {
         transition: none;
       }
