@@ -11944,6 +11944,12 @@ describe("Button interaction settings", () => {
           const style = getComputedStyle(element);
           return [style.backgroundColor, style.backgroundImage, style.borderTopColor, style.color, style.boxShadow];
         });
+        // These static fixtures disable transitions; direct pointer movement avoids an actionability
+        // animation-frame wait for every repeated paint sample in the palette matrix.
+        const moveTo = async (id: string) => {
+          const box = await page.locator(`#${id}`).boundingBox(); assert.ok(box);
+          await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        };
         const configure = async (tone: string, variant: string, restingVariant = "outline") => {
           await page.evaluate(({ tone, variant, restingVariant }) => (window as unknown as { setInteraction: (tone: string, variant: string, restingVariant: string) => void }).setInteraction(tone, variant, restingVariant), { tone, variant, restingVariant });
           const appearance = tone === "inherit" && variant === "inherit" ? null : variant === "inherit" ? restingVariant : variant;
@@ -11964,7 +11970,7 @@ describe("Button interaction settings", () => {
             };
             await capture("rest");
             const size = await page.locator("#target").evaluate(element => [element.clientWidth, element.clientHeight]);
-            await page.locator("#target").hover();
+            await moveTo("target");
             const hover = await paint("target");
             await capture("hover");
             await page.mouse.down();
@@ -11973,28 +11979,28 @@ describe("Button interaction settings", () => {
             assert.notDeepEqual(pressed, hover, `${mode}/${tone}/${variant}: press remains visibly distinct from hover`);
             assert.deepEqual(await page.locator("#target").evaluate(element => [element.clientWidth, element.clientHeight]), size, "interaction paint preserves layout geometry");
             await page.mouse.up();
-            await page.locator("#reference").hover();
+            await moveTo("reference");
             assert.deepEqual(hover, await paint("reference"), `${mode}/${tone}/${variant}: hover uses the ordinary variant and tone treatment`);
             await page.mouse.down();
             assert.deepEqual(pressed, await paint("reference"), `${mode}/${tone}/${variant}: active uses the ordinary variant and tone treatment`);
             await page.mouse.up();
           }
           await configure("accent", "inherit", "card");
-          await page.locator("#target").hover(); const cardHover = await paint("target");
+          await moveTo("target"); const cardHover = await paint("target");
           await page.mouse.down(); const cardPressed = await paint("target"); await page.mouse.up();
-          await page.locator("#reference").hover();
+          await moveTo("reference");
           assert.deepEqual(cardHover, await paint("reference"), "inherited card paint stays a card while its interaction tone changes");
           await page.mouse.down(); assert.deepEqual(cardPressed, await paint("reference")); await page.mouse.up();
           await configure("neutral", "solid");
           const custom = await page.addStyleTag({ content: "#target, #reference { --ui-button-text: rgb(12 34 56); --ui-button-hover-surface: rgb(230 235 240); --ui-button-active-surface: rgb(210 220 230); }" });
-          await page.locator("#target").hover(); const customHover = await paint("target");
+          await moveTo("target"); const customHover = await paint("target");
           await page.mouse.down(); const customPressed = await paint("target"); await page.mouse.up();
-          await page.locator("#reference").hover(); assert.deepEqual(customHover, await paint("reference"), "interaction paint honors the variant's supported custom colors");
+          await moveTo("reference"); assert.deepEqual(customHover, await paint("reference"), "interaction paint honors the variant's supported custom colors");
           await page.mouse.down(); assert.deepEqual(customPressed, await paint("reference")); await page.mouse.up();
           await custom.evaluate(element => element.remove());
           for (const id of ["disabled", "loading"]) {
             await page.mouse.move(0, 0); const rest = await paint(id);
-            await page.locator(`#${id}`).hover(); await page.mouse.down();
+            await moveTo(id); await page.mouse.down();
             assert.deepEqual(await paint(id), rest, "unavailable controls do not gain interaction emphasis");
             await page.mouse.up();
           }
