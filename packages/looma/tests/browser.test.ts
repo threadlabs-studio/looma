@@ -11296,6 +11296,77 @@ describe("Theme levels", () => {
 });
 
 describe("Meter", () => {
+  for (const adapter of ["html", "vue"]) it(`animates checklist progress, retargets changes, and respects motion settings in ${adapter}`, async () => {
+    const path = await bundle(`checklist-motion-${adapter}`, adapter === "html" ? `
+      import "@looma-test/runtime";
+      import { componentRegistry } from '@nextwebwg/html-next/runtime';
+      window.setProgressTone = tone => componentRegistry.update(document.querySelector('#progress'), { tone });
+      document.querySelector('#checklist').addEventListener('change', () => {
+        componentRegistry.update(document.querySelector('#progress'), { value: document.querySelectorAll('#checklist input:checked').length });
+      });` : `
+      import { createApp, h, ref } from 'vue';
+      import { UiCheckbox as Checkbox, UiMeter as Meter } from '@threadlabs/looma';
+      const completed = ref(2);
+      const tone = ref('accent');
+      window.setProgressTone = value => { tone.value = value; };
+      createApp({ render: () => [
+        h(Meter, { id: 'progress', value: completed.value, max: 3, label: 'Checklist progress', tone: tone.value, segments: 3 }),
+        h('div', { id: 'checklist', onChange: event => { completed.value = event.currentTarget.querySelectorAll('input:checked').length; } },
+          [true, true, false].map((checked, index) => h(Checkbox, { checked }, () => 'Step ' + (index + 1))))
+      ] }).mount('#app');`);
+    const page = await open(path, adapter === "html" ? `
+      <ui-meter id="progress" value="2" max="3" label="Checklist progress" tone="accent" segments="3"></ui-meter>
+      <div id="checklist"><ui-checkbox checked>Step 1</ui-checkbox><ui-checkbox checked>Step 2</ui-checkbox><ui-checkbox>Step 3</ui-checkbox></div>` : '<div id="app"></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "no-preference", viewport: { width: 375, height: 600 } });
+    try {
+      // Slow the shared role so intermediate geometry is observable without wall-clock guesses.
+      await page.addStyleTag({ content: ':root { --ui-motion-layout: 1000ms; --ui-motion-layout-ease: linear; --ui-motion-feedback: 1000ms; }' });
+      const meter = page.getByRole("meter", { name: "Checklist progress" });
+      const fill = meter.locator(".fill");
+      const width = await meter.evaluate(element => element.getBoundingClientRect().width);
+      assert.ok(Math.abs(await fill.evaluate(element => element.getBoundingClientRect().width) / width - 2 / 3) < 0.01, "initial progress renders at its value");
+      await page.getByRole("checkbox", { name: "Step 3" }).check();
+      await page.waitForFunction(() => document.querySelector('#progress')?.getAttribute('aria-valuenow') === '3');
+      const middle = await fill.evaluate(element => {
+        const animation = element.getAnimations().find(animation => ['inline-size', 'width'].includes((animation as CSSTransition).transitionProperty));
+        if (!animation) return null;
+        animation.pause();
+        animation.currentTime = 500;
+        return element.getBoundingClientRect().width;
+      });
+      assert.ok(middle !== null && middle > width * 2 / 3 + 1 && middle < width - 1, `${adapter}: checking a step animates the bar: ${middle}/${width}`);
+      // A second change takes over an unfinished transition and reaches the latest value.
+      await page.getByRole("checkbox", { name: "Step 1" }).uncheck();
+      await page.getByRole("checkbox", { name: "Step 2" }).uncheck();
+      await page.waitForFunction(() => document.querySelector('#progress')?.getAttribute('aria-valuenow') === '1');
+      await fill.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+      assert.ok(Math.abs(await fill.evaluate(element => element.getBoundingClientRect().width) / width - 1 / 3) < 0.01);
+      const beforeTone = await fill.evaluate(element => getComputedStyle(element).backgroundColor);
+      await page.evaluate(() => (window as unknown as { setProgressTone: (tone: string) => void }).setProgressTone('success'));
+      const middleTone = await fill.evaluate(element => {
+        const animation = element.getAnimations().find(animation => (animation as CSSTransition).transitionProperty === 'background-color');
+        if (!animation) return null;
+        animation.pause();
+        animation.currentTime = 500;
+        return getComputedStyle(element).backgroundColor;
+      });
+      assert.notEqual(middleTone, null, "status color changes use shared feedback timing");
+      await fill.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+      assert.notEqual(middleTone, beforeTone);
+      assert.notEqual(middleTone, await fill.evaluate(element => getComputedStyle(element).backgroundColor));
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.getByRole("checkbox", { name: "Step 3" }).uncheck();
+      await page.waitForFunction(() => document.querySelector('#progress')?.getAttribute('aria-valuenow') === '0');
+      assert.equal(await fill.evaluate(element => element.getBoundingClientRect().width), 0, "reduced motion overrides even custom nonzero timing");
+      assert.equal(await fill.evaluate(element => element.getAnimations().length), 0);
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.addStyleTag({ content: ':root { --ui-motion-layout: 0ms; }' });
+      await page.getByRole("checkbox", { name: "Step 3" }).check();
+      await page.waitForFunction(() => document.querySelector('#progress')?.getAttribute('aria-valuenow') === '1');
+      assert.ok(Math.abs(await fill.evaluate(element => element.getBoundingClientRect().width) / width - 1 / 3) < 0.01, "zero timing applies progress immediately");
+    } finally { await page.close(); }
+  });
+
   it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
     for (const target of ["html", "vue"]) {
       const path = await bundle(`localized-meter-${target}`, target === "html"
@@ -11457,7 +11528,7 @@ describe("Meter", () => {
     const path = await bundle("html-meter", `import "@looma-test/runtime";`);
     const attributes = (props: Record<string, unknown>) =>
       Object.entries(props).map(([name, value]) => `${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}="${value}"`).join(" ");
-    const page = await open(path, hook + meters.map(([id, props]) => `<ui-meter id="${id}" ${attributes(props)}></ui-meter>`).join(""), css);
+    const page = await open(path, hook + meters.map(([id, props]) => `<ui-meter id="${id}" ${attributes(props)}></ui-meter>`).join(""), css, { reducedMotion: "reduce" });
     await checkMeters(page);
     await page.close();
   });
@@ -11471,7 +11542,7 @@ describe("Meter", () => {
       const meters = ${JSON.stringify(meters)};
       createApp({ render: () => meters.map(([id, props]) => h(Meter, { id, ...props, ...(id === "partial" ? { value: value.value } : {}) })) }).mount("#app");
     `);
-    const page = await open(path, `${hook}<div id="app"></div>`, [...css]);
+    const page = await open(path, `${hook}<div id="app"></div>`, [...css], { reducedMotion: "reduce" });
     await checkMeters(page);
     await page.evaluate(() => { (window as unknown as { meterValue: { value: number } }).meterValue.value = 1240; });
     await page.waitForFunction(() => document.querySelector("#partial")?.getAttribute("aria-valuenow") === "1240");
@@ -12783,6 +12854,41 @@ describe("Bounded value editors", () => {
 
 
 describe("Choice control hover", () => {
+  for (const adapter of ["html", "vue"]) it(`animates radio selection surfaces and removes choice transitions for reduced motion in ${adapter}`, async () => {
+    const path = await bundle(`choice-motion-${adapter}`, adapter === "html" ? 'import "@looma-test/runtime";' : `
+      import { createApp, h } from 'vue';
+      import { UiRadio as Radio, UiCheckbox as Checkbox } from '@threadlabs/looma';
+      createApp({ render: () => [h(Radio, { name: 'delivery' }, () => 'Standard'), h(Radio, { name: 'delivery' }, () => 'Express'), h(Checkbox, {}, () => 'Notify me')] }).mount('#app');`);
+    const page = await open(path, adapter === "html" ? '<ui-radio name="delivery">Standard</ui-radio><ui-radio name="delivery">Express</ui-radio><ui-checkbox>Notify me</ui-checkbox>' : '<div id="app"></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "no-preference" });
+    try {
+      await page.addStyleTag({ content: ':root { --ui-motion-feedback: 1000ms; --ui-motion-fast: 1000ms; --ui-motion-base: 1000ms; }' });
+      const radio = page.getByRole("radio", { name: "Standard" });
+      const before = await radio.evaluate(element => getComputedStyle(element).backgroundColor);
+      await radio.check();
+      const middle = await radio.evaluate(element => {
+        const animation = element.getAnimations().find(animation => (animation as CSSTransition).transitionProperty === 'background-color');
+        if (!animation) return null;
+        animation.pause();
+        animation.currentTime = 500;
+        return getComputedStyle(element).backgroundColor;
+      });
+      assert.notEqual(middle, null, `${adapter}: the selected surface transitions along with its dot`);
+      await radio.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+      const after = await radio.evaluate(element => getComputedStyle(element).backgroundColor);
+      assert.notEqual(middle, before);
+      assert.notEqual(middle, after);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.getByRole("radio", { name: "Express" }).check();
+      await page.getByRole("checkbox", { name: "Notify me" }).check();
+      const transitions = await page.locator('input').evaluateAll(inputs => inputs.flatMap(input => [null, '::after'].map(pseudo => {
+        const style = getComputedStyle(input, pseudo);
+        return { transition: style.transitionDuration, animation: style.animationName };
+      })));
+      assert.ok(transitions.every(style => style.transition === '0s' && style.animation === 'none'), JSON.stringify(transitions));
+    } finally { await page.close(); }
+  });
+
   for (const adapter of ['html', 'vue']) it(`gives checked and unchecked choices subtle hover from their label in ${adapter}`, async () => {
     const { themeCSS, startingPoints } = await import('../tooling/docs/theme.mjs');
     const { toLch } = await import('../tooling/docs/palette.mjs');

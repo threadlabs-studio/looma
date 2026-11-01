@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Animate progress-meter value and tone changes with shared motion settings, and give radio selection surfaces the same feedback as their indicators. Checkbox, radio and meter transitions honor reduced motion even with custom timing overrides.
+
 - Strengthen continuous selection bands in light mode and add a little more accent tint in dark mode, using the shared selection palette for calendar ranges.
 
 - Add `IconButton size="xs"` to match compact Button and badge rows. Its separate inline touch-target preference keeps neighboring links and actions reachable without increasing row height.

@@ -184,7 +184,9 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      input::after {
+      input,
+      input::after,
+      input:checked::after {
         transition: none;
         animation: none;
       }
