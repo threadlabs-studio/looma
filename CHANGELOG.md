@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep Button image marks and composed icons beside their labels, and let start-aligned rows use the available width for trailing actions.
+
 - Strengthen continuous selection bands in light mode and add a little more accent tint in dark mode, using the shared selection palette for calendar ranges.
 
 - Add `IconButton size="xs"` to match compact Button and badge rows. Its separate inline touch-target preference keeps neighboring links and actions reachable without increasing row height.

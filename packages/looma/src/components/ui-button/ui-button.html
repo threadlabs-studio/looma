@@ -234,11 +234,16 @@
       min-block-size: 1lh !important;
     }
 
-    .label:has(svg) {
+    /* Projected marks may be images or composed elements, including block-level image resets. */
+    .label:has(> *) {
       display: inline-flex !important;
       align-items: center !important;
       gap: var(--ui-space-2) !important;
       text-box-trim: none;
+    }
+
+    :host([align="start"]) .label {
+      flex: 1;
     }
 
     .badge {
@@ -252,7 +257,7 @@
     }
 
     @supports (text-box-trim: trim-both) {
-      .label:not(:has(svg)) {
+      .label:not(:has(> *)) {
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
@@ -697,7 +702,7 @@
       transition: color var(--ui-motion-fast) var(--ui-motion-ease), text-decoration-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host[data-appearance="link"] .label {
+    :host[data-appearance="link"] .label:not(:has(> *)) {
       display: inline !important;
       text-box-trim: none;
     }
