@@ -2,6 +2,9 @@
 
 ## Next release
 
+- Keep navigation disclosure children adjacent to the trigger without the plain accordion's body padding.
+- Add shared content and chrome surface roles that retain a lighter reading area across themes.
+
 - Animate progress-meter value and tone changes with shared motion settings, and give radio selection surfaces the same feedback as their indicators. Checkbox, radio and meter transitions honor reduced motion even with custom timing overrides.
 
 - Account for native/framework by engine grids when estimating browser qualification, preserving edited regressions within the existing time limit.

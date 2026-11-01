@@ -214,6 +214,9 @@
       background: var(--ui-nav-hover-surface);
       color: var(--ui-text-primary);
     }
+    :host([variant="navigation"]:state(internalOpen)) .panel-inner {
+      padding-block: 0 !important;
+    }
     :host([variant="navigation"]) :is(.leading, .indicator) {
       inline-size: var(--ui-nav-icon-size);
       font-size: var(--ui-nav-icon-size);

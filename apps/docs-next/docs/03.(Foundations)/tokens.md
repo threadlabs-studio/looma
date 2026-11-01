@@ -49,6 +49,12 @@ Keep overrides unlayered, as above, or place them in a layer after Looma's layer
 > **Check each mode.** A custom palette needs readable text, controls and focus indicators
 > in light, dark and high contrast modes.
 
+## Reading surfaces and application chrome
+
+Use `--ui-surface-content` for a reading area and `--ui-surface-chrome` for its header, footer or surrounding navigation. Both derive from `--ui-surface`, with the reading area lighter than the chrome in light and dark themes, including themes whose canvas and raised surfaces share a color.
+
+The roles resolve at each theme boundary. Override either public token when a surface needs a different treatment.
+
 ## Files
 
 | Import | Purpose |

@@ -36,6 +36,10 @@
   }
 
   :where(:root, [data-theme], [data-contrast]) {
+    /* Reading content stays lighter than surrounding application chrome, even when
+       a theme uses the same canvas and raised surface. Both follow the canvas hue. */
+    --ui-surface-content: color-mix(in oklab, var(--ui-surface) 92%, white);
+    --ui-surface-chrome: color-mix(in oklab, var(--ui-surface) 94%, black);
     /* Controls use a ratio. Spacing uses an independent curve, so increasing the size
        contrast cannot unexpectedly turn linear spacing into quadratic spacing. */
     --ui-control-size: calc(var(--_ui-root-font-unit) * var(--ui-control-roominess));

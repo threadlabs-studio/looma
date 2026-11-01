@@ -2704,6 +2704,42 @@ describe("Disclosure composition", () => {
     await page.close();
   });
 
+  it("keeps reading surfaces lighter than surrounding chrome across theme seeds", async () => {
+    const path = await bundle("html-content-surfaces", `import "@looma-test/runtime";`);
+    const page = await open(path, `<style>#content { background: var(--ui-surface-content); } #chrome { background: var(--ui-surface-chrome); }</style><header id="chrome">Chrome</header><main id="content">Content</main>`, [join(root, "tokens.css")]);
+    for (const surface of ["#ffffff", "#f3e9dd", "#1d252b", "#000000"]) {
+      const values = await page.evaluate(surface => {
+        document.documentElement.style.setProperty("--ui-surface", surface);
+        const canvas = document.createElement("canvas"); canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext("2d")!;
+        const lightness = (id: string) => {
+          ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = getComputedStyle(document.getElementById(id)!).backgroundColor; ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b] = Array.from(ctx.getImageData(0, 0, 1, 1).data).map(value => value / 255);
+          return .2126 * r! + .7152 * g! + .0722 * b!;
+        };
+        return [lightness("content"), lightness("chrome")];
+      }, surface);
+      assert.ok(values[0]! > values[1]!, `${surface}: reading area must be lighter than chrome: ${values}`);
+    }
+    await page.close();
+  });
+
+  it("keeps navigation disclosure children adjacent to their trigger", async () => {
+    const path = await bundle("html-navigation-children", `import "@looma-test/runtime";`);
+    const page = await open(path, `
+      <ui-disclosure id="section" variant="navigation" density="compact" open summary="Writing">
+        <ui-nav-item id="overview" as="a" href="#overview" density="compact">Writing overview</ui-nav-item>
+        <ui-disclosure variant="navigation" density="compact" open summary="Examples">
+          <ui-nav-item as="a" href="#example" density="compact">Example</ui-nav-item>
+        </ui-disclosure>
+      </ui-disclosure>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const gap = await page.evaluate(() => document.querySelector("#overview")!.getBoundingClientRect().top
+      - document.querySelector("#section button")!.getBoundingClientRect().bottom);
+    assert.ok(Math.abs(gap) <= 1, `Navigation children must follow the trigger without accordion padding, got ${gap}px`);
+    await page.close();
+  });
+
   it("shares neutral navigation colors, columns, typography, hover, and corners in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@looma-test/runtime";` : `
