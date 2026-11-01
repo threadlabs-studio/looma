@@ -33,6 +33,20 @@
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour. The field
       variant always uses neutral field colors. Supporting brand families use accent-secondary and accent-tertiary; their usable colors derive from the theme,
       and unset families follow the primary accent.</prop>
+    <prop
+      name="interactionTone"
+      type="keyword"
+      values="inherit, accent, accent-secondary, accent-tertiary, neutral, danger, success, warning, info"
+      default="inherit"
+    >The action palette while hovered or pressed. inherit follows tone and preset. Choose a different tone for transient emphasis, such as a neutral choice that
+      uses accent feedback. Hover and pressed keep their distinct shared treatments; disabled and loading actions keep their resting treatment.</prop>
+    <prop name="interactionVariant" type="keyword" values="inherit, outline, solid, ghost" default="inherit"
+    >The paint while hovered or pressed. inherit follows variant and preset. outline, solid and ghost change emphasis without changing the control's layout,
+      size or content. The shared hover and pressed treatments remain distinct.</prop>
+    <computed
+      name="interactionAppearance"
+      from="{ true: null, false: { inherit: $appearance, outline: 'outline', solid: 'solid', ghost: 'ghost' }[$interactionVariant] }[concat($interactionTone = 'inherit' and $interactionVariant = 'inherit')]"
+    ></computed>
     <prop name="disabled" type="boolean" default="false"
     >Makes the button unavailable: it cannot be pressed, uses muted neutral colors, and loses its raised look. An unselected disabled ghost keeps its
       transparent surface; a selected ghost retains a muted selection wash. A disabled link (with href) drops its href and states aria-disabled="true" instead,
@@ -59,6 +73,8 @@
     <a
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
+      from:data-interaction-tone="{ true: null, false: $interactionTone }[concat($interactionTone = 'inherit')]"
+      from:data-interaction-appearance="$interactionAppearance"
       from:data-selected="$selected"
       $when="$appearance = 'card' and $href != null"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
@@ -77,6 +93,8 @@
     <button
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
+      from:data-interaction-tone="{ true: null, false: $interactionTone }[concat($interactionTone = 'inherit')]"
+      from:data-interaction-appearance="$interactionAppearance"
       from:data-selected="$selected"
       $when="$appearance = 'card'"
       from:type="$type"
@@ -93,6 +111,8 @@
     <a
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
+      from:data-interaction-tone="{ true: null, false: $interactionTone }[concat($interactionTone = 'inherit')]"
+      from:data-interaction-appearance="$interactionAppearance"
       from:data-selected="$selected"
       $when="$href != null"
       from:href="{ true: null, false: $href }[concat($disabled or $loading or $pending)]"
@@ -109,6 +129,8 @@
     <button
       from:data-appearance="$appearance"
       from:data-tone="$colorTone"
+      from:data-interaction-tone="{ true: null, false: $interactionTone }[concat($interactionTone = 'inherit')]"
+      from:data-interaction-appearance="$interactionAppearance"
       from:data-selected="$selected"
       $else
       from:type="$type"
@@ -133,6 +155,11 @@
         inset calc(-1 * var(--_ui-action-start)) -1px 0 light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08))
       );
       --_ui-action-shadow: var(--_ui-action-edge), 0 1px 2px light-dark(rgb(0 0 0 / 0.10), rgb(0 0 0 / 0.20));
+    }
+
+    /* Explicit interaction palettes reuse the resting palette bindings, without changing geometry. */
+    :host,
+    :host[data-interaction-tone]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-accent-border, var(--ui-accent));
       --_tone-hover-border: var(--ui-accent-hover-border, var(--ui-accent-hover));
       --_tone-active-border: var(--ui-accent-active-border, var(--ui-accent-active));
@@ -154,7 +181,17 @@
       --_tone-active: var(--_hue-active);
       --_tone-text: var(--_hue-text);
       --_on-tone: var(--_on-hue);
+      --_interaction-solid-hover: var(--_tone-hover);
+      --_interaction-solid-active: var(--_tone-active);
+      --_interaction-solid-text: var(--_on-tone);
+      --_interaction-solid-shadow: var(--ui-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))), var(--_tone-glow);
+      --_interaction-outline-border: var(--_tone-outline-border);
+      --_interaction-outline-wash: var(--_tone-wash-hover);
+      --_interaction-outline-active: oklch(from var(--_tone) l c h / calc(18% * var(--ui-tonal-opacity, 1)));
+      --_interaction-card-border: var(--_tone-text);
+    }
 
+    :host {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -366,9 +403,9 @@
       color: var(--ui-selection-text);
     }
 
-    /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
+    /* Pressed outranks tone-specific outline paint: the highlight goes, and the shadow moves inside. */
     :host:active:not(:disabled, [aria-disabled="true"]),
-    :host[data-appearance="outline"]:active:not(:disabled, [aria-disabled="true"]) {
+    :host[data-appearance="outline"][data-tone]:active:not(:disabled, [aria-disabled="true"]) {
       scale: var(--ui-press-scale, 1);
       background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / calc(18% * var(--ui-tonal-opacity, 1))));
       background-image: none;
@@ -401,7 +438,8 @@
 
     /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
        destructive secondary action, not a special case. */
-    :host[data-tone="accent-secondary"] {
+    :host[data-tone="accent-secondary"],
+    :host[data-interaction-tone="accent-secondary"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-accent-secondary-border, var(--ui-accent-secondary));
       --_tone-hover-border: var(--ui-accent-secondary-hover-border, var(--ui-accent-secondary-hover));
       --_tone-active-border: var(--ui-accent-secondary-active-border, var(--ui-accent-secondary-active));
@@ -419,7 +457,8 @@
       --_on-hue: var(--ui-accent-secondary-on-strong);
     }
 
-    :host[data-tone="accent-tertiary"] {
+    :host[data-tone="accent-tertiary"],
+    :host[data-interaction-tone="accent-tertiary"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-accent-tertiary-border, var(--ui-accent-tertiary));
       --_tone-hover-border: var(--ui-accent-tertiary-hover-border, var(--ui-accent-tertiary-hover));
       --_tone-active-border: var(--ui-accent-tertiary-active-border, var(--ui-accent-tertiary-active));
@@ -437,7 +476,8 @@
       --_on-hue: var(--ui-accent-tertiary-on-strong);
     }
 
-    :host[data-tone="neutral"] {
+    :host[data-tone="neutral"],
+    :host[data-interaction-tone="neutral"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-control-border, var(--ui-neutral-surface));
       --_tone-hover-border: var(--ui-control-border-hover, var(--ui-neutral-hover));
       --_tone-active-border: var(--ui-control-border-hover, var(--ui-neutral-active));
@@ -451,6 +491,14 @@
       --_hue-active: var(--ui-text);
       --_hue-text: var(--ui-text);
       --_on-hue: var(--ui-surface);
+      --_interaction-solid-hover: var(--ui-neutral-hover);
+      --_interaction-solid-active: var(--ui-neutral-active);
+      --_interaction-solid-text: var(--ui-button-text, var(--ui-text));
+      --_interaction-solid-shadow: var(--ui-button-solid-shadow, var(--ui-button-shadow, var(--ui-neutral-shadow)));
+      --_interaction-outline-border: var(--ui-control-border-hover);
+      --_interaction-outline-wash: var(--ui-neutral-wash-hover);
+      --_interaction-outline-active: var(--ui-neutral-active);
+      --_interaction-card-border: var(--ui-border-strong);
     }
 
     :host[data-tone="neutral"][data-appearance="solid"] {
@@ -485,7 +533,9 @@
       background-color: var(--ui-button-active-surface, var(--ui-neutral-active));
     }
 
-    :host[data-tone="danger"], :host[data-appearance="danger"] {
+    :host[data-tone="danger"],
+    :host[data-appearance="danger"],
+    :host[data-interaction-tone="danger"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-danger-border, var(--ui-danger));
       --_tone-hover-border: var(--ui-danger-hover-border, var(--ui-danger-hover));
       --_tone-active-border: var(--ui-danger-active-border, var(--ui-danger-active));
@@ -503,7 +553,8 @@
       --_on-hue: var(--ui-on-danger);
     }
 
-    :host[data-tone="success"] {
+    :host[data-tone="success"],
+    :host[data-interaction-tone="success"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-success-border, var(--ui-success));
       --_tone-hover-border: var(--ui-success-hover-border, var(--ui-success-hover));
       --_tone-active-border: var(--ui-success-active-border, var(--ui-success-active));
@@ -521,7 +572,8 @@
       --_on-hue: var(--ui-success-on-strong);
     }
 
-    :host[data-tone="warning"] {
+    :host[data-tone="warning"],
+    :host[data-interaction-tone="warning"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-warning-border, var(--ui-warning));
       --_tone-hover-border: var(--ui-warning-hover-border, var(--ui-warning-hover));
       --_tone-active-border: var(--ui-warning-active-border, var(--ui-warning-active));
@@ -539,7 +591,8 @@
       --_on-hue: var(--ui-warning-on-strong);
     }
 
-    :host[data-tone="info"] {
+    :host[data-tone="info"],
+    :host[data-interaction-tone="info"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
       --_tone-border: var(--ui-info-border, var(--ui-info));
       --_tone-hover-border: var(--ui-info-hover-border, var(--ui-info-hover));
       --_tone-active-border: var(--ui-info-active-border, var(--ui-info-active));
@@ -610,6 +663,93 @@
       box-shadow: inset 0 0 0 1px var(--ui-selection-border);
     }
 
+    /* Interaction settings choose paint only. Pressed keeps its stronger fill and inset shadow. */
+    :host[data-tone][data-interaction-appearance="outline"]:hover:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: var(--ui-button-shadow, var(--ui-neutral-shadow));
+      border-color: var(--ui-button-hover-border, var(--_interaction-outline-border));
+      background-color: var(--ui-button-hover-surface, transparent);
+      background-image: linear-gradient(var(--_interaction-outline-wash), var(--_interaction-outline-wash));
+      color: var(--ui-button-text, var(--_tone-text));
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone][data-interaction-appearance="outline"]:active:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: var(--ui-pressed);
+      border-color: var(--ui-button-hover-border, var(--_interaction-outline-border));
+      background-color: var(--ui-button-active-surface, var(--_interaction-outline-active));
+      background-image: none;
+      color: var(--ui-button-text, var(--_tone-text));
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone]:is([data-interaction-appearance="solid"], [data-interaction-appearance="danger"]):hover:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: var(--_interaction-solid-shadow);
+      border-color: var(--ui-button-hover-border, var(--_tone-hover-border));
+      background-color: var(--ui-button-hover-surface, var(--_interaction-solid-hover));
+      background-image: var(--_tone-hover-highlight);
+      color: var(--_interaction-solid-text);
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone]:is([data-interaction-appearance="solid"], [data-interaction-appearance="danger"]):active:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: var(--ui-pressed);
+      border-color: var(--_tone-active-border);
+      background-color: var(--ui-button-active-surface, var(--_interaction-solid-active));
+      background-image: none;
+      color: var(--_interaction-solid-text);
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone][data-interaction-appearance="ghost"]:hover:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: 0 0 transparent;
+      border-color: transparent;
+      background-color: var(--ui-button-ghost-hover-surface, var(--_tone-ghost-hover));
+      background-image: none;
+      color: var(--ui-button-ghost-text, var(--_tone-text));
+      box-shadow: none;
+    }
+
+    :host[data-tone][data-interaction-appearance="ghost"]:active:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: inset 0 0 0 1px oklch(from var(--_tone) l c h / 10%), inset 0 1px 2px oklch(from var(--_tone) l c h / 8%);
+      border-color: transparent;
+      background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 18%));
+      background-image: none;
+      color: var(--ui-button-ghost-text, var(--_tone-text));
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone][data-interaction-appearance="card"]:hover:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: 0 0 transparent;
+      border-color: var(--ui-button-hover-border, var(--_interaction-card-border));
+      background-color: var(--ui-button-hover-surface, oklch(from var(--_tone-text) l c h / calc(12% * var(--ui-tonal-opacity, 1))));
+      background-image: none;
+      color: var(--ui-button-text, var(--_tone-text));
+      box-shadow: none;
+    }
+
+    :host[data-tone][data-interaction-appearance="card"]:active:not(:disabled, [aria-disabled="true"]) {
+      --_interaction-shadow: var(--ui-pressed);
+      border-color: var(--ui-button-hover-border, var(--_interaction-card-border));
+      background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / calc(18% * var(--ui-tonal-opacity, 1))));
+      background-image: none;
+      color: var(--ui-button-text, var(--_tone-text));
+      box-shadow: var(--_interaction-shadow);
+    }
+
+    :host[data-tone][data-interaction-appearance="link"]:is(:hover, :active):not(:disabled, [aria-disabled="true"]) {
+      color: var(--ui-button-link-hover-text, var(--_tone-text));
+    }
+
+    :host[data-tone][data-interaction-appearance="link"]:active:not(:disabled, [aria-disabled="true"]) {
+      text-decoration-thickness: 0.125em;
+    }
+
+    :host[data-tone][data-interaction-appearance]:is(:hover, :active):focus-visible:not(:disabled, [aria-disabled="true"]) {
+      box-shadow:
+        var(--_interaction-shadow, 0 0 transparent),
+        var(--ui-focus-halo);
+    }
+
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
     :host:focus-visible,
     :host[data-appearance="ghost"][data-selected]:focus-visible {
@@ -622,6 +762,12 @@
     :host[data-appearance="outline"]:focus-visible {
       box-shadow:
         var(--ui-button-shadow, var(--ui-neutral-shadow)),
+        var(--ui-focus-halo);
+    }
+
+    :host[data-appearance="outline"]:not([data-interaction-appearance]):active:focus-visible:not(:disabled, [aria-disabled="true"]) {
+      box-shadow:
+        var(--ui-pressed),
         var(--ui-focus-halo);
     }
 
@@ -705,6 +851,10 @@
     :host[data-appearance="link"] .label:not(:has(> *)) {
       display: inline !important;
       text-box-trim: none;
+    }
+
+    :host[data-appearance="link"] .label:has(> *) {
+      text-decoration: inherit;
     }
 
     :host[data-appearance="link"]:hover:not(:disabled, [aria-disabled="true"]) {
