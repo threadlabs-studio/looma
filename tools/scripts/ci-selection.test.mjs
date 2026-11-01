@@ -199,6 +199,13 @@ test("automatic selection budgets parallel jobs and caps browser expansion witho
   assert.ok(Object.values(bounded.browserTests).flat().length <= 80);
   assert.ok(bounded.deferred.length > 0);
   assert.deepEqual(bounded.nativeTests, focused.nativeTests);
+  const matrix = { ...source, "packages/looma/tests/browser.test.ts": Array.from({ length: 30 }, (_, n) =>
+    'for (const adapter of ["native", "Vue"]) for (const engine of ["Chromium", "WebKit"]) ' +
+    'it(`button matrix ' + n + ' ${adapter} ${engine}`, () => { open("<ui-button>"); });').join("\n") };
+  const grids = automaticChecks(matrix, ["packages/looma/src/components/ui-button/ui-button.html"]);
+  const selectedGrids = grids.browserTests["packages/looma/tests/browser.test.ts"].length;
+  assert.ok(selectedGrids * 2 * 2 <= 80, "native/framework by engine grids must fit the estimated instance budget");
+  assert.deepEqual(grids.nativeTests, focused.nativeTests);
 });
 
 test("global changes use explicit integration smoke cases and retain edited regressions", () => {
