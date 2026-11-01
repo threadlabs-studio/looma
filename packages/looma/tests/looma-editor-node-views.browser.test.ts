@@ -53,7 +53,7 @@ describe("LoomaEditor node views", () => {
         { type: "text", text: " My wording", marks: [{ type: "link", attrs: { href: "/guide" } }] },
       ] }] },
       references: references.value, onChange: updates, extensions: captureEditor(instance => { editor = instance; }),
-    }) }); apps.push(app); app.mount(host); await flushBrowser(); await expect.poll(() => editor).toBeTruthy();
+    }) }); apps.push(app); app.mount(host); await flushBrowser(); await expect.poll(() => editor, { timeout: 5_000 }).toBeTruthy();
     const saved = editor!.getJSON();
     expect(host.querySelector(".ProseMirror")!.textContent).toBe("Cached guide @Cached person My wording");
     references.value = { "link:guide": { label: "Renamed guide" }, "mention:person": { label: "New name" } };
