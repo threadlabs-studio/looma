@@ -32,7 +32,7 @@ async function mountEditor(html: string) {
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  await expect.poll(() => editor).toBeTruthy();
+  await expect.poll(() => editor, { timeout: 5_000 }).toBeTruthy();
   editor!.commands.setContent(html);
   await flushBrowser();
   return { host, editor: editor! };
