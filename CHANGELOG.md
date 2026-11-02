@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Animate a filling Disclosure's movement when surrounding navigation is replaced, preserving reduced-motion preferences and rapid toggles.
+
 - Keep navigation disclosure children adjacent to the trigger without the plain accordion's body padding.
 - Add shared content and chrome surface roles that retain a lighter reading area across themes.
 
