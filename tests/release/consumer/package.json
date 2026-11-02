@@ -1,7 +1,7 @@
 {
   "name": "looma-release-consumer-fixture",
   "private": true,
-  "version": "0.51.0",
+  "version": "0.52.0",
   "type": "module",
   "packageManager": "pnpm@10.7.1",
   "scripts": {
@@ -21,7 +21,8 @@
     "typescript": "^5.9.2",
     "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.79",
     "@vitejs/plugin-vue": "^6.0.9",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "@threadlabs/looma-docs": ">=0.52.0"
   },
   "pnpm": {
     "overrides": {

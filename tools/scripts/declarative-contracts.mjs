@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { formatType, normalizeType, parseComponentResource, typeScriptType } from "../../packages/looma/node_modules/@nextwebwg/html-next/dist/index.js";
+import { angularHostTag, formatType, normalizeType, parseComponentResource, typeScriptType } from "../../packages/looma/tooling/html-next.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
@@ -208,11 +208,13 @@ export async function readDeclarativeContractGroups() {
     const tags = (await readdir(path.join(repoRoot, componentDirectory)))
       .filter((name) => name.startsWith("ui-"))
       .sort();
+    const definitions = new Map();
     const entries = await Promise.all(tags.map(async (tag) => {
       const sourcePath = path.posix.join(componentDirectory, tag, `${tag}.html`);
       const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
       const contract = parseDeclarativeContract(source, tag);
       const definition = parseComponentResource(source, sourcePath).definition;
+      definitions.set(tag, definition);
       const propTypes = Object.fromEntries(Object.entries(definition.contract.props).map(([name, parsed]) => [
         name, parsed.values ? parsed.values.map((value) => JSON.stringify(value)).join(" | ") : typeScriptType(parsed.type),
       ]));
@@ -246,7 +248,7 @@ export async function readDeclarativeContractGroups() {
     }));
     return Object.freeze({
       ...group,
-      contracts: Object.freeze(Object.fromEntries(entries)),
+      contracts: Object.freeze(Object.fromEntries(entries.map(([tag, contract]) => [tag, Object.freeze({ ...contract, angularHost: angularHostTag(definitions.get(tag), definitions) })]))),
     });
   }));
 }

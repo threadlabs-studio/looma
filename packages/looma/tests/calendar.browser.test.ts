@@ -1,23 +1,23 @@
-import { page, userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, reactive, type App } from "vue";
+import { page, userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiCalendar as Calendar } from "@threadlabs/looma";
-import { UiGrid as Grid } from "@threadlabs/looma";
+import { UiCalendar as Calendar } from "@looma-test/components";
+import { UiGrid as Grid } from "@looma-test/components";
 import { componentRegistry, getComponentHost } from "@nextwebwg/html-next/runtime";
 import { componentInputs } from "@nextwebwg/html-next/inputs";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
-import "../tooling/docs/documentation.css";
+import "../../looma-docs/tooling/docs/documentation.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; delete document.documentElement.dataset.theme; });
 
-async function mount(adapter: "html" | "vue", initial: Record<string, unknown> = {}) {
-  const props = reactive({ value: "2024-02-29", locale: "en-GB", ...initial });
+async function mount(adapter: "html" | "converted", initial: Record<string, unknown> = {}) {
+  const props = stateObject({ value: "2024-02-29", locale: "en-GB", ...initial });
   const form = document.createElement("form"); document.body.append(form);
-  if (adapter === "vue") { app = createApp({ render: () => h(Calendar, { ...props }) }); app.mount(form); }
+  if (adapter === "converted") { app = createScene({ render: () => sceneNode(Calendar, { ...props }) }); app.mount(form); }
   else {
     const invocation = document.createElement("ui-calendar");
     for (const [key, value] of Object.entries(props)) invocation.setAttribute(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), typeof value === "object" ? JSON.stringify(value) : String(value));
@@ -30,7 +30,7 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
   const day = (value: string) => form.querySelector<HTMLButtonElement>(`[data-calendar-day="${value}"]`)!;
   const action = (name: string) => form.querySelector<HTMLButtonElement>(`[data-calendar-${name}]`)!;
   const visible = (name: string) => !form.querySelector<HTMLElement>(`[data-calendar-${name}]`)!.hidden;
-  const update = async (values: Record<string, unknown>) => { if (adapter === "vue") Object.assign(props, values); else componentRegistry.update(root, values); await nextTick(); };
+  const update = async (values: Record<string, unknown>) => { if (adapter === "converted") Object.assign(props, values); else componentRegistry.update(root, values); await settle(); };
   return { form, root, day, action, events, update, visible };
 }
 
@@ -52,7 +52,7 @@ it("retains focused date cells during availability loading without accepting a s
   } finally { source.dispose(); }
 });
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`keeps keyboard navigation separate from selection and exposes a single day tab stop in ${adapter}`, async () => {
     const { form, day, events } = await mount(adapter);
     expect(form.querySelectorAll('[data-calendar-day][tabindex="0"]')).toHaveLength(1);
@@ -180,7 +180,7 @@ for (const adapter of ["html", "vue"] as const) {
 
 it("keeps seven aligned weekday columns and shared themed controls at 375px in LTR and RTL", async () => {
   await page.viewport(375, 640);
-  for (const adapter of ["html", "vue"] as const) for (const theme of ["light", "dark"]) {
+  for (const adapter of ["html", "converted"] as const) for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = theme;
     const { form, day, action } = await mount(adapter, { value: "2024-02-12", start: "2024-02-12", end: "2024-02-17", locale: theme === "dark" ? "ar-EG" : "en-GB" });
     form.style.width = "343px"; form.style.fontFamily = "var(--ui-font-family-sans)";
@@ -225,7 +225,7 @@ it("keeps seven aligned weekday columns and shared themed controls at 375px in L
     await vi.waitFor(() => expect(document.activeElement?.getAttribute("data-calendar-day")).toBe("2024-03-01"));
     await userEvent.click(action("previous"));
     await vi.waitFor(() => expect(day("2024-02-12")).not.toBeNull());
-    await page.screenshot({ element: form, path: `../../../.context/calendar-${adapter}-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ element: form, path: `../../../.context/calendar-${adapter}-${theme}-mobile.png` });
     const paint = (element: Element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color }; };
     const token = document.createElement("span"); token.style.backgroundColor = "var(--ui-selection-surface)"; token.style.color = "var(--ui-selection-text)"; form.append(token);
     const selection = paint(token); token.remove();
@@ -250,7 +250,7 @@ it("keeps seven aligned weekday columns and shared themed controls at 375px in L
 
 it("keeps full month and year labels between the arrows at a mobile preview width", async () => {
   await page.viewport(375, 640);
-  for (const adapter of ["html", "vue"] as const) for (const locale of ["en-GB", "de-DE", "ar-EG"]) {
+  for (const adapter of ["html", "converted"] as const) for (const locale of ["en-GB", "de-DE", "ar-EG"]) {
     const { form, action } = await mount(adapter, { value: "2026-09-15", locale });
     form.style.width = "305px"; form.style.fontSize = "17px"; form.style.fontFamily = "var(--ui-font-family-sans)";
     form.dir = locale === "ar-EG" ? "rtl" : "ltr";
@@ -288,7 +288,7 @@ it("keeps full month and year labels between the arrows at a mobile preview widt
 
 it("keeps all seven calendar columns inside a padded docs preview in both themes and directions", async () => {
   await page.viewport(375, 640);
-  for (const adapter of ["html", "vue"] as const) for (const theme of ["light", "dark"]) for (const dir of ["ltr", "rtl"]) {
+  for (const adapter of ["html", "converted"] as const) for (const theme of ["light", "dark"]) for (const dir of ["ltr", "rtl"]) {
     document.documentElement.dataset.theme = theme;
     const { form } = await mount(adapter, { value: "2026-10-30", locale: "en-GB" });
     form.dataset.preview = "calendar"; form.dataset.previewLayout = ""; form.dir = dir;
@@ -325,7 +325,8 @@ it("keeps all seven calendar columns inside a padded docs preview in both themes
 
 it("keeps Grid responsive by default and uses exact columns only when requested", async () => {
   const host = document.createElement("div"); host.style.width = "343px"; document.body.append(host);
-  app = createApp({ render: () => h("div", [h(Grid, { columns: 7 }, () => Array.from({ length: 7 }, () => h("span", "Cell"))), h(Grid, { columns: 7, fixed: true, gap: "none" }, () => Array.from({ length: 7 }, () => h("span", "Cell"))), h(Grid, { columns: 7, fixed: true, gap: "none", shadedColumns: [1, 7] }, () => Array.from({ length: 7 }, () => h("span", "Cell")))]) }); app.mount(host);
+  app = createScene({ render: () => sceneNode("div", [sceneNode(Grid, { columns: 7 }, () => Array.from({ length: 7 }, () => sceneNode("span", "Cell"))), sceneNode(Grid, { columns: 7, fixed: true, gap: "none" }, () => Array.from({ length: 7 }, () => sceneNode("span", "Cell"))), sceneNode(Grid, { columns: 7, fixed: true, gap: "none", shadedColumns: [1, 7] }, () => Array.from({ length: 7 }, () => sceneNode("span", "Cell")))]) }); app.mount(host);
+  await settle();
   // The authored roots are the two direct Grid children, independent of generated scope markers.
   const children = [...host.firstElementChild!.children] as HTMLElement[];
   expect(getComputedStyle(children[0]!).gridTemplateColumns.split(" ")).toHaveLength(1);

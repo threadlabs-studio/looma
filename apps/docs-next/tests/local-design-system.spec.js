@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { serveLocalDocumentation } from '../../../packages/looma/tooling/docs/local-server.mjs';
-import { createThemeStore } from '../../../packages/looma/tooling/docs/store.mjs';
+import { serveLocalDocumentation } from '../../../packages/looma-docs/tooling/docs/local-server.mjs';
+import { createThemeStore } from '../../../packages/looma-docs/tooling/docs/store.mjs';
 
 test('local saving preserves newer edits with inline previews', async ({ page }, info) => {
   const root = await mkdtemp(path.join(tmpdir(), 'looma-browser-writer-'));

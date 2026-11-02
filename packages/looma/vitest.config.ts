@@ -1,8 +1,10 @@
 import { configDefaults, defineConfig } from "vitest/config";
-import { vueSourcePlugins } from "./tests/framework-plugins";
+import { rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugins.ts";
 
 export default defineConfig({
+  cacheDir: rendererCacheDirectory(),
   test: {
+    fsModuleCachePath: rendererCacheDirectory("-modules"),
     fileParallelism: process.env.CI ? undefined : false,
     maxWorkers: process.env.CI ? undefined : 1,
     exclude: [...configDefaults.exclude, "tests/**/*.browser.test.ts"],
@@ -10,19 +12,23 @@ export default defineConfig({
     hookTimeout: 60_000,
     projects: [
       {
+        cacheDir: rendererCacheDirectory(),
         extends: true,
         test: {
           name: "unit",
           include: ["tests/**/*.test.ts"],
-          exclude: [...configDefaults.exclude, "tests/**/*.browser.test.ts", "tests/**/*ssr.test.ts", "tests/browser.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],
+          exclude: [...configDefaults.exclude, "tests/**/*.browser.test.ts", "tests/**/*ssr.test.ts", "tests/browser/**/*.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],
         },
       },
       {
+        cacheDir: rendererCacheDirectory(),
         extends: true,
-        plugins: vueSourcePlugins(),
+        plugins: rendererPlugins(),
         test: {
-          name: "vue-source",
-          include: ["tests/**/*ssr.test.ts", "tests/browser.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],
+          name: "converted-source",
+          setupFiles: ["./tests/renderers/test-context.ts"],
+          globalSetup: ["./tests/renderers/browser-suite.ts"],
+          include: ["tests/**/*ssr.test.ts", "tests/browser/**/*.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],
         },
       },
     ],

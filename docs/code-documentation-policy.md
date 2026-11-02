@@ -46,7 +46,7 @@ Not every symbol needs every facet. Stateful, asynchronous, callback-bearing, or
 | `@threadlabs/looma/editor/extensions` | Tiptap extensions, presets and commands | A headless host owns its Tiptap instance and command wiring. |
 | `@threadlabs/looma/editor/expressmark` | Editor JSON and Markdown conversion | Import is safe during SSR; conversion reports unsupported data. |
 | `@threadlabs/looma/markdown` | Markdown rules and parsing helpers | Does not register browser component behavior. |
-| `@threadlabs/looma/docs` | Shared documentation generator and theme integration | The package owns rendering shared by documentation consumers. |
+| `@threadlabs/looma-docs` | Shared documentation generator and theme integration | The package owns rendering shared by documentation consumers. |
 
 ## Deterministic enforcement path
 

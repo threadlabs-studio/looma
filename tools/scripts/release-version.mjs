@@ -10,6 +10,7 @@ export const VERSIONED_MANIFESTS = [
   "apps/docs/package.json",
   "apps/storybook/package.json",
   "packages/looma/package.json",
+  "packages/looma-docs/package.json",
   "tests/release/consumer/package.json",
   "tools/tsconfig/package.json"
 ];

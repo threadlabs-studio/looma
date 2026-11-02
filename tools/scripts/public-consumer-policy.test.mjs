@@ -12,7 +12,7 @@ import {
 } from "./verify-public-consumer.mjs";
 import { RELEASE_VERSION } from "./release-config.mjs";
 
-const releaseNames = ["@threadlabs/looma"];
+const releaseNames = ["@threadlabs/looma", "@threadlabs/looma-docs"];
 
 function releaseManifest(overrides = {}) {
   return {

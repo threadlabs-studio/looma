@@ -128,9 +128,9 @@ with one worker; the package's ordinary test command also launches browsers.
 
 ```sh
 corepack pnpm install --frozen-lockfile
-corepack pnpm --filter @threadlabs/looma-docs typecheck:tests
-corepack pnpm --filter @threadlabs/looma-docs test:parity:container
-corepack pnpm --filter @threadlabs/looma-docs test:visual
+corepack pnpm --filter @threadlabs/looma-docs-parity typecheck:tests
+corepack pnpm --filter @threadlabs/looma-docs-parity test:parity:container
+corepack pnpm --filter @threadlabs/looma-docs-parity test:visual
 ```
 
 The docs build sets `USE_SIMPLE_CSS_MINIFIER=true`, Docusaurus's switch to cssnano alone. Its
@@ -139,7 +139,7 @@ since 1.0.0-alpha.41: it drops each block's first selector and moves the rest ou
 the editor guide's Vue components lost their styles.
 
 For native browser runs, install the three engines with
-`PLAYWRIGHT_SKIP_BROWSER_GC=1 corepack pnpm --filter @threadlabs/looma-docs exec playwright install chromium firefox webkit`
+`PLAYWRIGHT_SKIP_BROWSER_GC=1 corepack pnpm --filter @threadlabs/looma-docs-parity exec playwright install chromium firefox webkit`
 and run `test:parity` instead.
 
 The local `test:browser` command remains available for Chromium checks. The manual Extended verification workflow runs all three
@@ -253,7 +253,7 @@ review GitHub's uploaded actual image rather than raising the pixel allowance.
 To review intentional changes, update only the affected cases:
 
 ```sh
-corepack pnpm --filter @threadlabs/looma-docs test:visual --grep 'desktop-light.*components/ui-button:' --update-snapshots=all
+corepack pnpm --filter @threadlabs/looma-docs-parity test:visual --grep 'desktop-light.*components/ui-button:' --update-snapshots=all
 ```
 
 Inspect the expected/actual/diff images and accessibility finding changes, then

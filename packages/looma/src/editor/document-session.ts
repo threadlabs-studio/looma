@@ -429,7 +429,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       if (!chipEditing?.open(position)) return;
       uiState.root?.querySelector(`#${chipAnchorId}`)?.removeAttribute("id");
       chipEditing.element!.id = chipAnchorId;
-      void nextTick(() => focusPart(uiState.chipEditorRoot));
+      if (elementRef("chipPopover")?.matches(":popover-open")) focusPart(uiState.chipEditorRoot);
     };
     const openFootnoteSurface = (position: number, surface: "actions" | "editor") => {
       if (!footnoteEditing?.open(position)) return;
@@ -1673,6 +1673,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       });
       listen(options.root, "toggle", event => {
         if ((event as ToggleEvent).newState !== "open") return;
+        if (event.target === elementRef("chipPopover") && chipEditing?.state.open) focusPart(uiState.chipEditorRoot);
         if (event.target === elementRef("footnoteActions") && uiState.footnoteSurface === "actions") elementRef("footnoteGo")?.focus();
         if (event.target === elementRef("footnotePopover") && uiState.footnoteSurface === "editor") focusFootnoteField();
       }, true);

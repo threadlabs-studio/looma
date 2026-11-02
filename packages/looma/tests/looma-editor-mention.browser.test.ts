@@ -1,17 +1,17 @@
 import type { Editor } from "@tiptap/core";
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -31,7 +31,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     host.style.width = "240px";
     document.body.append(host);
     let editor: Editor | null = null;
-    const app = createApp({ render: () => h(LoomaEditor, {
+    const app = createScene({ render: () => sceneNode(LoomaEditor, {
       extensions: captureEditor(instance => { editor = instance; }),
     }) });
     apps.push(app);
@@ -58,7 +58,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     expect(menu()?.dataset.columnIndex).toBe("1");
     await userEvent.click(menu()!);
     await flushBrowser();
-    const contextMenu = host.querySelector<HTMLElement>(':is([data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu)')!;
+    const contextMenu = host.querySelector<HTMLElement>(':is([component~="ui-editor-table-context-menu"], [data-component~="ui-editor-table-context-menu"], .ui-editor-table-context-menu, [ui-editor-table-context-menu])')!;
     expect(contextMenu).toBeTruthy();
     await userEvent.click(contextMenu.querySelector<HTMLElement>('[data-action="delete-row"]')!);
     await flushBrowser();
@@ -66,7 +66,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     expect(menu()?.dataset.rowIndex).toBe("0");
     editor!.commands.setTextSelection(editor!.state.doc.content.size - 1);
     await flushBrowser();
-    expect(host.querySelector(':is([data-component~="ui-editor-table-toolbar"], .ui-editor-table-toolbar)')).toBeNull();
+    expect(host.querySelector(':is([component~="ui-editor-table-toolbar"], [data-component~="ui-editor-table-toolbar"], .ui-editor-table-toolbar, [ui-editor-table-toolbar])')).toBeNull();
     expect(menu()).toBeNull();
   });
   it("projects native suggestion rectangles through the managed component boundary", async () => {
@@ -89,8 +89,8 @@ describe("LoomaEditor managed suggestion menus", () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 10));
       return [{ id: "ada", label: "Ada Lovelace", detail: "ada@example.com" }];
     });
-    const app = createApp({
-      render: () => h(LoomaEditor, {
+    const app = createScene({
+      render: () => sceneNode(LoomaEditor, {
         mentionQuery,
         extensions: captureEditor(instance => { editor = instance; }),
       }),
@@ -107,7 +107,7 @@ describe("LoomaEditor managed suggestion menus", () => {
 
       await vi.waitFor(() => {
         const menu = host.querySelector<HTMLElement>(
-          ':is([data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu)',
+          ':is([component~="ui-editor-mention-menu"], [data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu, [ui-editor-mention-menu])',
         );
         expect(menu?.textContent).toContain("Ada Lovelace");
         // The menu is placed at the caret's rectangle.
@@ -115,7 +115,7 @@ describe("LoomaEditor managed suggestion menus", () => {
         expect(Number.parseFloat(menu?.style.top ?? "")).toBeGreaterThan(0);
         expect(Number.parseFloat(menu?.style.left ?? "")).toBeGreaterThanOrEqual(0);
       });
-      const menu = document.querySelector<HTMLElement>(':is([data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu)')!;
+      const menu = document.querySelector<HTMLElement>(':is([component~="ui-editor-mention-menu"], [data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu, [ui-editor-mention-menu])')!;
       expect(menu.matches(":popover-open")).toBe(true);
       const before = menu.getBoundingClientRect().top;
       scroller.scrollTop = 40;
@@ -136,8 +136,8 @@ describe("LoomaEditor managed suggestion menus", () => {
     window.addEventListener("error", onError);
 
     let editor: Editor | null = null;
-    const app = createApp({
-      render: () => h(LoomaEditor, {
+    const app = createScene({
+      render: () => sceneNode(LoomaEditor, {
         extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
@@ -151,7 +151,7 @@ describe("LoomaEditor managed suggestion menus", () => {
 
       await vi.waitFor(() => {
         const menu = host.querySelector<HTMLElement>(
-          ':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)',
+          ':is([component~="ui-editor-slash-menu"], [data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu, [ui-editor-slash-menu])',
         );
         expect(menu?.textContent).toContain("Table");
         // Each item shows a title, a description, and an icon.
@@ -173,8 +173,8 @@ describe("LoomaEditor managed suggestion menus", () => {
     host.style.width = "240px";
     document.body.append(host);
     let editor: Editor | null = null;
-    const app = createApp({
-      render: () => h(LoomaEditor, {
+    const app = createScene({
+      render: () => sceneNode(LoomaEditor, {
         extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
@@ -190,7 +190,7 @@ describe("LoomaEditor managed suggestion menus", () => {
     await userEvent.click(table.querySelector<HTMLElement>("th, td")!);
     await flushBrowser();
     const handle = host.querySelector<HTMLElement>(
-      ':is([data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay) [data-action="add-row-after"][data-boundary-index="1"]',
+      ':is([component~="ui-editor-table-overlay"], [data-component~="ui-editor-table-overlay"], .ui-editor-table-overlay, [ui-editor-table-overlay]) [data-action="add-row-after"][data-boundary-index="1"]',
     )!;
     expect(handle).toBeTruthy();
 

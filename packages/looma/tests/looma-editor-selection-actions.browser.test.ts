@@ -1,27 +1,27 @@
 import type { Editor } from '@tiptap/core';
-import { userEvent } from '@vitest/browser/context';
+import { userEvent } from 'vitest/browser';
 import { afterEach, expect, it, vi } from 'vitest';
-import { createApp, h, nextTick, type App } from 'vue';
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
 import '../tokens.css';
 import '../theme-light.css';
-let app: App;
+let app: Scene;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; vi.restoreAllMocks(); });
 async function mount(editable = true, width = 1280, rangeActions = false) {
   vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(width);
   const host = document.createElement('div'); host.style.width = '600px'; host.style.marginTop = '150px'; document.body.append(host);
   let editor!: Editor;
   const action = vi.fn(), rangeAction = vi.fn();
-  app = createApp({ render: () => h(LoomaEditor, { editable, toolbarMode: 'contextual', compactToolbar: true,
+  app = createScene({ render: () => sceneNode(LoomaEditor, { editable, toolbarMode: 'contextual', compactToolbar: true,
     selectionActions: [{ id: 'note', label: 'Annotate' }, { id: 'query', label: 'Ask about selection' }],
     content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Before selected words after.' }] }] },
     rangeActions: rangeActions ? [{ id: 'inspect', label: 'Inspect notes', from: 8, to: 22 }, { id: 'inspect', label: 'Inspect notes', from: 8, to: 25 }] : [],
     "onRange-action": (event: CustomEvent) => rangeAction(event.detail),
     "onSelection-action": (event: CustomEvent) => action(event.detail), extensions: captureEditor(instance => { editor = instance; }),
-  }) }); app.mount(host); await nextTick();
+  }) }); app.mount(host); await settle();
   await vi.waitFor(() => expect(editor).toBeTruthy());
   editor.commands.focus(); editor.commands.setTextSelection({ from: 8, to: 22 });
   await new Promise(resolve => requestAnimationFrame(resolve));

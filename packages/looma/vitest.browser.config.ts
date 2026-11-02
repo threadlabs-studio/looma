@@ -1,51 +1,40 @@
-import { vueSourcePlugins } from "./tests/framework-plugins";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { prepareLibrary } from "./tests/renderers/prepare-library.ts";
+import { browserTestPatterns } from "./tests/browser-files.mjs";
+import { playwright } from "@vitest/browser-playwright";
+import { rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugins.ts";
 import { defineConfig } from "vitest/config";
+
+const target = process.env.LOOMA_TEST_TARGET ?? "vue";
+if (!process.env.LOOMA_PREPARED_LIBRARY) {
+  process.env.LOOMA_PREPARED_LIBRARY = await prepareLibrary();
+  process.env.LOOMA_PREPARED_LIBRARY_OWNER = process.env.LOOMA_PREPARED_LIBRARY;
+}
+const prepared = JSON.parse(readFileSync(path.join(process.env.LOOMA_PREPARED_LIBRARY, "manifest.json"), "utf8"));
 
 // Browser-mode tests of the editor. They import the built package (run `pnpm build` first).
 export default defineConfig({
-  plugins: vueSourcePlugins(),
-  define: { __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "vue") },
-  optimizeDeps: { include: ["vue", "@tiptap/core"] },
+  cacheDir: rendererCacheDirectory(),
+  plugins: rendererPlugins(),
+  define: { "process.env.LOOMA_CAPTURE_ARTIFACTS": JSON.stringify(process.env.LOOMA_CAPTURE_ARTIFACTS ?? ""), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "converted") },
+  optimizeDeps: { entries: browserTestPatterns, exclude: ["svelte", "@nextwebwg/html-next", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/runtime"], include: [...prepared.clientDependencies, "@tiptap/core", ...(target === "vue" ? ["vue"] : target === "react" ? ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server"] : target === "preact" ? ["preact", "preact/compat", "preact/hooks", "preact/jsx-runtime", "preact-render-to-string"] : [])] },
   resolve: {
-    dedupe: ["vue", "@vue/shared", "@vue/runtime-core", "@vue/runtime-dom", "@vue/reactivity"],
+    dedupe: target === "vue" ? ["vue", "@vue/shared", "@vue/runtime-core", "@vue/runtime-dom", "@vue/reactivity"] : target === "react" ? ["react", "react-dom"] : target === "preact" ? ["preact"] : target === "svelte" ? ["svelte"] : [],
     alias: [
-      { find: /^vue$/, replacement: new URL("./node_modules/vue/dist/vue.runtime.esm-bundler.js", import.meta.url).pathname },
+      ...(target === "vue" ? [{ find: /^vue$/, replacement: new URL("./node_modules/vue/dist/vue.runtime.esm-bundler.js", import.meta.url).pathname }] : []),
       { find: /^@threadlabs\/looma\/editor$/, replacement: new URL("./src/editor/index.ts", import.meta.url).pathname },
       { find: /^@threadlabs\/looma\/editor\/compact$/, replacement: new URL("./src/editor/compact.ts", import.meta.url).pathname },
     ],
   },
   test: {
-    include: [
-      "tests/source-editor.browser.test.ts",
-      "tests/native-editor.browser.test.ts",
-      "tests/calendar.browser.test.ts",
-      "tests/date-picker.browser.test.ts",
-      "tests/date-range-picker.browser.test.ts",
-      "tests/date-field.browser.test.ts",
-      "tests/input-segments.browser.test.ts",
-      "tests/time-picker.browser.test.ts",
-      "tests/file-input.browser.test.ts",
-      "tests/validation-summary.browser.test.ts",
-      "tests/pagination.browser.test.ts",
-      "tests/badge-overlay.browser.test.ts",
-      "tests/compact-editor.browser.test.ts",
-      "tests/looma-editor-selection-actions.browser.test.ts",
-      "tests/looma-editor-active-block.browser.test.ts",
-      "tests/looma-editor-history.browser.test.ts",
-      "tests/looma-editor-markdown.browser.test.ts",
-      "tests/markdown-accessibility.browser.test.ts",
-      "tests/looma-editor-mention.browser.test.ts",
-      "tests/looma-editor-node-views.browser.test.ts",
-      "tests/looma-editor-requests.browser.test.ts",
-      "tests/looma-editor-chip.browser.test.ts",
-      "tests/looma-editor-footnote.browser.test.ts",
-      "tests/looma-editor-table-layout.browser.test.ts",
-      "tests/looma-editor-task-items.browser.test.ts",
-      "tests/mention-typing.browser.test.ts",
-    ],
+    fsModuleCachePath: rendererCacheDirectory("-modules"),
+    fileParallelism: process.env.CI ? undefined : false,
+    globalSetup: ["./tests/renderers/prepare-library.ts"],
+    include: browserTestPatterns,
     browser: {
       enabled: true,
-      provider: "playwright",
+      provider: playwright(process.env.LOOMA_BROWSER_ENDPOINT ? { connectOptions: { wsEndpoint: process.env.LOOMA_BROWSER_ENDPOINT } } : {}),
       headless: true,
       instances: [{ browser: "chromium" }],
       // Failure screenshots are evidence for one run, kept out of the tests folder and out of Git.

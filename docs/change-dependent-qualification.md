@@ -104,9 +104,9 @@ Local commands remain available:
 ```sh
 pnpm --filter @threadlabs/looma build
 pnpm --filter @threadlabs/looma test:browser
-pnpm --filter @threadlabs/looma-docs test:parity
+pnpm --filter @threadlabs/looma-docs-parity test:parity
 pnpm --filter @threadlabs/looma-docs-next test:safari
-pnpm --filter @threadlabs/looma-docs test:visual
+pnpm --filter @threadlabs/looma-docs-parity test:visual
 ```
 
 Use one local browser worker. Inspect the automatic selection with

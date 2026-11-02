@@ -1,11 +1,12 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { expect, it } from "vitest";
-import { UiFileInput as FileInput } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { it } from "vitest";
+import { UiFileInput as FileInput } from "@looma-test/components";
 
 it("renders a named, labelled native file control with no JavaScript dependency for browsing or forms", async () => {
-  const html = await renderToString(createSSRApp({ render: () => h("form", [h(FileInput, { inputId: "attachments", name: "attachments", label: "Attachments", multiple: true, accept: ".pdf", required: true })]) }));
+  const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode(FileInput, { inputId: "attachments", name: "attachments", label: "Attachments", multiple: true, accept: ".pdf", required: true })]) }));
   const { window } = new JSDOM(html);
   const input = window.document.querySelector<HTMLInputElement>("input#attachments")!;
   expect(input.type).toBe("file"); expect(input.multiple).toBe(true); expect(input.accept).toBe(".pdf");
@@ -17,7 +18,7 @@ it("renders a named, labelled native file control with no JavaScript dependency 
 });
 
 it("omits disabled file controls and supports an external form association", async () => {
-  const html = await renderToString(createSSRApp({ render: () => h("div", [h("form", { id: "external" }), h(FileInput, { form: "external", name: "file", disabled: true })]) }));
+  const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("div", [sceneNode("form", { id: "external" }), sceneNode(FileInput, { form: "external", name: "file", disabled: true })]) }));
   const { window } = new JSDOM(html);
   expect(window.document.querySelector<HTMLInputElement>("input")!.form?.id).toBe("external");
   expect([...new window.FormData(window.document.querySelector("form")!)]).toEqual([]);

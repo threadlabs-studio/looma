@@ -1,7 +1,7 @@
 import { chooseOption, openEditor, chooseStartingPoint, waitForThemeFonts, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { startingPoints } from '../../../packages/looma/tooling/docs/theme.mjs';
+import { startingPoints } from '../../../packages/looma-docs/tooling/docs/theme.mjs';
 
 const session = page => page.evaluate(() => window[Symbol.for('looma.documentation.theme')].recipe);
 const enter = async (page, info) => {

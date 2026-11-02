@@ -1,15 +1,16 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
 import { renderComponents, closeRenderWorkers } from "@nextwebwg/html-next/server";
-import { afterAll, expect, it } from "vitest";
+import { afterAll, it } from "vitest";
 import { definitions } from "../dist/index.js";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { UiDateRangePicker as DateRangePicker } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { UiDateRangePicker as DateRangePicker } from "@looma-test/components";
 
 afterAll(() => closeRenderWorkers());
 
-it("prepares the composed range and nested calendar automatically in Vue SSR", async () => {
-  const html = await renderToString(createSSRApp({ render: () => h("form", [h(DateRangePicker, {
+it("prepares the composed range and nested calendar automatically in converted output SSR", async () => {
+  const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode(DateRangePicker, {
     value: { start: "2026-10-15", end: "2026-10-18" }, disabledDates: ["2026-10-12"], locale: "en-GB",
     startName: "from", endName: "to", startInputId: "start-date", endInputId: "end-date",
   })]) }));

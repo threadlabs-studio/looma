@@ -1,26 +1,26 @@
-import { page, userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, reactive, type App } from "vue";
+import { page, userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiFileInput as FileInput } from "@threadlabs/looma";
+import { UiFileInput as FileInput } from "@looma-test/components";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; delete document.documentElement.dataset.theme; });
 const names = (form: HTMLFormElement) => new FormData(form).getAll("attachments").map(value => (value as File).name).filter(Boolean);
 const sample = (name: string, type = "text/plain", size = 10) => new File(["x".repeat(size)], name, { type });
-async function mount(adapter: "html" | "vue", initial: Record<string, unknown> = {}) {
-  const props = reactive({ name: "attachments", label: "Attachments", ...initial });
+async function mount(adapter: "html" | "converted", initial: Record<string, unknown> = {}) {
+  const props = stateObject({ name: "attachments", label: "Attachments", ...initial });
   const form = document.createElement("form"); document.body.append(form);
-  if (adapter === "vue") { app = createApp({ render: () => h(FileInput, { ...props }) }); app.mount(form); }
+  if (adapter === "converted") { app = createScene({ render: () => sceneNode(FileInput, { ...props }) }); app.mount(form); }
   else {
     const invocation = document.createElement("ui-file-input");
     for (const [name, value] of Object.entries(props)) invocation.setAttribute(name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), String(value));
     form.append(invocation);
   }
-  await nextTick();
+  await settle();
   await vi.waitFor(() => expect(form.querySelector("input[data-file-control]")).not.toBeNull());
   const input = form.querySelector<HTMLInputElement>("input[data-file-control]")!;
   const root = input.closest<HTMLElement>('[role="group"]')!;
@@ -38,7 +38,7 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
   return { props, form, input, root, events, upload, drop };
 }
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`submits actual selected files, removes one by keyboard and restores focus in ${adapter}`, async () => {
     const { form, input, events, upload } = await mount(adapter, { multiple: true });
     await upload([sample("one.txt"), sample("two.txt")]);
@@ -88,27 +88,27 @@ for (const adapter of ["html", "vue"] as const) {
 }
 
 it("revalidates an existing selection when constraints change without silently dropping files", async () => {
-  const { props, form, input, upload } = await mount("vue", { maxFileSize: 50 });
+  const { props, form, input, upload } = await mount("converted", { maxFileSize: 50 });
   await upload([sample("notes.txt", "text/plain", 20)]);
-  props.maxFileSize = 10; await nextTick();
+  props.maxFileSize = 10; await settle();
   await vi.waitFor(() => expect(form.checkValidity()).toBe(false)); expect(names(form)).toEqual(["notes.txt"]);
-  props.maxFileSize = 50; await nextTick();
+  props.maxFileSize = 50; await settle();
   await vi.waitFor(() => expect(form.checkValidity()).toBe(true));
   form.reset(); await vi.waitFor(() => expect(input.files).toHaveLength(0));
-  props.required = true; await nextTick(); expect(form.checkValidity()).toBe(false);
-  props.required = false; await nextTick(); await vi.waitFor(() => expect(form.checkValidity()).toBe(true));
+  props.required = true; await settle(); expect(form.checkValidity()).toBe(false);
+  props.required = false; await settle(); await vi.waitFor(() => expect(form.checkValidity()).toBe(true));
 });
 
 it("keeps long filenames and removal actions usable in light and dark modes at 375px", async () => {
   for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = theme;
-    const { form, root, upload } = await mount("vue", { multiple: true });
+    const { form, root, upload } = await mount("converted", { multiple: true });
     form.style.width = "343px"; form.style.fontFamily = "var(--ui-font-family-sans)";
     await upload([sample("a-document-with-a-long-descriptive-name-for-a-small-screen.pdf", "application/pdf"), sample("notes.txt")]);
     await vi.waitFor(() => expect(root.querySelectorAll("[data-file-remove]")).toHaveLength(2));
     expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth + 1);
     for (const button of root.querySelectorAll("[data-file-remove]")) expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(root.getBoundingClientRect().right);
-    await page.screenshot({ element: form, path: `../../../.context/file-input-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ element: form, path: `../../../.context/file-input-${theme}-mobile.png` });
     app?.unmount(); app = undefined; form.remove();
   }
 });

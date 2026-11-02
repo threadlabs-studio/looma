@@ -5,8 +5,8 @@ This file is the canonical guidance for AI coding agents in this repository.
 
 ## Repository
 
-- pnpm workspace (`pnpm@10`, Node 22.22.2+ or 24.15+). The only package is `packages/looma`
-  (`@threadlabs/looma`). Each component lives in
+- pnpm workspace (`pnpm@10`, Node 22.22.2+ or 24.15+). Published packages are `packages/looma`
+  (`@threadlabs/looma`) and `packages/looma-docs` (`@threadlabs/looma-docs`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.
 - `apps/docs-next` is the public MarkupKit/Markupress site at `/looma/`; it consumes
@@ -140,6 +140,11 @@ from 1.0; it must not be used to recreate compatibility layers before then.
 - Matching a native HTML attribute (for example `<dialog closedby>`) is a good
   reason to adopt its name and values. Say so in the justification.
 
+## Browser coverage
+
+- Every Looma component needs browser tests for its documented rendering and behavior. Run the same assertions against HTML Next and each supported converted target. Keep renderer setup separate from those assertions, fail on missing component coverage, and fix owning compiler or adapter defects rather than adding target-specific skips or consumer workarounds.
+- Prepare and compile the source library once per selected renderer in suite setup. Browser/SSR fixtures and browser-mode tests reuse that output; individual fixtures must not convert or typecheck the library again. See `packages/looma/tests/renderers/README.md`.
+
 ## Releases and Docs
 
 - Merging a package change (sources, documentation tooling, command launcher,
@@ -161,7 +166,7 @@ from 1.0; it must not be used to recreate compatibility layers before then.
   (`.github/workflows/docs.yml`, `apps/docs-next/site`).
 - Documentation metadata and examples live beside their component definitions.
   The package owns the renderer, reusable cards and customizer in
-  `packages/looma/tooling/docs`; the public site supplies configuration and authored
+  `packages/looma-docs/tooling/docs`; the public site supplies configuration and authored
   guides. Read that directory's `README.md` for discovery and theme contracts.
   Fix shared behavior there rather than creating a public-site-only implementation.
 - Author design-system components and documentation examples in HTML Next.

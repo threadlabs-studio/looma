@@ -1,17 +1,16 @@
 ---
 order: 1
-outline: false
 ---
 
 # Getting Started
 
-One model, four authoring modes
+One component model across frameworks
 
 ## The component contract comes first
 
 A Looma definition declares the component tag, native light-DOM root,
 inputs, methods, events, slots, and controller behavior. HTML Next is
-the canonical form. Vue, React and Svelte project that same contract
+the canonical form. Vue, React, Preact, Svelte and Angular project that same contract
 into its own lifecycle; it does not invent a competing API.
 
 1. | **Author declaratively**
@@ -84,6 +83,24 @@ export default function Example() {
 ```
 :::
 
+::: tab [Preact]
+```tsx
+/** @jsxImportSource preact */
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+export default function Example() {
+  return <UiStack
+    gap="m"
+  >
+    <h2>Account</h2>
+    <UiButton
+      variant="solid"
+    >Save</UiButton>
+  </UiStack>;
+}
+```
+:::
+
 ::: tab [Svelte]
 ```svelte
 <script>
@@ -101,9 +118,35 @@ export default function Example() {
 ```
 :::
 
+::: tab [Angular]
+```typescript
+import { Component } from "@angular/core";
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+@Component({
+  selector: "example-view",
+  standalone: true,
+  imports: [UiStack, UiButton],
+  template: `
+    <div
+      ui-stack
+      [gap]="'m'"
+    >
+      <h2>Account</h2>
+      <ng-template
+        ui-button
+        [variant]="'solid'"
+      >Save</ng-template>
+    </div>
+  `,
+})
+export default class Example {}
+```
+:::
+
 ## Install Looma
 
-Looma's HTML definitions are the source for Vue, React and Svelte components. In an existing Vite project, install Looma and the HTML Next Vite adapter:
+Looma's HTML definitions are the source for Vue, React, Preact, Svelte and Angular components. In an existing Vite project, install Looma and the HTML Next Vite adapter:
 
 ```sh
 pnpm add @threadlabs/looma
@@ -177,6 +220,37 @@ export default function Account() {
 }
 ```
 
+## Preact
+
+For Preact 11.1.0 or later, install its Vite preset and JSX types:
+
+```bash
+pnpm add preact
+pnpm add -D @preact/preset-vite vite typescript
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+import preact from "@preact/preset-vite";
+
+export default defineConfig({
+  plugins: [htmlNext({ target: "preact" }), preact()],
+});
+```
+
+```tsx
+/** @jsxImportSource preact */
+import { UiButton, UiStack } from "@threadlabs/looma";
+
+export default function Account() {
+  return <UiStack gap="m"><h1>Account</h1><UiButton variant="solid">Save</UiButton></UiStack>;
+}
+```
+
+Use Vite adapter alpha.80 or later. Set `jsx` to `react-jsx` and `jsxImportSource` to `preact` in your TypeScript configuration. Run `html-next-sync` before `tsc --noEmit` so library imports have generated component types. For SSR, install `preact-render-to-string`.
+
 ## Svelte
 
 If your project does not already have Svelte tooling, install it:
@@ -205,6 +279,29 @@ import { UiButton, UiStack } from "@threadlabs/looma";
 <UiStack gap="m"><h1>Account</h1><UiButton variant="solid">Save</UiButton></UiStack>
 ```
 
+## Server rendering date controls
+
+Date controls prepare their calendar data before server rendering. With Vite adapter alpha.82 or later, React and Preact applications import `renderPrepared` from `@threadlabs/looma` and await `renderPrepared(<App />)`. Svelte applications use `await renderPrepared(App, { props })`. This returns the application's HTML with prepared data for browser hydration. Use the framework's normal hydration API.
+
+Vue and Angular applications use their ordinary server renderer; their generated components wait for preparation during that render.
+
+## Angular
+
+HTML Next's Angular target uses native attribute selectors. Import the generated classes in your standalone component. Fixed roots use their native element, such as `<div ui-stack>`; roots that can change element type use `<ng-template ui-button>`. Angular inserts the chosen native root and keeps the component's state when that root changes. Recursive components follow the source data.
+
+Add the adapter alongside your Angular AOT compiler in Vite:
+
+```ts
+import htmlNext from "@nextwebwg/html-next-unplugin/vite";
+
+// Add this to the application's existing Vite plugins.
+htmlNext({ target: "angular" });
+```
+
+Use adapter alpha.82 or later. Before standalone Angular template checking, run `html-next-sync --target angular` and extend `src/html-next.angular.json` from the application's TypeScript configuration. Keep the Angular compiler's normal options, including `strictTemplates`.
+
+Default content goes inside the component's native element or structural template. For named slots on a structural component, declare Angular templates and pass their references through `[slots]`. See [Angular setup and examples](https://nextwebwg.org/html-next/usage?target=angular) and [the converter guide](https://nextwebwg.org/html-next/convert#angular).
+
 ## Styles and type checking
 
 Import tokens and one theme once in your application entry:
@@ -223,16 +320,15 @@ setup. This replaces its former Vue-barrel export; its behavior is unchanged.
 
 The adapter discovers Looma through its `html-next` export condition. An HTML
 folder export names `ui-button` as `UiButton`, `ui-site-header` as `UiSiteHeader`,
-and `ui-editor-toolbar` as `UiEditorToolbar`. These names apply in all three
-frameworks.
+and `ui-editor-toolbar` as `UiEditorToolbar`. These names apply in every framework target.
 
 Vite prepares framework declarations automatically. Run `html-next-sync` before
 standalone `vue-tsc`, `tsc`, or `svelte-check`, and include `src/html-next.d.ts` in
 your TypeScript project. Generated files under `node_modules/.html-next` and the
 ambient declaration file may be ignored by Git.
 
-Named slots use Vue's `<template #brand>`, React's `slots={{ brand: <a>…</a> }}`,
-and Svelte snippets passed through `slots={{ brand }}`. Default content uses the
+Named slots use Vue's `<template #brand>`, React and Preact's `slots={{ brand: <a>…</a> }}`,
+Svelte snippets passed through `slots={{ brand }}`, or Angular template references on structural components. Default content uses the
 framework's normal children syntax. Declared events retain their native
 `CustomEvent` payloads; read `event.detail`.
 
@@ -309,7 +405,7 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
-- Vue, React and Svelte use the HTML Next Vite adapter; framework compilation belongs to the consumer.
+- Vue, React, Preact, Svelte and Angular use the HTML Next Vite adapter; framework compilation belongs to the consumer.
 - `UiEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.
 - Hosts own persistence, the authorized people-directory query, upload

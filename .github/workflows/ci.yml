@@ -121,6 +121,71 @@ jobs:
       - name: Run package-consumer checks
         run: node tools/scripts/ci-qualification.mjs run package-consumer
 
+  catalog-prepare:
+    name: Compile complete catalogs once
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 6
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build the package and compile all six catalogs
+        run: node packages/looma/tests/run-pressure.mjs --prepare-only
+      - name: Archive reusable compiler output
+        run: tar -cf converter-pressure.tar packages/looma/.test-build packages/looma/dist packages/looma/components packages/looma/styles packages/looma/vanilla packages/looma/editor packages/looma/markdown packages/looma/*.css
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: converter-pressure-build
+          path: converter-pressure.tar
+          compression-level: 0
+          if-no-files-found: error
+
+  converter-pressure:
+    needs: catalog-prepare
+    name: Catalog / ${{ matrix.renderer }} / ${{ matrix.shard }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 6
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      options: --ipc=host --init
+    strategy:
+      fail-fast: false
+      matrix:
+        renderer: [html-next, vue, react, preact, svelte, angular]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.21.0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: converter-pressure-build
+      - run: tar -xf converter-pressure.tar
+      - name: Run shared rendering and behavior tests with the prepared catalogs
+        env:
+          LOOMA_TEST_TARGET: ${{ matrix.renderer }}
+        run: node packages/looma/tests/run-pressure.mjs --prepared --shard=${{ matrix.shard }}/4
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: catalog-${{ matrix.renderer }}-${{ matrix.shard }}
+          path: packages/looma/test-results/
+          if-no-files-found: ignore
+
   visual:
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -161,17 +226,19 @@ jobs:
 
   verify:
     if: always()
-    needs: [quality, browser, release-package, visual]
+    needs: [quality, browser, release-package, visual, converter-pressure]
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 1
     steps:
       - name: Require tests, release packaging, and complete visual captures
         env:
+          CATALOG_RESULT: ${{ needs.converter-pressure.result }}
           QUALITY_RESULT: ${{ needs.quality.result }}
           BROWSER_RESULT: ${{ needs.browser.result }}
           RELEASE_PACKAGE_RESULT: ${{ needs.release-package.result }}
           VISUAL_RESULT: ${{ needs.visual.result }}
         run: |
+          test "$CATALOG_RESULT" = "success"
           test "$QUALITY_RESULT" = "success"
           test "$BROWSER_RESULT" = "success"
           test "$RELEASE_PACKAGE_RESULT" = "success"

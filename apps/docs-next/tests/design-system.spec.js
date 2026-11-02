@@ -2,7 +2,7 @@ import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefi
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma/docs';
+import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma-docs';
 
 const catalog = await readCatalog();
 

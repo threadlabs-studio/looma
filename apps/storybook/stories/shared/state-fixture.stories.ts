@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/web-components-vite';
 import { componentExamples, renderExample } from './examples';
-import { startingPoints, themeCSS } from '../../../../packages/looma/tooling/docs/theme.mjs';
-import { loadGoogleFonts } from '../../../../packages/looma/tooling/docs/fonts.mjs';
+import { startingPoints, themeCSS } from '../../../../packages/looma-docs/tooling/docs/theme.mjs';
+import { loadGoogleFonts } from '../../../../packages/looma-docs/tooling/docs/fonts.mjs';
 import systemCSS from '@threadlabs/looma/theme-system.css?inline';
 const behaviors = import.meta.glob('../../../../packages/looma/src/components/*/examples/*.behavior.{ts,js}', {
   eager: true, import: 'default',

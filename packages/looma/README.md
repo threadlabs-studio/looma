@@ -116,14 +116,14 @@ Components read design tokens (`--ui-*` custom properties) from `tokens.css` and
 
 ## Weave your design system
 
-The package includes the documentation generator and theme customizer used by Looma's public site. Browse real component cards, generate a theme from shared semantic decisions, and document your own HTML Next components beside Looma's.
+`@threadlabs/looma-docs` supplies the documentation generator and theme customizer used by Looma's public site. Browse real component cards, generate a theme from shared semantic decisions, and document your own HTML Next components beside Looma's.
 
-Install the optional documentation tools, then initialize your project:
+Install the documentation package as a development dependency, then initialize your project:
 
 ```sh
-pnpm add -D 'markupress@>=0.14.6' '@threadlabs/markupkit@>=0.4.2' vite
+pnpm add -D @threadlabs/looma-docs
 pnpm exec looma-docs init
 pnpm exec looma-docs dev
 ```
 
-The local editor saves `looma.theme.json` and generated `looma.theme.css`; import that CSS in your application. Static builds offer CSS and recipe downloads. See the [design-system guide](https://threadlabs.studio/looma/design-system/) for configuration, discovery, saving and recovery. Programmatic tooling is available through `@threadlabs/looma/docs`.
+The local editor saves `looma.theme.json` and generated `looma.theme.css`; import that CSS in your application. Static builds offer CSS and recipe downloads. See the [design-system guide](https://threadlabs.studio/looma/design-system/) for configuration, discovery, saving and recovery. Programmatic tooling is available through `@threadlabs/looma-docs`.

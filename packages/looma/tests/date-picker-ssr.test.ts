@@ -1,15 +1,16 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
 import { renderComponents, closeRenderWorkers } from "@nextwebwg/html-next/server";
-import { afterAll, expect, it } from "vitest";
-import { UiDatePicker as DatePicker } from "@threadlabs/looma";
+import { afterAll, it } from "vitest";
+import { UiDatePicker as DatePicker } from "@looma-test/components";
 import { definitions } from "../dist/index.js";
 
 afterAll(() => closeRenderWorkers());
 
 it("keeps the typed field usable before JavaScript and excludes disabled popup drafts from forms", async () => {
-  const html = await renderToString(createSSRApp({ render: () => h("form", [h("label", { for: "due-date" }, "Due date"), h(DatePicker, { inputId: "due-date", name: "due", value: "2026-10-30", required: true })]) }));
+  const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode("label", { for: "due-date" }, "Due date"), sceneNode(DatePicker, { inputId: "due-date", name: "due", value: "2026-10-30", required: true })]) }));
   const document = new JSDOM(html).window.document;
   const input = document.querySelector<HTMLInputElement>("#due-date")!;
   expect(input.type).toBe("date"); expect(input.value).toBe("2026-10-30"); expect(input.labels?.[0]?.textContent).toBe("Due date");

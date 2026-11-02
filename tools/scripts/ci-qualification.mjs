@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { automaticChecks, validateVitestReport, vitestArguments } from "./ci-selection.mjs";
+import { automaticChecks, validateVitestReport, vitestArguments, vitestConfiguration } from "./ci-selection.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const gitOwnership = ["-c", `safe.directory=${root}`];
@@ -25,7 +25,7 @@ export function snapshot(revision, source = false) {
     return [match[4], `${match[1]}:${match[3]}`];
   }));
   if (!source) { snapshots.set(key, files); return files; }
-  const needed = Object.keys(files).filter((file) => /^(?:packages\/looma\/(?:src|tests|tooling)\/|tools\/scripts\/)/.test(file) && /\.(?:html|tsx?|js|mjs|mdx?|json)$/.test(file));
+  const needed = Object.keys(files).filter((file) => /^(?:packages\/(?:looma\/(?:src|tests|tooling)|looma-docs\/tooling)\/|tools\/scripts\/)/.test(file) && /\.(?:html|tsx?|js|mjs|mdx?|json)$/.test(file));
   const batch = execFileSync("git", [...gitOwnership, "cat-file", "--batch"], { cwd: root, input: needed.map((file) => files[file].split(":")[1]).join("\n") + "\n", maxBuffer: 32 * 1024 ** 2 });
   let offset = 0;
   for (const file of needed) {
@@ -59,7 +59,7 @@ export function plan(base) {
   const changes = git(["diff", "--name-only", base, "--"]).split("\n").filter(Boolean);
   const hunks = {};
   let file;
-  for (const line of git(["diff", "--unified=0", base, "--", "packages/looma/tests", "tools/scripts"]).split("\n")) {
+  for (const line of git(["diff", "--unified=0", base, "--", "packages/looma/tests", "packages/looma-docs/tooling/docs", "tools/scripts"]).split("\n")) {
     if (line.startsWith("+++ b/")) { file = line.slice(6); hunks[file] = []; }
     const match = /^@@ .* \+(\d+)(?:,(\d+))? @@/.exec(line);
     if (match && file) hunks[file].push([Number(match[1]), Number(match[1]) + Math.max(1, Number(match[2] ?? 1)) - 1]);
@@ -75,19 +75,15 @@ export function plan(base) {
 }
 
 function packageTests(tests, full = false) {
-  if (full && Object.keys(tests).length) {
-    const report = path.join(directory, "native-report.json");
-    run(vitestArguments(Object.keys(tests), null, report));
+  const groups = Map.groupBy(Object.entries(tests), ([file]) => vitestConfiguration(file));
+  for (const [config, entries] of groups) {
+    const report = path.join(directory, `${config}-report.json`);
+    const names = full || entries.some(([, titles]) => titles === null) ? null : [...new Set(entries.flatMap(([, titles]) => titles))];
+    run(vitestArguments(entries.map(([file]) => file), names, report));
     const result = JSON.parse(readFileSync(report, "utf8"));
-    for (const [file, titles] of Object.entries(tests)) {
+    for (const [file, titles] of entries) {
       validateVitestReport({ ...result, testResults: result.testResults.filter(suite => path.resolve(suite.name) === path.join(root, file)) }, titles);
     }
-    return;
-  }
-  for (const [file, titles] of Object.entries(tests)) {
-    const report = path.join(directory, `${path.basename(file)}-report.json`);
-    run(vitestArguments(file, titles, report));
-    validateVitestReport(JSON.parse(readFileSync(report, "utf8")), titles);
   }
 }
 
@@ -108,8 +104,8 @@ async function main() {
   }
   if (command !== "run") throw new Error("Choose plan or run quality/browser/package-consumer/docs");
   if (stage === "quality") {
-    const builtBeforeScripts = selection.scripts.some(file => file.startsWith("packages/looma/tooling/docs/") || file.startsWith("apps/docs-next/") || file.startsWith("tests/framework-consumer/"));
-    if (builtBeforeScripts) run(["--filter", "@threadlabs/looma", "build"]);
+    const builtBeforeScripts = selection.scripts.some(file => file.startsWith("packages/looma-docs/tooling/docs/") || file.startsWith("apps/docs-next/") || file.startsWith("tests/framework-consumer/"));
+    if (builtBeforeScripts) { run(["--filter", "@threadlabs/looma", "build"]); run(["--filter", "@threadlabs/looma-docs", "build"]); }
     // Run the selected script files together instead of spawning Node once for every case/file.
     if (selection.scripts.length) {
       const result = spawnSync(process.execPath, ["--test", ...selection.scripts], { cwd: root, stdio: "inherit" });
@@ -123,15 +119,18 @@ async function main() {
   } else if (stage === "browser") {
     if (!Object.keys(selection.browserTests).length) return;
     run(["--filter", "@threadlabs/looma", "build"]);
-    packageTests(selection.browserTests);
+    const { default: prepare } = await import("../../packages/looma/tests/renderers/prepare-library.ts");
+    const release = await prepare();
+    try { packageTests(selection.browserTests); } finally { await release?.(); }
   } else if (stage === "package-consumer") {
     if (selection.packageConsumer) run(["release:verify"]);
   } else if (stage === "docs") {
     if (!selection.docsBuild) return;
     run(["--filter", "@threadlabs/looma", "build"]);
     run(["--filter", "@threadlabs/looma-docs", "build"]);
-    run(["--filter", "@threadlabs/looma-docs", "typecheck:tests"]);
-    run(["--filter", "@threadlabs/looma-docs", "docs:coverage"]);
+    run(["--filter", "@threadlabs/looma-docs-parity", "build"]);
+    run(["--filter", "@threadlabs/looma-docs-parity", "typecheck:tests"]);
+    run(["--filter", "@threadlabs/looma-docs-parity", "docs:coverage"]);
     // Qualify the shipped documentation product and keep authored guidance equal to the legacy fixture.
     run(["--filter", "@threadlabs/looma-docs-next", "build"]);
     run(["--filter", "@threadlabs/looma-docs-next", "test"]);

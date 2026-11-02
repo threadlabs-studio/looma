@@ -1,19 +1,19 @@
 import type { Editor } from "@tiptap/core";
-import { userEvent } from "@vitest/browser/context";
+import { userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 import "../theme-light.css";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -34,8 +34,8 @@ describe("LoomaEditor inline chips (real browser)", () => {
       host.style.marginTop = "240px";
       document.body.append(host);
       let editor: Editor | null = null;
-      const app = createApp({
-        render: () => h(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }),
+      const app = createScene({
+        render: () => sceneNode(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }),
       });
       apps.push(app);
       app.mount(host);
@@ -44,7 +44,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
 
       editor!.chain().focus().insertContent("Article /chip").run();
       await flushBrowser();
-      const chipOption = () => [...(host.querySelectorAll<HTMLElement>(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu) [role="option"]'))]
+      const chipOption = () => [...(host.querySelectorAll<HTMLElement>(':is([component~="ui-editor-slash-menu"], [data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu, [ui-editor-slash-menu]) [role="option"]'))]
         .find((item) => item.textContent?.includes("Chip"));
       await vi.waitFor(() => expect(chipOption()).toBeTruthy(), { timeout: 3000 });
       await userEvent.click(chipOption()!);
@@ -65,8 +65,8 @@ describe("LoomaEditor inline chips (real browser)", () => {
     host.style.width = "min(480px, 100%)";
     document.body.append(host);
     let editor: Editor | null = null;
-    const app = createApp({
-      render: () => h(LoomaEditor, {
+    const app = createScene({
+      render: () => sceneNode(LoomaEditor, {
         extensions: captureEditor(instance => { editor = instance; }),
       }),
     });
@@ -77,7 +77,7 @@ describe("LoomaEditor inline chips (real browser)", () => {
 
     editor!.chain().focus().insertContent("Article /chip").run();
     await flushBrowser();
-    const menu = host.querySelector<HTMLElement>(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu)');
+    const menu = host.querySelector<HTMLElement>(':is([component~="ui-editor-slash-menu"], [data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu, [ui-editor-slash-menu])');
     expect(menu?.textContent).toContain("Chip");
     const item = [...(menu?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
       .find((option) => option.textContent?.includes("Chip"));

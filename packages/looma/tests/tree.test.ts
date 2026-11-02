@@ -1,32 +1,36 @@
+import { expect } from "./renderers/test-context";
 // Drives Tree / TreeItem drag and drop in Chromium with real pointer drags, against the built package
 // (run `pnpm build` first). Assertions go through the public surface: events, ARIA, the component marker,
 // computed styles, and geometry.
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { vueSourcePlugins } from "./framework-plugins";
+import { createFixture, loadFixture } from "./renderers/fixture";
+import { rendererPlugins } from "./framework-plugins";
+import { connectSuiteBrowser, newFixturePage, recordPageErrors, type SuiteBrowser } from "./renderers/browser-client";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
+import { type BrowserContextOptions, type Page } from "playwright";
 import { build, type Plugin } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 let directory = "";
-let browser: Browser;
+let browser: SuiteBrowser;
 let bundlePath = "";
 let marqueePath = "";
 let paddedMarqueePath = "";
 let lateItemsPath = "";
 
 async function bundle(name: string, source: string, plugins: Plugin[] = []): Promise<string> {
+  if (!plugins.length) return createFixture(directory, name, source);
   const entry = join(directory, `${name}.js`);
   await writeFile(entry, source);
   await build({
     configFile: false,
     logLevel: "silent",
     root: directory,
-    plugins: [...vueSourcePlugins(), ...plugins],
+    plugins: [...rendererPlugins(), ...plugins],
     resolve: { alias: { "@looma-test/runtime": join(root, "dist/index.js") } },
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
     build: {
@@ -42,10 +46,11 @@ type Node = { id: string; label?: string; children?: Node[]; [prop: string]: unk
 type Spec = { tree?: Record<string, unknown>; items: Node[] };
 type Detail = Record<string, unknown>;
 
-// Renders `spec` as a Vue Tree. Every item is sortable unless it says otherwise.
+// Renders `spec` as a converted Tree. Every item is sortable unless it says otherwise.
 async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }, state: "visible" | "attached" = "visible"): Promise<Page> {
   // Reduced motion turns the rows' style transitions off, so computed styles settle immediately.
-  const page = await browser.newPage(options);
+  const page = await newFixturePage(browser, options);
+  recordPageErrors(page);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body style="margin:0;padding:40px 40px 40px 60px;width:320px"><div id="app"></div></body></html>`);
@@ -53,8 +58,8 @@ async function open(spec: Spec, script = bundlePath, options: BrowserContextOpti
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
   const convertedCss = join(dirname(script), "components.css");
   if (existsSync(convertedCss)) await page.addStyleTag({ path: convertedCss });
-  await page.addScriptTag({ path: script });
-  await page.waitForSelector(':is([data-component~="ui-tree"], .ui-tree) [role="treeitem"]', { state });
+  await loadFixture(page, script);
+  await page.waitForSelector(':is([component~="ui-tree"], [data-component~="ui-tree"], .ui-tree, [ui-tree]) [role="treeitem"]', { state });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
   return page;
@@ -139,15 +144,15 @@ const files: Node[] = [
 beforeAll(async () => {
   await mkdir(join(root, ".test-build"), { recursive: true });
   directory = await mkdtemp(join(root, ".test-build", "tree-"));
-  browser = await chromium.launch();
-  bundlePath = await bundle("vue-tree", `
-    import { createApp, h } from "vue";
-    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
+  browser = await connectSuiteBrowser();
+  bundlePath = await bundle("converted-tree", `
+    import { createScene, sceneNode } from "@looma-test/scene";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@looma-test/components";
     const events = [];
     window.events = events;
-    const render = ({ id, children, ...props }) => h(TreeItem, { itemId: id, sortable: true, ...props }, children ? () => children.map(render) : undefined);
-    createApp({
-      render: () => h(Tree, {
+    const render = ({ id, children, ...props }) => sceneNode(TreeItem, { itemId: id, sortable: true, ...props }, children ? () => children.map(render) : undefined);
+    createScene({
+      render: () => sceneNode(Tree, {
         label: "Files",
         ...window.spec.tree,
         onReorder: (event) => events.push(["reorder", event.detail]),
@@ -158,56 +163,56 @@ beforeAll(async () => {
     }).mount("#app");
   `);
   let delayedController = false;
-  lateItemsPath = await bundle("vue-tree-late-items", `
-    import { createApp, h } from "vue";
-    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
+  lateItemsPath = await bundle("converted-tree-late-items", `
+    import { createScene, sceneNode } from "@looma-test/scene";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@looma-test/components";
     window.treeItemGate = new Promise(resolve => { window.releaseTreeItems = resolve; });
     window.events = [];
-    createApp({ render: () => h(Tree, {
+    createScene({ render: () => sceneNode(Tree, {
       label: "Files", selection: "single",
       onSelect: event => window.events.push(["select", event.detail]),
-    }, () => window.spec.items.map(({ id, ...props }) => h(TreeItem, { itemId: id, ...props }))) }).mount("#app");
+    }, () => window.spec.items.map(({ id, ...props }) => sceneNode(TreeItem, { itemId: id, ...props }))) }).mount("#app");
   `, [{
     name: "delay-tree-item-controller",
     transform(code, id) {
       if (!id.endsWith("/ui-tree-item/ui-tree-item.js")) return;
       delayedController = true;
-      const declaration = "export function connect(host) {";
-      assert.ok(code.includes(declaration), "delay the real Tree Item controller");
-      return code.replace(declaration, "export async function connect(host) { await window.treeItemGate;");
+      const declaration = /\bfunction connect\(host\)\s*\{/;
+      assert.match(code, declaration, "delay the real Tree Item controller");
+      return code.replace(declaration, "async function connect(host) { await window.treeItemGate;");
     },
   }]);
   assert.ok(delayedController, "the generated Tree Item controller must be delayed");
-  marqueePath = await bundle("vue-tree-marquee", `
-    import { createApp, h } from "vue";
-    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
+  marqueePath = await bundle("converted-tree-marquee", `
+    import { createScene, sceneNode } from "@looma-test/scene";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@looma-test/components";
     const name = "A name long enough to run past the end of its row and under the controls";
-    createApp({
-      render: () => h(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
-        h(TreeItem, { itemId: "short", label: "Short" }),
-        h(TreeItem, { itemId: "long", label: name, actionsVisible: window.spec.tree?.actionsVisible }, {
-          leading: () => h("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
-          actions: () => h("button", { type: "button" }, "More"),
+    createScene({
+      render: () => sceneNode(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
+        sceneNode(TreeItem, { itemId: "short", label: "Short" }),
+        sceneNode(TreeItem, { itemId: "long", label: name, actionsVisible: window.spec.tree?.actionsVisible }, {
+          leading: () => sceneNode("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
+          actions: () => sceneNode("button", { type: "button" }, "More"),
         }),
       ]),
     }).mount("#app");
   `);
   // A full-width link keeps its hit area across the row while its title may be short.
-  paddedMarqueePath = await bundle("vue-tree-marquee-padded", `
-    import { createApp, h } from "vue";
-    import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
-    createApp({ render: () => h(Tree, { label: "Files", marquee: true, style: "width:220px" }, () => [
-      h(TreeItem, { itemId: "padded", label: "A moderately long file name" }, {
-        leading: () => h("span", { style: "display:block;width:16px;height:16px" }),
-        label: () => h("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
-          h("span", { "data-testid": "title", style: "white-space:nowrap" }, "A moderately long file name")),
-        actions: () => h("span", { style: "display:flex;width:56px" }, "•••"),
+  paddedMarqueePath = await bundle("converted-tree-marquee-padded", `
+    import { createScene, sceneNode } from "@looma-test/scene";
+    import { UiTree as Tree, UiTreeItem as TreeItem } from "@looma-test/components";
+    createScene({ render: () => sceneNode(Tree, { label: "Files", marquee: true, style: "width:220px" }, () => [
+      sceneNode(TreeItem, { itemId: "padded", label: "A moderately long file name" }, {
+        leading: () => sceneNode("span", { style: "display:block;width:16px;height:16px" }),
+        label: () => sceneNode("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
+          sceneNode("span", { "data-testid": "title", style: "white-space:nowrap" }, "A moderately long file name")),
+        actions: () => sceneNode("span", { style: "display:flex;width:56px" }, "•••"),
       }),
-      h(TreeItem, { itemId: "short-link", label: "Fact notes" }, {
-        leading: () => h("span", { style: "display:block;width:16px;height:16px" }),
-        label: () => h("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
-          h("span", { style: "white-space:nowrap" }, "Fact notes")),
-        actions: () => h("span", { style: "display:flex;width:56px" }, "•••"),
+      sceneNode(TreeItem, { itemId: "short-link", label: "Fact notes" }, {
+        leading: () => sceneNode("span", { style: "display:block;width:16px;height:16px" }),
+        label: () => sceneNode("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
+          sceneNode("span", { style: "white-space:nowrap" }, "Fact notes")),
+        actions: () => sceneNode("span", { style: "display:flex;width:56px" }, "•••"),
       }),
     ]) }).mount("#app");
   `);
@@ -221,7 +226,7 @@ afterAll(async () => {
 describe("Tree drag and drop", () => {
   it("restores a keyboard entry point when row controllers initialize after the tree", async () => {
     const page = await open({ items: [{ id: "first", label: "First" }, { id: "second", label: "Second" }] }, lateItemsPath);
-    assert.equal(await page.locator('[role="treeitem"][tabindex="0"]').count(), 0);
+    await expect.poll(() => page.locator('[role="treeitem"][tabindex="0"]').count()).toBe(0);
     await page.evaluate(() => (window as unknown as { releaseTreeItems: () => void }).releaseTreeItems());
     await page.waitForFunction(() => document.querySelector<HTMLElement>('[role="treeitem"]')?.tabIndex === 0, undefined, { timeout: 2_000 });
     await page.keyboard.press("Tab");
@@ -246,20 +251,20 @@ describe("Tree drag and drop", () => {
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       }, display);
     }
-    assert.equal(await item(page, "second").getAttribute("tabindex"), "0");
-    assert.equal(await item(page, "first").getAttribute("tabindex"), "-1");
+    await expect.poll(() => item(page, "second").getAttribute("tabindex")).toBe("0");
+    await expect.poll(() => item(page, "first").getAttribute("tabindex")).toBe("-1");
     await page.close();
   });
 
   it("renders a tree with levels and expansion state", async () => {
     const page = await open({ items: files });
-    assert.equal(await page.locator(':is([data-component~="ui-tree"], .ui-tree)').getAttribute("role"), "tree");
-    assert.equal(await item(page, "docs").evaluate((element) => element.classList.contains("ui-tree-item")), true);
-    assert.equal(await item(page, "docs").getAttribute("aria-level"), "1");
-    assert.equal(await item(page, "guide").getAttribute("aria-level"), "2");
-    assert.equal(await item(page, "docs").getAttribute("aria-expanded"), "true");
-    assert.equal(await item(page, "archive").getAttribute("aria-expanded"), "false");
-    assert.equal(await item(page, "readme").getAttribute("aria-expanded"), null);
+    await expect.poll(() => page.locator(':is([component~="ui-tree"], [data-component~="ui-tree"], .ui-tree, [ui-tree])').getAttribute("role")).toBe("tree");
+    assert.equal(await item(page, "docs").evaluate((element) => element.matches('[component~="ui-tree-item"], [data-component~="ui-tree-item"], .ui-tree-item, [ui-tree-item]')), true);
+    await expect.poll(() => item(page, "docs").getAttribute("aria-level")).toBe("1");
+    await expect.poll(() => item(page, "guide").getAttribute("aria-level")).toBe("2");
+    await expect.poll(() => item(page, "docs").getAttribute("aria-expanded")).toBe("true");
+    await expect.poll(() => item(page, "archive").getAttribute("aria-expanded")).toBe("false");
+    await expect.poll(() => item(page, "readme").getAttribute("aria-expanded")).toBe(null);
     await page.close();
   });
 
@@ -274,7 +279,7 @@ describe("Tree drag and drop", () => {
     });
     const positions = await Promise.all(["root", "folder", "page"].map(async (id) => (await rowBox(page, id)).x));
     assert.deepEqual(positions, [60, 80, 100]);
-    assert.equal(await item(page, "page").getAttribute("aria-level"), "3");
+    await expect.poll(() => item(page, "page").getAttribute("aria-level")).toBe("3");
     await page.close();
   });
 
@@ -306,9 +311,9 @@ describe("Tree drag and drop", () => {
     const page = await open({ tree: { hoverExpandDelay: 200 }, items: files });
     await startDrag(page, "Readme");
     await dragOver(page, "archive", 0.5);
-    assert.equal(await item(page, "archive").getAttribute("aria-expanded"), "false");
+    await expect.poll(() => item(page, "archive").getAttribute("aria-expanded")).toBe("false");
     await page.waitForFunction(() => document.querySelector('[data-item-id="archive"]')?.getAttribute("aria-expanded") === "true", null, { timeout: 2000 });
-    assert.equal(await item(page, "old").isVisible(), true);
+    await expect.poll(() => item(page, "old").isVisible()).toBe(true);
     // Re-target the row: it has not moved, since the tree expands downwards.
     await dragOver(page, "archive", 0.5);
     await page.mouse.up();
@@ -324,7 +329,7 @@ describe("Tree drag and drop", () => {
     await startDrag(page, "Readme");
     await dragOver(page, "archive", 0.5);
     await page.waitForTimeout(400);
-    assert.equal(await item(page, "archive").getAttribute("aria-expanded"), "false");
+    await expect.poll(() => item(page, "archive").getAttribute("aria-expanded")).toBe("false");
     await page.mouse.up();
     await page.close();
   });
@@ -520,13 +525,13 @@ describe("Tree drag and drop", () => {
   it("leaves desktop grip clicks inert in keyboard-touch mode but still drags", async () => {
     const page = await open({ tree: { moveActivation: "keyboard-touch" }, items: files });
     await page.getByRole("button", { name: "Drag Readme to reorder" }).click();
-    assert.equal(await page.locator("[data-move-mode]").count(), 0);
-    assert.equal(await item(page, "readme").getAttribute("data-dragging"), null);
-    assert.equal(await page.getByRole("button", { name: "Cancel move" }).count(), 0);
+    await expect.poll(() => page.locator("[data-move-mode]").count()).toBe(0);
+    await expect.poll(() => item(page, "readme").getAttribute("data-dragging")).toBe(null);
+    await expect.poll(() => page.getByRole("button", { name: "Cancel move" }).count()).toBe(0);
     assert.deepEqual(await events(page), []);
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
     await page.getByRole("button", { name: "Drag Readme to reorder" }).click();
-    assert.equal(await page.locator("[data-move-mode]").count(), 0);
+    await expect.poll(() => page.locator("[data-move-mode]").count()).toBe(0);
     await drag(page, "Readme", "license", 0.8);
     assert.equal((await events(page))[0]?.[1].sourceId, "readme");
     assert.equal((await events(page))[0]?.[1].trigger, "pointer");
@@ -541,21 +546,21 @@ describe("Tree drag and drop", () => {
     await page.keyboard.press("ArrowDown");
     await page.mouse.move(0, 0);
     const cancel = page.getByRole("button", { name: "Cancel move" });
-    assert.equal(await cancel.isVisible(), true);
+    await expect.poll(() => cancel.isVisible()).toBe(true);
     assert.equal(await cancel.evaluate((button) => getComputedStyle(button.parentElement!).opacity), "1");
     await cancel.click();
-    assert.equal(await page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count(), 0);
+    await expect.poll(() => page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count()).toBe(0);
     assert.deepEqual(await events(page), []);
     assert.equal(await handle.evaluate((button) => button === document.activeElement), true);
     await page.keyboard.press("Space");
     await page.getByRole("button", { name: "Cancel moving Readme" }).click();
-    assert.equal(await page.locator("[data-move-mode], [data-dragging]").count(), 0);
+    await expect.poll(() => page.locator("[data-move-mode], [data-dragging]").count()).toBe(0);
     assert.deepEqual(await events(page), []);
     await page.keyboard.press("Space");
     await page.keyboard.press("ArrowDown");
     await page.getByRole("button", { name: "Cancel move" }).focus();
     await page.keyboard.press("Enter");
-    assert.equal(await page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count(), 0);
+    await expect.poll(() => page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count()).toBe(0);
     assert.deepEqual(await events(page), []);
     await page.close();
   });
@@ -567,7 +572,7 @@ describe("Tree drag and drop", () => {
     const box = await handle.boundingBox();
     assert.ok(box && Math.round(box.width) >= 44 && Math.round(box.height) >= 44, JSON.stringify(box));
     await handle.tap();
-    assert.equal(await page.getByRole("button", { name: "Cancel move" }).isVisible(), true);
+    await expect.poll(() => page.getByRole("button", { name: "Cancel move" }).isVisible()).toBe(true);
     const target = await rowBox(page, "license");
     await page.mouse.click(target.x + target.width / 2, target.y + target.height * 0.8);
     assert.equal((await events(page))[0]?.[1].trigger, "pointer");
@@ -576,12 +581,12 @@ describe("Tree drag and drop", () => {
 
   it("finds items by typed name and marks an empty lazy branch busy while opening", async () => {
     const page = await open({ items: [{ id: "remote", label: "Remote", lazy: true }, ...files] });
-    assert.equal(await item(page, "remote").getAttribute("aria-expanded"), "false");
+    await expect.poll(() => item(page, "remote").getAttribute("aria-expanded")).toBe("false");
     await item(page, "readme").focus();
     await page.keyboard.press("l");
     assert.equal(await page.evaluate(() => (document.activeElement as HTMLElement)?.dataset.itemId), "license");
     await item(page, "remote").getByRole("button", { name: "Expand Remote" }).click();
-    assert.equal(await item(page, "remote").getAttribute("aria-busy"), "true");
+    await expect.poll(() => item(page, "remote").getAttribute("aria-busy")).toBe("true");
     await page.close();
   });
 });
@@ -602,9 +607,9 @@ describe("Tree selection", () => {
 
   it("shows multiple checkboxes and requests descendant selection together", async () => {
     const page = await open({ tree: { selection: "multiple" }, items: files });
-    assert.equal(await page.locator('[role="tree"]').getAttribute("aria-multiselectable"), "true");
+    await expect.poll(() => page.locator('[role="tree"]').getAttribute("aria-multiselectable")).toBe("true");
     const checkbox = item(page, "docs").locator(":scope > .row > .selection-hit > .selection-checkbox");
-    assert.equal(await checkbox.isVisible(), true);
+    await expect.poll(() => checkbox.isVisible()).toBe(true);
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
     const touchTarget = await item(page, "docs").locator(":scope > .row > .selection-hit").boundingBox();
     assert.ok(touchTarget && touchTarget.width >= 44 && touchTarget.height >= 44, JSON.stringify(touchTarget));
@@ -613,18 +618,18 @@ describe("Tree selection", () => {
     await page.close();
   });
 
-  it("follows a controlled Vue selection and marks a partially selected branch", async () => {
-    const script = await bundle("vue-controlled-tree-selection", `
-      import { createApp, h, ref } from "vue";
-      import { UiTree as Tree, UiTreeItem as TreeItem } from "@threadlabs/looma";
-      const ids = ref(["guide"]);
+  it("follows a controlled converted selection and marks a partially selected branch", async () => {
+    const script = await bundle("converted-controlled-tree-selection", `
+      import { createScene, sceneNode, createState } from "@looma-test/scene";
+      import { UiTree as Tree, UiTreeItem as TreeItem } from "@looma-test/components";
+      const ids = createState(["guide"]);
       window.events = [];
-      createApp({ render: () => h(Tree, {
+      createScene({ render: () => sceneNode(Tree, {
         label: "Files", selection: "multiple",
         onSelect: (event) => { window.events.push(["select", event.detail]); ids.value = event.detail.ids; },
-      }, () => h(TreeItem, { itemId: "docs", label: "Docs", container: true, expanded: true, selected: ids.value.includes("docs") }, () => [
-        h(TreeItem, { itemId: "guide", label: "Guide", selected: ids.value.includes("guide") }),
-        h(TreeItem, { itemId: "api", label: "API", selected: ids.value.includes("api") }),
+      }, () => sceneNode(TreeItem, { itemId: "docs", label: "Docs", container: true, expanded: true, selected: ids.value.includes("docs") }, () => [
+        sceneNode(TreeItem, { itemId: "guide", label: "Guide", selected: ids.value.includes("guide") }),
+        sceneNode(TreeItem, { itemId: "api", label: "API", selected: ids.value.includes("api") }),
       ])) }).mount("#app");
     `);
     const page = await open({ items: [] }, script);
@@ -633,9 +638,9 @@ describe("Tree selection", () => {
     await item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").click();
     assert.deepEqual(await events(page), [["select", { ids: ["docs", "guide", "api"], trigger: "pointer" }]]);
     await page.waitForFunction(() => document.querySelector('[data-item-id="docs"]')?.getAttribute("aria-selected") === "true");
-    assert.equal(await docsCheckbox.isChecked(), true);
+    await expect.poll(() => docsCheckbox.isChecked()).toBe(true);
     await page.waitForFunction(() => (document.querySelector('[data-item-id="api"] .selection-checkbox') as HTMLInputElement | null)?.checked === true);
-    assert.equal(await item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").isChecked(), true);
+    await expect.poll(() => item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").isChecked()).toBe(true);
     assert.equal(await docsCheckbox.evaluate((element: HTMLInputElement) => element.indeterminate), false);
     await docsCheckbox.click();
     assert.deepEqual((await events(page))[1], ["select", { ids: [], trigger: "pointer" }]);
@@ -657,7 +662,7 @@ describe("Tree marquee", () => {
       assert.equal(state.opacity, "1", "persistent controls are visible without hover");
       assert.match(state.mask, /linear-gradient/, "the title fades at rest");
       assert.equal(state.clip, "none", "no hard clipping edge beside controls");
-      assert.ok(state.mask.includes(direction === "rtl" ? "to left" : "to right"));
+      assert.ok(state.mask.includes(direction === "rtl" ? "to left" : "to right"), JSON.stringify({ touch, direction, state }));
       await page.close();
     }
   });
@@ -712,7 +717,7 @@ describe("Tree marquee", () => {
     const page = await open({ items: [] }, paddedMarqueePath, { reducedMotion: "no-preference" });
     const padded = item(page, "padded").locator(":scope > :first-child");
     await padded.hover();
-    assert.equal(await padded.getAttribute("data-ui-marquee"), "");
+    await expect.poll(() => padded.getAttribute("data-ui-marquee")).toBe("");
     const measure = await padded.evaluate((element) => {
       const label = element.querySelector<HTMLElement>(".label")!;
       const track = element.querySelector<HTMLElement>(".label-text")!;
@@ -728,8 +733,7 @@ describe("Tree marquee", () => {
     assert.ok(Math.abs(measure.textEnd + measure.distance - measure.fadeStart) <= 1,
       `title should end at the fade, not ${measure.textEnd + measure.distance - measure.fadeStart}px beyond it`);
     await item(page, "short-link").hover();
-    assert.equal(await item(page, "short-link").locator(":scope > :first-child").getAttribute("data-ui-marquee"), null,
-      "a full-row link whose title fits beside the controls must stay still");
+    await expect.poll(() => item(page, "short-link").locator(":scope > :first-child").getAttribute("data-ui-marquee"), { message: "a full-row link whose title fits beside the controls must stay still" }).toBe(null);
     await page.close();
   });
 

@@ -52,6 +52,7 @@ export const expandNodeView: NodeViewRenderer = ({ editor, node, getPos }) => {
   label.textContent = "Summary";
   const initiallyExpanded: HTMLElement = createUiCheckbox({ checked: draft.open, children: ["Initially expanded"] });
   initiallyExpanded.addEventListener("change", (event) => {
+    if (event.target !== initiallyExpanded || !(event instanceof CustomEvent)) return;
     draft.open = (event as CustomEvent<{ checked: boolean }>).detail.checked;
     componentRegistry.update(initiallyExpanded, { checked: draft.open });
   });

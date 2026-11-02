@@ -1,6 +1,6 @@
 import { Extension, type Editor, type JSONContent } from "@tiptap/core";
 import { componentRegistry, lowerDocument, RequestEvent } from "@nextwebwg/html-next/runtime";
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterAll, afterEach, expect, it } from "vitest";
 import { stop } from "../dist/index.js";
 import "../tokens.css";
@@ -27,7 +27,7 @@ for (const tag of ["ui-editor", "ui-compact-editor"]) {
     await expect.element(field).toBeVisible();
     await expect.poll(() => editor).toBeDefined();
     if (tag === "ui-compact-editor") expect(wrapper.querySelectorAll("#native-message")).toHaveLength(1);
-    const root = wrapper.querySelector<HTMLElement>(`[data-component~="${tag}"]`)!;
+    const root = wrapper.querySelector<HTMLElement>(`:is([component~="${tag}"], [data-component~="${tag}"], .${tag}, [${tag}])`)!;
     const metadataWrites: string[] = [];
     const metadata = new MutationObserver(records => {
       for (const record of records) if (record.attributeName?.endsWith("-prop-content")) metadataWrites.push(record.attributeName);

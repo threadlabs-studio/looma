@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { browserTestPatterns } from "../../packages/looma/tests/browser-files.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -52,7 +53,7 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
   );
   assert.equal(
     JSON.parse(rootPackage).scripts["test:browser"],
-    "pnpm --filter @threadlabs/looma test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
+    "pnpm --filter @threadlabs/looma test:browser && pnpm --filter @threadlabs/looma-docs-parity test:browser"
   );
   assert.equal(JSON.parse(loomaPackage).scripts.test, "vitest run");
   assert.doesNotMatch(
@@ -89,12 +90,13 @@ test("the required verify result gates unit tests, browser regressions, release 
   assert.match(releasePackagingJob, /runs-on: ubuntu-24\.04-arm/);
   assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
-  assert.match(verifyJob, /needs: \[quality, browser, release-package, visual\]/);
+  assert.match(verifyJob, /needs: \[quality, browser, release-package, visual, converter-pressure\]/);
   assert.match(verifyJob, /QUALITY_RESULT: \$\{\{ needs\.quality\.result \}\}/);
   assert.match(
     verifyJob,
     /RELEASE_PACKAGE_RESULT: \$\{\{ needs\.release-package\.result \}\}/
   );
+  assert.match(verifyJob, /test "\$CATALOG_RESULT" = "success"/);
   assert.match(verifyJob, /test "\$QUALITY_RESULT" = "success"/);
   assert.match(verifyJob, /test "\$RELEASE_PACKAGE_RESULT" = "success"/);
   assert.match(verifyJob, /test "\$VISUAL_RESULT" = "success"/);
@@ -102,7 +104,7 @@ test("the required verify result gates unit tests, browser regressions, release 
 
 test("required release suites contain no skipped or todo scenarios", async () => {
   const requiredSuites = [
-    "packages/looma/tests/browser.test.ts",
+    ...(await readdir(path.join(repoRoot, "packages/looma/tests/browser"))).filter(name => name.endsWith(".test.ts")).map(name => "packages/looma/tests/browser/" + name),
     "packages/looma/tests/editor-extensions.test.ts",
     "packages/looma/tests/looma-editor-history.browser.test.ts",
     "packages/looma/tests/looma-editor-mention.browser.test.ts",
@@ -142,11 +144,10 @@ test("every Vitest browser test is included by its package browser config", asyn
       .sort();
 
     for (const browserTest of browserTests) {
-      assert.match(
-        config,
-        new RegExp(browserTest.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
-        `${browserTest} exists but is excluded from ${packagePath}/vitest.browser.config.ts`,
-      );
+      assert.ok(browserTestPatterns.some(pattern => path.matchesGlob(browserTest, pattern)),
+        `${browserTest} exists but is excluded from ${packagePath}/vitest.browser.config.ts`);
+      assert.match(config, /include: browserTestPatterns/);
+
     }
   }
 });

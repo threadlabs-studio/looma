@@ -1,14 +1,15 @@
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
+import { expect } from "./renderers/test-context";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { describe, it } from "vitest";
 import { JSDOM } from "jsdom";
-import { UiTopBar as TopBar } from "@threadlabs/looma";
+import { UiTopBar as TopBar } from "@looma-test/components";
 
 describe("TopBar before upgrade", () => {
-  const render = (titleFor?: string) => renderToString(createSSRApp({ render: () => h(TopBar, { titleFor }, {
-    leading: () => h("button", "Back"),
+  const render = (titleFor?: string) => renderSceneToString(createHydratedScene({ render: () => sceneNode(TopBar, { titleFor }, {
+    leading: () => sceneNode("button", "Back"),
     default: () => "Document title",
-    actions: () => h("button", "Save"),
+    actions: () => sceneNode("button", "Save"),
   }) }));
 
   it("keeps the ordinary title visible without an observed heading", async () => {
@@ -26,7 +27,6 @@ describe("TopBar before upgrade", () => {
     expect(title.getAttribute("aria-hidden")).toBe("true");
     expect(title.hasAttribute("inert")).toBe(true);
     for (const button of document.querySelectorAll("button")) expect(button.closest("[inert]")).toBeNull();
-    expect(html).toContain(">Back</button>");
-    expect(html).toContain(">Save</button>");
+    expect(Array.from(document.querySelectorAll("button"), button => button.textContent)).toEqual(["Back", "Save"]);
   });
 });

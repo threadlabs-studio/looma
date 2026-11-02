@@ -1,22 +1,22 @@
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import type { Editor, JSONContent } from "@tiptap/core";
 import { AllSelection } from "@tiptap/pm/state";
 import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, ref, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, createState, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
-import { UiButton as Button } from "../src/components/ui-button/ui-button.html";
+import { UiButton as Button } from "@looma-test/components";
 import "../tokens.css";
 import "../theme-light.css";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -43,13 +43,13 @@ async function codeLanguageInput(host: HTMLElement) {
 
 async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; width?: number; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }>; imageUpload?: (detail: { file: File }) => Promise<{ src: string }>; onUploadError?: (error: unknown, file: File) => void } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(options.width ?? 1280);
-  const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
-  const editable = ref(options.editable ?? true);
+  const modelValue = createState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const editable = createState(options.editable ?? true);
   const host = document.createElement("div");
   document.body.append(host);
   let editor: Editor | null = null;
-  const app = createApp({
-    render: () => h(LoomaEditor, {
+  const app = createScene({
+    render: () => sceneNode(LoomaEditor, {
       content: modelValue.value,
       editable: editable.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
@@ -304,11 +304,11 @@ describe("LoomaEditor history (real browser)", () => {
     host.style.marginBlockStart = "180px";
     document.body.append(host);
     let editor: Editor | null = null;
-    const detailsClicked = ref(false);
-    const app = createApp({
-      render: () => h("div", [
-        h(Button, { onClick: () => { detailsClicked.value = true; } }, () => "Document details"),
-        h(LoomaEditor, {
+    const detailsClicked = createState(false);
+    const app = createScene({
+      render: () => sceneNode("div", [
+        sceneNode(Button, { onClick: () => { detailsClicked.value = true; } }, () => "Document details"),
+        sceneNode(LoomaEditor, {
           content: { type: "doc", content: [{ type: "paragraph" }] },
           toolbarMode: "contextual",
           extensions: captureEditor(instance => { editor = instance; }),
@@ -594,13 +594,13 @@ describe("LoomaEditor history (real browser)", () => {
   it("opens the full toolbar from an app button in popover mode, with a text-only selection bubble", async () => {
     await page.viewport(1280, 720);
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
-    const open = ref(false);
+    const open = createState(false);
     const host = document.createElement("div");
     document.body.append(host);
-    const app = createApp({
-      render: () => h("div", [
-        h("button", { id: "format-trigger", type: "button" }, "Format"),
-        h(LoomaEditor, {
+    const app = createScene({
+      render: () => sceneNode("div", [
+        sceneNode("button", { id: "format-trigger", type: "button" }, "Format"),
+        sceneNode(LoomaEditor, {
           content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hello world" }] }] },
           toolbarMode: "popover",
           toolbarTriggerId: "format-trigger",
@@ -707,7 +707,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.chain().focus("start").insertContent("Undo me").run();
     await flushBrowser();
     const undo = toolbar!.querySelector<HTMLButtonElement>(
-      ':is([data-component~="ui-icon-button"], .ui-icon-button)[aria-label="Undo"]',
+      ':is([component~="ui-icon-button"], [data-component~="ui-icon-button"], .ui-icon-button, [ui-icon-button])[aria-label="Undo"]',
     )!;
     expect(editor.can().undo()).toBe(true);
     expect(undo.disabled).toBe(false);
@@ -717,7 +717,7 @@ describe("LoomaEditor history (real browser)", () => {
     expect(editor.getText()).toBe("");
 
     const redo = toolbar!.querySelector<HTMLButtonElement>(
-      ':is([data-component~="ui-icon-button"], .ui-icon-button)[aria-label="Redo"]',
+      ':is([component~="ui-icon-button"], [data-component~="ui-icon-button"], .ui-icon-button, [ui-icon-button])[aria-label="Redo"]',
     )!;
     expect(editor.can().redo()).toBe(true);
     expect(redo.disabled).toBe(false);
@@ -838,7 +838,9 @@ it.each([1280, 375])("shows a compact Open link bar above a clicked link and dis
   await userEvent.click(link);
   await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
   await expectFloatingToolbarHidden();
-  const open = page.getByRole("link", { name: "Open link", exact: true }).element();
+  const openLink = page.getByRole("link", { name: "Open link", exact: true });
+  await expect.element(openLink).toBeVisible();
+  const open = openLink.element();
   expect(open.getAttribute("href")).toBe("/linked-page");
   expect(open.getAttribute("target")).toBe("_blank");
   expect(open.getBoundingClientRect().bottom).toBeLessThanOrEqual(link.getBoundingClientRect().top);
@@ -865,7 +867,9 @@ it.each([1280, 375])("keeps a long destination compact and closes its actions wh
   expect(box.height).toBeLessThanOrEqual(44);
   expect(box.left).toBeGreaterThanOrEqual(0);
   expect(box.right).toBeLessThanOrEqual(width);
-  const open = actions.element().querySelector('[aria-label="Open link"]')!;
+  const openLink = page.getByRole("link", { name: "Open link", exact: true });
+  await expect.element(openLink).toBeVisible();
+  const open = openLink.element();
   expect(open.getBoundingClientRect().height).toBeLessThanOrEqual(44);
   await userEvent.click(editor.view.dom.querySelector('nav strong')!);
   await vi.waitFor(() => expect(document.querySelector('[aria-label="Link actions"]')).toBeNull());
@@ -914,7 +918,7 @@ it("inserts an uploaded image, and offers Retry after a failed upload", async ()
   files.items.add(new File(["x"], "photo.png", { type: "image/png" }));
   input.files = files.files;
   input.dispatchEvent(new Event("change", { bubbles: true }));
-  await expect.element(page.getByRole("alert")).toHaveTextContent("Couldn’t upload image.");
+  await expect.element(page.getByRole("alert").getByText("Couldn’t upload image.", { exact: true })).toBeVisible();
   expect(errors).toEqual(["photo.png"]);
   expect(JSON.stringify(editor.getJSON())).not.toContain("photo.png");
   fail = false;

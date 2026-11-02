@@ -1,14 +1,15 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
 import { initialFieldValue } from "../src/components/shared/initial-field-value.js";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiDateField as DateField } from "@threadlabs/looma";
-import { UiTimeField as TimeField } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { describe, it } from "vitest";
+import { UiDateField as DateField } from "@looma-test/components";
+import { UiTimeField as TimeField } from "@looma-test/components";
 
 describe("Date Field before upgrade", () => {
   it("renders an editable native date field and submits one canonical entry without JavaScript", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h("form", [h(DateField, { name: "due", value: "2026-10-30", locale: "en-GB", label: "Due date" })]) }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode(DateField, { name: "due", value: "2026-10-30", locale: "en-GB", label: "Due date" })]) }));
     const { window } = new JSDOM(html);
     const input = window.document.querySelector<HTMLInputElement>("[data-date-fallback]")!;
     expect(input.type).toBe("date"); expect(input.disabled).toBe(false);
@@ -18,30 +19,30 @@ describe("Date Field before upgrade", () => {
     expect([...new window.FormData(window.document.querySelector("form")!)].map(([key, value]) => [key, String(value)])).toEqual([["due", "2026-11-01"]]);
   });
   it("keeps an exact timestamp intact in its text fallback and omits disabled fields", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h("form", [
-      h(DateField, { type: "instant", name: "meeting", value: "2026-10-30T18:30:00Z", timeZone: "America/New_York" }),
-      h(DateField, { name: "disabled", value: "2026-10-30", disabled: true }),
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [
+      sceneNode(DateField, { type: "instant", name: "meeting", value: "2026-10-30T18:30:00Z", timeZone: "America/New_York" }),
+      sceneNode(DateField, { name: "disabled", value: "2026-10-30", disabled: true }),
     ]) }));
     const { window } = new JSDOM(html);
     expect([...new window.FormData(window.document.querySelector("form")!)]).toEqual([["meeting", "2026-10-30T18:30:00Z"]]);
   });
   it("keeps Time Field's native value and label association before JavaScript", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h("form", [h("label", { for: "opening" }, "Opening time"), h(TimeField, { inputId: "opening", name: "opening", value: "09:30" })]) }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode("label", { for: "opening" }, "Opening time"), sceneNode(TimeField, { inputId: "opening", name: "opening", value: "09:30" })]) }));
     const { window } = new JSDOM(html);
     const input = window.document.querySelector<HTMLInputElement>("input#opening")!;
     expect(input.type).toBe("time"); expect(input.labels?.[0]?.textContent).toBe("Opening time");
     expect([...new window.FormData(window.document.querySelector("form")!)]).toEqual([["opening", "09:30"]]);
   });
   it("associates the fallback with an explicitly named external form", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h("div", [h("form", { id: "external" }), h(DateField, { form: "external", name: "due", value: "2026-10-30" })]) }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("div", [sceneNode("form", { id: "external" }), sceneNode(DateField, { form: "external", name: "due", value: "2026-10-30" })]) }));
     const { window } = new JSDOM(html);
     expect([...new window.FormData(window.document.querySelector("form")!)]).toEqual([["due", "2026-10-30"]]);
   });
   it("preserves sub-millisecond times and local date-time serialization before JavaScript", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h("form", [
-      h(TimeField, { name: "precise", value: "14:30:45.123456789" }),
-      h(DateField, { type: "datetime-local", name: "local", value: "2026-10-30T14:30:45.123456789" }),
-      h(DateField, { type: "datetime-local", name: "space", valueFormat: "space", value: "2026-10-30 14:30" }),
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [
+      sceneNode(TimeField, { name: "precise", value: "14:30:45.123456789" }),
+      sceneNode(DateField, { type: "datetime-local", name: "local", value: "2026-10-30T14:30:45.123456789" }),
+      sceneNode(DateField, { type: "datetime-local", name: "space", valueFormat: "space", value: "2026-10-30 14:30" }),
     ]) }));
     const { window } = new JSDOM(html);
     const fields = [...window.document.querySelectorAll<HTMLInputElement>("[data-date-fallback]")];

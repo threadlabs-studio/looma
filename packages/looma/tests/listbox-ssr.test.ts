@@ -1,14 +1,15 @@
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiListbox as Listbox } from "@threadlabs/looma";
+import { expect } from "./renderers/test-context";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneBody } from "./renderers/server-assertions";
+import { describe, it } from "vitest";
+import { UiListbox as Listbox } from "@looma-test/components";
 
 describe("Listbox server render", () => {
   it("keeps authored options in a usable native control before upgrade", async () => {
-    const html = await renderToString(createSSRApp({
-      render: () => h(Listbox, { name: "region", multiple: true, required: true }, () => [
-        h("option", { value: "north", selected: true }, "North"),
-        h("option", { value: "south" }, "South"),
+    const html = await renderSceneBody(createHydratedScene({
+      render: () => sceneNode(Listbox, { name: "region", multiple: true, required: true }, () => [
+        sceneNode("option", { value: "north", selected: true }, "North"),
+        sceneNode("option", { value: "south" }, "South"),
       ]),
     }));
 

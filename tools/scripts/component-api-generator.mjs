@@ -507,6 +507,7 @@ export async function generateComponentApiMetadata() {
       .filter(([tag]) => classificationStatus(classifications[tag]) === "published")
       .map(([tag, contract]) => ({ group, packageName: group.packageName, tag, contract })));
   const components = (await Promise.all(componentEntries.map(async ({ group, packageName, tag, contract }) => ({
+    angularHost: contract.angularHost,
     ...await contractMetadata(
       tag,
       packageName,
@@ -524,7 +525,7 @@ export async function generateComponentApiMetadata() {
   })))).sort((left, right) => left.tag.localeCompare(right.tag));
 
   const sourceComponents = CONTRACT_GROUPS.flatMap(({ packageName, contracts }) =>
-    Object.keys(contracts).map((tag) => ({ tag, package: packageName })));
+    Object.entries(contracts).map(([tag, contract]) => ({ tag, package: packageName, root: contract.root, angularHost: contract.angularHost })));
   const sourcePackageByTag = new Map(sourceComponents.map((component) => [component.tag, component.package]));
   const packageMismatches = Object.entries(classifications)
     .filter(([, value]) => typeof value === "object" && value?.package)
@@ -547,5 +548,5 @@ export async function generateComponentApiMetadata() {
     adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
-  return { schemaVersion: 5, groups, components };
+  return { schemaVersion: 5, groups, components, resources: sourceComponents };
 }

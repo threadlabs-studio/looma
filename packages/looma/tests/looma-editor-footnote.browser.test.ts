@@ -1,8 +1,8 @@
 import type { Editor } from "@tiptap/core";
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
@@ -10,11 +10,11 @@ import { editorDocumentToMarkdown, markdownToEditorDocument } from "../src/edito
 import "../tokens.css";
 import "../theme-light.css";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -34,8 +34,8 @@ async function mount(markdown: string) {
   outside.style.cssText = "position:fixed;right:0;bottom:0";
   document.body.append(outside, host);
   let editor: Editor | null = null;
-  const app = createApp({
-    render: () => h(LoomaEditor, { content: markdownToEditorDocument(markdown), extensions: captureEditor(instance => { editor = instance; }) }),
+  const app = createScene({
+    render: () => sceneNode(LoomaEditor, { content: markdownToEditorDocument(markdown), extensions: captureEditor(instance => { editor = instance; }) }),
   });
   apps.push(app);
   app.mount(host);
@@ -121,7 +121,7 @@ describe("LoomaEditor footnotes (real browser)", () => {
     const { host, editor, popover, markdown } = await mount("Start");
     editor.chain().focus("end").insertContent(" /footnote").run();
     await flushBrowser();
-    const option = () => [...host.querySelectorAll<HTMLElement>(':is([data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu) [role="option"]')]
+    const option = () => [...host.querySelectorAll<HTMLElement>(':is([component~="ui-editor-slash-menu"], [data-component~="ui-editor-slash-menu"], .ui-editor-slash-menu, [ui-editor-slash-menu]) [role="option"]')]
       .find(item => item.textContent?.includes("Footnote"));
     await vi.waitFor(() => expect(option()).toBeTruthy(), { timeout: 3000 });
     await userEvent.click(option()!);

@@ -53,7 +53,7 @@ const run = (directory, command, args, env = {}) => {
 export function selectVisualComponents(files, changes) {
   const all = [...new Set(Object.keys(files).map(componentTag).filter(Boolean))].sort();
   const sharedRenderingChanged = changes.some(file => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|packages\/looma\/(?:build\.mjs|package\.json|src\/tokens\/)|apps\/storybook\/|apps\/docs\/(?:src\/|static\/|tests\/(?!baselines\/))|tools\/scripts\/visual-review)/.test(file)
-    || (file.startsWith('packages/looma/tooling/docs/') && !file.endsWith('.md')));
+    || (file.startsWith('packages/looma-docs/tooling/docs/') && !file.endsWith('.md')));
   if (sharedRenderingChanged) return all;
 
   const reached = affectedModules(files, changes);

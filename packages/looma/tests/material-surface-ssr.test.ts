@@ -1,18 +1,19 @@
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiCard as Card } from "@threadlabs/looma";
-import { UiButton as Button } from "@threadlabs/looma";
-import { UiActionBar as ActionBar } from "@threadlabs/looma";
-import { UiRadio as Radio } from "@threadlabs/looma";
-import { UiSwitch as Switch } from "@threadlabs/looma";
-import { UiCheckbox as Checkbox } from "@threadlabs/looma";
+import { expect } from "./renderers/test-context";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { describe, it } from "vitest";
+import { UiCard as Card } from "@looma-test/components";
+import { UiButton as Button } from "@looma-test/components";
+import { UiActionBar as ActionBar } from "@looma-test/components";
+import { UiRadio as Radio } from "@looma-test/components";
+import { UiSwitch as Switch } from "@looma-test/components";
+import { UiCheckbox as Checkbox } from "@looma-test/components";
 
 describe("material surfaces before upgrade", () => {
   it.each(["standard", "expressive"])("retains semantic content and controls with %s treatment", async treatment => {
-    const html = await renderToString(createSSRApp({ render: () => h(Card, {
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Card, {
       as: "article", treatment, variant: "elevated", "aria-label": "Briefing",
-    }, () => [h("h2", "A readable plan"), h("p", "Content stays on its own plane."), h(Button, { preset: "primary" }, () => "Send")]) }));
+    }, () => [sceneNode("h2", "A readable plan"), sceneNode("p", "Content stays on its own plane."), sceneNode(Button, { preset: "primary" }, () => "Send")]) }));
     expect(html).toMatch(/<article\b/);
     expect(html).toContain(`treatment="${treatment}"`);
     expect(html).toContain('aria-label="Briefing"');
@@ -27,9 +28,9 @@ describe("material surfaces before upgrade", () => {
 
 describe("material action composition before upgrade", () => {
   it.each(["ltr", "rtl"])("keeps native ActionBar roles and reading order in %s", async dir => {
-    const html = await renderToString(createSSRApp({ render: () => h(ActionBar, { dir }, {
-      secondary: () => h(Button, { preset: "standard" }, () => "Keep draft"),
-      primary: () => h(Button, { preset: "primary" }, () => "Send briefing"),
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(ActionBar, { dir }, {
+      secondary: () => sceneNode(Button, { preset: "standard" }, () => "Keep draft"),
+      primary: () => sceneNode(Button, { preset: "primary" }, () => "Send briefing"),
     }) }));
     expect(html).toContain(`dir="${dir}"`);
     expect(html).toMatch(/class="secondary"[\s\S]*Keep draft/);
@@ -43,7 +44,7 @@ describe("material action composition before upgrade", () => {
 describe("material choices preserve native inputs before upgrade", () => {
   it.each([["Radio", Radio, "radio"], ["Switch", Switch, "checkbox"], ["Checkbox", Checkbox, "checkbox"]] as const)("retains %s semantics, required and disabled state", async (_name, Component, type) => {
     for (const disabled of [false, true]) {
-      const html = await renderToString(createSSRApp({ render: () => h(Component, { name: "delivery", value: "digest", required: true, checked: true, disabled }, () => "Email digest") }));
+      const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Component, { name: "delivery", value: "digest", required: true, checked: true, disabled }, () => "Email digest") }));
       expect(html).toMatch(new RegExp(`<input[^>]*type="${type}"`));
       expect(html).toMatch(/<input[^>]*name="delivery"/);
       expect(html).toMatch(/<input[^>]*value="digest"/);

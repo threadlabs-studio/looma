@@ -7,19 +7,22 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { build } from 'vite';
 import htmlNext from '@nextwebwg/html-next-unplugin/vite';
+import { syncHtmlNext } from '@nextwebwg/html-next-unplugin';
 import vue from '@vitejs/plugin-vue';
 import react from '@vitejs/plugin-react';
+import preact from '@preact/preset-vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { compile as compileSvelte } from 'svelte/compiler';
 import { parse as parseVue, compileTemplate } from 'vue/compiler-sfc';
 import ts from 'typescript';
-import { frameworkExamples } from '../../packages/looma/tooling/docs/framework-examples.mjs';
-import { discoverComponents } from '../../packages/looma/tooling/docs/catalog.mjs';
+import { frameworkExamples } from '../../packages/looma-docs/tooling/docs/framework-examples.mjs';
+import { validateAngularExample } from './example-syntax.mjs';
+import { discoverComponents, mergeCatalogs } from '../../packages/looma-docs/tooling/docs/catalog.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const { parseFragment } = createRequire(new URL('../../packages/looma/package.json', import.meta.url))('parse5');
-const { components, resources } = JSON.parse(await readFile(new URL('../../packages/looma/docs/catalog.json', import.meta.url), 'utf8'));
+const { components, resources } = mergeCatalogs([JSON.parse(await readFile(new URL('../../packages/looma/docs/catalog.json', import.meta.url), 'utf8'))]);
 const example = {
   markup: '<ui-site-header><a slot="brand" href="/">Folio</a><ui-button slot="actions" variant="solid">Save</ui-button></ui-site-header><ui-combobox multiple selected-values=\'["north"]\'><option value="north">North</option></ui-combobox>',
 };
@@ -28,8 +31,11 @@ test('every published example has valid framework syntax', () => {
   const catalog = [...resources, ...components];
   for (const component of components) for (const example of component.examples) {
     const codes = frameworkExamples(example, catalog);
-    const source = ts.createSourceFile('Example.tsx', codes.react.code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-    assert.deepEqual(source.parseDiagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')), [], `${example.id}: React`);
+    validateAngularExample(codes.angular.code, example.id);
+    for (const target of ['react', 'preact']) {
+      const source = ts.createSourceFile('Example.tsx', codes[target].code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+      assert.deepEqual(source.parseDiagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')), [], `${example.id}: ${target}`);
+    }
     const { descriptor, errors } = parseVue(codes.vue.code);
     assert.deepEqual(errors, [], `${example.id}: Vue SFC`);
     assert.deepEqual(compileTemplate({ source: descriptor.template.content, filename: 'Example.vue', id: example.id }).errors, [], `${example.id}: Vue template`);
@@ -37,7 +43,29 @@ test('every published example has valid framework syntax', () => {
   }
 });
 
-for (const [target, extension, compiler] of [['vue', 'vue', vue], ['react', 'tsx', react], ['svelte', 'svelte', svelte]]) {
+test('every published Angular example passes strict framework template checking', async () => {
+  const directory = await mkdtemp(path.join(root, '.angular-examples-'));
+  try {
+    await writeFile(path.join(directory, 'package.json'), JSON.stringify({ type: 'module', dependencies: { '@threadlabs/looma': 'workspace:*' } }));
+    const catalog = [...resources, ...components], files = [];
+    for (const component of components) for (const [index, example] of component.examples.entries()) {
+      const file = path.join(directory, `${component.tag}-${index}.ts`);
+      await writeFile(file, frameworkExamples(example, catalog).angular.code);
+      files.push(file);
+    }
+    const prepared = await syncHtmlNext({ root: directory, target: 'angular', declarationsFile: 'html-next.d.ts' });
+    assert.ok(prepared.angularConfigFile);
+    const config = path.join(directory, 'tsconfig.json');
+    await writeFile(config, JSON.stringify({ extends: prepared.angularConfigFile, compilerOptions: {
+      target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', strict: true, skipLibCheck: true,
+      experimentalDecorators: true, allowArbitraryExtensions: true, noEmit: true, types: [],
+    }, angularCompilerOptions: { strictTemplates: true }, files: [...files, prepared.declarationsFile] }));
+    const compiler = path.join(path.dirname(require.resolve('@angular/compiler-cli/package.json')), 'bundles/src/bin/ngc.js');
+    execFileSync(process.execPath, [compiler, '-p', config], { cwd: directory, stdio: 'inherit' });
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+for (const [target, extension, compiler] of [['vue', 'vue', vue], ['react', 'tsx', react], ['preact', 'tsx', preact], ['svelte', 'svelte', svelte]]) {
   test(`${target} documentation compiles through source-package discovery`, async () => {
     const directory = await mkdtemp(path.join(root, '.examples-'));
     try {
@@ -97,10 +125,11 @@ for (const [target, extension, compiler] of [['vue', 'vue', vue], ['react', 'tsx
         await writeFile(path.join(directory, `Fixture${index}.${extension}`), frameworkExamples(fixture, catalog)[target].code);
       }
       const render = target === 'vue' ? 'renderToString(createSSRApp(Component))' : target === 'react'
-        ? 'renderToStaticMarkup(createElement(Component))' : 'render(Component).body';
+        ? 'renderPrepared(createElement(Component))' : target === 'preact' ? 'renderPrepared(h(Component, {}))' : 'renderPrepared(Component)';
       const runtime = target === 'vue' ? 'import { createSSRApp } from "vue"; import { renderToString } from "vue/server-renderer";'
-        : target === 'react' ? 'import { createElement } from "react"; import { renderToStaticMarkup } from "react-dom/server";'
-          : 'import { render } from "svelte/server";';
+        : target === 'react' ? 'import { createElement } from "react"; import { renderPrepared } from "@threadlabs/looma";'
+          : target === 'preact' ? 'import { h } from "preact"; import { renderPrepared } from "@threadlabs/looma";'
+            : 'import { renderPrepared } from "@threadlabs/looma";';
       const serverEntry = path.join(directory, 'server.mjs');
       await writeFile(serverEntry, `${runtime}\n${fixtures.map((_, index) => `import Fixture${index} from "./Fixture${index}.${extension}";`).join('\n')}
 export async function examples() {

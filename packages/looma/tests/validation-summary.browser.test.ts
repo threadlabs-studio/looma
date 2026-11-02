@@ -1,4 +1,4 @@
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, expect, it, vi } from "vitest";
 const source = await fetch(new URL("../src/components/ui-form-field/examples/04-validation-summary.html", import.meta.url)).then(response => response.text());
 import "../dist/index.js";
@@ -38,7 +38,7 @@ it("keeps the summary and fields within a narrow light/dark RTL composition", as
     root.innerHTML = source; document.body.append(root);
     await vi.waitFor(() => expect(root.querySelector("input#summary-email")).not.toBeNull());
     expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth + 1);
-    await page.screenshot({ element: root, path: `../../../.context/validation-summary-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ element: root, path: `../../../.context/validation-summary-${theme}-mobile.png` });
     root.remove();
   }
 });

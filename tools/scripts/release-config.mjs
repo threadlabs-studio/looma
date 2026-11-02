@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.51.0";
+export const RELEASE_VERSION = "0.52.0";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -35,12 +35,13 @@ export const RELEASE_PACKAGES = [
       "package/theme-dark.css",
       "package/theme-high-contrast.css",
       "package/theme-system.css",
-      "package/docs/index.mjs",
-      "package/docs/index.d.ts",
-      "package/docs/cli.mjs",
-      "package/docs/catalog.json",
-      "package/docs/README.md"
+      "package/docs/catalog.json"
     ]
+  },
+  {
+    name: "@threadlabs/looma-docs",
+    directory: "packages/looma-docs",
+    requiredFiles: ["package/package.json", "package/README.md", "package/LICENSE", "package/bin/looma-docs.mjs", "package/docs/index.mjs", "package/docs/index.d.ts", "package/docs/cli.mjs", "package/docs/README.md"]
   }
 ];
 

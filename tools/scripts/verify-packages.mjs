@@ -196,6 +196,7 @@ async function main() {
   await cleanOutputDirectory(outputDirectory);
 
   run("pnpm", ["--filter", "@threadlabs/looma", "build"], { stdio: "inherit" });
+  run("pnpm", ["--filter", "@threadlabs/looma-docs", "build"], { stdio: "inherit" });
 
   const packedEntries = [];
   for (const releasePackage of RELEASE_PACKAGES) {

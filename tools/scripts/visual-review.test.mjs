@@ -22,7 +22,7 @@ test('component changes include composed consumers without selecting unrelated c
   assert.deepEqual(selectVisualComponents(files,['packages/looma/src/components/ui-disclosure/examples/01.html']),['ui-disclosure','ui-light-editor']);
 });
 test('shared rendering inputs select every component, while prose does not',()=>{
-  for(const input of ['packages/looma/src/tokens/theme-system.css','pnpm-lock.yaml','apps/storybook/tests/state-sheets.spec.ts','packages/looma/tooling/docs/theme.mjs','packages/looma/tooling/docs/fonts.mjs','packages/looma/tooling/docs/portrait.svg'])
+  for(const input of ['packages/looma/src/tokens/theme-system.css','pnpm-lock.yaml','apps/storybook/tests/state-sheets.spec.ts','packages/looma-docs/tooling/docs/theme.mjs','packages/looma-docs/tooling/docs/fonts.mjs','packages/looma-docs/tooling/docs/portrait.svg'])
     assert.deepEqual(selectVisualComponents(files,[input]),['ui-button','ui-disclosure','ui-light-editor']);
   assert.deepEqual(selectVisualComponents(files,['docs/getting-started.md']),[]);
 });

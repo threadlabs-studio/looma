@@ -15,8 +15,12 @@ function interactions(host) {
   const model = () => host.props.model.value;
   const blocked = () => host.props.disabled.value;
   const settings = () => Object.fromEntries(constraintNames.map(key => [key, host.props[key].value]));
-  const focus = selector => {
+  const focus = (selector, immediate = false) => {
     cancelAnimationFrame(frame);
+    if (immediate) {
+      const target = element.querySelector(selector);
+      if (target && !target.closest("[hidden]")) target.focus();
+    }
     frame = requestAnimationFrame(() => {
       if (!connected) return;
       const target = element.querySelector(selector) ?? element.querySelector(host.state.mode === "days" ? '[data-calendar-days][tabindex="0"]' : "[data-calendar-year-toggle]");
@@ -65,7 +69,7 @@ function interactions(host) {
     if (!date) return;
     host.state.focusedDate = date;
     showMonth(date.slice(0, 7), "keyboard");
-    focus(`[data-calendar-day="${date}"]`);
+    focus(`[data-calendar-day="${date}"]`, true);
   };
   const navigate = (direction, trigger) => {
     const current = model(); if (!current) return;

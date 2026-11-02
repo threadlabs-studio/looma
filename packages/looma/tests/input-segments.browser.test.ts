@@ -1,31 +1,31 @@
-import { userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, type App } from "vue";
+import { userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiInput as Input, UiDateField as DateField } from "@threadlabs/looma";
+import { UiInput as Input, UiDateField as DateField } from "@looma-test/components";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; delete document.documentElement.dataset.theme; });
 const clock = [{ placeholder: "hh", pattern: "[0-9]" }, { literal: ":" }, { placeholder: "mm", pattern: "[0-9]" }];
-async function mount(adapter: "html" | "vue", component: "input" | "date-field", props: Record<string, unknown>) {
+async function mount(adapter: "html" | "converted", component: "input" | "date-field", props: Record<string, unknown>) {
   const form = document.createElement("form"); document.body.append(form);
-  if (adapter === "vue") { app = createApp({ render: () => h(component === "input" ? Input : DateField, props) }); app.mount(form); }
+  if (adapter === "converted") { app = createScene({ render: () => sceneNode(component === "input" ? Input : DateField, props) }); app.mount(form); }
   else {
     const element = document.createElement(`ui-${component}`);
     for (const [key, value] of Object.entries(props)) element.setAttribute(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), typeof value === "object" ? JSON.stringify(value) : String(value));
     form.append(element);
   }
-  await nextTick();
+  await settle();
   await vi.waitFor(() => expect(form.querySelector<HTMLInputElement>(component === "input" ? "input" : "[data-date-editor]:not([hidden])")).not.toBeNull());
   const input = form.querySelector<HTMLInputElement>(component === "input" ? "input" : "[data-date-editor]")!;
   await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
   return { form, input, value: () => new FormData(form).get("entry"), selected: () => input.value.slice(input.selectionStart!, input.selectionEnd!) };
 }
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`keeps format hints out of native and submitted values in both themes in ${adapter}`, async () => {
     for (const theme of ["light", "dark"]) {
       document.documentElement.dataset.theme = theme;
