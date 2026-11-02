@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Align the declared package baseline with published 0.51.4 so strict documentation consumers satisfy their existing peer dependency.
+
 - Animate a filling Disclosure's movement when surrounding navigation is replaced, preserving reduced-motion preferences and rapid toggles.
 
 - Keep navigation disclosure children adjacent to the trigger without the plain accordion's body padding.
