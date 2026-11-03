@@ -3,6 +3,7 @@ import { componentInputs } from "@nextwebwg/html-next/inputs";
 import { Temporal, asciiDigits, canonicalValue, compileDateRules, isDateAllowed } from "../shared/date-time.js";
 import { availableDate } from "../shared/date-navigation.js";
 import { createCalendarBindings } from "./calendar-source.js";
+import { externalValueTracker } from "../shared/external-value.js";
 
 const constraintNames = ["min", "max", "allowedDates", "allowedRanges", "disabledDates", "disabledRanges", "disabledWeekdays"];
 
@@ -162,19 +163,18 @@ function interactions(host) {
   element.addEventListener("keydown", keydown);
   element.addEventListener("focusin", focusin);
   element.addEventListener("focus-date", request);
-  let externalValue = host.props.value.value;
-  let externalMonth = host.props.month.value;
+  const externalValueChanged = externalValueTracker(host.props.value);
+  const externalMonthChanged = externalValueTracker(host.props.month);
   const stop = host.effect(() => {
     const value = host.props.value.value;
     const month = host.props.month.value;
-    if (value !== externalValue) {
-      externalValue = value;
+    if (externalValueChanged(value)) {
       if (host.state.current !== value) {
         host.state.current = value;
         if (!month && value) host.state.visibleMonth = value.slice(0, 7);
       }
     }
-    if (month !== externalMonth) { externalMonth = month; host.state.visibleMonth = month; }
+    if (externalMonthChanged(month)) host.state.visibleMonth = month;
   });
   return () => {
     connected = false; cancelAnimationFrame(frame); stop();

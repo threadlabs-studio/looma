@@ -29,7 +29,7 @@ afterEach(async () => {
 });
 
 async function mountEditor(props: Record<string, unknown>, width = 1280) {
-  Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
+  await page.viewport(width, 800);
   const host = document.body.appendChild(document.createElement("div"));
   // Inspect Tiptap's own view marker here so the extensions request remains unclaimed.
   const editor = () => host.querySelector<HTMLElement & { editor: Editor }>('[role="textbox"]')?.editor;

@@ -194,7 +194,7 @@ describe("Date controls framework hydration", () => {
       await expect.poll(() => page.locator('[data-picker-field] [data-date-editor]').inputValue()).toBe("02/11/2026");
       await page.locator('[data-picker-trigger]').click();
       await page.waitForFunction(() => document.querySelector('[data-calendar-month-toggle]')?.textContent?.includes("November"));
-      assert.equal(await page.locator('[data-calendar-day="2026-11-02"]').evaluate(node => node.parentElement!.getAttribute("aria-selected")), "true");
+      await expect.poll(() => page.locator('[data-calendar-day="2026-11-02"]').evaluate(node => node.parentElement!.getAttribute("aria-selected"))).toBe("true");
     } finally { await page.close(); }
   });
 

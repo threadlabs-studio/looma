@@ -3,7 +3,7 @@ import path from "node:path";
 import { prepareLibrary } from "./tests/renderers/prepare-library.ts";
 import { browserTestPatterns } from "./tests/browser-files.mjs";
 import { playwright } from "@vitest/browser-playwright";
-import { rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugins.ts";
+import { rendererDependencies, rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugins.ts";
 import { defineConfig } from "vitest/config";
 
 const target = process.env.LOOMA_TEST_TARGET ?? "vue";
@@ -18,7 +18,7 @@ export default defineConfig({
   cacheDir: rendererCacheDirectory(),
   plugins: rendererPlugins(),
   define: { "process.env.LOOMA_CAPTURE_ARTIFACTS": JSON.stringify(process.env.LOOMA_CAPTURE_ARTIFACTS ?? ""), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "converted") },
-  optimizeDeps: { entries: browserTestPatterns, exclude: ["svelte", "@nextwebwg/html-next", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/runtime"], include: [...prepared.clientDependencies, "postcss", "@tiptap/core", ...(target === "vue" ? ["vue"] : target === "react" ? ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server"] : target === "preact" ? ["preact", "preact/compat", "preact/hooks", "preact/jsx-runtime", "preact-render-to-string"] : [])] },
+  optimizeDeps: { entries: browserTestPatterns, exclude: ["svelte", "@nextwebwg/html-next", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/runtime"], include: [...prepared.clientDependencies, "postcss", "@tiptap/core", ...rendererDependencies] },
   resolve: {
     dedupe: target === "vue" ? ["vue", "@vue/shared", "@vue/runtime-core", "@vue/runtime-dom", "@vue/reactivity"] : target === "react" ? ["react", "react-dom"] : target === "preact" ? ["preact"] : target === "svelte" ? ["svelte"] : [],
     alias: [

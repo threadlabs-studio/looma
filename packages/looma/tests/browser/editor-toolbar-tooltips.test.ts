@@ -29,7 +29,7 @@ describe("Editor toolbar tooltips", () => {
     assert.ok(labels.includes("Bold") && labels.includes("Redo"), `toolbar labels: ${labels.join(", ")}`);
     assert.equal(labels.includes("Checklist") || labels.includes("Divider"), false);
 
-    const tip = page.locator(':is([component~="ui-tooltip"], [data-component~="ui-tooltip"], .ui-tooltip, [ui-tooltip])');
+    const tip = page.getByRole("tooltip");
     await bold.hover();
     await tip.waitFor({ state: "visible" });
     assert.match((await tip.textContent()) ?? "", /Bold/);
@@ -46,7 +46,7 @@ describe("Editor toolbar tooltips", () => {
     // Moving along the row re-points the same tooltip without waiting again.
     const italic = page.locator(':is([component~="ui-editor-toolbar"], [data-component~="ui-editor-toolbar"], .ui-editor-toolbar, [ui-editor-toolbar]) button').nth(1);
     await italic.hover();
-    await page.waitForFunction(() => /Italic/.test(document.querySelector(':is([component~="ui-tooltip"], [data-component~="ui-tooltip"], .ui-tooltip, [ui-tooltip])')?.textContent ?? ""));
+    await expect.poll(() => tip.textContent()).toMatch(/Italic/);
     await expect.poll(() => tip.isVisible()).toBe(true);
     await expect.poll(() => tip.locator("kbd").textContent()).toBe("⌘I");
     await page.close();

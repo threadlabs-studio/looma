@@ -255,6 +255,8 @@ describe("Toast composition and placement", () => {
         Save failed <button slot="action">Retry</button>
       </ui-toast></ui-toast-region>
     `, ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file)));
+    // Pause the short dismissal timer before exercising the independent theme checks.
+    await page.getByRole("button", { name: "Retry" }).focus();
     for (const [attribute, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
       await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
       await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [attribute, value]);
@@ -266,7 +268,6 @@ describe("Toast composition and placement", () => {
       assert.notEqual(colors.accent, colors.surface, `${value}: danger accent is visible`);
       assert.notEqual(colors.text, colors.surface, `${value}: message is visible`);
     }
-    await page.getByRole("button", { name: "Retry" }).focus();
     await page.waitForTimeout(300);
     assert.deepEqual(await page.evaluate(() => (window as any).dismissals), []);
     await page.getByRole("button", { name: "Retry" }).press("Tab");

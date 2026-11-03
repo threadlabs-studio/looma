@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
-import { rendererPlugins } from "../framework-plugins.ts";
+import { rendererDependencies, rendererPlugins } from "../framework-plugins.ts";
 
 /** Transform fixture entries on demand; library and dependency transforms are shared by every page. */
 export async function startFixtureServers() {
@@ -17,7 +17,7 @@ export async function startFixtureServers() {
         plugins: rendererPlugins({ externalStyles: true, cacheSuffix: `-fixtures-${mode}` }),
         resolve: { alias: { "@looma-test/runtime": path.join(root, "dist/index.js") } },
         define: { "process.env.NODE_ENV": JSON.stringify(mode), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "converted") },
-        optimizeDeps: { entries: [], noDiscovery: true, rolldownOptions: { transform: { define: { "process.env.NODE_ENV": JSON.stringify(mode) } } }, include: [prepared.clientModule, ...prepared.clientDependencies, "@nextwebwg/html-next/runtime", "@nextwebwg/html-next/live", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/bindings", "@looma-test/runtime", "expressmark", "postcss", "@tiptap/core", "@threadlabs/looma/editor", "@threadlabs/looma/editor/extensions"] },
+        optimizeDeps: { entries: [], noDiscovery: true, rolldownOptions: { transform: { define: { "process.env.NODE_ENV": JSON.stringify(mode) } } }, include: [...rendererDependencies, prepared.clientModule, ...prepared.clientDependencies, "@nextwebwg/html-next/runtime", "@nextwebwg/html-next/live", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/bindings", "@looma-test/runtime", "expressmark", "postcss", "@tiptap/core", "@threadlabs/looma/editor", "@threadlabs/looma/editor/extensions"] },
         server: { host: "127.0.0.1", port: 0, forwardConsole: false, hmr: false, watch: null, cors: { origin: ["null", "http://looma.test"] }, fs: { allow: [path.resolve(root, "../.."), ...(process.env.LOOMA_HTMLNEXT_ROOT ? [process.env.LOOMA_HTMLNEXT_ROOT] : [])] } },
       });
       servers.push(server);

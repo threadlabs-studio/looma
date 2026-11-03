@@ -7,6 +7,9 @@ import { sdkAliases } from "./renderers/sdk-aliases.ts";
 import { componentFacade } from "./renderers/components.mjs";
 
 const target = process.env.LOOMA_TEST_TARGET ?? "vue";
+export const rendererDependencies = target === "vue" ? ["vue", "vue/server-renderer"]
+  : target === "react" ? ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server"]
+  : target === "preact" ? ["preact", "preact/compat", "preact/hooks", "preact/jsx-runtime", "preact-render-to-string"] : [];
 const componentId = `\0looma-test-components:${target}`;
 // Both Vite prebundles and Vitest's resolved-import cache must belong to this immutable output.
 const cacheIdentity = createHash("sha256").update(process.env.LOOMA_PREPARED_LIBRARY ?? randomUUID()).digest("hex").slice(0, 16);
@@ -28,7 +31,7 @@ export function rendererPlugins(options: { externalStyles?: boolean; cacheSuffix
   return [{
     name: `looma-test-renderer:${target}`,
     enforce: "pre",
-    config: () => ({ cacheDir: rendererCacheDirectory(options.cacheSuffix), resolve: { alias: sdkAliases() } }),
+    config: () => ({ cacheDir: rendererCacheDirectory(options.cacheSuffix), resolve: { alias: sdkAliases() }, ...(target === "vue" ? { define: { __VUE_OPTIONS_API__: "true", __VUE_PROD_DEVTOOLS__: "false", __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false" } } : {}) }),
     resolveId(id, _importer, options) {
       if (id === "@looma-test/native-server") return options?.ssr ? fileURLToPath(new URL("./renderers/native-server.ts", import.meta.url)) : "\0looma-native-server-client";
       if (id === "@looma-test/native-data") return "\0looma-native-data";

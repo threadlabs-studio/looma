@@ -53,6 +53,18 @@ it("retains focused date cells during availability loading without accepting a s
 });
 
 for (const adapter of ["html", "converted"] as const) {
+  it(`retains a live selection when the same ${adapter} calendar reconnects`, async () => {
+    const { form, root, day } = await mount(adapter);
+    await userEvent.click(day("2024-02-20"));
+    const selected = () => day("2024-02-20").closest('[role="gridcell"]')!.getAttribute("aria-selected");
+    await vi.waitFor(() => expect(selected()).toBe("true"));
+    root.remove();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    form.append(root);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    await vi.waitFor(() => expect(selected()).toBe("true"));
+  });
+
   it(`keeps keyboard navigation separate from selection and exposes a single day tab stop in ${adapter}`, async () => {
     const { form, day, events } = await mount(adapter);
     expect(form.querySelectorAll('[data-calendar-day][tabindex="0"]')).toHaveLength(1);
