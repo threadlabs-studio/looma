@@ -84,6 +84,9 @@ importers:
       '@threadlabs/looma-docs':
         specifier: workspace:*
         version: link:../../packages/looma-docs
+      markupress:
+        specifier: '>=0.18.3'
+        version: 0.18.3(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
 
   apps/storybook:
     dependencies:

@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Declare the documentation app’s Markdown compiler dependency so copied-page checks run with a fresh installation.
+
+- Run the default unit command within the unit project; browser and SSR checks continue through the shared renderer coordinator.
+
 - Require HTML Next >=1.0.0-alpha.82 for Angular native-root conversion and shared controller-startup checks.
 
 - Reposition expanding anchored surfaces during native resize observation so their first resized paint stays within the viewport.
