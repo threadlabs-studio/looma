@@ -76,8 +76,7 @@ describe("Combobox option modes", () => {
     } finally { await page.close(); }
   });
 
-  it("renders each option and chosen item through one scoped slot in HTML and converted", async () => {
-    for (const adapter of ["html", "converted"]) {
+  for (const adapter of ["html", "converted"]) it(`renders each option and chosen item through one scoped slot in ${adapter}`, async () => {
       // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.
       const path = await bundle(`${adapter}-combobox-scoped-slots`, adapter === "html" ? `
         import { lowerDocument } from "@nextwebwg/html-next/live";
@@ -104,7 +103,6 @@ describe("Combobox option modes", () => {
       await expect.poll(() => page.locator("#fruit [role=option] .custom-option").allTextContents(), { message: adapter }).toStrictEqual(["Apple", "Pear / Green"]);
       await expect.poll(() => page.locator("#fruit .item .custom-item").allTextContents(), { message: adapter }).toStrictEqual(["Apple"]);
       await page.close();
-    }
   });
 
   it("announces loading and shows an authored empty state when settled in HTML", async () => {

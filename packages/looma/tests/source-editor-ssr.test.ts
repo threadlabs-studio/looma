@@ -1,6 +1,5 @@
 import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { componentRoot } from "./renderers/selectors";
 import { createHydratedScene, sceneNode } from "@looma-test/scene";
 import { renderSceneToString } from "@looma-test/scene";
 import { describe, it } from "vitest";
@@ -20,7 +19,8 @@ describe("editor definitions during SSR", () => {
     const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Component, { content }) }));
     expect(html).toContain("Safe &lt;script&gt;text&lt;/script&gt;");
     expect(html).toContain("<strong");
-    const root = new JSDOM(html).window.document.querySelector(componentRoot(Component.tag))!;
+    // This scene has one component root; renderer comments and CSS markers may differ.
+    const root = new JSDOM(html).window.document.body.firstElementChild!;
     expect(root.querySelector("script")).toBeNull();
     expect(root.querySelector("strong")?.textContent).toBe("Safe <script>text</script>");
     expect(html).not.toContain("ProseMirror");

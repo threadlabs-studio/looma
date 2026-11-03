@@ -368,9 +368,8 @@ describe("Tree drag and drop", () => {
     assert.notEqual(hovered.background, idle.background, "target row is tinted");
     assert.deepEqual(await indicators(page, "archive"), []);
     await page.mouse.up();
-    await page.waitForTimeout(50);
+    await expect.poll(async () => (await rowStyle(page, "archive")).shadow, { message: "highlight cleared after the drop" }).toBe(idle.shadow);
     assert.deepEqual((await events(page)).map(([, detail]) => detail.position), ["inside"]);
-    assert.equal((await rowStyle(page, "archive")).shadow, idle.shadow, "highlight cleared after the drop");
     await page.close();
   });
 

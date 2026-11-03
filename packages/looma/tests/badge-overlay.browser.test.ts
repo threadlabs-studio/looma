@@ -35,7 +35,7 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
       const style = getComputedStyle(count), parentStyle = getComputedStyle(button);
       const bounds = count.getBoundingClientRect(), label = count.querySelector(".label")!.getBoundingClientRect();
       expect(style.color).toBe(parentStyle.color);
-      if (button.dataset.control === "violet") expect(parentStyle.backgroundColor).toBe("rgb(109, 74, 255)");
+      if (button.dataset.control === "violet") expect(paint(parentStyle.backgroundColor)).toEqual([109, 74, 255]);
       const ink = luminance(paint(style.color)), surface = luminance(paint(parentStyle.backgroundColor, style.backgroundColor));
       expect((Math.max(ink, surface) + 0.05) / (Math.min(ink, surface) + 0.05)).toBeGreaterThanOrEqual(4.5);
       const control = luminance(paint(parentStyle.backgroundColor));

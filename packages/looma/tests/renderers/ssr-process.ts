@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "vite";
 import { rendererPlugins } from "../framework-plugins";
+import { sdkAliases } from "./sdk-aliases";
 
 /** Render a scenario in a fresh locale using the suite's already compiled server library. */
 export async function renderInLocale(source: string, locale: string): Promise<string> {
@@ -13,7 +14,10 @@ export async function renderInLocale(source: string, locale: string): Promise<st
     await writeFile(entry, source);
     await build({
       configFile: false, logLevel: "silent", root: directory, plugins: rendererPlugins(),
-      build: { ssr: entry, minify: false, outDir: join(directory, "dist"), rolldownOptions: { output: { entryFileNames: "scenario.mjs" } } },
+      build: { ssr: entry, minify: false, outDir: join(directory, "dist"), rolldownOptions: {
+        external: id => /^@nextwebwg\/html-next(?:\/|$)/.test(id) || sdkAliases().some(alias => alias.replacement === id),
+        output: { entryFileNames: "scenario.mjs" },
+      } },
     });
     const result = join(directory, "rendered.html");
     execFileSync(process.execPath, ["--input-type=module", "--eval", `

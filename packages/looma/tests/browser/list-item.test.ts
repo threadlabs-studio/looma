@@ -30,9 +30,13 @@ describe("List item", () => {
     });
     assert.deepEqual(title, { overflowing: true, ellipsis: "ellipsis" });
     // A link item takes the hover surface; a card is bordered.
-    const before = await item.evaluate((element) => getComputedStyle(element).backgroundColor);
+    await page.mouse.move(0, 0);
+    const before = await item.evaluate(async element => {
+      await Promise.all(element.getAnimations().map(animation => animation.finished));
+      return getComputedStyle(element).backgroundColor;
+    });
     await page.locator("#item a").hover();
-    await page.waitForTimeout(200);
+    await item.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert.notEqual(await item.evaluate((element) => getComputedStyle(element).backgroundColor), before);
     assert.notEqual(await page.locator("#card").evaluate((element) => getComputedStyle(element).borderTopStyle), "none");
     assert.equal(await page.locator("#list").evaluate((element) => [element.tagName, element.getAttribute("role")].join(" ")), "UL list");

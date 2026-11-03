@@ -1,5 +1,5 @@
 export const rendererTarget = "html-next";
-import { componentRegistry, regionChanged, scopedTemplate, serverProjection, slotRegion, RequestEvent, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
+import { componentRegistry, regionChanged, scopedTemplate, serverProjection, slotRegion, RequestEvent, knownResponder, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
 import { renderNativeScene } from "@looma-test/native-server";
 import { component, componentProps, connectNode, type SceneComponent } from "./component";
 import type { MountedScene, NativeSceneComponent, Scene, SceneNode, SceneSlots, SceneValue } from "./scene";
@@ -9,7 +9,30 @@ const values = (value: SceneValue): (SceneNode | string | number)[] => Array.isA
 const slotValue = (node: SceneNode, name: string, props?: any): SceneValue => typeof node.children === "function" ? name === "" ? node.children(props) : undefined
   : node.children && typeof node.children === "object" && !Array.isArray(node.children) && !("type" in node.children) ? (node.children as SceneSlots)[name || "default"]?.(props)
   : name === "" ? node.children as SceneValue : undefined;
+const hasSlot = (node: SceneNode, name: string): boolean => typeof node.children === "function" ? name === ""
+  : node.children && typeof node.children === "object" && !Array.isArray(node.children) && !("type" in node.children)
+    ? Object.hasOwn(node.children, name || "default") : name === "" && node.children !== undefined;
 const attributes = (node: SceneNode) => Object.fromEntries(Object.entries(componentProps(node)).filter(([name]) => name !== "key" && !component(node.type)?.props.includes(name)).map(([name, value]) => [name, typeof value === "boolean" && !booleans.has(name.toLowerCase()) ? String(value) : value]));
+
+function updateAttributes(root: Element, previous: Record<string, any>, next: Record<string, any>): void {
+  for (const name of new Set([...Object.keys(previous), ...Object.keys(next)])) {
+    const value = next[name];
+    if (Object.is(value, previous[name])) continue;
+    if (name === "class") {
+      for (const token of String(previous[name] ?? "").split(/\s+/).filter(Boolean)) root.classList.remove(token);
+      for (const token of String(value ?? "").split(/\s+/).filter(Boolean)) root.classList.add(token);
+    } else if (name === "style" && (value && typeof value === "object" || previous[name] && typeof previous[name] === "object")) {
+      const before = previous[name] ?? {}, after = value ?? {};
+      for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+        const style = (root as HTMLElement).style;
+        if (key.includes("-")) style.setProperty(key, after[key] == null ? "" : String(after[key]));
+        else Reflect.set(style, key, after[key] == null ? "" : String(after[key]));
+      }
+    } else if (["value", "checked", "indeterminate", "selected"].includes(name)) Reflect.set(root, name, value);
+    else if (value === null || value === undefined || value === false) root.removeAttribute(name);
+    else root.setAttribute(name, value === true ? "" : String(value));
+  }
+}
 
 interface View { key: unknown; type: unknown; start: Comment; end: Comment; update(value: SceneNode | string | number): void; destroy(): void; }
 function nodes(view: View): Node[] {
@@ -33,7 +56,8 @@ function region(name = "", existing: Node[] = []) {
         let view = children.find(child => child.key === key && child.type === type && !next.includes(child));
         if (!view) view = createView(valueNode, key, cursor === end ? undefined : cursor);
         else view.update(valueNode);
-        if (view.start !== cursor) end.before(...nodes(view));
+        // A new adopted view has just placed its start before the existing root at cursor.
+        if (view.start !== cursor && view.start.nextSibling !== cursor) (cursor ?? end).before(...nodes(view));
         next.push(view); cursor = view.end.nextSibling;
       }
       for (const child of children) if (!next.includes(child)) child.destroy();
@@ -77,6 +101,7 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
       const old = nativeRoot ? serverProjection(nativeRoot, definition.tag) : undefined;
       const children: Node[] = [], slots: Record<string, Node[]> = {};
       for (const slot of definition.slots) {
+        if (!hasSlot(node, slot.name)) continue;
         if (slot.props.length > 0) {
           const supplied = node.children && typeof node.children === "object" && !Array.isArray(node.children) ? (node.children as SceneSlots)[slot.name || "default"] : undefined;
           if (!supplied) continue;
@@ -101,6 +126,8 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
       const props = (node: SceneNode) => Object.fromEntries(Object.entries(node.props).filter(([name]) => definition.inputs.includes(name)));
       const factory = definition.implementation as (options: object, html?: unknown, root?: Element) => Element;
       root = factory({ ...props(node), attributes: attributes(node), children, slots }, undefined, nativeRoot);
+      let previousAttributes = attributes(node);
+      let previousProps = props(node);
       cleanups.push(() => { for (const content of regions.values()) content.destroy(); for (const { records } of scoped) for (const record of records) (record as ScopedRecord & { content: ReturnType<typeof region> }).content.destroy(); });
       let connectedRoot: Element | undefined;
       let responderKey = "";
@@ -121,14 +148,22 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
           else {
             const callback = "on" + camel[0]!.toUpperCase() + camel.slice(1);
             const listen = (event: Event) => (current as SceneNode).props[callback]?.(event);
-            next.addEventListener(name, listen); responders.push(() => next.removeEventListener(name, listen));
+            const forget = knownResponder(next, name);
+            next.addEventListener(name, listen);
+            responders.push(() => { next.removeEventListener(name, listen); forget(); });
+            next.dispatchEvent(new CustomEvent("responder", { bubbles: true, detail: { name } }));
           }
         }
       };
       connections.add(connect); cleanups.push(() => { connections.delete(connect); responders.splice(0).forEach(stop => stop()); });
       update = value => {
         current = value; const node = value as SceneNode;
-        componentRegistry.update(element() ?? root as Element, props(node));
+        const nextProps = props(node);
+        componentRegistry.update(element() ?? root as Element, { ...Object.fromEntries(Object.keys(previousProps).filter(name => !Object.hasOwn(nextProps, name)).map(name => [name, undefined])), ...nextProps });
+        previousProps = nextProps;
+        const nextAttributes = attributes(node);
+        updateAttributes(element() ?? root as Element, previousAttributes, nextAttributes);
+        previousAttributes = nextAttributes;
         for (const [name, content] of regions) content.update(slotValue(node, name));
         for (const { name, records } of scoped) for (const record of records) (record as ScopedRecord & { content: ReturnType<typeof region> }).content.update(slotValue(node, name, record.s));
         sync(); connect();
@@ -144,20 +179,14 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
       const child = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(tag) ? undefined : region("", Array.from(root.childNodes)); if (child) root.append(child.fragment);
       update = value => {
         current = value; const node = value as SceneNode; const next = attributes(node);
-        for (const name of new Set([...Object.keys(previous), ...Object.keys(next)])) {
-          const value = next[name]; if (Object.is(value, previous[name])) continue;
-          if (name === "style" && value && typeof value === "object") for (const [key, item] of Object.entries(value)) (root as HTMLElement).style.setProperty(key, String(item));
-          else if (["value", "checked", "indeterminate", "selected"].includes(name)) Reflect.set(root, name, value);
-          else if (value === null || value === undefined || value === false) (root as Element).removeAttribute(name);
-          else (root as Element).setAttribute(name, value === true ? "" : String(value));
-        }
+        updateAttributes(root as Element, previous, next);
         previous = next; child?.update(slotValue(node, "")); sync();
       };
       cleanups.push(() => child?.destroy()); update(node);
     }
   }
   if (root.parentNode) { root.before(start); root.after(end); } else fragment.append(start, root, end);
-  return { key, type, start, end, update(value) { current = value; update(value); }, destroy() { cleanups.splice(0).forEach(stop => stop()); for (const node of nodes(this)) node.parentNode?.removeChild(node); } };
+  return { key, type, start, end, update(value) { current = value; update(value); }, destroy() { cleanups.splice(0).forEach(stop => stop()); for (const node of nodes(this)) node.parentNode?.removeChild(node); root.parentNode?.removeChild(root); } };
 }
 
 export function mount(scene: Scene, target: Element, hydrate: boolean): MountedScene {

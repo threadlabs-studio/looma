@@ -19,7 +19,7 @@ export async function prepareLibrary() {
   try {
     const catalog = await sourceCatalog();
     const components = await componentFixtures(target, catalog);
-    const native = target === "html-next" ? await nativePreparation(directory, catalog.definitions, catalog.core) : undefined;
+    const native = target === "html-next" ? await nativePreparation(directory, catalog.definitions) : undefined;
     const angular = target === "angular" ? await angularScene(directory, components) : undefined;
     const entry = path.join(directory, "library.js");
     await writeFile(entry, `export const rendererTarget = ${JSON.stringify(target)};\n${["react", "preact", "svelte"].includes(target) ? 'export { renderPrepared } from "@threadlabs/looma";\n' : ""}export { ${components.map(component => target === "html-next" ? `create${component.name} as ${component.name}` : component.name).join(", ")} } from "@threadlabs/looma";\n` + (target === "svelte" ? `export { mount, renderHTML, settle } from ${JSON.stringify(fileURLToPath(new URL("./svelte.svelte.ts", import.meta.url)))};\n` : angular ? `export { mount, renderHTML, settle } from ${JSON.stringify(angular.entry)};\n` : ""));
@@ -38,6 +38,12 @@ export async function prepareLibrary() {
       },
     });
     const resolvedDependencies = new Set<string>();
+    const sdkDirectory = path.dirname(path.dirname(fileURLToPath(import.meta.resolve("@nextwebwg/html-next"))));
+    const sdkManifest = JSON.parse(await readFile(path.join(sdkDirectory, "package.json"), "utf8"));
+    const sdkEntries = new Map<string, string>(Object.entries(sdkManifest.exports).flatMap(([name, entry]) => {
+      const source = (entry as { import?: string }).import;
+      return source ? [[path.resolve(sdkDirectory, source), `@nextwebwg/html-next${name === "." ? "" : name.slice(1)}`]] : [];
+    }));
     const builder = await createBuilder({
       configFile: false,
       logLevel: "warn",
@@ -46,6 +52,13 @@ export async function prepareLibrary() {
         name: "looma-library-dependencies",
         enforce: "pre",
         async resolveId(id, importer) {
+          // Vite aliases and the native support module can resolve a public SDK entry first.
+          // Keep that entry external too, so consumers and the library share its runtime maps.
+          if (sdkEntries.has(id)) {
+            const entry = sdkEntries.get(id)!;
+            if (this.environment.config.consumer !== "server") resolvedDependencies.add(entry);
+            return { id: entry, external: true };
+          }
           if (!importer || !externalDependency(id)) return;
           if (isBuiltin(id)) return this.environment.config.consumer === "server" ? { id, external: true } : undefined;
           // Resolve while the original importer still supplies its pnpm dependency context.
@@ -54,10 +67,11 @@ export async function prepareLibrary() {
           if (!resolved) throw new Error(`Cannot resolve reusable library dependency ${id} from ${importer}.`);
           // Freeze ordinary dependencies with the library. Their browser maps are resolved
           // by this build; fixtures share framework, editor peer runtimes and candidate SDK exports.
-          if (!sharedRuntime(id)) return resolved;
+          if (!sharedRuntime(id)) return this.environment.config.consumer === "server"
+            ? { ...resolved, external: true } : resolved;
           const consumer = await this.resolve(id, path.join(root, "package.json"), { skipSelf: true });
           const external = consumer?.id === resolved.id ? id : resolved.id;
-          if (/\.[cm]?[jt]sx?$/.test(resolved.id)) resolvedDependencies.add(external);
+          if (this.environment.config.consumer !== "server" && /\.[cm]?[jt]sx?$/.test(resolved.id)) resolvedDependencies.add(external);
           return { ...resolved, id: external, external: true };
         },
       }, ...libraryPlugins()],

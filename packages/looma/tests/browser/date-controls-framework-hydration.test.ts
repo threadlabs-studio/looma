@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 
 import { join } from "node:path";
 
-import { describe, it } from "vitest";
+import { afterAll, describe, it } from "vitest";
+import { closeRenderWorkers } from "@nextwebwg/html-next/server";
 
 import { root, bundle, open } from "../renderers/browser-driver";
+
+afterAll(() => closeRenderWorkers());
 
 describe("Date controls framework hydration", () => {
   it("keeps a newer external value ahead of a pending native-field handoff", async () => {
@@ -104,10 +107,9 @@ describe("Date controls framework hydration", () => {
     let html;
     if (adapter === "Converted") html = await renderSceneToString(createHydratedScene({ render: () => sceneNode("form", [sceneNode(Input, props)]) }));
     else {
-      const { renderComponents, closeRenderWorkers } = await import("@nextwebwg/html-next/server");
+      const { renderComponents } = await import("@nextwebwg/html-next/server");
       const { definitions } = await import("../../dist/index.js");
-      try { html = (await renderComponents('<form><ui-input id="initial-input" name="title" value="Draft"></ui-input></form>', { definitions })).html; }
-      finally { await closeRenderWorkers(); }
+      html = (await renderComponents('<form><ui-input id="initial-input" name="title" value="Draft"></ui-input></form>', { definitions })).html;
     }
     const path = await bundle(`input-before-hydration-${adapter}`, adapter === "Converted" ? `
       import { createHydratedScene, sceneNode, stateObject } from "@looma-test/scene";

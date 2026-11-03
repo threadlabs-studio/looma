@@ -11,7 +11,7 @@ import { UiSpinner as Spinner } from "@looma-test/components";
 const render = (...nodes: ReturnType<typeof sceneNode>[]) => renderSceneToString(createHydratedScene({ render: () => nodes }));
 const shapes = (html: string) => Array.from(new JSDOM(html).window.document.querySelectorAll("svg path, svg circle, svg rect, svg line")).map(element => ({
   tag: element.localName,
-  geometry: Object.fromEntries(Array.from(element.attributes).filter(attribute => ["class", "d", "cx", "cy", "r", "x", "y", "width", "height", "rx", "x1", "y1", "x2", "y2"].includes(attribute.name)).map(attribute => [attribute.name, attribute.value])),
+  geometry: Object.fromEntries(Array.from(element.attributes).filter(attribute => ["d", "cx", "cy", "r", "x", "y", "width", "height", "rx", "x1", "y1", "x2", "y2"].includes(attribute.name)).map(attribute => [attribute.name, attribute.value])),
 }));
 
 describe("Icon server render", () => {
@@ -47,6 +47,9 @@ describe("Icon server render", () => {
     const html = await render(sceneNode(Spinner));
     expect(html).toMatch(/class="[^"]*\bring\b/);
     expect(html).toContain('aria-hidden="true"');
+    const document = new JSDOM(html).window.document;
+    expect(document.querySelectorAll("svg circle.track")).toHaveLength(1);
+    expect(document.querySelectorAll("svg circle.arc")).toHaveLength(1);
     expect(shapes(html)).toEqual(shapes("<svg>" + [
       '<circle class="track" cx="25" cy="25" r="20">',
       '<circle class="arc" cx="25" cy="25" r="20">',

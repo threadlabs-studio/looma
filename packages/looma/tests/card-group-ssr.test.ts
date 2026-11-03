@@ -6,6 +6,15 @@ import { JSDOM } from "jsdom";
 import { describe, it } from "vitest";
 import { UiCard as Card, UiCardGroup as CardGroup } from "@looma-test/components";
 
+function readingText(root: Element): string {
+  const walker = root.ownerDocument.createTreeWalker(root, root.ownerDocument.defaultView!.NodeFilter.SHOW_TEXT);
+  const text: string[] = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeValue?.trim()) text.push(node.nodeValue);
+  }
+  return text.join("");
+}
+
 describe("CardGroup before upgrade", () => {
   it("renders native Grid and Card regions in reading order without application context", async () => {
     const html = await renderSceneToString(createHydratedScene({
@@ -22,7 +31,7 @@ describe("CardGroup before upgrade", () => {
     expect(card.querySelector(".header")?.textContent).toBe("Archive");
     expect(card.querySelector(".content")?.textContent).toBe("Notes and records");
     expect(card.querySelector(".actions a")?.getAttribute("href")).toBe("#read");
-    expect(card.textContent).toBe("ArchiveNotes and recordsRead records");
+    expect(readingText(card)).toBe("ArchiveNotes and recordsRead records");
   });
 
   it("accepts every optional slot combination and preserves supplied reading order", async () => {
@@ -35,7 +44,7 @@ describe("CardGroup before upgrade", () => {
         })),
       }));
       const doc = new JSDOM(html).window.document;
-      expect(doc.querySelector(componentRoot("ui-card-group"))?.textContent).toBe(`${slots & 1 ? "Title" : ""}${slots & 2 ? "Body" : ""}${slots & 4 ? "Read" : ""}`);
+      expect(readingText(doc.querySelector(componentRoot("ui-card-group"))!)).toBe(`${slots & 1 ? "Title" : ""}${slots & 2 ? "Body" : ""}${slots & 4 ? "Read" : ""}`);
       if (slots & 4) expect(doc.querySelector("a")?.getAttribute("href")).toBe("#read");
     }
   });
@@ -47,7 +56,7 @@ describe("CardGroup before upgrade", () => {
       ]),
     }));
     const doc = new JSDOM(html).window.document;
-    expect(doc.querySelector("article:is([component~=\"ui-card\"], [data-component~=\"ui-card\"], .ui-card, [ui-card])")?.textContent).toBe("TitleBodyNext");
+    expect(readingText(doc.querySelector("article:is([component~=\"ui-card\"], [data-component~=\"ui-card\"], .ui-card, [ui-card])")!)).toBe("TitleBodyNext");
     expect(doc.querySelector(".content a")?.getAttribute("href")).toBe("#next");
   });
 });
