@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep tooltip keyboard-navigation checks on the page keyboard so returning with Shift+Tab does not refocus the trigger before navigation.
+
 - Sample Sidebar motion geometry on an animation frame so compositor interpolation does not perturb the exact fixed-canvas width assertion.
 
 - Wait for actual controller startup before pagination fixtures send their first pointer or keyboard request. This keeps cold framework runs from clicking before the navigation listener connects.
