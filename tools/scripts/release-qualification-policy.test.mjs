@@ -55,7 +55,8 @@ test("release qualification is wired to Node 24, Chromium, and non-placeholder g
     JSON.parse(rootPackage).scripts["test:browser"],
     "pnpm --filter @threadlabs/looma test:browser && pnpm --filter @threadlabs/looma-docs-parity test:browser"
   );
-  assert.equal(JSON.parse(loomaPackage).scripts.test, "vitest run");
+  assert.equal(JSON.parse(loomaPackage).scripts.test, "vitest run --project unit");
+  assert.equal(JSON.parse(loomaPackage).scripts["test:browser"], "node tests/run-browser.mjs");
   assert.doesNotMatch(
     JSON.parse(consumerPackage).scripts["verify:ssr"],
     /experimental-strip-types/,
