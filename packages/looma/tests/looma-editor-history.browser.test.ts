@@ -617,6 +617,8 @@ describe("LoomaEditor history (real browser)", () => {
     // The selection bubble offers only text formatting; the rest lives in the app-opened popover.
     await expect.poll(() => host.querySelector(".ProseMirror p")).toBeTruthy();
     await userEvent.click(host.querySelector(".ProseMirror p")!);
+    // Finish the editor’s deferred focus synchronization before selecting with the keyboard.
+    await flushBrowser();
     await expect.poll(() => document.activeElement).toBe(host.querySelector(".ProseMirror"));
     await userEvent.keyboard("{Home}{Shift>}{End}{/Shift}");
     await expect.poll(() => window.getSelection()?.toString(), { message: "keyboard selection covers the paragraph before opening its tools" }).toBe("Hello world");
