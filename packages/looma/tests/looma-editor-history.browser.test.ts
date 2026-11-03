@@ -864,18 +864,22 @@ it.each([1280, 375])("keeps a long destination compact and closes its actions wh
   await userEvent.click(editor.view.dom.querySelector("a")!);
   const actions = page.getByRole("group", { name: "Link actions", exact: true });
   await expect.element(actions).toBeVisible();
-  const surface = actions.element().closest("[popover]")!;
-  const surfaceBox = surface.getBoundingClientRect();
-  expect(surfaceBox.left).toBeGreaterThanOrEqual(0);
-  expect(surfaceBox.right, JSON.stringify({
-    bounds: surfaceBox, style: surface.getAttribute("style"),
-    maxWidth: getComputedStyle(surface).maxWidth, transform: getComputedStyle(surface).transform,
-    viewport: { expected: width, layout: document.documentElement.clientWidth, visual: window.visualViewport?.width },
-  })).toBeLessThanOrEqual(width);
-  const box = actions.element().getBoundingClientRect();
-  expect(box.height).toBeLessThanOrEqual(44);
-  expect(box.left).toBeGreaterThanOrEqual(0);
-  expect(box.right).toBeLessThanOrEqual(width);
+  await vi.waitFor(() => {
+    const surface = actions.element().closest("[popover]")!;
+    expect(surface.isConnected).toBe(true);
+    const surfaceBox = surface.getBoundingClientRect();
+    expect(surfaceBox.width).toBeGreaterThan(0);
+    expect(surfaceBox.left).toBeGreaterThanOrEqual(0);
+    expect(surfaceBox.right, JSON.stringify({
+      bounds: surfaceBox, style: surface.getAttribute("style"),
+      maxWidth: getComputedStyle(surface).maxWidth, transform: getComputedStyle(surface).transform,
+      viewport: { expected: width, layout: document.documentElement.clientWidth, visual: window.visualViewport?.width },
+    })).toBeLessThanOrEqual(width);
+    const box = actions.element().getBoundingClientRect();
+    expect(box.height).toBeLessThanOrEqual(44);
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(width);
+  });
   const openLink = page.getByRole("link", { name: "Open link", exact: true });
   await expect.element(openLink).toBeVisible();
   const open = openLink.element();

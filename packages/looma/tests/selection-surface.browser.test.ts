@@ -22,6 +22,31 @@ it("waits for a virtual anchor before exposing a floating surface", async () => 
   } finally { surface.destroy(); element.remove(); }
 });
 
+it("contains a resized anchored surface before the resize is painted", async () => {
+  const element = document.createElement("div");
+  Object.assign(element.style, { width: "40px", height: "20px" });
+  document.body.append(element);
+  const width = document.documentElement.clientWidth;
+  const surface = createAnchoredSurface(element, {
+    anchor: () => new DOMRect(width - 50, 100, 10, 10), placement: "bottom-start", bare: true, maxWidth: 240,
+  });
+  let observer: ResizeObserver | undefined;
+  try {
+    surface.show();
+    const resized = new Promise<DOMRect>(resolve => {
+      observer = new ResizeObserver(() => {
+        const box = element.getBoundingClientRect();
+        if (box.width === 240) resolve(box);
+      });
+      observer.observe(element);
+    });
+    element.style.width = "240px";
+    const box = await resized;
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(width);
+  } finally { observer?.disconnect(); surface.destroy(); element.remove(); }
+});
+
 it("shows a newly registered surface for an existing selection", () => {
   const mount = document.createElement("div");
   const parent = document.createElement("div");

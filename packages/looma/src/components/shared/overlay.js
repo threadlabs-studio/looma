@@ -355,6 +355,7 @@ export function createViewportSurface(surface, options = {}) {
   let sizeObserver = null;
   let frame = null;
   const position = () => {
+    if (frame !== null) owner.cancelAnimationFrame(frame);
     frame = null;
     if (stop) {
       if (options.materialRole) updateSurfaceMaterial(surface, options.materialRole);
@@ -396,7 +397,8 @@ export function createViewportSurface(surface, options = {}) {
       stop ??= observeOverlayViewport(surface.ownerDocument, position);
       options.position?.();
       if (!sizeObserver && owner.ResizeObserver) {
-        sizeObserver = new owner.ResizeObserver(refresh);
+        // ResizeObserver runs before paint. Another frame would expose the new size at the old position.
+        sizeObserver = new owner.ResizeObserver(position);
         sizeObserver.observe(surface);
       }
     },
