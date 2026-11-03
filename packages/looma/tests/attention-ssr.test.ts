@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import { expect } from "./renderers/test-context";
 import { createHydratedScene, sceneNode } from "@looma-test/scene";
 import { renderSceneToString } from "@looma-test/scene";
@@ -38,7 +39,7 @@ describe("Attention presentation before upgrade", () => {
     const html = await renderSceneToString(createHydratedScene({ render: () =>
       sceneNode(Badge, { shape: "dot", tone: "warning" }, () => "Waiting for your reply") }));
     expect(html).toContain("Waiting for your reply");
-    expect(html).toContain('class="label"');
+    expect(new JSDOM(html).window.document.querySelector(".label")?.textContent).toBe("Waiting for your reply");
     expect(html).toContain("shape=dot");
     expect(html).not.toContain("role=\"status\"");
   });

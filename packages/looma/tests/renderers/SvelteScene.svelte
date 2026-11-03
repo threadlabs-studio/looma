@@ -23,6 +23,16 @@
   }
   const hasChildren = $derived(node?.children !== undefined && (typeof node.children !== "object" || node.children === null || Array.isArray(node.children) || "type" in node.children || "default" in node.children));
   const voidElement = (name: unknown) => typeof name === "string" && /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(name);
+  function svelteProps(node: SceneNode) {
+    const props = componentProps(node);
+    for (const name of component(node.type)?.requests ?? []) {
+      const callback = "on" + name.split("-").map(part => part[0]!.toUpperCase() + part.slice(1)).join("");
+      if (!Object.hasOwn(props, callback)) continue;
+      props[`on${name}`] = props[callback];
+      delete props[callback];
+    }
+    return props;
+  }
 </script>
 
 {#if Array.isArray(value)}
@@ -43,7 +53,7 @@
       <SvelteScene value={children(props)} />
     {/snippet}
     {@const Implementation = type.implementation as any}
-    <Implementation {...componentProps(node)} {slots} children={hasChildren ? defaultContent : undefined} {...{ [key]: attach }} />
+    <Implementation {...svelteProps(node)} {slots} children={hasChildren ? defaultContent : undefined} {...{ [key]: attach }} />
   {:else if node.type && typeof node.type === "object" && "kind" in node.type && node.type.kind === "native-scene"}
     <div {@attach element => {
       const mounted = (node.type as NativeSceneComponent).mount(element, () => node.props);

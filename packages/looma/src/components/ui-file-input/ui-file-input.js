@@ -23,7 +23,6 @@ export function connect(host) {
     validity = message;
     host.state.invalidSelection = Boolean(message);
     input.setCustomValidity(message);
-    queueMicrotask(() => { if (connected) input.setCustomValidity(validity); });
   };
   const validate = (announce = false) => {
     const previous = validity;
@@ -45,7 +44,6 @@ export function connect(host) {
       writeFiles(selected);
       host.state.error = message;
       input.setCustomValidity(validity);
-      queueMicrotask(() => { if (connected) input.setCustomValidity(validity); });
       host.dispatch("reject", { files, message });
       return;
     }

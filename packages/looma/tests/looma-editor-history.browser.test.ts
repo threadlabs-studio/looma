@@ -863,6 +863,10 @@ it.each([1280, 375])("keeps a long destination compact and closes its actions wh
   await userEvent.click(editor.view.dom.querySelector("a")!);
   const actions = page.getByRole("group", { name: "Link actions", exact: true });
   await expect.element(actions).toBeVisible();
+  const surface = actions.element().closest("[popover]")!;
+  const surfaceBox = surface.getBoundingClientRect();
+  expect(surfaceBox.left).toBeGreaterThanOrEqual(0);
+  expect(surfaceBox.right).toBeLessThanOrEqual(width);
   const box = actions.element().getBoundingClientRect();
   expect(box.height).toBeLessThanOrEqual(44);
   expect(box.left).toBeGreaterThanOrEqual(0);

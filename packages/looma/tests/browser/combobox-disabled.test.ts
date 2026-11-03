@@ -15,7 +15,7 @@ describe("Combobox disabled", () => {
     const locked = page.locator("#locked");
     await locked.locator('[data-combobox-action="clear"]').waitFor();
     const buttons = await locked.locator("button").evaluateAll((all) => all.map((button) =>
-      [button.getAttribute("data-combobox-action") ?? button.className, (button as HTMLButtonElement).disabled]));
+      [button.getAttribute("data-combobox-action") ?? ["item", "help"].find(name => button.classList.contains(name)), (button as HTMLButtonElement).disabled]));
     assert.deepEqual(buttons, [["item", true], ["clear", true], ["disclosure", true], ["help", true]]);
     // Even a click that reaches the clear button (a script, or a stale reference) changes nothing.
     await locked.locator('[data-combobox-action="clear"]').evaluate((button) => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));

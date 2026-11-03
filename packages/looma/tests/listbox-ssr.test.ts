@@ -1,4 +1,5 @@
 import { expect } from "./renderers/test-context";
+import { JSDOM } from "jsdom";
 import { createHydratedScene, sceneNode } from "@looma-test/scene";
 import { renderSceneBody } from "./renderers/server-assertions";
 import { describe, it } from "vitest";
@@ -13,9 +14,10 @@ describe("Listbox server render", () => {
       ]),
     }));
 
-    expect(html).toContain('class="fallback"');
     expect(html).toMatch(/<select\b[^>]*\bname="region"/);
-    expect(html).toContain('value="north" selected');
+    const select = new JSDOM(html).window.document.querySelector("select")!;
+    expect(select.classList.contains("fallback")).toBe(true);
+    expect([...select.selectedOptions].map(option => option.value)).toEqual(["north"]);
     expect(html).toContain("North");
     expect(html).toContain("South");
     expect(html).not.toContain("data-enhanced");

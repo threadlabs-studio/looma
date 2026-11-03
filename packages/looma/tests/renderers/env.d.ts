@@ -2,6 +2,10 @@ declare module "@looma-test/components" {
   export const rendererTarget: string;
 }
 
+declare module "@looma-test/style" {
+  export function jsxStyle(source: string): Record<string, string>;
+}
+
 declare module "@looma-test/renderer" {
   export const rendererTarget: string;
   export function mount(scene: import("./scene").Scene, target: Element, hydrate: boolean): import("./scene").MountedScene;

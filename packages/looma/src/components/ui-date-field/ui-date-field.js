@@ -22,7 +22,6 @@ export function connect(host) {
   let signature;
   const externalChanged = externalValueTracker(host.element);
   let lastValidation;
-  let validityMessage = "";
   let trigger = "programmatic";
   const blocked = () => editor.matches(":disabled") || editor.readOnly;
   const write = text => { if (editor.value !== text) editor.value = text; };
@@ -35,12 +34,8 @@ export function connect(host) {
     }
     catch { write(current); }
   };
-  // Input's generated prop checks refresh native validity during rendering. Reapply
-  // the domain error after that flush as well as immediately for synchronous submit.
   const setValidity = message => {
-    validityMessage = message;
     editor.setCustomValidity(message);
-    queueMicrotask(() => { if (connected) editor.setCustomValidity(validityMessage); });
   };
   const validate = (value, announce = false) => {
     let message = "";

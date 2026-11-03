@@ -1,4 +1,4 @@
-import postcss from "postcss";
+import { jsxStyle } from "@looma-test/style";
 import { component, componentProps, connectNode, type SceneComponent } from "./component";
 import type { NativeSceneComponent, SceneNode, SceneSlots, SceneValue } from "./scene";
 
@@ -7,8 +7,7 @@ export function jsxProps(node: SceneNode): Record<string, any> {
   const type = component(node.type);
   const props = Object.fromEntries(Object.entries(componentProps(node)).map(([name, value]) => [type?.props.includes(name) ? name : attributes[name] ?? name, value]));
   if (typeof props.style === "string") {
-    const rule = postcss.parse(`x { ${props.style} }`).first;
-    props.style = Object.fromEntries(rule?.type === "rule" ? rule.nodes.flatMap(declaration => declaration.type !== "decl" ? [] : [[declaration.prop.startsWith("--") ? declaration.prop : declaration.prop.replace(/^-ms-/, "ms-").replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()), declaration.value]]) : []);
+    props.style = jsxStyle(props.style);
   }
   if (typeof node.type === "string" && ["input", "textarea", "select"].includes(node.type)) {
     if ("value" in props) { props.defaultValue = props.value; delete props.value; }
@@ -18,14 +17,15 @@ export function jsxProps(node: SceneNode): Record<string, any> {
 }
 
 export function jsxOutput(createElement: (...args: any[]) => any, Wrapper: any, Native: any, NativeFixture: any) {
-  const output = (value: SceneValue): any => {
-    if (Array.isArray(value)) return value.map(output);
+  const output = (value: SceneValue, index?: number): any => {
+    if (Array.isArray(value)) return value.map((child, index) => output(child, index));
     if (value === null || typeof value !== "object") return value;
     const node = value as SceneNode;
     const type = component(node.type);
-    if (type) return createElement(Wrapper, { key: node.props.key, scene: node });
-    if (node.type && typeof node.type === "object" && "kind" in node.type && node.type.kind === "native-scene") return createElement(NativeFixture, { key: node.props.key, scene: node });
-    return createElement(Native, { key: node.props.key, scene: node });
+    const key = node.props.key == null ? index === undefined ? undefined : `index:${index}` : `key:${String(node.props.key)}`;
+    if (type) return createElement(Wrapper, { key, scene: node });
+    if (node.type && typeof node.type === "object" && "kind" in node.type && node.type.kind === "native-scene") return createElement(NativeFixture, { key, scene: node });
+    return createElement(Native, { key, scene: node });
   };
   const children = (node: SceneNode, type?: SceneComponent) => {
     const source = node.children;

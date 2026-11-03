@@ -17,7 +17,6 @@ describe("editor definitions during SSR", () => {
   });
   it.each([UiCompactEditor, UiCompactContent])("renders compact content as escaped semantic text", async Component => {
     const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Component, { content }) }));
-    expect(html).toContain("Safe &lt;script&gt;text&lt;/script&gt;");
     expect(html).toContain("<strong");
     // This scene has one component root; renderer comments and CSS markers may differ.
     const root = new JSDOM(html).window.document.body.firstElementChild!;

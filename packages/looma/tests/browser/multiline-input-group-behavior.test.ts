@@ -61,10 +61,12 @@ describe("Multiline input group behavior", () => {
         import { createScene, sceneNode, createState } from "@looma-test/scene";
         import { UiButton as Button, UiInputGroup as InputGroup, UiTextarea as Textarea } from "@looma-test/components";
         const pending = createState(false);
+        const label = createState("Send");
         window.setPending = value => { pending.value = value; };
+        window.setLabel = value => { label.value = value; };
         createScene({ render: () => sceneNode(InputGroup, { id: "group", multiline: true, actionPosition: "top-end" }, {
           default: () => sceneNode(Textarea, { id: "message", rows: 4, "aria-label": "Message" }),
-          action: () => sceneNode(Button, { id: "send", pending: pending.value }, () => "Send"),
+          action: () => sceneNode(Button, { id: "send", pending: pending.value }, () => label.value),
         }) }).mount("#app");`;
       const path = await bundle(`top-end-${adapter}`, source);
       const page = await open(path, adapter === "HTML" ? `
@@ -77,7 +79,8 @@ describe("Multiline input group behavior", () => {
         await page.setViewportSize({ width, height: 812 });
         await field.fill("A long first line that must wrap before it reaches the action.\nAnother line.");
         for (const label of ["Send", "Send message", "En cours…"]) {
-          await send.evaluate((element, text) => { element.textContent = text; }, label);
+          if (adapter === "HTML") await send.evaluate((element, text) => { element.textContent = text; }, label);
+          else await page.evaluate(text => (window as unknown as { setLabel(value: string): void }).setLabel(text), label);
           await page.waitForTimeout(50);
           const textBox = (await field.boundingBox())!, action = (await send.boundingBox())!;
           assert.ok(action.y >= textBox.y && action.y < textBox.y + 16, "action is inside the textarea at its top");

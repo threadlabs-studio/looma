@@ -37,6 +37,7 @@ async function mountEditor(props: Record<string, unknown>, width = 1280) {
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.element(page.getByRole("textbox", { name: String(props.label ?? "Document"), exact: true })).toBeVisible();
   await vi.waitFor(() => expect(editor()).toBeDefined());
   return { host, editor };
 }
@@ -52,7 +53,7 @@ function chooseImage(host: HTMLElement, name: string) {
 const insertImage = () => page.getByRole("button", { name: "Insert image", exact: true });
 
 describe("LoomaEditor requests", () => {
-  it.skipIf(nativeEditorTarget)("answers image-upload through the Vue event form, shows its progress, and cancels it", async () => {
+  it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
     let signal: AbortSignal | undefined;
     const errors: unknown[] = [];
     const { host, editor } = await mountEditor({
@@ -73,7 +74,7 @@ describe("LoomaEditor requests", () => {
     expect(JSON.stringify(editor()!.getJSON())).not.toContain("photo.png");
   });
 
-  it("answers with the function prop ahead of the Vue event form and the document", async () => {
+  it("answers with the function prop ahead of the component event and the document", async () => {
     cleanups.push(respond(document, "image-upload", () => ({ src: "https://document.example.com/x.png" })));
     const listener = vi.fn();
     const { host, editor } = await mountEditor({

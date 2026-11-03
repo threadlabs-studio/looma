@@ -74,8 +74,10 @@ describe("Image surface", () => {
     const { renderSceneToString } = await import("@looma-test/scene");
     const { UiImage: Image } = await import("@looma-test/components");
     const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
-    assert.equal(new JSDOM(html).window.document.querySelector(componentRoot("ui-image"))?.localName, "figure");
-    assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
-    assert.match(html, /class="handles"[^>]*\bhidden\b/);
+    const document = new JSDOM(html).window.document;
+    assert.equal(document.querySelector(componentRoot("ui-image"))?.localName, "figure");
+    const image = document.querySelector("img")!;
+    assert.deepEqual([image.getAttribute("alt"), image.getAttribute("width"), image.getAttribute("height")], ["Landscape", "160", "80"]);
+    assert.equal(document.querySelector(".handles")?.hasAttribute("hidden"), true);
   });
 });

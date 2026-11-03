@@ -98,7 +98,7 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
     gap: 10,
     viewportGap: 5,
     boundary: options.boundary,
-    maxWidth: options.maxWidth,
+    maxWidth: options.maxWidth ?? (() => Math.max(0, (document.defaultView?.visualViewport?.width ?? document.documentElement.clientWidth) - 10)),
     bare: true,
   });
   const host = element.parentElement;

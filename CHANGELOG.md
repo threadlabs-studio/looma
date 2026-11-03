@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep editor link-form edits made before controller connection, bound floating selection surfaces to the viewport, and validate shared scenes without depending on framework CSS hashes or serialization order. Native field validation retains application-owned errors through converted prop updates.
+
 - Improve the design-system guides with a compact setup-and-example opening, a unified process diagram, focused screenshots, and shared responsive reading and reference-table layouts. Include the runnable example and removed documentation entrypoints in documentation qualification.
 
 - Split the design-system guide into a visual creation walkthrough, focused theme/component/publishing guides, and a family-by-family recipe-to-CSS reference. Add the runnable Fellowship UI example and light/dark screenshots; group guidance in sidebar disclosures and keep main-navigation section links out of the guide sidebar.

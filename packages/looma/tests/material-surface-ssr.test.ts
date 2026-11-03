@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import { expect } from "./renderers/test-context";
 import { createHydratedScene, sceneNode } from "@looma-test/scene";
 import { renderSceneToString } from "@looma-test/scene";
@@ -33,8 +34,8 @@ describe("material action composition before upgrade", () => {
       primary: () => sceneNode(Button, { preset: "primary" }, () => "Send briefing"),
     }) }));
     expect(html).toContain(`dir="${dir}"`);
-    expect(html).toMatch(/class="secondary"[\s\S]*Keep draft/);
-    expect(html).toMatch(/class="primary"[\s\S]*Send briefing/);
+    expect(new JSDOM(html).window.document.querySelector(".secondary")?.textContent?.trim()).toBe("Keep draft");
+    expect(new JSDOM(html).window.document.querySelector(".primary")?.textContent?.trim()).toBe("Send briefing");
     expect(html.indexOf("Keep draft")).toBeLessThan(html.indexOf("Send briefing"));
     expect(html.match(/<button\b/g)).toHaveLength(2);
   });

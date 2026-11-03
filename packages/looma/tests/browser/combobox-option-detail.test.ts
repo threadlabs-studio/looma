@@ -37,7 +37,7 @@ describe("Combobox option detail", () => {
     // A plain row renders as it always has.
     const plain = page.getByRole("option", { name: "Pat Lee", exact: true });
     assert.deepEqual(await plain.evaluate((element) => [element.getAttribute("aria-labelledby"), element.getAttribute("aria-describedby"),
-      Array.from(element.children, (child) => child.className)]), [null, null, ["primary"]]);
+      Array.from(element.children, (child) => child.classList.contains("primary"))]), [null, null, [true]]);
     // Filtering matches labels only: Riley and Sam work at Harbor, but only the business is suggested.
     await input.fill("harbor");
     assert.deepEqual(await page.locator('#people [role="option"]').evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent)),

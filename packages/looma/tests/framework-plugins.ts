@@ -33,6 +33,7 @@ export function rendererPlugins(options: { externalStyles?: boolean; cacheSuffix
     enforce: "pre",
     config: () => ({ cacheDir: rendererCacheDirectory(options.cacheSuffix), resolve: { alias: sdkAliases() }, ...(target === "vue" ? { define: { __VUE_OPTIONS_API__: "true", __VUE_PROD_DEVTOOLS__: "false", __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false" } } : {}) }),
     resolveId(id, _importer, options) {
+      if (id === "@looma-test/style") return fileURLToPath(new URL(`./renderers/jsx-style${options?.ssr ? "-server" : ""}.ts`, import.meta.url));
       if (id === "@looma-test/native-server") return options?.ssr ? fileURLToPath(new URL("./renderers/native-server.ts", import.meta.url)) : "\0looma-native-server-client";
       if (id === "@looma-test/native-data") return "\0looma-native-data";
       if (id === "@looma-test/components") return componentId;

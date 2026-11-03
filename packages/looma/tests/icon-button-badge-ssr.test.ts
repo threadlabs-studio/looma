@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import { expect } from "./renderers/test-context";
 import { createHydratedScene, sceneNode } from "@looma-test/scene";
 import { renderSceneBody } from "./renderers/server-assertions";
@@ -49,7 +50,7 @@ describe("Icon Button and circular Badge before upgrade", () => {
     const html = await render(sceneNode(Badge, { variant: "overlay", shape: "circle", size: "sm", "aria-hidden": true }, () => "12"));
     expect(html).toMatch(/data-ui-badge-state="[^"]*variant=overlay/);
     expect(html).toContain('aria-hidden="true"');
-    expect(html).toMatch(/class="label"[^>]*>.*12/s);
+    expect(new JSDOM(html).window.document.querySelector(".label")?.textContent).toBe("12");
     expect(await render(sceneNode(Badge, null, () => "Ready"))).toMatch(/data-ui-badge-state="[^"]*variant=subtle/);
   });
 
@@ -58,7 +59,7 @@ describe("Icon Button and circular Badge before upgrade", () => {
     expect(html).toContain('data-ui-badge-prop-shape="circle"');
     expect(html).toContain('data-ui-badge-prop-size="xs"');
     expect(html).toContain('aria-label="Category A"');
-    expect(html).toMatch(/class="label"[^>]*>.*A/s);
+    expect(new JSDOM(html).window.document.querySelector(".label")?.textContent).toBe("A");
     expect(await render(sceneNode(Badge, null, () => "Ready"))).toMatch(/data-ui-badge-state="[^"]*shape=pill/);
   });
 });
