@@ -17,12 +17,12 @@ export function DeclarativeModel(): JSX.Element {
   return (
     <section className="looma-model" aria-labelledby="looma-model-title">
       <div className="looma-model__intro">
-        <p className="looma-model__eyebrow">One model, four authoring modes</p>
+        <p className="looma-model__eyebrow">One component model across frameworks</p>
         <h2 id="looma-model-title">The component contract comes first</h2>
         <p>
           A Looma definition declares the component tag, native light-DOM root,
           inputs, methods, events, slots, and controller behavior. HTML Next is
-          the canonical form. Vue, React and Svelte project that same contract
+          the canonical form. Vue, React, Preact, Svelte and Angular project that same contract
           into its own lifecycle; it does not invent a competing API.
         </p>
       </div>

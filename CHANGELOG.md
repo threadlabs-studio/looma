@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Require Markupress >=0.18.4 so headings announce their text once while retaining keyboard permalinks. Update documentation parity checks to native component markers and keep the retained Getting Started introduction aligned with the supported frameworks.
+
 - Use canonical native component selectors in shared documentation interactions, catalog layout and customizer chrome measurement. Allow the cold installed-consumer rebuild to finish within its existing package qualification job.
 
 - Match Vitest’s discovered case names, isolate unit checks from prepared renderer setup, and retain all selected SSR checks. State sheets use native component markers; selection-action fixtures wait for the editor’s creation event.

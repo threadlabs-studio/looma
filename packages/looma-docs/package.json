@@ -43,7 +43,7 @@
     "@threadlabs/looma": ">=0.52.0",
     "@nextwebwg/html-next": ">=1.0.0-alpha.82",
     "@threadlabs/markupkit": ">=0.6.1",
-    "markupress": ">=0.18.3",
+    "markupress": ">=0.18.4",
     "vite": ">=8.3.0",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",

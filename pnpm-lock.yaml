@@ -85,8 +85,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/looma-docs
       markupress:
-        specifier: '>=0.18.3'
-        version: 0.18.3(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: '>=0.18.4'
+        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
 
   apps/storybook:
     dependencies:
@@ -366,8 +366,8 @@ importers:
         specifier: '>=0.6.0'
         version: 0.6.0
       markupress:
-        specifier: '>=0.18.3'
-        version: 0.18.3(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        specifier: '>=0.18.4'
+        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       parse5:
         specifier: ^8.0.1
         version: 8.0.1
@@ -6229,8 +6229,8 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  markupress@0.18.3:
-    resolution: {integrity: sha512-KWl8p9yhGe19DoY7CSEtA8BjsqhFUv8ZOYXDXJlGBg0uvlLmAFKuel4+YKLCCnoGwmIyj0o4fBIc/Syl8vnUTg==}
+  markupress@0.18.4:
+    resolution: {integrity: sha512-x9JDlgmpwnX5wWW6HzD34p62cLEvWSipOfsGEXqkCVlnU6PMIQjlLrNsd3FmWOsAiIDyXQRF0V91MdMi4S5IKA==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
@@ -15903,7 +15903,7 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.18.3(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@0.18.4(@nextwebwg/html-next@1.0.0-alpha.82)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
       '@nextwebwg/html-next': 1.0.0-alpha.82
       '@threadlabs/looma': link:packages/looma

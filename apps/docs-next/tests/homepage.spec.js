@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const header = '[data-component~="markupress-header"]';
+const header = '[component~="markupress-header"]';
 
 for (const width of [1440, 900, 375]) {
   test(`homepage has a centered header and usable live controls at ${width}px`, async ({ page }, info) => {

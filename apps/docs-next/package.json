@@ -21,6 +21,6 @@
   "devDependencies": {
     "@playwright/test": "~1.60.0",
     "@threadlabs/looma-docs": "workspace:*",
-    "markupress": ">=0.18.3"
+    "markupress": ">=0.18.4"
   }
 }
