@@ -1,3 +1,4 @@
+import { RendererSequencer } from "./tests/renderer-sequencer.ts";
 import { configDefaults, defineConfig } from "vitest/config";
 import { rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugins.ts";
 
@@ -26,6 +27,7 @@ export default defineConfig({
         plugins: rendererPlugins(),
         test: {
           name: "converted-source",
+          sequence: { sequencer: RendererSequencer },
           setupFiles: ["./tests/renderers/test-context.ts"],
           globalSetup: ["./tests/renderers/browser-suite.ts"],
           include: ["tests/**/*ssr.test.ts", "tests/browser/**/*.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],

@@ -46,6 +46,8 @@ describe("Independent leading controls and text baselines", () => {
       assert.equal(await page.locator("#current").evaluate(el => getComputedStyle(el).backgroundColor), current, "hover retains current selection");
       await page.locator("#icon").click();
       assert.equal(await page.evaluate(() => location.hash), "#document", "the ordinary leading icon still follows its row link");
+      const fonts = await page.evaluate(() => ["number", "prose"].map(id => getComputedStyle(document.getElementById(id)!).fontFamily));
+      assert.equal(fonts[0], fonts[1], `${framework} preserves the declared UI font through inline shorthands`);
       const glyphs = await page.evaluate(() => ["number", "prose"].map(id => {
         const el = document.getElementById(id)!;
         const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);

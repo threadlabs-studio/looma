@@ -34,7 +34,7 @@ export async function open(bundlePath: string, body: string, css: readonly strin
   recordPageErrors(page);
   await beforeLoad?.(page);
   const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.stack ?? error.message));
+  page.on("pageerror", (error) => errors.push(error.stack || `${error.name}: ${error.message}`));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
   for (const path of css) await page.addStyleTag({ path });
   const convertedCss = join(dirname(bundlePath), "components.css");

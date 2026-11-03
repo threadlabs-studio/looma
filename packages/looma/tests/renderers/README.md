@@ -31,7 +31,7 @@ Run one local browser runner at a time with one worker.
 
 CI runs `node packages/looma/tests/run-pressure.mjs --prepare-only` once. This builds the package,
 checks component coverage, and writes `.test-build/pressure.json` plus all six compiled libraries.
-Renderer shards restore that output at the same checkout path and use `--prepared --shard=1/4`.
+Six renderer shards balance files by their measured passing durations. Renderer shards restore that output at the same checkout path and use `--prepared --shard=1/6`.
 They install dependencies but do not rebuild the package or catalog. The index verifies its checkout
 path and requires the selected renderer; it cannot silently fall back to another renderer's output.
 

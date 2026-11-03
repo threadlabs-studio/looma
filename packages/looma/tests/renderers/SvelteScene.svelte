@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { createAttachmentKey } from "svelte/attachments";
   import type { Snippet } from "svelte";
   import SvelteScene from "./SvelteScene.svelte";
@@ -8,8 +9,8 @@
   let { value }: { value: SceneValue } = $props();
   const key = createAttachmentKey();
   const connection = connectNode(() => value as SceneNode);
-  const attach = (element: Element) => { connection.attach(element); return () => connection.destroy(); };
-  $effect(() => { value; connection.update(); });
+  const attach = (element: Element) => { untrack(() => connection.attach(element)); return () => untrack(() => connection.destroy()); };
+  $effect(() => { value; untrack(() => connection.update()); });
   const node = $derived(value as SceneNode);
   const type = $derived(component(node?.type));
   const names = $derived(node?.children && typeof node.children === "object" && !Array.isArray(node.children) && !("type" in node.children) ? Object.keys(node.children).filter(name => name !== "default") : []);
@@ -25,6 +26,10 @@
   const voidElement = (name: unknown) => typeof name === "string" && /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(name);
   function svelteProps(node: SceneNode) {
     const props = componentProps(node);
+    if (props.style !== null && typeof props.style === "object") {
+      props.style = Object.entries(props.style).filter(([, value]) => value != null).map(([name, value]) =>
+        `${name.startsWith("--") ? name : name.replace(/^ms(?=[A-Z])/, "-ms").replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}: ${value}`).join("; ");
+    }
     for (const name of component(node.type)?.requests ?? []) {
       const callback = "on" + name.split("-").map(part => part[0]!.toUpperCase() + part.slice(1)).join("");
       if (!Object.hasOwn(props, callback)) continue;
@@ -61,9 +66,9 @@
       return () => mounted.unmount();
     }}></div>
   {:else if voidElement(node.type)}
-    <svelte:element this={node.type as string} {...componentProps(node)} {@attach attach} />
+    <svelte:element this={node.type as string} {...svelteProps(node)} {@attach attach} />
   {:else}
-    <svelte:element this={node.type as string} {...componentProps(node)} {@attach attach}>
+    <svelte:element this={node.type as string} {...svelteProps(node)} {@attach attach}>
       <SvelteScene value={children()} />
     </svelte:element>
   {/if}

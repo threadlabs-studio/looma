@@ -6,6 +6,13 @@ declare module "@looma-test/style" {
   export function jsxStyle(source: string): Record<string, string>;
 }
 
+declare module "postcss/lib/tokenize" {
+  export default function tokenize(input: { css: string }, options: { ignoreErrors: boolean }): {
+    endOfFile(): boolean;
+    nextToken(): readonly [kind: string, value: string] | undefined;
+  };
+}
+
 declare module "@looma-test/renderer" {
   export const rendererTarget: string;
   export function mount(scene: import("./scene").Scene, target: Element, hydrate: boolean): import("./scene").MountedScene;

@@ -30,13 +30,18 @@ export function componentProps(node: SceneNode): Record<string, any> {
 }
 
 /** One connection follows a scene node's native root through updates and root replacement. */
-export function connectNode(read: () => SceneNode) {
+export function connectNode(read: () => SceneNode | null | undefined) {
   let root: Element | undefined;
+  let currentRef: State<Element | null> | ((root: Element | null) => void) | undefined;
+  const writeRef = (ref: typeof currentRef, element: Element | null) => {
+    if (typeof ref === "function") ref(element); else if (ref) ref.value = element;
+  };
   const listeners = new Map<string, EventListener>();
   const reported = new Map<string, unknown>();
   const nativeValues = new Map<string, unknown>();
   const receive = (event: Event): void => {
     const node = read();
+    if (!node) return;
     const type = component(node.type);
     const declared = type?.events.find(item => item.name === event.type);
     if (declared && (!(event instanceof CustomEvent) || event.target !== root)) return;
@@ -60,13 +65,17 @@ export function connectNode(read: () => SceneNode) {
     attach(element: Element | null | undefined): void {
       if (element === root) return;
       detach(); nativeValues.clear(); root = element ?? undefined;
-      const ref = read().props.ref as State<Element | null> | ((root: Element | null) => void) | undefined;
-      if (typeof ref === "function") ref(root ?? null); else if (ref) ref.value = root ?? null;
+      const ref = (root ? read()?.props.ref : undefined) as typeof currentRef;
+      if (currentRef !== ref) writeRef(currentRef, null);
+      currentRef = ref;
+      writeRef(currentRef, root ?? null);
       this.update();
     },
     update(): void {
       if (!root) return;
-      const node = read(), type = component(node.type);
+      const node = read();
+      if (!node) return;
+      const type = component(node.type);
       if (!type && typeof node.type === "string" && ["input", "textarea", "select"].includes(root.localName)) {
         for (const name of ["value", "checked"]) {
           if (!(name in node.props) || nativeValues.has(name) && Object.is(nativeValues.get(name), node.props[name])) continue;

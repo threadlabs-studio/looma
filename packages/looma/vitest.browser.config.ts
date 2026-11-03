@@ -1,3 +1,4 @@
+import { RendererSequencer } from "./tests/renderer-sequencer.ts";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { prepareLibrary } from "./tests/renderers/prepare-library.ts";
@@ -18,7 +19,7 @@ export default defineConfig({
   cacheDir: rendererCacheDirectory(),
   plugins: rendererPlugins(),
   define: { "process.env.LOOMA_CAPTURE_ARTIFACTS": JSON.stringify(process.env.LOOMA_CAPTURE_ARTIFACTS ?? ""), __LOOMA_EDITOR_TARGET__: JSON.stringify(process.env.LOOMA_EDITOR_TARGET ?? "converted") },
-  optimizeDeps: { entries: browserTestPatterns, exclude: ["svelte", "@nextwebwg/html-next", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/runtime"], include: [...prepared.clientDependencies, "postcss", "@tiptap/core", ...rendererDependencies] },
+  optimizeDeps: { entries: browserTestPatterns, exclude: ["svelte", "@nextwebwg/html-next", "@nextwebwg/html-next/generated-runtime", "@nextwebwg/html-next/runtime"], include: [...prepared.clientDependencies, "postcss/lib/tokenize", "@tiptap/core", ...rendererDependencies] },
   resolve: {
     dedupe: target === "vue" ? ["vue", "@vue/shared", "@vue/runtime-core", "@vue/runtime-dom", "@vue/reactivity"] : target === "react" ? ["react", "react-dom"] : target === "preact" ? ["preact"] : target === "svelte" ? ["svelte"] : [],
     alias: [
@@ -28,6 +29,7 @@ export default defineConfig({
     ],
   },
   test: {
+    sequence: { sequencer: RendererSequencer },
     fsModuleCachePath: rendererCacheDirectory("-modules"),
     fileParallelism: process.env.CI ? undefined : false,
     globalSetup: ["./tests/renderers/prepare-library.ts"],

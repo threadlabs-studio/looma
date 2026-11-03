@@ -184,6 +184,7 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
       view.dom.addEventListener("dragstart", onDragStart);
       editor.on("focus", onFocus);
       editor.on("blur", onBlur);
+      update(view);
       return {
         update,
         destroy() {

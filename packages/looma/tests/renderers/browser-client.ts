@@ -18,7 +18,7 @@ export async function connectSuiteBrowser(): Promise<SuiteBrowser> {
 
 export function recordPageErrors(page: Page): void {
   const errors: string[] = [];
-  page.on("pageerror", error => errors.push(error.stack ?? error.message));
+  page.on("pageerror", error => errors.push(error.stack || `${error.name}: ${error.message}`));
   // Cleanup belongs to this test, including when other tests have active pages.
   testContext().onTestFinished(async () => {
     try { assert.deepEqual(errors, [], "browser scenarios must finish without uncaught errors"); }

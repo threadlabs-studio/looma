@@ -615,6 +615,7 @@ describe("LoomaEditor history (real browser)", () => {
     await flushBrowser();
 
     // The selection bubble offers only text formatting; the rest lives in the app-opened popover.
+    await expect.poll(() => host.querySelector(".ProseMirror p")).toBeTruthy();
     await userEvent.click(host.querySelector(".ProseMirror p")!);
     await userEvent.keyboard("{Home}{Shift>}{End}{/Shift}");
     const bubbleToolbar = () => [...document.querySelectorAll('[aria-label="Bold"]')]
