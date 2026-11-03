@@ -16,7 +16,8 @@ const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\
 // The catalog generator rewrites a checked-in source file; that file's change selects its tests.
 const buildTool = (file) => /^tools\/(?:style-source-allowlist\.json|scripts\/(?:style-source-policy|generate-code-language-catalog)\.mjs)$/.test(file);
 const docsMetadata = (file) => /^packages\/looma\/src\/components\/(?:ui-[\w-]+\/)?docs\.json$/.test(file);
-const docsTool = (file) => docsMetadata(file) || file.startsWith("packages/looma-docs/") || file === "packages/looma/tooling/html-next.mjs" || /^packages\/looma-docs\/tooling\/docs\//.test(file) || /^tools\/scripts\/(?:generate-component-api|component-api-generator|build-docs-catalog|docs-coverage)\.mjs$/.test(file);
+const docsExample = (file) => file.startsWith("examples/fellowship-ui/");
+const docsTool = (file) => docsExample(file) || docsMetadata(file) || file.startsWith("packages/looma-docs/") || file === "packages/looma/tooling/html-next.mjs" || file.startsWith("packages/looma/tooling/docs/") || file === "packages/looma/bin/looma-docs.mjs" || /^tools\/scripts\/(?:generate-component-api|component-api-generator|build-docs-catalog|docs-coverage)\.mjs$/.test(file);
 const releaseTool = (file) => /^tools\/scripts\/(?:verify-packages|verify-facade-consumer|verify-docs-consumer|release-config|create-release-manifest|managed-process)\.mjs$/.test(file);
 const ciRecipe = (file) => /^\.github\/workflows\/(?:ci|docs-parity)\.yml$|^tools\/scripts\/ci-(?:selection|qualification)\.mjs$/.test(file);
 const componentNames = (tag) => [tag, tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(""), "Ui" + tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join("")];
@@ -143,7 +144,7 @@ export function selectChecks(files, changes, hunks = {}) {
   if (files[frameworkConsumer] && (full || changes.some(docsTool) || changes.some(file => file.startsWith("tests/framework-consumer/")))) scripts.add(frameworkConsumer);
   for (const file of changes) {
     if (/^tests\/framework-consumer\/(?:package\.json|examples\.test\.mjs|example-syntax\.mjs|editor-contract\.ts|tsconfig\.editor\.json)$/.test(file)) continue;
-    if (docsTool(file) && (file.startsWith("packages/looma/") || file.startsWith("packages/looma-docs/"))) {
+    if (docsTool(file) && (file.startsWith("packages/looma/") || file.startsWith("packages/looma-docs/") || docsExample(file))) {
       for (const test of Object.keys(files)) if (/^packages\/looma-docs\/tooling\/docs\/.*\.test\.mjs$/.test(test)) scripts.add(test);
       continue;
     }

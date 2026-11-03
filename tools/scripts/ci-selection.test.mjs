@@ -65,6 +65,20 @@ test("Looma Markdown's rules and fixtures select the editor and the tests that l
   assert.equal(selectChecks(graph, ["CONCEPTS.md"]).full, false);
 });
 
+test("the standalone design-system example and removed docs entrypoints select docs qualification", () => {
+  const generator = "packages/looma-docs/tooling/docs/catalog.test.mjs";
+  const consumer = "tests/framework-consumer/examples.test.mjs";
+  const graph = { ...files, [generator]: "test('discovers components', () => {});", [consumer]: "test('builds a consumer', () => {});" };
+  for (const changed of ["examples/fellowship-ui/.gitignore", "examples/fellowship-ui/setup.mjs", "examples/fellowship-ui/components/fellowship-project/fellowship-project.html", "packages/looma/tooling/docs/README.md", "packages/looma/bin/looma-docs.mjs"]) {
+    const plan = automaticChecks(graph, [changed]);
+    assert.ok(plan.scripts.includes(generator), changed);
+    assert.ok(plan.scripts.includes(consumer), changed);
+    assert.equal(plan.packageConsumer, true, changed);
+    assert.equal(plan.docsBuild, true, changed);
+  }
+  assert.throws(() => selectChecks(graph, ["examples/unowned/setup.mjs"]), /Unmapped qualification input/);
+});
+
 test("either documentation site builds both docs sites, which are compared", () => {
   for (const file of ["apps/docs/docs/tokens.md", "apps/docs-next/docs/tokens.md"]) assert.equal(automaticChecks(files, [file]).docsBuild, true, file);
 });
