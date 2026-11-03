@@ -617,7 +617,9 @@ describe("LoomaEditor history (real browser)", () => {
     // The selection bubble offers only text formatting; the rest lives in the app-opened popover.
     await expect.poll(() => host.querySelector(".ProseMirror p")).toBeTruthy();
     await userEvent.click(host.querySelector(".ProseMirror p")!);
+    await expect.poll(() => document.activeElement).toBe(host.querySelector(".ProseMirror"));
     await userEvent.keyboard("{Home}{Shift>}{End}{/Shift}");
+    await expect.poll(() => window.getSelection()?.toString(), { message: "keyboard selection covers the paragraph before opening its tools" }).toBe("Hello world");
     const bubbleToolbar = () => [...document.querySelectorAll('[aria-label="Bold"]')]
       .find((button) => !button.closest(".looma-editor__formatting-popover"))?.closest('[role="toolbar"]');
     await expect.poll(bubbleToolbar, { timeout: 3000 }).toBeTruthy();

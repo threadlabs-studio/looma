@@ -344,6 +344,7 @@ describe("LoomaEditor links", () => {
     const toolbar = page.getByRole("toolbar", { name: "Editor toolbar" });
     await toolbar.getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
+    await expect.poll(() => form.locator("input").first().evaluate(input => input === document.activeElement), { message: "selection link form autofocus is ready" }).toBe(true);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.test/path?q=one#part");
     await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "/path?q=one#part", "site link becomes relative");
