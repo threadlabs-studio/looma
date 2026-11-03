@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Require HTML Next >=1.0.0-alpha.82 for Angular native-root conversion and shared controller-startup checks.
+
 - Reposition expanding anchored surfaces during native resize observation so their first resized paint stays within the viewport.
 
 - Keep anchored floating surfaces hidden until their virtual anchor has a usable position. Shared renderer checks read native HTML attributes and distinguish normal hover styling from tree drop feedback.
