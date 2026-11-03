@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add `Card fill` for surfaces that occupy the remaining height of a bounded column, with an independently scrolling body.
+
 - Align the declared package baseline with published 0.51.4 so strict documentation consumers satisfy their existing peer dependency.
 
 - Animate a filling Disclosure's movement when surrounding navigation is replaced, preserving reduced-motion preferences and rapid toggles.
