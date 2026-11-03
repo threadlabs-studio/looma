@@ -382,8 +382,8 @@ describe("Anchored overlay placement", () => {
         });
       `);
       const page = await open(path, '<button id="format-trigger" style="margin: 100px 40px 40px">Formatting tools</button><div id="app"></div>', [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
+      await page.waitForFunction(() => Boolean((window as unknown as { fixtureEditor?: Editor }).fixtureEditor));
       if (mode === "contextual") {
-        await page.waitForFunction(() => Boolean((window as unknown as { fixtureEditor?: Editor }).fixtureEditor));
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
         await page.getByRole("button", { name: "Format", exact: true }).click();
       } else await page.locator("#format-trigger").click();

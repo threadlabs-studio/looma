@@ -81,6 +81,7 @@ describe("Overlays", () => {
       const { open, events } = (window as unknown as Probe).popover;
       return { open: open.value, events };
     });
+    await expect.poll(() => page.locator("#trigger").getAttribute("aria-expanded")).toBe("false");
     await page.locator("#trigger").click();
     await page.locator("#picker").waitFor({ state: "visible" });
     assert.deepEqual(await state(), { open: true, events: [["open", { open: true, reason: "action", trigger: "pointer" }]] });

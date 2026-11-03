@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep table context menus hidden while their controllers connect, so opening a menu does not expose an empty surface.
+
 - Open editor selection surfaces for an existing selection and preserve them when editor plugins are reconfigured. Shared renderer fixtures retain variable-bearing font shorthands, Svelte style objects and stable native refs; CI balances the complete suite by measured file durations.
 
 - Keep editor link-form edits made before controller connection, bound floating selection surfaces to the viewport, and validate shared scenes without depending on framework CSS hashes or serialization order. Native field validation retains application-owned errors through converted prop updates.

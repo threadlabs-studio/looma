@@ -37,8 +37,8 @@ export async function renderNativeScene(scene: Scene): Promise<string> {
     const tag = "looma-test-scene-" + sequence++;
     const markup = serialize(value);
     const fixture = parseComponent(`<template component="${tag}"><defs><prop name="data" type="object({ ... })">Scenario values.</prop></defs>${markup}</template>`, "looma-browser-scene.html");
-    const rendered = await renderComponents(`<${tag} id="looma-server-scene"></${tag}>`, { definitions: [...definitions, fixture], props: { "#looma-server-scene": { data } }, prepare: { module: preparation } });
-    html.push(rendered.html.replace(' id="looma-server-scene"', ""));
+    const rendered = await renderComponents(`<${tag}></${tag}>`, { definitions: [...definitions, fixture], props: { [tag]: { data } }, prepare: { module: preparation } });
+    html.push(rendered.html);
   }
   return html.join("");
 }

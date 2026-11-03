@@ -41,7 +41,12 @@
       ></prop>
     </event>
   </defs>
-  <div role="menu" from:aria-label="$scope = 'column' ? 'Column actions' : $scope = 'row' ? 'Row actions' : 'Cell actions'" from:hidden="not $open">
+  <div
+    role="menu"
+    popover="manual"
+    from:aria-label="$scope = 'column' ? 'Column actions' : $scope = 'row' ? 'Row actions' : 'Cell actions'"
+    from:hidden="not $open"
+  >
     <div $if="$swatches" class="section" role="none">
       <div class="heading" role="presentation">Cell background</div>
       <div class="swatches" role="group" aria-label="Cell background">
@@ -80,6 +85,10 @@
     </template>
   </div>
   <style>
+    :host[popover]:not(:popover-open) {
+      display: none !important;
+    }
+
     :host[popover] {
       position: fixed;
       inset: auto;

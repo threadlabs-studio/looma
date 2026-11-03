@@ -394,6 +394,7 @@ describe("LoomaEditor links", () => {
     await page.keyboard.press("ControlOrMeta+A");
     await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
     const form = linkForm(page);
+    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("/guide");
     await form.locator("input").first().press("Enter");
     await form.getByRole("alert").waitFor();
@@ -448,6 +449,7 @@ describe("LoomaEditor links", () => {
     const page = await openEditor('<p><a href="/before#part">Read</a></p>', "sticky", true);
     await prose(page).getByRole("link", { name: "Read" }).click();
     await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }).click();
+    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
     await linkForm(page).getByRole("searchbox", { name: "Link destination" }).fill("/after?q=one#part");
     await linkForm(page).locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Read" }).getAttribute("href"), "/after?q=one#part", "editing a relative destination does not turn it into a search query");
@@ -463,6 +465,7 @@ describe("LoomaEditor links", () => {
     await expect.poll(() => actions.getByLabel("URL: /guide").count()).toBe(1);
     await expect.poll(() => actions.textContent()).toMatch(/\/guide/);
     await actions.getByRole("button", { name: "Edit link" }).click();
+    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
     await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");

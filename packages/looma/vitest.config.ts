@@ -5,6 +5,7 @@ import { rendererPlugins, rendererCacheDirectory } from "./tests/framework-plugi
 export default defineConfig({
   cacheDir: rendererCacheDirectory(),
   test: {
+    sequence: { sequencer: RendererSequencer },
     fsModuleCachePath: rendererCacheDirectory("-modules"),
     fileParallelism: process.env.CI ? undefined : false,
     maxWorkers: process.env.CI ? undefined : 1,
@@ -27,7 +28,6 @@ export default defineConfig({
         plugins: rendererPlugins(),
         test: {
           name: "converted-source",
-          sequence: { sequencer: RendererSequencer },
           setupFiles: ["./tests/renderers/test-context.ts"],
           globalSetup: ["./tests/renderers/browser-suite.ts"],
           include: ["tests/**/*ssr.test.ts", "tests/browser/**/*.test.ts", "tests/tree.test.ts", "tests/editor-table.test.ts"],
