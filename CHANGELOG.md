@@ -4,6 +4,12 @@
 
 - Add Wizard with palette-aware ordered steps, controlled navigation intent, completed checks, native destinations and host-owned content and Action Bar actions.
 
+- Require HTML Next >=1.0.0-alpha.84 to preserve author-owned projected styles in Angular. Editor and composed time-field fixtures wait for controller startup before interacting.
+
+- Keep tooltip keyboard-navigation checks on the page keyboard so returning with Shift+Tab does not refocus the trigger before navigation.
+
+- Sample Sidebar motion geometry on an animation frame so compositor interpolation does not perturb the exact fixed-canvas width assertion.
+
 - Wait for actual controller startup before pagination fixtures send their first pointer or keyboard request. This keeps cold framework runs from clicking before the navigation listener connects.
 
 - Require Markupress >=0.18.4 so headings announce their text once while retaining keyboard permalinks. Update documentation parity checks to native component markers and keep the retained Getting Started introduction aligned with the supported frameworks.

@@ -118,8 +118,9 @@ describe("Pressed icon controls and circular marks", () => {
       await expect.poll(() => hint.isVisible(), { message: "keyboard focus retains the hint" }).toBe(true);
       await button.press("Enter");
       await hint.waitFor({ state: "hidden" });
-      await button.press("Tab");
-      await button.press("Shift+Tab");
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      assert.equal(await button.evaluate(element => element === document.activeElement), true, "keyboard navigation returns focus to the action");
       await hint.waitFor({ state: "visible" });
       await button.press("Space");
       await hint.waitFor({ state: "hidden" });

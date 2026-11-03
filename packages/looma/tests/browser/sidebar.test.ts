@@ -21,12 +21,15 @@ describe("Sidebar", () => {
     `, [join(root, "tokens.css")], { viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
     await page.locator("#toggle").click();
     await page.waitForTimeout(80);
-    const intermediate = await page.evaluate(() => ({
-      sidebar: document.querySelector("#nav")!.getBoundingClientRect().width,
-      canvas: document.querySelector("#nav .content")!.getBoundingClientRect().width,
-      main: document.querySelector("#content")!.getBoundingClientRect().width,
-      inert: document.querySelector("#nav")!.hasAttribute("inert"),
-    }));
+    const intermediate = await page.evaluate(async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      return {
+        sidebar: document.querySelector("#nav")!.getBoundingClientRect().width,
+        canvas: document.querySelector("#nav .content")!.getBoundingClientRect().width,
+        main: document.querySelector("#content")!.getBoundingClientRect().width,
+        inert: document.querySelector("#nav")!.hasAttribute("inert"),
+      };
+    });
     assert.ok(intermediate.sidebar > 56 && intermediate.sidebar < 280, JSON.stringify(intermediate));
     assert.equal(intermediate.canvas, 279);
     assert.ok(intermediate.main > 620 && intermediate.main < 844);
