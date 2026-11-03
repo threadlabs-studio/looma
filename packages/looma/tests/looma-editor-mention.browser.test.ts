@@ -1,3 +1,4 @@
+import { pendingControllers } from "@nextwebwg/html-next/runtime";
 import type { Editor } from "@tiptap/core";
 import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +11,8 @@ import { captureEditor } from "./editor-test-extensions";
 const apps: Scene[] = [];
 
 async function flushBrowser() {
+  await settle();
+  await Promise.all(pendingControllers(document.body));
   for (let index = 0; index < 4; index += 1) {
     await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));

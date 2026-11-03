@@ -99,7 +99,7 @@ it("wraps long stage labels in both directions and inherits palette colors in li
       expect(control.scrollWidth).toBeLessThanOrEqual(control.clientWidth + 1);
     }
     const marker = host.querySelector<HTMLElement>('[aria-current="step"] .marker')!;
-    expect(getComputedStyle(marker).backgroundColor).toBe("rgb(166, 124, 0)");
+    expect(getComputedStyle(marker).backgroundColor, marker.outerHTML).toBe("rgb(166, 124, 0)");
     const current = host.querySelector<HTMLElement>('[aria-current="step"]')!;
     expect(getComputedStyle(current).backgroundColor).toBe(theme === "light" ? "rgb(251, 243, 208)" : "rgb(64, 55, 26)");
     const positions = [...host.querySelectorAll("nav li")].map(item => item.getBoundingClientRect());

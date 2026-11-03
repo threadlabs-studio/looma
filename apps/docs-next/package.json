@@ -15,7 +15,7 @@
     "typecheck": "echo \"docs-next: typecheck not configured\""
   },
   "dependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.82",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.84",
     "@threadlabs/looma": "workspace:*"
   },
   "devDependencies": {

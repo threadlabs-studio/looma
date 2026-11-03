@@ -1,13 +1,13 @@
 <!--
 title: Native destinations
-description: Visited stages retain ordinary link navigation before JavaScript. Disabled future stages have no destination.
+description: Visited stages retain ordinary link navigation before JavaScript. Disabled future stages have no destination. Replace these example query destinations with your own routes.
 -->
 <ui-wizard
   value="review"
   label="Review progress"
-  steps='[{"value":"details","label":"Details","complete":true,"href":"#details"},{"value":"review","label":"Review","href":"#review"},{"value":"finish","label":"Finish","disabled":true,"href":"#finish"}]'
+  steps='[{"value":"details","label":"Details","complete":true,"href":"?step=details"},{"value":"review","label":"Review","href":"?step=review"},{"value":"finish","label":"Finish","disabled":true,"href":"?step=finish"}]'
 >
   <ui-text>Review your details before finishing.</ui-text>
-  <ui-button slot="secondary" href="#details">Back</ui-button>
+  <ui-button slot="secondary" href="?step=details">Back</ui-button>
   <ui-button slot="primary" preset="primary">Finish</ui-button>
 </ui-wizard>
