@@ -13,16 +13,17 @@ afterEach(() => { app?.unmount(); document.body.innerHTML = ''; vi.restoreAllMoc
 async function mount(editable = true, width = 1280, rangeActions = false) {
   vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(width);
   const host = document.createElement('div'); host.style.width = '600px'; host.style.marginTop = '150px'; document.body.append(host);
-  let editor!: Editor;
+  let created!: (editor: Editor) => void;
+  const ready = new Promise<Editor>(resolve => { created = resolve; });
   const action = vi.fn(), rangeAction = vi.fn();
   app = createScene({ render: () => sceneNode(LoomaEditor, { editable, toolbarMode: 'contextual', compactToolbar: true,
     selectionActions: [{ id: 'note', label: 'Annotate' }, { id: 'query', label: 'Ask about selection' }],
     content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Before selected words after.' }] }] },
     rangeActions: rangeActions ? [{ id: 'inspect', label: 'Inspect notes', from: 8, to: 22 }, { id: 'inspect', label: 'Inspect notes', from: 8, to: 25 }] : [],
     "onRange-action": (event: CustomEvent) => rangeAction(event.detail),
-    "onSelection-action": (event: CustomEvent) => action(event.detail), extensions: captureEditor(instance => { editor = instance; }),
+    "onSelection-action": (event: CustomEvent) => action(event.detail), extensions: captureEditor(created),
   }) }); app.mount(host); await settle();
-  await vi.waitFor(() => expect(editor).toBeTruthy());
+  const editor = await ready;
   editor.commands.focus(); editor.commands.setTextSelection({ from: 8, to: 22 });
   await new Promise(resolve => requestAnimationFrame(resolve));
   return { editor, action, rangeAction };

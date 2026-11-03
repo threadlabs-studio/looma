@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { automaticChecks, validateVitestReport, vitestArguments, vitestConfiguration } from "./ci-selection.mjs";
+import { automaticChecks, validateVitestReport, vitestArguments, vitestConfiguration, vitestProject } from "./ci-selection.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const gitOwnership = ["-c", `safe.directory=${root}`];
@@ -75,7 +75,7 @@ export function plan(base) {
 }
 
 function packageTests(tests, full = false) {
-  const groups = Map.groupBy(Object.entries(tests), ([file]) => vitestConfiguration(file));
+  const groups = Map.groupBy(Object.entries(tests), ([file]) => [vitestConfiguration(file), vitestProject(file)].filter(Boolean).join("-"));
   for (const [config, entries] of groups) {
     const report = path.join(directory, `${config}-report.json`);
     const names = full || entries.some(([, titles]) => titles === null) ? null : [...new Set(entries.flatMap(([, titles]) => titles))];

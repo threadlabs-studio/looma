@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Match Vitest’s discovered case names, isolate unit checks from prepared renderer setup, and retain all selected SSR checks. State sheets use native component markers; selection-action fixtures wait for the editor’s creation event.
+
 - Declare the documentation app’s Markdown compiler dependency so copied-page checks run with a fresh installation.
 
 - Run the default unit command within the unit project; browser and SSR checks continue through the shared renderer coordinator.

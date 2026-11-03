@@ -12,8 +12,8 @@ must be confirmed after rollout.
 
 | Check | Work | Job timeout |
 | --- | --- | --- |
-| `quality` | Selected tooling tests, package build and affected unit/SSR tests | 6 minutes |
-| `browser` | Affected Looma regressions in Chromium, including HTML and Vue | 6 minutes |
+| `quality` | Selected tooling tests, package build and affected unit tests | 6 minutes |
+| `browser` | Prepared SSR checks and affected Looma regressions in Chromium, including HTML and Vue | 6 minutes |
 | `release-package` | Package-only build, tarball integrity, packed component and documentation consumer matrix | 6 minutes |
 | `visual` | Affected base/candidate state-sheet captures in parallel, using the pinned rendering container | 6 minutes |
 | `docs-parity` | Docs build, test typecheck and route/example coverage, then the Markupress site's build and its check that copied pages match, when docs inputs change | 10 minutes |
@@ -62,7 +62,7 @@ references and composed components. A PR compares its tested merge to its merge
 base; a main push compares to its `before` revision. Selection does not query past
 Actions runs, download receipts or require an expiring successful baseline.
 
-Named cases in shared suites use their complete suite and case name. Edited
+Named cases in shared suites use Vitest’s complete suite and case name with ` > ` separators. The JSON proof reconstructs that identity from `ancestorTitles` and `title`. Unit and prepared renderer projects run in separate invocations; SSR checks use the prepared renderer project in the browser job and remain outside the browser-case cap. Edited
 assertions select their case; edited helpers select their enclosing suite. Imports
 or file setup select the file. All suites importing Playwright count as browser
 work, including `tree.test.ts` and `editor-table.test.ts`.

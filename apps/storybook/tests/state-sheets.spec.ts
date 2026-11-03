@@ -98,7 +98,7 @@ for (const component of api.components) {
               renderVisualCase: (props: Record<string, unknown>, example: number) => Promise<void>;
             }).renderVisualCase(props, example), { props: state.props, example: state.example });
             const stage = page.locator('#visual-state-stage');
-            await expect(stage.locator(`[data-component~="${component.tag}"]`).first()).toBeAttached();
+            await expect(stage.locator(`[component~="${component.tag}"]`).first()).toBeAttached();
             await page.evaluate(() => document.fonts.ready);
             for (const image of await stage.locator(component.tag === 'ui-image' ? 'img' : 'img[src*="portrait"]').all()) {
               await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
@@ -106,7 +106,7 @@ for (const component of api.components) {
             await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
             if (floating.has(component.tag) && state.name !== 'Rest' && !state.run && !state.interaction && state.props.open !== false && state.props.disabled !== true) {
               const opened = stage.locator('dialog[open], [popover]:popover-open');
-              const surface = stage.locator(`[data-component~="${component.tag}"]`).first();
+              const surface = stage.locator(`[component~="${component.tag}"]`).first();
               if (!await opened.count() && !await surface.isVisible() && await surface.evaluate(element => element.matches('dialog,[popover]'))) {
                 const targetId = await surface.getAttribute('for');
                 const trigger = targetId ? stage.locator(`[id=${JSON.stringify(targetId)}]`) : component.tag === 'ui-context-menu' ? stage.locator('button:visible,[tabindex]:visible').first() : stage.getByRole('button').first();
@@ -129,7 +129,7 @@ for (const component of api.components) {
             }
             if (state.run)
               await state.run(page, stage);
-            const root = stage.locator(`[data-component~="${component.tag}"]`).first();
+            const root = stage.locator(`[component~="${component.tag}"]`).first();
             if (component.tag === 'ui-toast' && state.name !== 'Rest' && !state.run) {
               await stage.getByRole('button').first().click();
               await expect(root).toBeVisible();
@@ -181,7 +181,7 @@ for (const component of api.components) {
               }));
             }
             const clip = await stage.evaluate((stage, tag) => {
-              const root = stage.querySelector(`[data-component~="${tag}"]`)!;
+              const root = stage.querySelector(`[component~="${tag}"]`)!;
               const scope = tag === 'ui-sidebar' ? root : stage;
               const boxes: DOMRect[] = [];
               const transparent = (color: string) => color === 'transparent' || /rgba\([^)]*,\s*0\)$/.test(color);

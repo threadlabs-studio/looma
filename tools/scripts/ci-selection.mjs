@@ -1,14 +1,17 @@
 import path from "node:path";
 
-export const isBrowserTest = (file, source = "") => /(?:^|\/)browser\.test\.ts$|\.browser\.test\.ts$|^packages\/looma\/tests\/browser\/.*\.test\.ts$/.test(file) || /\bfrom\s*["']playwright["']/.test(source);
-export const vitestConfiguration = (file) => file.endsWith(".browser.test.ts") ? "vitest.browser.config.ts" : "vitest.config.ts";
+const preparedRendererTest = file => /ssr\.test\.ts$|(?:^|\/)tests\/(?:browser\/.*|tree|editor-table)\.test\.ts$/.test(file);
+export const isBrowserTest = (file, source = "") => preparedRendererTest(file) || /(?:^|\/)browser\.test\.ts$|\.browser\.test\.ts$/.test(file) || /\bfrom\s*["']playwright["']/.test(source);
+export const vitestConfiguration = file => file.endsWith(".browser.test.ts") ? "vitest.browser.config.ts" : "vitest.config.ts";
+export const vitestProject = file => vitestConfiguration(file) === "vitest.browser.config.ts" ? undefined : preparedRendererTest(file) ? "converted-source" : "unit";
 export const vitestArguments = (input, names, report) => {
   const files = Array.isArray(input) ? input : [input];
   if (!files.length) throw new Error("Vitest selection cannot be empty");
-  const config = vitestConfiguration(files[0]);
+  const config = vitestConfiguration(files[0]), project = vitestProject(files[0]);
   if (files.some(file => vitestConfiguration(file) !== config)) throw new Error("Vitest selection must share one configuration");
+  if (files.some(file => vitestProject(file) !== project)) throw new Error("Vitest selection must share one project");
   return ["--filter", "@threadlabs/looma", "exec", "vitest", "run", ...files.map(file => file.replace(/^packages\/looma\//, "")),
-    "--config", config, ...(names ? ["--testNamePattern", caseNamePattern(names)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=default", "--reporter=json", `--outputFile=${report}`];
+    "--config", config, ...(project ? ["--project", project] : []), ...(names ? ["--testNamePattern", caseNamePattern(names)] : []), "--maxWorkers=1", "--fileParallelism=false", "--passWithNoTests=false", "--reporter=default", "--reporter=json", `--outputFile=${report}`];
 };
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const componentOf = (file) => /^packages\/looma\/src\/components\/(ui-[\w-]+)\//.exec(file)?.[1];
@@ -101,7 +104,7 @@ function calls(source, names) {
 }
 export const testCases = (source) => {
   const scopes = calls(source, "describe");
-  return calls(source, "it|test").map((entry) => ({ ...entry, name: [...scopes.filter((scope) => scope.start <= entry.start && scope.end >= entry.end).sort((a, b) => a.start - b.start).map(({ title }) => title), entry.title].join(" ") }));
+  return calls(source, "it|test").map((entry) => ({ ...entry, name: [...scopes.filter((scope) => scope.start <= entry.start && scope.end >= entry.end).sort((a, b) => a.start - b.start).map(({ title }) => title), entry.title].join(" > ") }));
 };
 export const caseNamePattern = (names) => "^(?:" + names.map((name) => name.split(/\$\{[^}]+\}|%(?:[sdifjo]|#)/).map(escape).join(".+?")).join("|") + ")$";
 function editedCases(source, hunks) {
@@ -180,7 +183,10 @@ export function selectChecks(files, changes, hunks = {}) {
 }
 
 export function validateVitestReport(report, names) {
-  const assertions = (report.testResults ?? []).flatMap((suite) => suite.assertionResults ?? []);
+  const assertions = (report.testResults ?? []).flatMap((suite) => suite.assertionResults ?? []).map(entry => {
+    if (!Array.isArray(entry.ancestorTitles) || typeof entry.title !== "string") throw new Error("Invalid Vitest assertion identity");
+    return { ...entry, fullName: [...entry.ancestorTitles, entry.title].join(" > ") };
+  });
   const patterns = names?.map((name) => new RegExp(caseNamePattern([name])));
   const actual = assertions.filter((entry) => !patterns || patterns.some((pattern) => pattern.test(entry.fullName)));
   if (!actual.length || patterns?.some((pattern) => !actual.some((entry) => pattern.test(entry.fullName)))) throw new Error("Empty or incomplete selected Vitest discovery");
@@ -190,28 +196,28 @@ export function validateVitestReport(report, names) {
 // These are Looma integration checks, not a second platform conformance suite.
 export const smokeCases = {
   "packages/looma/tests/browser/html-components.test.ts": [
-    "HTML components register and lower from dist/index.js",
+    "HTML components > register and lower from dist/index.js",
   ],
   "packages/looma/tests/browser/component-rendering.test.ts": [
-    "Component rendering and behavior render, style, and behave with no HTML Next runtime",
-    "Component rendering and behavior update a bound prop once per choice, though the choice is two events",
+    "Component rendering and behavior > render, style, and behave with no HTML Next runtime",
+    "Component rendering and behavior > update a bound prop once per choice, though the choice is two events",
   ],
   "packages/looma/tests/browser/dialog-close-policy-and-presentation.test.ts": [
-    "Dialog close policy and presentation opens modally with modal, locks scroll, closes on Escape, returns focus, and reports trigger and close events",
+    "Dialog close policy and presentation > opens modally with modal, locks scroll, closes on Escape, returns focus, and reports trigger and close events",
   ],
   "packages/looma/tests/browser/search-shell-keyboard-results.test.ts": [
-    "Search Shell keyboard results moves among enabled rows and closes on Escape in HTML",
-    "Search Shell keyboard results moves among enabled rows and closes on Escape in converted output",
+    "Search Shell keyboard results > moves among enabled rows and closes on Escape in HTML",
+    "Search Shell keyboard results > moves among enabled rows and closes on Escape in converted output",
   ],
   "packages/looma/tests/browser/combobox-chip-truncation.test.ts": [
-    "Combobox chip truncation ellipsizes native chip labels inside their badge at desktop and 375px",
-    "Combobox chip truncation ellipsizes converted chip labels inside their badge at desktop and 375px",
-    "Combobox chip truncation keeps short ${adapter} chip text and descenders visible at desktop and 375px",
+    "Combobox chip truncation > ellipsizes native chip labels inside their badge at desktop and 375px",
+    "Combobox chip truncation > ellipsizes converted chip labels inside their badge at desktop and 375px",
+    "Combobox chip truncation > keeps short ${adapter} chip text and descenders visible at desktop and 375px",
   ],
   "packages/looma/tests/editor-table.test.ts": [
-    "LoomaEditor tables inserts a table sized from the toolbar's insert-table grid",
-    "LoomaEditor tables colors, merges, and splits a multi-cell selection",
-    "atomic editor blocks selects a clicked divider for deletion and restores it with undo",
+    "LoomaEditor tables > inserts a table sized from the toolbar's insert-table grid",
+    "LoomaEditor tables > colors, merges, and splits a multi-cell selection",
+    "atomic editor blocks > selects a clicked divider for deletion and restores it with undo",
   ],
 };
 
@@ -222,6 +228,7 @@ export function automaticChecks(files, changes, hunks = {}) {
   const direct = [...new Set(changes.map(componentOf).filter(Boolean))];
   for (const [file, names] of Object.entries(selection.packageTests)) {
     if (!isBrowserTest(file, files[file])) { nativeTests[file] = names; continue; }
+    if (file.endsWith("ssr.test.ts")) { browserTests[file] = names; continue; }
     const cases = testCases(files[file]);
     const editedNames = new Set(changes.includes(file) ? editedCases(files[file], hunks[file]).map(entry => entry.name) : []);
     for (const entry of cases.filter(entry => !names || names.includes(entry.name))) {

@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { changeBase, snapshot } from "./ci-qualification.mjs";
 import { automaticChecks, affectedComponents, affectedModules, caseNamePattern, isBrowserTest, smokeCases, selectChecks, testCases, validateVitestReport, vitestArguments } from "./ci-selection.mjs";
 
@@ -92,8 +94,8 @@ test("test-only revisions select regressions without repacking or building docs"
 test("edited assertions select their case and edited helpers own their enclosing suite", () => {
   const file = "packages/looma/tests/browser/html-components.test.ts";
   const source = 'describe("Other", () => {\n it("other", () => {});\n});\ndescribe("chips", () => {\n const glyphs = () => "ink";\n it("native chips", () => { glyphs(); });\n it("Vue chips", () => { glyphs(); });\n});\n';
-  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[6, 6]] }).packageTests[file], ["chips native chips"]);
-  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[5, 5]] }).packageTests[file], ["chips native chips", "chips Vue chips"]);
+  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[6, 6]] }).packageTests[file], ["chips > native chips"]);
+  assert.deepEqual(selectChecks({ ...files, [file]: source }, [file], { [file]: [[5, 5]] }).packageTests[file], ["chips > native chips", "chips > Vue chips"]);
   assert.throws(() => selectChecks({ ...files, "tools/scripts/new-executable.mjs": "doWork()" }, ["tools/scripts/new-executable.mjs"]), /Unmapped executable/);
   const generator = "tools/scripts/generate-code-language-catalog.mjs";
   assert.doesNotThrow(() => selectChecks({ ...files, [generator]: "writeFile()" }, [generator]));
@@ -107,10 +109,10 @@ test("added suite boundaries and trailing blank lines own their cases without pr
   const sourceFiles = { ...files, [file]: source };
   const hunks = { [file]: [[91, source.split("\n").length]] };
   const selection = automaticChecks(sourceFiles, [file], hunks);
-  assert.deepEqual(selection.packageTests[file], ["controls compact count", "controls focused actions shared edge"]);
+  assert.deepEqual(selection.packageTests[file], ["controls > compact count", "controls > focused actions > shared edge"]);
   assert.deepEqual(selection.browserTests[file], selection.packageTests[file]);
   assert.deepEqual(selection.deferred, [], "both added regressions fit the cap without unrelated cases");
-  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[95, 96]] }).packageTests[file], ["controls focused actions shared edge"], "nested suite setup owns its nested cases");
+  assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[95, 96]] }).packageTests[file], ["controls > focused actions > shared edge"], "nested suite setup owns its nested cases");
   assert.deepEqual(selectChecks(sourceFiles, [file], { [file]: [[92, 92]] }).packageTests[file], selection.packageTests[file], "outer suite setup still owns every descendant case");
 });
 
@@ -144,7 +146,7 @@ test("the real Badge source selects composed consumers and bounded regression ca
   const plan = automaticChecks(actual, ["packages/looma/src/components/ui-badge/ui-badge.html"]);
   assert.ok(plan.components.includes("ui-combobox"));
   assert.ok(!plan.components.includes("ui-meter"));
-  assert.ok(plan.browserTests["packages/looma/tests/browser/combobox-chip-truncation.test.ts"].includes("Combobox chip truncation ellipsizes native chip labels inside their badge at desktop and 375px"));
+  assert.ok(plan.browserTests["packages/looma/tests/browser/combobox-chip-truncation.test.ts"].includes("Combobox chip truncation > ellipsizes native chip labels inside their badge at desktop and 375px"));
   assert.equal(plan.packageConsumer, true);
   assert.equal(plan.docsBuild, false);
 });
@@ -159,7 +161,7 @@ test("qualified names avoid unrelated duplicate titles and retain parameterized 
 
 test("case discovery ignores fixture source strings and commented calls", () => {
   const source = `const fixture = 'it("fictional", () => {});';\n// test("commented", () => {});\n/* describe("commented suite", () => { it("also fictional", () => {}); }); */\ndescribe("real", () => { it("owned", () => {}); });`;
-  assert.deepEqual(testCases(source).map(({ name }) => name), ["real owned"]);
+  assert.deepEqual(testCases(source).map(({ name }) => name), ["real > owned"]);
 });
 
 test("non-null division and unary regex negation preserve following nested suite names", () => {
@@ -176,7 +178,7 @@ describe("actions", () => {
     it("edge", () => {});
   });
 });`;
-  assert.deepEqual(testCases(source).map(({ name }) => name), ["counts opacity", "actions nested edge"]);
+  assert.deepEqual(testCases(source).map(({ name }) => name), ["counts > opacity", "actions > nested > edge"]);
 });
 
 test("main and editor browser suites share Chromium ownership while retaining their actual Vitest configs", () => {
@@ -187,7 +189,7 @@ test("main and editor browser suites share Chromium ownership while retaining th
     assert.equal(args[args.indexOf("--config") + 1], config);
     assert.ok(args.includes("--maxWorkers=1"));
   }
-  assert.equal(isBrowserTest("packages/looma/tests/tree.test.ts"), false);
+  assert.equal(isBrowserTest("packages/looma/tests/tree.test.ts"), true);
   assert.equal(isBrowserTest("packages/looma/tests/browser/tabs.test.ts"), true);
   assert.equal(isBrowserTest("packages/looma/tests/browser-coverage.test.ts"), false);
   const actual = workingSources();
@@ -200,6 +202,34 @@ test("main and editor browser suites share Chromium ownership while retaining th
   assert.doesNotMatch(runner, /git config --global/);
 });
 
+test("selected suite names match the installed Vitest discovery format", () => {
+  const file = "packages/looma/tests/editor-session.test.ts";
+  const observed = JSON.parse(execFileSync("pnpm", ["--filter", "@threadlabs/looma", "exec", "vitest", "list", "--project", "unit", "tests/editor-session.test.ts", "--json"], { encoding: "utf8" }));
+  const expected = testCases(readFileSync(file, "utf8")).map(entry => entry.name);
+  assert.deepEqual(expected, observed.map(entry => entry.name));
+  const pattern = new RegExp(caseNamePattern(expected));
+  for (const entry of observed) assert.ok(pattern.test(entry.name), entry.name);
+  const directory = mkdtempSync(path.join(tmpdir(), "looma-vitest-selection-"));
+  try {
+    const output = path.join(directory, "report.json");
+    execFileSync("pnpm", vitestArguments(file, [expected[0]], output), { stdio: "pipe" });
+    assert.equal(validateVitestReport(JSON.parse(readFileSync(output, "utf8")), [expected[0]]).length, 1);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test("qualification separates unit and prepared renderer projects", () => {
+  const unit = "packages/looma/tests/editor-session.test.ts";
+  const server = "packages/looma/tests/calendar-ssr.test.ts";
+  const scene = "packages/looma/tests/browser/card-fill.test.ts";
+  assert.equal(isBrowserTest(server), true);
+  assert.equal(isBrowserTest("packages/looma/tests/tree.test.ts"), true);
+  for (const [file, project] of [[unit, "unit"], [server, "converted-source"], [scene, "converted-source"]]) {
+    const args = vitestArguments(file, null, "report.json");
+    assert.equal(args[args.indexOf("--project") + 1], project, file);
+  }
+  assert.throws(() => vitestArguments([unit, server], null, "report.json"), /project/);
+});
+
 test("qualification keeps readable Vitest failures alongside its validated JSON report", () => {
   const report = ".qualification/browser.test.ts-report.json";
   const args = vitestArguments("packages/looma/tests/browser/html-components.test.ts", ["owned"], report);
@@ -209,23 +239,28 @@ test("qualification keeps readable Vitest failures alongside its validated JSON 
 });
 
 test("Vitest proof refuses empty, skipped or missing selected cases while ignoring unchanged filtered cases", () => {
-  const report = { success: true, testResults: [{ assertionResults: [{ fullName: "chips native", status: "passed" }, { fullName: "other native", status: "pending" }] }] };
-  assert.deepEqual(validateVitestReport(report, ["chips native"]), ["chips native"]);
+  const report = { success: true, testResults: [{ assertionResults: [{ ancestorTitles: ["chips"], title: "native", fullName: "chips native", status: "passed" }, { ancestorTitles: ["other"], title: "native", fullName: "other native", status: "pending" }] }] };
+  assert.deepEqual(validateVitestReport(report, ["chips > native"]), ["chips > native"]);
   assert.throws(() => validateVitestReport(report, ["missing"]), /Empty/);
-  assert.throws(() => validateVitestReport(report, ["other native"]), /passed/);
+  assert.throws(() => validateVitestReport(report, ["other > native"]), /passed/);
   assert.throws(() => validateVitestReport({ success: true, testResults: [] }, null), /Empty/);
 });
 
 test("automatic selection budgets parallel jobs and caps browser expansion without dropping unit tests", () => {
-  const source = { ...files, "packages/looma/tests/editor-table.test.ts": 'import { chromium } from "playwright"; it("table edit", () => {});', "packages/looma/tests/tree.test.ts": 'import { chromium } from "playwright"; it("tree keys", () => {});' };
+  const source = { ...files, "packages/looma/tests/button-state.test.ts": 'import { UiButton as Button } from "@threadlabs/looma"; it("button state", () => render(Button));', "packages/looma/tests/editor-table.test.ts": 'import { chromium } from "playwright"; it("table edit", () => {});', "packages/looma/tests/tree.test.ts": 'import { chromium } from "playwright"; it("tree keys", () => {});' };
   assert.equal(isBrowserTest("packages/looma/tests/editor-table.test.ts", source["packages/looma/tests/editor-table.test.ts"]), true);
   assert.equal(isBrowserTest("packages/looma/tests/tree.test.ts", source["packages/looma/tests/tree.test.ts"]), true);
   const focused = automaticChecks(source, ["packages/looma/src/components/ui-button/ui-button.html"]);
-  assert.deepEqual(focused.nativeTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
+  assert.deepEqual(focused.nativeTests["packages/looma/tests/button-state.test.ts"], ["button state"]);
+  assert.deepEqual(focused.browserTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
   assert.ok(focused.browserTests["packages/looma/tests/browser/html-components.test.ts"].includes("button click"));
+  const full = automaticChecks(source, ["pnpm-lock.yaml"]);
+  assert.deepEqual(full.browserTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
+  assert.ok(!full.deferred.some(entry => entry.file.endsWith("button-ssr.test.ts")));
   const expanded = { ...source, "packages/looma/tests/browser/html-components.test.ts": Array.from({ length: 300 }, (_, n) => `it("button case ${n}", () => { open("<ui-button>"); });`).join("\n") };
   const bounded = automaticChecks(expanded, ["packages/looma/src/components/ui-button/ui-button.html"]);
-  assert.ok(Object.values(bounded.browserTests).flat().length <= 80);
+  assert.ok(Object.entries(bounded.browserTests).filter(([file]) => !file.endsWith("ssr.test.ts")).flatMap(([, names]) => names).length <= 80);
+  assert.deepEqual(bounded.browserTests["packages/looma/tests/button-ssr.test.ts"], ["button SSR"]);
   assert.ok(bounded.deferred.length > 0);
   assert.deepEqual(bounded.nativeTests, focused.nativeTests);
   const matrix = { ...source, "packages/looma/tests/browser.test.ts": Array.from({ length: 30 }, (_, n) =>
@@ -238,7 +273,7 @@ test("automatic selection budgets parallel jobs and caps browser expansion witho
 });
 
 test("global changes use explicit integration smoke cases and retain edited regressions", () => {
-  const smoke = 'HTML components register and lower from dist/index.js';
+  const smoke = 'HTML components > register and lower from dist/index.js';
   const source = { ...files, "packages/looma/tests/browser/html-components.test.ts": `describe("HTML components", () => { it("register and lower from dist/index.js", () => {}); });\nit("changed regression", () => {});` };
   const broad = automaticChecks(source, ["pnpm-lock.yaml"]);
   assert.deepEqual(broad.browserTests["packages/looma/tests/browser/html-components.test.ts"], [smoke]);
@@ -255,7 +290,7 @@ test("the global smoke list maps to real Looma integration cases", () => {
     for (const name of names) assert.ok(discovered.includes(name), `${file}: ${name}`);
   }
   const mixed = automaticChecks(actual, ["pnpm-lock.yaml", "packages/looma/src/components/ui-badge/ui-badge.html"]);
-  assert.ok(mixed.browserTests["packages/looma/tests/browser/combobox-chip-truncation.test.ts"].includes("Combobox chip truncation keeps short ${adapter} chip text and descenders visible at desktop and 375px"));
+  assert.ok(mixed.browserTests["packages/looma/tests/browser/combobox-chip-truncation.test.ts"].includes("Combobox chip truncation > keeps short ${adapter} chip text and descenders visible at desktop and 375px"));
 });
 
 
@@ -327,7 +362,7 @@ test('shared and colocated component documentation metadata select catalog fixtu
 });
 
 test('a full native selection shares one serial Vitest invocation without losing files', () => {
-  const files = ['packages/looma/tests/editor-session.test.ts', 'packages/looma/tests/source-editor-ssr.test.ts'];
+  const files = ['packages/looma/tests/editor-session.test.ts', 'packages/looma/tests/editor-helpers.test.ts'];
   const args = vitestArguments(files, null, 'native-report.json');
   for (const file of files) assert.ok(args.includes(file.replace('packages/looma/', '')));
   assert.equal(args[args.indexOf('--config') + 1], 'vitest.config.ts');
