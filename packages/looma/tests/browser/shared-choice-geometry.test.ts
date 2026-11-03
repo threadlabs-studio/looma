@@ -7,6 +7,27 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Shared choice geometry", () => {
+  it("retains control-row sizing for a checkbox with an accessible name and no visible label", async () => {
+    for (const adapter of ["html", "converted"]) {
+      const path = await bundle(`named-choice-size-${adapter}`, adapter === "html" ? 'import "@looma-test/runtime";' : `
+        import {createScene,sceneNode as h} from "@looma-test/scene";import {UiCheckbox as Checkbox} from "@looma-test/components";
+        createScene({render:()=>["sm","lg"].map(size=>h(Checkbox,{id:size,size,label:"Include item"}))}).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? '<ui-checkbox id="sm" size="sm" label="Include item"></ui-checkbox><ui-checkbox id="lg" size="lg" label="Include item"></ui-checkbox>' : '<div id="app"></div>', [join(root,"tokens.css")]);
+      try {
+        for (const size of ["sm","lg"]) {
+          const geometry = await page.locator(`#${size}`).evaluate((element,size)=>{
+            const box=element.getBoundingClientRect(), input=element.querySelector("input")!.getBoundingClientRect();
+            const probe=document.createElement("div");probe.style.height=`var(--ui-control-size-${size})`;element.append(probe);
+            const expected=probe.getBoundingClientRect().height;probe.remove();
+            return {height:box.height,expected,delta:(box.top+box.bottom-input.top-input.bottom)/2};
+          },size);
+          assert.ok(Math.abs(geometry.height-geometry.expected)<0.5, `${adapter}/${size}: ${JSON.stringify(geometry)}`);
+          assert.ok(Math.abs(geometry.delta)<0.5, "the visible mark stays centered in the control row");
+        }
+      } finally {await page.close();}
+    }
+  });
   for (const adapter of ['html', 'converted']) it(`scales marks with typography and keeps first-line alignment in ${adapter}`, async () => {
     const path = await bundle(adapter + '-choice-geometry', adapter === 'html' ? `import '@looma-test/runtime';` : `
       import { createScene, sceneNode } from "@looma-test/scene";

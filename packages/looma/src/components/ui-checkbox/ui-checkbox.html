@@ -126,6 +126,15 @@
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
+    /* A separately named mark has no text line to align with. Its row owns that alignment. */
+    :host:has(.label:empty):has(.description:empty) .text {
+      display: none !important;
+    }
+
+    :host:has(.label:empty):has(.description:empty) input {
+      margin: 0 !important;
+    }
+
     input::after {
       content: "";
       position: absolute !important;
@@ -269,6 +278,11 @@
       --_line: calc(var(--_font) * var(--ui-line-height-md));
       font-size: var(--_font);
       padding-block: max(0px, calc((var(--_row) - max(var(--_line), var(--_ui-checkbox-size, 1.125rem))) / 2)) !important;
+    }
+
+    :host([size="sm"]):has(.label:empty):has(.description:empty),
+    :host([size="lg"]):has(.label:empty):has(.description:empty) {
+      padding-block: max(0px, calc((var(--_row) - var(--_ui-checkbox-size, 1.125rem)) / 2)) !important;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
