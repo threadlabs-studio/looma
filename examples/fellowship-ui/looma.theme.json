@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "values": {
+    "action": "#315c48",
+    "canvas": "#faf8f1",
+    "surface": "#ffffff",
+    "text": "#29382e",
+    "secondary-action": "#a85a3d",
+    "tertiary-action": "#be963d",
+    "body-font": "system-ui, sans-serif",
+    "display-font": "Georgia, serif",
+    "corner-roundness": "0.75rem",
+    "outer-depth": "0.15",
+    "finish": "0.15"
+  }
+}

@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Improve the design-system guides with a compact setup-and-example opening, a unified process diagram, focused screenshots, and shared responsive reading and reference-table layouts.
+
 - Split the design-system guide into a visual creation walkthrough, focused theme/component/publishing guides, and a family-by-family recipe-to-CSS reference. Add the runnable Fellowship UI example and light/dark screenshots; group guidance in sidebar disclosures and keep main-navigation section links out of the guide sidebar.
 
 - Move the design-system CLI, generator and customizer to `@threadlabs/looma-docs`. Install it as a development dependency alongside Looma; Markupress, MarkupKit, Vite and editor preview dependencies install automatically. Programmatic documentation imports move from `@threadlabs/looma/docs` to `@threadlabs/looma-docs`.
