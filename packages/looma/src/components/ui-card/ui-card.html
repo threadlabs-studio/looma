@@ -1,5 +1,7 @@
 <template component="ui-card">
   <defs>
+    <prop name="fill" type="boolean" default="false"
+    >In a bounded flex column, grows into the remaining height. Put a filling Scroll Area in the body when its content needs to scroll independently.</prop>
     <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
     >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
     <prop name="variant" type="keyword" values="outlined, subtle, elevated" default="outlined"
@@ -78,6 +80,11 @@
       --_ui-card-group-rows: initial;
       --_ui-card-group-span: initial;
       --_ui-card-group-region-layout: initial;
+    }
+
+    :host([fill]) {
+      flex: 1;
+      min-block-size: 0;
     }
 
     .header:empty {

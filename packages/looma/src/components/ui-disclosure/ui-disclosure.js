@@ -50,6 +50,38 @@ export function connect(host) {
   host.state.internalOpen = Boolean(external);
   let groupName = "";
   let disposed = false;
+  let motionFrame = 0;
+  let takeoverMotion;
+  const view = document.defaultView;
+  const reducedMotion = view?.matchMedia?.("(prefers-reduced-motion: reduce)");
+  const stopTakeoverMotion = () => {
+    view?.cancelAnimationFrame(motionFrame);
+    motionFrame = 0;
+    takeoverMotion?.cancel();
+  };
+  const onMotionPreferenceChange = () => { if (reducedMotion.matches) stopTakeoverMotion(); };
+  reducedMotion?.addEventListener("change", onMotionPreferenceChange);
+  // A consumer may hide a sibling when this panel takes over the remaining space.
+  // Flex interpolation alone cannot animate the resulting change of position.
+  const animateFillTakeover = () => {
+    if (motionFrame || !host.props.fill.value || !view || !host.element.animate) return;
+    const previousTop = host.refs.heading.getBoundingClientRect().top;
+    takeoverMotion?.cancel();
+    if (reducedMotion?.matches) return;
+    motionFrame = view.requestAnimationFrame(() => {
+      motionFrame = 0;
+      if (disposed || !host.element.isConnected) return;
+      const delta = previousTop - host.refs.heading.getBoundingClientRect().top;
+      if (Math.abs(delta) < 1) return;
+      const style = view.getComputedStyle(host.element);
+      const duration = style.transitionDuration.split(",")[0].trim();
+      const milliseconds = parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000);
+      if (!(milliseconds > 0)) return;
+      takeoverMotion = host.element.animate([{ translate: `0 ${delta}px` }, { translate: "0 0" }], {
+        duration: milliseconds, easing: style.transitionTimingFunction, fill: "none",
+      });
+    });
+  };
   const member = {
     element: host.element,
     automatic: false,
@@ -59,6 +91,7 @@ export function connect(host) {
     open(automatic = false) {
       if (disposed || host.state.internalOpen) return;
       member.automatic = automatic;
+      animateFillTakeover();
       host.state.internalOpen = true;
       syncGroup("programmatic", "programmatic");
       host.dispatch("open", { open: true, reason: "programmatic", trigger: "programmatic" });
@@ -66,6 +99,7 @@ export function connect(host) {
     close(reason, how) {
       if (!host.state.internalOpen) return;
       member.automatic = false;
+      animateFillTakeover();
       host.state.internalOpen = false;
       host.dispatch("close", { open: false, reason, trigger: how });
     },
@@ -91,7 +125,10 @@ export function connect(host) {
     if (host.props.open.value !== external) {
       member.automatic = false;
       external = host.props.open.value;
-      if (external || mayClose()) host.state.internalOpen = Boolean(external);
+      if (external || mayClose()) {
+        animateFillTakeover();
+        host.state.internalOpen = Boolean(external);
+      }
     }
     const level = Number(host.props.headingLevel.value);
     host.state.headingRole = Number.isInteger(level) && level >= 2 && level <= 6 ? "heading" : null;
@@ -106,6 +143,7 @@ export function connect(host) {
     const open = !host.state.internalOpen;
     if (!open && !mayClose()) return;
     const how = trigger();
+    animateFillTakeover();
     host.state.internalOpen = open;
     if (open) syncGroup("action", how);
     host.dispatch(open ? "open" : "close", { open, reason: "action", trigger: how });
@@ -113,6 +151,7 @@ export function connect(host) {
   const onBeforematch = () => queueMicrotask(() => {
     if (disposed || host.state.internalOpen) return;
     member.automatic = false;
+    animateFillTakeover();
     host.state.internalOpen = true;
     syncGroup("programmatic", "programmatic");
     host.dispatch("open", { open: true, reason: "programmatic", trigger: "programmatic" });
@@ -126,6 +165,8 @@ export function connect(host) {
   measureHeading();
   return () => {
     disposed = true;
+    stopTakeoverMotion();
+    reducedMotion?.removeEventListener("change", onMotionPreferenceChange);
     headingObserver?.disconnect();
     stop();
     stopTracking();

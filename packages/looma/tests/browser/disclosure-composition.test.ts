@@ -202,6 +202,49 @@ it("keeps navigation disclosure children adjacent to their trigger", async () =>
     await page.close();
   });
 
+  for (const adapter of ["html", "converted"]) it(`animates ${adapter} fill takeover when the application hides its preceding navigation`, async () => {
+    const frame = "display:flex;flex-direction:column;height:480px;width:240px;overflow:hidden;--ui-motion-layout:500ms";
+    const source = adapter === "html" ? `import "@looma-test/runtime";` : `
+      import {createScene,sceneNode as h,createState} from "@looma-test/scene";
+      import {UiDisclosure as Disclosure} from "@looma-test/components";
+      const opened = createState(false);
+      createScene({render:() => h("div", { style: ${JSON.stringify(frame)} }, [
+        h("nav", { id: "primary", style: { flex: 1, display: opened.value ? "none" : "" } }, "Primary navigation"),
+        h(Disclosure, { id: "settings", fill: true, summary: "Preferences", open: opened.value,
+          "onUpdate:open": value => { opened.value = value; } }, () => h("a", { href: "#account" }, "Account")),
+      ])}).mount("#app");`;
+    const path = await bundle(`${adapter}-disclosure-takeover`, source);
+    const page = await open(path, adapter === "converted" ? '<div id="app"></div>' : `
+      <div style="display:flex;flex-direction:column;height:480px;width:240px;overflow:hidden;--ui-motion-layout:500ms">
+        <nav id="primary" style="flex:1">Primary navigation</nav>
+        <ui-disclosure id="settings" fill summary="Preferences"><a href="#account">Account</a></ui-disclosure>
+      </div>
+    `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
+    await page.locator("#settings").evaluate(element => {
+      element.addEventListener("open", () => { (document.querySelector("#primary") as HTMLElement).style.display = "none"; });
+      element.addEventListener("close", () => { (document.querySelector("#primary") as HTMLElement).style.display = ""; });
+    });
+    const trigger = page.locator("#settings button");
+    const closedTop = (await trigger.boundingBox())!.y;
+    await trigger.click();
+    await page.waitForTimeout(60);
+    const during = (await trigger.boundingBox())!.y;
+    assert.ok(during > 10 && during < closedTop - 10, `Expected visible takeover motion, got ${during} from ${closedTop}`);
+    await page.waitForTimeout(500);
+    assert.ok((await trigger.boundingBox())!.y < 12);
+    await trigger.click();
+    await page.waitForTimeout(50);
+    await trigger.dispatchEvent("click");
+    await page.waitForTimeout(550);
+    assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+    assert.ok((await trigger.boundingBox())!.y < 12, "rapid toggles settle at the current layout");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await trigger.click();
+    assert.ok(Math.abs((await trigger.boundingBox())!.y - closedTop) < 1);
+    assert.equal(await page.locator("#settings").evaluate(element => element.getAnimations().length), 0);
+    await page.close();
+  });
+
   it("reveals closed content when a fragment targets it and closes its named peer", async () => {
     const path = await bundle("html-disclosure-beforematch", `
       import "@looma-test/runtime";

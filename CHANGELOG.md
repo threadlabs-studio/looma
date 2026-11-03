@@ -7,6 +7,11 @@
 - Split the design-system guide into a visual creation walkthrough, focused theme/component/publishing guides, and a family-by-family recipe-to-CSS reference. Add the runnable Fellowship UI example and light/dark screenshots; group guidance in sidebar disclosures and keep main-navigation section links out of the guide sidebar.
 
 - Move the design-system CLI, generator and customizer to `@threadlabs/looma-docs`. Install it as a development dependency alongside Looma; Markupress, MarkupKit, Vite and editor preview dependencies install automatically. Programmatic documentation imports move from `@threadlabs/looma/docs` to `@threadlabs/looma-docs`.
+- Add `Card fill` for surfaces that occupy the remaining height of a bounded column, with an independently scrolling body.
+
+- Align the declared package baseline with published 0.51.4 so strict documentation consumers satisfy their existing peer dependency.
+
+- Animate a filling Disclosure's movement when surrounding navigation is replaced, preserving reduced-motion preferences and rapid toggles.
 
 - Keep navigation disclosure children adjacent to the trigger without the plain accordion's body padding.
 - Add shared content and chrome surface roles that retain a lighter reading area across themes.
