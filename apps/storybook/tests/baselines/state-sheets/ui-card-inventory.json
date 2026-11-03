@@ -33,6 +33,20 @@
     "example": 1
   },
   {
+    "name": "fill: false",
+    "props": {
+      "fill": false
+    },
+    "example": 1
+  },
+  {
+    "name": "fill: true",
+    "props": {
+      "fill": true
+    },
+    "example": 1
+  },
+  {
     "name": "padding: xs",
     "props": {
       "padding": "xs"
@@ -203,5 +217,10 @@
     "name": "Example: 04-expressive-surface",
     "props": {},
     "example": 4
+  },
+  {
+    "name": "Example: 05-fill",
+    "props": {},
+    "example": 5
   }
 ]
