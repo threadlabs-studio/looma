@@ -194,6 +194,13 @@
     "example": 1
   },
   {
+    "name": "variant: placeholder",
+    "props": {
+      "variant": "placeholder"
+    },
+    "example": 1
+  },
+  {
     "name": "Example: 00-preview",
     "props": {},
     "example": 0
