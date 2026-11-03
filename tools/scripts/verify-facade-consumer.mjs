@@ -195,7 +195,7 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
   await assertPackagesAbsent(directory, ["vue", "@tiptap/vue-3"], "a headless editor consumer");
 }
 
-async function verifyReleaseConsumer(directory, tarball) {
+async function verifyReleaseConsumer(directory, tarball, docsTarball) {
   const [fixtureManifest, tsconfig, source, viteConfig] = await Promise.all([
     readFile(path.join(releaseConsumerRoot, "package.json"), "utf8").then(JSON.parse),
     readFile(path.join(releaseConsumerRoot, "tsconfig.json"), "utf8").then(JSON.parse),
@@ -206,6 +206,8 @@ async function verifyReleaseConsumer(directory, tarball) {
   await mkdir(path.join(directory, "src"), { recursive: true });
   fixtureManifest.dependencies["@threadlabs/looma"] = `file:${tarball}`;
   fixtureManifest.pnpm.overrides["@threadlabs/looma"] = `file:${tarball}`;
+  fixtureManifest.devDependencies["@threadlabs/looma-docs"] = `file:${docsTarball}`;
+  fixtureManifest.pnpm.overrides["@threadlabs/looma-docs"] = `file:${docsTarball}`;
   await writeJson(path.join(directory, "package.json"), fixtureManifest);
   await writeJson(path.join(directory, "tsconfig.json"), tsconfig);
   await writeFile(path.join(directory, "src/index.ts"), source);
@@ -227,6 +229,10 @@ async function main() {
     assert.deepEqual(tarballs.length, 1);
     const tarball = path.join(packDirectory, tarballs[0]);
     const facadeManifest = JSON.parse(await readFile(path.join(facadeRoot, "package.json"), "utf8"));
+    const docsRoot = path.join(repoRoot, "packages/looma-docs");
+    await run(pnpm, ["--dir", docsRoot, "build"], repoRoot);
+    await run(pnpm, ["--dir", docsRoot, "pack", "--pack-destination", packDirectory], repoRoot);
+    const docsTarball = path.join(packDirectory, (await readdir(packDirectory)).find(file => file.startsWith("threadlabs-looma-docs-") && file.endsWith(".tgz")));
 
     // The installed docs build and the smaller SSR/type consumers use separate directories.
     // Drain both branches before cleanup, including when one reports a failure.
@@ -235,9 +241,9 @@ async function main() {
         await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball);
         await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
         await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
-        await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
+        await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball, docsTarball);
       })(),
-      verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, facadeManifest),
+      verifyDocumentationConsumer(path.join(temporaryRoot, "documentation"), tarball, docsTarball),
     ]);
     const failed = consumers.find(consumer => consumer.status === "rejected");
     if (failed) throw failed.reason;

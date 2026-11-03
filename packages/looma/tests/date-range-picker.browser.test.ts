@@ -1,22 +1,22 @@
-import { page, userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, reactive, type App } from "vue";
+import { page, userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiDateRangePicker as DateRangePicker } from "@threadlabs/looma";
+import { UiDateRangePicker as DateRangePicker } from "@looma-test/components";
 import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; delete document.documentElement.dataset.theme; });
 
-async function mount(adapter: "html" | "vue", initial: Record<string, unknown> = {}, container?: HTMLElement, model = false) {
-  const props = reactive({ value: { start: "2026-10-10", end: "2026-10-15" }, startName: "from", endName: "to", startInputId: "range-start", endInputId: "range-end", locale: "en-GB", today: "2026-10-30", ...initial });
+async function mount(adapter: "html" | "converted", initial: Record<string, unknown> = {}, container?: HTMLElement, model = false) {
+  const props = stateObject({ value: { start: "2026-10-10", end: "2026-10-15" }, startName: "from", endName: "to", startInputId: "range-start", endInputId: "range-end", locale: "en-GB", today: "2026-10-30", ...initial });
   const form = document.createElement("form"); document.body.append(form);
   const target = container ?? form;
   if (container) form.append(container);
-  if (adapter === "vue") { app = createApp({ render: () => h(DateRangePicker, { ...props, ...(model ? { "onUpdate:value": (value: { start: string; end: string }) => { props.value = value; } } : {}) }) }); app.mount(target); }
+  if (adapter === "converted") { app = createScene({ render: () => sceneNode(DateRangePicker, { ...props, ...(model ? { "bind:value": (value: { start: string; end: string }) => { props.value = value; } } : {}) }) }); app.mount(target); }
   else {
     const invocation = document.createElement("ui-date-range-picker");
     for (const [key, value] of Object.entries(props)) invocation.setAttribute(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), typeof value === "object" ? JSON.stringify(value) : String(value));
@@ -35,7 +35,7 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
   const entries = () => [...new FormData(form)];
   const events: { type: string; detail: any }[] = [];
   for (const type of ["input", "change", "open", "close"]) form.addEventListener(type, event => { if (event instanceof CustomEvent) events.push({ type, detail: event.detail }); });
-  const update = async (values: Record<string, unknown>) => { if (adapter === "vue") Object.assign(props, values); else componentRegistry.update(root, values); await nextTick(); };
+  const update = async (values: Record<string, unknown>) => { if (adapter === "converted") Object.assign(props, values); else componentRegistry.update(root, values); await settle(); };
   const open = async (name = "start") => {
     await userEvent.click(trigger(name));
     await vi.waitFor(() => expect(trigger(name).getAttribute("aria-expanded")).toBe("true"));
@@ -50,7 +50,7 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
   return { form, root, editor, trigger, popover, action, day, entries, events, update, open, type };
 }
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`reports a committed range once when a controlled parent echoes live values in ${adapter}`, async () => {
     const { form, entries, events, type } = await mount(adapter, {}, undefined, true);
     await type("start", "2026-10-12");
@@ -192,7 +192,7 @@ it("keeps range fields and the calendar usable at 375px in light/dark and RTL", 
   await page.viewport(375, 720);
   for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = theme;
-    const { form, popover, open, day } = await mount("vue", { value: { start: "", end: "" }, locale: theme === "dark" ? "ar-EG" : "en-GB", ...(theme === "dark" ? {
+    const { form, popover, open, day } = await mount("converted", { value: { start: "", end: "" }, locale: theme === "dark" ? "ar-EG" : "en-GB", ...(theme === "dark" ? {
       startLabel: "تاريخ البدء", endLabel: "تاريخ الانتهاء", pickerLabel: "اختر نطاق التاريخ",
     } : {}) });
     form.style.width = "343px"; form.style.fontFamily = "var(--ui-font-family-sans)"; form.dir = theme === "dark" ? "rtl" : "ltr";
@@ -207,7 +207,7 @@ it("keeps range fields and the calendar usable at 375px in light/dark and RTL", 
       expect(label.left).toBeGreaterThanOrEqual(cell.left - 1);
       expect(label.right).toBeLessThanOrEqual(cell.right + 1);
     }
-    await page.screenshot({ path: `../../../.context/date-range-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ path: `../../../.context/date-range-${theme}-mobile.png` });
     app?.unmount(); app = undefined; form.remove();
   }
   await page.viewport(1280, 720);

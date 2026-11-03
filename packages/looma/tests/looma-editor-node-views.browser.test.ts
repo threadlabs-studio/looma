@@ -1,20 +1,20 @@
 import type { Editor } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { componentRegistry } from "@nextwebwg/html-next/runtime";
-import { userEvent } from "@vitest/browser/context";
+import { userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, shallowRef, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, createState, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -28,7 +28,7 @@ afterEach(async () => {
 async function mountEditor(html: string) {
   const host = document.body.appendChild(document.createElement("div"));
   let editor: Editor | null = null;
-  const app = createApp({ render: () => h(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }) });
+  const app = createScene({ render: () => sceneNode(LoomaEditor, { extensions: captureEditor(instance => { editor = instance; }) }) });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
@@ -43,9 +43,9 @@ const state = (element: Element) => element.getAttribute("data-ui-separator-stat
 describe("LoomaEditor node views", () => {
   it("refreshes cached reference display without an authored update and keeps link editing available", async () => {
     const host = document.body.appendChild(document.createElement("div"));
-    const references = shallowRef({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });
+    const references = createState({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });
     const updates = vi.fn(); let editor: Editor | null = null;
-    const app = createApp({ render: () => h(LoomaEditor, {
+    const app = createScene({ render: () => sceneNode(LoomaEditor, {
       content: { type: "doc", content: [{ type: "paragraph", content: [
         { type: "loomaReference", attrs: { id: "guide", kind: "link", href: "/guide", label: "Saved guide", target: "_self" } },
         { type: "text", text: " " },
@@ -69,7 +69,7 @@ describe("LoomaEditor node views", () => {
   });
   it("draws a divider with Separator, selects it on click, and disconnects it once the node is removed", async () => {
     const { host, editor } = await mountEditor("<p>Before</p><hr><p>After</p>");
-    const divider = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-separator"]')!;
+    const divider = host.querySelector<HTMLElement>('.ProseMirror :is([component~="ui-separator"], [data-component~="ui-separator"], .ui-separator, [ui-separator])')!;
     expect(divider.tagName).toBe("HR");
     expect(state(divider).split(" ")).toContain("selectable");
     expect(divider.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
@@ -93,13 +93,13 @@ describe("LoomaEditor node views", () => {
     const { host, editor } = await mountEditor("<p>Before</p><hr><p>After</p>");
     editor.setEditable(false);
     await flushBrowser();
-    const divider = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-separator"]')!;
+    const divider = host.querySelector<HTMLElement>('.ProseMirror :is([component~="ui-separator"], [data-component~="ui-separator"], .ui-separator, [ui-separator])')!;
     await vi.waitFor(() => expect(state(divider).split(" ")).not.toContain("selectable"));
   });
 
   it("draws a callout with Callout, follows tone and heading changes, and disconnects it once the node is removed", async () => {
     const { host, editor } = await mountEditor('<ui-callout tone="tip" heading="Before"><p>Body</p></ui-callout><p>After</p>');
-    const callout = host.querySelector<HTMLElement>('.ProseMirror [data-looma-callout] [data-component~="ui-callout"]')!;
+    const callout = host.querySelector<HTMLElement>('.ProseMirror [data-looma-callout] :is([component~="ui-callout"], [data-component~="ui-callout"], .ui-callout, [ui-callout])')!;
     expect(callout.querySelector("[data-looma-callout-body] p")?.textContent).toBe("Body");
     expect(callout.getAttribute("data-ui-callout-prop-tone")).toBe("tip");
     expect(callout.querySelector(".heading")?.textContent).toBe("Before");
@@ -118,8 +118,8 @@ describe("LoomaEditor node views", () => {
   it("composes a section from Disclosure and its settings, hides the settings from readers, and disconnects them once removed", async () => {
     const { host, editor } = await mountEditor('<details data-looma-expand data-summary="Details"><div data-looma-expand-body><p>Body</p></div></details><p>After</p>');
     const section = host.querySelector<HTMLElement>(".ProseMirror [data-looma-expand]")!;
-    const disclosure = section.querySelector<HTMLElement>('[data-component~="ui-disclosure"]')!;
-    const settings = section.querySelector<HTMLElement>('[data-component~="ui-icon-button"]')!;
+    const disclosure = section.querySelector<HTMLElement>(':is([component~="ui-disclosure"], [data-component~="ui-disclosure"], .ui-disclosure, [ui-disclosure])')!;
+    const settings = section.querySelector<HTMLElement>(':is([component~="ui-icon-button"], [data-component~="ui-icon-button"], .ui-icon-button, [ui-icon-button])')!;
     expect(disclosure.querySelector("[data-looma-expand-body] p")?.textContent).toBe("Body");
     expect(disclosure.textContent).toContain("Details");
     expect(settings.closest<HTMLElement>("[hidden]")).toBeNull();
@@ -141,7 +141,7 @@ describe("LoomaEditor node views", () => {
     const { host, editor } = await mountEditor(`<details data-looma-expand open><summary>Outer</summary><div data-looma-expand-body>${nested}</div></details><p>After</p>`);
     editor.setEditable(false);
     await flushBrowser();
-    const [outer, inner] = [...host.querySelectorAll<HTMLElement>('.ProseMirror [data-component~="ui-disclosure"]')];
+    const [outer, inner] = [...host.querySelectorAll<HTMLElement>('.ProseMirror :is([component~="ui-disclosure"], [data-component~="ui-disclosure"], .ui-disclosure, [ui-disclosure])')];
     expect(outer!.contains(inner!)).toBe(true);
     const outerOpen = () => outer!.getAttribute("data-ui-disclosure-prop-open");
     const before = outerOpen();
@@ -159,7 +159,7 @@ describe("LoomaEditor node views", () => {
     expect(links()).toEqual(["Overview", "Details"]);
     editor.commands.insertContentAt(editor.state.doc.content.size, "<h2>Later</h2>");
     await vi.waitFor(() => expect(links()).toEqual(["Overview", "Details", "Later"]));
-    const settings = nav.querySelector<HTMLElement>('[data-component~="ui-icon-button"]')!;
+    const settings = nav.querySelector<HTMLElement>(':is([component~="ui-icon-button"], [data-component~="ui-icon-button"], .ui-icon-button, [ui-icon-button])')!;
     expect(settings.hidden).toBe(false);
     // The author tool belongs outside the guide line, not in the title row.
     expect(settings.getBoundingClientRect().right).toBeLessThan(nav.getBoundingClientRect().left - 12);
@@ -192,7 +192,7 @@ describe("LoomaEditor node views", () => {
     editor.setEditable(false);
     await flushBrowser();
     expect(settings.hidden).toBe(true);
-    const list = nav.querySelector<HTMLElement>('[data-component~="ui-list"]')!;
+    const list = nav.querySelector<HTMLElement>(':is([component~="ui-list"], [data-component~="ui-list"], .ui-list, [ui-list])')!;
     editor.setEditable(true);
     editor.commands.setContent("<p>Gone</p>");
     await flushBrowser();
@@ -205,7 +205,7 @@ describe("LoomaEditor node views", () => {
 
   it("draws an image with Image, selects it on click, commits a resize as the node's size, and disconnects once removed", async () => {
     const { host, editor } = await mountEditor('<p>Before</p><img src="https://example.test/image.svg" width="320" height="160" alt="Example"><p>After</p>');
-    const image = host.querySelector<HTMLElement>('.ProseMirror [data-component~="ui-image"]')!;
+    const image = host.querySelector<HTMLElement>('.ProseMirror :is([component~="ui-image"], [data-component~="ui-image"], .ui-image, [ui-image])')!;
     const imageState = () => (image.getAttribute("data-ui-image-state") ?? "").split(" ");
     expect(image.querySelector("img")?.getAttribute("alt")).toBe("Example");
     await userEvent.click(image.querySelector("img")!);

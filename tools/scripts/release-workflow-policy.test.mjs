@@ -129,8 +129,8 @@ test("workflows pin actions to commits and disable checkout credentials", () => 
 
 // Installers link commands before the package build creates ignored output.
 test("documentation command exists in a clean source checkout before building", async () => {
-  const manifest = JSON.parse(await read("packages/looma/package.json"));
-  const launcher = `packages/looma/${manifest.bin["looma-docs"].replace(/^\.\//, "")}`;
+  const manifest = JSON.parse(await read("packages/looma-docs/package.json"));
+  const launcher = `packages/looma-docs/${manifest.bin["looma-docs"].replace(/^\.\//, "")}`;
   execFileSync("git", ["ls-files", "--error-unmatch", launcher], { cwd: repoRoot, stdio: "ignore" });
   assert.match(await read(launcher), /^#!\/usr\/bin\/env node/);
 });

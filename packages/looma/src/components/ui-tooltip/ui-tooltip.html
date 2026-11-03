@@ -74,56 +74,35 @@
 
     /* The label and the shortcut sit side by side, a gap apart, with the label wrapping on its own. */
     .surface {
-      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border)));
       position: relative;
       display: flex !important;
       align-items: baseline !important;
-      gap: var(--ui-space-2) !important;
+      gap: var(--ui-space-1) !important;
       box-sizing: border-box !important;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
       border: var(--ui-border-width) solid var(--_tooltip-line);
-      border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
+      border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-sm)));
       background: var(--_ui-tooltip-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--_ui-tooltip-text, var(--ui-text-primary));
-      padding: var(--ui-space-2) var(--ui-space-3) !important;
+      padding: var(--ui-space-1) var(--ui-space-2) !important;
       font-family: var(--ui-font-family-sans);
-      font-size: var(--ui-font-size-sm);
+      font-size: var(--ui-font-size-xs);
       line-height: var(--ui-line-height-tight);
-      box-shadow: var(--_ui-tooltip-shadow, var(--ui-overlay-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md))));
+      box-shadow: var(--_ui-tooltip-shadow, var(--ui-overlay-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-sm))));
     }
 
-    /* Purpose and measured size shape one shared separation lever. The content plane stays opaque;
-       transparency, frosting and edge light belong to the surrounding decorative material. */
+    /* A hint keeps one edge and a quiet lift. The shared palette supplies its tint;
+       the nearly opaque label plane and matching arrow remain readable over content. */
     .surface {
       --_ui-material-glassiness: clamp(0, var(--ui-glassiness, 0), 1);
-      --_ui-material-separation: clamp(0, var(--ui-surface-separation, 0), 1);
-      --_ui-material-active: clamp(0, calc(var(--_ui-material-separation) * 100000), 1);
-      --_ui-material-rim: calc(var(--_ui-material-separation) * var(--_ui-material-scale, 0.08) * 8px);
       --_ui-material-content-color: var(
         --_ui-tooltip-surface,
-        var(--_ui-material-underpaint, var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated))))
+        var(--ui-material-content, var(--ui-overlay-surface, var(--ui-surface-elevated)))
       );
-      --_ui-material-rim-color: color-mix(in srgb, var(--ui-material-glass, var(--ui-surface-elevated)) calc(var(--_ui-material-active) * 100%), transparent);
       background:
-        var(--ui-material-highlight, var(--ui-surface-highlight, linear-gradient(transparent, transparent))) padding-box,
         linear-gradient(var(--_ui-material-content-color), var(--_ui-material-content-color)) padding-box,
-        linear-gradient(var(--_ui-material-rim-color), var(--_ui-material-rim-color)) border-box;
-      border-width: calc(var(--ui-border-width) + var(--_ui-material-rim));
-      border-color: var(
-        --_ui-tooltip-border,
-        color-mix(in oklab, var(--ui-overlay-border, var(--ui-border-strong)) calc((1 - var(--_ui-material-active)) * 100%), transparent)
-      );
-      box-shadow: var(
-        --_ui-tooltip-shadow,
-        var(
-          --ui-overlay-shadow,
-          0 calc(var(--_ui-material-separation) * var(--_ui-material-scale, 0.08) * 8px) calc(
-            var(--_ui-material-separation) * var(--_ui-material-scale, 0.08) * 24px
-          ) color-mix(in oklab, var(--ui-text-primary) 15%, transparent),
-          inset 0 0 0 calc(var(--_ui-material-active) * var(--ui-border-width)) var(--ui-material-edge, var(--ui-border-strong)),
-          var(--ui-elevation-tooltip, var(--ui-shadow-md))
-        )
-      );
+        linear-gradient(transparent, transparent) border-box;
       -webkit-backdrop-filter: blur(calc(var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.08) * 32px));
       backdrop-filter: blur(calc(var(--_ui-material-glassiness) * var(--_ui-material-scale, 0.08) * 32px));
     }
@@ -160,7 +139,7 @@
       padding-inline-start: var(--ui-space-2) !important;
       border-inline-start: 1px solid color-mix(in oklab, currentColor 28%, transparent);
       color: color-mix(in oklab, currentColor 72%, transparent);
-      font-size: var(--ui-font-size-xs);
+      font-size: var(--ui-font-size-2xs);
       font-weight: var(--ui-font-normal);
       white-space: nowrap;
       vertical-align: baseline;

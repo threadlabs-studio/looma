@@ -3,6 +3,7 @@ import { componentInputs } from "@nextwebwg/html-next/inputs";
 import { Temporal, asciiDigits, canonicalValue, compileDateRules, isDateAllowed } from "../shared/date-time.js";
 import { availableDate } from "../shared/date-navigation.js";
 import { createCalendarBindings } from "./calendar-source.js";
+import { externalValueTracker } from "../shared/external-value.js";
 
 const constraintNames = ["min", "max", "allowedDates", "allowedRanges", "disabledDates", "disabledRanges", "disabledWeekdays"];
 
@@ -15,8 +16,12 @@ function interactions(host) {
   const model = () => host.props.model.value;
   const blocked = () => host.props.disabled.value;
   const settings = () => Object.fromEntries(constraintNames.map(key => [key, host.props[key].value]));
-  const focus = selector => {
+  const focus = (selector, immediate = false) => {
     cancelAnimationFrame(frame);
+    if (immediate) {
+      const target = element.querySelector(selector);
+      if (target && !target.closest("[hidden]")) target.focus();
+    }
     frame = requestAnimationFrame(() => {
       if (!connected) return;
       const target = element.querySelector(selector) ?? element.querySelector(host.state.mode === "days" ? '[data-calendar-days][tabindex="0"]' : "[data-calendar-year-toggle]");
@@ -65,7 +70,7 @@ function interactions(host) {
     if (!date) return;
     host.state.focusedDate = date;
     showMonth(date.slice(0, 7), "keyboard");
-    focus(`[data-calendar-day="${date}"]`);
+    focus(`[data-calendar-day="${date}"]`, true);
   };
   const navigate = (direction, trigger) => {
     const current = model(); if (!current) return;
@@ -158,19 +163,18 @@ function interactions(host) {
   element.addEventListener("keydown", keydown);
   element.addEventListener("focusin", focusin);
   element.addEventListener("focus-date", request);
-  let externalValue = host.props.value.value;
-  let externalMonth = host.props.month.value;
+  const externalValueChanged = externalValueTracker(host.props.value);
+  const externalMonthChanged = externalValueTracker(host.props.month);
   const stop = host.effect(() => {
     const value = host.props.value.value;
     const month = host.props.month.value;
-    if (value !== externalValue) {
-      externalValue = value;
+    if (externalValueChanged(value)) {
       if (host.state.current !== value) {
         host.state.current = value;
         if (!month && value) host.state.visibleMonth = value.slice(0, 7);
       }
     }
-    if (month !== externalMonth) { externalMonth = month; host.state.visibleMonth = month; }
+    if (externalMonthChanged(month)) host.state.visibleMonth = month;
   });
   return () => {
     connected = false; cancelAnimationFrame(frame); stop();

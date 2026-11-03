@@ -1,20 +1,20 @@
-import { page, userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, reactive, type App } from "vue";
+import { page, userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiDatePicker as DatePicker } from "@threadlabs/looma";
+import { UiDatePicker as DatePicker } from "@looma-test/components";
 import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; delete document.documentElement.dataset.theme; });
 
-async function mount(adapter: "html" | "vue", initial: Record<string, unknown> = {}) {
-  const props = reactive({ value: "2026-10-30", name: "date", label: "Date", locale: "en-GB", ...initial });
+async function mount(adapter: "html" | "converted", initial: Record<string, unknown> = {}) {
+  const props = stateObject({ value: "2026-10-30", name: "date", label: "Date", locale: "en-GB", ...initial });
   const form = document.createElement("form"); document.body.append(form);
-  if (adapter === "vue") { app = createApp({ render: () => h(DatePicker, { ...props }) }); app.mount(form); }
+  if (adapter === "converted") { app = createScene({ render: () => sceneNode(DatePicker, { ...props }) }); app.mount(form); }
   else {
     const invocation = document.createElement("ui-date-picker");
     for (const [key, value] of Object.entries(props)) invocation.setAttribute(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), typeof value === "object" ? JSON.stringify(value) : String(value));
@@ -36,11 +36,11 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
   };
   const action = (name: string) => form.querySelector<HTMLButtonElement>(`[data-picker-${name}]`)!;
   const select = async (value: string) => userEvent.click(popover.querySelector<HTMLButtonElement>(`[data-calendar-day="${value}"]`)!);
-  const update = async (values: Record<string, unknown>) => { if (adapter === "vue") Object.assign(props, values); else componentRegistry.update(root, values); await nextTick(); };
+  const update = async (values: Record<string, unknown>) => { if (adapter === "converted") Object.assign(props, values); else componentRegistry.update(root, values); await settle(); };
   return { form, root, editor, clock, trigger, popover, events, entries, open, action, select, update };
 }
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`shares progressive time entry and localized clock choices within the calendar in ${adapter}`, async () => {
     const { form, clock, entries, open, trigger } = await mount(adapter, { type: "datetime-local", value: "2026-10-30T14:30", locale: "en-US" });
     await open();
@@ -154,12 +154,12 @@ it("keeps the composed picker within a 375px light/dark RTL viewport", async () 
   await page.viewport(375, 640);
   for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = theme;
-    const { form, open, popover } = await mount("vue", { type: "datetime-local", value: "2026-10-30T14:30" });
+    const { form, open, popover } = await mount("converted", { type: "datetime-local", value: "2026-10-30T14:30" });
     form.style.width = "343px"; form.style.fontFamily = "var(--ui-font-family-sans)"; form.dir = theme === "dark" ? "rtl" : "ltr";
     await open(); await vi.waitFor(() => expect(getComputedStyle(popover).opacity).toBe("1"));
     expect(popover.scrollWidth).toBeLessThanOrEqual(popover.clientWidth + 1);
     expect(popover.getBoundingClientRect().right).toBeLessThanOrEqual(375);
-    await page.screenshot({ path: `../../../.context/date-picker-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ path: `../../../.context/date-picker-${theme}-mobile.png` });
     app?.unmount(); app = undefined; form.remove();
   }
   await page.viewport(1280, 720);

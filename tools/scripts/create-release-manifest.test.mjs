@@ -41,7 +41,7 @@ test("records a deterministic inventory of every packed file", () => {
 });
 
 test("accepts only the exact configured release package set", () => {
-  const packages = [{ name: "@threadlabs/looma" }];
+  const packages = [{ name: "@threadlabs/looma" }, { name: "@threadlabs/looma-docs" }];
 
   assert.doesNotThrow(() => assertExactReleasePackageSet(packages));
   assert.throws(

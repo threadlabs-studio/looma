@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { frameworkExamples } from '../../../packages/looma/tooling/docs/framework-examples.mjs';
+import { frameworkExamples } from '../../../packages/looma-docs/tooling/docs/framework-examples.mjs';
 import { copiedPageMatches } from './check-copies.mjs';
 
 const pipe = '# Status\n\n| Name | State |\n| --- | --- |\n| Release | `ready` |\n\n```sh\npnpm build\n```\n';
@@ -27,10 +27,13 @@ test('Getting Started framework tabs match the shared example output', async () 
     readFile(new URL('../../docs/model-example.html', import.meta.url), 'utf8'),
     readFile(new URL('../docs/getting-started.md', import.meta.url), 'utf8'),
   ]);
-  const components = ['ui-stack', 'ui-button'].map(tag => ({ tag, package: '@threadlabs/looma' }));
-  const examples = Object.values(frameworkExamples({ markup }, components));
+  const catalog = JSON.parse(await readFile(new URL('../../../packages/looma/docs/catalog.json', import.meta.url), 'utf8'));
+  const components = [...catalog.resources, ...catalog.components];
+  const examples = Object.values(frameworkExamples({ markup }, components)).filter(example => !example.notice);
   const fences = [...guide.split('## Install Looma')[0].matchAll(/```(\w+)\n([\s\S]*?)\n```/g)];
   assert.equal(fences.length, examples.length);
+  assert.match(guide, /::: tab \[Angular\]/);
+  assert.match(guide, /ng-template ui-button/);
   for (const [index, example] of examples.entries()) {
     assert.equal(fences[index][1], example.language);
     assert.equal(fences[index][2], example.code);

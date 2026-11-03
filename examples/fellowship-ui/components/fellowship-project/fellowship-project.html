@@ -1,0 +1,25 @@
+<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-cluster/ui-cluster.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
+<link rel="component" href="@threadlabs/looma/components/ui-badge/ui-badge.html">
+
+<template component="fellowship-project">
+  <defs>
+    <prop name="name" type="string" default="A shared project">The project name.</prop>
+    <prop name="status" type="string" default="In progress">The project's current status.</prop>
+    <prop name="owner" type="string" default="The team">The person responsible for the next step.</prop>
+  </defs>
+  <article>
+    <ui-card padding="lg">
+      <ui-stack gap="l">
+        <ui-cluster justify="between" align="start">
+          <ui-text variant="heading" as="h3">{$name}</ui-text>
+          <ui-badge tone="accent">{$status}</ui-badge>
+        </ui-cluster>
+        <ui-text tone="secondary"><slot></slot></ui-text>
+        <ui-text variant="caption" tone="muted">Next step with {$owner}</ui-text>
+      </ui-stack>
+    </ui-card>
+  </article>
+</template>

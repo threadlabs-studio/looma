@@ -1,27 +1,27 @@
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, expect, it } from "vitest";
-import { createApp, h, nextTick, ref, type App } from "vue";
+import { createScene, sceneNode, settle, createState, type Scene } from "@looma-test/scene";
 import type { Editor, JSONContent } from "@tiptap/core";
-import { UiCompactEditor } from "../src/components/ui-compact-editor/ui-compact-editor.html";
-import { UiCompactContent as LoomaCompactContent } from "../src/components/ui-compact-content/ui-compact-content.html";
+import { UiCompactEditor } from "@looma-test/components";
+import { UiCompactContent as LoomaCompactContent } from "@looma-test/components";
 import { captureEditor } from "./editor-test-extensions";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 const LoomaCompactEditor = await editorUnderTest(UiCompactEditor, true);
 import "../tokens.css";
 import "../theme-light.css";
-let app: App;
+let app: Scene;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });
 
 it.each(["compact", "document"])("%s editing cancels Markdown with Escape and isolates conversion in undo history", async (kind) => {
   let editor!: Editor;
   const host = document.createElement("div"); document.body.append(host);
-  const model = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const model = createState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const props = { label: "Writing", content: model.value, extensions: captureEditor(value => { editor = value; }),
     onChange: (event: CustomEvent<{ content: JSONContent }>) => { model.value = event.detail.content; } };
-  app = createApp({ render: () => kind === "compact" ? h(LoomaCompactEditor, { ...props, content: model.value }) : h(LoomaEditor, { ...props, content: model.value, toolbarMode: "sticky" }) });
-  app.mount(host); await nextTick(); await nextTick();
+  app = createScene({ render: () => kind === "compact" ? sceneNode(LoomaCompactEditor, { ...props, content: model.value }) : sceneNode(LoomaEditor, { ...props, content: model.value, toolbarMode: "sticky" }) });
+  app.mount(host); await settle(); await settle();
   const field = page.getByRole("textbox", { name: "Writing" });
   await field.click();
   const mod = /Mac|iP(hone|[oa]d)/.test(navigator.platform) ? "Meta" : "Control";
@@ -78,15 +78,23 @@ it.each(["compact", "document"])("%s editing cancels Markdown with Escape and is
 
 it("formats short text through native shortcuts and Markdown without document controls", async () => {
   await page.viewport(375, 650);
-  const model = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
-  const id = ref("message");
+  const model = createState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const id = createState("message");
   let editor!: Editor;
   const host = document.createElement("div"); document.body.append(host);
-  app = createApp({ render: () => h("div", [h(LoomaCompactEditor, { id: id.value, label: "Comment", content: model.value,
-    onChange: (event: CustomEvent<{ content: JSONContent }>) => { model.value = event.detail.content; }, extensions: captureEditor(value => { editor = value; }) }), h(LoomaCompactContent, { content: model.value })]) });
+  app = createScene({ render: () => sceneNode("div", [sceneNode(LoomaCompactEditor, { id: id.value, label: "Comment", content: model.value,
+    onChange: (event: CustomEvent<{ content: JSONContent }>) => { model.value = event.detail.content; }, extensions: captureEditor(value => { editor = value; }) }), sceneNode(LoomaCompactContent, { content: model.value })]) });
+  const firstRender = new Promise<number>(resolve => {
+    const observer = new MutationObserver(() => {
+      const root = host.querySelector(".looma-compact-editor");
+      if (!root) return;
+      observer.disconnect(); resolve(root.getBoundingClientRect().height);
+    });
+    observer.observe(host, { childList: true, subtree: true });
+  });
   app.mount(host);
-  const initialHeight = host.querySelector(".looma-compact-editor")!.getBoundingClientRect().height;
-  await nextTick(); await nextTick();
+  const initialHeight = await firstRender;
+  await settle(); await settle();
   expect(host.querySelector(".looma-compact-editor")!.getBoundingClientRect().height).toBe(initialHeight);
   const field = page.getByRole("textbox", { name: "Comment" });
   await field.click();
@@ -108,8 +116,8 @@ it("formats short text through native shortcuts and Markdown without document co
   expect(host.scrollWidth).toBeLessThanOrEqual(375);
   expect(host.querySelectorAll("#message")).toHaveLength(1);
   model.value = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Restored", marks: [{ type: "bold" }] }] }] };
-  await nextTick(); await expect.element(field).toHaveTextContent("Restored");
+  await settle(); await expect.element(field).toHaveTextContent("Restored");
   expect(host.querySelector(".looma-compact-content strong")?.textContent).toBe("Restored");
-  id.value = "next-message"; await nextTick();
+  id.value = "next-message"; await settle();
   expect(host.querySelector('[role="textbox"]')?.id).toBe("next-message");
 });

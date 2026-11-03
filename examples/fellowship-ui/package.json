@@ -1,0 +1,20 @@
+{
+  "name": "fellowship-ui-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.7.1",
+  "scripts": {
+    "setup": "node setup.mjs",
+    "dev": "looma-docs dev",
+    "build": "looma-docs build",
+    "preview": "looma-docs preview"
+  },
+  "dependencies": {
+    "@threadlabs/looma": ">=0.52.0"
+  },
+  "devDependencies": {
+    "@threadlabs/looma-docs": ">=0.52.0"
+  },
+  "license": "MIT"
+}

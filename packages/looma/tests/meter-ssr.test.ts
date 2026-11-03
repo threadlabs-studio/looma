@@ -1,41 +1,34 @@
-// Renders ui-meter on the server through the built Vue components (run `pnpm build` first). The bar's
+import { expect } from "./renderers/test-context";
+import { renderSceneBody } from "./renderers/server-assertions";
+// Renders ui-meter through the selected server renderer. The bar's
 // fill and its ARIA values come from the props as it renders, so the server's HTML shows and states
 // the value with no JavaScript.
-import { createSSRApp, h } from "vue";
-import { execFileSync } from "node:child_process";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiMeter as Meter } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderInLocale } from "./renderers/ssr-process";
+import { describe, it } from "vitest";
+import { JSDOM } from "jsdom";
+import { UiMeter as Meter } from "@looma-test/components";
 
 const render = async (props: Record<string, unknown>) => {
-  const html = await renderToString(createSSRApp({ render: () => h(Meter, props) }));
-  const root = /^<span\b[^>]*>/.exec(html)![0];
-  const attribute = (name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(root)?.[1];
-  const fill = Number(/class="fill" style="inline-size:([\d.]+)%;"/.exec(html)?.[1]);
+  const html = await renderSceneBody(createHydratedScene({ render: () => sceneNode(Meter, props) }));
+  const document = new JSDOM(html).window.document;
+  const root = document.querySelector('[role="meter"]')!;
+  const attribute = (name: string) => root.getAttribute(name) ?? undefined;
+  const fill = parseFloat((root.querySelector(".fill") as HTMLElement).style.inlineSize);
   return { attribute, fill, html };
 };
 
 describe("Meter server render", () => {
-  it("formats its default spoken percentage using the server locale", () => {
-    const html = execFileSync(process.execPath, ["--input-type=module", "--eval", `
-      import { createSSRApp, h } from 'vue';
-      import { renderToString } from 'vue/server-renderer';
-      import { resolve } from 'node:path';
-      import { createServer } from 'vite';
-      import htmlNext from '@nextwebwg/html-next-unplugin/vite';
-      import vue from '@vitejs/plugin-vue';
-      const server = await createServer({
-        configFile: false, logLevel: 'silent', root: resolve('../../tests/framework-consumer'),
-        plugins: [htmlNext({ target: 'vue', declarationsFile: 'node_modules/.html-next/locale-test.d.ts' }), vue()],
-        server: { middlewareMode: true },
-      });
-      try {
-        const { UiMeter: Meter } = await server.ssrLoadModule('@threadlabs/looma');
-        process.stdout.write(await renderToString(createSSRApp({ render: () => h(Meter, { value: 0.29 }) })));
-      } finally { await server.close(); }
-    `], { cwd: new URL("../", import.meta.url), env: { ...process.env, LANG: "de_DE.UTF-8", LC_ALL: "de_DE.UTF-8" }, encoding: "utf8" });
-    expect(html).toContain('aria-valuetext="29\u00a0%"');
-    expect(Number(/inline-size:([\d.]+)%;/.exec(html)?.[1])).toBeCloseTo(29, 6);
+  it("formats its default spoken percentage using the server locale", async () => {
+    const html = await renderInLocale(`
+      import { createHydratedScene, sceneNode, renderSceneToString } from "@looma-test/scene";
+      import { UiMeter } from "@looma-test/components";
+      export default await renderSceneToString(createHydratedScene({ render: () => sceneNode(UiMeter, { value: 0.29 }) }));
+    `, "de_DE.UTF-8");
+    const document = new JSDOM(html).window.document;
+    expect(document.querySelector('[role="meter"]')?.getAttribute("aria-valuetext")).toBe("29\u00a0%");
+    const fill = document.querySelector<HTMLElement>(".fill")!;
+    expect(parseFloat(fill.style.inlineSize)).toBeCloseTo(29, 6);
   });
   it("draws the fill and states its value, name, and bounds", async () => {
     const meter = await render({ value: 750, max: 1240, label: "Collected", valueText: "$750 of $1,240 collected" });

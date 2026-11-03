@@ -17,10 +17,18 @@ function ensureOpen(members) {
   pendingGroups.add(members);
   queueMicrotask(() => {
     pendingGroups.delete(members);
-    const current = [...members];
-    if (!current.some(member => member.required()) || current.some(member => member.isOpen())) return;
+    // Connection can finish out of order. Native document order owns the automatic choice;
+    // an authored or user-selected open member keeps ownership when another member connects.
+    const current = [...members].sort((a, b) => {
+      const position = a.element.compareDocumentPosition(b.element);
+      if (position & a.element.DOCUMENT_POSITION_DISCONNECTED) return 0;
+      return position & a.element.DOCUMENT_POSITION_FOLLOWING ? -1 : position & a.element.DOCUMENT_POSITION_PRECEDING ? 1 : 0;
+    });
+    if (!current.some(member => member.required()) || current.some(member => member.isOpen() && !member.automatic)) return;
     const candidate = current.find(member => !member.disabled()) || current[0];
-    candidate?.open();
+    if (candidate?.isOpen()) return;
+    for (const member of current) if (member.isOpen()) member.close("programmatic", "programmatic");
+    candidate?.open(true);
   });
 }
 
@@ -75,11 +83,14 @@ export function connect(host) {
     });
   };
   const member = {
+    element: host.element,
+    automatic: false,
     isOpen: () => Boolean(host.state.internalOpen),
     required: () => Boolean(host.props.requiredOpen.value),
     disabled: () => Boolean(host.props.disabled.value),
-    open() {
+    open(automatic = false) {
       if (disposed || host.state.internalOpen) return;
+      member.automatic = automatic;
       animateFillTakeover();
       host.state.internalOpen = true;
       syncGroup("programmatic", "programmatic");
@@ -87,6 +98,7 @@ export function connect(host) {
     },
     close(reason, how) {
       if (!host.state.internalOpen) return;
+      member.automatic = false;
       animateFillTakeover();
       host.state.internalOpen = false;
       host.dispatch("close", { open: false, reason, trigger: how });
@@ -111,6 +123,7 @@ export function connect(host) {
   };
   const stop = host.effect(() => {
     if (host.props.open.value !== external) {
+      member.automatic = false;
       external = host.props.open.value;
       if (external || mayClose()) {
         animateFillTakeover();
@@ -126,6 +139,7 @@ export function connect(host) {
   });
   const onClick = () => {
     if (host.props.disabled.value) return;
+    member.automatic = false;
     const open = !host.state.internalOpen;
     if (!open && !mayClose()) return;
     const how = trigger();
@@ -136,6 +150,7 @@ export function connect(host) {
   };
   const onBeforematch = () => queueMicrotask(() => {
     if (disposed || host.state.internalOpen) return;
+    member.automatic = false;
     animateFillTakeover();
     host.state.internalOpen = true;
     syncGroup("programmatic", "programmatic");

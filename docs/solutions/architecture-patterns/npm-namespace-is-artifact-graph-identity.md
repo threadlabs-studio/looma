@@ -67,7 +67,7 @@ product.
 For a facade, define subpaths as part of the one public identity. A consumer
 should install `@threadlabs/looma` once and import capabilities from explicit
 exports such as `@threadlabs/looma/editor`, `@threadlabs/looma/input-modality`,
-or `@threadlabs/looma/docs`. Framework components compile from the root HTML Next
+or `@threadlabs/looma-docs`. Framework components compile from the root HTML Next
 source export, as described in the [loading guide](../../framework-loading.md).
 The manifest's export map and packed files must agree.
 

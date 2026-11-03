@@ -1,15 +1,16 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
 import { renderComponents, closeRenderWorkers } from "@nextwebwg/html-next/server";
-import { afterAll, expect, it } from "vitest";
+import { afterAll, it } from "vitest";
 import { definitions } from "../dist/index.js";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { UiCalendar as Calendar } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { UiCalendar as Calendar } from "@looma-test/components";
 
 afterAll(() => closeRenderWorkers());
 
-it("prepares the actual Calendar automatically in ordinary Vue SSR with producer transfer records", async () => {
-  const html = await renderToString(createSSRApp({ render: () => h(Calendar, { value: "2024-02-29", today: "2024-02-12", locale: "en-GB" }) }));
+it("prepares the actual Calendar automatically in ordinary converted SSR with producer transfer records", async () => {
+  const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Calendar, { value: "2024-02-29", today: "2024-02-12", locale: "en-GB" }) }));
   const document = new JSDOM(html).window.document;
   expect(document.querySelectorAll("[data-calendar-day]")).toHaveLength(42);
   expect(document.querySelector('[data-calendar-day="2024-02-29"]')!.parentElement!.getAttribute("aria-selected")).toBe("true");

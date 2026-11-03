@@ -1,5 +1,5 @@
-import portrait from "../../../../packages/looma/tooling/docs/portrait.svg?url&no-inline";
-import pastoral from "../../../../packages/looma/tooling/docs/pastoral.svg?url&no-inline";
+import portrait from "../../../../packages/looma-docs/tooling/docs/portrait.svg?url&no-inline";
+import pastoral from "../../../../packages/looma-docs/tooling/docs/pastoral.svg?url&no-inline";
 
 // Stories render each component's own examples (packages/looma/src/components/<tag>/examples/*.html),
 // the same files the docs site renders and tests. A story never writes a component's markup by hand,

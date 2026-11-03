@@ -2,8 +2,8 @@ import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-import { discoverComponents } from "../../packages/looma/tooling/docs/catalog.mjs";
-import { frameworkExamples } from "../../packages/looma/tooling/docs/framework-examples.mjs";
+import { discoverComponents } from "../../packages/looma-docs/tooling/docs/catalog.mjs";
+import { frameworkExamples } from "../../packages/looma-docs/tooling/docs/framework-examples.mjs";
 
 // Convert authored examples during the build, keeping the compiler out of the browser bundle.
 const { components } = await discoverComponents({
@@ -45,4 +45,4 @@ await build({
 
 const assets = new URL("static/_looma/", import.meta.url);
 await mkdir(assets, { recursive: true });
-for (const file of ["portrait.svg", "pastoral.svg"]) await cp(new URL(`../../packages/looma/tooling/docs/${file}`, import.meta.url), new URL(file, assets));
+for (const file of ["portrait.svg", "pastoral.svg"]) await cp(new URL(`../../packages/looma-docs/tooling/docs/${file}`, import.meta.url), new URL(file, assets));

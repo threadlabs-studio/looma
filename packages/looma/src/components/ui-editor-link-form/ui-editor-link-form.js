@@ -63,6 +63,11 @@ export function connect(host) {
   element.addEventListener("click", onClick);
   element.addEventListener("keydown", onKeyDown);
   element.addEventListener("submit", onSubmit);
+  // Native fields retain edits made while the component's controller module was loading.
+  const destination = element.querySelector("[data-link-destination]")?.value;
+  const text = element.querySelector("[data-link-text]")?.value;
+  if (destination !== undefined && destination !== String(host.props.value.value ?? "")) host.dispatch("destination", { value: destination });
+  if (text !== undefined && text !== String(host.props.text.value ?? "")) host.dispatch("text", { text });
   return () => {
     element.removeEventListener("command", onCommand);
     cancelActiveItemReveal(element);

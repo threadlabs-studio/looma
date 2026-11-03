@@ -1,7 +1,7 @@
 import { chooseOption, openEditor, chooseStartingPoint, waitForThemeFonts, setBaseColor, chooseRefinement, openOverview } from './choose-option.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { startingPoints } from '../../../packages/looma/tooling/docs/theme.mjs';
+import { startingPoints } from '../../../packages/looma-docs/tooling/docs/theme.mjs';
 
 const session = page => page.evaluate(() => window[Symbol.for('looma.documentation.theme')].recipe);
 const enter = async (page, info) => {
@@ -46,7 +46,7 @@ test('theme sampler delivers checked-choice hover over both marks and labels', a
   await page.goto(info.config.metadata.markupress + 'customize/');
   await chooseStartingPoint(page, 'looma');
   for (const tag of ['ui-checkbox', 'ui-switch', 'ui-radio']) {
-    const control = page.locator(`[data-theme-sampler] [data-component~="${tag}"]`).first();
+    const control = page.locator(`[data-theme-sampler] [component~="${tag}"]`).first();
     const input = control.locator('input');
     await expect(input).toBeChecked();
     const paint = () => input.evaluate(el => getComputedStyle(el).backgroundColor);
@@ -168,11 +168,11 @@ test('touch sizing preserves the ladder and finger drags preserve the grab offse
   try {
     const errors=await enter(page,info);
     await openEditor(page, 'layout');
-    const heights=await page.locator('[data-size-sample]').evaluateAll(rows=>rows.map(row=>row.querySelector('[data-size-actions] button[data-component="ui-button"]').getBoundingClientRect().height));
+    const heights=await page.locator('[data-size-sample]').evaluateAll(rows=>rows.map(row=>row.querySelector('[data-size-actions] button[component="ui-button"]').getBoundingClientRect().height));
     expect(heights).toHaveLength(3); expect(heights[0]).toBeLessThan(heights[1]); expect(heights[1]).toBeLessThan(heights[2]);
     for(const size of ['sm','md','lg']) {
       const row=page.locator(`[data-size-sample="${size}"]`);
-      const boxes=await row.locator('button[data-component="ui-button"],input[data-component="ui-input"],[data-component="ui-color-picker"] button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect().height));
+      const boxes=await row.locator('button[component="ui-button"],input[component="ui-input"],[component="ui-color-picker"] button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect().height));
       expect(Math.max(...boxes)-Math.min(...boxes)).toBeLessThan(.6);
     }
     const material=await openEditor(page, 'material');
@@ -335,7 +335,7 @@ test('starter rhythm changes sampler gaps and unitless text ratios together', as
   await page.goto(info.config.metadata.markupress+'customize/');
   const preset=page.locator('[data-preset] input[role=combobox]');
   const sampler=page.locator('[data-theme-sampler] [data-preview]');
-  const measure=()=>sampler.locator('[data-component="ui-card"] [data-component="ui-stack"]').first().evaluate(el=>{
+  const measure=()=>sampler.locator('[component="ui-card"] [component="ui-stack"]').first().evaluate(el=>{
     const root=getComputedStyle(document.documentElement), s=getComputedStyle(el), heading=getComputedStyle(document.querySelector('h3'));
     return {gap:parseFloat(s.rowGap),headingRatio:parseFloat(heading.lineHeight)/parseFloat(heading.fontSize),bodyRatio:root.getPropertyValue('--ui-line-height').trim()};
   });
@@ -458,7 +458,7 @@ test('rhythm separates stacked size groups without spreading navigation or actio
   const measure=()=>page.evaluate(()=>({
     groups:parseFloat(getComputedStyle(document.querySelector('[data-size-groups]')).rowGap),
     row:parseFloat(getComputedStyle(document.querySelector('[data-size-actions]')).columnGap),
-    nav:parseFloat(getComputedStyle(document.querySelector('[data-component~="ui-site-header"] .navigation')).columnGap),
+    nav:parseFloat(getComputedStyle(document.querySelector('[component~="ui-site-header"] .navigation')).columnGap),
   }));
   const before=await measure();
   await editor.getByRole('slider',{name:'Rhythm',exact:true}).press('End');
@@ -488,7 +488,7 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
   const editor=await openEditor(page,'palette');
   const boundaries=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>{
     const border=element=>getComputedStyle(element).borderTopColor;
-    return [card.querySelector('input'),...card.querySelectorAll('[data-component~="ui-button"][data-tone="neutral"]')].map(border);
+    return [card.querySelector('input'),...card.querySelectorAll('[component~="ui-button"][data-tone="neutral"]')].map(border);
   }));
   await page.mouse.move(1,1);
   for(const colors of await boundaries()) expect(new Set(colors).size).toBe(1);
@@ -505,7 +505,7 @@ for (const width of [1440,375]) test(`palette relationships govern neutral bound
     await editor.getByRole('combobox',{name:label+' relationship',exact:true}).selectOption('primary');
     expect(await editor.locator(`[data-token="${role}-color"]`).count()).toBe(0);
   }
-  const statusColors=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>['Success','Error','Warning','Info'].map(label=>getComputedStyle([...card.querySelectorAll('[data-component~="ui-badge"]')].find(badge=>badge.textContent.trim()===label)).color)));
+  const statusColors=()=>editor.locator('.palette-preview [data-theme]').evaluateAll(cards=>cards.map(card=>['Success','Error','Warning','Info'].map(label=>getComputedStyle([...card.querySelectorAll('[component~="ui-badge"]')].find(badge=>badge.textContent.trim()===label)).color)));
   for(const colors of await statusColors()) expect(new Set(colors).size).toBe(1);
   await editor.getByRole('combobox',{name:'Link accent',exact:true}).selectOption('secondary');
   const edited=await session(page);

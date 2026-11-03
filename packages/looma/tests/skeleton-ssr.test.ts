@@ -1,13 +1,14 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiSkeleton as Skeleton } from "@threadlabs/looma";
-import { UiStatusMessage as StatusMessage } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { describe, it } from "vitest";
+import { UiSkeleton as Skeleton } from "@looma-test/components";
+import { UiStatusMessage as StatusMessage } from "@looma-test/components";
 
 describe("Skeleton before upgrade", () => {
   it("renders an empty decorative placeholder without a focus target or announcement", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h(Skeleton) }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Skeleton) }));
     const element = new JSDOM(html).window.document.body.firstElementChild!;
     expect(element.tagName).toBe("SPAN");
     expect(element.getAttribute("aria-hidden")).toBe("true");
@@ -19,7 +20,7 @@ describe("Skeleton before upgrade", () => {
   });
 
   it("ships dimensions and shape with the server markup", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h(Skeleton, {
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Skeleton, {
       shape: "rectangle", width: "75%", height: "6rem", animated: true,
     }) }));
     const element = new JSDOM(html).window.document.body.firstElementChild as HTMLElement;
@@ -30,10 +31,10 @@ describe("Skeleton before upgrade", () => {
   });
 
   it("lets a single status describe a region containing several placeholders", async () => {
-    const html = await renderToString(createSSRApp({ render: () => [
-      h(StatusMessage, { kind: "loading" }, () => "Loading a profile"),
-      h("section", { "aria-busy": "true", "aria-label": "Profile" }, [
-        h(Skeleton, { shape: "circle" }), h(Skeleton), h(Skeleton),
+    const html = await renderSceneToString(createHydratedScene({ render: () => [
+      sceneNode(StatusMessage, { kind: "loading" }, () => "Loading a profile"),
+      sceneNode("section", { "aria-busy": "true", "aria-label": "Profile" }, [
+        sceneNode(Skeleton, { shape: "circle" }), sceneNode(Skeleton), sceneNode(Skeleton),
       ]),
     ] }));
     const document = new JSDOM(html).window.document;

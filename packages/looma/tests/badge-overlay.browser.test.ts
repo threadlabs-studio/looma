@@ -1,12 +1,12 @@
 import { afterEach, expect, it } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiBadge as Badge } from "@threadlabs/looma";
-import { UiButton as Button } from "@threadlabs/looma";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiBadge as Badge } from "@looma-test/components";
+import { UiButton as Button } from "@looma-test/components";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App;
+let app: Scene;
 afterEach(() => { app?.unmount(); document.body.innerHTML = ""; });
 
 it("overlay counts inherit filled action ink and remain compact and legible in both themes", async () => {
@@ -14,13 +14,13 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     const host = document.createElement("div"); document.body.append(host);
-    app = createApp({ render: () => h("div", ["default", "violet"].flatMap(control => [1, 12, 99, 120].map(count => h(Button, {
+    app = createScene({ render: () => sceneNode("div", ["default", "violet"].flatMap(control => [1, 12, 99, 120].map(count => sceneNode(Button, {
       variant: "solid", tone: "accent", size: "sm", "aria-label": `Submit ${count} items`, "data-control": control,
       ...(control === "violet" ? { style: "--ui-accent: rgb(109, 74, 255); --ui-on-accent: white" } : {}),
-    }, { default: () => "Submit", badge: () => h(Badge, {
+    }, { default: () => "Submit", badge: () => sceneNode(Badge, {
       variant: "overlay", shape: "circle", size: "sm", "aria-hidden": true,
     }, () => count > 99 ? "99+" : String(count)) })))) });
-    app.mount(host); await nextTick();
+    app.mount(host); await settle();
     const canvas = document.createElement("canvas"); canvas.width = 1; canvas.height = 1;
     const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     const paint = (background: string, overlay?: string) => {
@@ -30,12 +30,12 @@ it("overlay counts inherit filled action ink and remain compact and legible in b
     };
     const luminance = (rgb: number[]) => rgb.map(c => c / 255).map(c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
       .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i]!, 0);
-    for (const count of host.querySelectorAll(':is([data-component~="ui-badge"], .ui-badge)')) {
+    for (const count of host.querySelectorAll(':is([component~="ui-badge"], [data-component~="ui-badge"], .ui-badge, [ui-badge])')) {
       const button = count.closest("button")!;
       const style = getComputedStyle(count), parentStyle = getComputedStyle(button);
       const bounds = count.getBoundingClientRect(), label = count.querySelector(".label")!.getBoundingClientRect();
       expect(style.color).toBe(parentStyle.color);
-      if (button.dataset.control === "violet") expect(parentStyle.backgroundColor).toBe("rgb(109, 74, 255)");
+      if (button.dataset.control === "violet") expect(paint(parentStyle.backgroundColor)).toEqual([109, 74, 255]);
       const ink = luminance(paint(style.color)), surface = luminance(paint(parentStyle.backgroundColor, style.backgroundColor));
       expect((Math.max(ink, surface) + 0.05) / (Math.min(ink, surface) + 0.05)).toBeGreaterThanOrEqual(4.5);
       const control = luminance(paint(parentStyle.backgroundColor));

@@ -18,13 +18,13 @@ const EXEMPT = {
 
 /**
  * A control that can carry a form name, or that renders a native form control, is used in a real
- * form by the "Form participation" browser test, in HTML and in Vue, so the entries it submits (or
+ * form by the "Form participation" browser test, in HTML and every converted target, so the entries it submits (or
  * that it submits none, by design) are asserted rather than assumed.
  */
 test("every form control is covered by the form participation browser test", async () => {
-  const tests = await readFile(path.join(repoRoot, "packages/looma/tests/browser.test.ts"), "utf8");
+  const tests = await readFile(path.join(repoRoot, "packages/looma/tests/browser/form-participation.test.ts"), "utf8");
   const start = tests.indexOf('describe("Form participation"');
-  assert.notEqual(start, -1, "browser.test.ts has a Form participation block");
+  assert.notEqual(start, -1, "the shared browser suite has a Form participation block");
   const block = tests.slice(start, tests.indexOf("\n});", start));
 
   const missing = [];
@@ -35,7 +35,7 @@ test("every form control is covered by the form participation browser test", asy
     if (!control || EXEMPT[tag]) continue;
     const vue = tag.slice(3).replace(/(?:^|-)([a-z])/g, (_, letter) => letter.toUpperCase());
     if (!block.includes(`<${tag} `)) missing.push(`${tag} (HTML)`);
-    if (!new RegExp(`h\\(${vue}\\b`).test(block)) missing.push(`${tag} (Vue ${vue})`);
+    if (!new RegExp(`sceneNode\\(${vue}\\b`).test(block)) missing.push(`${tag} (converted ${vue})`);
   }
   assert.deepEqual(missing, []);
 });

@@ -13,7 +13,7 @@ async function run(command, args, cwd) {
 const json = (file, value) => writeFile(file, JSON.stringify(value, null, 2) + '\n');
 
 /** Qualify the shipped product from an isolated install, including its real local writer and watcher. */
-export async function verifyDocumentationConsumer(directory, tarball, manifest) {
+export async function verifyDocumentationConsumer(directory, tarball, docsTarball, toolOverrides = {}) {
   const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   const packageManager = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).packageManager;
   await mkdir(directory, { recursive: true });
@@ -21,8 +21,12 @@ export async function verifyDocumentationConsumer(directory, tarball, manifest) 
     name: 'looma-documentation-consumer', private: true, type: 'module', packageManager,
     dependencies: {
       '@threadlabs/looma': `file:${tarball}`,
-      '@threadlabs/markupkit': manifest.peerDependencies['@threadlabs/markupkit'], markupress: manifest.peerDependencies.markupress, vite: manifest.peerDependencies.vite,
     },
+    devDependencies: {
+      '@threadlabs/looma-docs': `file:${docsTarball}`,
+    },
+    pnpm: { overrides: { '@threadlabs/looma': `file:${tarball}`, ...toolOverrides }},
+
   });
   // Fresh per-run metadata sees newly compatible peers; the shared package-file store is still reused.
   await run(pnpm, ['install', '--ignore-scripts', '--strict-peer-dependencies', '--config.auto-install-peers=false', '--prefer-offline', `--config.cache-dir=${path.join(path.dirname(directory), 'registry-metadata')}`], directory);
@@ -33,10 +37,11 @@ import { realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 const origin = pathToFileURL(process.cwd() + '/package.json').href;
-const looma = import.meta.resolve('@threadlabs/looma/editor', origin);
+const docs = import.meta.resolve('@threadlabs/looma-docs', origin);
+const looma = import.meta.resolve('@threadlabs/looma/editor', docs);
 const runtime = await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', looma)));
 for (const name of ['@threadlabs/markupkit', '@threadlabs/looma/editor']) {
-  const entry = import.meta.resolve(name, origin);
+  const entry = import.meta.resolve(name, docs);
   assert.equal(await realpath(new URL(import.meta.resolve('@nextwebwg/html-next/runtime', entry))), runtime, name + ' must share the application runtime');
 }
 console.log('Documentation packages resolve one HTML Next runtime through their ESM entry points.');
@@ -50,7 +55,7 @@ for (const name of Object.getOwnPropertyNames(dom.window)) {
 }
 try {
   const { stop } = await import('@threadlabs/looma');
-  const markupkit = import.meta.resolve('@threadlabs/markupkit', origin);
+  const markupkit = import.meta.resolve('@threadlabs/markupkit', docs);
   const { componentRegistry } = await import(import.meta.resolve('@nextwebwg/html-next/runtime', markupkit));
   const button = componentRegistry.create('ui-button', { content: ['Save'] });
   document.body.append(button);
@@ -73,9 +78,9 @@ try {
   // and authored discovery with one shipped component inside the package job's budget.
   await writeFile(path.join(directory, 'verify-build.mjs'), `
 import { readFile } from 'node:fs/promises';
-import { readCatalog, buildProjectDocumentation } from '@threadlabs/looma/docs';
+import { readCatalog, buildProjectDocumentation } from '@threadlabs/looma-docs';
 const catalog = await readCatalog();
-catalog.components = catalog.components.filter(component => component.tag === 'ui-button').map(component => ({ ...component, examples: component.examples.slice(0, 1) }));
+catalog.components = catalog.components.filter(component => ['ui-button', 'ui-editor'].includes(component.tag)).map(component => ({ ...component, examples: component.examples.slice(0, 1) }));
 const config = JSON.parse(await readFile('looma.docs.json', 'utf8'));
 await buildProjectDocumentation({ root: process.cwd(), config, catalog });
 `);
@@ -90,10 +95,10 @@ await buildProjectDocumentation({ root: process.cwd(), config, catalog });
   await writeFile(path.join(directory, 'verify-local.mjs'), `
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { readCatalog, devProjectDocumentation, startingPoints } from '@threadlabs/looma/docs';
+import { readCatalog, devProjectDocumentation, startingPoints } from '@threadlabs/looma-docs';
 const config = JSON.parse(await readFile('looma.docs.json', 'utf8'));
 const catalog = await readCatalog();
-catalog.components = catalog.components.filter(component => component.tag === 'ui-button').map(component => ({ ...component, examples: component.examples.slice(0, 1) }));
+catalog.components = catalog.components.filter(component => ['ui-button', 'ui-editor'].includes(component.tag)).map(component => ({ ...component, examples: component.examples.slice(0, 1) }));
 const server = await devProjectDocumentation({ root: process.cwd(), config, catalog, port: 0 });
 try {
   const origin = new URL(server.url).origin;
@@ -106,19 +111,24 @@ try {
   assert.equal(loaded.recipe.values.canvas, '#11141c');
   await mkdir('app/components/office-note');
   await writeFile('app/components/office-note/office-note.html', '<template component="office-note"><p>Sam booked second breakfast.</p></template>');
-  const deadline = Date.now() + 30_000;
-  let discovered = false;
+  const started = Date.now();
+  // A cold reference rebuild takes 15 seconds locally and longer on hosted ARM runners.
+  // Keep the complete discovery assertion inside the package job's existing deadline.
+  const deadline = started + 60_000;
+  let discovered = false, status;
   while (Date.now() < deadline) {
     const page = await fetch(server.url + 'components/office-note/');
+    status = page.status;
     if (page.status === 200) {
       const html = await page.text();
       if (!html.includes('<iframe') && html.includes('Sam booked second breakfast.')) { discovered = true; break; }
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  assert.ok(discovered, 'a newly authored component must appear without restarting dev');
+  assert.ok(discovered, 'a newly authored component must appear without restarting dev (last HTTP ' + status + ', elapsed ' + (Date.now() - started) + 'ms)');
+  console.log('Installed docs discovered a new component in ' + (Date.now() - started) + 'ms.');
 } finally { await server.close(); }
 `);
   await run(process.execPath, ['verify-local.mjs'], directory);
-  console.log('Installed documentation CLI, discovery, theme saving and reload passed without peer overrides.');
+  console.log('Installed documentation CLI, discovery, theme saving and reload passed with two direct packages.');
 }

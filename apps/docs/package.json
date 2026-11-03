@@ -1,7 +1,7 @@
 {
-  "name": "@threadlabs/looma-docs",
+  "name": "@threadlabs/looma-docs-parity",
   "private": true,
-  "version": "0.51.4",
+  "version": "0.52.0",
   "scripts": {
     "dev": "pnpm generate:api && node build-preview.mjs && docusaurus start --port 4173",
     "build": "pnpm generate:api && node build-preview.mjs && BROWSERSLIST_IGNORE_OLD_DATA=true USE_SIMPLE_CSS_MINIFIER=true docusaurus build",
@@ -22,7 +22,7 @@
     "@docusaurus/plugin-content-docs": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
-    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.82",
     "@threadlabs/looma": "workspace:*",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",

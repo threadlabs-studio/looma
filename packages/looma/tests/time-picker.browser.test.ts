@@ -1,24 +1,24 @@
-import { page, userEvent } from "@vitest/browser/context";
-import { createApp, h, nextTick, reactive, type App } from "vue";
+import { page, userEvent } from "vitest/browser";
+import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
-import { UiTimePicker as TimePicker } from "@threadlabs/looma";
-import { UiFormField as FormField } from "@threadlabs/looma";
+import { UiTimePicker as TimePicker } from "@looma-test/components";
+import { UiFormField as FormField } from "@looma-test/components";
 import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import "../dist/index.js";
 import "../tokens.css";
 import "../theme-light.css";
 import "../theme-dark.css";
 
-let app: App | undefined;
+let app: Scene | undefined;
 afterEach(() => { app?.unmount(); app = undefined; document.body.innerHTML = ""; document.body.removeAttribute("style"); delete document.documentElement.dataset.theme; });
-async function mount(adapter: "html" | "vue", initial: Record<string, unknown> = {}, wrap = false) {
-  const props = reactive({ name: "time", label: "Time", value: "14:30", locale: "en-GB", ...initial });
+async function mount(adapter: "html" | "converted", initial: Record<string, unknown> = {}, wrap = false) {
+  const props = stateObject({ name: "time", label: "Time", value: "14:30", locale: "en-GB", ...initial });
   const form = document.createElement("form"); document.body.append(form);
   let submissions = 0;
   form.addEventListener("submit", event => { event.preventDefault(); submissions++; });
-  const fieldProps = reactive({ required: true, disabled: false });
-  if (adapter === "vue") {
-    app = createApp({ render: () => wrap ? h(FormField, { ...fieldProps }, { label: () => h("label", { for: props.inputId }, "Time"), default: () => h(TimePicker, { ...props }) }) : h(TimePicker, { ...props }) }); app.mount(form);
+  const fieldProps = stateObject({ required: true, disabled: false });
+  if (adapter === "converted") {
+    app = createScene({ render: () => wrap ? sceneNode(FormField, { ...fieldProps }, { label: () => sceneNode("label", { for: props.inputId }, "Time"), default: () => sceneNode(TimePicker, { ...props }) }) : sceneNode(TimePicker, { ...props }) }); app.mount(form);
   }
   else {
     const invocation = document.createElement("ui-time-picker");
@@ -29,7 +29,7 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
       wrapper.append(label, invocation); form.append(wrapper);
     } else form.append(invocation);
   }
-  await nextTick();
+  await settle();
   await vi.waitFor(() => expect(form.querySelector("button[data-time-trigger]:not([hidden])")).not.toBeNull());
   const trigger = form.querySelector<HTMLButtonElement>("[data-time-trigger]")!;
   const editor = form.querySelector<HTMLInputElement>("[data-date-editor]")!;
@@ -44,11 +44,11 @@ async function mount(adapter: "html" | "vue", initial: Record<string, unknown> =
     await vi.waitFor(() => expect(trigger.getAttribute("aria-expanded")).toBe("true"));
     await vi.waitFor(() => expect(document.activeElement).toBe(inputs[0]));
   };
-  const disableField = (disabled: boolean) => { if (adapter === "vue") fieldProps.disabled = disabled; else componentRegistry.update(form.firstElementChild!, { disabled }); };
+  const disableField = (disabled: boolean) => { if (adapter === "converted") fieldProps.disabled = disabled; else componentRegistry.update(form.firstElementChild!, { disabled }); };
   return { props, form, trigger, editor, popover, inputs, events, entries, open, disableField, submissions: () => submissions };
 }
 
-for (const adapter of ["html", "vue"] as const) {
+for (const adapter of ["html", "converted"] as const) {
   it(`uses localized hour choices and commits immediately without a footer in ${adapter}`, async () => {
     const { open, inputs, entries, form, trigger } = await mount(adapter, { locale: "en-US" });
     await open();
@@ -81,9 +81,9 @@ for (const adapter of ["html", "vue"] as const) {
       await userEvent.fill(editor, ""); editor.blur(); expect(form.checkValidity()).toBe(false);
       await userEvent.fill(editor, "09:45"); editor.blur(); await vi.waitFor(() => expect(form.checkValidity()).toBe(true));
     }
-    disableField(true); await nextTick();
+    disableField(true); await settle();
     await vi.waitFor(() => expect(trigger.disabled).toBe(true)); expect(entries()).toEqual([]);
-    disableField(false); await nextTick();
+    disableField(false); await settle();
     await vi.waitFor(() => expect(trigger.disabled).toBe(false)); expect(entries()).toEqual([["time", "09:45"]]);
   });
   it(`commits choices once, retains edits on Escape and restores trigger focus in ${adapter}`, async () => {
@@ -138,25 +138,25 @@ for (const adapter of ["html", "vue"] as const) {
 }
 
 it("tracks external values, bounds, readonly and disabled without silently replacing an invalid value", async () => {
-  const { props, editor, trigger, entries, open } = await mount("vue");
+  const { props, editor, trigger, entries, open } = await mount("converted");
   const group = editor.closest<HTMLElement>("[data-ui-input-group-state]")!;
   const enabledSurface = getComputedStyle(group).backgroundColor;
-  props.value = "10:15"; await nextTick(); await vi.waitFor(() => expect(entries()).toEqual([["time", "10:15"]]));
-  props.min = "11:00"; await nextTick(); await vi.waitFor(() => expect(editor.checkValidity()).toBe(false));
+  props.value = "10:15"; await settle(); await vi.waitFor(() => expect(entries()).toEqual([["time", "10:15"]]));
+  props.min = "11:00"; await settle(); await vi.waitFor(() => expect(editor.checkValidity()).toBe(false));
   expect(entries()).toEqual([["time", "10:15"]]);
-  props.min = ""; props.readonly = true; await nextTick();
+  props.min = ""; props.readonly = true; await settle();
   expect(trigger.disabled).toBe(true); expect(editor.readOnly).toBe(true); expect(entries()).toEqual([["time", "10:15"]]);
-  props.readonly = false; await nextTick(); await open();
-  props.disabled = true; await nextTick();
+  props.readonly = false; await settle(); await open();
+  props.disabled = true; await settle();
   await vi.waitFor(() => expect(trigger.getAttribute("aria-expanded")).toBe("false"));
   expect(entries()).toEqual([]); expect(getComputedStyle(group).backgroundColor).not.toBe(enabledSurface);
 });
 
 it("exposes seconds when bounds require them without rounding the permitted window", async () => {
-  const { props, open, inputs, entries, form } = await mount("vue", { value: "09:30", min: "09:30:01", max: "09:30:59" });
+  const { props, open, inputs, entries, form } = await mount("converted", { value: "09:30", min: "09:30:01", max: "09:30:59" });
   await open(); expect(inputs[2].disabled).toBe(false);
   expect(inputs[2].options[0].disabled).toBe(true); expect(inputs[2].options[1].disabled).toBe(false);
-  props.min = "09:30:15"; await nextTick();
+  props.min = "09:30:15"; await settle();
   await vi.waitFor(() => expect(inputs[2].options[1].disabled).toBe(true));
   await userEvent.selectOptions(inputs[2], "15");
   await vi.waitFor(() => expect(entries()).toEqual([["time", "09:30:15"]]));
@@ -169,14 +169,14 @@ it("uses the shared surfaces in a narrow light/dark RTL layout", async () => {
   document.body.style.color = "var(--ui-text-primary)";
   for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = theme;
-    const { form, open, popover, inputs } = await mount("vue", { value: "23:15:30.125" });
+    const { form, open, popover, inputs } = await mount("converted", { value: "23:15:30.125" });
     form.dir = "rtl"; form.style.width = "343px"; form.style.fontFamily = "var(--ui-font-family-sans)";
     await open();
     await vi.waitFor(() => expect(getComputedStyle(popover).opacity).toBe("1"));
     expect(form.scrollWidth).toBeLessThanOrEqual(form.clientWidth + 1);
     expect(popover.scrollWidth).toBeLessThanOrEqual(popover.clientWidth + 1);
     expect(getComputedStyle(inputs[0]).backgroundPositionX.split(",")[0].trim()).toBe("8px");
-    await page.screenshot({ path: `../../../.context/time-picker-${theme}-mobile.png` });
+    if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ path: `../../../.context/time-picker-${theme}-mobile.png` });
     app?.unmount(); app = undefined; form.remove();
   }
   await page.viewport(1280, 720);

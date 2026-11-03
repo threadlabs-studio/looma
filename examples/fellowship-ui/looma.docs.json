@@ -1,0 +1,22 @@
+{
+  "title": "Fellowship UI",
+  "base": "/",
+  "outDir": ".looma/site",
+  "content": "docs",
+  "theme": {
+    "recipe": "looma.theme.json",
+    "css": "looma.theme.css"
+  },
+  "components": [
+    {
+      "directory": "components",
+      "packageName": "fellowship-ui"
+    }
+  ],
+  "nav": [
+    {
+      "label": "Customize",
+      "href": "/customize/"
+    }
+  ]
+}

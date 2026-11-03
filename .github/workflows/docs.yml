@@ -47,7 +47,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build Looma
-        run: pnpm --filter @threadlabs/looma build
+        run: pnpm --filter @threadlabs/looma build && pnpm --filter @threadlabs/looma-docs build
 
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0

@@ -2,6 +2,33 @@
 
 ## Next release
 
+- Require Markupress >=0.18.4 so headings announce their text once while retaining keyboard permalinks. Update documentation parity checks to native component markers and keep the retained Getting Started introduction aligned with the supported frameworks.
+
+- Use canonical native component selectors in shared documentation interactions, catalog layout and customizer chrome measurement. Allow the cold installed-consumer rebuild to finish within its existing package qualification job.
+
+- Match Vitest’s discovered case names, isolate unit checks from prepared renderer setup, and retain all selected SSR checks. State sheets use native component markers; selection-action fixtures wait for the editor’s creation event.
+
+- Declare the documentation app’s Markdown compiler dependency so copied-page checks run with a fresh installation.
+
+- Run the default unit command within the unit project; browser and SSR checks continue through the shared renderer coordinator.
+
+- Require HTML Next >=1.0.0-alpha.82 for Angular native-root conversion and shared controller-startup checks.
+
+- Reposition expanding anchored surfaces during native resize observation so their first resized paint stays within the viewport.
+
+- Keep anchored floating surfaces hidden until their virtual anchor has a usable position. Shared renderer checks read native HTML attributes and distinguish normal hover styling from tree drop feedback.
+
+- Keep table context menus hidden while their controllers connect, so opening a menu does not expose an empty surface.
+
+- Open editor selection surfaces for an existing selection and preserve them when editor plugins are reconfigured. Shared renderer fixtures retain variable-bearing font shorthands, Svelte style objects and stable native refs; CI balances the complete suite by measured file durations.
+
+- Keep editor link-form edits made before controller connection, bound floating selection surfaces to the viewport, and validate shared scenes without depending on framework CSS hashes or serialization order. Native field validation retains application-owned errors through converted prop updates.
+
+- Improve the design-system guides with a compact setup-and-example opening, a unified process diagram, focused screenshots, and shared responsive reading and reference-table layouts. Include the runnable example and removed documentation entrypoints in documentation qualification.
+
+- Split the design-system guide into a visual creation walkthrough, focused theme/component/publishing guides, and a family-by-family recipe-to-CSS reference. Add the runnable Fellowship UI example and light/dark screenshots; group guidance in sidebar disclosures and keep main-navigation section links out of the guide sidebar.
+
+- Move the design-system CLI, generator and customizer to `@threadlabs/looma-docs`. Install it as a development dependency alongside Looma; Markupress, MarkupKit, Vite and editor preview dependencies install automatically. Programmatic documentation imports move from `@threadlabs/looma/docs` to `@threadlabs/looma-docs`.
 - Add `Card fill` for surfaces that occupy the remaining height of a bounded column, with an independently scrolling body.
 
 - Align the declared package baseline with published 0.51.4 so strict documentation consumers satisfy their existing peer dependency.
@@ -19,6 +46,13 @@
 - Keep outline buttons' pressed fill and inset shadow from being overridden by their tone-specific hover and resting styles.
 
 - Keep Button image marks and composed icons beside their labels, and let start-aligned rows use the available width for trailing actions.
+- Require Markupress >=0.18.0 and MarkupKit >=0.5.0 for canonical `component` roots so the documentation shell, logo variants and framework tabs initialize correctly.
+- Reuse suite-owned Vite module servers, compiler output, CSS and browser contexts across component fixtures. CI compiles the six complete catalogs once and shares those artifacts across browser shards.
+
+- Give selected tabs a subtle accent surface in both themes, including authored tab buttons and vertical tabs.
+- Add Preact and Angular setup and generated documentation examples, including Angular native attribute hosts and templates for switchable roots.
+- Share renderer-neutral browser scenarios across HTML Next, Vue, React, Preact, Svelte and Angular. Prepare the complete library once per renderer and reuse it across browser/SSR fixtures. Track browser behavior coverage for every source component.
+- Keep slotted mention avatars visually distinct with canonical component selectors, and ignore native checkbox changes when handling editor disclosure model events.
 
 - Strengthen continuous selection bands in light mode and add a little more accent tint in dark mode, using the shared selection palette for calendar ranges.
 
@@ -96,7 +130,6 @@
 
 - SiteHeader keeps desktop navigation outside its closed mobile dialog. Opening the drawer moves the same live navigation into the native modal and dismissal restores it, avoiding an invalid presentational dialog role while preserving link state and keyboard behavior.
 
-
 - Fieldset sections use internal gaps and padding instead of margins. A description and actions without body content no longer leave an extra gap above the bottom padding; legend and content alignment stays consistent.
 
 - **Breaking:** LoomaEditor reads and writes Markdown only through Expressmark, with `expressmark` 0.4.0 or later. `@threadlabs/looma/markdown/markdown-it` (`createLoomaMarkdownIt` and the `loomaMarkdown` plugin), `loomaMarkdownToHtml`, `loomaMarkdownFromDoc` and the `markdown-it` dependency are removed: a second Markdown engine read and wrote documents differently from Markupress and every other Expressive Markdown tool, and could not keep footnote or link definitions where they are written. To migrate, read Markdown with `markdownToEditorDocument(markdown)` from `@threadlabs/looma/editor/expressmark` and give the editor its JSON in place of `loomaMarkdownToHtml(markdown)`, and write with `editorDocumentToMarkdown(editor.getJSON(), { original: markdown })` (or `editorToMarkdown(editor, { original })`) in place of `loomaMarkdownFromDoc(editor.state.doc)`.
@@ -166,7 +199,6 @@
 - Keep Tree row hover continuous behind the expansion caret and use action cursors for expandable and selectable rows. Strengthen field recession in the Looma starting theme.
 
 - Spread material reflection across the complete control face without a localized bright dot, with a gentler response on light pigments and a stronger, saturation-preserving reflection on dark fills. Gold links use readable amber derived from the primary hue.
-
 
 - Render documentation and catalog descriptions with Expressmark's standard syntax, requiring Markupress 0.12 and Expressmark 0.2.2 to preserve native code literally. Guides use bracketed callout titles and adjacent tab panels; component invocations and code examples keep their meaning. The portable editor adapter still defaults to compatible interchange; select `syntax: "standard"` when exchanging content with Markupress.
 
@@ -240,7 +272,6 @@
 
 - Update to Expressmark 0.2 and explicitly select CommonMark/GFM syntax for editor interchange, preserving existing document round trips.
 
-
 ### Focused theme customization
 
 - Start customization on a dashboard of current theme decisions. Open Palette, Material & light, Typography, Size & spacing, or Motion as separate editors, with relevant live samples beside their controls. Editor links support reload and browser navigation; Overview restores the dashboard position and focus.
@@ -287,7 +318,6 @@
 - Add CycleButton, a compact reusable icon control that cycles named states without replacing its native button or moving keyboard focus. It uses IconButton's existing visual semantics.
 - Put a dense live documentation sampler in the customizer on desktop and mobile, reserve sidebar space for focus treatment, and remove the ambiguous page-entry theme comparison. Undo/Redo and staged nearby-style previews remain available.
 - Explain local design-system naming, logo configuration, HTML Next component discovery, categories and ownership attribution.
-
 
 ### Document-root theme scale
 
@@ -678,7 +708,6 @@
 
 - Icon Button adds an anticipatory neutral rounded-bar guide and keeps pressed feedback from replacing positioning transforms.
 - Hover/focus action tooltips dismiss on activation and persist only for keyboard-visible focus; click-trigger help toggletips retain their behavior.
-
 
 - Link fields apply valid destination, text, and new-tab changes directly while preserving input focus. The popup has no footer buttons; Enter, Escape, or an outside click closes it, and nearby link actions retain Open and Remove.
 

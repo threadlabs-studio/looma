@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.51.4",
+  "version": "0.52.0",
   "type": "module",
   "description": "HTML Next UI components, native DOM support and design tokens.",
   "license": "MIT",
@@ -64,12 +64,6 @@
     },
     "./theme-system.css": "./theme-system.css",
     "./docs/catalog.json": "./docs/catalog.json",
-    "./docs/*": "./docs/*",
-    "./docs": {
-      "types": "./docs/index.d.ts",
-      "import": "./docs/index.mjs",
-      "default": "./docs/index.mjs"
-    },
     "./editor/compact": {
       "types": "./editor/compact.d.ts",
       "import": "./editor/compact.js",
@@ -80,7 +74,8 @@
       "types": "./components/shared/input-modality.d.ts",
       "import": "./components/shared/input-modality.js",
       "default": "./components/shared/input-modality.js"
-    }
+    },
+    "./docs/examples/*": "./docs/examples/*"
   },
   "files": [
     "dist/",
@@ -93,8 +88,7 @@
     "README.md",
     "LICENSE",
     "EXPRESSIVE-MARKDOWN.md",
-    "docs/",
-    "bin/"
+    "docs/"
   ],
   "sideEffects": [
     "./dist/index.js",
@@ -105,25 +99,21 @@
     "build": "node build.mjs",
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
+    "test": "vitest run --project unit",
+    "test:browser": "node tests/run-browser.mjs"
   },
   "dependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.74",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.82",
     "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
     "expressmark": ">=0.5.1",
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
-    "lucide": "~0.554.0",
-    "parse5": "^8.0.1"
+    "lucide": "~0.554.0"
   },
   "peerDependencies": {
-    "@threadlabs/markupkit": ">=0.4.3",
     "@tiptap/core": ">=2 <3",
-    "@tiptap/pm": ">=2 <3",
-    "markupress": ">=0.14.6",
-    "vite": ">=7.2.7 <9"
+    "@tiptap/pm": ">=2 <3"
   },
   "peerDependenciesMeta": {
     "@tiptap/core": {
@@ -131,19 +121,18 @@
     },
     "@tiptap/pm": {
       "optional": true
-    },
-    "markupress": {
-      "optional": true
-    },
-    "@threadlabs/markupkit": {
-      "optional": true
-    },
-    "vite": {
-      "optional": true
     }
   },
   "devDependencies": {
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.79",
+    "@angular/common": "21.2.24",
+    "@angular/compiler": "21.2.24",
+    "@angular/compiler-cli": "21.2.24",
+    "@angular/core": "21.2.24",
+    "@angular/platform-browser": "21.2.24",
+    "@angular/platform-server": "21.2.24",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.82",
+    "@preact/preset-vite": "^2.10.6",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-blockquote": "^2.11.5",
     "@tiptap/extension-bold": "^2.11.5",
@@ -178,22 +167,28 @@
     "@tiptap/extension-underline": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "@tiptap/suggestion": "^2.11.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "@vitejs/plugin-vue": "^6.0.9",
-    "@vitest/browser": "~3.2.6",
+    "@vitest/browser-playwright": "^5.0.4",
     "axe-core": "^4.10.3",
     "jsdom": "^27.0.0",
     "playwright": "~1.60.0",
+    "preact": "^11.1.0",
+    "preact-render-to-string": "^6.8.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "rxjs": "^7.8.2",
+    "svelte": "^5.57.1",
     "typescript": "~5.9.3",
     "vite": "^8.3.0",
-    "vitest": "^3.2.6",
+    "vitest": "^5.0.4",
     "vue": "^3.5.43",
     "vue-tsc": "^3.3.11",
-    "@threadlabs/markupkit": ">=0.4.3"
+    "parse5": "^8.0.1"
   },
   "engines": {
     "node": ">=22.22.2 <23 || >=24.15 <25"
-  },
-  "bin": {
-    "looma-docs": "./bin/looma-docs.mjs"
   }
 }

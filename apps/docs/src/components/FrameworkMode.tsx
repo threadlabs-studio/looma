@@ -2,11 +2,12 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import CodeBlock from "@theme/CodeBlock";
 import type { Props as RootProps } from "@theme/Root";
 
-export type FrameworkMode = "html-next" | "vue" | "react" | "svelte";
+export type FrameworkMode = "html-next" | "vue" | "react" | "preact" | "svelte" | "angular";
 
 export interface FrameworkExample {
   code: string;
-  language: "html" | "vue" | "tsx" | "svelte";
+  language: "html" | "vue" | "tsx" | "svelte" | "text";
+  notice?: string;
 }
 
 export type FrameworkExamples = Readonly<Record<FrameworkMode, FrameworkExample>>;
@@ -18,7 +19,9 @@ const modes = [
   { id: "html-next", label: "HTML Next" },
   { id: "vue", label: "Vue" },
   { id: "react", label: "React" },
-  { id: "svelte", label: "Svelte" }
+  { id: "preact", label: "Preact" },
+  { id: "svelte", label: "Svelte" },
+  { id: "angular", label: "Angular" }
 ] as const;
 
 interface FrameworkModeContextValue {
@@ -106,7 +109,7 @@ export function FrameworkModeCode({ examples }: { examples: FrameworkExamples })
 
   return (
     <div className="looma-mode-code" data-framework-mode={mode}>
-      <CodeBlock language={example.language}>{example.code}</CodeBlock>
+      {example.notice ? <p>{example.notice}</p> : <CodeBlock language={example.language}>{example.code}</CodeBlock>}
     </div>
   );
 }

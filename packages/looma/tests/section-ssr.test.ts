@@ -1,14 +1,15 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiSection as Section } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneToString } from "@looma-test/scene";
+import { describe, it } from "vitest";
+import { UiSection as Section } from "@looma-test/components";
 
 describe("Section before upgrade", () => {
   it("names a native fieldset through its legend and keeps actions and description inside", async () => {
-    const html = await renderToString(createSSRApp({ render: () => h(Section, { variant: "fieldset", heading: "Profile" }, {
-      description: () => "How other people see you.", actions: () => h("button", "Reset"),
-      default: () => h("input", { "aria-label": "Display name" }),
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Section, { variant: "fieldset", heading: "Profile" }, {
+      description: () => "How other people see you.", actions: () => sceneNode("button", "Reset"),
+      default: () => sceneNode("input", { "aria-label": "Display name" }),
     }) }));
     const doc = new JSDOM(html).window.document;
     const frame = doc.querySelector("fieldset")!;
@@ -19,7 +20,7 @@ describe("Section before upgrade", () => {
     expect(frame.querySelector("legend button")).toBeNull();
   });
   it.each(["plain", "card", "divided"] as const)("preserves the %s section's native heading", async variant => {
-    const html = await renderToString(createSSRApp({ render: () => h(Section, { variant, heading: "Profile" }, () => "Content") }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Section, { variant, heading: "Profile" }, () => "Content") }));
     const doc = new JSDOM(html).window.document;
     expect(doc.querySelector("section h2")?.textContent).toBe("Profile");
     expect(doc.querySelector("fieldset")).toBeNull();

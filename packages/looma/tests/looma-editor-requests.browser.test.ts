@@ -1,21 +1,21 @@
 import { Mark, type Editor, type JSONContent } from "@tiptap/core";
 import { RequestEvent } from "@nextwebwg/html-next/runtime";
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest, nativeEditorTarget } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import "../tokens.css";
 import "../theme-light.css";
 
 const { respond } = RequestEvent;
-const apps: App[] = [];
+const apps: Scene[] = [];
 const cleanups: Array<() => void> = [];
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -29,14 +29,15 @@ afterEach(async () => {
 });
 
 async function mountEditor(props: Record<string, unknown>, width = 1280) {
-  Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
+  await page.viewport(width, 800);
   const host = document.body.appendChild(document.createElement("div"));
   // Inspect Tiptap's own view marker here so the extensions request remains unclaimed.
   const editor = () => host.querySelector<HTMLElement & { editor: Editor }>('[role="textbox"]')?.editor;
-  const app = createApp({ render: () => h(LoomaEditor, { toolbarMode: "sticky", ...props }) });
+  const app = createScene({ render: () => sceneNode(LoomaEditor, { toolbarMode: "sticky", ...props }) });
   apps.push(app);
   app.mount(host);
   await flushBrowser();
+  await expect.element(page.getByRole("textbox", { name: String(props.label ?? "Document"), exact: true })).toBeVisible();
   await vi.waitFor(() => expect(editor()).toBeDefined());
   return { host, editor };
 }
@@ -52,7 +53,7 @@ function chooseImage(host: HTMLElement, name: string) {
 const insertImage = () => page.getByRole("button", { name: "Insert image", exact: true });
 
 describe("LoomaEditor requests", () => {
-  it.skipIf(nativeEditorTarget)("answers image-upload through the Vue event form, shows its progress, and cancels it", async () => {
+  it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
     let signal: AbortSignal | undefined;
     const errors: unknown[] = [];
     const { host, editor } = await mountEditor({
@@ -73,7 +74,7 @@ describe("LoomaEditor requests", () => {
     expect(JSON.stringify(editor()!.getJSON())).not.toContain("photo.png");
   });
 
-  it("answers with the function prop ahead of the Vue event form and the document", async () => {
+  it("answers with the function prop ahead of the component event and the document", async () => {
     cleanups.push(respond(document, "image-upload", () => ({ src: "https://document.example.com/x.png" })));
     const listener = vi.fn();
     const { host, editor } = await mountEditor({
@@ -128,7 +129,7 @@ describe("LoomaEditor requests", () => {
     const { host, editor } = await mountEditor({ mentionQuery, mentionItems: [{ id: "ada", label: "Ada Lovelace" }], mentionLimit: 5 });
     await userEvent.click(editor()!.view.dom);
     await userEvent.keyboard("@ad");
-    await vi.waitFor(() => expect(host.querySelector('[data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu')?.textContent).toContain("Ada Lovelace"));
+    await vi.waitFor(() => expect(host.querySelector(':is([component~="ui-editor-mention-menu"], [data-component~="ui-editor-mention-menu"], .ui-editor-mention-menu, [ui-editor-mention-menu]), .ui-editor-mention-menu')?.textContent).toContain("Ada Lovelace"));
     expect(mentionQuery).toHaveBeenLastCalledWith({ query: "ad", limit: 5 }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     const signals = mentionQuery.mock.calls.map(([, init]) => init.signal.aborted);
     expect(signals.at(-1)).toBe(false);
@@ -163,7 +164,7 @@ it.each([1280, 375])("shows file upload progress and retries without losing cont
   input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   await expect.element(page.getByText("Attaching file… 50%")).toBeVisible();
   fail(Error("offline"));
-  await expect.element(page.getByRole("alert")).toHaveTextContent("Couldn’t attach file.");
+  await expect.element(page.getByRole("alert").getByText("Couldn’t attach file.", { exact: true })).toBeVisible();
   expect(host.querySelector('[role="alert"]')!.getBoundingClientRect().right).toBeLessThanOrEqual(width);
   expect(editor()!.getText()).toBe("Keep this. ");
   await userEvent.click(page.getByRole("button", { name: "Retry", exact: true }));

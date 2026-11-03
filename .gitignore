@@ -19,6 +19,7 @@ apps/docs/build/
 apps/docs/playwright-report/
 apps/docs/test-results/
 packages/looma/test-results/
+packages/looma/.vitest/
 packages/looma/.test-build/
 apps/storybook/storybook-static/
 apps/storybook/test-results/
@@ -83,6 +84,7 @@ apps/docs/static/_looma/
 
 # Package-owned documentation artifacts.
 /packages/looma/docs/
+/packages/looma-docs/docs/
 .looma/
 .markupkit-build-*/
 

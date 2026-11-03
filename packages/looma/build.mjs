@@ -88,11 +88,12 @@ await build({
 // Declarations for the framework-neutral TypeScript entries.
 execFileSync(join(root, "node_modules/.bin/tsc"), ["-p", join(root, "tsconfig.json")], { stdio: "inherit" });
 // Publish the shared browser initializer with declarations derived from its JSDoc source.
-execFileSync(join(root, "node_modules/.bin/tsc"), [
-  "--allowJs", "--declaration", "--emitDeclarationOnly", "--target", "ES2022", "--module", "ESNext",
-  "--lib", "ES2022,DOM", "--outDir", join(assembled, "shared-types"),
-  join(componentsRoot, "shared/input-modality.js"),
-], { stdio: "inherit" });
+const sharedConfig = join(assembled, "tsconfig.shared.json");
+await writeFile(sharedConfig, JSON.stringify({ compilerOptions: {
+  allowJs: true, declaration: true, emitDeclarationOnly: true, target: "ES2022", module: "ESNext",
+  moduleResolution: "Bundler", lib: ["ES2022", "DOM"], types: [], outDir: join(assembled, "shared-types"),
+}, files: [join(componentsRoot, "shared/input-modality.js")] }));
+execFileSync(join(root, "node_modules/.bin/tsc"), ["-p", sharedConfig], { stdio: "inherit" });
 await cp(join(assembled, "shared-types/input-modality.d.ts"), join(root, "components/shared/input-modality.d.ts"));
 await cp(join(assembled, "types-src/editor"), join(root, "editor"), { recursive: true });
 await cp(join(assembled, "types-src/markdown"), join(root, "markdown"), { recursive: true });

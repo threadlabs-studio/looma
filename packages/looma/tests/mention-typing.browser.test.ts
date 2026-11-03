@@ -1,4 +1,4 @@
-import { userEvent } from "@vitest/browser/context";
+import { userEvent } from "vitest/browser";
 import { Editor } from "@tiptap/core";
 import Code from "@tiptap/extension-code";
 import Document from "@tiptap/extension-document";

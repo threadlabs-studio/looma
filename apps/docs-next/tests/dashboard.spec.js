@@ -86,7 +86,7 @@ for (const width of [1440,375]) test(`persistent overview reflects edits and kee
   await expect(readout).toContainText('100% finish');
   if(width<640) await expect(summary.locator('[data-active-summary]')).toContainText('100% finish');
   await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
-  const header=page.locator('[data-component~="ui-site-header"]');
+  const header=page.locator('[component~="ui-site-header"]');
   const box=await summary.boundingBox(),headerBox=await header.boundingBox();
   expect(box.y).toBeGreaterThanOrEqual(headerBox.y+headerBox.height-1);
   expect(box.y+box.height).toBeLessThan(900);

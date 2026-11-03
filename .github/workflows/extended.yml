@@ -47,21 +47,22 @@ jobs:
         run: chown "$(id -u):$(id -g)" "$HOME"
       - run: corepack enable && pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm --filter @threadlabs/looma build
+      - run: pnpm --filter @threadlabs/looma-docs-parity build
+      - run: pnpm --filter @threadlabs/looma-docs-parity typecheck:tests
+      - run: pnpm --filter @threadlabs/looma-docs-parity docs:coverage
       - run: pnpm --filter @threadlabs/looma-docs build
-      - run: pnpm --filter @threadlabs/looma-docs typecheck:tests
-      - run: pnpm --filter @threadlabs/looma-docs docs:coverage
       - run: pnpm --filter @threadlabs/looma-docs-next build
       - name: Compare the Markupress site with Docusaurus, and render it without JavaScript
         run: pnpm --filter @threadlabs/looma-docs-next test:parity
       - name: Check the Markupress customizer with Safari and touch input
         run: pnpm --filter @threadlabs/looma-docs-next test:safari
       - name: Check full behavior in three engines
-        run: pnpm --filter @threadlabs/looma-docs exec playwright test --workers=1 --retries=0 --project=chromium --project=firefox --project=webkit
+        run: pnpm --filter @threadlabs/looma-docs-parity exec playwright test --workers=1 --retries=0 --project=chromium --project=firefox --project=webkit
       - name: Compare reviewed visuals
         env:
           LOOMA_DOCS_CANONICAL: "1"
           LOOMA_DOCS_REPORT: visual
-        run: pnpm --filter @threadlabs/looma-docs test:visual
+        run: pnpm --filter @threadlabs/looma-docs-parity test:visual
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()
         with:

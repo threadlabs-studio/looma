@@ -2,7 +2,7 @@ import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefi
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma/docs';
+import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma-docs';
 
 const catalog = await readCatalog();
 
@@ -21,7 +21,7 @@ async function chooseAppearance(page, choice) {
 test('directory cards and full reference come from the published component catalog', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/');
   await expect(page.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => !component.navigationParent).length);
-  const layoutGrid = page.locator('[data-catalog-group="layout"] [data-component~="ui-grid"]');
+  const layoutGrid = page.locator('[data-catalog-group="layout"] [component~="ui-grid"]');
   await expect(layoutGrid.locator('[data-component-card]')).toHaveCount(catalog.components.filter(component => component.group === 'layout' && !component.navigationParent).length);
   for (const tag of ['ui-button', 'ui-stack', 'ui-color-picker']) {
     const card = page.locator(`[data-component-card="${tag}"]`);
@@ -109,7 +109,7 @@ test('documentation navigation links categories and lists only the current categ
   if (process.env.LOOMA_MATERIAL_SCREENSHOTS) {
     await page.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'navigation-light.png') });
   }
-  await followDocumentationLink(page, page.locator('[data-component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }), 'Editor');
+  await followDocumentationLink(page, page.locator('[component~="markupress-header"]').getByRole('link', { name: 'Editor', exact: true }), 'Editor');
   await expect(page).toHaveURL(/\/editor\/$/);
   await expect(page.getByRole('navigation', { name: 'Documentation', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Toolbar', exact: true })).toHaveCount(0);
@@ -164,8 +164,8 @@ test('component browser searches the complete catalog in bounded groups', async 
 test('reel examples have meaningful overflow and snap at item centers', async ({ page }, info) => {
   await page.goto(info.config.metadata.markupress + 'components/ui-reel/');
   const examples = page.locator('[data-example-card]');
-  const free = examples.nth(0).locator('[data-preview]').locator('[data-component="ui-reel"]');
-  const snap = examples.nth(1).locator('[data-preview]').locator('[data-component="ui-reel"]');
+  const free = examples.nth(0).locator('[data-preview]').locator('[component="ui-reel"]');
+  const snap = examples.nth(1).locator('[data-preview]').locator('[component="ui-reel"]');
   await free.waitFor(); await snap.waitFor();
   for (const reel of [free, snap]) {
     expect(await reel.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThan(350);
@@ -248,7 +248,7 @@ test('complete reference and actual examples render before JavaScript', async ({
     await page.goto(info.config.metadata.markupress + 'components/ui-stack/');
     await expect(page.getByRole('heading', { name: 'Attributes', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Framework props', exact: true })).toBeVisible();
-    await expect(page.locator('[data-example-card] [data-preview]').first().locator('[data-component="ui-stack"]')).toBeVisible();
+    await expect(page.locator('[data-example-card] [data-preview]').first().locator('[component="ui-stack"]')).toBeVisible();
   } finally { await context.close(); }
 });
 
@@ -256,7 +256,7 @@ test('customizer stays within a narrow screen and the published editor playgroun
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(info.config.metadata.markupress + 'customize/');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  expect(await page.locator('[data-component~="markupress-header"]').evaluate(element => element.getBoundingClientRect().height)).toBeLessThanOrEqual(68);
+  expect(await page.locator('[component~="markupress-header"]').evaluate(element => element.getBoundingClientRect().height)).toBeLessThanOrEqual(68);
   await page.goto(info.config.metadata.markupress + 'components/ui-description-list/');
   await expect(page.locator('.component-description').getByText('<div><dt/><dd/></div>', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -271,20 +271,20 @@ test('one shared size lever derives matching field and action geometry', async (
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(info.config.metadata.markupress + 'customize/');
   await openEditor(page, 'components');
-  const defaultButton = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[data-component="ui-button"]').first();
+  const defaultButton = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[component="ui-button"]').first();
   await expect.poll(() => defaultButton.evaluate(element => ({ padding: getComputedStyle(element).paddingRight, motion: getComputedStyle(element).transitionDuration }))).toEqual({ padding: '12.75px', motion: '0.12s, 0.12s, 0.12s, 0.12s, 0.18s' });
   await openEditor(page, 'layout');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).fill('3');
   await page.getByRole('spinbutton', { name: 'Control roominess', exact: true }).press('Enter');
   await openEditor(page, 'components');
-  const button = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[data-component="ui-button"]').first();
-  const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] [data-preview]').locator('[data-component="ui-input"]').first();
+  const button = page.locator('[data-refinement-view="components"] [data-component-card="ui-button"] [data-preview]').locator('[component="ui-button"]').first();
+  const field = page.locator('[data-refinement-view="components"] [data-component-card="ui-input"] [data-preview]').locator('[component="ui-input"]').first();
   await expect.poll(() => button.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   await expect.poll(() => field.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   for (const component of ['ui-select', 'ui-input-group', 'ui-combobox']) {
     await page.getByRole('searchbox', {name:'Search components',exact:true}).fill(component);
     const frame = page.locator(`[data-refinement-view="components"] [data-component-card="${component}"] [data-preview]`);
-    const control = frame.locator(`[data-component="${component}"]${component === 'ui-combobox' ? ' .field' : ''}`).first();
+    const control = frame.locator(`[component="${component}"]${component === 'ui-combobox' ? ' .field' : ''}`).first();
     await expect.poll(() => control.evaluate(element => element.getBoundingClientRect().height)).toBe(51);
   }
 });
@@ -608,7 +608,7 @@ test('the removable Custom theme header chip clears browser customization across
     await page.goto(base+'components/ui-button/');
     await expect(chip).toBeVisible();
     expect(await page.locator('html').evaluate(el=>el.scrollWidth<=innerWidth)).toBe(true);
-    const brand=page.locator('[data-component~="markupress-header"] .brand-link');
+    const brand=page.locator('[component~="markupress-header"] .brand-link');
     await expect(brand.locator('img:visible')).toHaveCount(1);
     await expect(brand.locator('.brand-title')).toHaveCSS('text-overflow','ellipsis');
     expect(await brand.evaluate(el=>{
@@ -616,7 +616,7 @@ test('the removable Custom theme header chip clears browser customization across
       const logo=[...el.querySelectorAll('img')].find(image=>image.getClientRects().length)?.getBoundingClientRect();
       return box.right<=header.right+1&&logo?.width>0&&logo.right<=box.right+1;
     })).toBe(true);
-    await page.locator('[data-component~="markupress-header"]').screenshot({path:info.outputPath(`custom-theme-header-${width}.png`)});
+    await page.locator('[component~="markupress-header"]').screenshot({path:info.outputPath(`custom-theme-header-${width}.png`)});
     await chip.click();
     await expect(chip).toBeHidden();
     await expect.poll(()=>page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ui-accent').trim())).toBe(original);
@@ -652,7 +652,7 @@ test('card summaries distinguish application tools, site navigation and contextu
   await expect(page.locator('[data-component-card="ui-top-bar"] h3')).toHaveText('Application toolbar');
   await page.goto(info.config.metadata.markupress + 'components/ui-status-message/');
   const frame = page.locator('[data-example-card$="/01-kinds"] [data-preview]');
-  await expect(frame.locator('[data-component~=ui-card] [data-component~=ui-status-message]')).toHaveCount(3);
+  await expect(frame.locator('[component~=ui-card] [component~=ui-status-message]')).toHaveCount(3);
   await expect(frame.getByRole('alert')).toHaveText('Activity could not be loaded.');
 });
 
@@ -691,7 +691,7 @@ test('status relationship presets reduce color or share primary while keeping ic
   const palette = await openEditor(page, 'palette');
   const relationship = palette.getByRole('combobox', {name:'Status color relationship',exact:true});
   await expect(relationship).toHaveValue('semantic');
-  const swatches = () => palette.locator('[data-theme=light] [data-component~=ui-badge]').evaluateAll(nodes =>
+  const swatches = () => palette.locator('[data-theme=light] [component~=ui-badge]').evaluateAll(nodes =>
     nodes.filter(el => ['Success','Error','Warning','Info'].includes(el.textContent.trim())).map(el => {
       const s = getComputedStyle(el); return {tone:el.textContent.trim(),background:s.backgroundColor,text:s.color,icon:el.querySelector('svg')?.innerHTML};
     }));

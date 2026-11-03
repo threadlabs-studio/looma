@@ -1,16 +1,16 @@
 import type { Editor, JSONContent } from "@tiptap/core";
-import { page } from "@vitest/browser/context";
+import { page } from "vitest/browser";
 import axe from "axe-core";
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
 import "../tokens.css";
 import "../theme-light.css";
 
-const apps: App[] = [];
+const apps: Scene[] = [];
 afterEach(() => {
   apps.splice(0).forEach((app) => app.unmount());
   document.body.innerHTML = "";
@@ -18,7 +18,7 @@ afterEach(() => {
 
 async function flushBrowser() {
   for (let index = 0; index < 4; index += 1) {
-    await nextTick();
+    await settle();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 }
@@ -37,7 +37,7 @@ const tasks: JSONContent = {
 async function mountEditor() {
   const host = document.body.appendChild(document.createElement("div"));
   let editor: Editor | null = null;
-  const app = createApp({ render: () => h(LoomaEditor, { content: tasks, extensions: captureEditor(instance => { editor = instance; }) }) });
+  const app = createScene({ render: () => sceneNode(LoomaEditor, { content: tasks, extensions: captureEditor(instance => { editor = instance; }) }) });
   apps.push(app);
   app.mount(host);
   await flushBrowser();

@@ -1,10 +1,11 @@
+import { expect } from "./renderers/test-context";
 import { JSDOM } from "jsdom";
-import { createSSRApp, h } from "vue";
-import { renderToString } from "vue/server-renderer";
-import { describe, expect, it } from "vitest";
-import { UiPagination as Pagination } from "@threadlabs/looma";
+import { createHydratedScene, sceneNode } from "@looma-test/scene";
+import { renderSceneBody } from "./renderers/server-assertions";
+import { describe, it } from "vitest";
+import { UiPagination as Pagination } from "@looma-test/components";
 
-const render = (props = {}) => renderToString(createSSRApp({ render: () => h(Pagination, props) }));
+const render = (props = {}) => renderSceneBody(createHydratedScene({ render: () => sceneNode(Pagination, props) }));
 describe("Pagination before upgrade", () => {
   it("renders native routes, a named landmark, current page and noninteractive gaps", async () => {
     const html = await render({ page: 2, hasPrevious: true, hasNext: true, previousHref: "?page=1", nextHref: "?page=3", pages: [{ value: 1, href: "?page=1" }, { value: 2, href: "?page=2" }, { value: 8, href: "?page=8" }] });
@@ -26,7 +27,7 @@ describe("Pagination before upgrade", () => {
     expect(html).toContain("Précédente");
     expect(html).toContain("Suivante");
     expect(html).toContain('aria-label="Page du catalogue 2"');
-    expect(new JSDOM(html).window.document.querySelector("a[href]")).toBeNull();
+    expect(new JSDOM(html).window.document.querySelector("a[href]")?.outerHTML ?? null).toBeNull();
     expect(html.match(/aria-disabled="true"/g)).toHaveLength(3);
   });
 });

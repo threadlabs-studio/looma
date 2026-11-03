@@ -1,14 +1,14 @@
-import { page, userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "vitest/browser";
 import { afterEach, expect, it } from "vitest";
-import { createApp, h, ref, type App } from "vue";
+import { createScene, sceneNode, createState, type Scene } from "@looma-test/scene";
 import { Extension, type Editor, type JSONContent } from "@tiptap/core";
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
-import { UiCompactEditor } from "../src/components/ui-compact-editor/ui-compact-editor.html";
-import { UiCompactContent } from "../src/components/ui-compact-content/ui-compact-content.html";
+import { UiEditor } from "@looma-test/components";
+import { UiCompactEditor } from "@looma-test/components";
+import { UiCompactContent } from "@looma-test/components";
 import "../tokens.css";
 import "../theme-light.css";
 
-let app: App;
+let app: Scene;
 afterEach(() => { app?.unmount(); document.body.replaceChildren(); });
 const empty = (): JSONContent => ({ type: "doc", content: [{ type: "paragraph" }] });
 
@@ -16,10 +16,10 @@ for (const [name, Component] of [["document", UiEditor], ["compact", UiCompactEd
   it(`edits and round-trips controlled ${name} content through the HTML Next Vite plugin`, async () => {
     let editor: Editor | undefined;
     const created: Editor[] = [];
-    const model = ref(empty());
+    const model = createState(empty());
     const host = document.body.appendChild(document.createElement("div"));
     const capture = Extension.create({ name: "consumerEditor", onCreate() { editor = this.editor; created.push(this.editor); } });
-    app = createApp({ render: () => h(Component, {
+    app = createScene({ render: () => sceneNode(Component, {
       content: model.value, label: "Writing",
       ...(name === "document" ? { toolbarMode: "sticky", codeLanguages: () => ({}) } : { id: "source-message" }),
       extensions: () => [capture],
@@ -73,7 +73,7 @@ for (const [name, Component] of [["document", UiEditor], ["compact", UiCompactEd
 
 it("renders compact JSON as escaped semantic HTML through the source component", async () => {
   const host = document.body.appendChild(document.createElement("div"));
-  app = createApp({ render: () => h(UiCompactContent, { content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "<script>literal</script>", marks: [{ type: "bold" }, { type: "italic" }] }, { type: "hardBreak" }, { type: "text", text: "Next line" }] }] } }) });
+  app = createScene({ render: () => sceneNode(UiCompactContent, { content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "<script>literal</script>", marks: [{ type: "bold" }, { type: "italic" }] }, { type: "hardBreak" }, { type: "text", text: "Next line" }] }] } }) });
   app.mount(host);
   await expect.poll(() => host.querySelector("strong")?.textContent).toBe("<script>literal</script>");
   expect(host.querySelector("em strong")).not.toBeNull();

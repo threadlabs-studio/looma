@@ -1,4 +1,4 @@
-import { UiEditor } from "../src/components/ui-editor/ui-editor.html";
+import { UiEditor } from "@looma-test/components";
 import { nativeEditorFixture } from "./editor-native-fixture";
 
 declare const __LOOMA_EDITOR_TARGET__: string;
