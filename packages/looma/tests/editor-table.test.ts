@@ -71,6 +71,13 @@ const tableToolbar = (page: Page) => page.getByRole("toolbar", { name: "Table ac
 const tableMenu = (page: Page) => page.getByRole("menu", { name: "More table actions" });
 const linkForm = (page: Page) => page.getByRole("form", { name: "Edit link", exact: true });
 
+async function openLinkForm(page: Page, trigger: Locator): Promise<Locator> {
+  await trigger.click();
+  const form = linkForm(page);
+  await expect.poll(() => form.locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
+  return form;
+}
+
 async function insertTableFromSlashMenu(page: Page): Promise<void> {
   await prose(page).click();
   await page.keyboard.press("End");
@@ -223,7 +230,7 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
-    await page.getByRole("toolbar").getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, page.getByRole("toolbar").getByRole("button", { name: "Link" }));
     const form = linkForm(page);
     await form.getByRole("heading", { name: "Add link" }).waitFor({ timeout: 1000 });
     await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
@@ -272,7 +279,7 @@ describe("LoomaEditor links", () => {
       await page.setViewportSize({ width, height: 760 });
       await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
       const toolbar = width === 375 ? page.locator(".looma-editor__mobile-toolbar-shell") : page.getByRole("toolbar");
-      await toolbar.getByRole("button", { name: "Link" }).click();
+      await openLinkForm(page, toolbar.getByRole("button", { name: "Link" }));
       const form = linkForm(page);
       const input = form.getByRole("searchbox", { name: "Link destination" });
       await input.fill("More");
@@ -303,7 +310,7 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p></p>", "sticky", true);
     await prose(page).locator("p").click();
     await page.keyboard.type("/link");
-    await page.getByRole("option", { name: /link link to a destination or url/i }).click();
+    await openLinkForm(page, page.getByRole("option", { name: /link link to a destination or url/i }));
     await linkForm(page).getByRole("searchbox", { name: "Link destination" }).waitFor();
     await expect.poll(() => prose(page).locator("p").textContent()).toBe("");
     await page.close();
@@ -342,9 +349,8 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p>Hello</p>", "popover", true);
     await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
     const toolbar = page.getByRole("toolbar", { name: "Editor toolbar" });
-    await toolbar.getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, toolbar.getByRole("button", { name: "Link" }));
     const form = linkForm(page);
-    await expect.poll(() => form.locator("input").first().evaluate(input => input === document.activeElement), { message: "selection link form autofocus is ready" }).toBe(true);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("https://example.test/path?q=one#part");
     await form.locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link").getAttribute("href"), "/path?q=one#part", "site link becomes relative");
@@ -352,7 +358,7 @@ describe("LoomaEditor links", () => {
     await toolbar.waitFor({ state: "hidden" });
     await expect.poll(() => prose(page).textContent(), { message: "selection text is preserved" }).toBe("Hello");
     await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
-    await toolbar.getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, toolbar.getByRole("button", { name: "Link" }));
     await form.locator("input").first().press("Escape");
     await form.waitFor({ state: "hidden" });
     await toolbar.waitFor({ state: "hidden" });
@@ -363,7 +369,7 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
-    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }));
     const form = linkForm(page);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
     const results = form.getByLabel("Destination search results").getByRole("button");
@@ -393,9 +399,8 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
-    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }));
     const form = linkForm(page);
-    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
     await form.getByRole("searchbox", { name: "Link destination" }).fill("/guide");
     await form.locator("input").first().press("Enter");
     await form.getByRole("alert").waitFor();
@@ -410,7 +415,7 @@ describe("LoomaEditor links", () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
     await page.keyboard.press("ControlOrMeta+A");
-    await page.getByRole("toolbar").getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, page.getByRole("toolbar").getByRole("button", { name: "Link" }));
     const form = linkForm(page);
     const destination = form.getByRole("searchbox", { name: "Link destination" });
     await destination.focus();
@@ -430,14 +435,14 @@ describe("LoomaEditor links", () => {
     await prose(page).getByRole("link", { name: "this guide" }).click();
     const actions = page.getByRole("group", { name: "Link actions" });
     await until(() => actions.textContent(), value => value?.includes("Team / Guides") ?? false, "saved target is resolved");
-    await actions.getByRole("button", { name: "Edit link" }).click();
+    await openLinkForm(page, actions.getByRole("button", { name: "Edit link" }));
     await equals(() => linkForm(page).getByRole("searchbox", { name: "Link destination" }).inputValue(), "Guide", "picker opens in target mode");
     await page.close();
 
     const phone = await openEditor("<p>Hello</p>", "sticky", true);
     await phone.setViewportSize({ width: 375, height: 760 });
     await prose(phone).locator("p").click();
-    await phone.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" }).click();
+    await openLinkForm(phone, phone.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" }));
     const bounds = await linkForm(phone).boundingBox();
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 375, "link form fits phone viewport");
     await linkForm(phone).getByRole("searchbox", { name: "Link destination" }).fill("Guide");
@@ -449,8 +454,7 @@ describe("LoomaEditor links", () => {
   it("edits an existing relative URL in the combined destination field", async () => {
     const page = await openEditor('<p><a href="/before#part">Read</a></p>', "sticky", true);
     await prose(page).getByRole("link", { name: "Read" }).click();
-    await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }).click();
-    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
+    await openLinkForm(page, page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }));
     await linkForm(page).getByRole("searchbox", { name: "Link destination" }).fill("/after?q=one#part");
     await linkForm(page).locator("input").first().press("Enter");
     await equals(() => prose(page).getByRole("link", { name: "Read" }).getAttribute("href"), "/after?q=one#part", "editing a relative destination does not turn it into a search query");
@@ -465,8 +469,7 @@ describe("LoomaEditor links", () => {
     await actions.waitFor();
     await expect.poll(() => actions.getByLabel("URL: /guide").count()).toBe(1);
     await expect.poll(() => actions.textContent()).toMatch(/\/guide/);
-    await actions.getByRole("button", { name: "Edit link" }).click();
-    await expect.poll(() => linkForm(page).locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);
+    await openLinkForm(page, actions.getByRole("button", { name: "Edit link" }));
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
     await linkForm(page).locator("input").first().press("Enter");
     await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");
@@ -524,7 +527,7 @@ describe("LoomaEditor links", () => {
         document.dispatchEvent(new Event("selectionchange"));
       });
     });
-    await linkButton.click();
+    await openLinkForm(page, linkButton);
     await expect.poll(() => linkForm(page).getByRole("textbox", { name: "Text" }).count()).toBe(0);
     await page.close();
   });
@@ -535,7 +538,7 @@ describe("LoomaEditor links", () => {
     await page.keyboard.press("ControlOrMeta+A");
     assert.equal(await page.evaluate(() => window.getSelection()?.toString()), "Hello");
     const linkButton = page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" });
-    await linkButton.click();
+    await openLinkForm(page, linkButton);
     await expect.poll(() => linkForm(page).getByRole("textbox", { name: "Text" }).count(), { message: "selected text does not need a text field" }).toBe(0);
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("javascript:alert(1)");
     await linkForm(page).locator("input").first().press("Enter");
@@ -548,7 +551,7 @@ describe("LoomaEditor links", () => {
     await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
     await expect.poll(() => link.textContent()).toBe("Hello");
     await link.click();
-    await page.getByRole("button", { name: "Edit link", exact: true }).click();
+    await openLinkForm(page, page.getByRole("button", { name: "Edit link", exact: true }));
     await equals(() => linkForm(page).count(), 1, "only one link form is presented");
     await expect.poll(() => linkForm(page).getByRole("textbox", { name: "URL" }).inputValue()).toBe("https://example.com/page");
     await equals(() => linkForm(page).getByRole("textbox", { name: "URL" }).evaluate(element => element === document.activeElement), true, "Edit focuses the visible destination field");
@@ -573,7 +576,7 @@ describe("LoomaEditor links", () => {
   it("inserts linked text at a caret", async () => {
     const page = await openEditor("<p></p>");
     await prose(page).locator("p").click();
-    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    await openLinkForm(page, page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }));
     await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read more");
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com");
     await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted without a save action");
