@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Wait for actual controller startup before pagination fixtures send their first pointer or keyboard request. This keeps cold framework runs from clicking before the navigation listener connects.
+
 - Require Markupress >=0.18.4 so headings announce their text once while retaining keyboard permalinks. Update documentation parity checks to native component markers and keep the retained Getting Started introduction aligned with the supported frameworks.
 
 - Use canonical native component selectors in shared documentation interactions, catalog layout and customizer chrome measurement. Allow the cold installed-consumer rebuild to finish within its existing package qualification job.

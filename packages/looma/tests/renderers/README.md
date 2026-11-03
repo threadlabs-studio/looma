@@ -26,7 +26,10 @@ Ordinary fixture entries expose the SDK's `pendingControllers` promises to the s
 After initial DOM commits, it waits for controller activation and checks the resulting view again
 before driving controls. Link-form scenarios also require their declared autofocus before entering
 text. Use `waitForFixture(page)` again after mounting content later or revealing controls whose
-controllers may still be loading. The editor fixture applies the same wait after mounting and before
+controllers may still be loading. Ordinary Vitest browser-mode scenarios await
+`Promise.all(pendingControllers(host))` after the renderer commits and before the first
+interaction. A control’s presence in the DOM does not mean its controller’s initial
+handlers are installed. The editor fixture applies the same wait after mounting and before
 opening a link form. The deliberately transformed Tree controller fixture observes its loading phase directly.
 
 The prepared library is removed when the coordinator exits. Renderer-specific Vite caches and an
