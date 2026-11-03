@@ -1,0 +1,16 @@
+<!--
+title: Fill a bounded column
+description: Place this stack in a bounded-height parent. The surface fills the remaining space while its body scrolls independently.
+-->
+<ui-stack fill gap="s">
+  <ui-text weight="semibold">Reference panel</ui-text>
+  <ui-card fill variant="subtle" tone="accent" padding="xs">
+    <ui-scroll-area fill>
+      <ui-stack gap="s">
+        <ui-text>A short list still has a full-height surface.</ui-text>
+        <ui-text>Longer content scrolls inside this panel.</ui-text>
+      </ui-stack>
+    </ui-scroll-area>
+  </ui-card>
+  <ui-text size="sm" tone="secondary">Persistent controls stay below the panel.</ui-text>
+</ui-stack>

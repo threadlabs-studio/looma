@@ -394,6 +394,11 @@
           "id": "04-expressive-surface",
           "title": "Expressive surface",
           "behavior": false
+        },
+        {
+          "id": "05-fill",
+          "title": "Fill a bounded column",
+          "behavior": false
         }
       ]
     },
