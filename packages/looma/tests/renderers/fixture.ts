@@ -38,19 +38,19 @@ export async function loadFixture(page: Page, file: string) {
   try {
     // A deliberately transformed controller fixture can supply a self-contained script.
     await page.addScriptTag(url ? { type: "module", url } : { path: file });
-    let controllersLoading: boolean;
     do {
       await Promise.all([...scripts.values()].map(script => script.done));
       // Downloads can finish before module activation. Let views commit, then await the
       // runtime's actual startup tasks before driving the rendered controls.
-      controllersLoading = await page.evaluate(async ordinaryFixture => {
+      const ready = await page.waitForFunction(async ordinaryFixture => {
         await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         const read = (globalThis as typeof globalThis & { __loomaControllerTasks?: () => readonly Promise<void>[] }).__loomaControllerTasks;
         const pending = ordinaryFixture ? read?.() ?? [] : [];
         await Promise.all(pending);
-        return pending.length > 0;
+        return pending.length === 0;
       }, url !== null);
-    } while (scripts.size || controllersLoading);
+      await ready.dispose();
+    } while (scripts.size);
   } finally {
     page.off("request", started); page.off("requestfinished", finished); page.off("requestfailed", finished);
   }
