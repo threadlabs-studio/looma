@@ -150,7 +150,8 @@
     "packages/looma/src/tokens/theme-light.css",
     "packages/looma/src/tokens/theme-system.css",
     "packages/looma/src/tokens/tokens.css",
-    "packages/looma/src/components/ui-compact-editor/ui-compact-editor.css"
+    "packages/looma/src/components/ui-compact-editor/ui-compact-editor.css",
+    "packages/looma/src/components/ui-wizard/ui-wizard.html"
   ],
   "frozenCssDebt": {
     "packages/looma/src/components/ui-editor/ui-editor.css": [

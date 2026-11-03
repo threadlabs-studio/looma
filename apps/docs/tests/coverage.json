@@ -2324,6 +2324,24 @@
       ]
     },
     {
+      "path": "components/ui-wizard",
+      "title": "Wizard",
+      "source": "apps/docs/docs/components/display/ui-wizard.mdx",
+      "component": "ui-wizard",
+      "examples": [
+        {
+          "id": "01-stages",
+          "title": "Staged workflow",
+          "behavior": false
+        },
+        {
+          "id": "02-native-links",
+          "title": "Native destinations",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "conventions",
       "title": "Conventions",
       "source": "apps/docs/docs/conventions.md",

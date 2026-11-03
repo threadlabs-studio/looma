@@ -1,4 +1,5 @@
 import { page, userEvent } from "vitest/browser";
+import { pendingControllers } from "@nextwebwg/html-next/runtime";
 import { createScene, sceneNode, settle, stateObject, type Scene } from "@looma-test/scene";
 import { afterEach, expect, it, vi } from "vitest";
 import { UiDateField as DateField } from "@looma-test/components";
@@ -163,6 +164,7 @@ it("composes Time Field with the same canonical submission, midnight grammar and
   const host = document.createElement("div"); document.body.append(host);
   app = createScene({ render: () => sceneNode("form", [sceneNode(TimeField, { name: "opening", label: "Opening time", value: "09:30", hourCycle: "h24", onChange: (event: CustomEvent) => events.push(event) })]) });
   app.mount(host); await settle();
+  await Promise.all(pendingControllers(host)); await settle();
   const editor = host.querySelector<HTMLInputElement>("[data-date-editor]")!;
   await vi.waitFor(() => expect(editor.hidden).toBe(false));
   await userEvent.fill(editor, "24:30"); editor.blur();
