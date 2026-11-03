@@ -24,6 +24,20 @@ export async function fixtureURL(file: string) {
   return `${servers[mode]}/@fs/${file}`;
 }
 
+/** Wait for committed views and current controller startup before driving their controls. */
+export async function waitForFixture(page: Page, ordinaryFixture = true): Promise<void> {
+  // Downloads can finish before module activation. Let views commit, then await the
+  // runtime's actual startup tasks before driving the rendered controls.
+  const ready = await page.waitForFunction(async ordinaryFixture => {
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    const read = (globalThis as typeof globalThis & { __loomaControllerTasks?: () => readonly Promise<void>[] }).__loomaControllerTasks;
+    const pending = ordinaryFixture ? read?.() ?? [] : [];
+    await Promise.all(pending);
+    return pending.length === 0;
+  }, ordinaryFixture);
+  await ready.dispose();
+}
+
 export async function loadFixture(page: Page, file: string) {
   const url = await fixtureURL(file).catch(error => { if (error.code !== "ENOENT") throw error; return null; });
   const scripts = new Map<Request, { done: Promise<void>; resolve: () => void }>();
@@ -40,16 +54,7 @@ export async function loadFixture(page: Page, file: string) {
     await page.addScriptTag(url ? { type: "module", url } : { path: file });
     do {
       await Promise.all([...scripts.values()].map(script => script.done));
-      // Downloads can finish before module activation. Let views commit, then await the
-      // runtime's actual startup tasks before driving the rendered controls.
-      const ready = await page.waitForFunction(async ordinaryFixture => {
-        await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-        const read = (globalThis as typeof globalThis & { __loomaControllerTasks?: () => readonly Promise<void>[] }).__loomaControllerTasks;
-        const pending = ordinaryFixture ? read?.() ?? [] : [];
-        await Promise.all(pending);
-        return pending.length === 0;
-      }, url !== null);
-      await ready.dispose();
+      await waitForFixture(page, url !== null);
     } while (scripts.size);
   } finally {
     page.off("request", started); page.off("requestfinished", finished); page.off("requestfailed", finished);

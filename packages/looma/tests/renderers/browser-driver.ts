@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { createFixture, loadFixture } from "./fixture";
-export { loadFixture } from "./fixture";
+export { loadFixture, waitForFixture } from "./fixture";
 import { connectSuiteBrowser, newFixturePage, recordPageErrors, type SuiteBrowser } from "./browser-client";
 
 import { mkdir, mkdtemp, rm } from "node:fs/promises";

@@ -4,7 +4,7 @@ import { expect } from "./renderers/test-context";
 // computed styles, and geometry. Scenarios use the suite-owned renderer library and browser.
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { createFixture, loadFixture } from "./renderers/fixture";
+import { createFixture, loadFixture, waitForFixture } from "./renderers/fixture";
 import { connectSuiteBrowser, newFixturePage, recordPageErrors, type SuiteBrowser } from "./renderers/browser-client";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -60,6 +60,7 @@ async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "s
   await page.evaluate(({ value, mode, links, inventory }) => (window as unknown as { mountEditor(html: string, mode: string, links: boolean, inventory?: string): void }).mountEditor(value, mode, links, inventory), { value: html, mode, links, inventory });
   page.setDefaultTimeout(5000);
   await page.locator(".ProseMirror").waitFor();
+  await waitForFixture(page);
   return page;
 }
 
@@ -72,6 +73,7 @@ const tableMenu = (page: Page) => page.getByRole("menu", { name: "More table act
 const linkForm = (page: Page) => page.getByRole("form", { name: "Edit link", exact: true });
 
 async function openLinkForm(page: Page, trigger: Locator): Promise<Locator> {
+  await waitForFixture(page);
   await trigger.click();
   const form = linkForm(page);
   await expect.poll(() => form.locator("input").first().evaluate(input => input === document.activeElement), { message: "link form autofocus is ready" }).toBe(true);

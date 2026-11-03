@@ -25,7 +25,9 @@ their pages during teardown.
 Ordinary fixture entries expose the SDK's `pendingControllers` promises to the shared loader.
 After initial DOM commits, it waits for controller activation and checks the resulting view again
 before driving controls. Link-form scenarios also require their declared autofocus before entering
-text. The deliberately transformed Tree controller fixture observes its loading phase directly.
+text. Use `waitForFixture(page)` again after mounting content later or revealing controls whose
+controllers may still be loading. The editor fixture applies the same wait after mounting and before
+opening a link form. The deliberately transformed Tree controller fixture observes its loading phase directly.
 
 The prepared library is removed when the coordinator exits. Renderer-specific Vite caches and an
 adapter identity check prevent one target's output from satisfying another target's scenarios.
