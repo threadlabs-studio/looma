@@ -65,7 +65,7 @@ export function connect(host) {
       }
     }
   };
-  const header = document.querySelector('[data-component~="markupress-header"]');
+  const header = document.querySelector('[component~="markupress-header"]');
   const previews = [...root.querySelectorAll('[data-editor-preview], .palette-preview')];
   let layoutFrame = 0;
   const updatePreviewLayout = () => {

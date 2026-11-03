@@ -44,7 +44,7 @@ export const interactionCases: {
   {
     component: "ui-color-picker", example: "01-shapes-and-sizes", name: "toggle color editor",
     async run(_page, scenario) {
-      const trigger=scenario.locator('[data-component~="ui-color-picker"]').first().getByRole('button');
+      const trigger=scenario.locator('[component~="ui-color-picker"]').first().getByRole('button');
       const editor=scenario.getByRole('dialog').first();
       await trigger.click();await expect(editor).toBeVisible();
       await trigger.click();await expect(editor).toBeHidden();
@@ -252,7 +252,7 @@ export const interactionCases: {
       const trigger = scenario.getByRole("button", { name: "Toggle sidebar", exact: true });
       const link = scenario.getByRole("link", { name: "Inbox", exact: true });
       if (page.viewportSize()!.width < 768) {
-        await expect(scenario.locator(':is([data-component~="ui-sidebar"], .ui-sidebar)')).toHaveAttribute("popover", "auto");
+        await expect(scenario.locator(':is([component~="ui-sidebar"], .ui-sidebar)')).toHaveAttribute("popover", "auto");
         await expect(link).not.toBeVisible();
         await trigger.click();
         await expect(link).toBeVisible();

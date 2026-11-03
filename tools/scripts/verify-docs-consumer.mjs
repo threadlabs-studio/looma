@@ -111,17 +111,22 @@ try {
   assert.equal(loaded.recipe.values.canvas, '#11141c');
   await mkdir('app/components/office-note');
   await writeFile('app/components/office-note/office-note.html', '<template component="office-note"><p>Sam booked second breakfast.</p></template>');
-  const deadline = Date.now() + 30_000;
-  let discovered = false;
+  const started = Date.now();
+  // A cold reference rebuild takes 15 seconds locally and longer on hosted ARM runners.
+  // Keep the complete discovery assertion inside the package job's existing deadline.
+  const deadline = started + 60_000;
+  let discovered = false, status;
   while (Date.now() < deadline) {
     const page = await fetch(server.url + 'components/office-note/');
+    status = page.status;
     if (page.status === 200) {
       const html = await page.text();
       if (!html.includes('<iframe') && html.includes('Sam booked second breakfast.')) { discovered = true; break; }
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  assert.ok(discovered, 'a newly authored component must appear without restarting dev');
+  assert.ok(discovered, 'a newly authored component must appear without restarting dev (last HTTP ' + status + ', elapsed ' + (Date.now() - started) + 'ms)');
+  console.log('Installed docs discovered a new component in ' + (Date.now() - started) + 'ms.');
 } finally { await server.close(); }
 `);
   await run(process.execPath, ['verify-local.mjs'], directory);

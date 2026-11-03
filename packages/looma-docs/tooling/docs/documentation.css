@@ -3,7 +3,7 @@
 /* Documentation presentation owns its native example stage. Controls use Looma. */
 [data-example-card] pre { overflow: auto; }
 /* The customizer is an application page; use Markupress's public width token instead of patching its layout. */
-:root:has([data-looma-customizer]), :root:has([data-component~="looma-catalog"]) { --markupress-content-width: 110rem; }
+:root:has([data-looma-customizer]), :root:has([component~="looma-catalog"]) { --markupress-content-width: 110rem; }
 [data-preview] { display: grid; grid-template-columns: minmax(0, 1fr) !important; place-items: center; gap: var(--ui-space-4); min-inline-size: 0; min-block-size: 13rem; padding: var(--ui-space-4); box-sizing: border-box; color: var(--ui-text); font-family: var(--ui-font-sans); font-size: var(--ui-font-size); line-height: var(--ui-line-height); background: var(--ui-surface-raised); }
 [data-preview-layout] { justify-items: stretch; }
 

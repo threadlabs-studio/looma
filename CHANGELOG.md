@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Use canonical native component selectors in shared documentation interactions, catalog layout and customizer chrome measurement. Allow the cold installed-consumer rebuild to finish within its existing package qualification job.
+
 - Match Vitest’s discovered case names, isolate unit checks from prepared renderer setup, and retain all selected SSR checks. State sheets use native component markers; selection-action fixtures wait for the editor’s creation event.
 
 - Declare the documentation app’s Markdown compiler dependency so copied-page checks run with a fresh installation.
