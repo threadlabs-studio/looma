@@ -368,6 +368,9 @@ describe("Tree drag and drop", () => {
     assert.notEqual(hovered.background, idle.background, "target row is tinted");
     assert.deepEqual(await indicators(page, "archive"), []);
     await page.mouse.up();
+    await expect.poll(() => item(page, "archive").getAttribute("data-drop-position")).toBe(null);
+    // Match the original unhovered state; native :hover can remain active after a drag ends.
+    await page.mouse.move(0, 0);
     await expect.poll(async () => (await rowStyle(page, "archive")).shadow, { message: "highlight cleared after the drop" }).toBe(idle.shadow);
     assert.deepEqual((await events(page)).map(([, detail]) => detail.position), ["inside"]);
     await page.close();

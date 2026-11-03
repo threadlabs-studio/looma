@@ -1,7 +1,26 @@
 import { Editor, Node as EditorNode } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { createSelectionSurface } from "../src/editor/selection-surface";
+import { createAnchoredSurface } from "../src/components/shared/overlay.js";
+
+it("waits for a virtual anchor before exposing a floating surface", async () => {
+  const element = document.createElement("div");
+  element.textContent = "Floating actions";
+  document.body.append(element);
+  let anchor: DOMRect | null = null;
+  const surface = createAnchoredSurface(element, { anchor: () => anchor, bare: true, maxWidth: 200 });
+  try {
+    surface.show();
+    expect(element.matches(":popover-open")).toBe(false);
+    expect(element.hidden).toBe(true);
+    anchor = new DOMRect(20, 100, 50, 20);
+    await vi.waitFor(() => expect(element.matches(":popover-open")).toBe(true));
+    const box = element.getBoundingClientRect();
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+  } finally { surface.destroy(); element.remove(); }
+});
 
 it("shows a newly registered surface for an existing selection", () => {
   const mount = document.createElement("div");

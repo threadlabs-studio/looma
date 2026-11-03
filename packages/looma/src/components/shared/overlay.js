@@ -431,7 +431,10 @@ export function createAnchoredSurface(surface, options = {}) {
       return;
     }
     const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 } : anchorRect();
-    if (!rect) return;
+    if (!rect) {
+      if (!lastAnchorRect) hide(surface);
+      return;
+    }
     // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
     if (!point && typeof anchor !== "function" && (anchor.isConnected === false || rect.width === 0 && rect.height === 0
       || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible")) {

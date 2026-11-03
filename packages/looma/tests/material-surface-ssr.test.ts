@@ -46,11 +46,16 @@ describe("material choices preserve native inputs before upgrade", () => {
   it.each([["Radio", Radio, "radio"], ["Switch", Switch, "checkbox"], ["Checkbox", Checkbox, "checkbox"]] as const)("retains %s semantics, required and disabled state", async (_name, Component, type) => {
     for (const disabled of [false, true]) {
       const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Component, { name: "delivery", value: "digest", required: true, checked: true, disabled }, () => "Email digest") }));
-      expect(html).toMatch(new RegExp(`<input[^>]*type="${type}"`));
-      expect(html).toMatch(/<input[^>]*name="delivery"/);
-      expect(html).toMatch(/<input[^>]*value="digest"/);
-      expect(html).toMatch(/<input[^>]*required/);
-      expect(/<input[^>]*\sdisabled(?:[\s=>])/.test(html)).toBe(disabled);
+      const dom = new JSDOM(html);
+      const inputs = dom.window.document.querySelectorAll("input");
+      expect(inputs).toHaveLength(1);
+      expect(inputs[0]!.type).toBe(type);
+      expect(inputs[0]!.name).toBe("delivery");
+      expect(inputs[0]!.getAttribute("value")).toBe("digest");
+      expect(inputs[0]!.value).toBe("digest");
+      expect(inputs[0]!.required).toBe(true);
+      expect(inputs[0]!.disabled).toBe(disabled);
+      dom.window.close();
       expect(html).toContain("Email digest");
     }
   });
