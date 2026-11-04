@@ -16,7 +16,6 @@ export function jsxProps(node: SceneNode): Record<string, any> {
   return props;
 }
 
-const markedWrappers = new WeakMap<object, unknown>();
 export function jsxOutput(createElement: (...args: any[]) => any, Wrapper: any, Native: any, NativeFixture: any) {
   const output = (value: SceneValue, index?: number): any => {
     if (Array.isArray(value)) return value.map((child, index) => output(child, index));
@@ -24,14 +23,7 @@ export function jsxOutput(createElement: (...args: any[]) => any, Wrapper: any, 
     const node = value as SceneNode;
     const type = component(node.type);
     const key = node.props.key == null ? index === undefined ? undefined : `index:${index}` : `key:${String(node.props.key)}`;
-    if (type) {
-      // A converted accepted component's mark and props stay visible on its wrapper element, so an accepting parent reads it as its child.
-      const mark = (type.implementation as { htmlNextChild?: unknown } | undefined)?.htmlNextChild;
-      if (mark === undefined) return createElement(Wrapper, { key, scene: node });
-      let marked = markedWrappers.get(mark);
-      if (!marked) markedWrappers.set(mark, marked = Object.assign((props: any) => createElement(Wrapper, props), { htmlNextChild: mark }));
-      return createElement(marked, { key, scene: node, ...jsxProps(node), ...children(node, type) });
-    }
+    if (type) return createElement(Wrapper, { key, scene: node });
     if (node.type && typeof node.type === "object" && "kind" in node.type && node.type.kind === "native-scene") return createElement(NativeFixture, { key, scene: node });
     return createElement(Native, { key, scene: node });
   };
