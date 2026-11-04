@@ -1,7 +1,7 @@
 export const rendererTarget = "vue";
 import { createApp, createSSRApp, defineComponent, h, nextTick, onBeforeUnmount, onMounted, onUpdated, shallowRef, type VNode } from "vue";
 import { renderToString } from "vue/server-renderer";
-import { component, componentProps, connectNode, type SceneComponent } from "./component";
+import { component, componentProps, connectNode } from "./component";
 import type { MountedScene, NativeSceneComponent, Scene, SceneNode, SceneSlots, SceneValue } from "./scene";
 
 const nativeComponents = new WeakMap<object, ReturnType<typeof defineComponent>>();
@@ -20,19 +20,23 @@ function nativeComponent(component: NativeSceneComponent) {
   return view;
 }
 
-const components = new WeakMap<SceneComponent, ReturnType<typeof defineComponent>>();
-function convertedComponent(type: SceneComponent) {
-  let view = components.get(type);
-  if (view) return view;
-  view = defineComponent({ props: ["scene"], inheritAttrs: false, setup(props, { slots, attrs }) {
-    const root = shallowRef<{ $el: Element } | Element>();
-    const connection = connectNode(() => props.scene as SceneNode);
-    const sync = () => { const value = root.value; connection.attach(value && "$el" in value ? value.$el : value); connection.update(); };
-    onBeforeUnmount(() => connection.destroy());
-    return () => h(type.implementation as any, { ...componentProps(props.scene), ...attrs, ref: root, onVnodeMounted: sync, onVnodeUpdated: sync }, slots);
-  } });
-  components.set(type, view);
-  return view;
+// A converted component is rendered as itself, as an application renders it: a table reads its
+// accepted columns from its slot's vnodes by component identity. Each instance keeps one connection.
+const connections = new WeakMap<object, { node: SceneNode; connection: ReturnType<typeof connectNode> }>();
+function convertedProps(node: SceneNode) {
+  const sync = (vnode: VNode) => {
+    const instance = vnode.component!;
+    let entry = connections.get(instance);
+    if (!entry) {
+      entry = { node, connection: undefined! };
+      const current = entry;
+      entry.connection = connectNode(() => current.node);
+      connections.set(instance, entry);
+    }
+    entry.node = node; entry.connection.attach(vnode.el as Element); entry.connection.update();
+  };
+  return { ...componentProps(node), onVnodeMounted: sync, onVnodeUpdated: sync,
+    onVnodeBeforeUnmount: (vnode: VNode) => { connections.get(vnode.component!)?.connection.destroy(); connections.delete(vnode.component!); } };
 }
 
 const nativeNodes = new WeakMap<Element, { node: SceneNode; connection: ReturnType<typeof connectNode> }>();
@@ -61,7 +65,7 @@ function output(value: SceneValue): any {
     : children && typeof children === "object" && !Array.isArray(children) && !("type" in children && "props" in children)
       ? Object.fromEntries(Object.entries(children as SceneSlots).map(([name, render]) => [name, (props: any) => output(render(props))]))
       : output(children as SceneValue);
-  if (type) return h(convertedComponent(type), { scene: node, key: node.props.key }, slots);
+  if (type) return h(type.implementation as any, convertedProps(node), slots);
   if (node.type && typeof node.type === "object" && "kind" in node.type && node.type.kind === "native-scene") return h(nativeComponent(node.type as NativeSceneComponent), node.props, slots);
   return h(node.type as any, nativeProps(node), slots);
 }
