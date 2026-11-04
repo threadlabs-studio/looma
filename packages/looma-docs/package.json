@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@threadlabs/looma": ">=0.52.0",
-    "@nextwebwg/html-next": ">=1.0.0-alpha.82",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.84",
     "@threadlabs/markupkit": ">=0.6.1",
     "markupress": ">=0.18.4",
     "vite": ">=8.3.0",

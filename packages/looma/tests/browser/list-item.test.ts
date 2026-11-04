@@ -11,6 +11,35 @@ import { root, bundle, open } from "../renderers/browser-driver";
 describe("List item", () => {
   const longTitle = "A title long enough that it cannot fit on one line of a narrow list and must end in an ellipsis";
 
+  it("aligns an independently named checkbox with the first title line without reserving an empty label", async () => {
+    for (const adapter of ["html", "converted"]) {
+      const title = "A document title that wraps onto several lines in a narrow list";
+      const path = await bundle(`checkbox-title-${adapter}`, adapter === "html" ? 'import "@looma-test/runtime";' : `
+        import {createScene,sceneNode as h} from "@looma-test/scene";
+        import {UiList as List,UiListItem as ListItem,UiCluster as Cluster,UiCheckbox as Checkbox,UiIcon as Icon} from "@looma-test/components";
+        createScene({render:()=>h(List,null,()=>h(ListItem,{id:"choice",align:"title",leadingInteractive:true,wrap:true},{
+          leading:()=>h(Cluster,{align:"start",wrap:"nowrap"},()=>[h(Checkbox,{label:"Include document",checked:true}),h(Icon,{name:"file"})]),
+          default:()=>${JSON.stringify(title)},description:()=>"Additional context below the document title."
+        }))}).mount("#app");
+      `);
+      const body = `<ui-list><ui-list-item id="choice" align="title" leading-interactive wrap><ui-cluster slot="leading" align="start" wrap="nowrap"><ui-checkbox label="Include document" checked></ui-checkbox><ui-icon name="file"></ui-icon></ui-cluster>${title}<span slot="description">Additional context below the document title.</span></ui-list-item></ui-list>`;
+      const page = await open(path, adapter === "html" ? body : '<div id="app"></div>', [join(root, "tokens.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({width,height:720});
+          const geometry = await page.locator("#choice").evaluate(item => {
+            const title = item.querySelector(".title")!, input = item.querySelector("input")!;
+            const titleBox = title.getBoundingClientRect(), mark = input.getBoundingClientRect();
+            return {firstLine:titleBox.top + parseFloat(getComputedStyle(title).lineHeight)/2,mark:(mark.top+mark.bottom)/2};
+          });
+          assert.ok(Math.abs(geometry.mark-geometry.firstLine)<0.5, `${adapter}/${width}: checkbox follows the first title line ${JSON.stringify(geometry)}`);
+          await page.getByRole("checkbox", {name:"Include document"}).uncheck();
+          assert.equal(await page.getByRole("checkbox", {name:"Include document"}).isChecked(), false);
+        }
+      } finally { await page.close(); }
+    }
+  });
+
   async function checkItem(page: Page) {
     const item = page.locator("#item");
     await item.waitFor();

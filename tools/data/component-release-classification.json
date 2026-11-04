@@ -424,6 +424,10 @@
     "ui-tree-item": {
       "status": "published",
       "package": "@threadlabs/looma"
+    },
+    "ui-wizard": {
+      "status": "published",
+      "package": "@threadlabs/looma"
     }
   }
 }

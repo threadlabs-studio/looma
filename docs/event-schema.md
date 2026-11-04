@@ -57,6 +57,12 @@ Space requests selection only. Controls, disabled rows, and multiple-selection
 checkboxes do not activate. Trees without selection retain their link and
 expansion behavior.
 
+### Wizard navigation
+
+Wizard reports `navigate` with `{ value, previousValue, trigger }`. The consumer owns
+the current stage, availability, validation and saving. Activation reports intent
+and leaves `value` and native link navigation unchanged.
+
 ### change
 
 ```ts
