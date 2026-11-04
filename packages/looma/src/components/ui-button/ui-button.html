@@ -832,7 +832,8 @@
     /* Link: an inline text action. No box, padding, or minimum height (inline targets are exempt under
        WCAG 2.5.8); the inherited font; an underline that strengthens on hover; a visible focus ring. */
     :host[data-appearance="link"] {
-      display: inline !important;
+      display: inline-block !important;
+      vertical-align: baseline;
       min-block-size: 0;
       padding: 0 !important;
       border: 0;

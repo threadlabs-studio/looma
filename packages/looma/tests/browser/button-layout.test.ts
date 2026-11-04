@@ -8,6 +8,43 @@ import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Button layout", () => {
   for (const adapter of ["html", "converted"]) {
+    it(`aligns inline link actions with surrounding ${adapter} text`, async () => {
+      const path = await bundle(`${adapter}-inline-link-baseline`, adapter === "html" ? `import "@looma-test/runtime";` : `
+        import { createScene, sceneNode } from "@looma-test/scene";
+        import { UiButton as Button, UiText as Text } from "@looma-test/components";
+        createScene({ render: () => [false, true].map(link => sceneNode(Text, { id: link ? "link" : "action", size: "sm" }, () => [
+          sceneNode("span", { class: "before" }, "Read the "),
+          sceneNode(Button, { variant: "link", size: "sm", ...(link ? { href: "#guide" } : {}) }, () => "guide"),
+          sceneNode("span", { class: "after" }, "."),
+        ])) }).mount("#app");
+      `);
+      const body = adapter === "converted" ? '<div id="app"></div>' : [false, true].map(link => `
+        <ui-text id="${link ? "link" : "action"}" size="sm"><span class="before">Read the </span><ui-button variant="link" size="sm" ${link ? 'href="#guide"' : ""}>guide</ui-button><span class="after">.</span></ui-text>
+      `).join("");
+      const page = await open(path, body, [join(root, "tokens.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 720 });
+          for (const id of ["action", "link"]) {
+            const geometry = await page.locator(`#${id}`).evaluate(element => {
+              const textTop = (target: Element) => {
+                const range = document.createRange();
+                range.selectNodeContents(target);
+                return range.getBoundingClientRect().top;
+              };
+              const control = element.querySelector("button, a")!;
+              return { before: textTop(element.querySelector(".before")!), label: textTop(control.querySelector(".label")!),
+                after: textTop(element.querySelector(".after")!), display: getComputedStyle(control).display };
+            });
+            assert.ok(Math.abs(geometry.label - geometry.before) < .1, `${adapter}/${width}/${id}: inline action shares the text baseline ${JSON.stringify(geometry)}`);
+            assert.ok(Math.abs(geometry.label - geometry.after) < .1, "trailing punctuation shares the baseline");
+            assert.equal(geometry.display, "inline-block");
+          }
+        }
+        if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ path: join(root, ".test-build", `${adapter}-inline-link-baseline-375.png`) });
+      } finally { await page.close(); }
+    });
+
     it(`keeps a compact circular count and ordinary ${adapter} actions at the same standard height`, async () => {
       const path = await bundle(`${adapter}-compact-count-button`, adapter === "html" ? `import "@looma-test/runtime";` : `
         import { createScene, sceneNode } from "@looma-test/scene";
