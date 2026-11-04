@@ -45,6 +45,19 @@ test("loads every component contract from its folder", async () => {
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
 
+test("Notice Stripe exposes semantic tones and consumer-owned dismissal", async () => {
+  const [{ contracts }] = await readDeclarativeContractGroups();
+  const stripe = contracts["ui-notice-stripe"];
+  assert.ok(stripe, "Notice Stripe is a public declarative component");
+  assert.equal(stripe.root, "div");
+  assert.deepEqual(stripe.propOptions.tone, ["neutral", "info", "success", "warning", "danger"]);
+  assert.deepEqual(stripe.props.dismissible, { type: "boolean", default: false });
+  assert.deepEqual(stripe.slots.map(slot => typeof slot === "string" ? slot : slot.name), ["default", "actions"]);
+  assert.equal(stripe.events[0].name, "dismiss");
+  assert.match(stripe.events[0].detailType, /reason: "action"/);
+  assert.match(stripe.events[0].detailType, /trigger: "keyboard" \| "pointer"/);
+});
+
 test("API metadata keeps base types, choices, and selected types readable", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = groups[0].contracts;

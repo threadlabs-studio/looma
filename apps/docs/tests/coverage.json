@@ -1449,6 +1449,29 @@
       ]
     },
     {
+      "path": "components/ui-notice-stripe",
+      "title": "Notice Stripe",
+      "source": "apps/docs/docs/components/display/ui-notice-stripe.mdx",
+      "component": "ui-notice-stripe",
+      "examples": [
+        {
+          "id": "01-announcement",
+          "title": "Announcement with action",
+          "behavior": false
+        },
+        {
+          "id": "02-service-notice",
+          "title": "Dismissible service notice",
+          "behavior": true
+        },
+        {
+          "id": "03-tones",
+          "title": "Semantic tones",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-number-input",
       "title": "NumberInput",
       "source": "apps/docs/docs/components/forms/ui-number-input.mdx",

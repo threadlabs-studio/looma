@@ -1,0 +1,109 @@
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-notice-stripe" module="./ui-notice-stripe.js">
+  <defs>
+    <prop name="tone" type="keyword" values="neutral, info, success, warning, danger" default="info"
+    >Semantic message tone. Danger uses alert semantics; other tones use a polite status.</prop>
+    <prop name="dismissible" type="boolean" default="false"
+    >Show a close control that requests dismissal. The consumer owns removing or hiding the stripe.</prop>
+    <prop name="dismissLabel" type="string" default="Dismiss notification"
+    >Accessible name of the close control, including translated or message-specific wording.</prop>
+    <event name="dismiss" type="object">
+      <prop name="reason" required type="keyword" values="action"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+  </defs>
+  <div from:role="{ neutral: 'status', info: 'status', success: 'status', warning: 'status', danger: 'alert' }[$tone]">
+    <div class="content">
+      <div class="message"><slot></slot></div>
+      <div class="actions"><slot name="actions"></slot></div>
+    </div>
+    <ui-icon-button $if="$dismissible" class="dismiss" size="sm" variant="ghost" from:label="$dismissLabel">
+      <ui-icon name="x"></ui-icon>
+    </ui-icon-button>
+  </div>
+  <style>
+    :host {
+      --_ui-notice-stripe-surface: var(--ui-info-soft);
+      --_ui-notice-stripe-border: var(--ui-info-soft-border);
+      --_ui-surface-text: var(--ui-info-subtle-text);
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--ui-space-2) !important;
+      box-sizing: border-box !important;
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: 44px;
+      margin: 0 !important;
+      padding: var(--ui-space-1) var(--ui-space-3) !important;
+      border: 0;
+      border-block-end: var(--ui-border-width) solid var(--_ui-notice-stripe-border);
+      border-radius: 0;
+      background: var(--_ui-notice-stripe-surface);
+      color: var(--_ui-surface-text);
+      font-family: var(--ui-font-family-sans);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+      line-height: var(--ui-line-height-md);
+    }
+    :host([tone="neutral"]) {
+      --_ui-notice-stripe-surface: var(--ui-surface-muted);
+      --_ui-notice-stripe-border: var(--ui-border-strong);
+      --_ui-surface-text: var(--ui-text-primary);
+    }
+    :host([tone="success"]) {
+      --_ui-notice-stripe-surface: var(--ui-success-soft);
+      --_ui-notice-stripe-border: var(--ui-success-soft-border);
+      --_ui-surface-text: var(--ui-success-subtle-text);
+    }
+    :host([tone="warning"]) {
+      --_ui-notice-stripe-surface: var(--ui-warning-soft);
+      --_ui-notice-stripe-border: var(--ui-warning-soft-border);
+      --_ui-surface-text: var(--ui-warning-subtle-text);
+    }
+    :host([tone="danger"]) {
+      --_ui-notice-stripe-surface: var(--ui-danger-soft);
+      --_ui-notice-stripe-border: var(--ui-danger-soft-border);
+      --_ui-surface-text: var(--ui-danger-subtle-text);
+    }
+    .content {
+      display: flex !important;
+      flex: 1;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: var(--ui-space-1) var(--ui-space-3) !important;
+      min-inline-size: 0;
+    }
+    .message {
+      flex: 1 1 16rem;
+      min-inline-size: 0;
+      overflow-wrap: anywhere;
+    }
+    .actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: var(--ui-space-2) !important;
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      overflow-wrap: anywhere;
+      margin-inline-start: auto !important;
+    }
+    .actions:empty {
+      display: none !important;
+    }
+    .dismiss {
+      flex: none;
+    }
+    .message :slotted(a),
+    .actions :slotted(a) {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+    }
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>

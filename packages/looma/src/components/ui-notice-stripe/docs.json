@@ -1,0 +1,5 @@
+{
+  "description": "A compact, full-width notification for announcements and service notices. The default slot carries the message and the actions slot carries links or buttons. Content wraps at narrow widths. Optional dismissal reports intent while the consumer owns visibility, persistence and scheduling.",
+  "group": "display",
+  "summary": "Edge-to-edge announcements with optional actions and dismissal."
+}

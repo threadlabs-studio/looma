@@ -285,6 +285,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-notice-stripe": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-number-input": {
       "status": "published",
       "package": "@threadlabs/looma"

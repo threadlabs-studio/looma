@@ -168,7 +168,7 @@ it("keeps navigation disclosure children adjacent to their trigger", async () =>
   it("animates bounded fill transfer and a persistent custom indicator", async () => {
     const path = await bundle("html-disclosure-motion", `import "@looma-test/runtime";`);
     const page = await open(path, `
-      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms">
+      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms;--ui-motion-feedback:1000ms">
         <ui-disclosure id="first" fill name="motion" summary="Overview" open><p>Overview content</p></ui-disclosure>
         <ui-disclosure id="second" fill name="motion" summary="Library">
           <ui-icon slot="indicator" name="chevron-up"></ui-icon><p>Library content</p>
@@ -176,7 +176,7 @@ it("keeps navigation disclosure children adjacent to their trigger", async () =>
       </div>
     `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
     await page.locator("#second button").click();
-    await page.waitForTimeout(60);
+    await page.waitForTimeout(180);
     const intermediate = await page.evaluate(() => {
       const first = document.querySelector("#first")!;
       const second = document.querySelector("#second")!;
