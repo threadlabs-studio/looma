@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Align link-style Buttons with surrounding text using inline-block layout and the text baseline.
+
 - Keep placeholder Card borders visible at the standard outline strength and make their default text clearer with the secondary foreground.
 
 - Align independently named checkboxes with their containing row without reserving an empty label line. Add Card's `placeholder` variant for empty content areas with a muted foreground and dashed border.
