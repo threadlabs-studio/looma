@@ -847,7 +847,11 @@ it.each([1280, 375])("shows a compact Open link bar above a clicked link and dis
   await expect.element(openLink).toBeVisible();
   const open = openLink.element();
   expect(open.getAttribute("href")).toBe("/linked-page");
-  expect(open.getAttribute("target")).toBe("_blank");
+  expect(open.getAttribute("target")).toBe("_self");
+  const destination = page.getByRole("link", { name: "URL: /linked-page", exact: true });
+  await expect.element(destination).toBeVisible();
+  expect(destination.element().getAttribute("href")).toBe("/linked-page");
+  expect(destination.element().getAttribute("target")).toBe("_self");
   expect(open.getBoundingClientRect().bottom).toBeLessThanOrEqual(link.getBoundingClientRect().top);
   await userEvent.keyboard("{Escape}");
   await expect.element(open).not.toBeVisible();
