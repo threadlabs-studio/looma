@@ -93,6 +93,7 @@
     "packages/looma/src/components/ui-menu/ui-menu.js",
     "packages/looma/src/components/ui-meter/ui-meter.html",
     "packages/looma/src/components/ui-nav-item/ui-nav-item.html",
+    "packages/looma/src/components/ui-notice-stripe/ui-notice-stripe.html",
     "packages/looma/src/components/ui-number-input/ui-number-input.html",
     "packages/looma/src/components/ui-number-input/ui-number-input.js",
     "packages/looma/src/components/ui-page-header/ui-page-header.html",
