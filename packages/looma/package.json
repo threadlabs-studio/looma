@@ -103,7 +103,7 @@
     "test:browser": "node tests/run-browser.mjs"
   },
   "dependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.84",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.88",
     "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
     "expressmark": ">=0.5.1",
@@ -130,7 +130,7 @@
     "@angular/core": "21.2.24",
     "@angular/platform-browser": "21.2.24",
     "@angular/platform-server": "21.2.24",
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.84",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.88",
     "@preact/preset-vite": "^2.10.6",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tiptap/core": "^2.11.5",
