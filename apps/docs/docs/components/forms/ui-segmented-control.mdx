@@ -1,0 +1,21 @@
+---
+title: Segmented Control
+slug: /components/ui-segmented-control
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+Choose one option from a short visible set. The choices share a track and the
+selected option has a raised surface. Use this for a compact setting or filter.
+
+<ComponentExamplesApiTabs component="ui-segmented-control" />
+
+Native radio inputs support arrow keys, form submission, validation and reset.
+Give each group its own `name`. Set `value` to the initial choice; an empty value
+selects none. A changed external value replaces the current selection without
+emitting a user selection event. The `select` and `change` events follow Radio
+Group's payloads.
+
+Use Tabs when switching between associated content panels, and Radio Group when
+options need longer labels or descriptions. A segmented control works best when
+the choices are short enough to scan together.

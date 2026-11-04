@@ -110,6 +110,7 @@
     "packages/looma/src/components/ui-search-shell/ui-search-shell.html",
     "packages/looma/src/components/ui-search-shell/ui-search-shell.js",
     "packages/looma/src/components/ui-section/ui-section.html",
+    "packages/looma/src/components/ui-segmented-control/ui-segmented-control.html",
     "packages/looma/src/components/ui-select/ui-select.html",
     "packages/looma/src/components/ui-select/ui-select.js",
     "packages/looma/src/components/ui-separator/ui-separator.html",
