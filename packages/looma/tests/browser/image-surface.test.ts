@@ -65,7 +65,34 @@ describe("Image surface", () => {
       });
       await page.locator("#grid img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
       assert.ok((await page.locator("#grid img").boundingBox())!.width <= 220);
+      assert.equal(await page.locator("#grid .crop-guides").evaluate(el=>getComputedStyle(el).display),"none","Crop guides remain opt-in");
       assert.ok(await page.locator("#grid").evaluate(el => el.scrollWidth <= el.clientWidth));
+      await page.close();
+    });
+  }
+  for (const adapter of ["HTML", "Converted"]) {
+    it(`keeps the complete image visible with proportionate saved crop guides in ${adapter}`, async () => {
+      const path = await bundle(`image-crop-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
+        import { createScene, sceneNode } from "@looma-test/scene";
+        import { UiImage as Image } from "@looma-test/components";
+        createScene({ render: () => sceneNode(Image, { id:"image", src:${JSON.stringify(source)}, alt:"Landscape", width:160, height:80, guides:"both", cropX:.25, cropY:0, cropWidth:.5, cropHeight:1 }) }).mount("#mount");
+      `);
+      const page = await open(path, `<div style="width:200px">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" guides="both" crop-x=".25" crop-y="0" crop-width=".5" crop-height="1"></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root,"tokens.css")], {}, async page => {
+        await page.route(source, route => route.fulfill({contentType:"image/svg+xml",body:svg}));
+      });
+      await page.locator("#image img").evaluate(async element => {await (element as HTMLImageElement).decode();});
+      const image=(await page.locator("#image img").boundingBox())!;
+      const region=await page.locator("#image .crop-square").evaluate(element=>{
+        const rect=element as SVGGraphicsElement,bounds=rect.getBBox(),matrix=rect.getScreenCTM()!;
+        const start=new DOMPoint(bounds.x,bounds.y).matrixTransform(matrix),end=new DOMPoint(bounds.x+bounds.width,bounds.y+bounds.height).matrixTransform(matrix);
+        return {x:start.x,y:start.y,width:end.x-start.x,height:end.y-start.y};
+      });
+      assert.ok(Math.abs(image.width/image.height-2)<.01,"Full image retains its landscape aspect ratio");
+      assert.ok(Math.abs(region.x-image.x-image.width*.25)<1);
+      assert.ok(Math.abs(region.width-image.width*.5)<1);
+      assert.ok(Math.abs(region.height-image.height)<1);
+      assert.ok(Math.abs(region.width-region.height)<1,"Square and circle guides share the saved square crop");
+      assert.equal(await page.locator("#image .crop-guides").getAttribute("aria-hidden"),"true");
       await page.close();
     });
   }

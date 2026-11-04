@@ -10,6 +10,13 @@
     <prop name="selected" type="boolean" default="false">Outlines the media as the current selection.</prop>
     <prop name="resizable" type="boolean" default="false"
     >Shows four corner handles while selected. Drag to resize, or focus a handle and use arrow keys; Shift uses a larger increment.</prop>
+    <prop name="guides" type="keyword" values="none, square, circle, both" default="none"
+    >Show dotted crop guides without cropping the displayed image. The supplied crop must describe a square in the original image.</prop>
+    <prop name="cropX" type="number" default="0">Saved crop's left edge as a fraction of the original image width, from zero to one.</prop>
+    <prop name="cropY" type="number" default="0">Saved crop's top edge as a fraction of the original image height, from zero to one.</prop>
+    <prop name="cropWidth" type="number" default="1">Saved crop width as a fraction of the original image width.</prop>
+    <prop name="cropHeight" type="number" default="1"
+    >Saved crop height as a fraction of the original image height. Supply a square region in original-image pixels.</prop>
     <event name="resize" type="object">
       <prop name="width" type="integer" required></prop>
       <prop name="height" type="integer" required></prop>
@@ -21,6 +28,21 @@
   <figure>
     <div class="frame" $ref="frame">
       <slot name="media"><img from:src="$src" from:alt="$alt" from:width="$width" from:height="$height"></slot>
+      <svg class="crop-guides" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
+        <svg
+          class="crop-region"
+          from:x="$cropX"
+          from:y="$cropY"
+          from:width="$cropWidth"
+          from:height="$cropHeight"
+          viewBox="0 0 1 1"
+          preserveAspectRatio="none"
+          overflow="visible"
+        >
+          <rect class="crop-square" x="0" y="0" width="1" height="1" vector-effect="non-scaling-stroke"></rect>
+          <ellipse class="crop-circle" cx="0.5" cy="0.5" rx="0.5" ry="0.5" vector-effect="non-scaling-stroke"></ellipse>
+        </svg>
+      </svg>
       <div class="handles" from:hidden="not ($selected and $resizable)">
         <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
         <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
@@ -83,6 +105,26 @@
     :host([selected]) .frame {
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);
       outline-offset: var(--ui-border-width);
+    }
+    .crop-guides {
+      display: none !important;
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      overflow: visible;
+      pointer-events: none;
+      fill: none;
+      stroke: white;
+      stroke-width: 1.5px;
+      stroke-dasharray: 2 3;
+      filter: drop-shadow(0 0 1px black);
+    }
+    :host([guides="square"]) .crop-guides, :host([guides="circle"]) .crop-guides, :host([guides="both"]) .crop-guides {
+      display: block !important;
+    }
+    :host([guides="none"]) .crop-guides, :host([guides="circle"]) .crop-square, :host([guides="square"]) .crop-circle {
+      display: none !important;
     }
     .handle {
       position: absolute;

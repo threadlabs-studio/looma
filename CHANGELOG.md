@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add optional saved square and circular crop guides to Image while retaining the complete source artwork.
+
 - Add Notice Stripe for compact, full-width announcements, semantic service notices, trailing actions and consumer-owned dismissal.
 
 - Make the editor link card’s destination clickable, opening same-origin links in the current tab and other destinations in a new tab. Keep long destinations within the card at narrow widths.

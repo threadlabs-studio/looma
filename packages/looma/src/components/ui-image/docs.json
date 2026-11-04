@@ -1,4 +1,4 @@
 {
-  "description": "A semantic image surface with optional selection, corner resizing, and text wrapping.",
+  "description": "A semantic image surface with optional saved crop guides, selection, corner resizing, and text wrapping.",
   "group": "display"
 }
