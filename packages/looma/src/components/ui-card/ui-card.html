@@ -6,8 +6,8 @@
     >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
     <prop name="variant" type="keyword" values="outlined, subtle, elevated, placeholder" default="outlined"
     >The surface. outlined is a bordered panel on the page; subtle is a quiet filled one with no border, for supporting details set apart from the flow;
-      elevated adds a subtle lift above the page, for a view's one card, such as sign-in. placeholder marks an empty content area with a quiet dashed border and
-      muted text, keeping the outlined card's dimensions. Treatment independently controls decorative material.</prop>
+      elevated adds a subtle lift above the page, for a view's one card, such as sign-in. placeholder marks an empty content area with a visible dashed border
+      and secondary text, keeping the outlined card's dimensions. Treatment independently controls decorative material.</prop>
     <prop name="treatment" type="keyword" values="standard, expressive" default="standard"
     >How much of the theme's decorative material the surface expresses. standard preserves its restrained treatment; expressive uses the full material
       treatment. Its glass rim can transmit and frost the surrounding scene while content stays nearly opaque. Surface separation controls the rim,
@@ -116,8 +116,8 @@
 
     :host([variant="placeholder"]) {
       border-style: dashed;
-      border-color: var(--ui-border-subtle);
-      --_ui-surface-text: var(--ui-text-muted);
+      border-color: var(--ui-border-strong);
+      --_ui-surface-text: var(--ui-text-secondary);
     }
 
     :host([variant="elevated"]) {
