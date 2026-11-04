@@ -5,9 +5,15 @@
       <thead><tr><template $slot></template></tr></thead>
       <tbody>
         <tr $each="row, r of $rows" $key="$row[$rowKey]" class:frozen="$r < $frozenRows" style:--_ui-top="concat('var(--_ui-row-', $r, ', 0)')">
-          <td $each="column, c of $columns" $key="$column" from:data-ui-align="$column.align" from:data-ui-frozen="$column.frozen"
+          <td
+            $each="column, c of $columns"
+            $key="$column"
+            from:data-ui-align="$column.align"
+            from:data-ui-frozen="$column.frozen"
             style:--_ui-side="concat('var(--_ui-col-', $c, ', 0)')"
-          ><slot of="$column" name="cell" from:row="$row">{$row[$column.field]}</slot></td>
+          >
+            <slot of="$column" name="cell" from:row="$row">{$row[$column.field]}</slot>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -32,7 +38,7 @@
       --_pad-block: var(--ui-space-1);
       --_pad-inline: var(--ui-space-3);
       --_row-size: var(--ui-control-size);
-      --ui-column-pad-inline: var(--_pad-inline);
+      --_ui-column-pad-inline: var(--_pad-inline);
       display: block !important;
       box-sizing: border-box !important;
       max-inline-size: 100%;

@@ -2,7 +2,10 @@
 title: Cell content
 description: A column's cell template renders once per row and reads the row as $row. A header slot replaces the header text with markup.
 -->
-<ui-data-table caption="Team" rows="[{ id: 1, name: 'Ada Park', role: 'Design', active: true }, { id: 2, name: 'Ben Ortiz', role: 'Engineering', active: false }]">
+<ui-data-table
+  caption="Team"
+  rows="[{ id: 1, name: 'Ada Park', role: 'Design', active: true }, { id: 2, name: 'Ben Ortiz', role: 'Engineering', active: false }]"
+>
   <ui-column field="name" header="Name"></ui-column>
   <ui-column field="role" header="Role"></ui-column>
   <ui-column>

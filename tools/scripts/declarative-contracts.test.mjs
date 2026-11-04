@@ -58,6 +58,22 @@ test("Notice Stripe exposes semantic tones and consumer-owned dismissal", async 
   assert.match(stripe.events[0].detailType, /trigger: "keyboard" \| "pointer"/);
 });
 
+test("Data Table takes its columns as markup, and each Column owns its header and cell slots", async () => {
+  const [{ contracts }] = await readDeclarativeContractGroups();
+  const table = contracts["ui-data-table"];
+  const column = contracts["ui-column"];
+  assert.ok(table && column, "Data Table and Column are public declarative components");
+  assert.equal(table.root, "div");
+  assert.deepEqual(table.slots, ["default"], "a column's forwarded cell slot is not a slot of the table");
+  assert.deepEqual(table.props.rowKey, { type: "string", default: "id" });
+  assert.deepEqual(table.props.frozenRows, { type: "integer", default: 0 });
+  assert.deepEqual(table.propOptions.density, ["comfortable", "compact"]);
+  assert.equal(column.root, "th");
+  assert.deepEqual(column.slots, ["header", "cell"]);
+  assert.deepEqual(column.propOptions.align, ["start", "center", "end"]);
+  assert.deepEqual(column.propOptions.frozen, ["none", "start", "end"]);
+});
+
 test("API metadata keeps base types, choices, and selected types readable", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = groups[0].contracts;

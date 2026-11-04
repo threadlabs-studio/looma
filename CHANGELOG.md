@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
+
 - Add Notice Stripe for compact, full-width announcements, semantic service notices, trailing actions and consumer-owned dismissal.
 
 - Make the editor link card’s destination clickable, opening same-origin links in the current tab and other destinations in a new tab. Keep long destinations within the card at narrow widths.

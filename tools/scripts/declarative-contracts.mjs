@@ -120,7 +120,10 @@ function parseNamedDefinitions(defs, element, map) {
 function parseSlots(source) {
   const slots = [];
   for (const match of source.matchAll(/<slot\b([^>]*)>/g)) {
-    const name = parseAttributes(match[1]).name ?? "default";
+    const attributes = parseAttributes(match[1]);
+    // A <slot of="$item"> renders a slot of an accepted child, not one of this component.
+    if (Object.hasOwn(attributes, "of")) continue;
+    const name = attributes.name ?? "default";
     if (!slots.includes(name)) slots.push(name);
   }
   return Object.freeze(slots);

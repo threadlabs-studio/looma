@@ -15,6 +15,7 @@ const EXEMPT = {
   "ui-combobox :host([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
   "ui-combobox :host([multiple]) .entry.multiline": "the growing input keeps selected labels and the text cursor fully visible without a fading mask",
   "ui-context-menu .menu": SURFACE,
+  "ui-data-table :host": "frozen columns stay at its inline edges, where a fade would hide them",
   "ui-editor-table-context-menu :host": SURFACE,
   "ui-editor-table-toolbar .menu": SURFACE,
   "ui-menu .surface": SURFACE,

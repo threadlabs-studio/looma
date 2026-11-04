@@ -1,0 +1,41 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "density: comfortable",
+    "props": {
+      "density": "comfortable"
+    },
+    "example": 1
+  },
+  {
+    "name": "density: compact",
+    "props": {
+      "density": "compact"
+    },
+    "example": 1
+  },
+  {
+    "name": "Example: 00-preview",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 02-cell-content",
+    "props": {},
+    "example": 2
+  },
+  {
+    "name": "Example: 03-frozen",
+    "props": {},
+    "example": 3
+  }
+]

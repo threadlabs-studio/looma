@@ -16,15 +16,15 @@
     /* One column of a Data Table: its root is the header cell, and the table places its cell content in
        every row. The header stays at the top of the table's scroll box, so it stays in view whenever the
        table has a bounded height. The table sets the padding for its density through the
-       --ui-column-pad-inline custom property. */
+       --_ui-column-pad-inline custom property. */
     :host {
       position: sticky;
       inset-block-start: 0;
       z-index: 2;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       inline-size: var(--_width, auto);
       min-inline-size: var(--_width, 0);
-      padding: var(--ui-space-2) var(--ui-column-pad-inline, var(--ui-space-3)) !important;
+      padding: var(--ui-space-2) var(--_ui-column-pad-inline, var(--ui-space-3)) !important;
       border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
       background: var(--ui-surface);
       color: var(--ui-text-muted);
