@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep placeholder Card borders visible at the standard outline strength and make their default text clearer with the secondary foreground.
+
 - Align independently named checkboxes with their containing row without reserving an empty label line. Add Card's `placeholder` variant for empty content areas with a muted foreground and dashed border.
 
 - Add Wizard with palette-aware ordered steps, controlled navigation intent, completed checks, native destinations and host-owned content and Action Bar actions.

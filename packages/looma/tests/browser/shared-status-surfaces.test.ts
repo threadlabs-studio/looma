@@ -7,7 +7,7 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Shared status surfaces", () => {
-  it("distinguishes placeholder cards with a quiet dashed border while preserving outlined geometry", async () => {
+  it("keeps placeholder borders visible and uses readable secondary text without changing card geometry", async () => {
     for (const adapter of ["html", "converted"]) {
       const path = await bundle(`placeholder-card-${adapter}`, adapter === "html" ? 'import "@looma-test/runtime";' : `
         import {createScene,sceneNode as h} from "@looma-test/scene";import {UiCard as Card,UiText as Text} from "@looma-test/components";
@@ -19,10 +19,13 @@ describe("Shared status surfaces", () => {
           await page.evaluate(mode=>document.documentElement.dataset.theme=mode,mode);
           const paint = await page.locator("#outlined,#placeholder").evaluateAll(elements=>elements.map(element=>{
             const style=getComputedStyle(element), text=element.querySelector("[component~='ui-text'],[data-component~='ui-text'],.ui-text,[ui-text]") ?? element;
-            return {border:style.borderTopStyle,edge:style.borderTopColor,ink:getComputedStyle(text).color,height:element.getBoundingClientRect().height};
+            const probe=document.createElement("span");probe.style.color="var(--ui-text-secondary)";element.append(probe);
+            const secondary=getComputedStyle(probe).color;probe.remove();
+            return {border:style.borderTopStyle,edge:style.borderTopColor,ink:getComputedStyle(text).color,secondary,height:element.getBoundingClientRect().height};
           }));
           assert.equal(paint[1].border,"dashed");
-          assert.notEqual(paint[1].edge,paint[0].edge);
+          assert.equal(paint[1].edge,paint[0].edge,"the dashed edge stays as visible as the adjacent outlined edge");
+          assert.equal(paint[1].ink,paint[1].secondary,"placeholder labels use readable secondary text");
           assert.notEqual(paint[1].ink,paint[0].ink);
           assert.equal(paint[1].height,paint[0].height);
         }
