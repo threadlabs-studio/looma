@@ -1102,6 +1102,11 @@
           "id": "02-selected",
           "title": "Selected and resizable",
           "behavior": false
+        },
+        {
+          "id": "03-crop-guides",
+          "title": "Saved crop guides",
+          "behavior": false
         }
       ]
     },

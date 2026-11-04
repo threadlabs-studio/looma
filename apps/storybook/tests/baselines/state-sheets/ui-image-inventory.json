@@ -5,6 +5,34 @@
     "example": 0
   },
   {
+    "name": "guides: none",
+    "props": {
+      "guides": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "guides: square",
+    "props": {
+      "guides": "square"
+    },
+    "example": 0
+  },
+  {
+    "name": "guides: circle",
+    "props": {
+      "guides": "circle"
+    },
+    "example": 0
+  },
+  {
+    "name": "guides: both",
+    "props": {
+      "guides": "both"
+    },
+    "example": 0
+  },
+  {
     "name": "placement: block",
     "props": {
       "placement": "block"
@@ -69,5 +97,10 @@
     "name": "Example: 02-selected",
     "props": {},
     "example": 1
+  },
+  {
+    "name": "Example: 03-crop-guides",
+    "props": {},
+    "example": 2
   }
 ]
