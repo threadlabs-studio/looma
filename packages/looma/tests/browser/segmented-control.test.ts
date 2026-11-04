@@ -20,9 +20,9 @@ describe("Segmented Control", () => {
         import {createScene,sceneNode,createState} from "@looma-test/scene";
         import {UiSegmentedControl as SegmentedControl,UiRadioGroup as RadioGroup,UiRadio as Radio} from "@looma-test/components";
         const props=createState({value:"active",disabled:false,items:${JSON.stringify(items)}});
-        window.updateSegment=next=>props.value={...props.value,...next};window.selections=[];const otherName=createState("other");window.renameOther=name=>otherName.value=name;
+        window.updateSegment=next=>props.value={...props.value,...next};window.selections=[];window.modelValues=[];const otherName=createState("other");window.renameOther=name=>otherName.value=name;
         createScene({render:()=>sceneNode("form",{id:"filters"},[
-          sceneNode(SegmentedControl,{id:"status",name:"status",label:"Status",required:true,...props.value,onSelect:event=>window.selections.push(event.detail??event)}),
+          sceneNode(SegmentedControl,{id:"status",name:"status",label:"Status",required:true,...props.value,onSelect:event=>window.selections.push(event.detail??event),"bind:value":value=>window.modelValues.push(value)}),
           sceneNode(RadioGroup,{id:"other",name:otherName.value,label:"Other",value:"active"},()=>[sceneNode(Radio,{value:"active"},()=>"Active"),sceneNode(Radio,{value:"archived"},()=>"Archived")]),
         ])}).mount("#app");
       `);
@@ -48,6 +48,7 @@ describe("Segmented Control", () => {
         const events=await page.evaluate(()=> (window as unknown as {selections:Array<{value:string;trigger:string}>}).selections);
         assert.deepEqual(events.map(event=>event.value),["archived","active"]);
         assert.equal(events.at(-1)?.trigger,"keyboard");
+        if (adapter === "Converted") assert.deepEqual(await page.evaluate(()=> (window as unknown as {modelValues:string[]}).modelValues),["archived","active"],"the framework value binding reports each changed selection once");
         await page.locator("#filters").evaluate(form=>(form as HTMLFormElement).reset());
         await expect.poll(selected).toBe("active");
         await page.evaluate(()=> (window as unknown as {updateSegment(props:unknown):void}).updateSegment({value:"archived"}));

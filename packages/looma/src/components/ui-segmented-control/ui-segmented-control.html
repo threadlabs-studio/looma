@@ -41,7 +41,7 @@
   <style>
     :host {
       --_segmented-size: var(--ui-control-size-md);
-      --_segmented-inset: var(--ui-control-inset-inline-md, var(--ui-space-3));
+      --_segmented-inset: var(--ui-space-3);
       --_segmented-font-size: var(--ui-font-size-md);
       --_segmented-padding: var(--ui-space-1) !important;
       --_segmented-radius: var(--ui-field-radius, var(--ui-radius-md));
@@ -83,7 +83,6 @@
       border: var(--ui-border-width) solid var(--ui-segmented-control-border, var(--ui-control-border));
       border-radius: var(--ui-segmented-control-radius, var(--_segmented-radius));
       background: var(--ui-segmented-control-track, var(--ui-surface-sunken));
-      box-shadow: var(--ui-shadow-inset, none);
     }
     label { position: relative; display: grid !important; min-inline-size: 0; cursor: pointer; }
     .choice {
@@ -112,7 +111,8 @@
     }
     label:has(input:not(:disabled)):hover .choice { color: var(--ui-text-primary); }
     input:focus-visible + .choice { outline: var(--ui-focus-width) solid var(--ui-focus-ring); outline-offset: var(--ui-focus-width); }
-    input:disabled + .choice { opacity: var(--ui-disabled-opacity, 0.5); cursor: not-allowed; }
+    input:disabled + .choice { color: var(--ui-disabled-text); cursor: not-allowed; }
+    input:checked:disabled + .choice { background: var(--ui-disabled-surface); border-color: var(--ui-disabled-border); box-shadow: none; }
     :host([invalid]) .segments { border-color: var(--ui-field-danger, var(--ui-danger-solid)); }
     :host([invalid]) legend { color: var(--ui-field-danger, var(--ui-danger-solid)); }
     :host([size="sm"]) { --_segmented-size: var(--ui-control-size-sm); --_segmented-inset: var(--ui-space-2); --_segmented-font-size: var(--ui-font-size-sm); }

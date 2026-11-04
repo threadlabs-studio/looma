@@ -21,7 +21,7 @@ type ComponentApi = { tag: string; root?: string; attributes: { name: string; pr
 const api = JSON.parse(readFileSync(new URL('../../../generated/component-api.json', import.meta.url), 'utf8')) as { components: ComponentApi[] };
 const sourceRoot = resolve(import.meta.dirname, '../../../packages/looma/src/components');
 const interactive = new Set(['ui-pagination', 'ui-checkbox', 'ui-radio', 'ui-switch', 'ui-color-picker', 'ui-combobox', 'ui-cycle-button', 'ui-curve-editor', 'ui-light-editor', 'ui-number-input', 'ui-listbox', 'ui-menu-item', 'ui-nav-item', 'ui-tree-item', 'ui-search-result-row', 'ui-disclosure', 'ui-tabs', 'ui-editable', 'ui-slider']);
-const themed = new Set(['ui-button', 'ui-icon-button', 'ui-input', 'ui-select', 'ui-menu-item', 'ui-menu', 'ui-card', 'ui-checkbox', 'ui-switch']);
+const themed = new Set(['ui-segmented-control', 'ui-button', 'ui-icon-button', 'ui-input', 'ui-select', 'ui-menu-item', 'ui-menu', 'ui-card', 'ui-checkbox', 'ui-switch']);
 const floating = new Set(['ui-dialog', 'ui-popover', 'ui-menu', 'ui-context-menu', 'ui-tooltip']);
 type VisualCase = {
   name: string;
