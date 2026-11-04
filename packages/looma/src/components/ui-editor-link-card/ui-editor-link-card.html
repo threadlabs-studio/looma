@@ -10,11 +10,12 @@
   <defs>
     <prop name="href" type="string" default="">The link's destination, shown when there is no label.</prop>
     <prop name="openHref" type="string" default=""
-    >The address Open link opens in a new tab; without it the card offers no Open link. The editor passes the destination only when it is an http, https,
-      mailto, tel, or relative address.</prop>
+    >The navigable destination for the label and Open link. Same-origin addresses open in the current tab; other destinations open in a new tab. Without it the
+      destination is plain text. The editor passes the destination only when it is an http, https, mailto, tel, or relative address.</prop>
     <prop name="label" type="string" default="">The resolved destination's name, such as a page title, shown in place of the address.</prop>
     <prop name="detail" type="string" default="">A second line under the label, such as where the destination lives.</prop>
     <prop name="targetLabel" type="string" default="Item">What a resolved destination is called, as in "Page: Guide" for a screen reader.</prop>
+    <state name="openTarget" type="string" value="_blank"></state>
     <state name="base" type="string" value="ui-editor-link-card"></state>
     <computed name="resolved" from="$label != ''"></computed>
     <computed name="shown" from="{ true: $label, false: $href }[concat($resolved)]"></computed>
@@ -24,10 +25,34 @@
   <div>
     <ui-card variant="elevated" padding="xs" size="sm">
       <ui-cluster gap="xs" wrap="nowrap" role="group" aria-label="Link actions">
-        <ui-icon from:name="{ true: 'file-text', false: 'link' }[concat($resolved)]"></ui-icon>
-        <ui-stack gap="none" fill from:title="$href" from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)">
-          <ui-text as="strong" size="sm" weight="medium" font="sans" truncate>{$shown}</ui-text>
-          <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans" truncate>{$detail}</ui-text>
+        <ui-stack fill gap="none">
+          <ui-button
+            $if="$openHref != ''"
+            variant="link"
+            tone="neutral"
+            stretch
+            align="start"
+            from:href="$openHref"
+            from:target="$openTarget"
+            rel="noopener noreferrer"
+            from:title="$href"
+            from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)"
+          >
+            <ui-cluster gap="xs" wrap="nowrap">
+              <ui-icon from:name="{ true: 'file-text', false: 'link' }[concat($resolved)]"></ui-icon>
+              <ui-stack gap="none" fill>
+                <ui-text as="strong" size="sm" weight="medium" font="sans" truncate>{$shown}</ui-text>
+                <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans" truncate>{$detail}</ui-text>
+              </ui-stack>
+            </ui-cluster>
+          </ui-button>
+          <ui-cluster $if="$openHref = ''" gap="xs" wrap="nowrap">
+            <ui-icon from:name="{ true: 'file-text', false: 'link' }[concat($resolved)]"></ui-icon>
+            <ui-stack gap="none" fill from:title="$href" from:aria-label="concat({ true: $targetLabel, false: 'URL' }[concat($resolved)], ': ', $shown)">
+              <ui-text as="strong" size="sm" weight="medium" font="sans" truncate>{$shown}</ui-text>
+              <ui-text $if="$detail != ''" as="small" size="xs" tone="secondary" font="sans" truncate>{$detail}</ui-text>
+            </ui-stack>
+          </ui-cluster>
         </ui-stack>
         <template $if="$openHref != ''">
           <ui-button
@@ -36,7 +61,7 @@
             tone="neutral"
             size="sm"
             from:href="$openHref"
-            target="_blank"
+            from:target="$openTarget"
             rel="noopener noreferrer"
             aria-label="Open link"
           ><ui-icon name="external-link"></ui-icon></ui-button>

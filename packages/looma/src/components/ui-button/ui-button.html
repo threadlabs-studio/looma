@@ -273,6 +273,7 @@
 
     /* Projected marks may be images or composed elements, including block-level image resets. */
     .label:has(> *) {
+      max-inline-size: 100%;
       display: inline-flex !important;
       align-items: center !important;
       gap: var(--ui-space-2) !important;

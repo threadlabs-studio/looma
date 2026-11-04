@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Make the editor link card’s destination clickable, opening same-origin links in the current tab and other destinations in a new tab. Keep long destinations within the card at narrow widths.
+
 - Align link-style Buttons with surrounding text using inline-block layout and the text baseline.
 
 - Keep placeholder Card borders visible at the standard outline strength and make their default text clearer with the secondary foreground.
