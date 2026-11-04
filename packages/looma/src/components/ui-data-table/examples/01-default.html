@@ -1,0 +1,9 @@
+<!--
+title: Columns as markup
+description: Each ui-column names the row field it shows and its header. align="end" sets a column of figures along the end of the row.
+-->
+<ui-data-table caption="Orders" rows="[{ id: 1, customer: 'Ada Park', items: 3, total: '$124.00' }, { id: 2, customer: 'Ben Ortiz', items: 1, total: '$18.50' }, { id: 3, customer: 'Chen Wu', items: 5, total: '$302.10' }]">
+  <ui-column field="customer" header="Customer"></ui-column>
+  <ui-column field="items" header="Items" align="end"></ui-column>
+  <ui-column field="total" header="Total" align="end"></ui-column>
+</ui-data-table>

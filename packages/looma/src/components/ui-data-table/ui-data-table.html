@@ -1,0 +1,131 @@
+<template component="ui-data-table" module="./ui-data-table.js">
+  <div>
+    <table>
+      <caption $if="$caption">{$caption}</caption>
+      <thead><tr><template $slot></template></tr></thead>
+      <tbody>
+        <tr $each="row, r of $rows" $key="$row[$rowKey]" class:frozen="$r < $frozenRows" style:--_ui-top="concat('var(--_ui-row-', $r, ', 0)')">
+          <td $each="column, c of $columns" $key="$column" from:data-ui-align="$column.align" from:data-ui-frozen="$column.frozen"
+            style:--_ui-side="concat('var(--_ui-col-', $c, ', 0)')"
+          ><slot of="$column" name="cell" from:row="$row">{$row[$column.field]}</slot></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <defs>
+    <prop name="rows" type="list(object({ ... }))" default="[]">One entry per table row. Each column shows its field of the row, or its own cell content.</prop>
+    <prop name="rowKey" type="string" default="id"
+    >The row field that identifies each row, so a row keeps its cells, and the state of any control in them, when the rows change order.</prop>
+    <prop name="caption" type="string">Names the table. A screen reader announces it with the table, and it names the scrolling region.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >How tall each row is. comfortable fits a control of the standard height; compact fits a small one, for long tables to scan.</prop>
+    <prop name="frozenRows" type="integer" default="0"
+    >How many leading rows stay in view beneath the header while the rows scroll. Frozen rows suit totals or a pinned item.</prop>
+    <slot accepts="ui-column" as="columns"></slot>
+  </defs>
+  <style>
+    /* The root scrolls the table: sideways when it is wider than the root, and down when the root has a
+       bounded height. The header, the frozen rows, and the frozen columns stay in view with
+       position: sticky; the controller measures them and publishes each offset as --_ui-col-<index> and
+       --_ui-row-<index>. */
+    :host {
+      --_pad-block: var(--ui-space-1);
+      --_pad-inline: var(--ui-space-3);
+      --_row-size: var(--ui-control-size);
+      --ui-column-pad-inline: var(--_pad-inline);
+      display: block !important;
+      box-sizing: border-box !important;
+      max-inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: 0;
+      overflow: auto;
+      overscroll-behavior-inline: contain;
+    }
+
+    :host:focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
+    }
+
+    :host([density="compact"]) {
+      --_pad-block: var(--ui-space-0-5);
+      --_pad-inline: var(--ui-space-2);
+      --_row-size: var(--ui-control-size-sm);
+    }
+
+    /* Separate borders stay on their cells when sticky cells scroll; collapsed ones stay behind. */
+    /* The table fills the root, and grows past it when its columns need more room, so the root scrolls. */
+    table {
+      min-inline-size: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+      font-variant-numeric: tabular-nums;
+    }
+
+    caption {
+      padding-block-end: var(--ui-space-2) !important;
+      color: var(--ui-text-secondary);
+      font-weight: var(--ui-font-medium);
+      text-align: start;
+    }
+
+    td {
+      block-size: var(--_row-size);
+      padding: var(--_pad-block) var(--_pad-inline) !important;
+      border-block-end: var(--ui-border-width) solid var(--ui-border-subtle);
+      background: var(--ui-surface);
+      text-align: start;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child > td {
+      border-block-end-width: 0;
+    }
+
+    td[data-ui-align="center"] {
+      text-align: center;
+    }
+
+    td[data-ui-align="end"] {
+      text-align: end;
+    }
+
+    /* Frozen cells sit above the cells that scroll beneath them; a cell frozen both ways sits above both. */
+    /* A divider on a frozen column's inner edge marks where the scrolling cells pass beneath it. */
+    td[data-ui-frozen="start"] {
+      position: sticky;
+      inset-inline-start: var(--_ui-side);
+      z-index: 1;
+      border-inline-end: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+
+    td[data-ui-frozen="end"] {
+      position: sticky;
+      inset-inline-end: var(--_ui-side);
+      z-index: 1;
+      border-inline-start: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+
+    tr.frozen > td {
+      position: sticky;
+      inset-block-start: var(--_ui-top);
+      z-index: 1;
+    }
+
+    tr.frozen > td[data-ui-frozen="start"],
+    tr.frozen > td[data-ui-frozen="end"] {
+      z-index: 2;
+    }
+
+    tr.frozen:nth-last-child(1 of .frozen) > td {
+      border-block-end-color: var(--ui-border-divider);
+    }
+
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>

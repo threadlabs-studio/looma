@@ -1,0 +1,12 @@
+<!--
+title: Frozen columns and rows
+description: The header stays in view while the rows scroll. frozen="start" or frozen="end" keeps a column in view while the table scrolls sideways, and frozen-rows keeps leading rows beneath the header. Give the table a bounded height to scroll its rows.
+-->
+<ui-data-table caption="Regional sales" frozen-rows="1" style="block-size: 14rem" rows="[{ id: 0, region: 'All regions', q1: 4210, q2: 4630, q3: 4980, q4: 5410, total: 19230 }, { id: 1, region: 'North', q1: 1020, q2: 1130, q3: 1210, q4: 1340, total: 4700 }, { id: 2, region: 'South', q1: 980, q2: 1040, q3: 1150, q4: 1260, total: 4430 }, { id: 3, region: 'East', q1: 1110, q2: 1250, q3: 1320, q4: 1430, total: 5110 }, { id: 4, region: 'West', q1: 1100, q2: 1210, q3: 1300, q4: 1380, total: 4990 }, { id: 5, region: 'Central', q1: 640, q2: 700, q3: 760, q4: 820, total: 2920 }, { id: 6, region: 'Coastal', q1: 590, q2: 650, q3: 700, q4: 760, total: 2700 }]">
+  <ui-column field="region" header="Region" frozen="start" width="9rem"></ui-column>
+  <ui-column field="q1" header="First quarter" align="end" width="10rem"></ui-column>
+  <ui-column field="q2" header="Second quarter" align="end" width="10rem"></ui-column>
+  <ui-column field="q3" header="Third quarter" align="end" width="10rem"></ui-column>
+  <ui-column field="q4" header="Fourth quarter" align="end" width="10rem"></ui-column>
+  <ui-column field="total" header="Total" align="end" frozen="end" width="7rem"></ui-column>
+</ui-data-table>
