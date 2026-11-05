@@ -35,7 +35,25 @@ describe("Segmented Control", () => {
         const selected = () => status.locator("input:checked").inputValue();
         const value = () => page.locator("#filters").evaluate(form => new FormData(form as HTMLFormElement).get("status"));
         await expect.poll(selected).toBe("active");
+        const availableInk=await status.locator("input:not(:disabled) + .choice").evaluateAll(choices=>choices.map(choice=>getComputedStyle(choice).color));
+        const disabledInk=await status.getByText("Unavailable",{exact:true}).evaluate(choice=>getComputedStyle(choice).color);
         await status.getByText("Archived",{exact:true}).click();
+        const selectionPaint=await status.evaluate(async element=>{
+          const frames=[];
+          for(let frame=0;frame<3;frame++) {
+            await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+            frames.push([...element.querySelectorAll<HTMLInputElement>("input")].map(input=>({
+              selected:input.checked,
+              highlighted:getComputedStyle(input.nextElementSibling!).boxShadow!=="none",
+            })));
+          }
+          return frames;
+        });
+        assert.deepEqual({availableInk,selectionPaint},{
+          availableInk:[availableInk[0],availableInk[0]],
+          selectionPaint:Array.from({length:3},()=>[{selected:false,highlighted:false},{selected:true,highlighted:true},{selected:false,highlighted:false}]),
+        },"available labels retain normal ink and only the selected choice is highlighted during a change");
+        assert.notEqual(disabledInk,availableInk[0],"disabled labels remain distinct from available choices");
         await expect.poll(selected).toBe("archived");
         assert.equal(await value(),"archived");
         assert.equal(await page.locator('#other input:checked').inputValue(),"active");
@@ -114,6 +132,8 @@ describe("Segmented Control", () => {
           await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
           const surface=await status.getByText("Active",{exact:true}).evaluate(element=>getComputedStyle(element).backgroundColor);
           assert.notEqual(surface,"rgba(0, 0, 0, 0)","selected segment stays visible in each theme");
+          const inks=await status.locator(".choice").evaluateAll(choices=>choices.map(choice=>getComputedStyle(choice).color));
+          assert.equal(inks[0],inks[1],"available labels use the same normal foreground in each theme");
           if (process.env.LOOMA_CAPTURE_ARTIFACTS) {
             await status.evaluate(element=>element.dir="ltr");
             await page.evaluate(()=> (document.activeElement as HTMLElement)?.blur());
