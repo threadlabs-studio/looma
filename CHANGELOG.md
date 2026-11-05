@@ -4,6 +4,12 @@
 
 - Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
 
+- Keep available Segmented Control labels in normal text and switch the selected surface immediately, so unselected choices stay clearly available and two choices never appear selected during a change.
+
+- Add shared `--ui-non-text-on-<tone>` foreground roles for Icon Button so generated non-text inks retain 3:1 contrast across filled states independently of APCA text labels. Existing component overrides and authored-theme defaults remain intact.
+
+- Use APCA to choose black or white labels on customizer solid fills while preserving the selected background colors and their existing material states. Regenerate saved theme CSS to apply the label choices; recipe keys are unchanged.
+
 - Let compact segmented choices use the width their labels need, keeping unequal labels on one line when they fit together.
 
 - Verify published workspace minimum dependency ranges after pnpm removes their workspace protocol, while preserving the exact minimum and rejecting pins or changed ranges.

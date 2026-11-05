@@ -7,6 +7,47 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Icon Button", () => {
+  for (const adapter of ["html", "converted"]) it(`uses semantic icon foregrounds while preserving ${adapter} explicit overrides`, async () => {
+    const tones = ["accent", "accent-secondary", "accent-tertiary", "danger", "success", "warning", "info"];
+    const path = await bundle(`${adapter}-semantic-icon-foreground`, adapter === "html" ? `import "@looma-test/runtime";` : `
+      import {createScene,sceneNode} from "@looma-test/scene";
+      import {UiButton as Button, UiIconButton as IconButton, UiIcon as Icon} from "@looma-test/components";
+      createScene({render:()=>${JSON.stringify(tones)}.map(tone=>sceneNode("div",{id:tone+"-theme"},[
+        sceneNode(Button,{id:tone+"-label",variant:"solid",tone},()=>"Action"),
+        sceneNode(IconButton,{id:tone,variant:"solid",tone,label:tone},()=>sceneNode(Icon,{name:"check"})),
+      ]))}).mount("#app");
+    `);
+    const body = adapter === "html" ? tones.map(tone => `<div id="${tone}-theme"><ui-button id="${tone}-label" variant="solid" tone="${tone}">Action</ui-button><ui-icon-button id="${tone}" variant="solid" tone="${tone}" label="${tone}"><ui-icon name="check"></ui-icon></ui-icon-button></div>`).join("") : '<div id="app"></div>';
+    const page = await open(path, body, [join(root,"tokens.css")]);
+    try {
+      await page.addStyleTag({content: ":root { --ui-motion-fast:0ms; }"});
+      for (const tone of tones) assert.equal(
+        await page.locator(`#${tone}`).evaluate(element => getComputedStyle(element).color),
+        await page.locator(`#${tone}-label`).evaluate(element => getComputedStyle(element).color),
+        `${adapter}/${tone}: authored-theme defaults keep the existing ink`,
+      );
+      for (const [tone, token] of Object.entries({accent:"--ui-text-on-accent", "accent-secondary":"--ui-on-accent-secondary", "accent-tertiary":"--ui-on-accent-tertiary", danger:"--ui-danger-on-strong", success:"--ui-success-on-strong", warning:"--ui-warning-on-strong", info:"--ui-info-on-strong"})) {
+        await page.locator(`#${tone}-theme`).evaluate((element, token) => { (element as HTMLElement).style.setProperty(token, "#345678"); }, token);
+        assert.equal(await page.locator(`#${tone}`).evaluate(element => getComputedStyle(element).color), "rgb(52, 86, 120)", `${adapter}/${tone}: nested authored-theme overrides remain live`);
+      }
+      await page.addStyleTag({content: `:root { --ui-motion-fast:0ms; ${tones.map(tone => `--ui-non-text-on-${tone}: #123456;`).join(" ")} }`});
+      for (const tone of tones) {
+        const icon = page.locator(`#${tone}`), label = page.locator(`#${tone}-label`);
+        const labelColor = await label.evaluate(element => getComputedStyle(element).color);
+        for (const state of ["rest", "hover", "active"]) {
+          if (state !== "rest") await icon.hover();
+          if (state === "active") await page.mouse.down();
+          try {
+            assert.equal(await icon.evaluate(element => getComputedStyle(element).color), "rgb(18, 52, 86)", `${adapter}/${tone}/${state}`);
+            assert.equal(await label.evaluate(element => getComputedStyle(element).color), labelColor, "icon ink does not change text labels");
+          } finally { if (state === "active") await page.mouse.up(); }
+        }
+      }
+      await page.addStyleTag({content: "#warning { --ui-icon-button-solid-text:#654321; }"});
+      assert.equal(await page.locator("#warning").evaluate(element => getComputedStyle(element).color), "rgb(101, 67, 33)");
+    } finally { await page.close(); }
+  });
+
   for (const adapter of ["html", "converted"]) it(`keeps matched ${adapter} icon touch targets within their adjacent action boundary`, async () => {
     const path = await bundle(`${adapter}-paired-touch-boundaries`, adapter === "html" ? `import "@looma-test/runtime";` : `
       import {createScene,sceneNode} from "@looma-test/scene";

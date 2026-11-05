@@ -1,10 +1,12 @@
 import { chooseOption, openEditor, chooseStartingPoint, setBaseColor, chooseRefinement, openOverview, followDocumentationLink } from './choose-option.js';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import { expect, test } from '@playwright/test';
 import { readCatalog, validateRecipe, startingPoints } from '@threadlabs/looma-docs';
 
 const catalog = await readCatalog();
+const { APCAcontrast, sRGBtoY } = await import(createRequire(import.meta.resolve('@threadlabs/looma-docs')).resolve('apca-w3'));
 
 async function chooseAppearance(page, choice) {
   const button = page.getByRole('button', { name: /^Appearance:/ });
@@ -553,7 +555,7 @@ const readableRecipes = [...Object.entries(startingPoints), ['imported white see
   ...startingPoints.minimal, values: { ...startingPoints.minimal.values, action: '#ffffff', canvas: '#ffffff', surface: '#ffffff', text: '#ffffff' },
 }]];
 for (const [preset, recipe] of readableRecipes) {
-  test(`solid action tones and icon actions stay readable in both modes and states: ${preset}`, async ({ page }, info) => {
+  test(`solid action tones use APCA labels and icon actions retain non-text contrast in both modes and states: ${preset}`, async ({ page }, info) => {
     await page.goto(info.config.metadata.markupress + 'customize/');
     if (Object.hasOwn(startingPoints, preset)) await chooseStartingPoint(page, preset);
     else {
@@ -580,15 +582,53 @@ for (const [preset, recipe] of readableRecipes) {
         return (Math.max(background, foreground) + .05) / (Math.min(background, foreground) + .05);
       }));
     };
+    const assertSolidForeground = async (button, state) => {
+      const colors = await button.evaluate((element, state) => {
+        const style = getComputedStyle(element), context = document.createElement('canvas').getContext('2d');
+        const rgb = color => {
+          context.fillStyle = color; context.fillRect(0, 0, 1, 1);
+          return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        };
+        const probe = document.createElement('span'); element.append(probe);
+        const token = name => { probe.style.color = `var(${name})`; return rgb(getComputedStyle(probe).color); };
+        const tone = element.dataset.tone;
+        const opacity = Number(style.getPropertyValue('--ui-finish')) * Number(style.getPropertyValue('--ui-light-strength'));
+        const composite = (paint, fill) => paint.map((channel, i) => Math.round(channel * opacity + fill[i] * (1 - opacity)));
+        const fills = ['', '-hover', '-active'].map(suffix => token(`--ui-${tone === 'neutral' && !suffix ? 'neutral-surface' : tone + suffix}`));
+        const backgrounds = tone === 'neutral' ? fills : fills.flatMap((fill, i) => [fill, ...['reflection', 'shade'].map(part => composite(token(`--ui-${tone}${i === 1 ? '-hover' : ''}-${part}`), fill))]);
+        const icon = element.matches('[component~="ui-icon-button"]');
+        const nonText = icon ? backgrounds : tone === 'accent' ? [fills[0], ...['reflection', 'shade', 'specular'].map(part => composite(token(`--ui-${tone}-${part}`), fills[0]))] : [];
+        const result = { foreground: rgb(style.color), background: rgb(style.backgroundColor), fill: fills[state], backgrounds, nonText, tone, icon };
+        probe.remove(); return result;
+      }, state);
+      const { foreground, background, fill, backgrounds, nonText, tone, icon } = colors;
+      const luminance = rgb => rgb.map(channel => channel / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
+      const ratio = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+      expect(background, `${preset}/${tone}/${state}: original fill reaches the control`).toEqual(fill);
+      if (tone === 'neutral') expect(ratio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+      else {
+        const inks = [[255, 255, 255], [0, 0, 0]];
+        const eligible = inks.filter(ink => nonText.every(paint => ratio(ink, paint) >= 3));
+        const score = ink => Math.min(...backgrounds.map(paint => Math.abs(APCAcontrast(sRGBtoY(ink), sRGBtoY(paint)))));
+        const expected = (eligible.length ? eligible : inks).sort((a, b) => score(b) - score(a))[0];
+        expect(foreground, `${preset}/${tone}/${state}: strongest eligible APCA label`).toEqual(expected);
+      }
+      if (icon) expect(ratio(foreground, background), `${preset}/${tone}/${state}: non-text icon`).toBeGreaterThanOrEqual(3);
+    };
     for (const mode of ['light', 'dark']) {
       await card.evaluate((element, mode) => { element.dataset.theme = mode; }, mode);
       await expect.poll(() => frame.evaluate(element => getComputedStyle(element).colorScheme)).toBe(mode);
       for (const button of await buttons.all()) {
-        expect(await button.evaluate(contrast)).toBeGreaterThanOrEqual(4.5);
-        await button.hover(); expect(await button.evaluate(contrast)).toBeGreaterThanOrEqual(4.5);
+        await page.mouse.move(0, 0);
+        await assertSolidForeground(button, 0);
+        await button.hover(); await assertSolidForeground(button, 1);
         await page.mouse.down();
-        try { expect(await button.evaluate(contrast)).toBeGreaterThanOrEqual(4.5); }
+        try { await assertSolidForeground(button, 2); }
         finally { await page.mouse.up(); }
+      }
+      if (preset === 'looma' && mode === 'light' && process.env.LOOMA_MATERIAL_SCREENSHOTS) {
+        await page.mouse.move(0, 0);
+        await card.screenshot({ path: join(process.env.LOOMA_MATERIAL_SCREENSHOTS, 'apca-icon-contrast.png') });
       }
     }
     expect(await card.locator('pre').first().evaluate(contrast)).toBeGreaterThanOrEqual(4.5);
