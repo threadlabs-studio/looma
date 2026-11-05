@@ -88,10 +88,28 @@ describe("Segmented Control", () => {
         await page.evaluate(()=> (window as unknown as {updateSegment(props:unknown):void}).updateSegment({items:[{value:"active",label:"An extended active status"},{value:"archived",label:"An extended archived status"}],value:"active"}));
         await expect.poll(selected).toBe("active");
         assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),"long labels remain within a narrow viewport");
+        await page.evaluate(()=> (window as unknown as {updateSegment(props:unknown):void}).updateSegment({size:"sm",items:[{value:"active",label:"Ready"},{value:"busy",label:"Busy"},{value:"unconfirmed",label:"Unconfirmed"}]}));
+        await status.evaluate(element=>{
+          element.style.fontFamily="Arial, sans-serif";
+          const widths=[...element.querySelectorAll(".choice")].map(choice=>{
+            const probe=choice.cloneNode(true) as HTMLElement;
+            Object.assign(probe.style,{position:"absolute",whiteSpace:"nowrap",inlineSize:"max-content",visibility:"hidden"});
+            element.append(probe);const width=probe.getBoundingClientRect().width;probe.remove();return width;
+          });
+          const track=getComputedStyle(element.querySelector(".segments")!);
+          const edge=[track.paddingLeft,track.paddingRight,track.borderLeftWidth,track.borderRightWidth].reduce((sum,value)=>sum+parseFloat(value),0);
+          element.style.inlineSize=`${Math.ceil(widths.reduce((sum,width)=>sum+width,0)+edge+3)}px`;
+        });
+        await expect.poll(()=>status.getByText("Unconfirmed",{exact:true}).isVisible()).toBe(true);
+        const lines=await status.locator(".choice").evaluateAll(elements=>elements.map(element=>{
+          const range=document.createRange();range.selectNodeContents(element);return range.getClientRects().length;
+        }));
+        assert.deepEqual(lines,[1,1,1],"unequal labels that fit together retain whole words in a compact group");
+        await status.evaluate(element=>{ element.style.inlineSize=""; element.style.fontFamily=""; });
         await page.evaluate(()=>document.body.style.fontFamily="var(--ui-font-sans)");
         await page.addStyleTag({path:join(root,"theme-light.css")});
         await page.addStyleTag({path:join(root,"theme-dark.css")});
-        await page.evaluate(()=> (window as unknown as {updateSegment(props:unknown):void}).updateSegment({items:[{value:"active",label:"Active"},{value:"archived",label:"Archived"}],value:"active",labelVisibility:"sr-only"}));
+        await page.evaluate(()=> (window as unknown as {updateSegment(props:unknown):void}).updateSegment({size:"md",items:[{value:"active",label:"Active"},{value:"archived",label:"Archived"}],value:"active",labelVisibility:"sr-only"}));
         for (const theme of ["light","dark"]) {
           await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
           const surface=await status.getByText("Active",{exact:true}).evaluate(element=>getComputedStyle(element).backgroundColor);
