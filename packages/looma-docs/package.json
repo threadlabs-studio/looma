@@ -48,7 +48,8 @@
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "expressmark": ">=0.6.0",
-    "parse5": "^8.0.1"
+    "parse5": "^8.0.1",
+    "apca-w3": "^0.1.9"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

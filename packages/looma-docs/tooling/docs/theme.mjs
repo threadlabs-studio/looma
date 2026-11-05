@@ -1,3 +1,4 @@
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { googleFonts, googleFontStack, googleFontURL } from './fonts.mjs';
 import { mixColour as mix, paletteSeeds, companionSurface, toLch, fromLch } from './palette.mjs';
 
@@ -266,6 +267,14 @@ const alphaSurface = (fill, background, alpha) => {
 };
 const luminanceContrast = (a, b) => (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 const contrast = (a, b) => luminanceContrast(luminance(a), luminance(b));
+const perceptualContrast = (text, background) => APCAcontrast(sRGBtoY(rgb(text)), sRGBtoY(rgb(background)));
+function labelForeground(backgrounds, nonTextBackgrounds = []) {
+  const inks = ['#ffffff', '#000000'];
+  // The accent ink also paints choice marks, which retain their non-text floor.
+  const eligible = inks.filter(ink => nonTextBackgrounds.every(background => contrast(ink, background) >= 3));
+  const strength = ink => Math.min(...backgrounds.map(background => Math.abs(perceptualContrast(ink, background))));
+  return (eligible.length ? eligible : inks).sort((a, b) => strength(b) - strength(a))[0];
+}
 // Bound opaque ink against the complete sRGB gradient. Different chromatic
 // stops can mix darker than either endpoint, so inspect the interior as well.
 function materialLuminances(start, end) {
@@ -595,6 +604,19 @@ export function deriveTheme(input, { mode } = {}) {
   // a pressed fill. Preserve consumer overrides at their established boundaries.
   tokens['--ui-field-danger'] = tokens['--ui-danger-subtle-text'];
   for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) tokens[`--ui-editor-${hook}`] = tokens['--ui-accent-subtle-text'];
+  // Resolve APCA text labels after the palette and its states are complete.
+  // Foreground selection must never feed contrast targets back into the paint.
+  for (const tone of Object.keys(tones)) {
+    const backgrounds = ['', '-hover', '-active'].flatMap(state => {
+      const fill = tokens[`--ui-${tone}${state}`];
+      const material = state === '-hover' ? '-hover' : '';
+      return [fill, ...['reflection', 'shade'].map(part => alphaSurface(tokens[`--ui-${tone}${material}-${part}`], fill, materialOpacity))];
+    });
+    const nonTextBackgrounds = tone === 'accent' ? [tokens['--ui-accent'], ...['reflection', 'shade', 'specular'].map(part => alphaSurface(tokens[`--ui-accent-${part}`], tokens['--ui-accent'], materialOpacity))] : [];
+    const label = labelForeground(backgrounds, nonTextBackgrounds);
+    tokens[`--ui-on-${tone}`] = label;
+    tokens[`--ui-${tone}-on-strong`] = label;
+  }
   // Knobs are painted foreground surfaces, not text. Bound them against the
   // continuous track luminance range, not just its colored endpoints (3:1).
   for (const [role, fill, track, trackFill] of [
