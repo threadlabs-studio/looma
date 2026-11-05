@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/node": "^22.13.5",
     "typescript": "^5.9.2",
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.90",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.91",
     "@vitejs/plugin-vue": "^6.0.9",
     "vite": "^8.3.0",
     "@threadlabs/looma-docs": ">=0.52.0"
