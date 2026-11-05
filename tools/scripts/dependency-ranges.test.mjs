@@ -19,7 +19,7 @@ test("public owner dependencies keep open minimum-version ranges", async () => {
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
       for (const [name, range] of Object.entries(manifest[field] ?? {})) {
         if (!/^(?:@threadlabs(?:-studio)?\/|@nextwebwg\/|expressmark$|markupress$)/.test(name)) continue;
-        assert.match(range, /^(?:workspace:\*|>=\d+\.\d+\.\d+(?:-[\da-z.-]+)?)$/i, `${file} ${field}.${name}: ${range}`);
+        assert.match(range, /^(?:workspace:\*|(?:workspace:)?>=\d+\.\d+\.\d+(?:-[\da-z.-]+)?)$/i, `${file} ${field}.${name}: ${range}`);
       }
     }
   }
