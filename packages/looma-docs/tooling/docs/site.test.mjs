@@ -75,11 +75,17 @@ test('prerenders examples in shared cards without frame documents, including beh
     const customizer = await readFile(path.join(site.generated, 'customizer.html'), 'utf8');
     const controller = await import(pathToFileURL(path.join(site.generated, 'customizer.js')).href);
     assert.equal(typeof controller.connect, 'function', 'generated controllers must resolve Looma dependencies outside the package');
+    const theme = await import(pathToFileURL(path.join(site.generated, 'theme.mjs')).href);
+    assert.match(theme.themeCSS(theme.defaultRecipe()), /--ui-text:/, 'generated theme imports resolve transitive dependencies from the package');
     assert.match(customizer, /<looma-preview-choice slot="preview"/);
     assert.match(customizer, /removable/);
     assert.match(customizer, /data-customizer-summary/);
     assert.doesNotMatch(customizer, /summary="Advanced material"/);
     assert.match(customizer, /Frosting/);
+    assert.match(customizer, /https:\/\/git.apcacontrast.com\/documentation\/WhyAPCA/);
+    assert.match(customizer, /\/system\/contrast-licenses\//);
+    const license = await readFile(path.join(site.content, '02.(Create your design system)/06.contrast-licenses.md'), 'utf8');
+    assert.match(license, /W3C SOFTWARE AND DOCUMENT NOTICE AND LICENSE/);
     assert.match(customizer, /Transparency/);
     assert.equal((customizer.match(/id="theme-light-color"/g) ?? []).length, 1, 'environment light appears only under Material');
     assert.match(customizer, /data-editor-preview="material"/);
