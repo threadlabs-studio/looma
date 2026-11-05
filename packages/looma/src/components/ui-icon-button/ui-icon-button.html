@@ -106,7 +106,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-accent-secondary-solid) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-accent-secondary);
       --_icon-button-solid-hover-surface: var(--ui-accent-secondary-hover);
-      --_icon-button-solid-text: var(--ui-on-accent-secondary);
+      --_icon-button-solid-text: var(--ui-icon-on-accent-secondary, var(--ui-on-accent-secondary));
       color: var(--_icon-button-text);
     }
 
@@ -128,7 +128,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-accent-tertiary-solid) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-accent-tertiary);
       --_icon-button-solid-hover-surface: var(--ui-accent-tertiary-hover);
-      --_icon-button-solid-text: var(--ui-on-accent-tertiary);
+      --_icon-button-solid-text: var(--ui-icon-on-accent-tertiary, var(--ui-on-accent-tertiary));
       color: var(--_icon-button-text);
     }
 
@@ -169,7 +169,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-danger) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-danger);
       --_icon-button-solid-hover-surface: var(--ui-danger-hover);
-      --_icon-button-solid-text: var(--ui-danger-on-strong);
+      --_icon-button-solid-text: var(--ui-icon-on-danger, var(--ui-danger-on-strong));
       color: var(--_icon-button-text);
     }
 
@@ -191,7 +191,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-success) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-success);
       --_icon-button-solid-hover-surface: var(--ui-success-hover);
-      --_icon-button-solid-text: var(--ui-success-on-strong);
+      --_icon-button-solid-text: var(--ui-icon-on-success, var(--ui-success-on-strong));
       color: var(--_icon-button-text);
     }
 
@@ -213,7 +213,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-warning) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-warning);
       --_icon-button-solid-hover-surface: var(--ui-warning-hover);
-      --_icon-button-solid-text: var(--ui-warning-on-strong);
+      --_icon-button-solid-text: var(--ui-icon-on-warning, var(--ui-warning-on-strong));
       color: var(--_icon-button-text);
     }
 
@@ -235,7 +235,7 @@
       --_icon-button-outline-surface: color-mix(in srgb, var(--ui-info) 5%, var(--ui-surface-default));
       --_icon-button-solid-surface: var(--ui-info);
       --_icon-button-solid-hover-surface: var(--ui-info-hover);
-      --_icon-button-solid-text: var(--ui-info-on-strong);
+      --_icon-button-solid-text: var(--ui-icon-on-info, var(--ui-info-on-strong));
       color: var(--_icon-button-text);
     }
 
@@ -441,7 +441,7 @@
       border-color: var(--ui-icon-button-border, var(--_solid-border));
       background-color: var(--ui-icon-button-solid-surface, var(--_icon-button-solid-surface, var(--ui-accent-solid)));
       background-image: var(--_tone-highlight);
-      color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
+      color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-icon-on-accent, var(--ui-text-on-accent))));
       box-shadow:
         var(--ui-icon-button-solid-shadow, var(--ui-action-shadow, var(--_ui-action-shadow))),
         var(--_tone-glow);
@@ -493,7 +493,7 @@
     }
 
     :host[data-appearance="solid"]:hover:enabled:not([aria-disabled="true"]) {
-      color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-text-on-accent)));
+      color: var(--ui-icon-button-solid-text, var(--_icon-button-solid-text, var(--ui-icon-on-accent, var(--ui-text-on-accent))));
     }
 
     :host[data-appearance="ghost"][aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
