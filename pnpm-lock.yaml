@@ -103,6 +103,9 @@ importers:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.9.3)
     devDependencies:
+      '@nextwebwg/html-next':
+        specifier: '>=1.0.0-alpha.91'
+        version: 1.0.0-alpha.91
       '@playwright/test':
         specifier: 1.60.0
         version: 1.60.0

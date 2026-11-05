@@ -8,4 +8,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 One column of a `ui-data-table`. Its root is the column's header cell. The table shows the column's `field` of each row, or the column's `cell` content, which reads the row as `$row`. `align` sets the header and every cell along the row, `width` sets the column's width, and `frozen` keeps the column at the inline start or end while the table scrolls sideways. See [Data Table](/components/ui-data-table).
 
+A `cell` template with bindings written in a page's own HTML needs HTML Next's live parser, from `@nextwebwg/html-next/live`. Framework and compiled consumers do not.
+
 <ComponentExamplesApiTabs component="ui-column" />
