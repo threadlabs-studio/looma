@@ -1,0 +1,5 @@
+{
+  "description": "Choose one option from a short visible set on a shared track. A raised selected segment uses the current theme surfaces. Native radio inputs supply keyboard navigation, validation, submission and reset. Supply name for behavior before upgrade. The select and change events follow Radio Group; value updates replace the selection without reporting a user edit.",
+  "group": "forms",
+  "summary": "A compact shared track for mutually exclusive choices."
+}
