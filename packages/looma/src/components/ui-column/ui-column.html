@@ -1,0 +1,63 @@
+<template component="ui-column" module="./ui-column.js">
+  <th scope="col" style:--_width="$width"><slot name="header">{$header}</slot></th>
+  <defs>
+    <prop name="field" type="string">The row field each cell shows when the column gives no cell content.</prop>
+    <prop name="header" type="string">The header text. Content in the header slot replaces it, for markup such as an abbreviation.</prop>
+    <prop name="align" type="keyword" values="start, center, end" default="start"
+    >Where the header and every cell set their content along the row, such as end for a column of figures.</prop>
+    <prop name="frozen" type="keyword" values="none, start, end" default="none"
+    >Keeps the column in view while the table scrolls sideways. start holds it at the inline start edge, beside any frozen columns before it; end holds it at
+      the inline end edge, beside any frozen columns after it.</prop>
+    <prop name="width" type="string">The column's width as a CSS length, such as 12rem. The column sizes to its content when it is not set.</prop>
+    <slot name="header"></slot>
+    <slot name="cell"><prop name="row" type="object({ ... })" required>The row this cell shows.</prop></slot>
+  </defs>
+  <style>
+    /* One column of a Data Table: its root is the header cell, and the table places its cell content in
+       every row. The header stays at the top of the table's scroll box, so it stays in view whenever the
+       table has a bounded height. The table sets the padding for its density through the
+       --_ui-column-pad-inline custom property. */
+    :host {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 2;
+      box-sizing: border-box !important;
+      inline-size: var(--_width, auto);
+      min-inline-size: var(--_width, 0);
+      padding: var(--ui-space-2) var(--_ui-column-pad-inline, var(--ui-space-3)) !important;
+      border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
+      background: var(--ui-surface);
+      color: var(--ui-text-muted);
+      font-weight: var(--ui-font-medium);
+      text-align: start;
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    :host([align="center"]) {
+      text-align: center;
+    }
+
+    :host([align="end"]) {
+      text-align: end;
+    }
+
+    /* The table measures the frozen columns and publishes each one's offset; the controller points this
+       column at its own. */
+    :host([frozen="start"]) {
+      inset-inline-start: var(--_ui-frozen-offset, 0);
+      z-index: 3;
+      border-inline-end: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+
+    :host([frozen="end"]) {
+      inset-inline-end: var(--_ui-frozen-offset, 0);
+      z-index: 3;
+      border-inline-start: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+
+    :host[hidden] {
+      display: none !important;
+    }
+  </style>
+</template>

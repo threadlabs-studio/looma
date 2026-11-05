@@ -535,6 +535,19 @@
       ]
     },
     {
+      "path": "components/ui-column",
+      "title": "Column",
+      "source": "apps/docs/docs/parts/ui-column.mdx",
+      "component": "ui-column",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Field, header and cell content",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-combobox",
       "title": "Combobox",
       "source": "apps/docs/docs/components/forms/ui-combobox.mdx",
@@ -719,6 +732,34 @@
         {
           "id": "01-appearance",
           "title": "Cycling appearance",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-data-table",
+      "title": "Data Table",
+      "source": "apps/docs/docs/components/display/ui-data-table.mdx",
+      "component": "ui-data-table",
+      "examples": [
+        {
+          "id": "00-preview",
+          "title": "Orders table",
+          "behavior": false
+        },
+        {
+          "id": "01-default",
+          "title": "Columns as markup",
+          "behavior": false
+        },
+        {
+          "id": "02-cell-content",
+          "title": "Cell content",
+          "behavior": false
+        },
+        {
+          "id": "03-frozen",
+          "title": "Frozen columns and rows",
           "behavior": false
         }
       ]

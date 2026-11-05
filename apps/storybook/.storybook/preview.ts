@@ -7,6 +7,10 @@ import "@threadlabs/looma/theme-light.css";
 import "@threadlabs/looma/theme-dark.css";
 // Registers every component with the HTML Next runtime; each carries its own scoped styles.
 import "@threadlabs/looma";
+import { lowerDocument } from "@nextwebwg/html-next/live";
+
+// Examples are plain page markup, so a cell template with bindings needs the live parser. Lowering an empty root installs it.
+lowerDocument(document.createDocumentFragment());
 
 const preview: Preview = {
   decorators: [withOverlayAnimation],

@@ -25,7 +25,7 @@ authorization still requires the protected owner preflight before registry mutat
 ### Core: published
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-meter`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`,
+`ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-data-table`, `ui-column`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-meter`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`,
 `ui-form-field`, `ui-date-field`, `ui-date-picker`, `ui-date-range-picker`, `ui-calendar`, `ui-time-field`, `ui-time-picker`, `ui-file-input`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-list`, `ui-list-item`, `ui-listbox`, `ui-menu`, `ui-menu-group`, `ui-menu-item`,
 `ui-nav-item`, `ui-notice-stripe`, `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,

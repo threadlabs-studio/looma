@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "align: start",
+    "props": {
+      "align": "start"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: center",
+    "props": {
+      "align": "center"
+    },
+    "example": 0
+  },
+  {
+    "name": "align: end",
+    "props": {
+      "align": "end"
+    },
+    "example": 0
+  },
+  {
+    "name": "frozen: none",
+    "props": {
+      "frozen": "none"
+    },
+    "example": 0
+  },
+  {
+    "name": "frozen: start",
+    "props": {
+      "frozen": "start"
+    },
+    "example": 0
+  },
+  {
+    "name": "frozen: end",
+    "props": {
+      "frozen": "end"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-default",
+    "props": {},
+    "example": 0
+  }
+]

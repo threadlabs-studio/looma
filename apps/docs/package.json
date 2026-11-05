@@ -22,7 +22,7 @@
     "@docusaurus/plugin-content-docs": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
-    "@nextwebwg/html-next": ">=1.0.0-alpha.90",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.91",
     "@threadlabs/looma": "workspace:*",
     "@tiptap/core": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
