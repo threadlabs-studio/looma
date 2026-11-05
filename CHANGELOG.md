@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Show the values of Data Table and Column cell templates on the documentation site: an example whose text reads expressions renders through its generated component, because Markdown text is literal.
+
 - Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
 
 - Keep available Segmented Control labels in normal text and switch the selected surface immediately, so unselected choices stay clearly available and two choices never appear selected during a change.
