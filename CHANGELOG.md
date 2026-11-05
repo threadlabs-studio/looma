@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep available Segmented Control labels in normal text and switch the selected surface immediately, so unselected choices stay clearly available and two choices never appear selected during a change.
+
 - Add shared `--ui-non-text-on-<tone>` foreground roles for Icon Button so generated non-text inks retain 3:1 contrast across filled states independently of APCA text labels. Existing component overrides and authored-theme defaults remain intact.
 
 - Use APCA to choose black or white labels on customizer solid fills while preserving the selected background colors and their existing material states. Regenerate saved theme CSS to apply the label choices; recipe keys are unchanged.
