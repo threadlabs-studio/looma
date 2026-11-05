@@ -20,7 +20,7 @@ env:
 # Queue time and protected-environment approval time are outside runner control.
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -53,11 +53,11 @@ jobs:
         run: node tools/scripts/ci-qualification.mjs run quality
 
   browser:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
     timeout-minutes: 6
     # Browsers and OS libraries are preinstalled. No apt/CDN install on a fix.
     container:
-      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:9bd26ad900bb5e0f4dee75839e957a89ae89c2b7ab1e76050e559790e946b948
       options: --ipc=host --init
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -92,7 +92,7 @@ jobs:
           if-no-files-found: ignore
 
   release-package:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
     # Includes a fresh installed docs build and the local save/discovery flow.
     timeout-minutes: 6
     steps:
@@ -123,10 +123,10 @@ jobs:
 
   catalog-prepare:
     name: Compile complete catalogs once
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
     timeout-minutes: 6
     container:
-      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:9bd26ad900bb5e0f4dee75839e957a89ae89c2b7ab1e76050e559790e946b948
       options: --ipc=host --init
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -151,10 +151,10 @@ jobs:
   converter-pressure:
     needs: catalog-prepare
     name: Catalog / ${{ matrix.renderer }} / ${{ matrix.shard }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
     timeout-minutes: 6
     container:
-      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
+      image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:9bd26ad900bb5e0f4dee75839e957a89ae89c2b7ab1e76050e559790e946b948
       options: --ipc=host --init
     strategy:
       fail-fast: false
@@ -187,7 +187,7 @@ jobs:
           if-no-files-found: ignore
 
   visual:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 6
     strategy:
       fail-fast: false
@@ -227,7 +227,7 @@ jobs:
   verify:
     if: always()
     needs: [quality, browser, release-package, visual, converter-pressure]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
     timeout-minutes: 1
     steps:
       - name: Require tests, release packaging, and complete visual captures
