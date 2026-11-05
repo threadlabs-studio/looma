@@ -30,7 +30,7 @@ describe("Icon Button", () => {
         await page.locator(`#${tone}-theme`).evaluate((element, token) => { (element as HTMLElement).style.setProperty(token, "#345678"); }, token);
         assert.equal(await page.locator(`#${tone}`).evaluate(element => getComputedStyle(element).color), "rgb(52, 86, 120)", `${adapter}/${tone}: nested authored-theme overrides remain live`);
       }
-      await page.addStyleTag({content: `:root { --ui-motion-fast:0ms; ${tones.map(tone => `--ui-icon-on-${tone}: #123456;`).join(" ")} }`});
+      await page.addStyleTag({content: `:root { --ui-motion-fast:0ms; ${tones.map(tone => `--ui-non-text-on-${tone}: #123456;`).join(" ")} }`});
       for (const tone of tones) {
         const icon = page.locator(`#${tone}`), label = page.locator(`#${tone}-label`);
         const labelColor = await label.evaluate(element => getComputedStyle(element).color);

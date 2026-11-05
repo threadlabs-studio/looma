@@ -616,7 +616,7 @@ export function deriveTheme(input, { mode } = {}) {
     const label = labelForeground(backgrounds, nonTextBackgrounds);
     tokens[`--ui-on-${tone}`] = label;
     tokens[`--ui-${tone}-on-strong`] = label;
-    tokens[`--ui-icon-on-${tone}`] = labelForeground(backgrounds, backgrounds);
+    tokens[`--ui-non-text-on-${tone}`] = labelForeground(backgrounds, backgrounds);
   }
   // Knobs are painted foreground surfaces, not text. Bound them against the
   // continuous track luminance range, not just its colored endpoints (3:1).

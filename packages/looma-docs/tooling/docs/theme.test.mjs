@@ -124,7 +124,7 @@ function assertAPCALabel(tokens, tone, recipe) {
   if (eligible('#ffffff') || eligible('#000000')) assert.ok(eligible(chosen), `${tone}: choice marks retain their non-text minimum`);
   const other = chosen === '#ffffff' ? '#000000' : '#ffffff';
   assert.ok(!eligible(other) || score(chosen) >= score(other), `${tone}: selected label has the stronger minimum APCA contrast`);
-  const icon = tokens[`--ui-icon-on-${tone}`];
+  const icon = tokens[`--ui-non-text-on-${tone}`];
   assert.ok(icon === '#ffffff' || icon === '#000000');
   assert.ok(backgrounds.every(background => contrast(icon, background) >= 3), `${tone}: icon foreground retains its non-text minimum across states`);
   const otherIcon = icon === '#ffffff' ? '#000000' : '#ffffff';
@@ -169,7 +169,7 @@ const backgroundSnapshots = {
 test('APCA label selection preserves every other palette and material token', () => {
   for (const [name, recipe] of Object.entries(startingPoints)) for (const mode of ['light', 'dark']) {
     const { tokens } = deriveTheme(recipe, { mode });
-    const paint = Object.entries(tokens).filter(([key]) => !/^--ui-on-/.test(key) && !/-on-strong$/.test(key) && !/^--ui-knob-on-accent-/.test(key) && !/^--ui-icon-on-/.test(key)).sort(([a], [b]) => a.localeCompare(b));
+    const paint = Object.entries(tokens).filter(([key]) => !/^--ui-on-/.test(key) && !/-on-strong$/.test(key) && !/^--ui-knob-on-accent-/.test(key) && !/^--ui-non-text-on-/.test(key)).sort(([a], [b]) => a.localeCompare(b));
     const digest = createHash('sha256').update(JSON.stringify(paint)).digest('hex');
     assert.equal(digest, backgroundSnapshots[name][mode], name + '/' + mode + ': label choices cannot recolor the palette');
   }
@@ -179,8 +179,8 @@ test('APCA selects white on the original orange and keeps the original gold', ()
   const warning = deriveTheme(defaultRecipe(), { mode: 'light' }).tokens;
   assert.equal(warning['--ui-warning'], '#b27522');
   assert.equal(warning['--ui-on-warning'], '#ffffff');
-  assert.equal(warning['--ui-icon-on-warning'], '#000000');
-  for (const state of ['', '-hover', '-active']) assert.ok(contrast(warning['--ui-icon-on-warning'], warning[`--ui-warning${state}`]) >= 3);
+  assert.equal(warning['--ui-non-text-on-warning'], '#000000');
+  for (const state of ['', '-hover', '-active']) assert.ok(contrast(warning['--ui-non-text-on-warning'], warning[`--ui-warning${state}`]) >= 3);
   assert.ok(Math.abs(perceptualContrast('#ffffff', warning['--ui-warning'])) > Math.abs(perceptualContrast('#000000', warning['--ui-warning'])));
   for (const mode of ['light', 'dark']) {
     const gold = deriveTheme(startingPoints.gold, { mode }).tokens;
