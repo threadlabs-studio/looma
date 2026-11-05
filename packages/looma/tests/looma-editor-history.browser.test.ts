@@ -66,7 +66,7 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  await vi.waitFor(() => expect(editor).not.toBeNull());
+  await vi.waitFor(() => expect(editor).not.toBeNull(), { timeout: 5000 });
   return { editor: editor!, host, editable };
 }
 

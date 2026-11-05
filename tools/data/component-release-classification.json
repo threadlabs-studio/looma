@@ -341,6 +341,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-segmented-control": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-select": {
       "status": "published",
       "package": "@threadlabs/looma"

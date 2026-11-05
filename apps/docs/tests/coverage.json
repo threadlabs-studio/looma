@@ -1756,6 +1756,24 @@
       ]
     },
     {
+      "path": "components/ui-segmented-control",
+      "title": "Segmented Control",
+      "source": "apps/docs/docs/components/forms/ui-segmented-control.mdx",
+      "component": "ui-segmented-control",
+      "examples": [
+        {
+          "id": "01-status",
+          "title": "One visible choice",
+          "behavior": false
+        },
+        {
+          "id": "02-size-and-disabled",
+          "title": "Sizes and unavailable choices",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-select",
       "title": "Select",
       "source": "apps/docs/docs/components/forms/ui-select.mdx",

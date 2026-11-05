@@ -4,6 +4,14 @@
 
 - Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
 
+- Let compact segmented choices use the width their labels need, keeping unequal labels on one line when they fit together.
+
+- Verify published workspace minimum dependency ranges after pnpm removes their workspace protocol, while preserving the exact minimum and rejecting pins or changed ranges.
+
+- Require HTML Next >=1.0.0-alpha.90 so native property bindings inside keyed lists compile in Preact.
+
+- Add Segmented Control for compact mutually exclusive choices, with a shared track, selected surface, native form behavior and arrow-key selection. Keep radio-group form names synchronized with external updates.
+
 - Add Notice Stripe for compact, full-width announcements, semantic service notices, trailing actions and consumer-owned dismissal.
 
 - Make the editor link card’s destination clickable, opening same-origin links in the current tab and other destinations in a new tab. Keep long destinations within the card at narrow widths.
