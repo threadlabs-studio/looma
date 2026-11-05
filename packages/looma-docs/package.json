@@ -40,8 +40,8 @@
     "test": "node --test tooling/docs/*.test.mjs"
   },
   "dependencies": {
-    "@threadlabs/looma": ">=0.52.0",
-    "@nextwebwg/html-next": ">=1.0.0-alpha.84",
+    "@threadlabs/looma": "workspace:>=0.52.0",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.90",
     "@threadlabs/markupkit": ">=0.6.1",
     "markupress": ">=0.18.4",
     "vite": ">=8.3.0",

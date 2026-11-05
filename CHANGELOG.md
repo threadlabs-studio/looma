@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Require HTML Next >=1.0.0-alpha.90 so native property bindings inside keyed lists compile in Preact.
+
 - Add Segmented Control for compact mutually exclusive choices, with a shared track, selected surface, native form behavior and arrow-key selection. Keep radio-group form names synchronized with external updates.
 
 - Add Notice Stripe for compact, full-width announcements, semantic service notices, trailing actions and consumer-owned dismissal.
