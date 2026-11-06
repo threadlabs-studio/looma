@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // Candidate SDK qualification uses the checkout's built public exports, including child SSR processes.
 if (process.env.LOOMA_HTMLNEXT_ROOT) {
   const root = path.resolve(process.env.LOOMA_HTMLNEXT_ROOT, 'packages');
-  const packages = ['html-next', 'html-next-converter', 'html-next-unplugin', 'htmlkit'].map(directory => {
+  const packages = ['html-next', 'html-next-converter', 'html-next-unplugin'].map(directory => {
     const folder = path.join(root, directory);
     const manifest = JSON.parse(readFileSync(path.join(folder, 'package.json'), 'utf8'));
     return { name: manifest.name, folder, exports: manifest.exports };
