@@ -353,6 +353,7 @@ export function createViewportSurface(surface, options = {}) {
   let destroyed = false;
   let stop = null;
   let sizeObserver = null;
+  let contentObserver = null;
   let frame = null;
   const position = () => {
     if (frame !== null) owner.cancelAnimationFrame(frame);
@@ -385,6 +386,7 @@ export function createViewportSurface(surface, options = {}) {
   const hideSurface = () => {
     stop?.(); stop = null;
     sizeObserver?.disconnect(); sizeObserver = null;
+    contentObserver?.disconnect(); contentObserver = null;
     if (frame !== null) owner.cancelAnimationFrame(frame);
     frame = null;
     hide(surface);
@@ -400,6 +402,11 @@ export function createViewportSurface(surface, options = {}) {
         // ResizeObserver runs before paint. Another frame would expose the new size at the old position.
         sizeObserver = new owner.ResizeObserver(position);
         sizeObserver.observe(surface);
+      }
+      if (!contentObserver && owner.MutationObserver) {
+        // Framework content commits can change the box before the next resize delivery.
+        contentObserver = new owner.MutationObserver(position);
+        contentObserver.observe(surface, { childList: true, subtree: true, characterData: true });
       }
     },
     hide: hideSurface,

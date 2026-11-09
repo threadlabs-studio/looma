@@ -29,9 +29,16 @@ export async function renderNativeScene(scene: Scene): Promise<string> {
       const slots = typeof source === "function" ? { "": source } : source && typeof source === "object" && !Array.isArray(source) && !("type" in source)
         ? Object.fromEntries(Object.entries(source as SceneSlots).map(([name, render]) => [name === "default" ? "" : name, render]))
         : source === undefined ? {} : { "": () => source as SceneValue };
-      const content = Object.entries(slots).map(([name, render]) => type
-        ? `<template ${name ? `slot="${escape(name)}" ` : ""}$if="true">${serialize(render())}</template>`
-        : serialize(render())).join("");
+      const content = Object.entries(slots).map(([name, render]) => {
+        const projected = roots(render());
+        if (name && type?.slots.some(slot => slot.name === name && slot.props.length === 0) && projected.every(child => child !== null && typeof child === "object")) {
+          return serialize(projected.map(child => {
+            const node = child as SceneNode;
+            return { ...node, props: { ...node.props, slot: name } };
+          }));
+        }
+        return type ? `<template ${name ? `slot="${escape(name)}" ` : ""}$if="true">${serialize(projected)}</template>` : serialize(projected);
+      }).join("");
       return `<${tag}${attributes ? " " + attributes : ""}>${voids.has(tag) ? "" : content + `</${tag}>`}`;
     }).join("");
     const tag = "looma-test-scene-" + sequence++;
