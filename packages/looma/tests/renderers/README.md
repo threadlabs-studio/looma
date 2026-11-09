@@ -39,6 +39,13 @@ To test an HTML Next checkout, build its packages first and set `LOOMA_HTMLNEXT_
 repository path. The preparation and fixtures then use that checkout's public built SDK exports.
 Run one local browser runner at a time with one worker.
 
+The HTML Next prepared library exposes `nativeSources` and `nativeAssets` paths in its fixture
+manifest. A native server fixture can retain those sources and matching build assets once for the
+suite. Set `LOOMA_NATIVE_SERVER_MODULE` to an absolute ESM module that exports
+`renderApplication({ source, inputs })` and returns rendered HTML. The shared scene serializer passes
+the same authored application carrier and input data to that module. Browser factories and shared
+assertions continue to use the prepared HTML Next library.
+
 CI runs `node packages/looma/tests/run-pressure.mjs --prepare-only` once. This builds the package,
 checks component coverage, and writes `.test-build/pressure.json` plus all six compiled libraries.
 Six renderer shards balance files by their measured passing durations. Renderer shards restore that output at the same checkout path and use `--prepared --shard=1/6`.

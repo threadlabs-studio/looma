@@ -9,15 +9,18 @@ export async function sourceCatalog() {
     : await import('@nextwebwg/html-next');
   const source = new URL("../../src/components/", import.meta.url);
   const definitions = [];
+  const sources = {};
   for (const entry of await readdir(source, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const folder = new URL(entry.name + '/', source);
     for (const name of await readdir(folder)) if (name.endsWith('.html')) {
       const file = new URL(name, folder);
-      definitions.push(...core.parseComponentResource(await readFile(file, 'utf8'), file.pathname).definitions);
+      const content = await readFile(file, 'utf8');
+      sources[file.pathname] = content;
+      definitions.push(...core.parseComponentResource(content, file.pathname).definitions);
     }
   }
-  return { core, definitions };
+  return { core, definitions, sources };
 }
 
 export async function componentFixtures(target, catalog = undefined) {

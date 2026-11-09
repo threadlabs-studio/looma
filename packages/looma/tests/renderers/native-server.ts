@@ -3,6 +3,7 @@ import { renderComponents } from "@nextwebwg/html-next/server";
 import { definitions, preparation } from "@looma-test/native-data";
 import { component, componentProps } from "./component";
 import type { Scene, SceneNode, SceneSlots, SceneValue } from "./scene";
+import { pathToFileURL } from "node:url";
 
 const escape = (value: unknown) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const voids = new Set("area base br col embed hr img input link meta param source track wbr".split(" "));
@@ -11,6 +12,8 @@ const roots = (value: SceneValue): SceneValue[] => Array.isArray(value) ? value.
 let sequence = 0;
 
 export async function renderNativeScene(scene: Scene): Promise<string> {
+  const module = process.env.LOOMA_NATIVE_SERVER_MODULE;
+  const external = module ? await import(/* @vite-ignore */ pathToFileURL(module).href) : undefined;
   const html: string[] = [];
   for (const value of roots(scene.render())) {
     if (!value || typeof value !== "object") { html.push(escape(value)); continue; }
@@ -43,7 +46,9 @@ export async function renderNativeScene(scene: Scene): Promise<string> {
     }).join("");
     const tag = "looma-test-scene-" + sequence++;
     const markup = serialize(value);
-    const fixture = parseComponent(`<template component="${tag}"><defs><prop name="data" type="object({ ... })">Scenario values.</prop></defs>${markup}</template>`, "looma-browser-scene.html");
+    const source = `<template component="${tag}"><defs><prop name="data" type="object({ ... })">Scenario values.</prop></defs>${markup}</template>`;
+    if (external) { html.push(await external.renderApplication({ source, inputs: { data } })); continue; }
+    const fixture = parseComponent(source, "looma-browser-scene.html");
     const rendered = await renderComponents(`<${tag}></${tag}>`, { definitions: [...definitions, fixture], props: { [tag]: { data } }, prepare: { module: preparation } });
     html.push(rendered.html);
   }

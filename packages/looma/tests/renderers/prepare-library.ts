@@ -19,7 +19,7 @@ export async function prepareLibrary() {
   try {
     const catalog = await sourceCatalog();
     const components = await componentFixtures(target, catalog);
-    const native = target === "html-next" ? await nativePreparation(directory, catalog.definitions) : undefined;
+    const native = target === "html-next" ? await nativePreparation(directory, catalog.definitions, catalog.sources) : undefined;
     const angular = target === "angular" ? await angularScene(directory, components) : undefined;
     const entry = path.join(directory, "library.js");
     await writeFile(entry, `export const rendererTarget = ${JSON.stringify(target)};\n${["react", "preact", "svelte"].includes(target) ? 'export { renderPrepared } from "@threadlabs/looma";\n' : ""}export { ${components.map(component => target === "html-next" ? `create${component.name} as ${component.name}` : component.name).join(", ")} } from "@threadlabs/looma";\n` + (target === "svelte" ? `export { mount, renderHTML, settle } from ${JSON.stringify(fileURLToPath(new URL("./svelte.svelte.ts", import.meta.url)))};\n` : angular ? `export { mount, renderHTML, settle } from ${JSON.stringify(angular.entry)};\n` : ""));
@@ -88,6 +88,7 @@ export async function prepareLibrary() {
     await angular?.compile();
     const entries: Record<string, string> = {};
     let nativePrepareFile: string | undefined;
+    let nativeAssetsFile: string | undefined;
     let clientDependencies: string[] = [];
     let clientModule = "";
     let clientStyles: string[] = [];
@@ -98,6 +99,11 @@ export async function prepareLibrary() {
       const main = output.output.find(chunk => chunk.type === "chunk" && chunk.isEntry && chunk.facadeModuleId === entry);
       if (!main) throw new Error(`Missing ${name} library entry.`);
       const folder = name === "client" ? "client" : "server";
+      if (native && name === "client") {
+        const assets = output.output.find(chunk => chunk.type === "asset" && chunk.fileName === "html-next.manifest.json");
+        if (!assets) throw new Error("Missing native server assets.");
+        nativeAssetsFile = path.join(directory, folder, assets.fileName);
+      }
       if (native && name === "ssr") { const preparation = output.output.find(chunk => chunk.type === "chunk" && chunk.isEntry && chunk.facadeModuleId === native.file); if (!preparation) throw new Error("Missing native producer module."); nativePrepareFile = path.join(directory, folder, preparation.fileName); }
       const css = output.output.filter(chunk => chunk.type === "asset" && chunk.fileName.endsWith(".css"));
       if (name === "client") { clientModule = path.join(directory, folder, main.fileName); clientStyles = css.map(asset => path.join(directory, folder, asset.fileName)); }
@@ -111,7 +117,7 @@ export async function prepareLibrary() {
       target, components, clientDependencies, clientModule, clientStyles, fixtureStyles,
       client: entries.client,
       server: entries.ssr,
-      ...(native ? { nativeDefinitions: native.definitionsFile, nativePreparation: nativePrepareFile } : {}),
+      ...(native ? { nativeDefinitions: native.definitionsFile, nativeSources: native.sourcesFile, nativeAssets: nativeAssetsFile, nativePreparation: nativePrepareFile } : {}),
     };
     await writeFile(path.join(directory, "manifest.json"), JSON.stringify(manifest));
     console.log(`Prepared ${components.length} Looma components for ${target} once (${((performance.now() - started) / 1000).toFixed(2)}s).`);
