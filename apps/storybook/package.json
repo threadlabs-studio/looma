@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-storybook",
   "private": true,
-  "version": "0.52.0",
+  "version": "0.53.0",
   "type": "module",
   "scripts": {
     "dev": "storybook dev -p 6006",
@@ -21,7 +21,7 @@
     "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.91",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.92",
     "@playwright/test": "1.60.0",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/web-components": "^8.6.14",
