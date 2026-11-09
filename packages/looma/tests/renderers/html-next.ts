@@ -1,5 +1,5 @@
 export const rendererTarget = "html-next";
-import { componentRegistry, regionChanged, scopedTemplate, serverProjection, slotRegion, RequestEvent, knownResponder, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
+import { componentRegistry, setInvocationAttributes, regionChanged, scopedTemplate, serverProjection, slotRegion, RequestEvent, knownResponder, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
 import { renderNativeScene } from "@looma-test/native-server";
 import { component, componentProps, connectNode, type SceneComponent } from "./component";
 import type { MountedScene, NativeSceneComponent, Scene, SceneNode, SceneSlots, SceneValue } from "./scene";
@@ -32,6 +32,16 @@ function updateAttributes(root: Element, previous: Record<string, any>, next: Re
     else if (value === null || value === undefined || value === false) root.removeAttribute(name);
     else root.setAttribute(name, value === true ? "" : String(value));
   }
+}
+
+function invocationAttributes(node: SceneNode): Record<string, any> {
+  const inputs = attributes(node);
+  if (inputs.style && typeof inputs.style === "object") {
+    const probe = document.createElement("span");
+    updateAttributes(probe, {}, { style: inputs.style });
+    inputs.style = probe.style.cssText;
+  }
+  return inputs;
 }
 
 interface View { key: unknown; type: unknown; start: Comment; end: Comment; update(value: SceneNode | string | number): void; destroy(): void; }
@@ -125,8 +135,7 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
       }
       const props = (node: SceneNode) => Object.fromEntries(Object.entries(node.props).filter(([name]) => definition.inputs.includes(name)));
       const factory = definition.implementation as (options: object, html?: unknown, root?: Element) => Element;
-      root = factory({ ...props(node), attributes: attributes(node), children, slots }, undefined, nativeRoot);
-      let previousAttributes = attributes(node);
+      root = factory({ ...props(node), attributes: invocationAttributes(node), children, slots }, undefined, nativeRoot);
       let previousProps = props(node);
       cleanups.push(() => { for (const content of regions.values()) content.destroy(); for (const { records } of scoped) for (const record of records) (record as ScopedRecord & { content: ReturnType<typeof region> }).content.destroy(); });
       let connectedRoot: Element | undefined;
@@ -161,9 +170,8 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
         const nextProps = props(node);
         componentRegistry.update(element() ?? root as Element, { ...Object.fromEntries(Object.keys(previousProps).filter(name => !Object.hasOwn(nextProps, name)).map(name => [name, undefined])), ...nextProps });
         previousProps = nextProps;
-        const nextAttributes = attributes(node);
-        updateAttributes(element() ?? root as Element, previousAttributes, nextAttributes);
-        previousAttributes = nextAttributes;
+        const nextAttributes = invocationAttributes(node);
+        setInvocationAttributes(element() ?? root as Element, nextAttributes);
         for (const [name, content] of regions) content.update(slotValue(node, name));
         for (const { name, records } of scoped) for (const record of records) (record as ScopedRecord & { content: ReturnType<typeof region> }).content.update(slotValue(node, name, record.s));
         sync(); connect();

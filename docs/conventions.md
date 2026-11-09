@@ -17,6 +17,15 @@ Set one API vocabulary that all components and adapters follow, including state 
 - Shared state names: `open`, `disabled`, `selected`, `checked`, `value`, `invalid`, `readOnly`.
 - State styling exposure: `data-state`, `data-disabled`, `data-selected`.
 
+## Attribute Forwarding
+
+Component definitions use HTML Next's default root forwarding: unclaimed caller attributes apply
+before the root's authored attributes. Declared props remain component inputs and are consumed.
+For an inner destination, put `noforward` on the defining template and `$attributes` on that element.
+When callers must replace an authored default, place `$attributes` after the default attribute, as
+Editor Toolbar does for its accessible label. See the proposal's
+[attribute forwarding rules](https://nextwebwg.org/declarative-components/components#attribute-forwarding).
+
 ## Event Rules
 
 - Use native events when semantics already exist (`input`, `change`, `focus`, `blur`).

@@ -2,6 +2,16 @@
 
 ## Next release
 
+- **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
+
+- Preserve custom Editor Toolbar accessible labels with `noforward` and a trailing `$attributes` destination after its default label. Convert style objects to HTML attribute text in the HTML Next test adapter so constrained scroll areas retain their supplied height.
+
+- Render Meter's empty bar when `max` is zero by selecting the zero branch before evaluating its percentage division.
+
+- Serialize ordinary named element content as ordinary projection in the HTML Next test adapter, so Site Header's navigation appears once in server output.
+
+- Reposition floating surfaces when their child content commits, keeping Vue's link action bar above its anchor as its controls appear.
+
 - Show the values of Data Table and Column cell templates on the documentation site: an example whose text reads expressions renders through its generated component, because Markdown text is literal.
 
 - Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
