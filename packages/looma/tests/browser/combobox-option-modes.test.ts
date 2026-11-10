@@ -77,25 +77,27 @@ describe("Combobox option modes", () => {
   });
 
   for (const adapter of ["html", "converted"]) it(`renders each option and chosen item through one scoped slot in ${adapter}`, async () => {
+      const optionSource = '<b class="custom-option">{$option.label}<template $if="$option.description"> / {$option.description}</template></b>';
+      const itemSource = '<i class="custom-item">{$item.label}</i>';
       // A page's own <template slot> with bindings needs HTML Next's live parser; a compiled consumer does not.
       const path = await bundle(`${adapter}-combobox-scoped-slots`, adapter === "html" ? `
         import { lowerDocument } from "@nextwebwg/html-next/live";
         import "@looma-test/runtime";
         lowerDocument();
       ` : `
-        import { createScene, sceneNode } from "@looma-test/scene";
+        import { createScene, sceneNode, scopedSlot } from "@looma-test/scene";
         import { UiCombobox as Combobox } from "@looma-test/components";
         createScene({ render: () => sceneNode(Combobox, { id: "fruit", label: "Fruit", multiple: true, openOnFocus: true, items: [{ id: "apple", value: "apple", label: "Apple" }] }, {
           default: () => [sceneNode("option", { value: "apple" }, "Apple"), sceneNode("option", { value: "pear", "data-description": "Green" }, "Pear")],
-          option: ({ option }) => sceneNode("b", { class: "custom-option" }, option.label + (option.description ? " / " + option.description : "")),
-          item: ({ item }) => sceneNode("i", { class: "custom-item" }, item.label),
+          option: scopedSlot(({ option }) => sceneNode("b", { class: "custom-option" }, option.label + (option.description ? " / " + option.description : "")), ${JSON.stringify(optionSource)}),
+          item: scopedSlot(({ item }) => sceneNode("i", { class: "custom-item" }, item.label), ${JSON.stringify(itemSource)}),
         }) }).mount("#app");
       `);
       const page = await open(path, adapter === "html" ? `
         <ui-combobox id="fruit" label="Fruit" multiple open-on-focus items='[{"id":"apple","value":"apple","label":"Apple"}]'>
           <option value="apple">Apple</option><option value="pear" data-description="Green">Pear</option>
-          <template slot="option"><b class="custom-option">{$option.label}<template $if="$option.description"> / {$option.description}</template></b></template>
-          <template slot="item"><i class="custom-item">{$item.label}</i></template>
+          <template slot="option">${optionSource}</template>
+          <template slot="item">${itemSource}</template>
         </ui-combobox>
       ` : `<div id="app"></div>`, [join(root, "tokens.css")]);
       await page.locator("#fruit input[role=combobox]").focus();

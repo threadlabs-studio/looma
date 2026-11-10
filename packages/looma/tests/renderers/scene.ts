@@ -1,5 +1,6 @@
 import { rendererTarget as expectedRenderer } from "@looma-test/components";
 import * as renderer from "@looma-test/renderer";
+export { scopedSlot } from "./slot-template";
 
 /** Values supplied by a scenario, before any framework creates a view. */
 export type SceneValue = SceneNode | string | number | boolean | null | undefined | readonly SceneValue[];

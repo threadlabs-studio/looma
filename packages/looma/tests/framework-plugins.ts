@@ -6,6 +6,8 @@ import type { Plugin } from "vite";
 import { sdkAliases } from "./renderers/sdk-aliases.ts";
 import { componentFacade } from "./renderers/components.mjs";
 
+const nativeModule = process.env.LOOMA_NATIVE_SERVER_MODULE;
+const native = nativeModule ? await import(pathToFileURL(nativeModule).href) : undefined;
 const target = process.env.LOOMA_TEST_TARGET ?? "vue";
 export const rendererDependencies = target === "vue" ? ["vue", "vue/server-renderer"]
   : target === "react" ? ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server"]
@@ -28,7 +30,7 @@ export function rendererPlugins(options: { externalStyles?: boolean; cacheSuffix
     }
     return manifest;
   };
-  return [{
+  return [...(target === "html-next" ? native?.browserPlugins?.({ scene: fileURLToPath(new URL("./renderers/scene.ts", import.meta.url)), applications: fileURLToPath(new URL("./renderers/native-scene.ts", import.meta.url)) }) ?? [] : []), {
     name: `looma-test-renderer:${target}`,
     enforce: "pre",
     config: () => ({ cacheDir: rendererCacheDirectory(options.cacheSuffix), resolve: { alias: sdkAliases() }, ...(target === "vue" ? { define: { __VUE_OPTIONS_API__: "true", __VUE_PROD_DEVTOOLS__: "false", __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false" } } : {}) }),

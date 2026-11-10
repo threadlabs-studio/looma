@@ -46,6 +46,23 @@ suite. Set `LOOMA_NATIVE_SERVER_MODULE` to an absolute ESM module that exports
 the same authored application carrier and input data to that module. Browser factories and shared
 assertions continue to use the prepared HTML Next library.
 
+For scoped fixture callbacks, use `scopedSlot(callback, source)` from `@looma-test/scene`
+to associate the callback with equivalent authored HTML slot content. JavaScript renderers
+call the same callback; native source compilers receive the authored content and evaluate
+its scoped bindings themselves. Reuse the source from the scenario's HTML fixture so both
+forms describe the same content. Unannotated scoped callbacks fail native serialization.
+
+The native module may also export `browserPlugins({ scene, applications })`. The renderer
+plugin loads these Vite plugins for HTML Next fixtures. A plugin can request native initial
+HTML before mounting through the normal hydrated scene adapter. Shared fixture readiness
+waits for native render tasks before controller activation; browser behavior and updates
+remain owned by the prepared browser library. HTML-only fixtures and Vitest browser-mode
+tests need their own native rendering coverage.
+
+Use `asset(name, source)` from the browser driver for inline fixture assets that need a
+portable HTTP URL. It serves the same bytes through the production fixture server for
+every renderer.
+
 CI runs `node packages/looma/tests/run-pressure.mjs --prepare-only` once. This builds the package,
 checks component coverage, and writes `.test-build/pressure.json` plus all six compiled libraries.
 Six renderer shards balance files by their measured passing durations. Renderer shards restore that output at the same checkout path and use `--prepared --shard=1/6`.
