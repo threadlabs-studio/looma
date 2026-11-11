@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { dirname, join } from "node:path";
 import { type Browser } from "playwright";
 import { describe, it } from "vitest";
-import { root, bundle, open, browser, loadFixture } from "../renderers/browser-driver";
+import { asset, root, bundle, open, browser, loadFixture } from "../renderers/browser-driver";
 
 describe("Button composed content", () => {
   for (const adapter of ["native", "Converted"]) it(`keeps neutral and accent outline tones distinct in ${adapter}`, async () => {
@@ -39,7 +39,7 @@ describe("Button composed content", () => {
 
   for (const adapter of ["native", "Converted"]) for (const engine of ["Chromium", "WebKit"]) {
     it(`keeps ${adapter} image marks beside labels and stretched row actions at the trailing edge in ${engine}`, async () => {
-      const image = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="purple"/></svg>';
+      const image = await asset("button-mark.svg", '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="purple"/></svg>');
       const title = "Project notes with a longer title that wraps without moving the trailing action";
       const source = adapter === "native" ? `import "@looma-test/runtime";` : `
         import { createScene, sceneNode } from "@looma-test/scene";
