@@ -34,6 +34,10 @@
   padding:
     var(--ui-editor-content-padding-block, var(--_ui-editor-content-padding-block, var(--ui-space-4)))
     var(--ui-editor-content-padding-inline, var(--_ui-editor-content-padding-inline, var(--_ui-editor-toc-gutter, var(--ui-space-6))));
+  padding-block-end: calc(
+    var(--ui-editor-content-padding-block, var(--_ui-editor-content-padding-block, var(--ui-space-4)))
+    + var(--ui-editor-trailing-scroll-space, 0px)
+  );
   outline: none;
   color: var(--ui-editor-content-color, var(--ui-text-primary));
   caret-color: var(--ui-editor-caret-color, var(--ui-accent-solid));
@@ -42,9 +46,16 @@
   line-height: var(--ui-editor-line-height, var(--ui-line-height-relaxed));
 }
 
+:is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror > p {
+  text-indent: var(--ui-editor-paragraph-indent, 0);
+}
+
 @media (max-width: 767px) {
   :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
-    padding-bottom: var(--ui-editor-mobile-bottom-space, var(--_ui-editor-mobile-bottom-space, 80px));
+    padding-block-end: calc(
+      var(--ui-editor-mobile-bottom-space, var(--_ui-editor-mobile-bottom-space, 80px))
+      + var(--ui-editor-trailing-scroll-space, 0px)
+    );
   }
 }
 

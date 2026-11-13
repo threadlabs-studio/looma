@@ -32,6 +32,16 @@ formatting commands, selection and focus, and every editor control. See
 | `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Listen for `toolbar-open` and `toolbar-close` to update the host state. |
 | `disableHighlight` | `false` | Authors can't highlight text. Highlights already in the document still show; see [Reserving highlight](#reserving-highlight). |
 
+## Paragraph formatting
+
+Set `--ui-editor-paragraph-indent` and `--ui-editor-paragraph-gap` on the editor or an ancestor to choose a paragraph style. The indent applies to the first line of top-level paragraphs. The gap controls paragraph spacing. Both reading and editing use the same layout, and the values are presentation settings.
+
+```html
+<ui-editor style="--ui-editor-paragraph-indent: 1.4em; --ui-editor-paragraph-gap: 0;"></ui-editor>
+```
+
+Set `--ui-editor-trailing-scroll-space` to add visual space below the document, for example `3lh` to leave three line heights after the last paragraph. It defaults to zero and adds no document content.
+
 ## Requests
 
 The editor asks the application for what only the application knows: its uploads, its people, its
