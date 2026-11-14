@@ -46,6 +46,13 @@ and Markdown export. Repeated identical emphasis becomes one editor mark.
 List items that begin with a quote or another block receive the empty leading
 paragraph required by editor list commands, retaining their authored blocks.
 
+HTML disclosures whose opening, Markdown body and closing tags are separate
+CommonMark blocks load as one editable section. Nested sections retain their
+boundaries. An unchanged section keeps its original HTML source when writing
+with `original`; editing its body writes the current section while preserving
+adjacent authored blocks. An unclosed section contains the rest of its enclosing
+content, following HTML, and an empty section receives an editable paragraph.
+
 Ordinary punctuation stays readable: ranges such as `[-1, 1]`, `array[index]`,
 `user_id` and `a@word` do not need backslashes. The shared writer escapes text
 only when its context would interpret it as syntax. Mentions start at the

@@ -25,6 +25,56 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
 };
 
 describe("native Markdown document shapes", () => {
+  it("reads HTML disclosure fragments as editable nested sections and keeps untouched source", () => {
+    const markdown = 'Before.\n\n<details open>\n<summary>More</summary>\n\nBody with **formatting**.\n\n<details>\n<summary>Nested</summary>\n\n- One\n- Two\n\n</details>\n\n</details>\n\nAfter.\n';
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.getJSON().content?.[1]?.type).toBe("loomaExpand");
+    expect(editor.view.dom.querySelectorAll("details")).toHaveLength(2);
+    expect(editor.view.dom.querySelector("strong")?.textContent).toBe("formatting");
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown);
+    replaceText(editor, "After.", "Following.");
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown.replace("After.", "Following."));
+  });
+
+  it("edits a disclosure body while preserving adjacent authored blocks", () => {
+    const markdown = '* Before\n\n<details>\n<summary>More</summary>\n\nInside.\n\n</details>\n\n~~~text\nAfter\n~~~\n';
+    const editor = open(markdown);
+    replaceText(editor, "Inside.", "Updated inside.");
+    const written = editorToMarkdown(editor, { original: markdown });
+    expect(written).toContain("* Before");
+    expect(written).toContain("~~~text\nAfter\n~~~");
+    const restored = markdownToEditorDocument(written);
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(restored).check();
+    expect(restored.content?.[1]?.type).toBe("loomaExpand");
+    expect(JSON.stringify(restored)).toContain("Updated inside.");
+  });
+
+  it("retains an unclosed HTML disclosure through the end of its containing blocks", () => {
+    const editor = open('<details><summary>History</summary>\n\nHistorical text.\n\nLast paragraph.');
+    editor.state.doc.check();
+    expect(editor.getJSON().content).toHaveLength(1);
+    expect(editor.getJSON().content?.[0]?.content).toHaveLength(2);
+    expect(editor.view.dom.textContent).toContain("Last paragraph.");
+  });
+
+  it("keeps an empty imported disclosure editable", () => {
+    const editor = open('<details><summary>More</summary></details>');
+    editor.state.doc.check();
+    expect(editor.getJSON().content?.[0]?.content).toEqual([{ type: "paragraph" }]);
+  });
+
+  it("refuses unrepresented application data on either HTML frame", () => {
+    for (const attributed of [0, 2]) {
+      const body = [
+        { type: "html", display: "block" as const, value: "<details><summary>More</summary>" },
+        { type: "paragraph", value: "Inside." },
+        { type: "html", display: "block" as const, value: "</details>" },
+      ].map((node, index) => index === attributed ? { ...node, data: { annotation: "meaningful" } } : node);
+      expect(() => expressmarkToEditorDocument({ type: "document", version: 1, body })).toThrow("HTML fragment field data");
+    }
+  });
+
   it("keeps line blocks distinct from paragraphs through editing and HTML", () => {
     const markdown = "| First **line**\n| Second line\n\nFollowing paragraph.";
     const editor = open(markdown);
