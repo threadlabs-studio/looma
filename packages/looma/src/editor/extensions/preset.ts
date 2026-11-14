@@ -73,6 +73,8 @@ export interface DefaultEditorExtensionsOptions {
   imageNodeView?: NodeViewRenderer;
   /** Optional selected-state UI for document dividers. */
   dividerNodeView?: NodeViewRenderer;
+  /** Optional copy-link presentation for headings with document anchors. */
+  headingNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
   /**
@@ -189,6 +191,7 @@ export function getDefaultEditorExtensions(
     imageInline = false,
     imageNodeView,
     dividerNodeView,
+    headingNodeView,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
@@ -212,7 +215,7 @@ export function getDefaultEditorExtensions(
     Italic,
     Strike,
     Underline,
-    Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+    (headingNodeView ? Heading.extend({ addNodeView: () => headingNodeView }) : Heading).configure({ levels: [1, 2, 3, 4, 5, 6] }),
     BulletList,
     OrderedList,
     ListItem,
