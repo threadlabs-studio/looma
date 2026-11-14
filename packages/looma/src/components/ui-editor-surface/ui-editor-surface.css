@@ -1,10 +1,10 @@
 /* Document whitespace belongs to projected content, not the component templates around it.
    A low-priority layer preserves each component's explicit wrapping rules. */
 @layer looma-editor-whitespace {
-  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-component]) {
+  :is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-component]) {
     white-space: normal;
   }
-  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-looma-editor-content]) {
+  :is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror :where([data-looma-editor-content]) {
     white-space: break-spaces;
   }
 }
@@ -29,7 +29,7 @@
   --_ui-editor-toc-gutter: calc(var(--ui-space-6) + var(--ui-space-4));
 }
 
-:is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
   min-height: var(--ui-editor-content-min-height, var(--_ui-editor-content-min-height, 300px));
   padding:
     var(--ui-editor-content-padding-block, var(--_ui-editor-content-padding-block, var(--ui-space-4)))
@@ -46,12 +46,13 @@
   line-height: var(--ui-editor-line-height, var(--ui-line-height-relaxed));
 }
 
-:is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror > p {
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror > p {
   text-indent: var(--ui-editor-paragraph-indent, 0);
+  white-space: var(--ui-editor-paragraph-white-space, break-spaces);
 }
 
 @media (max-width: 767px) {
-  :is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
+  :is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror {
     padding-block-end: calc(
       var(--ui-editor-mobile-bottom-space, var(--_ui-editor-mobile-bottom-space, 80px))
       + var(--ui-editor-trailing-scroll-space, 0px)
@@ -60,8 +61,8 @@
 }
 
 
-:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
-:is([data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface)[data-ui-editor-surface-prop-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }
 
 /* List items own their small inter-item gap; paragraphs must not add another one. */
 .looma-editor .ProseMirror li > p:last-of-type,
@@ -87,11 +88,11 @@
 }
 
 /* A held navigation modifier makes links actionable without interrupting editing. */
-:is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror[contenteditable="true"] a[href] {
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror[contenteditable="true"] a[href] {
   cursor: text;
 }
 
-:is([data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror[data-link-navigation] a[href] {
+:is(ui-editor-surface, [component~="ui-editor-surface"], [data-component~="ui-editor-surface"], .ui-editor-surface) .ProseMirror[data-link-navigation] a[href] {
   cursor: pointer;
 }
 
