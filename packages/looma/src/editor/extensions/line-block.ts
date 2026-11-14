@@ -1,6 +1,8 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 
-/** A paragraph-like block whose authored line boundaries remain significant on export. */
+/** A paragraph-like block whose authored line boundaries remain significant on export.
+ * @contract Keeps line-block identity through editing, HTML parsing and Markdown export.
+ */
 export const LoomaLineBlock = Node.create({
   name: "loomaLineBlock",
   group: "block",

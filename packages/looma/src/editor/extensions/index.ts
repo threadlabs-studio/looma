@@ -92,4 +92,4 @@ export {
 
 export { siteRelativeHref, createSiteRelativeLinks } from "./relative-links";
 
-export { LoomaImage, normalizeImageDimension, normalizeImagePlacement, type LoomaImagePlacement } from "./image";
+export { LoomaImage, LoomaInlineImage, imageSourceUrls, normalizeImageSources, normalizeImageDimension, normalizeImagePlacement, type LoomaImagePlacement, type LoomaImageSource } from "./image";

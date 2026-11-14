@@ -24,7 +24,7 @@ import History from "@tiptap/extension-history";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import Link from "@tiptap/extension-link";
-import { LoomaImage } from "./image";
+import { LoomaImage, LoomaInlineImage } from "./image";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -206,6 +206,7 @@ export function getDefaultEditorExtensions(
   return [
     Document,
     Paragraph,
+    LoomaInlineImage,
     LoomaLineBlock,
     Text,
     LoomaReference,

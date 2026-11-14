@@ -13,6 +13,7 @@
   <defs>
     <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right" default="block"
     >How the selected image sits in the text; its command shows as pressed.</prop>
+    <prop name="inline" type="boolean" default="false">The selected image sits within text. Its actions are description and delete.</prop>
     <prop name="alt" type="string" default="">The selected image's description, which the description form starts from.</prop>
     <prop name="target" type="string" default=""
     >Identifies the image the toolbar acts on. When it changes, an open description draft is cancelled rather than applied to another image.</prop>
@@ -33,6 +34,7 @@
     <ui-text as="div" font="sans">
       <ui-editor-toolbar floating aria-label="Image actions">
         <ui-icon-button
+          $if="not $inline"
           from:id="concat($base, '-block')"
           label="Image in line"
           size="sm"
@@ -41,6 +43,7 @@
           from:aria-pressed="concat($placement = 'block')"
         ><ui-icon name="panel-top"></ui-icon></ui-icon-button>
         <ui-icon-button
+          $if="not $inline"
           from:id="concat($base, '-center')"
           label="Center image"
           size="sm"
@@ -49,6 +52,7 @@
           from:aria-pressed="concat($placement = 'center')"
         ><ui-icon name="align-center"></ui-icon></ui-icon-button>
         <ui-icon-button
+          $if="not $inline"
           from:id="concat($base, '-wrap-left')"
           label="Wrap text to the right"
           size="sm"
@@ -57,6 +61,7 @@
           from:aria-pressed="concat($placement = 'wrap-left')"
         ><ui-icon name="panel-left"></ui-icon></ui-icon-button>
         <ui-icon-button
+          $if="not $inline"
           from:id="concat($base, '-wrap-right')"
           label="Wrap text to the left"
           size="sm"
@@ -69,10 +74,10 @@
             name="trash"
           ></ui-icon></ui-icon-button>
       </ui-editor-toolbar>
-      <ui-tooltip from:for="concat($base, '-block')">Image in line</ui-tooltip>
-      <ui-tooltip from:for="concat($base, '-center')">Center image</ui-tooltip>
-      <ui-tooltip from:for="concat($base, '-wrap-left')">Wrap text to the right</ui-tooltip>
-      <ui-tooltip from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
+      <ui-tooltip $if="not $inline" from:for="concat($base, '-block')">Image in line</ui-tooltip>
+      <ui-tooltip $if="not $inline" from:for="concat($base, '-center')">Center image</ui-tooltip>
+      <ui-tooltip $if="not $inline" from:for="concat($base, '-wrap-left')">Wrap text to the right</ui-tooltip>
+      <ui-tooltip $if="not $inline" from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
       <ui-tooltip from:for="$base">Image description</ui-tooltip>
       <ui-tooltip from:for="concat($base, '-delete')">Delete image</ui-tooltip>
       <ui-popover $ref="description" from:for="$base" from:open="$describing" size="sm" aria-label="Image description">
