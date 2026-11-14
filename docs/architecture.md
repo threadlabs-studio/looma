@@ -71,11 +71,13 @@ Release documentation follows built artifacts, not a blanket format claim:
 
 ### Desktop platform themes
 
-SystemUI supplies CSS profiles per operating system and version. The profiles
-assign values to Looma's public tokens. Those values style Looma controls and
-any additional MarkupKit or HTML Next components SystemUI supplies for its
-shell. Looma owns controls intended for use beyond the MarkupKit and
-MarkupNative shell.
+SystemUI starts from the app's selected Looma theme. Its CSS profiles retain
+the theme's color, typography, spacing, and other public tokens and adapt
+selected values to the operating system and version. A profile can override a
+token directly or derive a value from the theme when a role needs translation.
+The resulting values style Looma controls and any additional HTML Next
+components SystemUI supplies for MarkupKit or MarkupNative. Looma owns
+reusable controls.
 
 If a Looma control cannot match macOS or Windows through its public styling
 contract, fix the responsible Looma component or shared token and test it with

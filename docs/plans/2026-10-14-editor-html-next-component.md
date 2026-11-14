@@ -130,8 +130,9 @@ src/components/ui-editor-*/    existing parts, plus new parts for the Vue-compos
 ### Desktop presentation
 
 The [desktop platform theme contract](../architecture.md#desktop-platform-themes)
-applies to the shared editor definition. SystemUI publishes CSS token profiles
-per operating system and version. Where those profiles cannot produce the
+applies to the shared editor definition. SystemUI profiles inherit the app's
+Looma theme and adapt selected public tokens by operating system and version.
+Where those profiles cannot produce the
 expected macOS or Windows appearance, extend Looma's public styling contract
 and test the shared definition with the affected profile. MarkupNative can
 substitute selected HTML Next components with OS-level components at the host

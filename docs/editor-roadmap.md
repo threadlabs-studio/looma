@@ -111,7 +111,8 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 ### Desktop editor presentation
 
 Use the shared Looma editor across desktop platforms. SystemUI's CSS profile
-provides platform values through Looma's public tokens. Looma owns the editor
+adapts selected public editor tokens and inherits the remaining values from
+the app's Looma theme. Looma owns the editor
 markup, formatting and any shared controls or styling hooks needed for desktop
 presentation. Use the [desktop platform theme contract](./architecture.md#desktop-platform-themes)
 when a platform profile exposes a styling gap.
