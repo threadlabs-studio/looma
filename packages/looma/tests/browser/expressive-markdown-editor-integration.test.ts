@@ -8,6 +8,57 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Expressive Markdown editor integration", () => {
+  it("opens and edits a section imported from separate HTML disclosure fragments", async () => {
+    const path = await bundle("expressmark-html-disclosure", `
+      import { createScene, sceneNode } from "@looma-test/scene";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { markdownToEditorDocument, editorDocumentToMarkdown } from "@threadlabs/looma/editor/expressmark";
+      editorBrowserTarget().then(LoomaEditor => {
+        const content = markdownToEditorDocument('<details>\\n<summary>More</summary>\\n\\nEditable **body**.\\n\\n</details>');
+        createScene({ render: () => sceneNode(LoomaEditor, { content, editable: true, onChange: event => window.markdown = editorDocumentToMarkdown(event.detail.content) }) }).mount("#app");
+      });
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    const trigger = page.getByRole("button", { name: "More", exact: true });
+    await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("true");
+    await trigger.click();
+    await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("false");
+    await trigger.click();
+    await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("true");
+    const body = page.getByText("Editable body.", { exact: true });
+    await body.waitFor({ state: "visible" });
+    assert.equal(await body.locator("strong").textContent(), "body");
+    await body.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" updated");
+    await expect.poll(() => page.evaluate(() => (window as any).markdown)).toContain("updated");
+    assert.ok((await page.evaluate(() => (window as any).markdown)).includes("details"));
+    await page.close();
+  });
+
+  it("edits line blocks without losing their structure or inline formatting", async () => {
+    const path = await bundle("expressmark-line-block", `
+      import { createScene, sceneNode } from "@looma-test/scene";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { markdownToEditorDocument, editorDocumentToMarkdown } from "@threadlabs/looma/editor/expressmark";
+      editorBrowserTarget().then(LoomaEditor => {
+        const content = markdownToEditorDocument('| First **line**\\n| Second line\\n\\nFollowing paragraph.');
+        createScene({ render: () => sceneNode(LoomaEditor, { content, editable: true, onChange: event => window.markdown = editorDocumentToMarkdown(event.detail.content) }) }).mount("#app");
+      });
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    const block = page.locator('[contenteditable="true"] [data-type="line-block"]');
+    await block.waitFor();
+    assert.equal(await block.locator("strong").textContent(), "line");
+    assert.equal(await block.locator("br").count(), 1);
+    await block.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" updated");
+    await expect.poll(() => page.evaluate(() => (window as any).markdown)).toContain("updated");
+    assert.ok((await page.evaluate(() => (window as any).markdown)).includes("| "));
+    await page.close();
+  });
+
   it("preserves styled code and nested task checkboxes from Markdown", async () => {
     const path = await bundle("expressmark-styled-code-tasks", `
       import { createScene, sceneNode } from "@looma-test/scene";

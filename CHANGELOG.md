@@ -2,6 +2,10 @@
 
 ## Next release
 
+- Import HTML disclosure fragments as editable sections, preserving nested Markdown, initial expansion and unchanged authored source. Keep adjacent authored blocks when editing a section body and accept empty or unclosed sections.
+
+- Preserve leading-pipe line blocks as editable text blocks through HTML and Markdown export. Accept redundant identical emphasis and list items whose first authored block is a quotation without producing invalid editor documents.
+
 - Configure LoomaEditor paragraph indentation, whitespace, and trailing scroll space through public CSS tokens. Manuscripts can wrap soft line breaks while preserving hard breaks, literal text, and the saved document.
 
 - Preserve emphasis and links on inline code, and nested tasks with their supporting paragraphs and lists, when loading Markdown into LoomaEditor. The default schema now accepts the content produced by the Markdown converter.

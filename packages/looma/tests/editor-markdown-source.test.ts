@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { Editor, getSchema } from "@tiptap/core";
-import { editorToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
+import { editorToMarkdown, expressmarkToEditorDocument, markdownToEditorDocument } from "../src/editor/expressmark";
 import { getDefaultEditorExtensions } from "../src/editor/extensions";
 
 const editors: Editor[] = [];
@@ -23,6 +23,100 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
   const from = positionOf(editor, text);
   editor.view.dispatch(editor.state.tr.insertText(replacement, from, from + text.length));
 };
+
+describe("native Markdown document shapes", () => {
+  it("reads HTML disclosure fragments as editable nested sections and keeps untouched source", () => {
+    const markdown = 'Before.\n\n<details open>\n<summary>More</summary>\n\nBody with **formatting**.\n\n<details>\n<summary>Nested</summary>\n\n- One\n- Two\n\n</details>\n\n</details>\n\nAfter.\n';
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.getJSON().content?.[1]?.type).toBe("loomaExpand");
+    expect(editor.view.dom.querySelectorAll("details")).toHaveLength(2);
+    expect(editor.view.dom.querySelector("strong")?.textContent).toBe("formatting");
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown);
+    replaceText(editor, "After.", "Following.");
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown.replace("After.", "Following."));
+  });
+
+  it("edits a disclosure body while preserving adjacent authored blocks", () => {
+    const markdown = '* Before\n\n<details>\n<summary>More</summary>\n\nInside.\n\n</details>\n\n~~~text\nAfter\n~~~\n';
+    const editor = open(markdown);
+    replaceText(editor, "Inside.", "Updated inside.");
+    const written = editorToMarkdown(editor, { original: markdown });
+    expect(written).toContain("* Before");
+    expect(written).toContain("~~~text\nAfter\n~~~");
+    const restored = markdownToEditorDocument(written);
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(restored).check();
+    expect(restored.content?.[1]?.type).toBe("loomaExpand");
+    expect(JSON.stringify(restored)).toContain("Updated inside.");
+  });
+
+  it("retains an unclosed HTML disclosure through the end of its containing blocks", () => {
+    const editor = open('<details><summary>History</summary>\n\nHistorical text.\n\nLast paragraph.');
+    editor.state.doc.check();
+    expect(editor.getJSON().content).toHaveLength(1);
+    expect(editor.getJSON().content?.[0]?.content).toHaveLength(2);
+    expect(editor.view.dom.textContent).toContain("Last paragraph.");
+  });
+
+  it("keeps an empty imported disclosure editable", () => {
+    const editor = open('<details><summary>More</summary></details>');
+    editor.state.doc.check();
+    expect(editor.getJSON().content?.[0]?.content).toEqual([{ type: "paragraph" }]);
+  });
+
+  it("refuses unrepresented application data on either HTML frame", () => {
+    for (const attributed of [0, 2]) {
+      const body = [
+        { type: "html", display: "block" as const, value: "<details><summary>More</summary>" },
+        { type: "paragraph", value: "Inside." },
+        { type: "html", display: "block" as const, value: "</details>" },
+      ].map((node, index) => index === attributed ? { ...node, data: { annotation: "meaningful" } } : node);
+      expect(() => expressmarkToEditorDocument({ type: "document", version: 1, body })).toThrow("HTML fragment field data");
+    }
+  });
+
+  it("keeps line blocks distinct from paragraphs through editing and HTML", () => {
+    const markdown = "| First **line**\n| Second line\n\nFollowing paragraph.";
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.state.doc.firstChild?.type.name).toBe("loomaLineBlock");
+    expect(editor.view.dom.querySelector('[data-type="line-block"] strong')?.textContent).toBe("line");
+    replaceText(editor, "Second", "Updated");
+    const written = editorToMarkdown(editor);
+    expect(written).toContain("| Updated line");
+    const restored = new Editor({ extensions: getDefaultEditorExtensions(), content: editor.getHTML() });
+    editors.push(restored);
+    restored.state.doc.check();
+    expect(restored.state.doc.firstChild?.type.name).toBe("loomaLineBlock");
+    expect(editorToMarkdown(restored)).toBe(written);
+    restored.chain().setTextSelection(1).setParagraph().run();
+    expect(restored.state.doc.firstChild?.type.name).toBe("paragraph");
+  });
+
+  it("normalizes redundant emphasis without discarding formatted text", () => {
+    const markdown = "**Outer **inner** text** and *outer *inner* text*.";
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.view.dom.querySelector("strong")?.textContent).toBe("Outer inner text");
+    expect(editor.view.dom.querySelector("em")?.textContent).toBe("outer inner text");
+    replaceText(editor, "inner", "updated");
+    expect(editorToMarkdown(editor)).toContain("updated");
+  });
+
+  it("gives blockquote-first list items the editor's required paragraph", () => {
+    const content = expressmarkToEditorDocument({ type: "document", version: 1, body: [
+      { type: "list", ordered: false, children: [{ type: "listItem", body: [{ type: "blockquote", body: [{ type: "paragraph", value: "Quoted item" }] }] }] },
+    ] });
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(content).check();
+    const editor = new Editor({ extensions: getDefaultEditorExtensions(), content });
+    editors.push(editor);
+    expect(editor.view.dom.querySelector("li blockquote")?.textContent).toBe("Quoted item");
+    replaceText(editor, "Quoted", "Updated");
+    const restored = markdownToEditorDocument(editorToMarkdown(editor));
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(restored).check();
+    expect(JSON.stringify(restored)).toContain("Updated item");
+  });
+});
 
 // Authored spellings a writer would otherwise normalize: setext and closed ATX headings, `_` and
 // `__` emphasis, `*` bullets, `)` ordered markers, tilde fences, an alert, every reference link

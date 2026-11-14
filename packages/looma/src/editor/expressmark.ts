@@ -43,7 +43,7 @@ const plainTitle = (node: Node | string | undefined, path: string): string => {
   return text(node as Node);
 };
 const AST_FIELDS: Record<string, string[]> = {
-  text: [], paragraph: [], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
+  text: [], paragraph: [], lineBlock: [], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
   list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], image: ["url", "alt", "title"],
   inline: ["subType", "ref"], container: ["subType", "title", "spelling", "titleSpelling"], leaf: ["subType"], table: ["align", "title"], tableRow: [], tableCell: ["header", "colSpan", "rowSpan"],
   strong: [], emphasis: [], delete: [], underline: [], highlight: [], inlineCode: [], link: ["url", "title"], linkReference: ["label", "referenceType"],
@@ -229,6 +229,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       return { type: "text", value: node.text ?? "" };
     }
     case "paragraph": return plain("paragraph");
+    case "loomaLineBlock": return plain("lineBlock");
     case "heading": return plain("heading", ["level", "id"], { level: Number(attrs.level ?? 1), ...(context.headingIds.has(node) ? { id: context.headingIds.get(node)! } : context.custom.has(node) ? { id: string(attrs.id) } : {}) });
     case "blockquote": return block("blockquote");
     case "horizontalRule": fields(node, [], path); return { type: "horizontalRule" };
@@ -397,6 +398,38 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Edit
 
 interface ReadingContext { definitions: Map<string, Node> }
 
+interface BlockGroup { node: Node; source: Node[] }
+
+// CommonMark ends an HTML block at a blank line, so a disclosure's opening, Markdown body
+// and closing can be separate siblings. Keep their source range together while editing one section.
+function blockGroups(nodes: Node[]): BlockGroup[] {
+  let cursor = 0;
+  const read = (inside = false): BlockGroup[] => {
+    const groups: BlockGroup[] = [];
+    while (cursor < nodes.length) {
+      const start = cursor;
+      const node = nodes[cursor++]!;
+      const fragment = node.type === "html" && node.display === "block" ? node.value?.trim() : undefined;
+      if (fragment && /^<\/?details\b/i.test(fragment)) {
+        for (const key of Object.keys(node)) if (!["type", "display", "value", "source", "position"].includes(key)) fail(`document.body[${start}]`, `HTML fragment field ${key}`);
+      }
+      if (inside && fragment && /^<\/details\s*>$/i.test(fragment)) return groups;
+      if (fragment && /^<details\b/i.test(fragment) && !/<\/details\s*>/i.test(fragment)) {
+        const shell = parse(`${fragment}</details>`, { syntax: "compatible" }).body;
+        if (shell.length === 1 && shell[0]!.type === "container" && shell[0]!.subType === "details") {
+          const children = read(true);
+          groups.push({ node: { ...shell[0]!, body: [...(shell[0]!.body ?? []), ...children.map(group => group.node)] }, source: nodes.slice(start, cursor) });
+          continue;
+        }
+      }
+      groups.push({ node, source: [node] });
+    }
+    // HTML leaves an unclosed section open through the end of its containing content.
+    return groups;
+  };
+  return read();
+}
+
 function fromNode(node: Node, path: string, context: ReadingContext, marks: NonNullable<JSONContent["marks"]> = []): JSONContent[] {
   const attrs = node.attributes ?? {};
   const allowed = new Set(["type", "id", "attributes", "body", "children", "value", "position", "source", ...(AST_FIELDS[node.type] ?? [])]);
@@ -406,7 +439,7 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
     for (const key of Object.keys(attrs)) if (!keys.includes(key)) fail(path, `attribute ${key}`);
     if (node.id && node.type !== "heading") fail(path, `ID on ${node.type}`);
   };
-  const children = () => content(node).flatMap((child, index) => fromNode(child, `${path}.body[${index}]`, context));
+  const children = () => blockGroups(content(node)).flatMap((group, index) => fromNode(group.node, `${path}.body[${index}]`, context));
   const inline = () => content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, marks));
   const wrap = (type: string, attributes?: Record<string, unknown>): JSONContent[] => [{ type, ...(attributes ? { attrs: attributes } : {}), ...(content(node).length ? { content: children() } : {}) }];
   if (node.type === "linkReference") {
@@ -425,7 +458,10 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
     const mark: NonNullable<JSONContent["marks"]>[number] = { type: REVERSE_MARKS[node.type] };
     if (node.type === "link") mark.attrs = { href: node.url ?? "", ...attrs, ...(typeof node.title === "string" ? { title: node.title } : {}) };
     else if (Object.keys(attrs).length) mark.attrs = { ...attrs };
-    return content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, [...marks, mark]));
+    // Repeating the same emphasis adds no meaning, but ProseMirror rejects duplicate marks.
+    const existing = marks.find(candidate => candidate.type === mark.type);
+    if (existing && JSON.stringify(existing.attrs) !== JSON.stringify(mark.attrs)) fail(path, "conflicting nested mark attributes");
+    return content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, existing ? marks : [...marks, mark]));
   }
   switch (node.type) {
     case "text":
@@ -438,12 +474,19 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       return [{ type: "paragraph", ...(items.length ? { content: inline() } : {}) }];
     }
     case "heading": check(); return [{ type: "heading", attrs: { level: node.level ?? 1, ...(node.id ? { id: node.id } : {}) }, ...(content(node).length ? { content: inline() } : {}) }];
+    case "lineBlock": check(); return wrap("loomaLineBlock");
     case "break": check(); return [{ type: "hardBreak", ...(marks.length ? { marks } : {}) }];
     case "softBreak": check(); return [{ type: "text", text: "\n", ...(marks.length ? { marks } : {}) }];
     case "horizontalRule": check(); return [{ type: "horizontalRule" }];
     case "blockquote": check(); return wrap("blockquote");
     case "list": check(); return [{ type: node.children?.some(child => child.checked !== undefined) ? "taskList" : node.ordered ? "orderedList" : "bulletList", ...(node.ordered ? { attrs: { start: node.start ?? 1 } } : {}), content: children() }];
-    case "listItem": check(); return wrap(node.checked !== undefined ? "taskItem" : "listItem", node.checked !== undefined ? { checked: node.checked } : undefined);
+    case "listItem": {
+      check();
+      const body = children();
+      // List commands address an item's leading paragraph even when the source starts with a quote.
+      if (body[0]?.type !== "paragraph") body.unshift({ type: "paragraph" });
+      return [{ type: node.checked !== undefined ? "taskItem" : "listItem", ...(node.checked !== undefined ? { attrs: { checked: node.checked } } : {}), content: body }];
+    }
     case "code": {
       check(Object.keys(attrs));
       const opening = stringify({ type: "document", version: 1, body: [{ ...node, value: "" }] }).split("\n")[0] ?? "";
@@ -488,7 +531,8 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       if (node.subType === "details") {
         check(["open"]);
         if (attrs.open !== undefined && typeof attrs.open !== "boolean") fail(path, "nonboolean disclosure flag");
-        return wrap("loomaExpand", { summary: label || "Details", open: attrs.open === true });
+        const body = children();
+        return [{ type: "loomaExpand", attrs: { summary: label || "Details", open: attrs.open === true }, content: body.length ? body : [{ type: "paragraph" }] }];
       }
       if (tone) { check(); return wrap("loomaCallout", { tone, heading: label }); }
       if (node.subType === "tabs") {
@@ -579,17 +623,18 @@ function cellStyle(style: unknown, path: string): Record<string, string> {
 
 // The editor blocks each top-level block reads as, with every heading's anchor: an authored ID, or
 // the one its text derives.
-function readBlocks(document: Document): JSONContent[][] {
+function readBlocks(document: Document): { blocks: JSONContent[][]; groups: BlockGroup[] } {
   const definitions = new Map<string, Node>();
   const collect = (node: Node) => {
     if (node.type === "definition" && !definitions.has(referenceKey(node.label ?? ""))) definitions.set(referenceKey(node.label ?? ""), node);
     for (const child of node.body ?? node.children ?? []) collect(child);
   };
-  collect(document);
-  const blocks = document.body.map((node, index) => fromNode(node, `document.body[${index}]`, { definitions }));
+  const groups = blockGroups(document.body);
+  for (const group of groups) collect(group.node);
+  const blocks = groups.map((group, index) => fromNode(group.node, `document.body[${index}]`, { definitions }));
   const headings = headingsOf({ type: "doc", content: blocks.flat() }, {});
   assignLoomaHeadingIds(headings).forEach((id, index) => { headings[index]!.node.attrs!.id ??= id; });
-  return blocks;
+  return { blocks, groups };
 }
 
 /**
@@ -617,7 +662,7 @@ export function expressmarkToEditorDocument(document: Document): JSONContent {
     if (typeof node.title === "object") visit(node.title);
   };
   visit(document);
-  return { type: "doc", content: readBlocks(document).flat() };
+  return { type: "doc", content: readBlocks(document).blocks.flat() };
 }
 
 // Copies the spellings an edited block's predecessor recorded onto it, wherever both hold a node of
@@ -640,7 +685,7 @@ function respell(node: Node, original: Node): Node {
 // The written document: each block the editor still holds as it read it is the parsed block itself,
 // which expressmark writes from the source with the source's spacing, and every other block is new.
 function keepAuthored(source: Document, edited: Document, options: EditorMarkdownConversionOptions): Document {
-  const read = readBlocks(source);
+  const { blocks: read, groups } = readBlocks(source);
   const own = editorDocumentToExpressmark({ type: "doc", content: read.flat() }, { ...options, onDiagnostic: undefined }).body.map(node => JSON.stringify(node));
   let offset = 0;
   const keys = read.map(blocks => own.slice(offset, offset += blocks.length));
@@ -652,16 +697,16 @@ function keepAuthored(source: Document, edited: Document, options: EditorMarkdow
   for (let index = 0; index < current.length;) {
     const found = keys.findIndex((key, block) => block > used && key.length > 0 && key.every((value, at) => current[index + at] === value));
     if (found >= 0) {
-      const original = source.body[found]!;
+      const original = groups[found]!.node;
       // Original spellings must not restore placeholders or omit the IDs a portable export pins.
       const pinsTargets = options.tableOfContents === "entries" && findNode(original, node => node.type === "heading" || (node.type === "leaf" && node.subType === "toc"));
       if (pinsTargets) body.push(...edited.body.slice(index, index + keys[found]!.length).map(node => respell(node, original)));
-      else body.push(original);
+      else body.push(...groups[found]!.source);
       index += keys[found]!.length;
       used = found;
       continue;
     }
-    const replaced = source.body[used + 1];
+    const replaced = groups[used + 1]?.node;
     body.push(replaced ? respell(edited.body[index]!, replaced) : edited.body[index]!);
     index++;
   }
