@@ -2,6 +2,7 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { parse, stringify, type Attributes, type ConversionOptions, type Document, type Node } from "expressmark";
 import { assignLoomaHeadingIds, LOOMA_CALLOUT_TONE_ALIASES, LOOMA_CALLOUT_TONES, LOOMA_CHIP_TONES, parseLoomaFenceInfo } from "../markdown";
 import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
+import { pictureHtml, readPictureHtml, normalizeImageSources } from "./image-sources";
 
 /** Conversion-time display snapshot, independent from the authored editor document. */
 export interface EditorMarkdownConversionOptions extends ConversionOptions {
@@ -43,7 +44,7 @@ const plainTitle = (node: Node | string | undefined, path: string): string => {
   return text(node as Node);
 };
 const AST_FIELDS: Record<string, string[]> = {
-  text: [], paragraph: [], lineBlock: [], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
+  text: [], paragraph: [], lineBlock: [], html: ["display"], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
   list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], image: ["url", "alt", "title"],
   inline: ["subType", "ref"], container: ["subType", "title", "spelling", "titleSpelling"], leaf: ["subType"], table: ["align", "title"], tableRow: [], tableCell: ["header", "colSpan", "rowSpan"],
   strong: [], emphasis: [], delete: [], underline: [], highlight: [], inlineCode: [], link: ["url", "title"], linkReference: ["label", "referenceType"],
@@ -248,8 +249,12 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       if (parsed?.type !== "code") fail(path, "code fence information");
       return { ...legacyCodePresentation(parsed, path), value: (node.content ?? []).map(child => child.text ?? "").join("") };
     }
-    case "image": {
-      fields(node, ["src", "alt", "title", "width", "height", "placement", "responsive"], path);
+    case "image": case "loomaInlineImage": {
+      fields(node, ["src", "alt", "title", "width", "height", "placement", "responsive", "sources"], path);
+      if (node.type === "loomaInlineImage" && attrs.placement != null && attrs.placement !== "block") fail(path, "block placement on an inline image");
+      try {
+        if (normalizeImageSources(attrs.sources).length) return { type: "html", display: node.type === "loomaInlineImage" ? "inline" : "block", value: pictureHtml(attrs, node.type === "loomaInlineImage") };
+      } catch (error) { fail(path, String(error)); }
       const attributes: Attributes = {};
       // A block image is the default placement.
       for (const key of ["width", "height", "placement", "responsive"]) if (!(key === "placement" && attrs[key] === "block")) has(attributes, key, attrs[key]);
@@ -364,7 +369,7 @@ export function editorDocumentToExpressmark(document: JSONContent, options: Edit
       if (attrs.backgroundColor != null && !colors.has(attrs.backgroundColor)) { safeBackground(attrs.backgroundColor, "document"); colors.add(attrs.backgroundColor); }
       if (attrs.textAlign != null && !["left", "center", "right"].includes(String(attrs.textAlign))) fail("document", "unsupported table alignment");
     }
-    if (node.type === "image") {
+    if (node.type === "image" || node.type === "loomaInlineImage") {
       const key = `image:${attrs.src}`; if (!urls.has(key)) { safeNavigation(attrs.src, true, "document"); urls.add(key); }
       if (attrs.placement != null && !["block", "center", "wrap-left", "wrap-right"].includes(String(attrs.placement))) fail("document", "unsupported image placement");
       if (attrs.responsive != null && typeof attrs.responsive !== "boolean") fail("document", "nonboolean responsive flag");
@@ -440,7 +445,7 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
     if (node.id && node.type !== "heading") fail(path, `ID on ${node.type}`);
   };
   const children = () => blockGroups(content(node)).flatMap((group, index) => fromNode(group.node, `${path}.body[${index}]`, context));
-  const inline = () => content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, marks));
+  const inline = () => content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, marks)).map(child => child.type === "image" ? { ...child, type: "loomaInlineImage" } : child);
   const wrap = (type: string, attributes?: Record<string, unknown>): JSONContent[] => [{ type, ...(attributes ? { attrs: attributes } : {}), ...(content(node).length ? { content: children() } : {}) }];
   if (node.type === "linkReference") {
     check();
@@ -469,12 +474,25 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
     case "paragraph": {
       check();
       const items = content(node);
-      if (items.length === 1 && items[0]?.type === "image") return fromNode(items[0], `${path}.children[0]`, context);
-      if (items.some(child => child.type === "image")) fail(path, "image mixed with inline text (the default editor uses block images)");
+      if (items.length === 1 && ["image", "html"].includes(items[0]!.type)) return fromNode(items[0]!, `${path}.children[0]`, context);
       return [{ type: "paragraph", ...(items.length ? { content: inline() } : {}) }];
     }
-    case "heading": check(); return [{ type: "heading", attrs: { level: node.level ?? 1, ...(node.id ? { id: node.id } : {}) }, ...(content(node).length ? { content: inline() } : {}) }];
+    case "heading": {
+      check();
+      let body = inline();
+      // HTML layout whitespace around a logo is not a line break in its heading.
+      if (body.some(child => child.type === "loomaInlineImage") && body.every(child => child.type === "loomaInlineImage" || child.type === "text" && !child.text?.trim())) body = body.filter(child => child.type === "loomaInlineImage");
+      return [{ type: "heading", attrs: { level: node.level ?? 1, ...(node.id ? { id: node.id } : {}) }, ...(body.length ? { content: body } : {}) }];
+    }
     case "lineBlock": check(); return wrap("loomaLineBlock");
+    case "html": {
+      check();
+      try {
+        const image = readPictureHtml(node.value ?? "");
+        if (image) return [{ type: "image", attrs: image, ...(marks.length ? { marks } : {}) }];
+      } catch (error) { fail(path, String(error)); }
+      return fail(path, "HTML other than a supported picture");
+    }
     case "break": check(); return [{ type: "hardBreak", ...(marks.length ? { marks } : {}) }];
     case "softBreak": check(); return [{ type: "text", text: "\n", ...(marks.length ? { marks } : {}) }];
     case "horizontalRule": check(); return [{ type: "horizontalRule" }];
@@ -503,7 +521,7 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
         const value = Number(attrs[key]); if (!Number.isFinite(value) || value <= 0) fail(path, `image ${key}`); result[key] = value;
       }
       for (const key of ["placement", "responsive"]) if (attrs[key] !== undefined) result[key] = attrs[key];
-      return [{ type: "image", attrs: result }];
+      return [{ type: "image", attrs: result, ...(marks.length ? { marks } : {}) }];
     }
     case "footnoteReference": check(); return [{ type: "loomaFootnoteReference", attrs: { label: node.label ?? "" }, ...(marks.length ? { marks } : {}) }];
     case "footnoteDefinition": check(); return [{ type: "loomaFootnote", attrs: { label: node.label ?? "" }, content: content(node).length ? children() : [{ type: "paragraph" }] }];
@@ -700,7 +718,10 @@ function keepAuthored(source: Document, edited: Document, options: EditorMarkdow
       const original = groups[found]!.node;
       // Original spellings must not restore placeholders or omit the IDs a portable export pins.
       const pinsTargets = options.tableOfContents === "entries" && findNode(original, node => node.type === "heading" || (node.type === "leaf" && node.subType === "toc"));
-      if (pinsTargets) body.push(...edited.body.slice(index, index + keys[found]!.length).map(node => respell(node, original)));
+      // Native heading images have already resolved HTML layout whitespace. Reusing the raw
+      // HTML heading after profile normalization could write those newlines as separate blocks.
+      const projectedHeading = original.type === "heading" && findNode(original, node => node.type === "html");
+      if (pinsTargets || projectedHeading) body.push(...edited.body.slice(index, index + keys[found]!.length).map(node => respell(node, original)));
       else body.push(...groups[found]!.source);
       index += keys[found]!.length;
       used = found;

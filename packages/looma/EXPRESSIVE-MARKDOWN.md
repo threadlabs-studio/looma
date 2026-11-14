@@ -12,8 +12,10 @@ const written = editorDocumentToMarkdown(editedEditorJson, { original: markdown 
 ```
 
 Pass the Markdown a document was read from as `original` when writing it back.
-An unedited document is then written byte for byte, front matter and spacing
-included, and an edit leaves the source of every other block alone. An edited
+Unchanged supported blocks retain their authored spelling, front matter and
+spacing. Safe HTML filtering and normalization apply when writing HTML; native
+picture headings serialize their current heading and image structure. An edit
+leaves the source of every other supported block alone. An edited
 block keeps the spellings it still reads as, such as `_` emphasis or a setext
 heading. Without `original`, the writer uses Expressmark's preferred forms.
 
@@ -39,6 +41,16 @@ See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and
 [document AST](https://nextwebwg.org/expressive-markdown/ast).
 
 ## Conversion behavior
+
+Images inside text and headings load as `loomaInlineImage`; standalone images
+retain the `image` block and its insertion command. Native pictures preserve
+their fallback image, alt text, dimensions and ordered `sources` array. Each
+source stores `srcset` and optional `media`, `type`, `width` and `height`.
+These are authored choices, separate from a host's transient delivery renditions.
+`imageSourceUrls` from the editor extensions lists every alternative URL for
+host authorization and asset rewriting; validate the fallback `src` as well.
+The shared safe URL profile applies to every srcset candidate. Inline image
+actions edit the description or delete the image while keeping its text position.
 
 Leading-pipe line blocks load as `loomaLineBlock` text blocks. Their explicit
 line breaks, inline formatting and line-block identity survive editing, HTML

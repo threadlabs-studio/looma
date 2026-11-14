@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { Editor, getSchema } from "@tiptap/core";
-import { editorToMarkdown, expressmarkToEditorDocument, markdownToEditorDocument } from "../src/editor/expressmark";
+import { editorToMarkdown, editorDocumentToMarkdown, editorDocumentToExpressmark, expressmarkToEditorDocument, markdownToEditorDocument } from "../src/editor/expressmark";
 import { getDefaultEditorExtensions } from "../src/editor/extensions";
 
 const editors: Editor[] = [];
@@ -25,6 +25,46 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
 };
 
 describe("native Markdown document shapes", () => {
+  it("keeps a responsive picture inside its heading through editing and export", () => {
+    const markdown = '<h1>\n<picture><source media="(prefers-color-scheme: dark)" srcset="dark.svg 1x, dark-large.svg 2x"><img src="light.svg" alt="Project logo" width="280"></picture>\n</h1>\n\nDescription.';
+    const editor = open(markdown);
+    editor.state.doc.check();
+    const heading = editor.getJSON().content?.[0];
+    expect(heading?.type).toBe("heading");
+    expect(heading?.attrs?.level).toBe(1);
+    expect(heading?.content?.find(node => node.type === "loomaInlineImage")?.attrs).toMatchObject({ src: "light.svg", alt: "Project logo", width: 280, sources: [{ media: "(prefers-color-scheme: dark)", srcset: "dark.svg 1x, dark-large.svg 2x" }] });
+    expect(editor.view.dom.querySelector("h1 picture source")?.getAttribute("srcset")).toBe("dark.svg 1x, dark-large.svg 2x");
+    expect(editorDocumentToExpressmark(editor.getJSON())).toEqual(editorDocumentToExpressmark(markdownToEditorDocument(markdown)));
+    const unchanged = markdownToEditorDocument(editorToMarkdown(editor, { original: markdown }));
+    expect(editorDocumentToExpressmark(unchanged)).toEqual(editorDocumentToExpressmark(editor.getJSON()));
+    replaceText(editor, "Description.", "Updated description.");
+    const restored = new Editor({ extensions: getDefaultEditorExtensions(), content: editor.getHTML() });
+    editors.push(restored);
+    restored.state.doc.check();
+    const written = editorToMarkdown(restored);
+    expect(written).toContain("dark-large.svg 2x");
+    expect(written).toContain("Updated description.");
+    const document = markdownToEditorDocument(written);
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(document).check();
+    expect(document.content?.[0]?.type).toBe("heading");
+  });
+
+  it("retains linked inline images beside text without changing image insertion commands", () => {
+    const editor = open('Before [![Logo](logo.svg)](https://example.com) after.');
+    editor.state.doc.check();
+    expect(editor.view.dom.querySelector('p a img')?.getAttribute("alt")).toBe("Logo");
+    const inline = editor.getJSON().content?.[0]?.content?.find(node => node.type === "loomaInlineImage");
+    expect(inline?.marks).toContainEqual(expect.objectContaining({ type: "link" }));
+    editor.commands.setContent({ type: "doc", content: [{ type: "paragraph" }] });
+    editor.commands.setImage({ src: "block.svg", alt: "Block" });
+    expect(editor.state.doc.firstChild?.type.name).toBe("image");
+  });
+
+  it("refuses unsafe image alternatives instead of emitting them or dropping their choice", () => {
+    const content = { type: "doc", content: [{ type: "image", attrs: { src: "safe.svg", sources: [{ srcset: "safe.svg 1x, javascript:alert(1) 2x" }] } }] };
+    expect(() => editorDocumentToMarkdown(content)).toThrow("Unsafe image source URL");
+  });
+
   it("reads HTML disclosure fragments as editable nested sections and keeps untouched source", () => {
     const markdown = 'Before.\n\n<details open>\n<summary>More</summary>\n\nBody with **formatting**.\n\n<details>\n<summary>Nested</summary>\n\n- One\n- Two\n\n</details>\n\n</details>\n\nAfter.\n';
     const editor = open(markdown);
