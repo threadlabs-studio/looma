@@ -83,6 +83,19 @@ describe("LoomaEditor node views", () => {
     expect(host.querySelector("h3 [data-looma-heading-link]")?.hasAttribute("hidden")).toBe(true);
     expect(editor.getHTML()).toBe('<h1 id="top">Top</h1><h3>Unanchored</h3>');
   });
+  it("keeps an anchored heading's DOM in step with the document after a native delete", async () => {
+    const { host, editor } = await mountEditor('<h2 id="intro">Intro</h2><p>Body</p>');
+    const root = host.querySelector<HTMLElement>(".ProseMirror")!;
+    root.focus();
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    getSelection()!.removeAllRanges();
+    getSelection()!.addRange(range);
+    document.execCommand("delete");
+    await flushBrowser();
+    const heading = editor.state.doc.firstChild?.type.name === "heading" ? editor.state.doc.firstChild.textContent : undefined;
+    expect(root.querySelector("h2 > :first-child")?.textContent).toBe(heading);
+  });
   it("refreshes cached reference display without an authored update and keeps link editing available", async () => {
     const host = document.body.appendChild(document.createElement("div"));
     const references = createState({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });

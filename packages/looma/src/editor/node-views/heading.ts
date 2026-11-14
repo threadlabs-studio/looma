@@ -23,7 +23,8 @@ export const headingNodeView: NodeViewRenderer = ({ node }) => {
       return true;
     },
     stopEvent: event => event.target instanceof Node && link.dom.contains(event.target),
-    ignoreMutation: mutation => mutation.type !== "selection" && !contentDOM.contains(mutation.target),
+    // Only the controls' own changes are ignored; a native delete across the heading must reach ProseMirror.
+    ignoreMutation: mutation => mutation.type !== "selection" && link.dom.contains(mutation.target),
     destroy: link.destroy,
   };
 };
