@@ -5,7 +5,7 @@ import { createFixture, loadFixture } from "./fixture";
 export { loadFixture, waitForFixture } from "./fixture";
 import { connectSuiteBrowser, newFixturePage, recordPageErrors, type SuiteBrowser } from "./browser-client";
 
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type BrowserContextOptions, type Page } from "playwright";
@@ -16,6 +16,23 @@ export let directory = "";
 export let browser: SuiteBrowser;
 let bundleSequence = 0;
 const bundles = new Map<string, string>();
+const assets = new Map<string, Promise<string>>();
+let assetSequence = 0;
+
+/** Serve identical fixture bytes to every renderer through the suite's ordinary asset server. */
+export function asset(name: string, source: string): Promise<string> {
+  const key = JSON.stringify([directory, name, source]);
+  const cached = assets.get(key);
+  if (cached) return cached;
+  const file = join(directory, `asset-${assetSequence++}-${name}`);
+  const saved = writeFile(file, source).then(() => {
+    const origin = JSON.parse(process.env.LOOMA_FIXTURE_SERVERS ?? "{}").production;
+    if (!origin) throw new Error("Start the fixture server before creating an asset.");
+    return `${origin}/@fs/${file}`;
+  });
+  assets.set(key, saved);
+  return saved;
+}
 
 export async function bundle(name: string, source: string, mode = "production"): Promise<string> {
   const editorTarget = process.env.LOOMA_EDITOR_TARGET ?? "converted";

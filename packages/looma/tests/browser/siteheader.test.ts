@@ -5,20 +5,21 @@ import { join } from "node:path";
 
 import { describe, it } from "vitest";
 
-import { root, bundle, open } from "../renderers/browser-driver";
+import { root, bundle, open, asset } from "../renderers/browser-driver";
 
 describe("SiteHeader", () => {
   for (const adapter of ["HTML", "Converted"] as const) it(`centers branding and navigation containers beside growing actions in ${adapter}`, async () => {
+    const src = await asset("brand-mark.svg", '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"></svg>');
     const path = await bundle(`site-header-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
       import { createScene, sceneNode } from "@looma-test/scene";
       import { UiSiteHeader as SiteHeader, UiButton as Button } from "@looma-test/components";
       createScene({render:()=>sceneNode(SiteHeader,{id:"site",sticky:true},{
-        brand:()=>sceneNode("a",{href:"#home",id:"brand"},[sceneNode("img",{width:40,height:40,alt:"Brand mark",src:"data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"}),sceneNode("span",{id:"brand-title"},"Fellowship")]),
+        brand:()=>sceneNode("a",{href:"#home",id:"brand"},[sceneNode("img",{width:40,height:40,alt:"Brand mark",src:${JSON.stringify(src)}}),sceneNode("span",{id:"brand-title"},"Fellowship")]),
         navigation:()=>[sceneNode("a",{href:"#guide",id:"destination"},"Guide"),sceneNode("a",{href:"#components"},"Components")],
         actions:()=>sceneNode(Button,{id:"action",variant:"solid",tone:"accent"},()=>"Join briefing"),
       })}).mount("#app");
     `);
-    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand"><img width="40" height="40" alt="Brand mark" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2240%22%20height=%2240%22%3E%3C/svg%3E"><span id="brand-title">Fellowship</span></a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css")], {viewport:{width:1440,height:800}});
+    const page=await open(path, adapter === "HTML" ? `<ui-site-header id="site" sticky><a slot="brand" href="#home" id="brand"><img width="40" height="40" alt="Brand mark" src="${src}"><span id="brand-title">Fellowship</span></a><a slot="navigation" href="#guide" id="destination">Guide</a><a slot="navigation" href="#components">Components</a><ui-button slot="actions" id="action" variant="solid" tone="accent">Join briefing</ui-button></ui-site-header>` : '<div id="app"></div>', [join(root,"tokens.css")], {viewport:{width:1440,height:800}});
     try {
       await page.addStyleTag({content:'body { display:grid; place-items:center; margin:0; } #app { inline-size:100%; display:grid; place-items:center; }'});
       assert.equal(await page.locator('#site').evaluate(el=>el.getBoundingClientRect().width),1440,'a site header fills its container even in a centered preview');

@@ -31,7 +31,8 @@ export async function waitForFixture(page: Page, ordinaryFixture = true): Promis
   const ready = await page.waitForFunction(async ordinaryFixture => {
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     const read = (globalThis as typeof globalThis & { __loomaControllerTasks?: () => readonly Promise<void>[] }).__loomaControllerTasks;
-    const pending = ordinaryFixture ? read?.() ?? [] : [];
+    const native = Reflect.get(globalThis, "__loomaNativeRenderTasks") as (() => readonly Promise<void>[]) | undefined;
+    const pending = [...(ordinaryFixture ? read?.() ?? [] : []), ...native?.() ?? []];
     await Promise.all(pending);
     return pending.length === 0;
   }, ordinaryFixture);
