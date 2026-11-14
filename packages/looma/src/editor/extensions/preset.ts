@@ -218,7 +218,7 @@ export function getDefaultEditorExtensions(
     ListItem,
     // A list may hold tasks beside plain items, as GFM reads `- [x] Done` next to `- Item`.
     TaskList.extend({ content: "(taskItem|listItem)+" }),
-    LoomaTaskItem.configure({ nested: false }),
+    LoomaTaskItem.configure({ nested: true }),
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
     LoomaChip,
@@ -244,7 +244,7 @@ export function getDefaultEditorExtensions(
     ...(linkBaseUrl ? [createSiteRelativeLinks(linkBaseUrl)] : []),
     imageNodeView ? image.extend({ addNodeView: () => imageNodeView }) : image,
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
-    Code,
+    Code.extend({ excludes: "" }),
     LoomaSmartPaste,
     codeBlockNodeView ? codeBlock.extend({ addNodeView: () => codeBlockNodeView }) : codeBlock,
     Typography,

@@ -318,6 +318,7 @@ describe("LoomaEditor history (real browser)", () => {
     apps.push(app);
     app.mount(host);
     await flushBrowser();
+    await expect.poll(() => editor, { timeout: 5_000 }).toBeTruthy();
     editor!.commands.focus("start");
     editor!.commands.insertContent("A first paragraph.");
     editor!.commands.setTextSelection({ from: 1, to: 6 });
