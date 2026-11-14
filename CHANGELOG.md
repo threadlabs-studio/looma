@@ -2,6 +2,8 @@
 
 ## Next release
 
+- LoomaEditor headings with anchors show a copy-link button on hover or keyboard focus, with a tooltip and clipboard feedback. The controls are available in read-only documents and never enter saved content.
+
 - **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
 
 - Preserve custom Editor Toolbar accessible labels with `noforward` and a trailing `$attributes` destination after its default label. Convert style objects to HTML attribute text in the HTML Next test adapter so constrained scroll areas retain their supplied height.

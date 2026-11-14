@@ -41,6 +41,48 @@ async function mountEditor(html: string) {
 const state = (element: Element) => element.getAttribute("data-ui-separator-state") ?? "";
 
 describe("LoomaEditor node views", () => {
+  it("copies heading permalinks without changing the document and follows edited anchors", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    try {
+      const { host, editor } = await mountEditor('<h2 id="intro">Introduction</h2><h6 id="details">Details</h6>');
+      const saved = editor.getJSON();
+      const button = host.querySelector<HTMLButtonElement>('h2 button[aria-label="Copy link"]');
+      expect(button).not.toBeNull();
+      expect(host.querySelector('h6 button[aria-label="Copy link"]')).not.toBeNull();
+      button!.focus();
+      await flushBrowser();
+      expect(document.activeElement).toBe(button);
+      await userEvent.keyboard("{Enter}");
+      await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(new URL("#intro", location.href).href));
+      await vi.waitFor(() => expect(button!.getAttribute("aria-label")).toBe("Link copied"));
+      expect(editor.getJSON()).toEqual(saved);
+      expect(editor.getHTML()).not.toMatch(/button|Copy link|Link copied/);
+      editor.view.dispatch(editor.state.tr.setNodeMarkup(0, undefined, { level: 2, id: "résumé/%draft" }));
+      await flushBrowser();
+      await userEvent.click(host.querySelector<HTMLButtonElement>("h2 button")!);
+      await vi.waitFor(() => expect(writeText).toHaveBeenLastCalledWith(new URL(`#${encodeURIComponent("résumé/%draft")}`, location.href).href));
+      editor.commands.setContent('<h2 id="updated">Updated</h2>');
+      await flushBrowser();
+      await userEvent.click(host.querySelector<HTMLButtonElement>("h2 button")!);
+      await vi.waitFor(() => expect(writeText).toHaveBeenLastCalledWith(new URL("#updated", location.href).href));
+      writeText.mockRejectedValueOnce(new Error("Denied"));
+      await userEvent.click(host.querySelector<HTMLButtonElement>("h2 button")!);
+      await vi.waitFor(() => expect(host.querySelector("h2 button")!.getAttribute("aria-label")).toBe("Could not copy link"));
+    } finally {
+      if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
+      else Reflect.deleteProperty(navigator, "clipboard");
+    }
+  });
+  it("offers heading links to readers and hides them on headings without anchors", async () => {
+    const { host, editor } = await mountEditor('<h1 id="top">Top</h1><h3>Unanchored</h3>');
+    editor.setEditable(false);
+    await flushBrowser();
+    expect(host.querySelector("h1 [data-looma-heading-link]")?.hasAttribute("hidden")).toBe(false);
+    expect(host.querySelector("h3 [data-looma-heading-link]")?.hasAttribute("hidden")).toBe(true);
+    expect(editor.getHTML()).toBe('<h1 id="top">Top</h1><h3>Unanchored</h3>');
+  });
   it("refreshes cached reference display without an authored update and keeps link editing available", async () => {
     const host = document.body.appendChild(document.createElement("div"));
     const references = createState({ "link:guide": { label: "Cached guide" }, "mention:person": { label: "Cached person" } });
