@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Configure LoomaEditor paragraph indentation, whitespace, and trailing scroll space through public CSS tokens. Manuscripts can wrap soft line breaks while preserving hard breaks, literal text, and the saved document.
+
 - Preserve emphasis and links on inline code, and nested tasks with their supporting paragraphs and lists, when loading Markdown into LoomaEditor. The default schema now accepts the content produced by the Markdown converter.
 
 - **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
