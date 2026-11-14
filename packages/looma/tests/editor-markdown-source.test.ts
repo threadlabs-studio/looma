@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { Editor, getSchema } from "@tiptap/core";
-import { editorToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
+import { editorToMarkdown, expressmarkToEditorDocument, markdownToEditorDocument } from "../src/editor/expressmark";
 import { getDefaultEditorExtensions } from "../src/editor/extensions";
 
 const editors: Editor[] = [];
@@ -23,6 +23,50 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
   const from = positionOf(editor, text);
   editor.view.dispatch(editor.state.tr.insertText(replacement, from, from + text.length));
 };
+
+describe("native Markdown document shapes", () => {
+  it("keeps line blocks distinct from paragraphs through editing and HTML", () => {
+    const markdown = "| First **line**\n| Second line\n\nFollowing paragraph.";
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.state.doc.firstChild?.type.name).toBe("loomaLineBlock");
+    expect(editor.view.dom.querySelector('[data-type="line-block"] strong')?.textContent).toBe("line");
+    replaceText(editor, "Second", "Updated");
+    const written = editorToMarkdown(editor);
+    expect(written).toContain("| Updated line");
+    const restored = new Editor({ extensions: getDefaultEditorExtensions(), content: editor.getHTML() });
+    editors.push(restored);
+    restored.state.doc.check();
+    expect(restored.state.doc.firstChild?.type.name).toBe("loomaLineBlock");
+    expect(editorToMarkdown(restored)).toBe(written);
+    restored.chain().setTextSelection(1).setParagraph().run();
+    expect(restored.state.doc.firstChild?.type.name).toBe("paragraph");
+  });
+
+  it("normalizes redundant emphasis without discarding formatted text", () => {
+    const markdown = "**Outer **inner** text** and *outer *inner* text*.";
+    const editor = open(markdown);
+    editor.state.doc.check();
+    expect(editor.view.dom.querySelector("strong")?.textContent).toBe("Outer inner text");
+    expect(editor.view.dom.querySelector("em")?.textContent).toBe("outer inner text");
+    replaceText(editor, "inner", "updated");
+    expect(editorToMarkdown(editor)).toContain("updated");
+  });
+
+  it("gives blockquote-first list items the editor's required paragraph", () => {
+    const content = expressmarkToEditorDocument({ type: "document", version: 1, body: [
+      { type: "list", ordered: false, children: [{ type: "listItem", body: [{ type: "blockquote", body: [{ type: "paragraph", value: "Quoted item" }] }] }] },
+    ] });
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(content).check();
+    const editor = new Editor({ extensions: getDefaultEditorExtensions(), content });
+    editors.push(editor);
+    expect(editor.view.dom.querySelector("li blockquote")?.textContent).toBe("Quoted item");
+    replaceText(editor, "Quoted", "Updated");
+    const restored = markdownToEditorDocument(editorToMarkdown(editor));
+    getSchema(getDefaultEditorExtensions()).nodeFromJSON(restored).check();
+    expect(JSON.stringify(restored)).toContain("Updated item");
+  });
+});
 
 // Authored spellings a writer would otherwise normalize: setext and closed ATX headings, `_` and
 // `__` emphasis, `*` bullets, `)` ordered markers, tilde fences, an alert, every reference link

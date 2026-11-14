@@ -43,7 +43,7 @@ const plainTitle = (node: Node | string | undefined, path: string): string => {
   return text(node as Node);
 };
 const AST_FIELDS: Record<string, string[]> = {
-  text: [], paragraph: [], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
+  text: [], paragraph: [], lineBlock: [], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
   list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], image: ["url", "alt", "title"],
   inline: ["subType", "ref"], container: ["subType", "title", "spelling", "titleSpelling"], leaf: ["subType"], table: ["align", "title"], tableRow: [], tableCell: ["header", "colSpan", "rowSpan"],
   strong: [], emphasis: [], delete: [], underline: [], highlight: [], inlineCode: [], link: ["url", "title"], linkReference: ["label", "referenceType"],
@@ -229,6 +229,7 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       return { type: "text", value: node.text ?? "" };
     }
     case "paragraph": return plain("paragraph");
+    case "loomaLineBlock": return plain("lineBlock");
     case "heading": return plain("heading", ["level", "id"], { level: Number(attrs.level ?? 1), ...(context.headingIds.has(node) ? { id: context.headingIds.get(node)! } : context.custom.has(node) ? { id: string(attrs.id) } : {}) });
     case "blockquote": return block("blockquote");
     case "horizontalRule": fields(node, [], path); return { type: "horizontalRule" };
@@ -425,7 +426,10 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
     const mark: NonNullable<JSONContent["marks"]>[number] = { type: REVERSE_MARKS[node.type] };
     if (node.type === "link") mark.attrs = { href: node.url ?? "", ...attrs, ...(typeof node.title === "string" ? { title: node.title } : {}) };
     else if (Object.keys(attrs).length) mark.attrs = { ...attrs };
-    return content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, [...marks, mark]));
+    // Repeating the same emphasis adds no meaning, but ProseMirror rejects duplicate marks.
+    const existing = marks.find(candidate => candidate.type === mark.type);
+    if (existing && JSON.stringify(existing.attrs) !== JSON.stringify(mark.attrs)) fail(path, "conflicting nested mark attributes");
+    return content(node).flatMap((child, index) => fromNode(child, `${path}.children[${index}]`, context, existing ? marks : [...marks, mark]));
   }
   switch (node.type) {
     case "text":
@@ -438,12 +442,19 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       return [{ type: "paragraph", ...(items.length ? { content: inline() } : {}) }];
     }
     case "heading": check(); return [{ type: "heading", attrs: { level: node.level ?? 1, ...(node.id ? { id: node.id } : {}) }, ...(content(node).length ? { content: inline() } : {}) }];
+    case "lineBlock": check(); return wrap("loomaLineBlock");
     case "break": check(); return [{ type: "hardBreak", ...(marks.length ? { marks } : {}) }];
     case "softBreak": check(); return [{ type: "text", text: "\n", ...(marks.length ? { marks } : {}) }];
     case "horizontalRule": check(); return [{ type: "horizontalRule" }];
     case "blockquote": check(); return wrap("blockquote");
     case "list": check(); return [{ type: node.children?.some(child => child.checked !== undefined) ? "taskList" : node.ordered ? "orderedList" : "bulletList", ...(node.ordered ? { attrs: { start: node.start ?? 1 } } : {}), content: children() }];
-    case "listItem": check(); return wrap(node.checked !== undefined ? "taskItem" : "listItem", node.checked !== undefined ? { checked: node.checked } : undefined);
+    case "listItem": {
+      check();
+      const body = children();
+      // List commands address an item's leading paragraph even when the source starts with a quote.
+      if (body[0]?.type !== "paragraph") body.unshift({ type: "paragraph" });
+      return [{ type: node.checked !== undefined ? "taskItem" : "listItem", ...(node.checked !== undefined ? { attrs: { checked: node.checked } } : {}), content: body }];
+    }
     case "code": {
       check(Object.keys(attrs));
       const opening = stringify({ type: "document", version: 1, body: [{ ...node, value: "" }] }).split("\n")[0] ?? "";

@@ -40,6 +40,12 @@ See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and
 
 ## Conversion behavior
 
+Leading-pipe line blocks load as `loomaLineBlock` text blocks. Their explicit
+line breaks, inline formatting and line-block identity survive editing, HTML
+and Markdown export. Repeated identical emphasis becomes one editor mark.
+List items that begin with a quote or another block receive the empty leading
+paragraph required by editor list commands, retaining their authored blocks.
+
 Ordinary punctuation stays readable: ranges such as `[-1, 1]`, `array[index]`,
 `user_id` and `a@word` do not need backslashes. The shared writer escapes text
 only when its context would interpret it as syntax. Mentions start at the

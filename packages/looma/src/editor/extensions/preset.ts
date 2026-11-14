@@ -39,6 +39,7 @@ import { LoomaChip } from "./chip";
 import { LoomaExpand } from "./expand";
 import { LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 import { LoomaLinkDefinition } from "./link-definition";
+import { LoomaLineBlock } from "./line-block";
 import { LoomaFigcaption, LoomaFigure } from "./figure";
 import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
@@ -205,6 +206,7 @@ export function getDefaultEditorExtensions(
   return [
     Document,
     Paragraph,
+    LoomaLineBlock,
     Text,
     LoomaReference,
     LoomaReferencePresentation.configure({ references: options.references ?? {}, mentions: options.references !== undefined }),

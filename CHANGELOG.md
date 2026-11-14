@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Preserve leading-pipe line blocks as editable text blocks through HTML and Markdown export. Accept redundant identical emphasis and list items whose first authored block is a quotation without producing invalid editor documents.
+
 - Preserve emphasis and links on inline code, and nested tasks with their supporting paragraphs and lists, when loading Markdown into LoomaEditor. The default schema now accepts the content produced by the Markdown converter.
 
 - **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
