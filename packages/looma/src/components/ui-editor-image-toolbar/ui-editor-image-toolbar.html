@@ -74,10 +74,10 @@
             name="trash"
           ></ui-icon></ui-icon-button>
       </ui-editor-toolbar>
-      <ui-tooltip $if="not $inline" from:for="concat($base, '-block')">Image in line</ui-tooltip>
-      <ui-tooltip $if="not $inline" from:for="concat($base, '-center')">Center image</ui-tooltip>
-      <ui-tooltip $if="not $inline" from:for="concat($base, '-wrap-left')">Wrap text to the right</ui-tooltip>
-      <ui-tooltip $if="not $inline" from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-block')">Image in line</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-center')">Center image</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-wrap-left')">Wrap text to the right</ui-tooltip>
+      <ui-tooltip from:for="concat($base, '-wrap-right')">Wrap text to the left</ui-tooltip>
       <ui-tooltip from:for="$base">Image description</ui-tooltip>
       <ui-tooltip from:for="concat($base, '-delete')">Delete image</ui-tooltip>
       <ui-popover $ref="description" from:for="$base" from:open="$describing" size="sm" aria-label="Image description">
