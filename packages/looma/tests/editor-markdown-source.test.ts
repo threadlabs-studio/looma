@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { Editor } from "@tiptap/core";
+import { Editor, getSchema } from "@tiptap/core";
 import { editorToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 import { getDefaultEditorExtensions } from "../src/editor/extensions";
 
@@ -69,6 +69,27 @@ const source = [
 ].join("\n");
 
 describe("LoomaEditor writes Markdown back through expressmark", () => {
+  it("keeps emphasis and links on inline code through the default schema", () => {
+    const markdown = "Use **`strong`**, _`emphasis`_, ~~`old`~~ and [`linked`](https://example.com/api).\n";
+    const content = markdownToEditorDocument(markdown);
+    const schema = getSchema(getDefaultEditorExtensions());
+    expect(() => schema.nodeFromJSON(content).check()).not.toThrow();
+    const editor = open(markdown);
+    expect(editor.view.dom.querySelector("strong code")?.textContent).toBe("strong");
+    expect(editor.view.dom.querySelector("a code")?.textContent).toBe("linked");
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown);
+  });
+
+  it("keeps nested tasks and their supporting blocks through the default schema", () => {
+    const markdown = "- [x] Parent task\n  - [ ] Child task\n\n  Supporting paragraph.\n\n  - Supporting item\n";
+    const content = markdownToEditorDocument(markdown);
+    const schema = getSchema(getDefaultEditorExtensions());
+    expect(() => schema.nodeFromJSON(content).check()).not.toThrow();
+    const editor = open(markdown);
+    expect(editor.view.dom.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect(editorToMarkdown(editor, { original: markdown })).toBe(markdown);
+  });
+
   it("writes an unedited document back byte for byte", () => {
     const editor = open(source);
     expect(editorToMarkdown(editor, { original: source })).toBe(source);

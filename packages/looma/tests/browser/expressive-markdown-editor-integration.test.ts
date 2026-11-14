@@ -8,6 +8,30 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Expressive Markdown editor integration", () => {
+  it("preserves styled code and nested task checkboxes from Markdown", async () => {
+    const path = await bundle("expressmark-styled-code-tasks", `
+      import { createScene, sceneNode } from "@looma-test/scene";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      import { markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
+      editorBrowserTarget().then(LoomaEditor => {
+        const content = markdownToEditorDocument('Use **\u0060strong\u0060** and [\u0060linked\u0060](https://example.com/api).\\n\\n- [x] Parent task\\n  - [ ] Child task\\n\\n  Supporting paragraph.');
+        createScene({ render: () => sceneNode(LoomaEditor, { content, editable: true }) }).mount("#app");
+      });
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    await page.locator("strong code").waitFor();
+    assert.equal(await page.locator("strong code").textContent(), "strong");
+    assert.equal(await page.locator("a code").textContent(), "linked");
+    const parent = page.getByRole("checkbox", { name: /^Parent task/ });
+    const child = page.getByRole("checkbox", { name: "Child task", exact: true });
+    assert.equal(await parent.isChecked(), true);
+    assert.equal(await child.isChecked(), false);
+    await child.check();
+    await expect.poll(() => child.isChecked()).toBe(true);
+    assert.equal(await parent.isChecked(), true);
+    await page.close();
+  });
+
   it("bundles the safe converter in a browser and loads its JSON into LoomaEditor", async () => {
     const path = await bundle("expressmark-editor", `
       import { createScene, sceneNode } from "@looma-test/scene";
