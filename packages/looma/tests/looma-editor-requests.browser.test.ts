@@ -2,7 +2,7 @@ import { Mark, type Editor, type JSONContent } from "@tiptap/core";
 import { RequestEvent } from "@nextwebwg/html-next/runtime";
 import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { createScene, createState, sceneNode, settle, type Scene } from "@looma-test/scene";
 import { UiEditor } from "@looma-test/components";
 import { editorUnderTest, nativeEditorTarget } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
@@ -51,6 +51,26 @@ function chooseImage(host: HTMLElement, name: string) {
 }
 
 const insertImage = () => page.getByRole("button", { name: "Insert image", exact: true });
+
+it("preserves consumer editor classes while editability changes", async () => {
+  const editable = createState(true);
+  const host = document.body.appendChild(document.createElement("div"));
+  const app = createScene({ render: () => sceneNode(LoomaEditor, { class: "consumer-editor", editable: editable.value }) });
+  apps.push(app);
+  app.mount(host);
+  await flushBrowser();
+  const root = host.querySelector<HTMLElement>(".looma-editor")!;
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  editable.value = false;
+  await flushBrowser();
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  expect(root.classList.contains("looma-editor--readonly")).toBe(true);
+  await expect.element(page.getByRole("textbox", { name: "Document", exact: true })).toHaveAttribute("contenteditable", "false");
+  editable.value = true;
+  await flushBrowser();
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  expect(root.classList.contains("looma-editor--readonly")).toBe(false);
+});
 
 describe("LoomaEditor requests", () => {
   it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
