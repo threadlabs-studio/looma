@@ -49,6 +49,10 @@ source stores `srcset` and optional `media`, `type`, `width` and `height`.
 These are authored choices, separate from a host's transient delivery renditions.
 `imageSourceUrls` from the editor extensions lists every alternative URL for
 host authorization and asset rewriting; validate the fallback `src` as well.
+`mapImageSourceUrls(sources, rewrite)` allocates new candidate URLs with the same
+parser, preserving source order, display conditions, dimensions and descriptors.
+It leaves the input unchanged and keeps the exact `srcset` spelling when no URL
+changes. Unsafe URLs and rewrites that alter candidate boundaries are refused.
 The shared safe URL profile applies to every srcset candidate. Inline image
 actions edit the description or delete the image while keeping its text position.
 

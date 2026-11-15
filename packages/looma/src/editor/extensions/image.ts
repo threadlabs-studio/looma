@@ -2,7 +2,7 @@ import { mergeAttributes, type AnyExtension } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import { imageHtmlSpec, readPictureHtml } from "../image-sources";
 import { createImageMedia, imageDeliveryAttributes } from "../image-media";
-export { imageSourceUrls, normalizeImageSources, type LoomaImageSource } from "../image-sources";
+export { imageSourceUrls, mapImageSourceUrls, normalizeImageSources, type LoomaImageSource } from "../image-sources";
 
 /** Both forms use the same portable image attributes and host image controls. */
 export const isLoomaImageName = (name: string | undefined) => name === "image" || name === "loomaInlineImage";

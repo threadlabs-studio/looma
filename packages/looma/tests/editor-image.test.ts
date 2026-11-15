@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { Editor } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
-import { getDefaultEditorExtensions } from "../src/editor/extensions";
+import { getDefaultEditorExtensions, imageSourceUrls, mapImageSourceUrls } from "../src/editor/extensions";
 
 const editors: Editor[] = [];
 function mount(content: string) {
@@ -12,6 +12,23 @@ function mount(content: string) {
 afterEach(() => editors.splice(0).forEach(editor => editor.destroy()));
 
 describe("durable image formatting", () => {
+  it("rewrites every responsive candidate without confusing URL prefixes or losing conditions", () => {
+    const sources = [{ srcset: "./photo.png 480w, ./photo.png.large 960w", media: "(max-width: 600px)", type: "image/png", width: 960, height: 480 },
+      { srcset: "https://assets.example.test/photo,a.png 1x, ./photo.png 2x", media: "(prefers-color-scheme: dark)" }];
+    const original = structuredClone(sources);
+    const mapped = mapImageSourceUrls(sources, url => url.startsWith("./") ? `https://assets.example.test/${url.slice(2)}` : url);
+    expect(imageSourceUrls(mapped)).toEqual(["https://assets.example.test/photo.png", "https://assets.example.test/photo.png.large", "https://assets.example.test/photo,a.png", "https://assets.example.test/photo.png"]);
+    expect(mapped).toEqual([{ ...sources[0], srcset: "https://assets.example.test/photo.png 480w, https://assets.example.test/photo.png.large 960w" },
+      { ...sources[1], srcset: "https://assets.example.test/photo,a.png 1x, https://assets.example.test/photo.png 2x" }]);
+    expect(sources).toEqual(original);
+  });
+  it("preserves unchanged srcset spelling and refuses unsafe or ambiguous rewritten URLs", () => {
+    const source = [{ srcset: "./one.png  1x,  ./two.png 2x", media: "screen" }];
+    expect(mapImageSourceUrls(source, url => url)).toEqual(source);
+    for (const url of ["javascript:alert(1)", "./a b.png", "./a.png, ./b.png", ""]) {
+      expect(() => mapImageSourceUrls(source, () => url)).toThrow();
+    }
+  });
   it("retains image size and placement through JSON and HTML in the shared preset", () => {
     const editor = mount('<p>Before</p><img src="https://example.test/photo.jpg" alt="Landscape" width="320" height="160" data-placement="wrap-left" data-looma-responsive><p>After</p>');
     expect(editor.getJSON().content?.[1]?.attrs).toMatchObject({ width: 320, height: 160, placement: "wrap-left", responsive: true });

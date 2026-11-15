@@ -42,6 +42,31 @@ export function imageSourceUrls(value: unknown): string[] {
   return normalizeImageSources(value).flatMap(source => parseSrcset(source.srcset).map(candidate => candidate.url));
 }
 
+/** Rewrite authored candidates with the same parser used for validation.
+ * @ownership Returns new sources; the caller owns URL allocation and the input stays unchanged.
+ * @failure Rejects unsafe URLs and rewrites that change candidate boundaries or descriptors.
+ */
+export function mapImageSourceUrls(value: unknown, rewrite: (url: string) => string): LoomaImageSource[] {
+  return normalizeImageSources(value).map(source => {
+    let changed = false;
+    const candidates = parseSrcset(source.srcset).map(candidate => {
+      const url = rewrite(candidate.url);
+      if (typeof url !== "string" || !url) throw new Error("Image rewrite needs a URL");
+      safeUrl(url);
+      changed ||= url !== candidate.url;
+      return { ...candidate, url };
+    });
+    if (!changed) return source;
+    const srcset = candidates.map(candidate => [candidate.url,
+      ...(candidate.w === undefined ? [] : [`${candidate.w}w`]),
+      ...(candidate.h === undefined ? [] : [`${candidate.h}h`]),
+      ...(candidate.d === undefined ? [] : [`${candidate.d}x`]),
+    ].join(" ")).join(", ");
+    if (JSON.stringify(parseSrcset(srcset)) !== JSON.stringify(candidates)) throw new Error("Image rewrite changes srcset candidates");
+    return { ...source, srcset };
+  });
+}
+
 /** Read one safe native picture without reducing its sources to the fallback image. */
 export function readPictureHtml(value: string): Record<string, unknown> | null {
   const html = renderHtml({ type: "document", version: 1, syntax: "compatible", body: [{ type: "html", display: "block", value }] });
