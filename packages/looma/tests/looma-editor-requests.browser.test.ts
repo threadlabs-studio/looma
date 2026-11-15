@@ -52,6 +52,27 @@ function chooseImage(host: HTMLElement, name: string) {
 
 const insertImage = () => page.getByRole("button", { name: "Insert image", exact: true });
 
+it("keeps inline pictures beside heading text under a block media reset", async () => {
+  const reset = document.head.appendChild(document.createElement("style"));
+  reset.textContent = ":where(img, picture) { display: block; max-inline-size: 100%; }";
+  cleanups.push(() => reset.remove());
+  const src = new URL("./fixtures/inline-picture.svg?no-inline", import.meta.url).href;
+  expect(src).toMatch(/^https?:/);
+  const content = { type: "doc", content: [{ type: "heading", attrs: { level: 2 }, content: [
+    { type: "text", text: "Architecture " },
+    { type: "loomaInlineImage", attrs: { src, alt: "Diagram", width: 96, height: 48 } },
+  ] }] };
+  const { host, editor } = await mountEditor({ content }, 375);
+  const heading = host.querySelector(".ProseMirror h2")!;
+  const range = document.createRange();
+  range.selectNodeContents(heading.firstChild!);
+  const text = range.getBoundingClientRect(), picture = heading.querySelector("picture")!.getBoundingClientRect();
+  expect(picture.left).toBeGreaterThanOrEqual(text.right - 1);
+  expect(picture.top).toBeLessThan(text.bottom);
+  expect(picture.bottom).toBeGreaterThan(text.top);
+  expect(editor()!.getJSON()).toMatchObject(content);
+});
+
 it("preserves consumer editor classes while editability changes", async () => {
   const editable = createState(true);
   const host = document.body.appendChild(document.createElement("div"));

@@ -5,8 +5,9 @@
     <prop name="width" type="integer"
     >Image width in CSS pixels; omitted uses intrinsic size in block/center placement or responsive sizing when wrapping.</prop>
     <prop name="height" type="integer">Image height in CSS pixels; resizing preserves the intrinsic aspect ratio.</prop>
-    <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right" default="block"
-    >Block keeps text below; center centers the image; wrap-left and wrap-right let following text flow beside it.</prop>
+    <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right, inline" default="block"
+    >Block keeps text below; center centers the image; wrap-left and wrap-right let following text flow beside it. Inline keeps the image within a text
+      line.</prop>
     <prop name="selected" type="boolean" default="false">Outlines the media as the current selection.</prop>
     <prop name="resizable" type="boolean" default="false"
     >Shows four corner handles while selected. Drag to resize, or focus a handle and use arrow keys; Shift uses a larger increment.</prop>
@@ -18,18 +19,32 @@
       Reports resize intent. Preview is transient; the consumer persists a commit. Escape and pointer cancellation restore the original size.
     </event>
   </defs>
-  <figure>
-    <div class="frame" $ref="frame">
-      <slot name="media"><img from:src="$src" from:alt="$alt" from:width="$width" from:height="$height"></slot>
-      <div class="handles" from:hidden="not ($selected and $resizable)">
-        <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
-        <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
-        <button type="button" class="handle" data-corner="bottom-left" aria-label="Resize image from bottom left"></button>
-        <button type="button" class="handle" data-corner="bottom-right" aria-label="Resize image from bottom right"></button>
+  <template $match>
+    <span $when="$placement = 'inline'">
+      <span class="frame" $ref="frame">
+        <slot name="media"><img from:src="$src" from:alt="$alt" from:width="$width" from:height="$height"></slot>
+        <span class="handles" from:hidden="not ($selected and $resizable)">
+          <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
+          <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
+          <button type="button" class="handle" data-corner="bottom-left" aria-label="Resize image from bottom left"></button>
+          <button type="button" class="handle" data-corner="bottom-right" aria-label="Resize image from bottom right"></button>
+        </span>
+        <slot name="controls"></slot>
+      </span>
+    </span>
+    <figure $else>
+      <div class="frame" $ref="frame">
+        <slot name="media"><img from:src="$src" from:alt="$alt" from:width="$width" from:height="$height"></slot>
+        <div class="handles" from:hidden="not ($selected and $resizable)">
+          <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
+          <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
+          <button type="button" class="handle" data-corner="bottom-left" aria-label="Resize image from bottom left"></button>
+          <button type="button" class="handle" data-corner="bottom-right" aria-label="Resize image from bottom right"></button>
+        </div>
+        <slot name="controls"></slot>
       </div>
-      <slot name="controls"></slot>
-    </div>
-  </figure>
+    </figure>
+  </template>
   <style>
     :host {
       display: flex !important;
@@ -42,6 +57,11 @@
     }
     :host([placement="center"]) {
       justify-content: center !important;
+    }
+    :host([placement="inline"]) {
+      display: inline-flex !important;
+      padding: 0 !important;
+      vertical-align: baseline;
     }
     :host([placement="wrap-left"]) {
       float: left;

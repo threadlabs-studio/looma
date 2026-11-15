@@ -72,6 +72,8 @@ export interface DefaultEditorExtensionsOptions {
   imageInline?: boolean;
   /** Optional image selection and sizing UI; durable formatting stays in the shared schema. */
   imageNodeView?: NodeViewRenderer;
+  /** Optional inline media UI; the extension entry point remains independent of UI registration. */
+  inlineImageNodeView?: NodeViewRenderer;
   /** Optional selected-state UI for document dividers. */
   dividerNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
@@ -189,6 +191,7 @@ export function getDefaultEditorExtensions(
     linkBaseUrl,
     imageInline = false,
     imageNodeView,
+    inlineImageNodeView,
     dividerNodeView,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
@@ -206,7 +209,7 @@ export function getDefaultEditorExtensions(
   return [
     Document,
     Paragraph,
-    LoomaInlineImage,
+    inlineImageNodeView ? LoomaInlineImage.extend({ addNodeView: () => inlineImageNodeView }) : LoomaInlineImage,
     LoomaLineBlock,
     Text,
     LoomaReference,
