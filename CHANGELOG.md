@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep consumer-supplied editor classes when switching between editable and read-only states.
+
 - Preserve link marks on inline images when exporting Markdown, including responsive pictures inside headings.
 
 - Rewrite responsive image source URLs through `mapImageSourceUrls` while preserving ordered conditions, dimensions and candidate descriptors. Unchanged source spelling stays intact; unsafe or ambiguous rewrites are refused.
