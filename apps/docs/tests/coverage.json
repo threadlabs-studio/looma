@@ -1143,6 +1143,11 @@
           "id": "02-selected",
           "title": "Selected and resizable",
           "behavior": false
+        },
+        {
+          "id": "03-inline",
+          "title": "Inline image",
+          "behavior": false
         }
       ]
     },
