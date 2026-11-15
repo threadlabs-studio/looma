@@ -26,12 +26,14 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
 
 describe("native Markdown document shapes", () => {
   it("keeps a responsive picture inside its heading through editing and export", () => {
-    const markdown = '<h1>\n<picture><source media="(prefers-color-scheme: dark)" srcset="dark.svg 1x, dark-large.svg 2x"><img src="light.svg" alt="Project logo" width="280"></picture>\n</h1>\n\nDescription.';
+    const markdown = '<h1 align="center">\n<picture><source media="(prefers-color-scheme: dark)" srcset="dark.svg 1x, dark-large.svg 2x"><img src="light.svg" alt="Project logo" width="280"></picture>\n</h1>\n\nDescription.';
     const editor = open(markdown);
     editor.state.doc.check();
     const heading = editor.getJSON().content?.[0];
     expect(heading?.type).toBe("heading");
     expect(heading?.attrs?.level).toBe(1);
+    expect(heading?.attrs?.align).toBe("center");
+    expect(editor.view.dom.querySelector("h1")?.getAttribute("align")).toBe("center");
     expect(heading?.content?.find(node => node.type === "loomaInlineImage")?.attrs).toMatchObject({ src: "light.svg", alt: "Project logo", width: 280, sources: [{ media: "(prefers-color-scheme: dark)", srcset: "dark.svg 1x, dark-large.svg 2x" }] });
     expect(editor.view.dom.querySelector("h1 picture source")?.getAttribute("srcset")).toBe("dark.svg 1x, dark-large.svg 2x");
     expect(editorDocumentToExpressmark(editor.getJSON())).toEqual(editorDocumentToExpressmark(markdownToEditorDocument(markdown)));
@@ -47,6 +49,7 @@ describe("native Markdown document shapes", () => {
     const document = markdownToEditorDocument(written);
     getSchema(getDefaultEditorExtensions()).nodeFromJSON(document).check();
     expect(document.content?.[0]?.type).toBe("heading");
+    expect(document.content?.[0]?.attrs?.align).toBe("center");
   });
 
   it("retains linked inline images beside text without changing image insertion commands", () => {

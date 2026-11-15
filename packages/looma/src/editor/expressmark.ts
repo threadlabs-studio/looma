@@ -3,6 +3,7 @@ import { parse, stringify, type Attributes, type ConversionOptions, type Documen
 import { assignLoomaHeadingIds, LOOMA_CALLOUT_TONE_ALIASES, LOOMA_CALLOUT_TONES, LOOMA_CHIP_TONES, parseLoomaFenceInfo } from "../markdown";
 import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
 import { pictureHtml, readPictureHtml, normalizeImageSources } from "./image-sources";
+import { isHeadingAlignment } from "./heading-alignment";
 
 /** Conversion-time display snapshot, independent from the authored editor document. */
 export interface EditorMarkdownConversionOptions extends ConversionOptions {
@@ -231,7 +232,10 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     }
     case "paragraph": return plain("paragraph");
     case "loomaLineBlock": return plain("lineBlock");
-    case "heading": return plain("heading", ["level", "id"], { level: Number(attrs.level ?? 1), ...(context.headingIds.has(node) ? { id: context.headingIds.get(node)! } : context.custom.has(node) ? { id: string(attrs.id) } : {}) });
+    case "heading": {
+      if (attrs.align != null && !isHeadingAlignment(attrs.align)) fail(path, "unsupported heading alignment");
+      return plain("heading", ["level", "id", "align"], { level: Number(attrs.level ?? 1), ...(attrs.align != null ? { attributes: { align: attrs.align } } : {}), ...(context.headingIds.has(node) ? { id: context.headingIds.get(node)! } : context.custom.has(node) ? { id: string(attrs.id) } : {}) });
+    }
     case "blockquote": return block("blockquote");
     case "horizontalRule": fields(node, [], path); return { type: "horizontalRule" };
     case "hardBreak": fields(node, [], path); return { type: "break" };
@@ -478,11 +482,12 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       return [{ type: "paragraph", ...(items.length ? { content: inline() } : {}) }];
     }
     case "heading": {
-      check();
+      check(["align"]);
+      if (attrs.align !== undefined && !isHeadingAlignment(attrs.align)) fail(path, "unsupported heading alignment");
       let body = inline();
       // HTML layout whitespace around a logo is not a line break in its heading.
       if (body.some(child => child.type === "loomaInlineImage") && body.every(child => child.type === "loomaInlineImage" || child.type === "text" && !child.text?.trim())) body = body.filter(child => child.type === "loomaInlineImage");
-      return [{ type: "heading", attrs: { level: node.level ?? 1, ...(node.id ? { id: node.id } : {}) }, ...(body.length ? { content: body } : {}) }];
+      return [{ type: "heading", attrs: { level: node.level ?? 1, ...(attrs.align !== undefined ? { align: attrs.align } : {}), ...(node.id ? { id: node.id } : {}) }, ...(body.length ? { content: body } : {}) }];
     }
     case "lineBlock": check(); return wrap("loomaLineBlock");
     case "html": {

@@ -14,7 +14,7 @@ describe("Expressive Markdown editor integration", () => {
       import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
       import { markdownToEditorDocument } from "@threadlabs/looma/editor/expressmark";
       editorBrowserTarget().then(LoomaEditor => {
-        const content = markdownToEditorDocument('<h1><picture><source media="(prefers-color-scheme: dark)" srcset="https://images.test/dark.svg"><img src="https://images.test/light.svg" alt="Project logo" width="280"></picture></h1>\\n\\nDescription.\\n\\n<picture><source media="(prefers-color-scheme: dark)" srcset="https://images.test/dark-block.svg"><img src="https://images.test/light-block.svg" alt="Standalone picture" width="800"></picture>');
+        const content = markdownToEditorDocument('<h1 align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://images.test/dark.svg"><img src="https://images.test/light.svg" alt="Project logo" width="280"></picture></h1>\\n\\nDescription.\\n\\n<picture><source media="(prefers-color-scheme: dark)" srcset="https://images.test/dark-block.svg"><img src="https://images.test/light-block.svg" alt="Standalone picture" width="800"></picture>');
         window.saved = content;
         createScene({ render: () => sceneNode(LoomaEditor, { content, editable: true, imageDelivery: () => ({ resolveSource: image => image.src.replace('/light', '/delivered-light') }), onChange: event => window.saved = event.detail.content }) }).mount("#app");
       });
@@ -24,12 +24,20 @@ describe("Expressive Markdown editor integration", () => {
     const image = page.getByRole("img", { name: "Project logo", exact: true });
     const blockImage = page.getByRole("img", { name: "Standalone picture", exact: true });
     await image.waitFor();
+    const assertCentered = async () => {
+      const heading = page.locator("h1");
+      assert.equal(await heading.evaluate(element => getComputedStyle(element).textAlign), "center");
+      const bounds = (await heading.boundingBox())!, logo = (await heading.getByRole("img").boundingBox())!;
+      assert.ok(Math.abs(logo.x + logo.width / 2 - bounds.x - bounds.width / 2) < 1, "logo stays centered within its heading");
+    };
     await page.emulateMedia({ colorScheme: "dark" });
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).currentSrc)).toBe("https://images.test/dark.svg");
     await expect.poll(() => blockImage.evaluate(element => (element as HTMLImageElement).currentSrc)).toBe("https://images.test/dark-block.svg");
+    await assertCentered();
     await page.emulateMedia({ colorScheme: "light" });
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).currentSrc)).toBe("https://images.test/delivered-light.svg");
     await expect.poll(() => blockImage.evaluate(element => (element as HTMLImageElement).currentSrc)).toBe("https://images.test/delivered-light-block.svg");
+    await assertCentered();
     assert.ok((await blockImage.boundingBox())!.width <= 375, "block picture fits the phone viewport");
     assert.equal(await page.locator("h1 picture").count(), 1);
     await image.click();
@@ -42,12 +50,14 @@ describe("Expressive Markdown editor integration", () => {
     await form.getByRole("button", { name: "Save", exact: true }).click();
     await page.getByRole("img", { name: "Updated project logo", exact: true }).waitFor();
     const saved = await page.evaluate(() => (window as any).saved);
+    assert.equal(saved.content[0].attrs.align, "center");
     assert.equal(saved.content[0].type, "heading");
     assert.equal(saved.content[0].content[0].type, "loomaInlineImage");
     assert.equal(saved.content[0].content[0].attrs.src, "https://images.test/light.svg");
     assert.equal(saved.content[0].content[0].attrs.sources[0].srcset, "https://images.test/dark.svg");
     assert.equal(saved.content.at(-1).type, "image");
     await page.setViewportSize({ width: 1280, height: 900 });
+    await assertCentered();
     await page.getByRole("img", { name: "Updated project logo", exact: true }).click();
     await page.getByRole("toolbar", { name: "Image actions", exact: true }).waitFor({ state: "visible" });
     assert.equal(await page.getByRole("button", { name: "Center image", exact: true }).count(), 0);

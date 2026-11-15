@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Preserve native heading alignment through editing, HTML and Markdown, including responsive logos in headings. Requires Expressmark >=0.6.4.
+
 - Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.
 
 - Keep consumer-supplied editor classes when switching between editable and read-only states.

@@ -146,8 +146,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.6.1'
-        version: 0.6.1
+        specifier: '>=0.6.4'
+        version: 0.6.4
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -5218,8 +5218,8 @@ packages:
     resolution: {integrity: sha512-zylsRyr0FUPUovtizSsMOXYI1eY3zPFI3o93dDwB5AVMt7FXYUrTLtz7F/XlcLIR98MQOW2JLAMXAhATn+GaGQ==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
-  expressmark@0.6.1:
-    resolution: {integrity: sha512-JIdhBSp/5FUTOB+9ON0BWZXnAZ78pGlpExlPCa1785AyxJ8v9RN36WlcOPKIo+ASLG2QTfi5QdZ/9vuInfuA+Q==}
+  expressmark@0.6.4:
+    resolution: {integrity: sha512-wixA9ANz0XuBKsYEUbjNPxHFBXVkiQa1KK9ZaH5pNm2QQuGCVqKtXor8sX8Ok3omFGjp+4Z+YPggKQ0AHH+Jxw==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -14802,7 +14802,7 @@ snapshots:
       uc.micro: 3.0.0
       yaml: 2.9.1
 
-  expressmark@0.6.1:
+  expressmark@0.6.4:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
