@@ -55,6 +55,8 @@ It leaves the input unchanged and keeps the exact `srcset` spelling when no URL
 changes. Unsafe URLs and rewrites that alter candidate boundaries are refused.
 The shared safe URL profile applies to every srcset candidate. Inline image
 actions edit the description or delete the image while keeping its text position.
+Link marks stay attached to inline images through Markdown conversion, including
+pictures with multiple sources inside a heading.
 
 Leading-pipe line blocks load as `loomaLineBlock` text blocks. Their explicit
 line breaks, inline formatting and line-block identity survive editing, HTML

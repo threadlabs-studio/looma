@@ -180,7 +180,7 @@ function customHeadings(headings: Heading[]): Set<JSONContent> {
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
-  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
+  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "loomaInlineImage", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
   for (const mark of [...(node.marks ?? [])].reverse()) {
     const type = MARKS[mark.type];
     if (!type) fail(path, `mark ${mark.type}`);

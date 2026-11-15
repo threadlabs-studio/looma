@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Preserve link marks on inline images when exporting Markdown, including responsive pictures inside headings.
+
 - Rewrite responsive image source URLs through `mapImageSourceUrls` while preserving ordered conditions, dimensions and candidate descriptors. Unchanged source spelling stays intact; unsafe or ambiguous rewrites are refused.
 
 - Preserve linked inline images and responsive pictures inside headings and text, including authored source choices, fallback image, dimensions and descriptions. Inline image actions keep the image in its text position. Requires Expressmark >=0.6.1 for native picture parsing; host delivery renditions remain transient.
