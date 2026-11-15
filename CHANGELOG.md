@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.
+
 - Keep consumer-supplied editor classes when switching between editable and read-only states.
 
 - Preserve link marks on inline images when exporting Markdown, including responsive pictures inside headings.

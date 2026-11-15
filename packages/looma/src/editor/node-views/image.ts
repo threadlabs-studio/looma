@@ -17,13 +17,15 @@ import { element } from "./element";
  * editor's editability.
  */
 export const imageNodeView: NodeViewRenderer = ({ editor, node, getPos, decorations }) => {
+  const inline = node.type.name === "loomaInlineImage";
   let current = node;
   let delivery = imageDeliveryAttributes(decorations);
   let selected = false;
   const media = createImageMedia();
+  if (inline) media.dom.setAttribute("data-looma-inline-image", "");
   const props = (next: ProseMirrorNode) => ({
     src: (delivery.src as string | undefined) ?? next.attrs.src, alt: next.attrs.alt ?? "", width: next.attrs.width, height: next.attrs.height,
-    placement: normalizeImagePlacement(next.attrs.placement), selected: editor.isEditable && selected, resizable: editor.isEditable,
+    placement: inline ? "inline" as const : normalizeImagePlacement(next.attrs.placement), selected: editor.isEditable && selected, resizable: editor.isEditable && !inline,
   });
   media.write(node.attrs, delivery);
   // The generated type knows Image's own resize event; the widened one is the root as the DOM sees it.

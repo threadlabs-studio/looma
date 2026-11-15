@@ -578,6 +578,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             dividerNodeView,
             calloutNodeView,
             imageNodeView,
+            inlineImageNodeView: imageNodeView,
           }),
           imageDelivery.extension,
           slashExtension,
