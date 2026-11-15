@@ -13,6 +13,7 @@ import Italic from "@tiptap/extension-italic";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
 import Heading from "@tiptap/extension-heading";
+import { isHeadingAlignment } from "../heading-alignment";
 import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
@@ -140,6 +141,23 @@ const LoomaCodeBlock = CodeBlockLowlight.extend({
   },
 });
 
+// Keep the native heading presentation through HTML parsing and serialization.
+const LoomaHeading = Heading.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      align: {
+        default: null,
+        parseHTML: element => {
+          const align = element.getAttribute("align");
+          return isHeadingAlignment(align) ? align : null;
+        },
+        renderHTML: attributes => isHeadingAlignment(attributes.align) ? { align: attributes.align } : {},
+      },
+    };
+  },
+});
+
 // Removing the mark from the schema would make Tiptap discard any stored
 // document that uses it, so disabling it strips only the ways to create it.
 const StoredOnlyHighlight = Highlight.extend({
@@ -218,7 +236,7 @@ export function getDefaultEditorExtensions(
     Italic,
     Strike,
     Underline,
-    Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+    LoomaHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     BulletList,
     OrderedList,
     ListItem,

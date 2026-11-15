@@ -4,6 +4,20 @@ import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 
 describe("Expressive Markdown editor documents", () => {
+  it.each(["left", "center", "right", "justify"])("preserves explicit heading alignment %s through portable Markdown", align => {
+    const document = { type: "doc", content: [{ type: "heading", attrs: { level: 2, align }, content: [{ type: "text", text: "Aligned heading" }] }] };
+    const ast = editorDocumentToExpressmark(document);
+    expect(ast.body[0]?.attributes).toEqual({ align });
+    const restored = markdownToEditorDocument(editorDocumentToMarkdown(document));
+    expect(restored.content?.[0]?.attrs?.align).toBe(align);
+    expect(editorDocumentToExpressmark(restored)).toEqual(ast);
+  });
+
+  it("refuses unknown heading alignment instead of silently dropping it", () => {
+    expect(() => editorDocumentToMarkdown({ type: "doc", content: [{ type: "heading", attrs: { level: 1, align: "center; color:red" } }] })).toThrow("heading alignment");
+    expect(() => expressmarkToEditorDocument({ type: "document", version: 1, body: [{ type: "heading", level: 1, value: "Heading", attributes: { align: "diagonal" } }] })).toThrow("heading alignment");
+  });
+
   it.each([false, true])("keeps a linked inline image through Markdown with responsive sources=%s", responsive => {
     const image = { type: "loomaInlineImage", attrs: { src: "https://images.example.test/fallback.png", alt: "Architecture", width: 96, height: 48,
       ...(responsive ? { sources: [{ srcset: "https://images.example.test/dark.png 1x, https://images.example.test/large.png 2x", media: "(prefers-color-scheme: dark)" }] } : {}) },
