@@ -9,7 +9,7 @@ import { selectVisualComponents, renderInputKey, compareCaptures, validCapture, 
 const require = createRequire(new URL('../../apps/storybook/package.json', import.meta.url));
 const playwright = createRequire(createRequire(require.resolve('@playwright/test')).resolve('playwright'));
 const { PNG } = playwright('playwright-core/lib/utilsBundle');
-const image = (value = 255) => { const p = new PNG({width:32,height:32}); p.data.fill(value); for(let i=3;i<p.data.length;i+=4)p.data[i]=255; return PNG.sync.write(p); };
+const image = (value = 255, width = 32, height = 32) => { const p = new PNG({width,height}); p.data.fill(value); for(let i=3;i<p.data.length;i+=4)p.data[i]=255; return PNG.sync.write(p); };
 const files = {
   'packages/looma/src/components/ui-disclosure/ui-disclosure.html': '<template component="ui-disclosure"></template>',
   'packages/looma/src/components/ui-light-editor/ui-light-editor.html': '<ui-disclosure>Position</ui-disclosure>',
@@ -167,6 +167,19 @@ test('added and removed examples stay visible in the review report',async t=>{
   writeFileSync(path.join(before,'removed.png'),image());writeFileSync(path.join(after,'added.png'),image());
   const result=await compareCaptures(before,after,path.join(root,'report'));
   assert.deepEqual(result.added,['added.png']);assert.deepEqual(result.removed,['removed.png']);
+});
+test('resized flat captures remain changes with before, after and diff images',async t=>{
+  const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after'), report=path.join(root,'report');
+  mkdirSync(before);mkdirSync(after);
+  writeFileSync(path.join(before,'control.png'),image(255,32,32));
+  writeFileSync(path.join(after,'control.png'),image(255,32,31));
+  const result=await compareCaptures(before,after,report);
+  assert.deepEqual(result.changed,['control.png']);assert.deepEqual(result.unchanged,[]);
+  assert.match(readFileSync(path.join(report,'index.html'),'utf8'),/Expected an image 32px by 32px, received 32px by 31px/);
+  const images=readdirSync(report).filter(name=>name.endsWith('.png'));
+  assert.equal(images.length,3);
+  const diff=PNG.sync.read(readFileSync(path.join(report,images.find(name=>name.endsWith('-diff.png')))));
+  assert.equal(diff.width,32);assert.equal(diff.height,32);
 });
 test('renderer diagnostic attachments are excluded from the visual comparison',async t=>{
   const root=fixture(t), before=path.join(root,'before'), after=path.join(root,'after');

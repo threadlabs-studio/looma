@@ -35,6 +35,7 @@
       color: var(--ui-text-primary);
       color-scheme: inherit;
       font: inherit;
+      font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
       box-shadow: var(--ui-select-shadow, var(--ui-shadow-sm));
       transition:
@@ -134,7 +135,9 @@
 
     /* Touch may use body-size text in a small native field to avoid focus zoom; this does not impose a larger visible control height. */
     @media (pointer: coarse) {
-      :host([size="sm"]) {
+      :host,
+      :host([size="sm"]),
+      :host([size="lg"]) {
         font-size: var(--ui-font-size-md);
       }
     }

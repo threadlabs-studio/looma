@@ -4,7 +4,7 @@
     >surface marks the current row with a quiet filled surface and shared corners. line uses square corners and a continuous logical start edge. Both retain the
       resting label weight and expose aria-current.</prop>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
-    >Compact uses smaller type and row spacing to sit alongside a compact tree; comfortable keeps the regular navigation row.</prop>
+    >Compact reduces row spacing to sit alongside a compact tree; both densities keep the shared UI text size.</prop>
     <prop name="current" type="keyword" values="true, false, page, step, location" default="false"
     >Marks the item as where you are: it takes the selected surface, the selected text, and the chosen surface or line treatment, and states aria-current, which
       assistive technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the
@@ -162,7 +162,7 @@
     }
 
     .label {
-      font-size: var(--ui-font-size-md);
+      font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
     }
 

@@ -604,10 +604,11 @@
       min-inline-size: 0;
       color: var(--ui-text-primary);
       font: inherit;
+      font-size: var(--ui-font-size-sm);
     }
     label {
       color: var(--_ui-combobox-label-text, var(--ui-text-primary));
-      font-size: var(--_ui-combobox-label-font-size, var(--ui-field-label-font-size, var(--ui-font-size-md)));
+      font-size: var(--_ui-combobox-label-font-size, var(--ui-field-label-font-size, var(--ui-font-size-sm)));
       font-weight: 500;
     }
     /* The field and anything that annotates it sit on one row; the help button is beside the box,
@@ -839,7 +840,9 @@
       white-space: nowrap;
     }
     @media (pointer: coarse) {
-      :host([size="sm"]) input {
+      :host input,
+      :host([size="sm"]) input,
+      :host([size="lg"]) input {
         font-size: var(--ui-font-size-md);
       }
     }

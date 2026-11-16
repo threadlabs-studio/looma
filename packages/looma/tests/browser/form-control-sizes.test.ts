@@ -96,7 +96,7 @@ describe("Form control sizes", () => {
   });
   const small = { input: 32, select: 32, combobox: 32, multiple: 32, button: 32, checkbox: 32, radio: 32, switch: 32 };
 
-  it("line up small fields, buttons, and choices on one row, and leave md alone", async () => {
+  it("line up small controls and keep medium controls on the shared UI type size", async () => {
     const path = await bundle("html-form-sizes", `import "@looma-test/runtime";`);
     const page = await open(path, row, [join(root, "tokens.css")]);
     await page.waitForSelector('#switch:is([component~="ui-switch"], [data-component~="ui-switch"], .ui-switch, [ui-switch])');
@@ -106,9 +106,9 @@ describe("Form control sizes", () => {
     assert.deepEqual(sizes.heights, small);
     assert.deepEqual(sizes.labels, [0, 0, 0]);
     assert.deepEqual([sizes.fontSize, sizes.labelFontSize], ["14px", "14px"]);
-    // md is unchanged: the standard control height and body text.
+    // Medium keeps the standard control height and shares the small control UI type role.
     assert.ok(sizes.defaultHeight >= 40, `md stays ${sizes.defaultHeight}px`);
-    assert.equal(sizes.defaultFontSize, "16px");
+    assert.equal(sizes.defaultFontSize, "14px");
     await page.close();
   });
 

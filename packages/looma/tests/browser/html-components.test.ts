@@ -31,7 +31,7 @@ describe("HTML components", () => {
     await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("true");
 
     await page.waitForSelector(':is([component~="ui-form-field"], [data-component~="ui-form-field"], .ui-form-field, [ui-form-field])');
-    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "16px");
+    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
     await page.close();
   });
 });

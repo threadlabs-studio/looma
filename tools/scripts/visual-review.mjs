@@ -125,7 +125,11 @@ function comparisonRows(before, after, output, suite, names) {
     const afterImage = current.has(name) ? readFileSync(path.join(after, name)) : null;
     let difference;
     if (beforeImage && afterImage && !beforeImage.equals(afterImage)) {
-      difference = compare(afterImage, beforeImage, suite === 'docs'
+      // Different dimensions always fail comparison. Use the faster pixel diff
+      // to illustrate that known change; retain perceptual checks at equal sizes.
+      const resized = beforeImage.length >= 24 && afterImage.length >= 24
+        && !beforeImage.subarray(16, 24).equals(afterImage.subarray(16, 24));
+      difference = compare(afterImage, beforeImage, suite === 'docs' || resized
         ? { comparator: 'pixelmatch', maxDiffPixels: 0 }
         : { ...stateSheetComparison, comparator: stateSheetComparison._comparator });
     }

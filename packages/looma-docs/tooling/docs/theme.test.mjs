@@ -133,36 +133,36 @@ function assertAPCALabel(tokens, tone, recipe) {
 
 const backgroundSnapshots = {
   "looma": {
-    "light": "78f39023b1e6f478cdbbef9377801b379d3d33ea242fd278c9f420e998253ac7",
-    "dark": "2d613abc7ca7dd70523f3618023b353385c10b888ff1c850beea22fa17a6f3dc"
+    "light": "b150c627fbd12e4d705233655908f2366fb33b1673952a0dee50b626a59e4477",
+    "dark": "66b31eb92b76413faf4476b36c873c507457eff07d68efa6868b49265173137e"
   },
   "minimal": {
-    "light": "25813e62a53bb03f62ce30adafab4e4c3e5988d1192a482734ceda993e081ebf",
-    "dark": "3837f53ed738116e6653f9be5c18e449210f88c38153628facf0f0a145626bea"
+    "light": "779a076bfb1f94cd8f2c3d58687584b9a846b9adc79970a68e5698bb625c90f4",
+    "dark": "23c73641a261829317816c5cae17691bd9fe6725de71ac3f6736e0d469736f90"
   },
   "gold": {
     "light": "ecc5e789c4b4619f4490c395323b576635d2d1fa748194df5721bd096b4724a6",
     "dark": "38072e421ed71ad0a28c7932d7e7938b8bcfe6e38dda7c2923e594b62eadcdea"
   },
   "bookish": {
-    "light": "1ff1e335dfe6e4b40b995736432a93de397790fa0e4e5770b58d0edf7be630f5",
-    "dark": "68ce3f5c1de92fabbc87ae7cd9738e371653f649fcd752cdeef1b8cdeab93523"
+    "light": "772c76150a7c98ae33ccd1bc71136ab4a672fa5ef5befd8a6dbf7848d1cb9674",
+    "dark": "216f0bc2e7a8bf4c3bb69e0de51880e739996b4376f190f2e8c19115e27e4e23"
   },
   "wiki": {
-    "light": "27d0a5605803f885c5bba204aa89f0509adcde04da15e494569b2666ac1538d6",
-    "dark": "713e807591cdebd5e3718620cfdd0e5267ec399d950a83632ba1b2e9fad2210c"
+    "light": "c5cec5bc49d3aeb5169f8304aebe316969476c48ecd4b9e26dd57971f3a23f1e",
+    "dark": "662f46fd1015ac695d678ba9b936e7ed7e06692a5e9fa13a17f85fe2439eb6a6"
   },
   "editorial": {
     "light": "d33dee15fe7117d5b68bdd17b5e3b5926b692446192e55f0639e73f9f481153f",
     "dark": "78dd1600641807f3e8aa95b41d3943aeeaeb12c8b9f2df3bd4e11513ce32ca05"
   },
   "night": {
-    "light": "1bf908ba8208d317ecc49f078ec014740972d167b4e4be669bce9d1cb9903457",
-    "dark": "5a1011774b652c07e50e1af76d0ec71ecdb23810a541078fb1d9835fdb47ed7e"
+    "light": "3bf2f0e8f149a2b79be80b2fa7ac4e147b010029711c0b60b5dd60b2e24c0d11",
+    "dark": "6c58d290a7be969bccb220a5fd7edf75095abfca140b25a99aa5cfd6aa95d694"
   },
   "garden": {
-    "light": "0360b683cfb78df1e0504597e413db744fe6ff32e5422e9b7595f7405d6d6140",
-    "dark": "3f5b1e2014e53397200fcdd8b7a79c011074bd0d421327e4bec2ffa4ee5014f3"
+    "light": "9abe7aa78b9642bb9ae2ace8a2fa19f9e9d225a60118696994a7da6e2ae215bd",
+    "dark": "acec2e28e15b66c03fef4acd2b6a02df6176951ba8c0d8cada62238d062f3008"
   }
 };
 
@@ -683,10 +683,13 @@ test('partial recipes export inherited fonts without importing explicitly suppli
 });
 
 
-test('field-label sizing follows body by default and exports an independent public role when chosen', () => {
+test('field-label sizing follows UI text by default and preserves explicit theme choices', () => {
   const recipe = defaultRecipe();
-  assert.equal(recipe.values['label-size'], 'inherit');
-  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], 'inherit');
+  assert.equal(recipe.values['label-size'], '0.875rem');
+  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], '0.875rem');
+  recipe.values['label-size'] = 'inherit';
+  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], 'var(--ui-font-size-md)');
+  assert.match(themeCSS(recipe), /--ui-field-label-font-size: var\(--ui-font-size-md\);/);
   recipe.values['label-size'] = '14px';
   assert.match(themeCSS(recipe), /--ui-field-label-font-size: 14px;/);
   assert.equal(validateRecipe(JSON.parse(JSON.stringify(recipe))).values['label-size'], '14px');
