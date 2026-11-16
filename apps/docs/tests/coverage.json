@@ -2056,6 +2056,11 @@
           "id": "03-item-limit",
           "title": "Limit a row",
           "behavior": false
+        },
+        {
+          "id": "04-list-and-detail",
+          "title": "A rail beside the detail",
+          "behavior": false
         }
       ]
     },
