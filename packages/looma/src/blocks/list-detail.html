@@ -1,0 +1,28 @@
+<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-nav-item/ui-nav-item.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-switcher/ui-switcher.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
+
+<ui-switcher data-block="list-detail" threshold="sm" align="start">
+  <ui-card padding="sm">
+    <nav aria-label="Field reports" data-records>
+      <ui-stack gap="xs">
+        <ui-nav-item as="a" href="#report-north" current="true">North trail</ui-nav-item>
+        <ui-nav-item as="a" href="#report-south">South trail</ui-nav-item>
+      </ui-stack>
+    </nav>
+  </ui-card>
+  <ui-card padding="sm" aria-label="Report detail">
+    <ui-stack gap="s" data-details>
+      <section aria-labelledby="report-north">
+        <ui-text as="h3" id="report-north" variant="heading" tabindex="-1">North trail</ui-text>
+        <ui-text as="p">The footbridge is open. The lower path is still muddy after rain.</ui-text>
+      </section>
+      <section aria-labelledby="report-south">
+        <ui-text as="h3" id="report-south" variant="heading" tabindex="-1">South trail</ui-text>
+        <ui-text as="p">The overlook is closed while the railing is repaired.</ui-text>
+      </section>
+    </ui-stack>
+  </ui-card>
+</ui-switcher>

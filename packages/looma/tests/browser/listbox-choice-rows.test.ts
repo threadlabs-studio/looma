@@ -27,8 +27,14 @@ describe("Listbox choice rows", () => {
     assert.deepEqual(await entries(), ["north", "south", "west"]);
     await listbox.press(" ");
     assert.deepEqual(await entries(), ["north", "west"]);
+    await listbox.locator('[role="option"]').nth(1).click();
+    await page.locator("#form").evaluate((form: HTMLFormElement) => {
+      form.addEventListener("reset", (event) => event.preventDefault(), { once: true });
+      form.reset();
+    });
+    assert.deepEqual(await entries(), ["north", "south", "west"]);
     await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
-    assert.deepEqual(await entries(), ["north", "west"]);
+    await expect.poll(entries).toEqual(["north", "west"]);
   };
 
   it("uses checked choice rows and form reset in HTML", async () => {

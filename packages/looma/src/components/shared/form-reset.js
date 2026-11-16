@@ -9,13 +9,19 @@
  */
 export function afterFormReset(control, callback) {
   const document = control.ownerDocument;
-  let timer;
+  const pending = new Set();
   const onReset = (event) => {
-    if (event.target === control.form) timer = setTimeout(() => { if (!event.defaultPrevented) callback(); });
+    if (event.target !== control.form) return;
+    const timer = setTimeout(() => {
+      pending.delete(timer);
+      if (!event.defaultPrevented) callback();
+    });
+    pending.add(timer);
   };
   document.addEventListener("reset", onReset);
   return () => {
-    clearTimeout(timer);
     document.removeEventListener("reset", onReset);
+    for (const timer of pending) clearTimeout(timer);
+    pending.clear();
   };
 }

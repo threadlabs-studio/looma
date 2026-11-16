@@ -6,6 +6,7 @@ import { afterFormReset } from "../shared/form-reset.js";
 import { externalValueTracker } from "../shared/external-value.js";
 import { readOptionalInput } from "../shared/binding-inputs.js";
 import { initialFieldValue } from "../shared/initial-field-value.js";
+import { deferredFocus } from "../shared/deferred-focus.js";
 
 const optionNames = ["type", "valueFormat", "timeZone", "disambiguation", "min", "max", "allowedDates", "allowedRanges", "disabledDates", "disabledRanges", "disabledWeekdays"];
 
@@ -22,7 +23,7 @@ function interactions(host) {
   let current = host.state.current ?? host.props.value.value ?? "";
   const externalChanged = externalValueTracker(element, { initialValue: host.props.value.value });
   let connected = true;
-  let frame;
+  const focus = deferredFocus(element.ownerDocument.defaultView);
   const settings = () => Object.fromEntries(optionNames.map(name => [name, host.props[name].value]));
   const initial = initialFieldValue(field, { ...settings(), locale: host.props.locale.value });
   try {
@@ -34,8 +35,7 @@ function interactions(host) {
   const close = restore => {
     host.state.opened = false; host.state.error = "";
     if (restore) {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => { if (connected) trigger.focus(); });
+      focus.schedule(() => trigger.focus());
     }
   };
   const seed = () => {
@@ -60,8 +60,7 @@ function interactions(host) {
       queueMicrotask(() => {
         if (connected && host.state.opened && element.ownerDocument.activeElement !== clock) time.dispatchEvent(new CustomEvent("set-value", { cancelable: true, detail: { value: host.state.draftTime } }));
       });
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
+      focus.schedule(() => {
         if (!connected || !host.state.opened || popover.contains(element.ownerDocument.activeElement)) return;
         const date = host.state.draftDate || host.props.today.value;
         if (date) calendar.dispatchEvent(new CustomEvent("focus-date", { detail: { value: date } }));
@@ -122,7 +121,7 @@ function interactions(host) {
   });
   const reset = afterFormReset(control, () => { current = host.props.value.value ?? ""; host.state.current = current; close(); });
   return () => {
-    connected = false; cancelAnimationFrame(frame); observer.disconnect(); stop(); reset(); close(); host.state.enhanced = false;
+    connected = false; focus.cancel(); observer.disconnect(); stop(); reset(); close(); host.state.enhanced = false;
     for (const name of fieldEvents) field.removeEventListener(name, relay);
     for (const name of ["open", "close"]) popover.removeEventListener(name, overlay);
     for (const name of fieldEvents) popover.removeEventListener(name, draft);

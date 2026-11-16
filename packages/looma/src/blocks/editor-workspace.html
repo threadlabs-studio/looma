@@ -1,0 +1,53 @@
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-cluster/ui-cluster.html">
+<link rel="component" href="@threadlabs/looma/components/ui-container/ui-container.html">
+<link rel="component" href="@threadlabs/looma/components/ui-dialog/ui-dialog.html">
+<link rel="component" href="@threadlabs/looma/components/ui-editor/ui-editor.html">
+<link rel="component" href="@threadlabs/looma/components/ui-nav-item/ui-nav-item.html">
+<link rel="component" href="@threadlabs/looma/components/ui-sidebar/ui-sidebar.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
+
+<ui-card data-block="editor-workspace" padding="sm" aria-label="Editor workspace example">
+  <ui-stack gap="s">
+    <ui-cluster justify="between" gap="xs" role="group" aria-label="Workspace controls">
+      <ui-button variant="ghost" commandfor="workspace-outline" command="--toggle">Outline</ui-button>
+      <ui-button variant="ghost" id="workspace-details-button">Details</ui-button>
+    </ui-cluster>
+    <ui-cluster wrap="nowrap" align="stretch" gap="s">
+      <ui-sidebar breakpoint="lg" width="200" id="workspace-outline" aria-label="Document outline">
+        <nav aria-label="Document sections" data-outline>
+          <ui-stack gap="xs">
+            <ui-nav-item as="a" href="#workspace-draft">Draft</ui-nav-item>
+            <ui-nav-item as="a" href="#workspace-notes">Revision notes</ui-nav-item>
+          </ui-stack>
+        </nav>
+      </ui-sidebar>
+      <ui-container fill gutters="s">
+        <ui-stack gap="m">
+          <section aria-labelledby="workspace-draft">
+            <ui-stack gap="s">
+              <ui-text as="h3" id="workspace-draft" variant="heading" tabindex="-1">Field notes from the coast</ui-text>
+              <ui-editor
+                label="Draft"
+                toolbar-mode="sticky"
+                content='{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"By the time we reached the tide pools, the wind had dropped. Small crabs moved between the stones, and the incoming water traced a bright line along the sand."}]},{"type":"paragraph","content":[{"type":"text","text":"We marked the spot on the map and waited for the last pool to fill."}]}]}'
+              ></ui-editor>
+            </ui-stack>
+          </section>
+          <section aria-labelledby="workspace-notes">
+            <ui-stack gap="xs">
+              <ui-text as="h3" id="workspace-notes" variant="heading" tabindex="-1">Revision notes</ui-text>
+              <ui-text as="p" tone="secondary">Add the time of day and check the name of the beach.</ui-text>
+            </ui-stack>
+          </section>
+        </ui-stack>
+      </ui-container>
+    </ui-cluster>
+  </ui-stack>
+  <ui-dialog id="workspace-details" for="workspace-details-button" modal label="Document details">
+    <p>This draft is part of the field notes collection.</p>
+    <ui-button slot="actions" commandfor="workspace-details" command="close">Done</ui-button>
+  </ui-dialog>
+</ui-card>

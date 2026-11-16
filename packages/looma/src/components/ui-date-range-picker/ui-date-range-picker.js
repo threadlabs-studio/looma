@@ -6,6 +6,7 @@ import { afterFormReset } from "../shared/form-reset.js";
 import { externalValueTracker } from "../shared/external-value.js";
 import { readOptionalInput } from "../shared/binding-inputs.js";
 import { initialFieldValue } from "../shared/initial-field-value.js";
+import { deferredFocus } from "../shared/deferred-focus.js";
 
 const ruleNames = ["min", "max", "allowedDates", "allowedRanges", "disabledDates", "disabledRanges", "disabledWeekdays"];
 const endpoints = ["start", "end"];
@@ -24,9 +25,8 @@ function interactions(host) {
   let current = copy(host.state.current ?? host.props.value.value);
   const externalChanged = externalValueTracker(element, { initialValue: signature(copy(host.props.value.value)) });
   let committed = signature(current);
-  let connected = true;
   let setting = false;
-  let frame;
+  const focus = deferredFocus(element.ownerDocument.defaultView);
   let lastTrigger = "keyboard";
   const settings = () => Object.fromEntries(ruleNames.map(name => [name, host.props[name].value]));
   const allowed = range => isRangeAllowed(range, compileDateRules(settings()), host.props.allowUnavailableWithinRange.value);
@@ -63,8 +63,7 @@ function interactions(host) {
     host.state.opened = false; host.state.anchor = ""; host.state.error = "";
     if (wasOpen) host.dispatch("close", { open: false, reason, trigger });
     if (restore) {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => { if (connected) element.ownerDocument.getElementById(host.state.activeAnchor)?.focus(); });
+      focus.schedule(() => element.ownerDocument.getElementById(host.state.activeAnchor)?.focus());
     }
   };
   const replaceFields = range => {
@@ -119,9 +118,8 @@ function interactions(host) {
       host.state.anchor = ""; host.state.popupValue = range[name] || range.start || range.end || "";
       host.state.activeAnchor = anchorId; host.state.error = ""; host.state.opened = true;
       host.dispatch("open", { open: true, reason: "action", trigger });
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        if (!connected || !host.state.opened) return;
+      focus.schedule(() => {
+        if (!host.state.opened) return;
         const date = host.state.popupValue || host.props.today.value;
         if (date) calendar.dispatchEvent(new CustomEvent("focus-date", { detail: { value: date } }));
         else calendar.querySelector('[data-calendar-day][tabindex="0"], [data-calendar-days][tabindex="0"]')?.focus();
@@ -193,7 +191,7 @@ function interactions(host) {
     accept(copy(host.props.value.value)); committed = signature(current); close(); replaceFields(current);
   });
   return () => {
-    connected = false; cancelAnimationFrame(frame); observer.disconnect(); stop(); reset();
+    focus.cancel(); observer.disconnect(); stop(); reset();
     for (const release of listeners) release();
     host.state.opened = false; host.state.enhanced = false;
   };

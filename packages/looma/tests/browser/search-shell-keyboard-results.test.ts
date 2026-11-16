@@ -15,6 +15,11 @@ describe("Search Shell keyboard results", () => {
     const first = page.locator("#first");
     const last = page.locator("#last");
     await search.focus();
+    await search.press("ArrowUp");
+    assert.equal(await last.evaluate((element) => element === document.activeElement), true);
+    await last.press("ArrowDown");
+    assert.equal(await first.evaluate((element) => element === document.activeElement), true);
+    await search.focus();
     await search.press("ArrowDown");
     assert.equal(await first.evaluate((element) => element === document.activeElement), true);
     await first.press("ArrowUp");

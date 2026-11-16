@@ -415,9 +415,9 @@ test('shared number, slider and curve controls calculate, convert, constrain and
   const first = page.getByRole('button', { name: /^First curve handle/ });
   await first.press('ArrowRight'); await expect(curve).not.toHaveValue(before);
   const previous = await curve.inputValue();
-  await page.getByRole('group', { name: 'Response curve', exact: true }).scrollIntoViewIfNeeded();
-  const handle = await first.boundingBox(), plot = await page.getByRole('group', { name: 'Response curve', exact: true }).boundingBox();
-  await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2); await page.mouse.down();
+  await first.hover();
+  const plot = await page.getByRole('group', { name: 'Response curve', exact: true }).boundingBox();
+  await page.mouse.down();
   await page.mouse.move(plot.x + plot.width * .8, plot.y + plot.height * .2, { steps: 5 }); await page.mouse.up();
   await expect(curve).not.toHaveValue(previous);
   const x = Number(await page.getByRole('spinbutton', { name: 'First handle X', exact: true }).inputValue());

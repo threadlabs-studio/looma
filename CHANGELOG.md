@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Share keyboard navigation across Listbox, Combobox, Menu, Context Menu, Tabs, and the editor toolbar. Publish collection navigation and deferred focus through `@threadlabs/looma/behaviors`. Add copyable editor workspace, list and detail, settings form, and search compositions with guidance for adapting them.
+
 - Preserve native heading alignment through editing, HTML and Markdown, including responsive logos in headings. Requires Expressmark >=0.6.4.
 
 - Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.

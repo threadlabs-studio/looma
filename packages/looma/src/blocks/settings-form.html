@@ -1,0 +1,26 @@
+<link rel="component" href="@threadlabs/looma/components/ui-action-bar/ui-action-bar.html">
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<link rel="component" href="@threadlabs/looma/components/ui-checkbox/ui-checkbox.html">
+<link rel="component" href="@threadlabs/looma/components/ui-container/ui-container.html">
+<link rel="component" href="@threadlabs/looma/components/ui-form-field/ui-form-field.html">
+<link rel="component" href="@threadlabs/looma/components/ui-input/ui-input.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
+
+<form data-block="settings-form" aria-label="Report preferences">
+  <ui-container gutters="s">
+    <ui-stack gap="m">
+      <ui-text as="h3" variant="heading">Report preferences</ui-text>
+      <ui-form-field required>
+        <label slot="label" for="settings-display-name">Display name</label>
+        <ui-input id="settings-display-name" name="displayName" value="Field team" required></ui-input>
+      </ui-form-field>
+      <ui-checkbox name="summary">Include a weekly summary</ui-checkbox>
+      <ui-action-bar>
+        <ui-button slot="tertiary" type="reset" variant="ghost">Reset</ui-button>
+        <ui-button slot="primary" type="submit" preset="primary">Save preferences</ui-button>
+      </ui-action-bar>
+      <output aria-live="polite" data-message></output>
+    </ui-stack>
+  </ui-container>
+</form>

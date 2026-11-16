@@ -1,3 +1,5 @@
+import { nextCollectionPosition } from "../shared/collection-navigation.js";
+
 const selector = 'button, a[href], [role="button"], select, input:not([type="hidden"])';
 
 /** Keep one Tab stop in the toolbar; arrow keys move among its enabled authored controls. */
@@ -24,12 +26,12 @@ export function connect(host) {
     const index = items.indexOf(event.target.closest?.(selector));
     if (index < 0) return;
     const rtl = getComputedStyle(strip).direction === "rtl";
-    let next;
-    if (event.key === "ArrowRight") next = (index + (rtl ? -1 : 1) + items.length) % items.length;
-    else if (event.key === "ArrowLeft") next = (index + (rtl ? 1 : -1) + items.length) % items.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = items.length - 1;
-    else return;
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") return;
+    const previousKey = rtl ? "ArrowRight" : "ArrowLeft";
+    const nextKey = rtl ? "ArrowLeft" : "ArrowRight";
+    const key = event.key === previousKey ? "ArrowUp" : event.key === nextKey ? "ArrowDown" : event.key;
+    const next = nextCollectionPosition(items.length, index, key, true);
+    if (next < 0) return;
     event.preventDefault();
     items[next]?.focus();
   };

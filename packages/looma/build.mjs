@@ -5,6 +5,7 @@
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assembleComponentPackage } from "@nextwebwg/html-next";
@@ -17,7 +18,7 @@ await assertComponentLayoutOwnership();
 
 const root = dirname(fileURLToPath(import.meta.url));
 const assembled = join(root, ".build");
-const outputs = ["dist", "vue", "vanilla", "components", "styles", "editor", "markdown"];
+const outputs = ["dist", "vue", "vanilla", "components", "styles", "editor", "markdown", "blocks"];
 
 await Promise.all([assembled, ...outputs.map((name) => join(root, name))].map((path) => rm(path, { recursive: true, force: true })));
 
@@ -36,6 +37,7 @@ for (const name of ["dist", "vanilla", "components", "styles"]) {
     if (error.code !== "ENOENT") throw error;
   });
 }
+await cp(join(root, "src/blocks"), join(root, "blocks"), { recursive: true });
 
 // Framework code is compiled by the consumer's HTML Next Vite plugin. The package
 // ships its definitions, native runtime/factories and framework-neutral editor helpers.
@@ -86,15 +88,20 @@ await build({
   },
 });
 // Declarations for the framework-neutral TypeScript entries.
-execFileSync(join(root, "node_modules/.bin/tsc"), ["-p", join(root, "tsconfig.json")], { stdio: "inherit" });
-// Publish the shared browser initializer with declarations derived from its JSDoc source.
+const tsc = createRequire(import.meta.url).resolve("typescript/bin/tsc");
+execFileSync(process.execPath, [tsc, "-p", join(root, "tsconfig.json")], { stdio: "inherit" });
+// Publish shared behaviors with declarations derived from their JSDoc source.
+const shared = ["input-modality", "behaviors", "collection-navigation", "deferred-focus"];
 const sharedConfig = join(assembled, "tsconfig.shared.json");
 await writeFile(sharedConfig, JSON.stringify({ compilerOptions: {
   allowJs: true, declaration: true, emitDeclarationOnly: true, target: "ES2022", module: "ESNext",
   moduleResolution: "Bundler", lib: ["ES2022", "DOM"], types: [], outDir: join(assembled, "shared-types"),
-}, files: [join(componentsRoot, "shared/input-modality.js")] }));
-execFileSync(join(root, "node_modules/.bin/tsc"), ["-p", sharedConfig], { stdio: "inherit" });
-await cp(join(assembled, "shared-types/input-modality.d.ts"), join(root, "components/shared/input-modality.d.ts"));
+}, files: shared.map((name) => join(componentsRoot, "shared", `${name}.js`)) }));
+execFileSync(process.execPath, [tsc, "-p", sharedConfig], { stdio: "inherit" });
+for (const name of shared) {
+  await cp(join(assembled, "shared-types", `${name}.d.ts`), join(root, "components/shared", `${name}.d.ts`));
+}
+await cp(join(componentsRoot, "shared/behaviors.js"), join(root, "components/shared/behaviors.js"));
 await cp(join(assembled, "types-src/editor"), join(root, "editor"), { recursive: true });
 await cp(join(assembled, "types-src/markdown"), join(root, "markdown"), { recursive: true });
 // Node-resolved consumers need explicit extensions in declaration imports.

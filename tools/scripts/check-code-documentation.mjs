@@ -25,6 +25,7 @@ const RESOURCE_METHODS = new Set([
 // component templates, which document themselves.
 export const PUBLIC_ENTRYPOINTS = Object.freeze([
   { packageName: "@threadlabs/looma", exportPath: "./input-modality", packageDirectory: "packages/looma", source: "packages/looma/src/components/shared/input-modality.js" },
+  { packageName: "@threadlabs/looma", exportPath: "./behaviors", packageDirectory: "packages/looma", source: "packages/looma/src/components/shared/behaviors.js" },
   { packageName: "@threadlabs/looma", exportPath: "./editor", packageDirectory: "packages/looma", source: "packages/looma/src/editor/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/compact", packageDirectory: "packages/looma", source: "packages/looma/src/editor/compact.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/expressmark", packageDirectory: "packages/looma", source: "packages/looma/src/editor/expressmark.ts" },
