@@ -38,8 +38,15 @@ for (const component of api.components) {
   const states: VisualCase[] = [{ name: 'Rest', props: {}, example: defaultExample }];
   for (const attribute of component.attributes) {
     const values = attribute.type === 'boolean' ? [false, true] : attribute.type === 'keyword' ? attribute.options ?? [] : [];
-    for (const value of values)
-      states.push({ name: `${attribute.name}: ${value}`, props: { ...(component.tag === 'ui-combobox' && attribute.name === 'muted' ? { value: 'north' } : {}), [attribute.property]: value }, example: propertyExample });
+    for (const value of values) {
+      const splitPane = component.tag === 'ui-switcher' && attribute.name === 'balance' && value !== 'equal';
+      states.push({
+        name: `${attribute.name}: ${value}`,
+        props: { ...(component.tag === 'ui-combobox' && attribute.name === 'muted' ? { value: 'north' } : {}), [attribute.property]: value },
+        example: splitPane ? examples.indexOf('04-list-and-detail.html') : propertyExample,
+        ...(splitPane ? { viewport: { width: 640, height: 480 } } : {}),
+      });
+    }
   }
   examples.forEach((name, index) => states.push({ name: `Example: ${name.replace('.html', '')}`, props: {}, example: index }));
   if (['button', 'input', 'select', 'textarea', 'a'].includes(component.root ?? '') || interactive.has(component.tag)) {
