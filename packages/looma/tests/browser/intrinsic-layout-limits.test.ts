@@ -74,8 +74,8 @@ describe("Intrinsic layout limits", () => {
     assert.ok(stackedRail!.top < stackedDetail!.top, "narrow panes stack in source order");
     assert.equal(stackedRail!.width, 300);
     assert.equal(stackedDetail!.width, 300);
-    assert.deepEqual(await page.locator("#rail > *").allTextContents(), ["Index", "Detail"]);
-    assert.deepEqual(await page.locator("#inspector > *").allTextContents(), ["Detail", "Inspector"]);
+    assert.deepEqual((await page.locator("#rail > *").allTextContents()).map(text => text.trim()), ["Index", "Detail"]);
+    assert.deepEqual((await page.locator("#inspector > *").allTextContents()).map(text => text.trim()), ["Detail", "Inspector"]);
     const reel = await boxes("#reel");
     assert.ok(reel.every((box) => box.width === 192), JSON.stringify(reel));
     assert.ok(await page.locator("#reel").evaluate((element) => element.scrollWidth > element.clientWidth), "the reel scrolls once its items overflow");
