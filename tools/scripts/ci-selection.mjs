@@ -20,7 +20,7 @@ const globalInput = (file) => /^(?:pnpm-lock\.yaml|package\.json|pnpm-workspace\
 const buildTool = (file) => /^tools\/(?:style-source-allowlist\.json|scripts\/(?:style-source-policy|generate-code-language-catalog)\.mjs)$/.test(file);
 const docsMetadata = (file) => /^packages\/looma\/src\/components\/(?:ui-[\w-]+\/)?docs\.json$/.test(file);
 const docsExample = (file) => file.startsWith("examples/fellowship-ui/");
-const docsTool = (file) => docsExample(file) || docsMetadata(file) || file.startsWith("packages/looma-docs/") || file === "packages/looma/tooling/html-next.mjs" || file.startsWith("packages/looma/tooling/docs/") || file === "packages/looma/bin/looma-docs.mjs" || /^tools\/scripts\/(?:generate-component-api|component-api-generator|build-docs-catalog|docs-coverage)\.mjs$/.test(file);
+const docsTool = (file) => docsExample(file) || docsMetadata(file) || file.startsWith("packages/looma/src/blocks/") || file.startsWith("packages/looma-docs/") || file === "packages/looma/tooling/html-next.mjs" || file.startsWith("packages/looma/tooling/docs/") || file === "packages/looma/bin/looma-docs.mjs" || /^tools\/scripts\/(?:generate-component-api|component-api-generator|build-docs-catalog|docs-coverage)\.mjs$/.test(file);
 const releaseTool = (file) => /^tools\/scripts\/(?:verify-packages|verify-facade-consumer|verify-docs-consumer|release-config|create-release-manifest|managed-process)\.mjs$/.test(file);
 const ciRecipe = (file) => /^\.github\/workflows\/(?:ci|docs-parity)\.yml$|^tools\/scripts\/ci-(?:selection|qualification)\.mjs$/.test(file);
 const componentNames = (tag) => [tag, tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(""), "Ui" + tag.slice(3).split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join("")];
@@ -163,7 +163,7 @@ export function selectChecks(files, changes, hunks = {}) {
       if (files[file] && !owned && !docsTool(file) && !releaseTool(file) && !buildTool(file)) throw new Error(`Unmapped executable script: ${file}`);
       continue;
     }
-    if (/^apps\/|^(?:CHANGELOG\.md|CONCEPTS\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/(?:README|EXPRESSIVE-MARKDOWN)\.md)/.test(file)) continue;
+    if (file === "packages/looma/.gitignore" || /^apps\/|^(?:CHANGELOG\.md|CONCEPTS\.md|README\.md|AGENTS\.md|CLAUDE\.md|LICENSE|docs\/|\.github\/|\.gitignore|dprint\.json|\.compound-engineering\/|tests\/release\/|tools\/data\/|tools\/[^/]+\.json|packages\/looma\/(?:README|EXPRESSIVE-MARKDOWN)\.md)/.test(file)) continue;
     throw new Error(`Unmapped qualification input: ${file}`);
   }
   for (const [file, source] of Object.entries(files)) {
