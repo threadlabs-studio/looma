@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 test('shows the full markup and setup used by each preview', async ({ page }, info) => {
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(info.config.metadata.markupress + 'blocks/');
-  const sources = page.getByText('View HTML and JavaScript', { exact: true });
+  const sources = page.locator('details > summary').filter({ hasText: /^View HTML and JavaScript$/ });
   const names = ['editor-workspace', 'list-detail', 'settings-form', 'search-and-open'];
   await expect(sources).toHaveCount(names.length);
   for (const [index, name] of names.entries()) {
@@ -34,6 +34,7 @@ test.describe('server-rendered block content', () => {
     await expect(page).toHaveURL(/#workspace-draft$/);
     expect((await draft.boundingBox()).width).toBeGreaterThan(150);
     const reports = page.getByRole('navigation', { name: 'Field reports' });
+    await expect(page.getByRole('searchbox', { name: 'Filter field reports' })).toHaveCount(0);
     await reports.getByRole('link', { name: 'South trail' }).press('Enter');
     await expect(page).toHaveURL(/#report-south$/);
     await expect(page.getByRole('heading', { name: 'North trail' })).toBeVisible();
@@ -116,16 +117,48 @@ for (const width of [1440, 375]) {
       const reportDetail = page.getByLabel('Report detail');
       const originalWidth = await page.evaluate(() => innerWidth);
       await expect.poll(async () => (await reportDetail.boundingBox()).x).toBeGreaterThan((await reports.boundingBox()).x + (await reports.boundingBox()).width);
+      const [railBox, detailBox] = await Promise.all([layout.locator(':scope > *').first().boundingBox(), reportDetail.boundingBox()]);
+      expect(detailBox.width).toBeGreaterThan(railBox.width * 1.5);
       await layout.evaluate(element => { element.style.maxInlineSize = '20rem'; });
       await expect.poll(async () => (await reportDetail.boundingBox()).y).toBeGreaterThan((await reports.boundingBox()).y);
       await expect(south).toBeFocused();
       expect(await page.evaluate(() => innerWidth)).toBe(originalWidth);
       await layout.evaluate(element => { element.style.removeProperty('max-inline-size'); });
+    } else {
+      expect((await page.getByLabel('Report detail').boundingBox()).y).toBeGreaterThan((await reports.boundingBox()).y);
     }
     await page.goBack();
     await expect(page).toHaveURL(/#editor-workspace$/);
     await expect(north).toBeVisible();
     await expect(south).toBeHidden();
+
+    const block = page.locator('[data-block="list-detail"]');
+    const query = block.getByRole('searchbox', { name: 'Filter field reports' });
+    const status = block.getByRole('status');
+    await query.fill('SOUTH');
+    await expect(status).toHaveText('1 report');
+    await expect(reports.getByRole('link', { name: 'North trail' })).toHaveCount(0);
+    await expect(north).toBeVisible();
+    const southLink = reports.getByRole('link', { name: 'South trail' });
+    await southLink.press('Enter');
+    await expect(southLink).toHaveAttribute('aria-current', 'location');
+    await expect(south).toBeFocused();
+    const source = block.getByRole('button', { name: 'Source notes' });
+    await source.press('Enter');
+    await expect(source).toHaveAttribute('aria-expanded', 'true');
+    await expect(block.getByText('The repair notice was posted', { exact: false })).toBeVisible();
+    await source.press('Space');
+    await expect(source).toHaveAttribute('aria-expanded', 'false');
+
+    await query.fill('missing');
+    await expect(status).toHaveText('No matching reports.');
+    await expect(reports).toBeHidden();
+    await expect(south).toBeVisible();
+    await block.getByRole('button', { name: 'Clear filter' }).press('Enter');
+    await expect(query).toHaveValue('');
+    await expect(query).toBeFocused();
+    await expect(status).toHaveText('2 reports');
+    await expect(southLink).toHaveAttribute('aria-current', 'location');
 
     const form = page.getByRole('form', { name: 'Report preferences' });
     const field = form.getByRole('textbox', { name: 'Display name' });

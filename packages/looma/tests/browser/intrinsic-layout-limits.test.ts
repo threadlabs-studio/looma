@@ -40,6 +40,9 @@ describe("Intrinsic layout limits", () => {
       createScene({ render: () => sceneNode("main", [
         sceneNode(UiSwitcher, { id: "switcher", style: "width:1000px" }, () => [card("A"), sceneNode(UiStack, {}, () => sceneNode("span", "B")), card("C")]),
         sceneNode(UiSwitcher, { id: "limited", limit: 3, style: "width:1000px" }, () => [card("A"), card("B"), card("C"), card("D")]),
+        sceneNode(UiSwitcher, { id: "rail", balance: "narrow-start", dir: "rtl", style: "width:720px" }, () => [card("Index"), card("Detail")]),
+        sceneNode(UiSwitcher, { id: "inspector", balance: "narrow-end", style: "width:720px" }, () => [card("Detail"), card("Inspector")]),
+        sceneNode(UiSwitcher, { id: "three", balance: "narrow-start", style: "width:720px" }, () => [card("A"), card("B"), card("C")]),
         sceneNode(UiReel, { id: "reel", itemWidth: "sm", "aria-label": "Items", style: "width:300px" }, () => [card("A"), card("B"), card("C")]),
         sceneNode("div", { style: "width:300px;block-size:20rem;display:flex;flex-direction:column" }, [
           sceneNode(UiCover, { id: "cover", size: "fill" }, () => [card("Sign in"), card("Wide", { style: "width:400px" })]),
@@ -60,6 +63,19 @@ describe("Intrinsic layout limits", () => {
     assert.equal(new Set(stack.map((box) => box.top)).size, 3, "a narrow Switcher stacks its components");
     assert.ok(stack.every((box) => box.width === 300), JSON.stringify(stack));
     assert.equal(new Set((await boxes("#limited")).map((box) => box.top)).size, 4, "components above the limit stack");
+    const [rail, detail] = await boxes("#rail");
+    assert.equal(rail!.top, detail!.top);
+    assert.ok(rail!.left > detail!.left, "the first pane stays at the logical start in RTL");
+    assert.ok(detail!.width > rail!.width * 1.5, "a first-pane rail gives the detail more room");
+    const [main, inspector] = await boxes("#inspector");
+    assert.equal(main!.top, inspector!.top);
+    assert.ok(main!.width > inspector!.width * 1.5, "a last-pane inspector gives the main content more room");
+    await page.locator("#rail").evaluate((element) => { element.style.width = "300px"; });
+    const [stackedRail, stackedDetail] = await boxes("#rail");
+    assert.ok(stackedRail!.top < stackedDetail!.top, "narrow panes stack in source order");
+    assert.equal(stackedRail!.width, 300);
+    assert.equal(stackedDetail!.width, 300);
+    assert.equal(new Set((await boxes("#three")).map((box) => box.width)).size, 1, "three panes keep equal widths");
     const reel = await boxes("#reel");
     assert.ok(reel.every((box) => box.width === 192), JSON.stringify(reel));
     assert.ok(await page.locator("#reel").evaluate((element) => element.scrollWidth > element.clientWidth), "the reel scrolls once its items overflow");

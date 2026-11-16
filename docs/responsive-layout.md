@@ -15,10 +15,11 @@ breakpoint state.
   horizontal overflow.
 - `ui-container` fills the available inline size up to its measure, with gutters
   included in that measured box.
-- `ui-switcher` changes from equal-width siblings to a single column based on
-  its own available inline size, not a viewport media query.
-- `ui-sidebar` preserves a configurable minimum for its content child and wraps
-  the side region above or below it when the pair cannot fit.
+- `ui-switcher` changes from a row to a single column based on its own
+  available inline size. Two panes can use `balance="narrow-start"` or
+  `balance="narrow-end"` to give one pane about a third of the row.
+- `ui-sidebar` reserves a docked width and switches to a drawer below its
+  viewport breakpoint. The parent places it beside the main content.
 - `ui-reel` contains intentional horizontal overflow, remains keyboard
   focusable, and optionally exposes inline scroll snapping.
 - `ui-scroll-area` scrolls content that outgrows it, vertically or sideways, and

@@ -10,7 +10,9 @@ description: Compose Looma components into complete screens and adapt them as wo
 - [Review and save preferences](#settings-form)
 - [Find and open an item without leaving the workspace](#search-and-open)
 
-Each preview shows a complete HTML Next composition. Open the markup and JavaScript below it to copy the example into your page. Call the JavaScript setup function with the rendered example root after your page has initialized Looma. Give each copy its own IDs if you use the same example twice on a page.
+Each preview shows a complete HTML Next composition. Open **View HTML and JavaScript** below it or copy both files from `@threadlabs/looma/blocks/`. In the repository, the files live in `packages/looma/src/blocks/`.
+
+Keep the component links when copying into an [HTML Next page](/getting-started/#html-next-pages). After the host lowers the markup to native elements, call the companion setup once with the element marked `data-block`. Run the returned cleanup before removing that instance. Give each copy its own IDs if you use an example more than once on a page.
 
 ## Editor workspace
 
@@ -47,13 +49,17 @@ Use the standard components for common interactions. The [Behaviors guide](/beha
 
 ## List and detail
 
-Use this when people repeatedly choose an item and read its details. Select a report to see the detail update while the list remains available.
+Use this when people repeatedly choose an item and read its details. Filter the reports, open a result, and expand Source notes. The summary stays visible above the optional material.
 
 <!-- looma:block list-detail -->
 
 Use Switcher when both regions can stack in reading order. Its threshold follows the space available to the block, including an embedded panel. On phones, the selected heading receives focus so the reader can reach the detail below the list. Keep the selected item's identity in the URL when it needs to survive navigation or be shared.
 
-As the list gets longer, put filter controls above the list and keep the selected item visible. If the detail becomes a full editing workflow, give it a route and preserve the list filters and scroll position on return. Check long names, empty results, a deleted selection, and back navigation.
+Set `balance="narrow-start"` on Switcher when the list needs less space than the detail, as in this preview. Use `balance="narrow-end"` for a compact inspector after the main content. Use Sidebar when it makes sense to move the rail into a drawer. Test the longest row at the smallest width that fits both panes.
+
+Keep the search label above the field and use one status message for results. Filtering changes the list while the open report stays available. If no reports match, show Clear filter alongside the empty result and return focus to the field when it clears. Use Nav Item to mark the open report whenever it appears in the list and Disclosure for optional material such as source notes.
+
+If the detail becomes a full editing workflow, give it a route and preserve the list filters and scroll position on return. Check long names, empty results, a deleted selection, and back navigation.
 
 Use a single active pane when readers spend time editing or need their full attention on the detail. Let the application commit which pane is active. Resizing can change which panes fit while keeping the selection, draft, and history intact. For an app with native presenters, keep this decision in the shared app state so the web and native views can render the same committed choice. Check that a rejected Back request leaves the detail and draft in place.
 

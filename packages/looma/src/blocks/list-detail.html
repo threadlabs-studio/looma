@@ -1,27 +1,53 @@
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
 <link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-disclosure/ui-disclosure.html">
+<link rel="component" href="@threadlabs/looma/components/ui-form-field/ui-form-field.html">
+<link rel="component" href="@threadlabs/looma/components/ui-input/ui-input.html">
 <link rel="component" href="@threadlabs/looma/components/ui-nav-item/ui-nav-item.html">
 <link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
 <link rel="component" href="@threadlabs/looma/components/ui-switcher/ui-switcher.html">
 <link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
 
-<ui-switcher data-block="list-detail" threshold="sm" align="start">
+<ui-switcher data-block="list-detail" balance="narrow-start" threshold="sm" align="start">
   <ui-card padding="sm">
-    <nav aria-label="Field reports" data-records>
-      <ui-stack gap="xs">
-        <ui-nav-item as="a" href="#report-north" current="true">North trail</ui-nav-item>
-        <ui-nav-item as="a" href="#report-south">South trail</ui-nav-item>
-      </ui-stack>
-    </nav>
+    <ui-stack gap="s">
+      <div data-filter hidden>
+        <ui-stack gap="xs">
+          <ui-form-field>
+            <label slot="label" for="report-query">Filter field reports</label>
+            <ui-input id="report-query" type="search"></ui-input>
+          </ui-form-field>
+          <ui-text data-status size="sm" tone="secondary" role="status" aria-atomic="true"></ui-text>
+        </ui-stack>
+      </div>
+      <nav aria-label="Field reports" data-records>
+        <ui-stack gap="xs">
+          <ui-nav-item as="a" href="#report-north" current="location">North trail</ui-nav-item>
+          <ui-nav-item as="a" href="#report-south">South trail</ui-nav-item>
+        </ui-stack>
+      </nav>
+      <ui-button variant="ghost" data-clear hidden>Clear filter</ui-button>
+    </ui-stack>
   </ui-card>
   <ui-card padding="sm" aria-label="Report detail">
     <ui-stack gap="s" data-details>
       <section aria-labelledby="report-north">
-        <ui-text as="h3" id="report-north" variant="heading" tabindex="-1">North trail</ui-text>
-        <ui-text as="p">The footbridge is open. The lower path is still muddy after rain.</ui-text>
+        <ui-stack gap="s">
+          <ui-text as="h3" id="report-north" variant="heading" tabindex="-1">North trail</ui-text>
+          <ui-text as="p">The footbridge is open. The lower path is still muddy after rain.</ui-text>
+          <ui-disclosure summary="Source notes" density="compact">
+            <ui-text size="sm" tone="secondary">The trail crew checked the bridge and lower path on Tuesday morning.</ui-text>
+          </ui-disclosure>
+        </ui-stack>
       </section>
       <section aria-labelledby="report-south">
-        <ui-text as="h3" id="report-south" variant="heading" tabindex="-1">South trail</ui-text>
-        <ui-text as="p">The overlook is closed while the railing is repaired.</ui-text>
+        <ui-stack gap="s">
+          <ui-text as="h3" id="report-south" variant="heading" tabindex="-1">South trail</ui-text>
+          <ui-text as="p">The overlook is closed while the railing is repaired.</ui-text>
+          <ui-disclosure summary="Source notes" density="compact">
+            <ui-text size="sm" tone="secondary">The repair notice was posted by the trail crew at the overlook entrance.</ui-text>
+          </ui-disclosure>
+        </ui-stack>
       </section>
     </ui-stack>
   </ui-card>

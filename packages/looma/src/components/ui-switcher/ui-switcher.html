@@ -11,6 +11,9 @@
       bottoms.</prop>
     <prop name="limit" type="integer"
     >Most children allowed in a horizontal row. When the count exceeds this value, every child stacks regardless of width. Omit it for no count limit.</prop>
+    <prop name="balance" type="keyword" values="equal, narrow-start, narrow-end" default="equal"
+    >With two children, give one pane about a third of the row for a rail or inspector. Both panes stack in source order at the same threshold. Other child
+      counts use equal tracks.</prop>
     <state type="boolean" name="overLimit" value="false"></state>
   </defs>
   <div><slot></slot></div>
@@ -32,6 +35,23 @@
 
     :host(:state(overLimit)) {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Reuse the width threshold as the flex basis. Below it, each full-width item
+       gets its own line. Above it, grow factors divide the available space. */
+    :host(:is([balance="narrow-start"], [balance="narrow-end"]):not(:state(overLimit))):not([hidden]):has(> :nth-child(2):last-child) {
+      display: flex !important;
+      flex-flow: row wrap !important;
+    }
+
+    :host(:is([balance="narrow-start"], [balance="narrow-end"]):not(:state(overLimit))):has(> :nth-child(2):last-child) > :slotted(*) {
+      flex: 2 1 var(--_switcher-track) !important;
+      min-inline-size: 0;
+    }
+
+    :host([balance="narrow-start"]:not(:state(overLimit))):has(> :nth-child(2):last-child) > :slotted(:first-child),
+    :host([balance="narrow-end"]:not(:state(overLimit))):has(> :nth-child(2):last-child) > :slotted(:last-child) {
+      flex-grow: 1 !important;
     }
 
     :host([gap="xs"]) {

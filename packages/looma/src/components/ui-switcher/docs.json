@@ -1,4 +1,4 @@
 {
-  "description": "Intrinsic equal-column layout that stacks when its own container becomes too narrow.",
+  "description": "Intrinsic layout that stacks when its container becomes too narrow, with equal columns or a narrower rail beside the detail.",
   "group": "layout"
 }
