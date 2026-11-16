@@ -141,9 +141,9 @@
     }
 
     .title {
-      font-size: var(--ui-font-size-md);
+      font-size: var(--ui-font-size-sm);
       font-weight: var(--_ui-list-item-title-weight, var(--ui-font-medium));
-      line-height: var(--ui-line-height-tight);
+      line-height: var(--ui-line-height);
     }
 
     /* Keep identity and disclosure marks beside the first line, even with a long description. */
@@ -153,7 +153,7 @@
 
     :host([align="title"]) .leading,
     :host([align="title"]) .trailing {
-      min-block-size: calc(var(--ui-font-size-md) * var(--ui-line-height-tight));
+      min-block-size: calc(var(--ui-font-size-sm) * var(--ui-line-height));
     }
 
     .description {

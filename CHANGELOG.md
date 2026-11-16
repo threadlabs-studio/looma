@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Align ordinary control values, field labels, menus, navigation, selection rows, and disclosure triggers on the shared UI text size (14px at a 16px root). Large controls retain body-size text; compact density changes spacing. Generated themes default field labels to `0.875rem`; choose `label-size: inherit` or an explicit length to retain a different label size. Native fields keep body-size text on touch.
+
 - Preserve native heading alignment through editing, HTML and Markdown, including responsive logos in headings. Requires Expressmark >=0.6.4.
 
 - Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.

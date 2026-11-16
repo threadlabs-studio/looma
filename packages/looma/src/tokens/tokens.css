@@ -130,7 +130,7 @@
     /* Type scale, from the base size. */
     --ui-font-size-2xs: calc(1rem * 0.6875);
     --ui-font-size-xs: calc(1rem * 0.75);
-    /* Dense text: controls, labels, and metadata. Two steps below body copy, never one pixel. */
+    /* UI text: controls, navigation, action rows, labels, and supporting text. Body copy uses md. */
     --ui-font-size-sm: calc(1rem * 0.875);
     --ui-font-size-md: 1rem;
     --ui-font-size-lg: calc(1rem * 1.125);
