@@ -16,8 +16,9 @@ breakpoint state.
 - `ui-container` fills the available inline size up to its measure, with gutters
   included in that measured box.
 - `ui-switcher` changes from a row to a single column based on its own
-  available inline size. Two panes can use `balance="narrow-start"` or
-  `balance="narrow-end"` to give one pane about a third of the row.
+  available inline size. Use the `start` and `end` slots with
+  `balance="narrow-start"` or `balance="narrow-end"` to give one pane about
+  a third of the row.
 - `ui-sidebar` reserves a docked width and switches to a drawer below its
   viewport breakpoint. The parent places it beside the main content.
 - `ui-reel` contains intentional horizontal overflow, remains keyboard

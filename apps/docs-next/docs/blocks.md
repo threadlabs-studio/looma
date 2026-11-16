@@ -55,7 +55,7 @@ Use this when people repeatedly choose an item and read its details. Filter the 
 
 Use Switcher when both regions can stack in reading order. Its threshold follows the space available to the block, including an embedded panel. On phones, the selected heading receives focus so the reader can reach the detail below the list. Keep the selected item's identity in the URL when it needs to survive navigation or be shared.
 
-Set `balance="narrow-start"` on Switcher when the list needs less space than the detail, as in this preview. Use `balance="narrow-end"` for a compact inspector after the main content. Use Sidebar when it makes sense to move the rail into a drawer. Test the longest row at the smallest width that fits both panes.
+Put the list in Switcher's `start` slot and the detail in its `end` slot. Set `balance="narrow-start"` when the list needs less room, as in this preview. Use `balance="narrow-end"` for a compact inspector after the main content. Use Sidebar when it makes sense to move the rail into a drawer. Test the longest row at the smallest width that fits both panes.
 
 Keep the search label above the field and use one status message for results. Filtering changes the list while the open report stays available. If no reports match, show Clear filter alongside the empty result and return focus to the field when it clears. Use Nav Item to mark the open report whenever it appears in the list and Disclosure for optional material such as source notes.
 

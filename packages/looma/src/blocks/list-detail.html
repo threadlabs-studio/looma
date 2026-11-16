@@ -9,7 +9,7 @@
 <link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
 
 <ui-switcher data-block="list-detail" balance="narrow-start" threshold="sm" align="start">
-  <ui-card padding="sm">
+  <ui-card slot="start" padding="sm">
     <ui-stack gap="s">
       <div data-filter hidden>
         <ui-stack gap="xs">
@@ -29,7 +29,7 @@
       <ui-button variant="ghost" data-clear hidden>Clear filter</ui-button>
     </ui-stack>
   </ui-card>
-  <ui-card padding="sm" aria-label="Report detail">
+  <ui-card slot="end" padding="sm" aria-label="Report detail">
     <ui-stack gap="s" data-details>
       <section aria-labelledby="report-north">
         <ui-stack gap="s">

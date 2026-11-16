@@ -40,9 +40,8 @@ describe("Intrinsic layout limits", () => {
       createScene({ render: () => sceneNode("main", [
         sceneNode(UiSwitcher, { id: "switcher", style: "width:1000px" }, () => [card("A"), sceneNode(UiStack, {}, () => sceneNode("span", "B")), card("C")]),
         sceneNode(UiSwitcher, { id: "limited", limit: 3, style: "width:1000px" }, () => [card("A"), card("B"), card("C"), card("D")]),
-        sceneNode(UiSwitcher, { id: "rail", balance: "narrow-start", dir: "rtl", style: "width:720px" }, () => [card("Index"), card("Detail")]),
-        sceneNode(UiSwitcher, { id: "inspector", balance: "narrow-end", style: "width:720px" }, () => [card("Detail"), card("Inspector")]),
-        sceneNode(UiSwitcher, { id: "three", balance: "narrow-start", style: "width:720px" }, () => [card("A"), card("B"), card("C")]),
+        sceneNode(UiSwitcher, { id: "rail", balance: "narrow-start", dir: "rtl", style: "width:720px" }, { start: () => card("Index"), end: () => card("Detail") }),
+        sceneNode(UiSwitcher, { id: "inspector", balance: "narrow-end", style: "width:720px" }, { start: () => card("Detail"), end: () => card("Inspector") }),
         sceneNode(UiReel, { id: "reel", itemWidth: "sm", "aria-label": "Items", style: "width:300px" }, () => [card("A"), card("B"), card("C")]),
         sceneNode("div", { style: "width:300px;block-size:20rem;display:flex;flex-direction:column" }, [
           sceneNode(UiCover, { id: "cover", size: "fill" }, () => [card("Sign in"), card("Wide", { style: "width:400px" })]),
@@ -75,7 +74,8 @@ describe("Intrinsic layout limits", () => {
     assert.ok(stackedRail!.top < stackedDetail!.top, "narrow panes stack in source order");
     assert.equal(stackedRail!.width, 300);
     assert.equal(stackedDetail!.width, 300);
-    assert.equal(new Set((await boxes("#three")).map((box) => box.width)).size, 1, "three panes keep equal widths");
+    assert.deepEqual(await page.locator("#rail > *").allTextContents(), ["Index", "Detail"]);
+    assert.deepEqual(await page.locator("#inspector > *").allTextContents(), ["Detail", "Inspector"]);
     const reel = await boxes("#reel");
     assert.ok(reel.every((box) => box.width === 192), JSON.stringify(reel));
     assert.ok(await page.locator("#reel").evaluate((element) => element.scrollWidth > element.clientWidth), "the reel scrolls once its items overflow");
