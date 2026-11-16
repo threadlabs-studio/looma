@@ -1,4 +1,6 @@
 import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
+import { collectionNavigationKeys, enabledOptionIndices, nextActiveIndex } from "../shared/collection-navigation.js";
+import { afterFormReset } from "../shared/form-reset.js";
 let nextId = 0;
 
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -17,7 +19,6 @@ function readOptions(container) {
 export function connect(host) {
   const element = host.element;
   const { options: authored, validity } = host.refs;
-  const form = element.closest("form");
   host.state.uid = `ui-listbox-${++nextId}`;
   if (element.id && !element.hasAttribute("aria-label") && !element.hasAttribute("aria-labelledby")) {
     const label = Array.from(element.ownerDocument.querySelectorAll("label[for]")).find((candidate) => candidate.htmlFor === element.id);
@@ -39,7 +40,6 @@ export function connect(host) {
     : (host.props.value.value === undefined || host.props.value.value === null ? null : [String(host.props.value.value)]);
   const defaultSelection = () => externallySelected()
     ?? options.filter((option) => option.selected).map((option) => option.value).slice(0, host.props.multiple.value ? undefined : 1);
-  const enabledIndices = () => options.filter((option) => !option.disabled).map((option) => option.index);
   const render = () => {
     const set = new Set(selected());
     const rows = options.map((option) => ({
@@ -94,15 +94,10 @@ export function connect(host) {
     } else setSelection([option.value], trigger);
   };
   const move = (key) => {
-    const indices = enabledIndices();
-    if (!indices.length) return;
-    const current = indices.indexOf(host.state.active);
-    const next = key === "Home" ? indices[0]
-      : key === "End" ? indices[indices.length - 1]
-        : key === "ArrowDown" ? indices[(current + 1) % indices.length]
-          : indices[(current <= 0 ? indices.length : current) - 1];
-    activate(next);
-    if (!host.props.multiple.value) choose(next, "keyboard");
+    const next = nextActiveIndex(enabledOptionIndices(options), host.state.active, key, { wrap: true });
+    if (next < 0) return;
+    if (host.props.multiple.value) activate(next);
+    else choose(next, "keyboard");
   };
   const onClick = (event) => {
     if (host.props.disabled.value) return;
@@ -113,12 +108,12 @@ export function connect(host) {
   };
   const onKeydown = (event) => {
     if (host.props.disabled.value || event.altKey || event.metaKey || event.ctrlKey) return;
-    if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+    if (collectionNavigationKeys.includes(event.key)) {
       event.preventDefault();
       move(event.key);
     } else if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
-      choose(host.state.active >= 0 ? host.state.active : enabledIndices()[0], "keyboard");
+      choose(host.state.active >= 0 ? host.state.active : enabledOptionIndices(options)[0], "keyboard");
     } else if (event.key.length === 1 && !event.shiftKey) {
       typeahead += event.key.toLocaleLowerCase();
       clearTimeout(typeaheadTimer);
@@ -130,7 +125,7 @@ export function connect(host) {
       }
     }
   };
-  const onReset = () => queueMicrotask(() => {
+  const stopReset = afterFormReset(validity, () => {
     setSelection(initial);
     host.state.validationError = false;
   });
@@ -156,7 +151,6 @@ export function connect(host) {
   });
   element.addEventListener("click", onClick);
   element.addEventListener("keydown", onKeydown);
-  form?.addEventListener("reset", onReset);
   validity.addEventListener("invalid", onInvalid);
   return () => {
     cancelActiveItemReveal(element);
@@ -167,7 +161,7 @@ export function connect(host) {
     clearTimeout(typeaheadTimer);
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
-    form?.removeEventListener("reset", onReset);
+    stopReset();
     validity.removeEventListener("invalid", onInvalid);
   };
 }

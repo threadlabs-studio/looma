@@ -1,4 +1,5 @@
 import { updateSurfaceMaterial } from "./surface-material.js";
+import { overlayDismissalTarget } from "./overlay-dismissal.js";
 
 const dialogInvokers = new WeakMap();
 
@@ -25,8 +26,8 @@ function syncModalBackdrops(state) {
 }
 
 function requestClose(document, reason, trigger) {
-  const record = stateFor(document).records.at(-1);
-  if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss")) || record.canClose?.(reason) === false) return false;
+  const record = overlayDismissalTarget(stateFor(document).records, reason);
+  if (!record) return false;
   record.requestClose(reason, trigger);
   return true;
 }

@@ -11,6 +11,14 @@
       "position": "start"
     },
     {
+      "label": "Blocks",
+      "href": "/blocks/"
+    },
+    {
+      "label": "Behaviors",
+      "href": "/behaviors/"
+    },
+    {
       "label": "Customize",
       "href": "/customize/"
     },

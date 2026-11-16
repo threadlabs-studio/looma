@@ -93,6 +93,18 @@ controls movement.
 
 ## Contract Ownership
 
+Portable interaction rules can live below the declarative contract. For example,
+Listbox and Combobox share option navigation over enabled rows. Each controller
+owns its active state, selection policy, focus, form behavior, and DOM bindings.
+Keep the navigation rules free of DOM and rendering dependencies so each
+presenter can apply them to its own input and accessibility mechanisms.
+
+For MarkupNative, evaluate parity at the component contract: compare observable
+selection, cancellation, and emitted events for equivalent user actions. A
+native presenter can reuse portable rules where practical and bind its own
+platform focus and accessibility behavior. The HTML Next component remains the
+unit of presenter substitution.
+
 The declarative contracts define canonical native roots, attributes, properties,
 events, slots, SSR/no-JS behavior, and accessibility expectations. Consumer-side Vue, React
 and Svelte compilation translates framework conventions without introducing behavior divergence. The

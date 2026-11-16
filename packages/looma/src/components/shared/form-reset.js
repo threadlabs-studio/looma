@@ -8,14 +8,22 @@
  * @lifecycle Returns the function that stops listening.
  */
 export function afterFormReset(control, callback) {
-  const document = control.ownerDocument;
-  let timer;
+  // Reset bubbles within a tree but does not cross a shadow boundary.
+  const tree = control.getRootNode();
+  const root = tree.host ? tree : control.ownerDocument;
+  const pending = new Set();
   const onReset = (event) => {
-    if (event.target === control.form) timer = setTimeout(() => { if (!event.defaultPrevented) callback(); });
+    if (event.target !== control.form) return;
+    const timer = setTimeout(() => {
+      pending.delete(timer);
+      if (!event.defaultPrevented) callback();
+    });
+    pending.add(timer);
   };
-  document.addEventListener("reset", onReset);
+  root.addEventListener("reset", onReset, { capture: true });
   return () => {
-    clearTimeout(timer);
-    document.removeEventListener("reset", onReset);
+    root.removeEventListener("reset", onReset, { capture: true });
+    for (const timer of pending) clearTimeout(timer);
+    pending.clear();
   };
 }

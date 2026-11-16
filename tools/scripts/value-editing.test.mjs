@@ -27,6 +27,7 @@ test('curves share bounded coordinates and support easing keywords', () => {
 import { connect as connectNumber } from '../../packages/looma/src/components/ui-number-input/ui-number-input.js';
 class Field extends EventTarget {
   constructor(document = new EventTarget()) { super(); this.ownerDocument = document; this.value = ''; this.defaultValue = ''; this.attrs = new Map(); }
+  getRootNode() { return this.ownerDocument; }
   setAttribute(key, value) { this.attrs.set(key, String(value)); }
   removeAttribute(key) { this.attrs.delete(key); }
   setCustomValidity(value) { this.validityMessage = value; }

@@ -34,6 +34,8 @@ Buttons, fields, navigation, dialogs, and writing tools share the same visual la
 
 [Explore the components](/components/)
 
+[Browse complete blocks](/blocks/)
+
 ## Your identity. Every detail.
 
 Start with a palette and a typeface. Shape the rhythm, corners, depth, and motion. Shared decisions carry through the whole system, in light and dark.

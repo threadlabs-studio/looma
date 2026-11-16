@@ -1,0 +1,33 @@
+<link rel="component" href="@threadlabs/looma/components/ui-button/ui-button.html">
+<link rel="component" href="@threadlabs/looma/components/ui-card/ui-card.html">
+<link rel="component" href="@threadlabs/looma/components/ui-input/ui-input.html">
+<link rel="component" href="@threadlabs/looma/components/ui-search-result-row/ui-search-result-row.html">
+<link rel="component" href="@threadlabs/looma/components/ui-search-shell/ui-search-shell.html">
+<link rel="component" href="@threadlabs/looma/components/ui-stack/ui-stack.html">
+<link rel="component" href="@threadlabs/looma/components/ui-text/ui-text.html">
+
+<ui-card data-block="search-and-open" padding="sm" aria-label="Search and open example">
+  <ui-stack gap="s" align="start">
+    <ui-button data-trigger>Find a field guide</ui-button>
+    <section aria-label="Open field guide">
+      <ui-text as="h3" variant="heading" tabindex="-1" data-heading><span data-title>Trail access</span></ui-text>
+      <ui-text as="p"><span data-detail>Check the latest access notes before choosing a route.</span></ui-text>
+    </section>
+  </ui-stack>
+  <ui-search-shell data-shell modal dismissible label="Find a field guide">
+    <ui-input slot="search" data-query type="search" aria-label="Filter field guides" placeholder="Search guides" autofocus></ui-input>
+    <output slot="status" data-status aria-live="polite">3 guides</output>
+    <ui-search-result-row slot="body" data-guide="trail">
+      <span slot="title">Trail access</span>
+      <span slot="excerpt">Routes and recent closures</span>
+    </ui-search-result-row>
+    <ui-search-result-row slot="body" data-guide="coast">
+      <span slot="title">Coastal conditions</span>
+      <span slot="excerpt">Tides and wind</span>
+    </ui-search-result-row>
+    <ui-search-result-row slot="body" data-guide="equipment">
+      <span slot="title">Equipment checklist</span>
+      <span slot="excerpt">Tools and supplies</span>
+    </ui-search-result-row>
+  </ui-search-shell>
+</ui-card>
