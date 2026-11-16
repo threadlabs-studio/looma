@@ -9,6 +9,7 @@ import {
 } from "@threadlabs/looma/editor";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "@vue/server-renderer";
+import { enabledOptionIndices, nextActiveIndex } from "@threadlabs/looma/behaviors";
 
 const slashItems: SlashMenuItem[] = [
   { title: "Heading", description: "Insert a heading", icon: "heading-1" }
@@ -37,6 +38,20 @@ for (const styleExport of [
 ]) {
   const styleBytes = await readFile(fileURLToPath(import.meta.resolve(styleExport)));
   if (styleBytes.length === 0) throw new Error(`${styleExport} resolved to an empty file`);
+}
+
+if (nextActiveIndex(enabledOptionIndices([{ disabled: true }, {}]), -1, "ArrowDown") !== 1) {
+  throw new Error("the behavior export was not usable on the server");
+}
+
+for (const name of ["editor-workspace", "list-detail", "settings-form", "search-and-open"]) {
+  const url = import.meta.resolve(`@threadlabs/looma/blocks/${name}.html`);
+  const markup = await readFile(new URL(url), "utf8");
+  if (!markup.includes(`data-block="${name}"`) || markup.includes("<template component=")) {
+    throw new Error(`the ${name} starter must ship as a markup composition`);
+  }
+  const controller = await readFile(new URL(`./${name}.js`, url), "utf8");
+  if (!controller.includes("export default function setup")) throw new Error(`the ${name} setup was not packed`);
 }
 
 // The consumer Vite plugin compiles the shipped definitions, including editor SSR fallbacks.

@@ -73,7 +73,7 @@ try {
   await writeFile(path.join(directory, 'app/components/office-status/office-status.html'), '<template component="office-status"><defs><prop name="label" type="string" default="Ready">The office status.</prop></defs><p>{$label}</p></template>');
   await json(path.join(directory, 'app/components/office-status/docs.json'), { title: 'Office status', description: 'A Fellowship office status.', group: 'display' });
   await mkdir(path.join(directory, 'docs'));
-  await writeFile(path.join(directory, 'docs/index.md'), '# The Fellowship desk\n\n<link rel="component" href="../app/components/office-status/office-status.html">\n\n<office-status label="Ready for second breakfast"></office-status>\n');
+  await writeFile(path.join(directory, 'docs/index.md'), '# The Fellowship desk\n\n<link rel="component" href="../app/components/office-status/office-status.html">\n\n<office-status label="Ready for second breakfast"></office-status>\n\n<!-- looma:block list-detail -->\n');
   // The docs job builds the complete catalog; this install proves the public builder
   // and authored discovery with one shipped component inside the package job's budget.
   await writeFile(path.join(directory, 'verify-build.mjs'), `
@@ -86,7 +86,10 @@ await buildProjectDocumentation({ root: process.cwd(), config, catalog });
 `);
   await run(process.execPath, ['verify-build.mjs'], directory);
   const output = path.join(directory, '.looma/site');
-  assert.match(await readFile(path.join(output, 'index.html'), 'utf8'), /Ready for second breakfast/);
+  const home = await readFile(path.join(output, 'index.html'), 'utf8');
+  assert.match(home, /Ready for second breakfast/);
+  assert.match(home, /<nav[^>]+aria-label="Field reports"/);
+  assert.match(home, /View HTML and JavaScript/);
   const reference = await readFile(path.join(output, 'components/office-status/index.html'), 'utf8');
   assert.match(reference, /The office status\./);
   assert.match(reference, /<h2[^>]*>Framework props<\/h2>/);

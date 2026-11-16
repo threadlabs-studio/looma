@@ -57,6 +57,13 @@
       transition: inline-size var(--ui-motion-layout) var(--ui-motion-layout-ease), visibility var(--ui-motion-layout);
     }
 
+    /* Without a drawer controller, keep navigation in flow and reserve most of the row for content. */
+    @media (scripting: none) {
+      :host {
+        max-inline-size: 33%;
+      }
+    }
+
     :host([side="end"]) {
       border-inline-end: 0;
       border-inline-start: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));

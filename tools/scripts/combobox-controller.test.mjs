@@ -15,7 +15,7 @@ test("validation command keeps existing results and reconnect cleanup", () => {
     document.defaultView = new EventTarget();
     const element = new EventTarget();
     element.ownerDocument = document;
-    const input = { ownerDocument: document, value: "", removeAttribute() {}, setAttribute() {} };
+    const input = { ownerDocument: document, getRootNode: () => document, value: "", removeAttribute() {}, setAttribute() {} };
     const popup = { ownerDocument: document, style: { setProperty() {} }, setAttribute() {}, matches: () => false };
     const reports = [];
     const values = { required: true, value: null, query: null, filter: "label" };

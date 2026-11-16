@@ -1,4 +1,5 @@
 import { cancelActiveItemReveal, focusAndRevealItem } from "../shared/active-item-reveal.js";
+import { collectionNavigationKeys, nextCollectionPosition } from "../shared/collection-navigation.js";
 import { closeDialog, closeOverlay, openOverlay, showDialog } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
@@ -57,7 +58,7 @@ export function connect(host) {
       dispatchClose("escape", "keyboard");
       return;
     }
-    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    if (!collectionNavigationKeys.includes(event.key)) return;
     const rows = resultRows();
     if (!rows.length) return;
     const target = event.target;
@@ -65,10 +66,8 @@ export function connect(host) {
     const index = rows.indexOf(target.closest?.(".body button[aria-current]"));
     if (!fromSearch && index < 0) return;
     event.preventDefault();
-    if (event.key === "Home") focusAndRevealItem(dialog, rows[0]);
-    else if (event.key === "End") focusAndRevealItem(dialog, rows.at(-1));
-    else if (event.key === "ArrowDown") focusAndRevealItem(dialog, rows[fromSearch ? 0 : (index + 1) % rows.length]);
-    else focusAndRevealItem(dialog, rows[fromSearch ? rows.length - 1 : (index - 1 + rows.length) % rows.length]);
+    const next = nextCollectionPosition(rows.length, fromSearch ? -1 : index, event.key, true);
+    focusAndRevealItem(dialog, rows[next]);
   };
   const onClick = (event) => {
     if (host.props.dismissible.value && event.target === dialog) dispatchClose("light-dismiss", trigger());
