@@ -12,8 +12,10 @@ const written = editorDocumentToMarkdown(editedEditorJson, { original: markdown 
 ```
 
 Pass the Markdown a document was read from as `original` when writing it back.
-An unedited document is then written byte for byte, front matter and spacing
-included, and an edit leaves the source of every other block alone. An edited
+Unchanged supported blocks retain their authored spelling, front matter and
+spacing. Safe HTML filtering and normalization apply when writing HTML; native
+picture headings serialize their current heading and image structure. An edit
+leaves the source of every other supported block alone. An edited
 block keeps the spellings it still reads as, such as `_` emphasis or a setext
 heading. Without `original`, the writer uses Expressmark's preferred forms.
 
@@ -39,6 +41,35 @@ See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and
 [document AST](https://nextwebwg.org/expressive-markdown/ast).
 
 ## Conversion behavior
+
+Images inside text and headings load as `loomaInlineImage`; standalone images
+retain the `image` block and its insertion command. Native pictures preserve
+their fallback image, alt text, dimensions and ordered `sources` array. Each
+source stores `srcset` and optional `media`, `type`, `width` and `height`.
+These are authored choices, separate from a host's transient delivery renditions.
+`imageSourceUrls` from the editor extensions lists every alternative URL for
+host authorization and asset rewriting; validate the fallback `src` as well.
+`mapImageSourceUrls(sources, rewrite)` allocates new candidate URLs with the same
+parser, preserving source order, display conditions, dimensions and descriptors.
+It leaves the input unchanged and keeps the exact `srcset` spelling when no URL
+changes. Unsafe URLs and rewrites that alter candidate boundaries are refused.
+The shared safe URL profile applies to every srcset candidate. Inline image
+actions edit the description or delete the image while keeping its text position.
+Link marks stay attached to inline images through Markdown conversion, including
+pictures with multiple sources inside a heading.
+
+Leading-pipe line blocks load as `loomaLineBlock` text blocks. Their explicit
+line breaks, inline formatting and line-block identity survive editing, HTML
+and Markdown export. Repeated identical emphasis becomes one editor mark.
+List items that begin with a quote or another block receive the empty leading
+paragraph required by editor list commands, retaining their authored blocks.
+
+HTML disclosures whose opening, Markdown body and closing tags are separate
+CommonMark blocks load as one editable section. Nested sections retain their
+boundaries. An unchanged section keeps its original HTML source when writing
+with `original`; editing its body writes the current section while preserving
+adjacent authored blocks. An unclosed section contains the rest of its enclosing
+content, following HTML, and an empty section receives an editable paragraph.
 
 Ordinary punctuation stays readable: ranges such as `[-1, 1]`, `array[index]`,
 `user_id` and `a@word` do not need backslashes. The shared writer escapes text

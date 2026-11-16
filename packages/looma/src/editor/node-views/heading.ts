@@ -10,6 +10,8 @@ export const headingNodeView: NodeViewRenderer = ({ node }) => {
   const updateAnchor = () => {
     if (current.attrs.id) dom.id = String(current.attrs.id);
     else dom.removeAttribute("id");
+    if (current.attrs.align) dom.setAttribute("align", String(current.attrs.align));
+    else dom.removeAttribute("align");
     link.dom.hidden = !current.attrs.id;
   };
   updateAnchor();

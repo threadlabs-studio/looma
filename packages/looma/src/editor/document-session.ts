@@ -62,7 +62,7 @@ import { headingNodeView } from "./node-views/heading";
 import { expandNodeView } from "./node-views/expand";
 import { dividerNodeView } from "./node-views/divider";
 import { calloutNodeView } from "./node-views/callout";
-import { normalizeImagePlacement } from "./extensions/image";
+import { isLoomaImageName, normalizeImagePlacement } from "./extensions/image";
 import { imageNodeView } from "./node-views/image";
 
 export type { LoomaImageUploadDetail } from "./image-uploads";
@@ -580,6 +580,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             dividerNodeView,
             calloutNodeView,
             imageNodeView,
+            inlineImageNodeView: imageNodeView,
           }),
           imageDelivery.extension,
           slashExtension,
@@ -1076,7 +1077,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
     const imageTargets = new WeakMap<object, string>();
     let imageTargetSequence = 0;
     const selectedImage = (instance: Editor) => instance.state.selection instanceof NodeSelection
-      && instance.state.selection.node.type.name === "image" ? instance.state.selection : null;
+      && isLoomaImageName(instance.state.selection.node.type.name) ? instance.state.selection : null;
     const updateSelectedImage = (instance: Editor, attrs: Record<string, unknown>) => {
       const selection = selectedImage(instance);
       if (!selection || !instance.isEditable) return;
@@ -1089,7 +1090,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       pluginKey: "looma-image-actions",
       updateDelay: 250,
       shouldShow: ({ editor: menuEditor }) => menuEditor.isEditable
-        && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
+        && menuEditor.state.selection instanceof NodeSelection && isLoomaImageName(menuEditor.state.selection.node.type.name),
       anchor: () => {
         const dom = instance.view.nodeDOM(instance.state.selection.from);
         return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
@@ -1124,7 +1125,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
           ? instance.view.posAtDOM(frame.parentNode, Array.from(frame.parentNode.childNodes).indexOf(frame))
           : instance.view.posAtDOM(element, 0);
         const node = instance.state.doc.nodeAt(position);
-        return node?.type.name === "image" ? imageDescriptorFromAttrs(node.attrs) : null;
+        return isLoomaImageName(node?.type.name) && node ? imageDescriptorFromAttrs(node.attrs) : null;
       } catch {
         return null;
       }
@@ -1522,7 +1523,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       link: { existing: Boolean(link.range?.existing), searchable: answers("link-search"), mode: link.mode, value: answers("link-search") ? link.query : link.href, placeholder: answers("link-search") ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com", newTab: link.newTab, textEditable: link.textEditable, text: link.text, error: link.error ?? "", status: linkFormStatus(link), results: shown.map(({ id, label, detail }) => ({ id, label, detail: detail ?? "" })), selected: link.selected?.id ?? "", href, openHref: validLinkHref(href) ?? "", label: link.current?.label ?? "", detail: link.current?.detail ?? "", targetLabel: props.linkTargetLabel },
       chip: { open: uiState.chipState.open, label: uiState.chipState.label, color: uiState.chipState.color },
       footnote: { open: uiState.footnoteState.open, surface: uiState.footnoteSurface ?? "", content: uiState.footnoteState.note },
-      image: { placement: normalizeImagePlacement(image?.attrs.placement), alt: image?.attrs.alt ?? "", target: imageTarget },
+      image: { inline: image?.type.name === "loomaInlineImage", placement: normalizeImagePlacement(image?.attrs.placement), alt: image?.attrs.alt ?? "", target: imageTarget },
       files: { uploading: uiState.fileUploadState.uploading, failed: Boolean(uiState.fileUploadState.failed), progress: uploadProgressText(uiState.fileUploadState.progress, "Attaching file…") },
       upload: { uploading: uiState.uploadState.uploading, failed: Boolean(uiState.uploadState.failed), progress: uploadProgressText(uiState.uploadState.progress) },
       slash: { active: slash.active, query: slash.query, selectedIndex: slash.selectedIndex, anchorRect: menuAnchorRect(slash.rect), groups: slashGroups },

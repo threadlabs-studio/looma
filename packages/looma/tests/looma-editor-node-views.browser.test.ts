@@ -83,6 +83,11 @@ describe("LoomaEditor node views", () => {
     expect(host.querySelector("h3 [data-looma-heading-link]")?.hasAttribute("hidden")).toBe(true);
     expect(editor.getHTML()).toBe('<h1 id="top">Top</h1><h3>Unanchored</h3>');
   });
+  it("renders authored alignment on headings with copy links", async () => {
+    const { host, editor } = await mountEditor('<h2 id="intro" align="center">Intro</h2>');
+    expect(host.querySelector(".ProseMirror h2")?.getAttribute("align")).toBe("center");
+    expect(editor.getHTML()).toBe('<h2 id="intro" align="center">Intro</h2>');
+  });
   it("keeps an anchored heading's DOM in step with the document after a native delete", async () => {
     const { host, editor } = await mountEditor('<h2 id="intro">Intro</h2><p>Body</p>');
     const root = host.querySelector<HTMLElement>(".ProseMirror")!;

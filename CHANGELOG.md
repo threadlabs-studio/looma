@@ -4,6 +4,26 @@
 
 - LoomaEditor headings with anchors show a copy-link button on hover or keyboard focus, with a tooltip and clipboard feedback. The controls are available in read-only documents and never enter saved content.
 
+- Preserve native heading alignment through editing, HTML and Markdown, including responsive logos in headings. Requires Expressmark >=0.6.4.
+
+- Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.
+
+- Keep consumer-supplied editor classes when switching between editable and read-only states.
+
+- Preserve link marks on inline images when exporting Markdown, including responsive pictures inside headings.
+
+- Rewrite responsive image source URLs through `mapImageSourceUrls` while preserving ordered conditions, dimensions and candidate descriptors. Unchanged source spelling stays intact; unsafe or ambiguous rewrites are refused.
+
+- Preserve linked inline images and responsive pictures inside headings and text, including authored source choices, fallback image, dimensions and descriptions. Inline image actions keep the image in its text position. Requires Expressmark >=0.6.1 for native picture parsing; host delivery renditions remain transient.
+
+- Import HTML disclosure fragments as editable sections, preserving nested Markdown, initial expansion and unchanged authored source. Keep adjacent authored blocks when editing a section body and accept empty or unclosed sections.
+
+- Preserve leading-pipe line blocks as editable text blocks through HTML and Markdown export. Accept redundant identical emphasis and list items whose first authored block is a quotation without producing invalid editor documents.
+
+- Configure LoomaEditor paragraph indentation, whitespace, and trailing scroll space through public CSS tokens. Manuscripts can wrap soft line breaks while preserving hard breaks, literal text, and the saved document.
+
+- Preserve emphasis and links on inline code, and nested tasks with their supporting paragraphs and lists, when loading Markdown into LoomaEditor. The default schema now accepts the content produced by the Markdown converter.
+
 - **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
 
 - Preserve custom Editor Toolbar accessible labels with `noforward` and a trailing `$attributes` destination after its default label. Convert style objects to HTML attribute text in the HTML Next test adapter so constrained scroll areas retain their supplied height.

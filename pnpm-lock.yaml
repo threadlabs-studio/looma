@@ -146,17 +146,23 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.5.1'
-        version: 0.5.1
+        specifier: '>=0.6.4'
+        version: 0.6.4
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
+      htmlparser2:
+        specifier: 12.0.0
+        version: 12.0.0
       lowlight:
         specifier: ^3.3.0
         version: 3.3.0
       lucide:
         specifier: ~0.554.0
         version: 0.554.0
+      parse-srcset:
+        specifier: 1.0.2
+        version: 1.0.2
     devDependencies:
       '@angular/common':
         specifier: 21.2.24
@@ -5208,12 +5214,12 @@ packages:
     resolution: {integrity: sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==}
     engines: {node: '>= 0.10.0'}
 
-  expressmark@0.5.1:
-    resolution: {integrity: sha512-o6ORkpF3LwxWUlFNd6DjbT5iekpfokX3ZFVtCsZB2AuR3WN/ITxK+JQjC6sga+c7Dx0rjAGeK8jBjnV/w1Femg==}
-    engines: {node: '>=22.13 <23 || >=24 <25'}
-
   expressmark@0.6.0:
     resolution: {integrity: sha512-zylsRyr0FUPUovtizSsMOXYI1eY3zPFI3o93dDwB5AVMt7FXYUrTLtz7F/XlcLIR98MQOW2JLAMXAhATn+GaGQ==}
+    engines: {node: '>=22.13 <23 || >=24 <25'}
+
+  expressmark@0.6.4:
+    resolution: {integrity: sha512-wixA9ANz0XuBKsYEUbjNPxHFBXVkiQa1KK9ZaH5pNm2QQuGCVqKtXor8sX8Ok3omFGjp+4Z+YPggKQ0AHH+Jxw==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -14785,7 +14791,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expressmark@0.5.1:
+  expressmark@0.6.0:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
@@ -14796,7 +14802,7 @@ snapshots:
       uc.micro: 3.0.0
       yaml: 2.9.1
 
-  expressmark@0.6.0:
+  expressmark@0.6.4:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0

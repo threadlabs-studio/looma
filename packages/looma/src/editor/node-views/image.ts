@@ -1,18 +1,12 @@
 import type { NodeViewRenderer } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import type { Decoration } from "@tiptap/pm/view";
 import { closeHistory } from "@tiptap/pm/history";
 import { NodeSelection } from "@tiptap/pm/state";
 import { componentRegistry } from "@nextwebwg/html-next/runtime";
 import { createUiImage } from "@threadlabs/looma/vanilla/UiImage.js";
 import { normalizeImagePlacement } from "../extensions/image";
+import { createImageMedia, imageDeliveryAttributes } from "../image-media";
 import { element } from "./element";
-
-type Attributes = Record<string, unknown>;
-
-/** The delivery attributes the editor's decorations lay over the stored ones, such as `srcset`. */
-const deliveryAttributes = (decorations: readonly Decoration[]): Attributes =>
-  Object.assign({}, ...decorations.map((decoration) => (decoration.spec as { loomaImageAttributes?: Attributes }).loomaImageAttributes ?? {}));
 
 /**
  * Projects Image's resize into one document transaction, and draws the stored image with the
@@ -23,34 +17,23 @@ const deliveryAttributes = (decorations: readonly Decoration[]): Attributes =>
  * editor's editability.
  */
 export const imageNodeView: NodeViewRenderer = ({ editor, node, getPos, decorations }) => {
+  const inline = node.type.name === "loomaInlineImage";
   let current = node;
-  let delivery = deliveryAttributes(decorations);
+  let delivery = imageDeliveryAttributes(decorations);
   let selected = false;
-  const media = document.createElement("img");
-  let written = new Set<string>();
-  // The img carries the stored attributes with delivery's on top; an attribute delivery drops is removed.
-  const writeMedia = (attrs: Attributes) => {
-    const next = Object.entries({ src: attrs.src, alt: attrs.alt ?? "", title: attrs.title, width: attrs.width, height: attrs.height, ...delivery })
-      .filter(([, value]) => value !== undefined && value !== null && value !== false);
-    const names = new Set(next.map(([name]) => name));
-    for (const name of written) if (!names.has(name)) media.removeAttribute(name);
-    for (const [name, value] of next) {
-      const text = value === true ? "" : String(value);
-      if (media.getAttribute(name) !== text) media.setAttribute(name, text);
-    }
-    written = names;
-  };
+  const media = createImageMedia();
+  if (inline) media.dom.setAttribute("data-looma-inline-image", "");
   const props = (next: ProseMirrorNode) => ({
     src: (delivery.src as string | undefined) ?? next.attrs.src, alt: next.attrs.alt ?? "", width: next.attrs.width, height: next.attrs.height,
-    placement: normalizeImagePlacement(next.attrs.placement), selected: editor.isEditable && selected, resizable: editor.isEditable,
+    placement: inline ? "inline" as const : normalizeImagePlacement(next.attrs.placement), selected: editor.isEditable && selected, resizable: editor.isEditable && !inline,
   });
-  writeMedia(node.attrs);
+  media.write(node.attrs, delivery);
   // The generated type knows Image's own resize event; the widened one is the root as the DOM sees it.
-  const image = createUiImage({ ...props(node), attributes: { contenteditable: "false", "data-looma-image-node": "" }, slots: { media: [media] } });
+  const image = createUiImage({ ...props(node), attributes: { contenteditable: "false", "data-looma-image-node": "" }, slots: { media: [media.dom] } });
   const dom = element(image);
   // ProseMirror owns this element's lifetime, so the view sets its props as a framework adapter does.
   const render = () => {
-    writeMedia(current.attrs);
+    media.write(current.attrs, delivery);
     componentRegistry.update(dom, props(current));
   };
   dom.addEventListener("click", (event) => {
@@ -75,7 +58,7 @@ export const imageNodeView: NodeViewRenderer = ({ editor, node, getPos, decorati
     update(next, nextDecorations) {
       if (next.type !== current.type) return false;
       current = next;
-      delivery = deliveryAttributes(nextDecorations);
+      delivery = imageDeliveryAttributes(nextDecorations);
       render();
       return true;
     },

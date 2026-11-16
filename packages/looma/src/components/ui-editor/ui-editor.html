@@ -97,7 +97,8 @@
     <request name="image-delivery" returns="unknown"
     >The host's synchronous source and rendition policy, resolved before the editor mounts. This transient policy is never persisted.</request>
   </defs>
-  <div tabindex="-1" from:class="concat('looma-editor', $editable ? '' : ' looma-editor--readonly', $view.dragOver ? ' looma-editor--drag-over' : '')">
+  <!-- Toggle owned tokens so consumer-supplied root classes survive. -->
+  <div tabindex="-1" class:looma-editor="true" class:looma-editor--readonly="not $editable" class:looma-editor--drag-over="$view.dragOver">
     <ui-tooltip $if="$view.resizeHintFor" from:for="$view.resizeHintFor" placement="top" inverse>Drag to resize column</ui-tooltip>
     <div $if="$view.formatting">
       <div $ref="formattingShell" class="looma-editor__floating-shell looma-editor__formatting-shell" hidden>
@@ -183,6 +184,7 @@
       <div $ref="imageShell" class="looma-editor__floating-shell looma-editor__image-shell" hidden>
         <ui-editor-image-toolbar
           $ref="imageTools"
+          from:inline="$view.image.inline"
           from:placement="$view.image.placement"
           from:alt="$view.image.alt"
           from:target="$view.image.target"

@@ -1,5 +1,5 @@
 export const rendererTarget = "html-next";
-import { componentRegistry, setInvocationAttributes, regionChanged, scopedTemplate, serverProjection, slotRegion, RequestEvent, knownResponder, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
+import { componentRegistry, setInvocationAttributes, regionChanged, scopedTemplate, serverProjection, holdControls, slotRegion, RequestEvent, knownResponder, type ScopedRecord } from "@nextwebwg/html-next/generated-runtime";
 import { renderNativeScene } from "@looma-test/native-server";
 import { component, componentProps, connectNode, type SceneComponent } from "./component";
 import type { MountedScene, NativeSceneComponent, Scene, SceneNode, SceneSlots, SceneValue } from "./scene";
@@ -199,9 +199,13 @@ function createView(initial: SceneNode | string | number, key: unknown, candidat
 
 export function mount(scene: Scene, target: Element, hydrate: boolean): MountedScene {
   if (!hydrate) target.replaceChildren();
-  const content = region("", Array.from(target.childNodes)); target.append(content.fragment);
+  const release = hydrate ? holdControls(target) : undefined;
+  let content: ReturnType<typeof region>;
   const sync = () => { for (const connect of connections) connect(); };
-  content.update(scene.render()); sync();
+  try {
+    content = region("", Array.from(target.childNodes)); target.append(content.fragment);
+    content.update(scene.render()); sync();
+  } finally { release?.(); }
   const observer = new MutationObserver(sync); observer.observe(target, { childList: true, subtree: true });
   return { update() { content.update(scene.render()); sync(); }, unmount() { observer.disconnect(); content.destroy(); } };
 }

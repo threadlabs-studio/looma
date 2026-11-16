@@ -69,6 +69,28 @@ Release documentation follows built artifacts, not a blanket format claim:
 - The facade layout, core, and editor entries consume semantic tokens.
 - Apps may add their own utility layer and override documented tokens.
 
+### Desktop platform themes
+
+SystemUI starts from the app's selected Looma theme. Its CSS profiles retain
+the theme's color, typography, spacing, and other public tokens and adapt
+selected values to the operating system and version. A profile can override a
+token directly or derive a value from the theme when a role needs translation.
+The resulting values style Looma controls and any additional HTML Next
+components SystemUI supplies for MarkupKit or MarkupNative. Looma owns
+reusable controls.
+
+If a Looma control cannot match macOS or Windows through its public styling
+contract, fix the responsible Looma component or shared token and test it with
+the affected platform profile. Looma owns component markup, behavior, and the
+styling hooks that profiles use.
+
+Desktop views normally use Looma components in a shared webview on macOS and
+Windows. MarkupNative substitutes selected HTML Next components with OS-level
+implementations by component and target. Each instance of a selected component
+uses the same presenter. For example, a need for cross-window dragging can
+justify a native dialog presenter, and each instance's draggable setting
+controls movement.
+
 ## Contract Ownership
 
 The declarative contracts define canonical native roots, attributes, properties,

@@ -8,6 +8,7 @@ import { componentRoot } from "../renderers/selectors";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Data Table", () => {
+  const statusCell = '<span class="status" from:data-id="$row.id">{$row.done ? \'Done\' : \'Open\'}</span>';
   // A plain table whose last column renders a cell template, and a bounded table with wide columns,
   // a frozen column at each edge and a frozen leading row.
   const orders = [
@@ -26,7 +27,7 @@ describe("Data Table", () => {
       <ui-data-table id="orders" caption="Orders" rows="${attribute(orders)}">
         <ui-column field="customer" header="Customer"></ui-column>
         <ui-column field="total" header="Total" align="end"></ui-column>
-        <ui-column header="Status"><template slot="cell"><span class="status" from:data-id="$row.id">{$row.done ? 'Done' : 'Open'}</span></template></ui-column>
+        <ui-column header="Status"><template slot="cell">${statusCell}</template></ui-column>
       </ui-data-table>
     </div>
     <div style="width: 360px">
@@ -123,7 +124,7 @@ describe("Data Table", () => {
 
   it("renders columns, cells and frozen regions in converted output", async () => {
     const path = await bundle("converted-data-table", `
-      import { createScene, createState, sceneNode } from "@looma-test/scene";
+      import { createScene, createState, sceneNode, scopedSlot } from "@looma-test/scene";
       import { UiColumn as Column, UiDataTable as DataTable } from "@looma-test/components";
       const orders = createState(${JSON.stringify(orders)});
       window.reorder = () => { orders.value = ${JSON.stringify(reordered)}; };
@@ -131,7 +132,7 @@ describe("Data Table", () => {
         sceneNode("div", { style: "width: 640px" }, sceneNode(DataTable, { id: "orders", caption: "Orders", rows: orders.value }, () => [
           sceneNode(Column, { field: "customer", header: "Customer" }),
           sceneNode(Column, { field: "total", header: "Total", align: "end" }),
-          sceneNode(Column, { header: "Status" }, { cell: ({ row }) => sceneNode("span", { class: "status", "data-id": row.id }, row.done ? "Done" : "Open") }),
+          sceneNode(Column, { header: "Status" }, { cell: scopedSlot(({ row }) => sceneNode("span", { class: "status", "data-id": row.id }, row.done ? "Done" : "Open"), ${JSON.stringify(statusCell)}) }),
         ])),
         sceneNode("div", { style: "width: 360px" }, sceneNode(DataTable, { id: "sales", caption: "Regional sales", frozenRows: 1, style: "block-size: 12rem", rows: ${JSON.stringify(sales)} }, () => [
           sceneNode(Column, { field: "region", header: "Region", frozen: "start", width: "8rem" }),
