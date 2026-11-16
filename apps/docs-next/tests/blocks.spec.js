@@ -106,6 +106,8 @@ for (const width of [1440, 375]) {
     const south = page.getByRole('heading', { name: 'South trail' });
     await expect(north).toBeVisible();
     await expect(south).toBeHidden();
+    await page.evaluate(() => { location.hash = 'editor-workspace'; });
+    await expect(page).toHaveURL(/#editor-workspace$/);
     await reports.getByRole('link', { name: 'South trail' }).press('Enter');
     await expect(south).toBeFocused();
     await expect(north).toBeHidden();
@@ -121,7 +123,9 @@ for (const width of [1440, 375]) {
       await layout.evaluate(element => { element.style.removeProperty('max-inline-size'); });
     }
     await page.goBack();
+    await expect(page).toHaveURL(/#editor-workspace$/);
     await expect(north).toBeVisible();
+    await expect(south).toBeHidden();
 
     const form = page.getByRole('form', { name: 'Report preferences' });
     const field = form.getByRole('textbox', { name: 'Display name' });

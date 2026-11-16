@@ -15,7 +15,10 @@ export default function setup(root) {
     if (moveFocus) selected.querySelector("h3").focus();
   };
   const view = root.ownerDocument.defaultView;
-  const sync = () => show(view.location.hash.slice(1) || initial, false);
+  const sync = () => {
+    const fragment = view.location.hash.slice(1);
+    show(panels.has(fragment) ? fragment : initial, false);
+  };
   const onClick = (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const link = event.target.closest("a");

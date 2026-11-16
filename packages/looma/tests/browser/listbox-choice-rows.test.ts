@@ -33,7 +33,10 @@ describe("Listbox choice rows", () => {
       form.reset();
     });
     assert.deepEqual(await entries(), ["north", "south", "west"]);
-    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    await page.locator("#form").evaluate((form: HTMLFormElement) => {
+      form.addEventListener("reset", (event) => event.stopPropagation(), { once: true });
+      form.reset();
+    });
     await expect.poll(entries).toEqual(["north", "west"]);
   };
 
@@ -75,7 +78,7 @@ describe("Listbox choice rows", () => {
     assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), true);
     assert.deepEqual(await page.locator("#form").evaluate((form: HTMLFormElement) => Array.from(new FormData(form).getAll("plan"))), ["team"]);
     await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
-    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
+    await expect.poll(() => page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(false);
     await page.close();
   });
 });

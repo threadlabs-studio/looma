@@ -161,7 +161,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
           const composition = markup.replace(/^<link rel="component" [^\n]+>\r?\n/gm, '').trim();
           await write(preview, `${imports}\n<template component="${tag}" module="./${tag}.js">\n${composition}\n</template>\n`);
           await write(path.join(previews, `${tag}.js`), `import setup from ${JSON.stringify(specifier + '.js')};\nexport function connect(host) { return setup(host.element); }\n`);
-          page = page.replace(marker, `<link rel="component" href="${relativeHref(target, preview)}">\n\n<div>\n<${tag}></${tag}>\n</div>\n\n<details>\n<summary>View HTML and JavaScript</summary>\n\n\`\`\`html\n${markup.trim()}\n\`\`\`\n\n\`\`\`js\n${behavior.trim()}\n\`\`\`\n\n</details>`);
+          page = page.replace(marker, () => `<link rel="component" href="${relativeHref(target, preview)}">\n\n<div>\n<${tag}></${tag}>\n</div>\n\n<details>\n<summary>View HTML and JavaScript</summary>\n\n\`\`\`html\n${markup.trim()}\n\`\`\`\n\n\`\`\`js\n${behavior.trim()}\n\`\`\`\n\n</details>`);
         }
         await write(target, page);
       } else {
