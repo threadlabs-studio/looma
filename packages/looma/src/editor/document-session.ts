@@ -58,6 +58,7 @@ import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type L
 import { isApplePlatform } from "./shortcuts";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "./code-language-picker";
 import { tableOfContentsNodeView } from "./node-views/table-of-contents";
+import { headingNodeView } from "./node-views/heading";
 import { expandNodeView } from "./node-views/expand";
 import { dividerNodeView } from "./node-views/divider";
 import { fileAttachmentNodeView } from './node-views/file-attachment';
@@ -575,6 +576,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             codeLanguages: props.codeLanguages ?? undefined,
             codeLowlight: highlighting.lowlight,
             tableOfContentsNodeView,
+            headingNodeView,
             expandNodeView,
             dividerNodeView,
             fileAttachmentNodeView,

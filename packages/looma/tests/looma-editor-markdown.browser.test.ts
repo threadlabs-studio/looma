@@ -121,7 +121,7 @@ it("pastes a source document with front matter and a quoted pipe table as editab
   ].join("\n"));
   await flushBrowser();
   expect(editor.getJSON().content?.map(node => node.type)).toEqual(["codeBlock", "heading", "blockquote", "heading", "paragraph"]);
-  expect(host.querySelector(".ProseMirror h1")?.textContent).toBe("Field guide");
+  expect(host.querySelector(".ProseMirror h1 > :first-child")?.textContent).toBe("Field guide");
   expect(host.querySelector(".ProseMirror blockquote table")?.textContent).toContain("Example");
   expect(host.querySelector(".ProseMirror pre")?.textContent).toContain("date: 2026-01-01");
 });

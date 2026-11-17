@@ -80,6 +80,8 @@ export interface DefaultEditorExtensionsOptions {
   dividerNodeView?: NodeViewRenderer;
   /** Render retained originals with the shared whole-card attachment action. */
   fileAttachmentNodeView?: NodeViewRenderer;
+  /** Optional copy-link presentation for headings with document anchors. */
+  headingNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
   /**
@@ -215,6 +217,7 @@ export function getDefaultEditorExtensions(
     inlineImageNodeView,
     dividerNodeView,
     fileAttachmentNodeView,
+    headingNodeView,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
@@ -240,7 +243,7 @@ export function getDefaultEditorExtensions(
     Italic,
     Strike,
     Underline,
-    LoomaHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+    (headingNodeView ? LoomaHeading.extend({ addNodeView: () => documentContentNodeView(headingNodeView) }) : LoomaHeading).configure({ levels: [1, 2, 3, 4, 5, 6] }),
     BulletList,
     OrderedList,
     ListItem,
