@@ -58,6 +58,8 @@
     <prop name="align" type="keyword" values="center, start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
+    <prop name="fit" type="boolean" default="false"
+    >Keeps a card action at its content width, constrained to the available space. Other boxed actions already size to their content.</prop>
     <prop name="type" type="keyword" values="button, submit, reset" default="button"
     >The button's type, as on a native button. button by default, so it never submits a form by accident. A link has no type.</prop>
     <prop name="href" type="string"
@@ -350,6 +352,15 @@
     }
     :host[data-appearance="card"][size="lg"] {
       min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-lg));
+    }
+    :host[data-appearance="card"][size="sm"] {
+      min-block-size: var(--ui-control-size-sm);
+      gap: var(--ui-space-2) !important;
+    }
+    :host([fit])[data-appearance="card"] {
+      inline-size: fit-content;
+      min-inline-size: 0;
+      max-inline-size: 100%;
     }
     :host[data-appearance="card"]:has(.card-icon:empty) {
       grid-template-columns: minmax(0, 1fr) auto;

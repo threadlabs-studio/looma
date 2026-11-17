@@ -24,7 +24,7 @@ export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./
 export { LoomaFigcaption, LoomaFigure } from "./figure";
 export { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL, LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 export { LoomaLinkDefinition } from "./link-definition";
-export { LoomaFileAttachment } from './file-attachment';
+export { LoomaFileAttachment, fileAttachmentSize } from './file-attachment';
 export { LoomaLineBlock } from "./line-block";
 export { LoomaTab, LoomaTabs } from "./tabs";
 export {

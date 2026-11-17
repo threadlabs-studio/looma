@@ -14,7 +14,7 @@ export {
   type LoomaEditorToolbarMode, type LoomaEditorExtensions, type LoomaEditorSlashCommands,
   type LoomaSlashCommandsDetail, type LoomaLinkSearch, type LoomaLinkSearchDetail,
   type LoomaLinkResolve, type LoomaLinkResolveDetail, type LoomaMentionQuery,
-  type LoomaMentionQueryDetail, type LoomaImageUploader, type LoomaFileUploader,
+  type LoomaMentionQueryDetail, type LoomaImageUploader, type LoomaFileUploader, type LoomaFileDeleter, type LoomaFileDeletionConfirmation,
   type LoomaImageUploadDetail, type LoomaRequestInit, type LoomaResponder,
   type LoomaEditorSelectionAction, type LoomaEditorSelectionActionDetail,
   type LoomaEditorRangeAction, type LoomaEditorRangeActionDetail,

@@ -9,6 +9,7 @@ import { UiEditor } from "@looma-test/components";
 import { editorUnderTest } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import { captureEditor } from "./editor-test-extensions";
+import { setReferenceDisplay } from '../src/editor/reference-display';
 import "../tokens.css";
 
 const apps: Scene[] = [];
@@ -42,6 +43,19 @@ async function mountEditor(html: string) {
 const state = (element: Element) => element.getAttribute("data-ui-separator-state") ?? "";
 
 describe("LoomaEditor node views", () => {
+  it('disables a legacy file link without persisting its deleted label during native writing', async () => {
+    const { host, editor } = await mountEditor('<p>Read <a href="/api/files/report.pdf">Report.pdf</a> alongside these notes.</p>');
+    const before = editor.getJSON();
+    setReferenceDisplay(editor, { 'attachment:/api/files/report.pdf': { label: 'Report.pdf', status: 'deleted' } });
+    await flushBrowser();
+    expect(host.textContent).toContain('Report.pdf (deleted)');
+    expect(host.querySelector('[data-looma-file-reference] a')?.hasAttribute('href')).toBe(false);
+    expect(editor.getJSON()).toEqual(before);
+    editor.commands.setTextSelection(2); editor.view.focus(); await userEvent.keyboard('x'); await flushBrowser();
+    expect(editor.getText()).toContain('Rxead Report.pdf alongside these notes.');
+    expect(JSON.stringify(editor.getJSON())).not.toContain('(deleted)');
+    expect(editor.getHTML()).toContain('href="/api/files/report.pdf"');
+  });
   it('renders an attachment as one accessible card link with SVG, filename and size at phone width', async () => {
     const viewport = { width: innerWidth, height: innerHeight };
     await page.viewport(375, 812);
@@ -57,6 +71,15 @@ describe("LoomaEditor node views", () => {
       expect(getComputedStyle(card).textDecorationLine).toBe('none');
       const icon = card.querySelector('svg')!.getBoundingClientRect(); expect(icon.width).toBeGreaterThan(0); expect(icon.height).toBeGreaterThan(0);
       expect(card.scrollWidth).toBeLessThanOrEqual(card.clientWidth + 1);
+      const root = host.querySelector('.ProseMirror')!;
+      expect(card.getBoundingClientRect().width).toBeLessThan(root.getBoundingClientRect().width - 24);
+      const label = card.querySelector('[data-looma-file-name]')!;
+      const bytes = card.querySelector('[data-looma-file-size]')!;
+      expect(parseFloat(getComputedStyle(bytes).fontSize)).toBeLessThan(parseFloat(getComputedStyle(label).fontSize));
+      expect(bytes.getBoundingClientRect().top - label.getBoundingClientRect().bottom).toBeLessThanOrEqual(2);
+      const paragraphs = root.querySelectorAll('p');
+      expect(card.getBoundingClientRect().top - paragraphs[0]!.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(8);
+      expect(paragraphs[1]!.getBoundingClientRect().top - card.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(8);
       if (process.env.LOOMA_CAPTURE_ARTIFACTS) await page.screenshot({ element: host, path: '../../../.context/file-attachment-mini-block-phone.png' });
       const click = vi.fn(); card.addEventListener('click', event => { expect(event.defaultPrevented).toBe(false); event.preventDefault(); click(); });
       await userEvent.click(card); expect(click).toHaveBeenCalledTimes(1);
@@ -68,6 +91,26 @@ describe("LoomaEditor node views", () => {
       expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
       editor.commands.undo(); await flushBrowser(); expect(host.querySelector('[data-looma-file-attachment]')?.textContent).toContain('24.6 KB');
     } finally { await page.viewport(viewport.width, viewport.height); }
+  });
+  it('refreshes a deleted attachment without editing history and never reactivates a restored block', async () => {
+    const { host, editor } = await mountEditor('<p>Keep this writing.</p>');
+    const attachment = { type: 'loomaFileAttachment', attrs: { href: '/files/report.pdf', name: 'Report.pdf', size: 1_100_000_000, contentType: 'application/pdf' } };
+    editor.commands.insertContentAt(editor.state.doc.content.size, attachment);
+    await flushBrowser();
+    const before = editor.getJSON();
+    setReferenceDisplay(editor, { 'attachment:/files/report.pdf': { label: 'Report.pdf', status: 'deleted', deletable: false } });
+    await flushBrowser();
+    const card = () => host.querySelector('[data-looma-file-attachment]')!;
+    expect(card().textContent).toContain('Report.pdf (deleted)');
+    expect(card().textContent).toContain('1.1 GB');
+    expect(card().hasAttribute('href')).toBe(false);
+    expect(card().getAttribute('aria-disabled')).toBe('true');
+    expect(editor.getJSON()).toEqual(before);
+    editor.view.dispatch(closeHistory(editor.state.tr));
+    editor.commands.setNodeSelection(editor.state.doc.child(0).nodeSize);
+    editor.commands.deleteSelection(); editor.commands.undo(); await flushBrowser();
+    expect(card().textContent).toContain('Report.pdf (deleted)');
+    expect(card().hasAttribute('href')).toBe(false);
   });
   it('keeps a malformed attachment inert instead of navigating an executable URL', async () => {
     const { host, editor } = await mountEditor('<p>Keep this writing.</p>');

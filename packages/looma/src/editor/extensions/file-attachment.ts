@@ -17,9 +17,12 @@ export function fileAttachmentAttrs(value: Record<string, unknown>): FileAttachm
 
 /** The same decimal byte units used by upload receipts. */
 export function fileAttachmentSize(size: number): string {
-  if (size < 1000) return `${size} B`;
-  if (size < 1_000_000) return `${Number((size / 1000).toFixed(1))} KB`;
-  return `${Number((size / 1_000_000).toFixed(1))} MB`;
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  let value = size, unit = 0;
+  while (value >= 1000 && unit < units.length - 1) { value /= 1000; unit += 1; }
+  value = Number(value.toFixed(unit ? 1 : 0));
+  if (value >= 1000 && unit < units.length - 1) { value = 1; unit += 1; }
+  return `${value} ${units[unit]}`;
 }
 const escape = (value: unknown) => String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -50,7 +53,9 @@ export function readFileAttachmentHtml(html: string): FileAttachmentAttrs | null
   return a;
 }
 
-/** A movable, atomic file block. Its rich view composes the standard card action. */
+/** A movable, atomic file block. Its rich view composes the standard card action.
+ * @ownership Hosts retain original bytes and publish file availability separately from authored metadata.
+ */
 export const LoomaFileAttachment = Node.create({
   name: 'loomaFileAttachment', group: 'block', atom: true, draggable: true,
   addAttributes() { return { href: { default: '' }, name: { default: '' }, size: { default: 0 }, contentType: { default: 'application/octet-stream' } }; },

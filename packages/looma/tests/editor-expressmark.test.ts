@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { headingAnchors, parse } from "expressmark";
 import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
+import { fileAttachmentSize } from '../src/editor/extensions/file-attachment';
+
+it.each([[0, '0 B'], [999, '999 B'], [1000, '1 KB'], [1100, '1.1 KB'], [999949, '999.9 KB'], [999950, '1 MB'], [1_100_000, '1.1 MB'], [1_100_000_000, '1.1 GB'], [1_100_000_000_000, '1.1 TB'], [1_100_000_000_000_000, '1.1 PB']])('formats %s bytes as %s', (bytes, label) => {
+  expect(fileAttachmentSize(Number(bytes))).toBe(label);
+});
 
 it('preserves an attachment block and surrounding writing through portable Markdown', () => {
   const document = { type: 'doc', content: [

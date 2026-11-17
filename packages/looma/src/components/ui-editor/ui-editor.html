@@ -64,6 +64,8 @@
     >An application caret action was chosen.</event>
     <event name="upload-error" type="object"><prop name="error" type="unknown" required></prop><prop name="file" type="unknown" required></prop>An upload
       failed; authored content is retained.</event>
+    <event name="file-delete-error" type="object"><prop name="error" type="unknown" required></prop><prop name="file" type="unknown" required></prop>A permanent
+      file deletion failed; its block is restored.</event>
     <event name="image-activate" type="object" open><prop name="src" type="string" required></prop><prop
         name="trigger"
         type="keyword"
@@ -91,9 +93,16 @@
       image before insertion.</request>
     <request name="file-upload" type="object"><prop name="file" type="unknown" required></prop><returns
         type="object({ href: string, name: string, size: number, contentType: string, ... })"
-      ></returns>Retain a file before inserting its movable file block. The block shows an SVG file icon, filename and size; activating the whole block follows its retained URL.</request>
+      ></returns>Retain a file before inserting its movable file block. The block shows an SVG file icon, filename and size; activating the whole block follows
+      its retained URL.</request>
     <request name="code-languages" returns="object({ ... })"
     >The code grammar catalog chosen before creation. null keeps the built-in lazy catalog; an empty record disables highlighting.</request>
+    <request name="file-delete-confirm" type="object"><prop name="file" type="unknown" required></prop><returns
+        type="object({ confirmed: boolean })"
+      ></returns>Confirm permanent deletion. Return false or null to keep the file and block.</request>
+    <request name="file-delete" type="object"><prop name="file" type="unknown" required></prop><returns type="object({ deleted: boolean })"></returns>Delete the
+      retained original after confirmation. The editor removes its block optimistically; rejection restores it. File presentation uses attachment:href reference
+      entries so undo can restore a disabled deleted-file block.</request>
     <request name="image-delivery" returns="unknown"
     >The host's synchronous source and rendition policy, resolved before the editor mounts. This transient policy is never persisted.</request>
   </defs>
