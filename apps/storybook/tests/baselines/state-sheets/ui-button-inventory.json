@@ -33,6 +33,20 @@
     "example": 0
   },
   {
+    "name": "fit: false",
+    "props": {
+      "fit": false
+    },
+    "example": 0
+  },
+  {
+    "name": "fit: true",
+    "props": {
+      "fit": true
+    },
+    "example": 0
+  },
+  {
     "name": "interaction-tone: inherit",
     "props": {
       "interactionTone": "inherit"

@@ -51,7 +51,7 @@ import {
 import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement } from "./table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "./mobile-dock";
 import { createLinkEditing, isLinkActive, selectedLinkReference, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "./link-editing";
-import { setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
+import { getReferenceDisplay, setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "./selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "./selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "./session";
@@ -61,7 +61,7 @@ import { tableOfContentsNodeView } from "./node-views/table-of-contents";
 import { headingNodeView } from "./node-views/heading";
 import { expandNodeView } from "./node-views/expand";
 import { dividerNodeView } from "./node-views/divider";
-import { fileAttachmentNodeView } from './node-views/file-attachment';
+import { createFileAttachmentNodeView } from './node-views/file-attachment';
 import { calloutNodeView } from "./node-views/callout";
 import { isLoomaImageName, normalizeImagePlacement } from "./extensions/image";
 import { imageNodeView } from "./node-views/image";
@@ -139,8 +139,12 @@ export type LoomaImageUploader = LoomaResponder<LoomaImageUploadDetail, LoomaIma
 
 /** Uploads a file and returns its retained link; rejection leaves authored content unchanged. */
 export type LoomaFileUploader = LoomaResponder<{ file: File }, LoomaFileDescriptor>;
+/** Confirm a permanent deletion before the editor removes its file block. */
+export type LoomaFileDeletionConfirmation = LoomaResponder<{ file: LoomaFileDescriptor }, { confirmed: boolean }>;
+/** Delete the retained original; rejection restores the removed block. */
+export type LoomaFileDeleter = LoomaResponder<{ file: LoomaFileDescriptor }, { deleted: boolean }>;
 
-const EDITOR_REQUEST_NAMES = ["extensions", "slash-commands", "mention-query", "link-search", "link-resolve", "image-upload", "file-upload"] as const;
+const EDITOR_REQUEST_NAMES = ["extensions", "slash-commands", "mention-query", "link-search", "link-resolve", "image-upload", "file-upload", "file-delete-confirm", "file-delete"] as const;
 type EditorRequest = typeof EDITOR_REQUEST_NAMES[number];
 
 const uploadProgressText = (progress: LoomaImageUploadsState["progress"], label = "Uploading image…") =>
@@ -516,9 +520,11 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       const arrived = (name: EditorRequest) => current.has(name) && !responders.has(name);
       const extensionsArrived = arrived("extensions");
       const slashChanged = arrived("slash-commands") || current.has("image-upload") !== responders.has("image-upload") || current.has("file-upload") !== responders.has("file-upload");
+      const fileDeletionChanged = current.has('file-delete') !== responders.has('file-delete') || current.has('file-delete-confirm') !== responders.has('file-delete-confirm');
       responders = current;
       if (extensionsArrived) askExtensions();
       if (slashChanged) askSlashCommands();
+      if (fileDeletionChanged && uiState.editor) setReferenceDisplay(uiState.editor, { ...getReferenceDisplay(uiState.editor) });
     };
     afterRender(checkResponders);
     let stopAnnouncements: (() => void) | undefined;
@@ -579,7 +585,12 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             headingNodeView,
             expandNodeView,
             dividerNodeView,
-            fileAttachmentNodeView,
+            fileAttachmentNodeView: createFileAttachmentNodeView({
+              enabled: () => answers('file-delete') && answers('file-delete-confirm'),
+              confirm: async (file, signal) => (await ask<{ confirmed: boolean }>('file-delete-confirm', { file }, { signal }))?.confirmed === true,
+              remove: async (file, signal) => (await ask<{ deleted: boolean }>('file-delete', { file }, { signal }))?.deleted === true,
+              onError: (error, file) => emit('file-delete-error', { error, file }),
+            }),
             calloutNodeView,
             imageNodeView,
             inlineImageNodeView: imageNodeView,

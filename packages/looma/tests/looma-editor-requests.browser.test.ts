@@ -94,6 +94,46 @@ it("preserves consumer editor classes while editability changes", async () => {
 });
 
 describe("LoomaEditor requests", () => {
+  it('confirms permanent file deletion, restores a refused removal alongside concurrent writing, and keeps undo tombstoned', async () => {
+    const attachment = { type: 'loomaFileAttachment', attrs: { href: '/files/report.pdf', name: 'Report.pdf', size: 1100, contentType: 'application/pdf' } };
+    let confirm = false;
+    let accept: ((value: { deleted: boolean }) => void) | undefined, refuse: ((error: Error) => void) | undefined;
+    const remove = vi.fn(() => new Promise<{ deleted: boolean }>((resolve, reject) => { accept = resolve; refuse = reject; }));
+    const { host, editor } = await mountEditor({
+      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Keep this writing.' }] }, attachment] },
+      fileDeleteConfirm: () => ({ confirmed: confirm }), fileDelete: remove,
+    }, 375);
+    const trash = () => page.getByRole('button', { name: 'Delete Report.pdf', exact: true });
+    await userEvent.click(trash());
+    expect(remove).not.toHaveBeenCalled();
+    expect(host.querySelector('[data-looma-file-attachment]')).not.toBeNull();
+    confirm = true;
+    const failed = vi.fn(); host.addEventListener('file-delete-error', failed);
+    await userEvent.click(trash());
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    editor()!.commands.insertContentAt(1, 'New ');
+    refuse!(new Error('Storage refused deletion'));
+    await vi.waitFor(() => expect(failed).toHaveBeenCalledTimes(1));
+    expect(host.textContent).toContain('New Keep this writing.');
+    expect(host.querySelector('[data-looma-file-attachment]')?.getAttribute('href')).toBe('/files/report.pdf');
+    editor()!.setEditable(false); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(true);
+    editor()!.setEditable(true); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(false);
+    await userEvent.click(trash());
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    accept!({ deleted: true });
+    await flushBrowser();
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    editor()!.commands.undo(); await flushBrowser();
+    const restored = host.querySelector('[data-looma-file-attachment]')!;
+    expect(restored.textContent).toContain('Report.pdf (deleted)');
+    expect(restored.hasAttribute('href')).toBe(false);
+    expect(restored.getAttribute('aria-disabled')).toBe('true');
+    expect(host.textContent).toContain('New Keep this writing.');
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(true);
+  });
   it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
     let signal: AbortSignal | undefined;
     const errors: unknown[] = [];
