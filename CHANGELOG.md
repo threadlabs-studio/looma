@@ -2,6 +2,7 @@
 
 ## Next release
 
+- Preserve Markdown soft line breaks when editing prose in the full and compact editors. Explicit hard breaks keep their meaning.
 - Present attached originals as movable file blocks with SVG icons, filenames and byte sizes. The whole card is a native link. Keep metadata, surrounding writing, upload retry and undo intact through HTML and Markdown round trips.
 - LoomaEditor headings with anchors show a copy-link button on hover or keyboard focus, with a tooltip and clipboard feedback. The controls are available in read-only documents and never enter saved content.
 

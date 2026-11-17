@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Editor, getSchema } from "@tiptap/core";
 import { editorToMarkdown, editorDocumentToMarkdown, editorDocumentToExpressmark, expressmarkToEditorDocument, markdownToEditorDocument } from "../src/editor/expressmark";
 import { getDefaultEditorExtensions } from "../src/editor/extensions";
+import { getCompactEditorExtensions } from "../src/editor/compact-extensions";
 
 const editors: Editor[] = [];
 afterEach(() => { for (const editor of editors.splice(0)) editor.destroy(); });
-const open = (markdown: string) => {
-  const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: markdownToEditorDocument(markdown) });
+const open = (markdown: string, extensions = getDefaultEditorExtensions()) => {
+  const editor = new Editor({ extensions, content: markdownToEditorDocument(markdown) });
   editors.push(editor);
   return editor;
 };
@@ -25,6 +26,29 @@ const replaceText = (editor: Editor, text: string, replacement: string) => {
 };
 
 describe("native Markdown document shapes", () => {
+  it.each([
+    ["full", getDefaultEditorExtensions],
+    ["compact", getCompactEditorExtensions],
+  ] as const)("preserves soft and hard breaks when the %s editor reads a text edit", async (_preset, extensions) => {
+    const source = "Rain fell over the yellow road.\r\nWater filled the ruts.  \r\nThe carts stopped.\r\n\r\nThe morning came.\r\n";
+    const editor = open(source, extensions());
+    const text = editor.view.dom.querySelector("p")!.firstChild!;
+    text.textContent = text.textContent!.replace("yellow", "gray");
+    await vi.waitFor(() => expect(editor.getText()).toContain("gray road"));
+    expect(editor.view.dom.querySelector("p")!.querySelectorAll("br")).toHaveLength(1);
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("yellow", "gray"));
+  });
+
+  it("preserves a soft break inside an edited italic span", async () => {
+    const source = "It was *yellow\nwhen they saw it* from the road.\n";
+    const editor = open(source);
+    const text = editor.view.dom.querySelector("em")!.firstChild!;
+    text.textContent = text.textContent!.replace("yellow", "gray");
+    await vi.waitFor(() => expect(editor.getText()).toContain("gray"));
+    expect(editor.view.dom.querySelector("p br")).toBeNull();
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("yellow", "gray"));
+  });
+
   it("keeps a responsive picture inside its heading through editing and export", () => {
     const markdown = '<h1 align="center">\n<picture><source media="(prefers-color-scheme: dark)" srcset="dark.svg 1x, dark-large.svg 2x"><img src="light.svg" alt="Project logo" width="280"></picture>\n</h1>\n\nDescription.';
     const editor = open(markdown);
