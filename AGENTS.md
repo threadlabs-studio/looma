@@ -49,6 +49,11 @@ executable inputs need an owner mapping. See
 
 ## Component Rules
 
+- For a new screen, start with the closest rendered example in [Blocks](apps/docs-next/docs/blocks.md).
+  Identify the primary task, the space it needs, and what should move into a drawer or dialog as the layout narrows.
+  Verify the rendered result with realistic content and keyboard navigation.
+- For interaction changes, check the [behavior inventory](docs/behavior-inventory.md) before creating another controller policy.
+
 - Accessibility first and mobile first.
 - Authored semantic HTML must work before JavaScript; upgrade attaches behavior
   without rewriting the tree shape.

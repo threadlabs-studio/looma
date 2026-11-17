@@ -47,6 +47,7 @@
       background-image: var(--_ui-default-textarea-highlight, var(--ui-surface-highlight, none));
       color: var(--ui-text-primary);
       font: inherit;
+      font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-md);
       box-shadow: var(--ui-textarea-shadow, var(--_ui-default-textarea-shadow, var(--ui-control-inset)));
       transition:
@@ -131,8 +132,10 @@
 
     /* Below 16px, iOS zooms the page into the focused field, so touch keeps body-size text. */
     @media (pointer: coarse) {
-      :host([size="sm"]) {
-        font-size: inherit;
+      :host,
+      :host([size="sm"]),
+      :host([size="lg"]) {
+        font-size: var(--ui-font-size-md);
       }
     }
 

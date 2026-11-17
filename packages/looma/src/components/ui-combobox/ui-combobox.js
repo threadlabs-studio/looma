@@ -1,4 +1,5 @@
 import { cancelActiveItemReveal, revealActiveItem } from "../shared/active-item-reveal.js";
+import { enabledOptionIndices, nextActiveIndex } from "../shared/collection-navigation.js";
 import { afterFormReset } from "../shared/form-reset.js";
 import { closeOverlay, createAnchoredSurface, openOverlay } from "../shared/overlay.js";
 
@@ -168,7 +169,7 @@ export function connect(host) {
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
       if (query && host.props.autoHighlight.value === "single") {
-        const enabled = host.state.rows.flatMap((row, index) => row.disabled ? [] : [index]);
+        const enabled = enabledOptionIndices(host.state.rows);
         if (enabled.length === 1) host.state.active = enabled[0];
       }
       // Options in their declared shape: a row's `selected` flag is the list's own view state.
@@ -323,12 +324,11 @@ export function connect(host) {
   };
   const move = (key) => {
     const rows = host.state.rows ?? [];
-    const indices = rows.flatMap((row, index) => row.disabled ? [] : [index]);
+    const indices = enabledOptionIndices(rows);
     if (canCreate()) indices.push(rows.length);
-    if (!indices.length) return;
-    const current = indices.indexOf(host.state.active);
-    const next = key === "Home" ? 0 : key === "End" ? indices.length - 1 : key === "ArrowDown" ? Math.min(current + 1, indices.length - 1) : current < 0 ? indices.length - 1 : Math.max(0, current - 1);
-    host.state.active = indices[next];
+    const next = nextActiveIndex(indices, host.state.active, key);
+    if (next < 0) return;
+    host.state.active = next;
     revealActiveItem(popup, () => document.getElementById(`${uid}-option-${host.state.active}`));
   };
   const validateCurrent = async () => {

@@ -9,6 +9,15 @@ import { automaticChecks, affectedComponents, affectedModules, caseNamePattern, 
 
 // Selection follows the source under review, including added and removed scenario files.
 let currentSources;
+
+test("a block source change qualifies documentation and packed consumers", () => {
+  const block = "packages/looma/src/blocks/list-detail.html";
+  const result = automaticChecks({ [block]: "<ui-switcher></ui-switcher>" }, [block, "packages/looma/.gitignore"]);
+  assert.equal(result.docsBuild, true);
+  assert.equal(result.packageConsumer, true);
+  assert.equal(result.full, false);
+});
+
 function workingSources() {
   if (currentSources) return currentSources;
   currentSources = { ...snapshot("HEAD", true) };

@@ -144,6 +144,17 @@ export default class Example {}
 ```
 :::
 
+## Build a screen
+
+Start from [Blocks](/blocks/) for a writing workspace, a list with details, a
+settings form, or a search dialog. Each preview has the same markup and
+JavaScript that ship with the package.
+
+Choose which content needs the most room and what should happen to the other
+panes on a phone. Use Stack for vertical reading order and Cluster for actions
+that belong together. Check the screen with long labels and realistic content,
+then complete the main task with the keyboard at desktop and phone widths.
+
 ## Install Looma
 
 Looma's HTML definitions are the source for Vue, React, Preact, Svelte and Angular components. In an existing Vite project, install Looma and the HTML Next Vite adapter:

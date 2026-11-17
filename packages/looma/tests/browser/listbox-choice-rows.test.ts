@@ -27,8 +27,17 @@ describe("Listbox choice rows", () => {
     assert.deepEqual(await entries(), ["north", "south", "west"]);
     await listbox.press(" ");
     assert.deepEqual(await entries(), ["north", "west"]);
-    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
-    assert.deepEqual(await entries(), ["north", "west"]);
+    await listbox.locator('[role="option"]').nth(1).click();
+    await page.locator("#form").evaluate((form: HTMLFormElement) => {
+      form.addEventListener("reset", (event) => event.preventDefault(), { once: true });
+      form.reset();
+    });
+    assert.deepEqual(await entries(), ["north", "south", "west"]);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => {
+      form.addEventListener("reset", (event) => event.stopPropagation(), { once: true });
+      form.reset();
+    });
+    await expect.poll(entries).toEqual(["north", "west"]);
   };
 
   it("uses checked choice rows and form reset in HTML", async () => {
@@ -69,7 +78,7 @@ describe("Listbox choice rows", () => {
     assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), true);
     assert.deepEqual(await page.locator("#form").evaluate((form: HTMLFormElement) => Array.from(new FormData(form).getAll("plan"))), ["team"]);
     await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
-    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
+    await expect.poll(() => page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(false);
     await page.close();
   });
 });
