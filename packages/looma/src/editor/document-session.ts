@@ -51,7 +51,7 @@ import {
 import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement } from "./table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "./mobile-dock";
 import { createLinkEditing, isLinkActive, selectedLinkReference, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "./link-editing";
-import { setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
+import { getReferenceDisplay, setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "./selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "./selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "./session";
@@ -524,7 +524,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       responders = current;
       if (extensionsArrived) askExtensions();
       if (slashChanged) askSlashCommands();
-      if (fileDeletionChanged && uiState.editor) uiState.editor.view.dispatch(uiState.editor.state.tr.setMeta('addToHistory', false));
+      if (fileDeletionChanged && uiState.editor) setReferenceDisplay(uiState.editor, { ...getReferenceDisplay(uiState.editor) });
     };
     afterRender(checkResponders);
     let stopAnnouncements: (() => void) | undefined;

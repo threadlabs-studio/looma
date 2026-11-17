@@ -117,6 +117,10 @@ describe("LoomaEditor requests", () => {
     await vi.waitFor(() => expect(failed).toHaveBeenCalledTimes(1));
     expect(host.textContent).toContain('New Keep this writing.');
     expect(host.querySelector('[data-looma-file-attachment]')?.getAttribute('href')).toBe('/files/report.pdf');
+    editor()!.setEditable(false); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(true);
+    editor()!.setEditable(true); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(false);
     await userEvent.click(trash());
     await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
     accept!({ deleted: true });

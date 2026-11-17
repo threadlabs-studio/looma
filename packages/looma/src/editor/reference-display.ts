@@ -147,10 +147,16 @@ export const LoomaReferencePresentation = Extension.create<{ references: LoomaRe
       } } },
       // Reattaching an editor replaces plugin views while its node views can survive.
       // Each node view owns its registration until its own destroy callback runs.
-      view: () => ({ update: (view, previous) => {
-        if (referenceDisplayKey.getState(view.state) !== referenceDisplayKey.getState(previous)) refresh.forEach(render => render());
+      view: view => {
+        let editable = view.editable;
         this.storage.listeners.forEach((render: () => void) => render());
-      } }),
+        return { update: (view, previous) => {
+          const changed = referenceDisplayKey.getState(view.state) !== referenceDisplayKey.getState(previous);
+          if (changed) refresh.forEach(render => render());
+          if (changed || editable !== view.editable) this.storage.listeners.forEach((render: () => void) => render());
+          editable = view.editable;
+        } };
+      },
     })];
   },
 });
