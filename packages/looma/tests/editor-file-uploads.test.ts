@@ -30,6 +30,7 @@ it('keeps a file block through undo and preserves intervening typing at the uplo
   expect(restored.getJSON().content?.find(node => node.type === 'loomaFileAttachment')).toMatchObject({ attrs: { name: 'report.pdf', href: '/files/report.pdf', size: 3, contentType: 'application/pdf' } });
   expect(restored.getText()).toContain('report.pdf (3 B)');
   expect(editorDocumentToMarkdown(editor.getJSON())).toContain('href="/files/report.pdf"');
+  expect(editor.getHTML()).toContain('</a> <span>3 B</span>');
   expect(editor.getText()).toContain('(3 B)');
   expect(editor.getText()).toContain(' typed');
   editor.commands.undo();

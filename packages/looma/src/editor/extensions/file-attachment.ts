@@ -26,7 +26,7 @@ const escape = (value: unknown) => String(value).replace(/&/g, '&amp;').replace(
 /** Portable HTML keeps the original link, filename and byte count without editor chrome. */
 export function fileAttachmentHtml(value: Record<string, unknown>): string {
   const a = fileAttachmentAttrs(value);
-  return `<div data-looma-file-attachment="" data-href="${escape(a.href)}" data-name="${escape(a.name)}" data-size="${a.size}" data-content-type="${escape(a.contentType)}"><a href="${escape(a.href)}" target="_blank" rel="noopener noreferrer">${escape(a.name)}</a><span>${fileAttachmentSize(a.size)}</span></div>`;
+  return `<div data-looma-file-attachment="" data-href="${escape(a.href)}" data-name="${escape(a.name)}" data-size="${a.size}" data-content-type="${escape(a.contentType)}"><a href="${escape(a.href)}" target="_blank" rel="noopener noreferrer">${escape(a.name)}</a> <span>${fileAttachmentSize(a.size)}</span></div>`;
 }
 
 /** Read only the complete authored attachment shape; refuse extra executable or lost content. */
@@ -61,7 +61,7 @@ export const LoomaFileAttachment = Node.create({
     let a: FileAttachmentAttrs;
     try { a = fileAttachmentAttrs(node.attrs); } catch { return ['div', {}, 'Unavailable attachment']; }
     return ['div', { 'data-looma-file-attachment': '', 'data-href': a.href, 'data-name': a.name, 'data-size': a.size, 'data-content-type': a.contentType },
-      ['a', { href: a.href, target: '_blank', rel: 'noopener noreferrer' }, a.name], ['span', {}, fileAttachmentSize(a.size)]];
+      ['a', { href: a.href, target: '_blank', rel: 'noopener noreferrer' }, a.name], ' ', ['span', {}, fileAttachmentSize(a.size)]];
   },
   renderText({ node }) {
     try { const a = fileAttachmentAttrs(node.attrs); return `${a.name} (${fileAttachmentSize(a.size)})`; } catch { return 'Unavailable attachment'; }
