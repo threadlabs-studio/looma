@@ -65,7 +65,7 @@ it("keeps inline pictures beside heading text under a block media reset", async 
   const { host, editor } = await mountEditor({ content }, 375);
   const heading = host.querySelector(".ProseMirror h2")!;
   const range = document.createRange();
-  range.selectNodeContents(heading.firstChild!);
+  range.selectNodeContents(document.createTreeWalker(heading, NodeFilter.SHOW_TEXT).nextNode()!);
   const text = range.getBoundingClientRect(), picture = heading.querySelector("picture")!.getBoundingClientRect();
   expect(picture.left).toBeGreaterThanOrEqual(text.right - 1);
   expect(picture.top).toBeLessThan(text.bottom);

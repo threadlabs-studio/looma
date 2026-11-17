@@ -17,6 +17,8 @@ sidebar: false
 
 ## Try the editor
 
+Headings with an `id` have a copy-link button that appears when you hover over the heading or tab to the button. Its tooltip says **Copy link**; activation copies the current page URL with that heading's fragment and confirms **Link copied**. Read-only documents have the same controls. Headings without anchors keep their existing behavior, and the controls are never saved into HTML or JSON.
+
 <looma-editor-guide></looma-editor-guide>
 
 Scroll inside the sample to see the always-visible toolbar stay at the top, or switch to
