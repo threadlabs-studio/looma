@@ -1,8 +1,9 @@
 import type { Editor } from '@tiptap/core';
 import { closeHistory } from '@tiptap/pm/history';
 import type { Transaction } from '@tiptap/pm/state';
+import { fileAttachmentAttrs } from './extensions/file-attachment';
 
-/** A retained file, represented as a readable ordinary link in the document. */
+/** A retained file, represented by an atomic attachment block and a portable native link. */
 export interface LoomaFileDescriptor { href: string; name: string; size: number; contentType: string; }
 /** The application retains the bytes and returns their authorized download URL. */
 export type LoomaFileUpload = (file: File, init: { signal: AbortSignal; progress: (loaded: number, total: number) => void }) => PromiseLike<LoomaFileDescriptor | null> | LoomaFileDescriptor | null;
@@ -39,12 +40,9 @@ export function createFileUploads(options: { editor: Editor; upload: () => Looma
       if (!current()) return;
       if (!answer || editor.isDestroyed || !editor.isEditable) { finish(job); return; }
       if (!/^(?:https?:\/\/|\/(?!\/))/.test(answer.href) || !Number.isSafeInteger(answer.size) || answer.size < 0) throw new Error('Invalid file descriptor');
-      const size = answer.size < 1000 ? `${answer.size} B` : answer.size < 1_000_000 ? `${Math.ceil(answer.size / 1000)} KB` : `${Number((answer.size / 1_000_000).toFixed(1))} MB`;
+      const attrs = fileAttachmentAttrs({ href: answer.href, name: answer.name || job.file.name, size: answer.size, contentType: answer.contentType || 'application/octet-stream' });
       editor.view.dispatch(closeHistory(editor.state.tr));
-      editor.chain().focus().insertContentAt(job.position, [
-        { type: 'text', text: answer.name || job.file.name, marks: [{ type: 'link', attrs: { href: answer.href, target: '_blank', rel: 'noopener noreferrer' } }] },
-        { type: 'text', text: ` (${answer.contentType || 'application/octet-stream'}, ${size}) ` },
-      ]).run();
+      editor.chain().focus().insertContentAt(job.position, { type: 'loomaFileAttachment', attrs }).run();
       editor.view.dispatch(closeHistory(editor.state.tr));
       if (current()) finish(job);
     } catch (error) {

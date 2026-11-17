@@ -10,7 +10,7 @@ it('offers file insertion only when its host can upload', () => {
   expect(getDefaultSlashCommands().some(command => command.title === 'File attachment')).toBe(false);
   expect(getDefaultSlashCommands(undefined, undefined, undefined, () => {}).some(command => command.title === 'File attachment')).toBe(true);
 });
-it('keeps a readable file link through undo and preserves intervening typing at the upload anchor', async () => {
+it('keeps a file block through undo and preserves intervening typing at the upload anchor', async () => {
   const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: '<p>Before after</p>' }); editors.push(editor);
   editor.commands.setTextSelection(7);
   let finish!: (answer: {href:string;name:string;size:number;contentType:string}) => void;
@@ -27,12 +27,10 @@ it('keeps a readable file link through undo and preserves intervening typing at 
   expect(editor.getText()).toContain('report.pdf');
   expect(JSON.stringify(editor.getJSON())).toContain('/files/report.pdf');
   const restored = new Editor({ extensions: getDefaultEditorExtensions(), content: editor.getHTML() }); editors.push(restored);
-  expect(restored.getJSON().content?.[0]?.content?.find(node => node.text === 'report.pdf')).toMatchObject({
-    text: 'report.pdf', marks: [{ type: 'link', attrs: { href: '/files/report.pdf', target: '_blank' } }],
-  });
-  expect(restored.getText()).toContain('report.pdf (application/pdf, 3 B)');
-  expect(editorDocumentToMarkdown(editor.getJSON())).toContain('[report.pdf](/files/report.pdf)');
-  expect(editor.getText()).toContain('(application/pdf, 3 B)');
+  expect(restored.getJSON().content?.find(node => node.type === 'loomaFileAttachment')).toMatchObject({ attrs: { name: 'report.pdf', href: '/files/report.pdf', size: 3, contentType: 'application/pdf' } });
+  expect(restored.getText()).toContain('report.pdf (3 B)');
+  expect(editorDocumentToMarkdown(editor.getJSON())).toContain('href="/files/report.pdf"');
+  expect(editor.getText()).toContain('(3 B)');
   expect(editor.getText()).toContain(' typed');
   editor.commands.undo();
   expect(editor.getText()).not.toContain('report.pdf');
@@ -64,7 +62,10 @@ it('retries the failed file at its retained anchor after typing and a selection 
   editor.commands.setTextSelection(1);
   await uploads.retry();
   expect(upload.mock.calls.map(([sent]) => sent)).toEqual([file, file]);
-  expect(editor.getText()).toBe('Before typed report.pdf (application/pdf, 3 B)  after');
+  expect(editor.getJSON().content?.map(node => node.type)).toEqual(['paragraph', 'loomaFileAttachment', 'paragraph']);
+  expect(editor.getText()).toContain('Before typed ');
+  expect(editor.getText()).toContain('report.pdf (3 B)');
+  expect(editor.getText()).toContain(' after');
   expect(state).toEqual({ uploading: false, progress: null, failed: null });
   uploads.cancel();
 });

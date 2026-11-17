@@ -1,8 +1,10 @@
 import type { Editor, JSONContent } from "@tiptap/core";
 import { parse, stringify, type Attributes, type ConversionOptions, type Document, type Node } from "expressmark";
+import { renderHtml } from 'expressmark/render';
 import { assignLoomaHeadingIds, LOOMA_CALLOUT_TONE_ALIASES, LOOMA_CALLOUT_TONES, LOOMA_CHIP_TONES, parseLoomaFenceInfo } from "../markdown";
 import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
 import { pictureHtml, readPictureHtml, normalizeImageSources } from "./image-sources";
+import { fileAttachmentHtml, readFileAttachmentHtml } from './extensions/file-attachment';
 import { isHeadingAlignment } from "./heading-alignment";
 
 /** Conversion-time display snapshot, independent from the authored editor document. */
@@ -45,7 +47,7 @@ const plainTitle = (node: Node | string | undefined, path: string): string => {
   return text(node as Node);
 };
 const AST_FIELDS: Record<string, string[]> = {
-  text: [], paragraph: [], lineBlock: [], html: ["display"], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
+  text: [], paragraph: [], lineBlock: [], html: ["display"], htmlElement: ['display', 'tag', 'open', 'close'], group: ['display', 'tag'], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
   list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], image: ["url", "alt", "title"],
   inline: ["subType", "ref"], container: ["subType", "title", "spelling", "titleSpelling"], leaf: ["subType"], table: ["align", "title"], tableRow: [], tableCell: ["header", "colSpan", "rowSpan"],
   strong: [], emphasis: [], delete: [], underline: [], highlight: [], inlineCode: [], link: ["url", "title"], linkReference: ["label", "referenceType"],
@@ -218,6 +220,11 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
   const plain = (type: string, keys: string[] = [], extra: Partial<Node> = {}) => { fields(node, keys, path); return compact(type, children(), extra); };
   const block = (type: string, keys: string[] = [], extra: Partial<Node> = {}): Node => { fields(node, keys, path); return { type, ...extra, body: blocks() }; };
   switch (node.type) {
+    case 'loomaFileAttachment': {
+      fields(node, ['href', 'name', 'size', 'contentType'], path);
+      safeNavigation(attrs.href, false, path);
+      return { type: 'html', display: 'block', value: fileAttachmentHtml(attrs) };
+    }
     case "loomaReference": {
       fields(node, ["id", "kind", "href", "label", "target"], path);
       if (!attrs.id || attrs.kind !== "link") fail(path, "invalid link reference identity");
@@ -490,9 +497,19 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       return [{ type: "heading", attrs: { level: node.level ?? 1, ...(attrs.align !== undefined ? { align: attrs.align } : {}), ...(node.id ? { id: node.id } : {}) }, ...(body.length ? { content: body } : {}) }];
     }
     case "lineBlock": check(); return wrap("loomaLineBlock");
+    case 'group':
+    case 'htmlElement': {
+      check(node.type === 'group' ? ['dataLoomaFileAttachment', 'dataHref', 'dataName', 'dataSize', 'dataContentType'] : []);
+      if (node.display !== 'block' || node.tag !== 'div') return fail(path, 'non-block attachment');
+      const file = readFileAttachmentHtml(renderHtml({ type: 'document', version: 1, body: [node] }));
+      if (file) return [{ type: 'loomaFileAttachment', attrs: { ...file } }];
+      return fail(path, 'HTML other than a supported attachment');
+    }
     case "html": {
       check();
       try {
+        const file = readFileAttachmentHtml(node.value ?? '');
+        if (file) return [{ type: 'loomaFileAttachment', attrs: { ...file } }];
         const image = readPictureHtml(node.value ?? "");
         if (image) return [{ type: "image", attrs: image, ...(marks.length ? { marks } : {}) }];
       } catch (error) { fail(path, String(error)); }

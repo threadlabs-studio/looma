@@ -3,6 +3,23 @@ import { headingAnchors, parse } from "expressmark";
 import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
 
+it('preserves an attachment block and surrounding writing through portable Markdown', () => {
+  const document = { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'Review the attached report.' }] },
+    { type: 'loomaFileAttachment', attrs: { href: './assets/report.pdf', name: 'Report & notes.pdf', size: 24576, contentType: 'application/pdf' } },
+    { type: 'paragraph', content: [{ type: 'text', text: 'Keep the original notes here.' }] },
+  ] };
+  for (const options of [{}, { syntax: 'compatible' as const }]) {
+    const markdown = editorDocumentToMarkdown(document, options);
+    expect(markdown).toContain('./assets/report.pdf');
+    expect(markdownToEditorDocument(markdown)).toEqual(document);
+  }
+});
+
+it('refuses an attachment block with an executable navigation URL', () => {
+  expect(() => editorDocumentToMarkdown({ type: 'doc', content: [{ type: 'loomaFileAttachment', attrs: { href: 'javascript:alert(1)', name: 'Report.pdf', size: 24, contentType: 'application/pdf' } }] })).toThrow();
+});
+
 describe("Expressive Markdown editor documents", () => {
   it.each(["left", "center", "right", "justify"])("preserves explicit heading alignment %s through portable Markdown", align => {
     const document = { type: "doc", content: [{ type: "heading", attrs: { level: 2, align }, content: [{ type: "text", text: "Aligned heading" }] }] };

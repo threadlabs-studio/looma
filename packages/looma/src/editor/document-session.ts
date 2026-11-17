@@ -60,6 +60,7 @@ import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement,
 import { tableOfContentsNodeView } from "./node-views/table-of-contents";
 import { expandNodeView } from "./node-views/expand";
 import { dividerNodeView } from "./node-views/divider";
+import { fileAttachmentNodeView } from './node-views/file-attachment';
 import { calloutNodeView } from "./node-views/callout";
 import { isLoomaImageName, normalizeImagePlacement } from "./extensions/image";
 import { imageNodeView } from "./node-views/image";
@@ -576,6 +577,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             tableOfContentsNodeView,
             expandNodeView,
             dividerNodeView,
+            fileAttachmentNodeView,
             calloutNodeView,
             imageNodeView,
             inlineImageNodeView: imageNodeView,

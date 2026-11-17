@@ -6,7 +6,7 @@ existing editor contract; it does not replace its slash, link, or chip controls.
 
 S1–S4 and S8 ship on current main. S5 and S6 use the existing host command
 extension point; they do not require dedicated template or date services in
-Looma. S7 retains the shipped ordinary-link model and completes its upload
+Looma. S7 supplies movable file blocks and completes their upload
 progress and recovery UI.
 
 | Spec | Ticket |
@@ -162,16 +162,16 @@ local calendar date when the command runs.
 
 `/file` and `/attachment` use the host's `file-upload` responder. Looma owns
 insertion and progress/error/retry UI; the host owns transport, permissions,
-storage, and the durable `href`. Keep the existing ordinary-link document format.
+storage, and the durable `href`. New uploads insert an atomic `loomaFileAttachment` block with `href`, `name`, `size` and `contentType` attributes.
 
 Acceptance:
 
 - The command is absent when the capability is unavailable.
 - Selection/upload/cancellation/retry follow the current media ownership model.
 - The durable `href` is the host-owned identity. The filename, MIME type, and
-  size remain readable ordinary document content.
-- Read-only content exposes an accessible file name and download/open action.
-- JSON/HTML round-trip and Markdown retain the file destination. Plain text
+  size remain authored metadata. The card shows a decorative SVG file icon, filename and formatted byte size; its whole surface is a native link.
+- Read-only content exposes the same accessible card link. There is no nested button or visible action-word label.
+- JSON/HTML round-trip and Markdown retain the file destination and metadata. Plain text
   retains its name and metadata; URL-bearing plain-text exports remain a host projection.
 - No executable embed or arbitrary iframe is required for the initial contract.
 
