@@ -180,6 +180,14 @@ function customHeadings(headings: Heading[]): Set<JSONContent> {
   }
 }
 
+// The writer accepts newlines in a plain block value. Mixed inline content
+// needs explicit soft-break nodes, including within a formatted span.
+function softLineBreaks(node: Node): Node[] {
+  if (node.type !== "text" || !node.value?.includes("\n")) return [node];
+  return node.value.split(/((?<!\n)\n(?!\n))/).filter(Boolean)
+    .map(value => value === "\n" ? { type: "softBreak" } : { type: "text", value });
+}
+
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
@@ -196,16 +204,16 @@ function toNode(node: JSONContent, path: string, context: ProjectionContext): No
       if (definition && definition.attrs?.href === attrs.href && string(definition.attrs?.title) === string(attrs.title) && !attrs.class) {
         const spelled = attrs.referenceType === "collapsed" || attrs.referenceType === "shortcut";
         const referenceType = spelled && referenceKey(text(result)) !== referenceKey(attrs.reference) ? "full" : string(attrs.referenceType, "full");
-        result = compact("linkReference", [result], { label: attrs.reference, referenceType: referenceType as Node["referenceType"] });
+        result = compact("linkReference", softLineBreaks(result), { label: attrs.reference, referenceType: referenceType as Node["referenceType"] });
         continue;
       }
       const attributes: Attributes = {};
       for (const key of ["target", "rel", "class"]) if (attrs[key] !== LINK_DEFAULTS[key]) has(attributes, key, attrs[key]);
-      result = compact(type, [result], { url: string(attrs.href), ...(attrs.title ? { title: string(attrs.title) } : {}), ...(Object.keys(attributes).length ? { attributes } : {}) });
+      result = compact(type, softLineBreaks(result), { url: string(attrs.href), ...(attrs.title ? { title: string(attrs.title) } : {}), ...(Object.keys(attributes).length ? { attributes } : {}) });
     } else if (type === "inlineCode") {
       if (result.type !== "text") fail(path, "code combined with another mark");
       result = { type, value: result.value ?? "" };
-    } else result = compact(type, [result], mark.attrs?.color ? { attributes: { color: string(mark.attrs.color) } } : {});
+    } else result = compact(type, softLineBreaks(result), mark.attrs?.color ? { attributes: { color: string(mark.attrs.color) } } : {});
   }
   return result;
 }
@@ -217,7 +225,14 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
   const attrs = node.attrs ?? {};
   const children = () => (node.content ?? []).map((child, index) => toNode(child, `${path}.body[${index}]`, context));
   const blocks = () => children().map(child => child.type === "image" ? { type: "paragraph", children: [child] } : child);
-  const plain = (type: string, keys: string[] = [], extra: Partial<Node> = {}) => { fields(node, keys, path); return compact(type, children(), extra); };
+  const plain = (type: string, keys: string[] = [], extra: Partial<Node> = {}) => {
+    fields(node, keys, path);
+    const result = compact(type, children(), extra);
+    if ((type === "paragraph" || type === "heading") && result.children) {
+      result.children = result.children.flatMap(softLineBreaks);
+    }
+    return result;
+  };
   const block = (type: string, keys: string[] = [], extra: Partial<Node> = {}): Node => { fields(node, keys, path); return { type, ...extra, body: blocks() }; };
   switch (node.type) {
     case 'loomaFileAttachment': {
