@@ -104,7 +104,7 @@ async function main() {
   }
   if (command !== "run") throw new Error("Choose plan or run quality/browser/package-consumer/docs");
   if (stage === "quality") {
-    const builtBeforeScripts = selection.scripts.some(file => file.startsWith("packages/looma-docs/tooling/docs/") || file.startsWith("apps/docs-next/") || file.startsWith("tests/framework-consumer/"));
+    const builtBeforeScripts = selection.scripts.some(file => file === "tools/scripts/docs-coverage.test.mjs" || file.startsWith("packages/looma-docs/tooling/docs/") || file.startsWith("apps/docs-next/") || file.startsWith("tests/framework-consumer/"));
     if (builtBeforeScripts) { run(["--filter", "@threadlabs/looma", "build"]); run(["--filter", "@threadlabs/looma-docs", "build"]); }
     // Run the selected script files together instead of spawning Node once for every case/file.
     if (selection.scripts.length) {

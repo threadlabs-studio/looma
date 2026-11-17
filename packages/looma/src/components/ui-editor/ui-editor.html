@@ -91,7 +91,7 @@
       image before insertion.</request>
     <request name="file-upload" type="object"><prop name="file" type="unknown" required></prop><returns
         type="object({ href: string, name: string, size: number, contentType: string, ... })"
-      ></returns>Retain a file before inserting its link.</request>
+      ></returns>Retain a file before inserting its movable file block. The block shows an SVG file icon, filename and size; activating the whole block follows its retained URL.</request>
     <request name="code-languages" returns="object({ ... })"
     >The code grammar catalog chosen before creation. null keeps the built-in lazy catalog; an empty record disables highlighting.</request>
     <request name="image-delivery" returns="unknown"
