@@ -5,6 +5,7 @@
 
 import { Extension, mergeAttributes, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
 import { LoomaInputRuleHistory } from "./input-rule-history";
+import { LoomaDOMReadback } from "./dom-readback";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -259,6 +260,7 @@ export function getDefaultEditorExtensions(
     HardBreak,
     History,
     LoomaInputRuleHistory,
+    LoomaDOMReadback,
     Dropcursor,
     Gapcursor,
     Link.configure({
