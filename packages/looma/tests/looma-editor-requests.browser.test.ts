@@ -65,7 +65,7 @@ it("keeps inline pictures beside heading text under a block media reset", async 
   const { host, editor } = await mountEditor({ content }, 375);
   const heading = host.querySelector(".ProseMirror h2")!;
   const range = document.createRange();
-  range.selectNodeContents(heading.firstChild!);
+  range.selectNodeContents(document.createTreeWalker(heading, NodeFilter.SHOW_TEXT).nextNode()!);
   const text = range.getBoundingClientRect(), picture = heading.querySelector("picture")!.getBoundingClientRect();
   expect(picture.left).toBeGreaterThanOrEqual(text.right - 1);
   expect(picture.top).toBeLessThan(text.bottom);
@@ -179,14 +179,14 @@ describe("LoomaEditor requests", () => {
 });
 
 
-it("attaches a chosen file through its host responder as an editable link", async () => {
+it("attaches a chosen file through its host responder as a movable file block", async () => {
   const { host, editor } = await mountEditor({ fileUpload: ({ file }: { file: File }) => ({ href: "/files/report.pdf", name: file.name, size: file.size, contentType: file.type }) });
   await expect.element(page.getByRole("button", { name: "Attach file", exact: true })).toBeEnabled();
   const input = host.querySelector<HTMLInputElement>('input[type="file"]:not([accept])')!;
   const transfer = new DataTransfer(); transfer.items.add(new File(["report"], "report.pdf", { type: "application/pdf" }));
   input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   await vi.waitFor(() => expect(JSON.stringify(editor()!.getJSON())).toContain('/files/report.pdf'));
-  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+  await expect.element(page.getByRole("link", { name: "report.pdf 6 B" })).toBeVisible();
 });
 
 it.each([1280, 375])("shows file upload progress and retries without losing content at %spx", async width => {
@@ -209,10 +209,11 @@ it.each([1280, 375])("shows file upload progress and retries without losing cont
   expect(host.querySelector('[role="alert"]')!.getBoundingClientRect().right).toBeLessThanOrEqual(width);
   expect(editor()!.getText()).toBe("Keep this. ");
   await userEvent.click(page.getByRole("button", { name: "Retry", exact: true }));
-  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+  await expect.element(page.getByRole("link", { name: "report.pdf 6 B" })).toBeVisible();
   await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   expect(fileUpload).toHaveBeenCalledTimes(2);
-  expect(editor()!.getText()).toContain("Keep this. report.pdf");
+  expect(editor()!.getJSON().content?.[0]).toMatchObject({ type: "paragraph", content: [{ type: "text", text: "Keep this. " }] });
+  expect(editor()!.getJSON().content?.filter(node => node.type === "loomaFileAttachment")).toEqual([expect.objectContaining({ attrs: expect.objectContaining({ name: "report.pdf", size: 6, href: "/files/report.pdf" }) })]);
   editor()!.commands.undo();
   expect(editor()!.getText()).toBe("Keep this. ");
 });

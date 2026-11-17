@@ -248,7 +248,7 @@
     }
 
     /* An anchor keeps the boxed button look even when an app styles ordinary links. */
-    :host:is(a) {
+    :host:is(a)[data-appearance][data-tone]:not([data-appearance="link"]) {
       text-decoration: none;
     }
 
