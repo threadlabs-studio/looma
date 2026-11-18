@@ -45,6 +45,19 @@ breaks, literal code blocks and the saved document.
 
 Set `--ui-editor-trailing-scroll-space` to add visual space below the document, for example `3lh` to leave three line heights after the last paragraph. It defaults to zero and adds no document content.
 
+Return the caret-context extension from the editor's `extensions` request to keep surrounding lines in view while writing.
+
+```vue
+<script setup>
+import { LoomaCaretContext } from "@threadlabs/looma/editor/extensions";
+const extensions = () => [LoomaCaretContext.configure({ lines: 3 })];
+</script>
+
+<UiEditor :extensions="extensions" />
+```
+
+The extension scrolls just enough to keep the requested line heights visible when a caret approaches either edge. You can set trailing scroll space separately to keep the last line farther from the bottom. Both options leave saved content and selections intact.
+
 ## Requests
 
 The editor asks the application for what only the application knows: its uploads, its people, its
