@@ -50,7 +50,11 @@ function mapBlocks(markdown: string, source: Document, editor: EditorNode,
   let previousEnd = 0;
   let editorIndex = 0;
   let editorOffset = 0;
+  let paragraphRun: Point[] | undefined;
   for (const [index, group] of groups.entries()) {
+    const previousParagraph = paragraphRun;
+    const previousSourceEnd = previousEnd;
+    paragraphRun = undefined;
     const projected = blocks[index]!;
     const startOffset = editorOffset;
     for (const node of projected) {
@@ -81,7 +85,17 @@ function mapBlocks(markdown: string, source: Document, editor: EditorNode,
     if (group.node.type === "heading" && !heading) continue;
     const points = mapBlock(heading?.text ?? block, range[2] + (heading?.offset ?? 0),
       startOffset + 1, group.node, expected, actual.toJSON());
-    if (points) runs.push(points);
+    if (!points) continue;
+    if (group.node.type === "paragraph") {
+      // Join adjacent, verified paragraphs across raw spacing. Positions inside the gap stay unmapped.
+      if (previousParagraph && !/[^\t \r\n]/u.test(markdown.slice(previousSourceEnd, range[2]))) {
+        for (const point of points) previousParagraph.push(point);
+        paragraphRun = previousParagraph;
+        continue;
+      }
+      paragraphRun = points;
+    }
+    runs.push(points);
   }
 }
 
