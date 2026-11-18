@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Measure a tracked editor line in client coordinates and report whether its caret rectangle is visible in the viewport and an optional host scrollport.
+
 - Map verified Markdown source ranges to Looma editor positions for literal prose, headings, and a simple italic or bold run, with explicit affinity at ambiguous caret boundaries.
 
 - Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.

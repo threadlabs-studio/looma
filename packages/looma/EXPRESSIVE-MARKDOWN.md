@@ -63,6 +63,13 @@ word maps to the characters between its delimiters. A collapsed position at that
 boundary takes a third argument of `"before"` or `"after"` to choose the lower or
 higher source offset. Without it the ambiguous position returns `undefined`.
 
+`measureEditorLine` from `@threadlabs/looma/editor` measures the rendered caret
+rectangle at a mapped editor position, including after a paragraph wraps. Pass the
+same ProseMirror document used to build the map. It reports client coordinates
+and whether the rectangle intersects the visual viewport and an optional
+`scrollport` client area. Invalid, stale, and unavailable positions return `null`.
+The host can use the result to place its own annotation.
+
 The editor continues to save Tiptap JSON. Expressive Markdown is an interchange
 format; it does not replace your saved document, history or application metadata.
 See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and
