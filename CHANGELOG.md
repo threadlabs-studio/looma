@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
+
 - Keep deleted or elsewhere-owned file references removable through ordinary document edits, without requesting another original-file deletion. Center compact card icons with balanced spacing and quieter inline controls.
 - Keep attachment cards compact with surrounding space, tightly grouped filenames and muted sizes. Scale byte labels through KB, MB, GB and larger units with one decimal place. Add opt-in confirmed file deletion with optimistic removal, failure recovery and non-clickable deleted references after undo or history restoration.
 - Preserve Markdown soft line breaks when editing prose in the full and compact editors. Explicit hard breaks keep their meaning.
