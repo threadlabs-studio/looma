@@ -91,7 +91,7 @@ function safeNavigation(value: unknown, image: boolean, path: string) {
   if (node?.url !== value) fail(path, "unsafe or unsupported navigation URL");
 }
 
-const MARKS: Record<string, string> = { bold: "strong", italic: "emphasis", strike: "delete", underline: "underline", highlight: "highlight", code: "inlineCode", link: "link" };
+const MARKS: Record<string, string> = { bold: "strong", italic: "emphasis", strike: "delete", underline: "underline", highlight: "highlight", code: "inlineCode", loomaMath: "inlineMath", link: "link" };
 
 // Saved editor fences predate the shared attribute syntax. Translate only known
 // tokens; quoted extension metadata stays opaque and ranges remain strings.
@@ -191,7 +191,7 @@ function softLineBreaks(node: Node): Node[] {
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
-  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "loomaInlineImage", "loomaInlineMath", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
+  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "loomaInlineImage", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
   for (const mark of [...(node.marks ?? [])].reverse()) {
     const type = MARKS[mark.type];
     if (!type) fail(path, `mark ${mark.type}`);
@@ -210,6 +210,9 @@ function toNode(node: JSONContent, path: string, context: ProjectionContext): No
       const attributes: Attributes = {};
       for (const key of ["target", "rel", "class"]) if (attrs[key] !== LINK_DEFAULTS[key]) has(attributes, key, attrs[key]);
       result = compact(type, softLineBreaks(result), { url: string(attrs.href), ...(attrs.title ? { title: string(attrs.title) } : {}), ...(Object.keys(attributes).length ? { attributes } : {}) });
+    } else if (type === "inlineMath") {
+      if (result.type !== "text") fail(path, "math combined with another mark");
+      result = { type, value: result.value ?? "" };
     } else if (type === "inlineCode") {
       if (result.type !== "text") fail(path, "code combined with another mark");
       result = { type, value: result.value ?? "" };
@@ -294,9 +297,6 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     case "loomaChip":
       fields(node, ["label", "color"], path);
       return { type: "inline", subType: "chip", value: string(attrs.label), ...(string(attrs.color, "neutral") !== "neutral" ? { attributes: { tone: string(attrs.color) } } : {}) };
-    case "loomaInlineMath":
-      fields(node, ["value"], path);
-      return { type: "inlineMath", value: string(attrs.value) };
     case "loomaFootnoteReference":
       // The number and occurrence follow from the document's order.
       fields(node, ["label", "number", "occurrence"], path);
@@ -556,7 +556,7 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       const meta = information.slice(language?.length ?? 0).trim();
       return [{ type: "codeBlock", attrs: { language: language ?? null, ...(meta ? { meta } : {}) }, ...(node.value ? { content: [{ type: "text", text: node.value }] } : {}) }];
     }
-    case "inlineMath": check(); return [{ type: "loomaInlineMath", attrs: { value: node.value ?? "" }, ...(marks.length ? { marks } : {}) }];
+
     case "image": {
       check(["width", "height", "placement", "responsive"]);
       if (attrs.placement !== undefined && !["block", "center", "wrap-left", "wrap-right"].includes(String(attrs.placement))) fail(path, "unsupported image placement");

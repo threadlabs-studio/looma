@@ -234,6 +234,24 @@ export function getDefaultSlashCommands(
       },
     },
     {
+      title: "Math",
+      description: "Inline TeX notation",
+      icon: "radical",
+      keywords: ["math", "equation", "formula", "latex", "tex", "inline"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleLoomaMath().run();
+      },
+    },
+    {
+      title: "Math block",
+      description: "Displayed TeX notation",
+      icon: "sigma",
+      keywords: ["math", "equation", "formula", "latex", "tex", "display", "block"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setCodeBlock({ language: "math" }).run();
+      },
+    },
+    {
       title: "Code block",
       description: "Formatted code block",
       icon: "braces",
@@ -317,7 +335,7 @@ export function getDefaultSlashCommands(
     ...command,
     id: command.title.toLowerCase().replaceAll(" ", "-"),
     group: CALLOUT_COMMANDS.some(callout => callout.title === command.title) ? "Callouts"
-      : ["File attachment", "Chip", "Inline code", "Link", "Image", "Table", "Table of contents", "Footnote", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
+      : ["File attachment", "Chip", "Inline code", "Math", "Link", "Image", "Table", "Table of contents", "Footnote", "Expand"].includes(command.title) ? "Insertions" : "Basic blocks",
     isAvailable: (context: LoomaSlashCommandContext) => canRunDefaultCommand(command.title, context),
   })).sort((a, b) => ["Basic blocks", "Callouts", "Insertions"].indexOf(a.group) - ["Basic blocks", "Callouts", "Insertions"].indexOf(b.group));
 }
@@ -338,6 +356,8 @@ function canRunDefaultCommand(title: string, { editor, range }: LoomaSlashComman
     case "Chip": return chain.insertLoomaChip({ label: "" }).run();
     case "Inline code": return chain.toggleCode().run();
     case "Code block": return chain.toggleCodeBlock().run();
+    case "Math": return Boolean(editor.schema.marks.loomaMath) && chain.toggleLoomaMath().run();
+    case "Math block": return chain.setCodeBlock({ language: "math" }).run();
     case "Table": return chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     case "Table of contents": return chain.insertLoomaTableOfContents().run();
     case "Footnote": return chain.insertLoomaFootnote().run();

@@ -19,7 +19,7 @@ export {
   LOOMA_CALLOUT_TONES,
   type LoomaCalloutTone,
 } from "./callout";
-export { LoomaInlineMath } from "./math";
+export { LoomaMath, pastedMathHtml } from "./math";
 export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./expand";
 export { LoomaFigcaption, LoomaFigure } from "./figure";

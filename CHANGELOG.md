@@ -2,7 +2,7 @@
 
 ## Next release
 
-- LoomaEditor opens and saves Expressive Markdown math. Inline `$…$` math is an atomic node that shows its TeX notation, and display math edits as a `math` code block. Saving keeps each formula as written. Requires expressmark >=0.7.0.
+- LoomaEditor opens and saves Expressive Markdown math. Inline math is a range of TeX notation with an accent tint and dotted underline; enter it with the Math slash command or by typing `$x$`, and leave it with the arrow key. The Math block slash command adds display math as a `math` code block. Text replacements such as `^2` → ² wait until the math closes. Pasted MathML or KaTeX that carries its TeX, as from Wikipedia, GitHub, ChatGPT and Claude, becomes math. Requires expressmark >=0.7.0.
 - Keep attachment cards compact with surrounding space, tightly grouped filenames and muted sizes. Scale byte labels through KB, MB, GB and larger units with one decimal place. Add opt-in confirmed file deletion with optimistic removal, failure recovery and non-clickable deleted references after undo or history restoration.
 - Preserve Markdown soft line breaks when editing prose in the full and compact editors. Explicit hard breaks keep their meaning.
 - Present attached originals as movable file blocks with SVG icons, filenames and byte sizes. The whole card is a native link. Keep metadata, surrounding writing, upload retry and undo intact through HTML and Markdown round trips.
