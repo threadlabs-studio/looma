@@ -23,19 +23,20 @@ async function mountEditor() {
   const modelValue = createState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const host = document.createElement("div");
   document.body.append(host);
-  let editor: Editor | null = null;
+  let created!: (editor: Editor) => void;
+  const ready = new Promise<Editor>(resolve => { created = resolve; });
   const app = createScene({
     render: () => sceneNode(LoomaEditor, {
       content: modelValue.value,
       onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
-      extensions: captureEditor(instance => { editor = instance; }),
+      extensions: captureEditor(created),
     }),
   });
   apps.push(app);
   app.mount(host);
+  const editor = await ready;
   await flushBrowser();
-  await expect.poll(() => editor).toBeTruthy();
-  return { editor: editor!, host };
+  return { editor, host };
 }
 
 // A source editor's clipboard: the Markdown as plain text, wrapped in <pre> as its HTML.
