@@ -49,6 +49,8 @@ for (const adapter of ["html", "converted"] as const) {
     form.append(reference);
     await settle();
     const button = form.querySelector<HTMLButtonElement>('button[data-appearance="outline"]')!;
+    // The preceding scenario can leave the pointer over the next file control.
+    await page.getByText("Attachments", { exact: true }).hover();
     for (const theme of ["light", "dark"]) {
       document.documentElement.dataset.theme = theme;
       const chooser = getComputedStyle(input, "::file-selector-button");
@@ -57,8 +59,8 @@ for (const adapter of ["html", "converted"] as const) {
       await vi.waitFor(() => {
         expect(chooser.borderTopColor).toBe(outline.borderTopColor);
         expect(chooser.color).toBe(outline.color);
+        expect(chooser.backgroundImage).toBe(outline.backgroundImage);
       });
-      expect(chooser.backgroundImage).toBe(outline.backgroundImage);
     }
     input.focus({ preventScroll: true });
     expect(document.activeElement).toBe(input);
