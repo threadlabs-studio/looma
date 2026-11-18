@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Map verified Markdown source ranges to Looma editor positions for literal prose, headings, and a simple italic or bold run, with explicit affinity at ambiguous caret boundaries.
+
 - Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
 
 - Keep deleted or elsewhere-owned file references removable through ordinary document edits, without requesting another original-file deletion. Center compact card icons with balanced spacing and quieter inline controls.
