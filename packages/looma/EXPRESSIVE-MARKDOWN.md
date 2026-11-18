@@ -50,14 +50,18 @@ const selection = map.toEditorRange(sourceStart, sourceEnd);
 const source = map.toSourceRange(editor.state.selection.from, editor.state.selection.to);
 ```
 
-Ranges are half-open and count UTF-16 code units. The map verifies a single
-literal paragraph or heading at a time, including soft and explicit hard
-breaks and one simple italic or bold run with `*` or `_` delimiters. Unsupported locations return
-`undefined`. Examples include escapes or entities that change the literal text,
-links, nested marks, ranges spanning blocks, and offsets inside a two-character
-delimiter or surrogate pair.
+Ranges are half-open and count UTF-16 code units. The map verifies literal
+paragraphs and headings, including soft and explicit hard breaks and separate
+italic or bold runs with `*` or `_` delimiters. A selection can span consecutive
+verified paragraphs. Its source range keeps the original spacing between those
+paragraphs.
 
-At an emphasis delimiter, two source boundaries can share an editor position.
+Unsupported locations return `undefined`. Examples include escapes or entities
+that change the literal text, links, nested marks, adjacent spans merged into one
+editor run, ranges across an unverified block or source-only markup, and offsets
+inside a paragraph separator, two-character delimiter, or surrogate pair.
+
+At emphasis delimiters, multiple source boundaries can share an editor position.
 A nonempty editor selection uses the inner boundaries, so selecting a formatted
 word maps to the characters between its delimiters. A collapsed position at that
 boundary takes a third argument of `"before"` or `"after"` to choose the lower or

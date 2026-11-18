@@ -50,7 +50,11 @@ function mapBlocks(markdown: string, source: Document, editor: EditorNode,
   let previousEnd = 0;
   let editorIndex = 0;
   let editorOffset = 0;
+  let paragraphRun: Point[] | undefined;
   for (const [index, group] of groups.entries()) {
+    const previousParagraph = paragraphRun;
+    const previousSourceEnd = previousEnd;
+    paragraphRun = undefined;
     const projected = blocks[index]!;
     const startOffset = editorOffset;
     for (const node of projected) {
@@ -81,7 +85,17 @@ function mapBlocks(markdown: string, source: Document, editor: EditorNode,
     if (group.node.type === "heading" && !heading) continue;
     const points = mapBlock(heading?.text ?? block, range[2] + (heading?.offset ?? 0),
       startOffset + 1, group.node, expected, actual.toJSON());
-    if (points) runs.push(points);
+    if (!points) continue;
+    if (group.node.type === "paragraph") {
+      // Join adjacent, verified paragraphs across raw spacing. Positions inside the gap stay unmapped.
+      if (previousParagraph && !/[^\t \r\n]/u.test(markdown.slice(previousSourceEnd, range[2]))) {
+        for (const point of points) previousParagraph.push(point);
+        paragraphRun = previousParagraph;
+        continue;
+      }
+      paragraphRun = points;
+    }
+    runs.push(points);
   }
 }
 
@@ -119,21 +133,23 @@ function mapBlock(block: string, sourceStart: number, editorStart: number, sourc
   const inline = source.children ?? [];
   if (inline.some(node => !["text", "softBreak", "break", "emphasis", "strong"].includes(node.type))) return;
   const emphasis = inline.filter(node => node.type === "emphasis" || node.type === "strong");
-  if (emphasis.length > 1 || emphasis.some(node => !node.value || /[\r\n]/u.test(node.value))) return;
-  const character = emphasis[0]?.source?.marker ?? "*";
-  if (character !== "*" && character !== "_") return;
-  const marker = emphasis[0]?.type === "strong" ? character.repeat(2) : character;
+  if (emphasis.some(node => !node.value || /[\r\n]/u.test(node.value))) return;
   const projected = proseRuns(expected);
   if (!projected || JSON.stringify(projected) !== JSON.stringify(proseRuns(actual))) return;
 
   let literal = "";
+  let emphasisIndex = 0;
   const delimiters: EditorMarkdownRange[] = [];
   const breaks: number[] = [];
   // Reconstruct only the supported literal spelling. Markup that changes the text, or that
   // cannot be located by this restricted projection, fails the full raw-block comparison.
   for (const { kind, text } of projected) {
     if (kind === "italic" || kind === "bold") {
-      if (text !== emphasis[0]?.value || (kind === "bold") !== (emphasis[0].type === "strong")) return;
+      const span = emphasis[emphasisIndex++];
+      if (!span || text !== span.value || (kind === "bold") !== (span.type === "strong")) return;
+      const character = span.source?.marker ?? "*";
+      if (character !== "*" && character !== "_") return;
+      const marker = kind === "bold" ? character.repeat(2) : character;
       const open = literal.length;
       const end = open + marker.length;
       const close = end + text.length;
@@ -144,7 +160,7 @@ function mapBlock(block: string, sourceStart: number, editorStart: number, sourc
       literal += text;
     }
   }
-  if (delimiters.length !== emphasis.length * 2) return;
+  if (emphasisIndex !== emphasis.length) return;
 
   const lines = block.split(/(\r\n|\r|\n)/u);
   const points: Point[] = [];

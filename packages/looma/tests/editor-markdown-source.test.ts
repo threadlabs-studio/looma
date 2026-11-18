@@ -37,6 +37,55 @@ describe("exact Markdown editor positions", () => {
     expect(map.toSourceRange(1, 1)).toEqual({ start: 0, end: 0 });
   });
 
+  it("round-trips an editor selection across consecutive source paragraphs and their blank lines", () => {
+    const source = "“Take the key,” Mira said.\r\n \t\r\n\r\nRowan tucked it away.\r\n\r\nThe hall fell quiet.";
+    const editor = open(source);
+    const editorRange = { start: positionOf(editor, "Mira"), end: positionOf(editor, "quiet") + "quiet".length };
+    editor.commands.setTextSelection({ from: editorRange.start, to: editorRange.end });
+    const { from, to } = editor.state.selection;
+    expect(editor.state.doc.textBetween(from, to, "\n\n")).toBe("Mira said.\n\nRowan tucked it away.\n\nThe hall fell quiet");
+
+    const map = mapEditorMarkdownPositions(source, editor.state.doc);
+    const sourceRange = { start: source.indexOf("Mira"), end: source.indexOf("quiet") + "quiet".length };
+    expect(map.toSourceRange(from, to)).toEqual(sourceRange);
+    expect(map.toEditorRange(sourceRange.start, sourceRange.end)).toEqual(editorRange);
+    expect(map.toEditorRange(source.indexOf("\t"), sourceRange.end)).toBeUndefined();
+    const betweenBlocks = editor.state.doc.firstChild!.nodeSize;
+    expect(map.toSourceRange(betweenBlocks, to)).toBeUndefined();
+  });
+
+  it("round-trips a selection from italic text in one paragraph to bold text in another", () => {
+    const source = "Mira called, *Wait* **here**.\n\nRowan _turned_ **back**.";
+    const editor = open(source);
+    const editorRange = { start: positionOf(editor, "Wait"), end: positionOf(editor, "back") + 4 };
+    editor.commands.setTextSelection({ from: editorRange.start, to: editorRange.end });
+    const { from, to } = editor.state.selection;
+    expect(editor.state.doc.textBetween(from, to, "\n\n")).toBe("Wait here.\n\nRowan turned back");
+
+    const map = mapEditorMarkdownPositions(source, editor.state.doc);
+    const sourceRange = { start: source.indexOf("Wait"), end: source.indexOf("back") + 4 };
+    expect(map.toSourceRange(from, to)).toEqual(sourceRange);
+    expect(map.toEditorRange(sourceRange.start, sourceRange.end)).toEqual(editorRange);
+  });
+
+  it.each([
+    ["an unmapped inline node", "See [the sign](https://example.com) on the wall.", false],
+    ["a non-prose block", "> The sign pointed west.", false],
+    ["a source-only comment", "<!-- The sign is out of sight. -->", false],
+    ["a changed paragraph", "The sign pointed west.", true],
+  ])("rejects a range across %s while mapping the surrounding paragraphs", (_description, middle, changed) => {
+    const source = `Mira had the key.\n\n${middle}\n\nRowan shut the door.`;
+    const editor = open(source);
+    if (changed) replaceText(editor, "west", "east");
+    const map = mapEditorMarkdownPositions(source, editor.state.doc);
+    const rowan = source.indexOf("Rowan");
+    const editorRowan = positionOf(editor, "Rowan");
+    expect(map.toEditorRange(0, 4)).toEqual({ start: 1, end: 5 });
+    expect(map.toEditorRange(rowan, rowan + 5)).toEqual({ start: editorRowan, end: editorRowan + 5 });
+    expect(map.toEditorRange(0, rowan + 5)).toBeUndefined();
+    expect(map.toSourceRange(1, editorRowan + 5)).toBeUndefined();
+  });
+
   it.each(["*", "_", "**", "__"])("maps one literal %s emphasis with exact offsets at both delimiters", marker => {
     const source = `# Mara ${marker}kept${marker} the key.\n\nShe kept the other key.`;
     const document = sourceDocument(source);
@@ -86,10 +135,49 @@ describe("exact Markdown editor positions", () => {
     expect(document.firstChild?.content.content.filter(node => node.type.name === "hardBreak")).toHaveLength(2);
   });
 
+  it("maps separate italic and bold spans in the same paragraph", () => {
+    const source = "Mara said _Stay_ **now**.\n";
+    const document = sourceDocument(source);
+    const map = mapEditorMarkdownPositions(source, document);
+
+    expect(map.toEditorRange(11, 15)).toEqual({ start: 11, end: 15 });
+    expect(map.toSourceRange(11, 15)).toEqual({ start: 11, end: 15 });
+    expect(map.toEditorRange(19, 22)).toEqual({ start: 16, end: 19 });
+    expect(map.toSourceRange(16, 19)).toEqual({ start: 19, end: 22 });
+    expect(map.toEditorRange(11, 22)).toEqual({ start: 11, end: 19 });
+    expect(map.toSourceRange(11, 19)).toEqual({ start: 11, end: 22 });
+    expect(map.toSourceRange(16, 16)).toBeUndefined();
+    expect(map.toSourceRange(16, 16, "before")).toEqual({ start: 17, end: 17 });
+    expect(map.toSourceRange(16, 16, "after")).toEqual({ start: 19, end: 19 });
+    expect(map.toEditorRange(18, 19)).toBeUndefined();
+  });
+
+  it("maps repeated words with separate spans of the same mark in source order", () => {
+    const source = "# *Wait* and _Wait_.";
+    const document = sourceDocument(source);
+    const map = mapEditorMarkdownPositions(source, document);
+
+    expect(map.toEditorRange(3, 7)).toEqual({ start: 1, end: 5 });
+    expect(map.toSourceRange(1, 5)).toEqual({ start: 3, end: 7 });
+    expect(map.toEditorRange(14, 18)).toEqual({ start: 10, end: 14 });
+    expect(map.toSourceRange(10, 14)).toEqual({ start: 14, end: 18 });
+  });
+
+  it("requires affinity where adjacent spans share a rendered position", () => {
+    const source = "*One*__Two__";
+    const map = mapEditorMarkdownPositions(source, sourceDocument(source));
+
+    expect(map.toEditorRange(1, 10)).toEqual({ start: 1, end: 7 });
+    expect(map.toSourceRange(1, 7)).toEqual({ start: 1, end: 10 });
+    expect(map.toSourceRange(4, 4)).toBeUndefined();
+    expect(map.toSourceRange(4, 4, "before")).toEqual({ start: 4, end: 4 });
+    expect(map.toSourceRange(4, 4, "after")).toEqual({ start: 7, end: 7 });
+    expect(map.toEditorRange(4, 7)).toBeUndefined();
+  });
+
   it.each([
     "A [link](https://example.com) remains.",
-    "One **bold** and one *italic* span.",
-    "This *one* and *two* stays unmapped.",
+    "Adjacent *one*_two_ with the same mark.",
     "This *italic **bold** mix* stays unmapped.",
     "A *soft\nline* remains.",
     "Recall \\* &amp;.",

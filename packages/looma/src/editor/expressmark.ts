@@ -808,9 +808,10 @@ export function markdownToEditorDocument(markdown: string, options: ConversionOp
 
 /**
  * Relates exact positions in the current Markdown to the matching live editor document.
- * @contract Maps literal prose and headings, including one simple italic or bold run per block.
- * Ranges must stay in one verified block. A nonempty editor range uses its inner boundaries.
- * A collapsed editor position with two source boundaries requires an explicit affinity.
+ * @contract Maps literal prose and headings, including separate italic and bold runs within a block.
+ * A range can span consecutive verified paragraphs, with exact endpoints in their text.
+ * A nonempty editor range uses its inner boundaries.
+ * A collapsed editor position with multiple source boundaries requires an explicit affinity.
  * @failure Unproven or unsupported locations return undefined rather than a guessed offset.
  */
 export function mapEditorMarkdownPositions(markdown: string, editorDocument: EditorNode,
