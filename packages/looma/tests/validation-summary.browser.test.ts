@@ -15,6 +15,7 @@ afterEach(() => {
 it("routes summary links to labelled native inputs and keeps inline errors in their descriptions", async () => {
   document.body.innerHTML = source;
   await vi.waitFor(() => expect(document.querySelector("input#summary-email")).not.toBeNull());
+  await Promise.all(pendingControllers(document.body));
   const summary = document.querySelector<HTMLElement>("[data-error-summary]")!;
   const name = document.querySelector<HTMLInputElement>("input#summary-name")!;
   const email = document.querySelector<HTMLInputElement>("input#summary-email")!;
