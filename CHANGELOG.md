@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep a FormField's native invalid state in sync with late control updates. A field that clears its error restores the control's own validation state.
+
 - Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
 
 - Keep deleted or elsewhere-owned file references removable through ordinary document edits, without requesting another original-file deletion. Center compact card icons with balanced spacing and quieter inline controls.
