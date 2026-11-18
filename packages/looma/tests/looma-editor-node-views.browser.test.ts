@@ -77,6 +77,11 @@ describe("LoomaEditor node views", () => {
       const bytes = card.querySelector('[data-looma-file-size]')!;
       expect(parseFloat(getComputedStyle(bytes).fontSize)).toBeLessThan(parseFloat(getComputedStyle(label).fontSize));
       expect(bytes.getBoundingClientRect().top - label.getBoundingClientRect().bottom).toBeLessThanOrEqual(2);
+      const face = card.getBoundingClientRect(), contents = card.querySelector('.card-content')!.getBoundingClientRect();
+      const gaps = { top: contents.top - face.top, bottom: face.bottom - contents.bottom,
+        beforeIcon: icon.left - face.left, afterIcon: contents.left - icon.right };
+      expect(Math.abs(gaps.top - gaps.bottom), JSON.stringify(gaps)).toBeLessThanOrEqual(1);
+      expect(Math.abs(gaps.beforeIcon - gaps.afterIcon), JSON.stringify(gaps)).toBeLessThanOrEqual(1);
       const paragraphs = root.querySelectorAll('p');
       expect(card.getBoundingClientRect().top - paragraphs[0]!.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(8);
       expect(paragraphs[1]!.getBoundingClientRect().top - card.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(8);
@@ -106,6 +111,18 @@ describe("LoomaEditor node views", () => {
     expect(card().hasAttribute('href')).toBe(false);
     expect(card().getAttribute('aria-disabled')).toBe('true');
     expect(editor.getJSON()).toEqual(before);
+    const remove = host.querySelector<HTMLButtonElement>('[data-looma-file-delete]')!;
+    expect(remove.hidden).toBe(false);
+    expect(remove.getAttribute('aria-label')).toBe('Remove Report.pdf');
+    await userEvent.click(remove); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    expect(editor.getText()).toBe('Keep this writing.');
+    editor.commands.undo(); await flushBrowser();
+    expect(card().textContent).toContain('Report.pdf (deleted)');
+    editor.setEditable(false); await flushBrowser();
+    expect(host.querySelector<HTMLButtonElement>('[data-looma-file-delete]')!.hidden).toBe(true);
+    editor.setEditable(true); await flushBrowser();
+    expect(host.querySelector<HTMLButtonElement>('[data-looma-file-delete]')!.hidden).toBe(false);
     editor.view.dispatch(closeHistory(editor.state.tr));
     editor.commands.setNodeSelection(editor.state.doc.child(0).nodeSize);
     editor.commands.deleteSelection(); editor.commands.undo(); await flushBrowser();

@@ -350,11 +350,12 @@
       box-shadow: none;
       background-image: none;
     }
-    :host[data-appearance="card"][size="lg"] {
+    :host([size="lg"])[data-appearance="card"] {
       min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-lg));
     }
-    :host[data-appearance="card"][size="sm"] {
+    :host([size="sm"])[data-appearance="card"] {
       min-block-size: var(--ui-control-size-sm);
+      align-items: center !important;
       gap: var(--ui-space-2) !important;
     }
     :host([fit])[data-appearance="card"] {
