@@ -3,6 +3,7 @@
 ## Next release
 
 - Map selections across consecutive verified Markdown paragraphs while preserving the original spacing between them.
+- Map separate literal bold and italic spans within the same Markdown paragraph or heading, preserving each span's source offsets.
 
 - Keep a FormField's native invalid state in sync with late control updates. A field that clears its error restores the control's own validation state.
 

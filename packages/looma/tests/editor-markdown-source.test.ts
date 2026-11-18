@@ -54,6 +54,20 @@ describe("exact Markdown editor positions", () => {
     expect(map.toSourceRange(betweenBlocks, to)).toBeUndefined();
   });
 
+  it("round-trips a selection from italic text in one paragraph to bold text in another", () => {
+    const source = "Mira called, *Wait* **here**.\n\nRowan _turned_ **back**.";
+    const editor = open(source);
+    const editorRange = { start: positionOf(editor, "Wait"), end: positionOf(editor, "back") + 4 };
+    editor.commands.setTextSelection({ from: editorRange.start, to: editorRange.end });
+    const { from, to } = editor.state.selection;
+    expect(editor.state.doc.textBetween(from, to, "\n\n")).toBe("Wait here.\n\nRowan turned back");
+
+    const map = mapEditorMarkdownPositions(source, editor.state.doc);
+    const sourceRange = { start: source.indexOf("Wait"), end: source.indexOf("back") + 4 };
+    expect(map.toSourceRange(from, to)).toEqual(sourceRange);
+    expect(map.toEditorRange(sourceRange.start, sourceRange.end)).toEqual(editorRange);
+  });
+
   it.each([
     ["an unmapped inline node", "See [the sign](https://example.com) on the wall.", false],
     ["a non-prose block", "> The sign pointed west.", false],
@@ -121,10 +135,49 @@ describe("exact Markdown editor positions", () => {
     expect(document.firstChild?.content.content.filter(node => node.type.name === "hardBreak")).toHaveLength(2);
   });
 
+  it("maps separate italic and bold spans in the same paragraph", () => {
+    const source = "Mara said _Stay_ **now**.\n";
+    const document = sourceDocument(source);
+    const map = mapEditorMarkdownPositions(source, document);
+
+    expect(map.toEditorRange(11, 15)).toEqual({ start: 11, end: 15 });
+    expect(map.toSourceRange(11, 15)).toEqual({ start: 11, end: 15 });
+    expect(map.toEditorRange(19, 22)).toEqual({ start: 16, end: 19 });
+    expect(map.toSourceRange(16, 19)).toEqual({ start: 19, end: 22 });
+    expect(map.toEditorRange(11, 22)).toEqual({ start: 11, end: 19 });
+    expect(map.toSourceRange(11, 19)).toEqual({ start: 11, end: 22 });
+    expect(map.toSourceRange(16, 16)).toBeUndefined();
+    expect(map.toSourceRange(16, 16, "before")).toEqual({ start: 17, end: 17 });
+    expect(map.toSourceRange(16, 16, "after")).toEqual({ start: 19, end: 19 });
+    expect(map.toEditorRange(18, 19)).toBeUndefined();
+  });
+
+  it("maps repeated words with separate spans of the same mark in source order", () => {
+    const source = "# *Wait* and _Wait_.";
+    const document = sourceDocument(source);
+    const map = mapEditorMarkdownPositions(source, document);
+
+    expect(map.toEditorRange(3, 7)).toEqual({ start: 1, end: 5 });
+    expect(map.toSourceRange(1, 5)).toEqual({ start: 3, end: 7 });
+    expect(map.toEditorRange(14, 18)).toEqual({ start: 10, end: 14 });
+    expect(map.toSourceRange(10, 14)).toEqual({ start: 14, end: 18 });
+  });
+
+  it("requires affinity where adjacent spans share a rendered position", () => {
+    const source = "*One*__Two__";
+    const map = mapEditorMarkdownPositions(source, sourceDocument(source));
+
+    expect(map.toEditorRange(1, 10)).toEqual({ start: 1, end: 7 });
+    expect(map.toSourceRange(1, 7)).toEqual({ start: 1, end: 10 });
+    expect(map.toSourceRange(4, 4)).toBeUndefined();
+    expect(map.toSourceRange(4, 4, "before")).toEqual({ start: 4, end: 4 });
+    expect(map.toSourceRange(4, 4, "after")).toEqual({ start: 7, end: 7 });
+    expect(map.toEditorRange(4, 7)).toBeUndefined();
+  });
+
   it.each([
     "A [link](https://example.com) remains.",
-    "One **bold** and one *italic* span.",
-    "This *one* and *two* stays unmapped.",
+    "Adjacent *one*_two_ with the same mark.",
     "This *italic **bold** mix* stays unmapped.",
     "A *soft\nline* remains.",
     "Recall \\* &amp;.",
