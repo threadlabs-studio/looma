@@ -9,13 +9,17 @@ import { createUiStack } from '@threadlabs/looma/vanilla/UiStack.js';
 import { createUiText } from '@threadlabs/looma/vanilla/UiText.js';
 import { fileAttachmentAttrs, fileAttachmentSize } from '../extensions/file-attachment';
 import { getReferenceDisplay, observeReferenceDisplay } from '../reference-display';
-import { deleteFileBlock, type FileDeletionServices } from '../file-deletions';
+import { deleteFileBlock, removeFileBlock, type FileDeletionServices } from '../file-deletions';
 
 let sequence = 0;
-/** A compact native file link with a separate, permission-scoped deletion action. */
+/** A compact file link with an editable reference action and optional original deletion. */
 export const createFileAttachmentNodeView = (services: FileDeletionServices): NodeViewRenderer => ({ node, editor, getPos }) => {
   let current = node, pending = false;
   const metadata = () => { try { return fileAttachmentAttrs(current.attrs); } catch { return null; } };
+  const deletesOriginal = () => {
+    const a = metadata(), display = a ? getReferenceDisplay(editor)[`attachment:${a.href}`] : undefined;
+    return Boolean(a && services.enabled() && display?.status !== 'deleted' && display?.status !== 'pending' && display?.deletable !== false);
+  };
   const name = document.createTextNode(''), size = document.createTextNode('');
   const download = createUiIcon({ name: 'download', tone: 'muted', attributes: { 'aria-hidden': 'true' } });
   const card = createUiButton({ variant: 'card', tone: 'neutral', size: 'sm', fit: true, href: '', target: '_blank', rel: 'noopener noreferrer',
@@ -27,10 +31,11 @@ export const createFileAttachmentNodeView = (services: FileDeletionServices): No
     ] })],
   });
   const id = `looma-file-delete-${++sequence}`;
-  const trash = createUiIconButton({ label: 'Delete file', variant: 'ghost', tone: 'neutral', size: 'sm', attributes: { id, 'data-looma-file-delete': '' },
-    children: [createUiIcon({ name: 'trash', attributes: { 'aria-hidden': 'true' } })],
+  const trash = createUiIconButton({ label: 'Delete file', variant: 'ghost', tone: 'neutral', size: 'xs', attributes: { id, 'data-looma-file-delete': '' },
+    children: [createUiIcon({ name: 'trash', tone: 'muted', attributes: { 'aria-hidden': 'true' } })],
   });
   trash.addEventListener('click', async () => {
+      if (!deletesOriginal()) { removeFileBlock(editor, getPos); return; }
       const a = metadata();
       if (!a || pending) return;
       pending = true;
@@ -38,8 +43,9 @@ export const createFileAttachmentNodeView = (services: FileDeletionServices): No
       try { await deleteFileBlock(editor, getPos, a, services); }
       finally { pending = false; render(); }
   });
+  const tooltip = document.createTextNode('');
   const dom = createUiCluster({ padding: 's', gap: 'xs', wrap: 'nowrap', attributes: { contenteditable: 'false', 'data-looma-file-block': '' },
-    children: [card, trash, createUiTooltip({ for: id, children: [document.createTextNode('Delete file')] })] });
+    children: [card, trash, createUiTooltip({ for: id, children: [tooltip] })] });
   const render = () => {
     const a = metadata(), display = a ? getReferenceDisplay(editor)[`attachment:${a.href}`] : undefined;
     const deleted = display?.status === 'deleted';
@@ -47,8 +53,10 @@ export const createFileAttachmentNodeView = (services: FileDeletionServices): No
     size.data = a ? fileAttachmentSize(a.size) : '';
     componentRegistry.update(card, { href: a?.href ?? '', disabled: !a || deleted || display?.status === 'pending' });
     download.hidden = deleted;
-    trash.hidden = !a || deleted || display?.status === 'pending' || display?.deletable === false || !editor.isEditable || !services.enabled();
-    componentRegistry.update(trash, { loading: pending, label: `Delete ${a?.name ?? 'file'}` });
+    trash.hidden = !editor.isEditable;
+    const deleteOriginal = deletesOriginal(), verb = deleteOriginal ? 'Delete' : 'Remove';
+    tooltip.data = deleteOriginal ? 'Delete file and remove reference' : 'Remove attachment reference';
+    componentRegistry.update(trash, { loading: pending, label: `${verb} ${a?.name ?? 'unavailable attachment'}` });
   };
   const stop = observeReferenceDisplay(editor, render);
   render();

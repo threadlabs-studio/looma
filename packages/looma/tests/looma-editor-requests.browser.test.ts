@@ -8,6 +8,7 @@ import { editorUnderTest, nativeEditorTarget } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import "../tokens.css";
 import "../theme-light.css";
+import { setReferenceDisplay } from "../src/editor/reference-display";
 
 const { respond } = RequestEvent;
 const apps: Scene[] = [];
@@ -94,6 +95,22 @@ it("preserves consumer editor classes while editability changes", async () => {
 });
 
 describe("LoomaEditor requests", () => {
+  it('removes an elsewhere-owned reference without requesting original deletion', async () => {
+    const remove = vi.fn(), confirm = vi.fn();
+    const { host, editor } = await mountEditor({
+      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Keep the page prose.' }] },
+        { type: 'loomaFileAttachment', attrs: { href: '/files/shared.pdf', name: 'Shared.pdf', size: 12, contentType: 'application/pdf' } }] },
+      fileDeleteConfirm: confirm, fileDelete: remove,
+    }, 375);
+    setReferenceDisplay(editor()!, { 'attachment:/files/shared.pdf': { label: 'Shared.pdf', status: 'ready', deletable: false } });
+    await flushBrowser();
+    await userEvent.click(page.getByRole('button', { name: 'Remove Shared.pdf', exact: true }));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    expect(editor()!.getText()).toBe('Keep the page prose.');
+    expect(confirm).not.toHaveBeenCalled(); expect(remove).not.toHaveBeenCalled();
+    editor()!.commands.undo(); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-attachment]')?.getAttribute('href')).toBe('/files/shared.pdf');
+  });
   it('confirms permanent file deletion, restores a refused removal alongside concurrent writing, and keeps undo tombstoned', async () => {
     const attachment = { type: 'loomaFileAttachment', attrs: { href: '/files/report.pdf', name: 'Report.pdf', size: 1100, contentType: 'application/pdf' } };
     let confirm = false;
@@ -132,7 +149,10 @@ describe("LoomaEditor requests", () => {
     expect(restored.hasAttribute('href')).toBe(false);
     expect(restored.getAttribute('aria-disabled')).toBe('true');
     expect(host.textContent).toContain('New Keep this writing.');
-    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(true);
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(false);
+    await userEvent.click(page.getByRole('button', { name: 'Remove Report.pdf', exact: true }));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    expect(remove).toHaveBeenCalledTimes(2);
   });
   it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
     let signal: AbortSignal | undefined;

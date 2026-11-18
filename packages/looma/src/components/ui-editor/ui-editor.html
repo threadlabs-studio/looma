@@ -102,7 +102,8 @@
       ></returns>Confirm permanent deletion. Return false or null to keep the file and block.</request>
     <request name="file-delete" type="object"><prop name="file" type="unknown" required></prop><returns type="object({ deleted: boolean })"></returns>Delete the
       retained original after confirmation. The editor removes its block optimistically; rejection restores it. File presentation uses attachment:href reference
-      entries so undo can restore a disabled deleted-file block.</request>
+      entries so undo can restore a disabled deleted-file block. Editable references remain removable through ordinary document changes after their original is
+      deleted; that removal does not call this request.</request>
     <request name="image-delivery" returns="unknown"
     >The host's synchronous source and rendition policy, resolved before the editor mounts. This transient policy is never persisted.</request>
   </defs>
