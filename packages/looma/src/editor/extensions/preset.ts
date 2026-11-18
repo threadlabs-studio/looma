@@ -39,6 +39,7 @@ import { LoomaBlockSelection } from "./block-selection";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
+import { LoomaInlineMath } from "./math";
 import { LoomaExpand } from "./expand";
 import { LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 import { LoomaLinkDefinition } from "./link-definition";
@@ -254,6 +255,7 @@ export function getDefaultEditorExtensions(
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
     LoomaChip,
+    LoomaInlineMath,
     LoomaTabs,
     LoomaTab,
     // A figure holds a block image, so it exists only when images are blocks.

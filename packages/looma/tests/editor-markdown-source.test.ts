@@ -325,3 +325,26 @@ describe("LoomaEditor writes Markdown back through expressmark", () => {
     expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("## Steps ##", "## Next steps ##"));
   });
 });
+
+describe("math", () => {
+  const source = "Energy is $E = mc^2$.\n\n$$\nx^2\n$$\n\n```math {title=\"Euler\"}\ne^{i\\pi} + 1 = 0\n```\n";
+
+  it("opens inline and display math and writes them back", () => {
+    const editor = open(source);
+    expect(editor.getJSON().content?.[0]?.content?.[1]).toEqual({ type: "loomaInlineMath", attrs: { value: "E = mc^2" } });
+    expect(editorToMarkdown(editor, { original: source })).toBe(source);
+    expect(editorToMarkdown(editor)).toBe(source);
+  });
+
+  it("edits display math as a math code block", () => {
+    const editor = open(source);
+    replaceText(editor, "x^2", "y^2");
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("x^2", "y^2"));
+  });
+
+  it("keeps inline math when its paragraph changes", () => {
+    const editor = open(source);
+    replaceText(editor, "Energy", "The energy");
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("Energy", "The energy"));
+  });
+});

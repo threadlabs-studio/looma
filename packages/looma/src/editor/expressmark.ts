@@ -48,7 +48,7 @@ const plainTitle = (node: Node | string | undefined, path: string): string => {
 };
 const AST_FIELDS: Record<string, string[]> = {
   text: [], paragraph: [], lineBlock: [], html: ["display"], htmlElement: ['display', 'tag', 'open', 'close'], group: ['display', 'tag'], heading: ["level"], break: [], softBreak: [], horizontalRule: [], blockquote: [],
-  list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], image: ["url", "alt", "title"],
+  list: ["ordered", "start", "tight"], listItem: ["checked"], code: ["language", "meta", "title"], math: ["meta", "title"], inlineMath: [], image: ["url", "alt", "title"],
   inline: ["subType", "ref"], container: ["subType", "title", "spelling", "titleSpelling"], leaf: ["subType"], table: ["align", "title"], tableRow: [], tableCell: ["header", "colSpan", "rowSpan"],
   strong: [], emphasis: [], delete: [], underline: [], highlight: [], inlineCode: [], link: ["url", "title"], linkReference: ["label", "referenceType"],
   footnoteReference: ["label"], footnoteDefinition: ["label"], definition: ["label", "url", "title"],
@@ -191,7 +191,7 @@ function softLineBreaks(node: Node): Node[] {
 function toNode(node: JSONContent, path: string, context: ProjectionContext): Node {
   let result = toBareNode(node, path, context);
   if (!node.marks?.length) return result;
-  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "loomaInlineImage", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
+  if (!["text", "mention", "loomaReference", "loomaChip", "loomaFootnoteReference", "loomaInlineImage", "loomaInlineMath", "hardBreak"].includes(node.type ?? "")) fail(path, "marks on a block node");
   for (const mark of [...(node.marks ?? [])].reverse()) {
     const type = MARKS[mark.type];
     if (!type) fail(path, `mark ${mark.type}`);
@@ -272,6 +272,8 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
       if ((node.content ?? []).some(child => child.type !== "text" || child.marks?.length)) fail(path, "nonliteral code content");
       if (/[\r\n]/.test(string(attrs.meta)) || /[\s`~]/.test(string(attrs.language))) fail(path, "code fence information");
       const parsed = parse(`\`\`\`${string(attrs.language)} ${string(attrs.meta)}\n\`\`\``).body[0];
+      // Expressmark reads a `math` fence as display math; the editor's block keeps no fence spelling.
+      if (parsed?.type === "math") { const { source: _source, ...math } = parsed; return { ...math, value: (node.content ?? []).map(child => child.text ?? "").join("") }; }
       if (parsed?.type !== "code") fail(path, "code fence information");
       return { ...legacyCodePresentation(parsed, path), value: (node.content ?? []).map(child => child.text ?? "").join("") };
     }
@@ -292,6 +294,9 @@ function toBareNode(node: JSONContent, path: string, context: ProjectionContext)
     case "loomaChip":
       fields(node, ["label", "color"], path);
       return { type: "inline", subType: "chip", value: string(attrs.label), ...(string(attrs.color, "neutral") !== "neutral" ? { attributes: { tone: string(attrs.color) } } : {}) };
+    case "loomaInlineMath":
+      fields(node, ["value"], path);
+      return { type: "inlineMath", value: string(attrs.value) };
     case "loomaFootnoteReference":
       // The number and occurrence follow from the document's order.
       fields(node, ["label", "number", "occurrence"], path);
@@ -542,13 +547,16 @@ function fromNode(node: Node, path: string, context: ReadingContext, marks: NonN
       if (body[0]?.type !== "paragraph") body.unshift({ type: "paragraph" });
       return [{ type: node.checked !== undefined ? "taskItem" : "listItem", ...(node.checked !== undefined ? { attrs: { checked: node.checked } } : {}), content: body }];
     }
-    case "code": {
+    case "math": case "code": {
       check(Object.keys(attrs));
-      const opening = stringify({ type: "document", version: 1, body: [{ ...node, value: "" }] }).split("\n")[0] ?? "";
+      // Display math edits as a `math` code block, whose information is a math fence's.
+      const language = node.type === "math" ? "math" : node.language;
+      const opening = stringify({ type: "document", version: 1, body: [{ ...node, type: "code", value: "", ...(language ? { language } : {}) }] }).split("\n")[0] ?? "";
       const information = opening.replace(/^`+|^~+/, "");
-      const meta = information.slice(node.language?.length ?? 0).trim();
-      return [{ type: "codeBlock", attrs: { language: node.language ?? null, ...(meta ? { meta } : {}) }, ...(node.value ? { content: [{ type: "text", text: node.value }] } : {}) }];
+      const meta = information.slice(language?.length ?? 0).trim();
+      return [{ type: "codeBlock", attrs: { language: language ?? null, ...(meta ? { meta } : {}) }, ...(node.value ? { content: [{ type: "text", text: node.value }] } : {}) }];
     }
+    case "inlineMath": check(); return [{ type: "loomaInlineMath", attrs: { value: node.value ?? "" }, ...(marks.length ? { marks } : {}) }];
     case "image": {
       check(["width", "height", "placement", "responsive"]);
       if (attrs.placement !== undefined && !["block", "center", "wrap-left", "wrap-right"].includes(String(attrs.placement))) fail(path, "unsupported image placement");
