@@ -146,8 +146,8 @@ importers:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.6.4'
-        version: 0.6.4
+        specifier: '>=0.7.0'
+        version: 0.7.0
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
@@ -1177,10 +1177,6 @@ packages:
 
   '@babel/runtime-corejs3@7.29.0':
     resolution: {integrity: sha512-TgUkdp71C9pIbBcHudc+gXZnihEDOjUAmXO1VO4HHGES7QLZcShR0stfKIxLSNIYx2fqhmJChOjm/wkF8wv4gA==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/runtime@7.29.10':
-    resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
     engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.29.13':
@@ -5218,8 +5214,8 @@ packages:
     resolution: {integrity: sha512-zylsRyr0FUPUovtizSsMOXYI1eY3zPFI3o93dDwB5AVMt7FXYUrTLtz7F/XlcLIR98MQOW2JLAMXAhATn+GaGQ==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
-  expressmark@0.6.4:
-    resolution: {integrity: sha512-wixA9ANz0XuBKsYEUbjNPxHFBXVkiQa1KK9ZaH5pNm2QQuGCVqKtXor8sX8Ok3omFGjp+4Z+YPggKQ0AHH+Jxw==}
+  expressmark@0.7.0:
+    resolution: {integrity: sha512-nsAGRrSO0nzummSIpLq3FDPEhej282yKRB44srdgB2/93vHhI7WPwFT01Nw4ouv1xhCY2GGrup2PUYKWIB5tfw==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -9928,8 +9924,6 @@ snapshots:
     dependencies:
       core-js-pure: 3.48.0
 
-  '@babel/runtime@7.29.10': {}
-
   '@babel/runtime@7.29.13': {}
 
   '@babel/template@7.29.7':
@@ -10359,7 +10353,7 @@ snapshots:
       '@babel/preset-env': 7.29.0(@babel/core@7.29.7)
       '@babel/preset-react': 7.28.5(@babel/core@7.29.7)
       '@babel/preset-typescript': 7.28.5(@babel/core@7.29.7)
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       '@babel/runtime-corejs3': 7.29.0
       '@babel/traverse': 7.29.12
       '@docusaurus/logger': 3.9.2
@@ -14802,7 +14796,7 @@ snapshots:
       uc.micro: 3.0.0
       yaml: 2.9.1
 
-  expressmark@0.6.4:
+  expressmark@0.7.0:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
@@ -15220,7 +15214,7 @@ snapshots:
 
   history@4.10.1:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.3.3
@@ -17613,19 +17607,19 @@ snapshots:
 
   react-loadable-ssr-addon-v5-slorber@1.0.1(@docusaurus/react-loadable@6.0.0(react@19.3.1))(webpack@5.105.4):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       react-loadable: '@docusaurus/react-loadable@6.0.0(react@19.3.1)'
       webpack: 5.105.4
 
   react-router-config@5.1.1(react-router@5.3.4(react@19.3.1))(react@19.3.1):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       react: 19.3.1
       react-router: 5.3.4(react@19.3.1)
 
   react-router-dom@5.3.4(react@19.3.1):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       history: 4.10.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
@@ -17636,7 +17630,7 @@ snapshots:
 
   react-router@5.3.4(react@19.3.1):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       history: 4.10.1
       hoist-non-react-statics: 3.3.2
       loose-envify: 1.4.0
