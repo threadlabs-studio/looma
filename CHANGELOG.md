@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep a FormField's native invalid state in sync with late control updates. A field that clears its error restores the control's own validation state.
+
 - Add an opt-in editor extension that keeps a configurable number of line heights visible around the caret during typing, keyboard navigation, and clicks near a scroll edge.
 
 - Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
