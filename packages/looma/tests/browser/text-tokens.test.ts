@@ -65,6 +65,12 @@ describe("Text tokens", () => {
       if (!(primary > secondary && secondary > muted)) {
         failures.push(`${theme.name}: primary ${primary.toFixed(2)}, secondary ${secondary.toFixed(2)}, muted ${muted.toFixed(2)} are out of order`);
       }
+      const field = surfaces.indexOf("--ui-control-surface");
+      const entered = ratios[texts.indexOf("--ui-text-primary")]![field]!;
+      const placeholder = ratios[texts.indexOf("--ui-control-placeholder")]![field]!;
+      if (placeholder >= entered / 2) {
+        failures.push(`${theme.name}: placeholder ${placeholder.toFixed(2)} and entered text ${entered.toFixed(2)} have too little separation`);
+      }
       await page.close();
     }
     assert.deepEqual(failures, []);
