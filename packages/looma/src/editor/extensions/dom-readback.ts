@@ -1,20 +1,18 @@
 import { Extension } from "@tiptap/core";
-import { DOMParser, type ParseOptions } from "@tiptap/pm/model";
+import { DOMParser } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
-
-class EditorDOMParser extends DOMParser {
-  override parse(node: Node, options?: ParseOptions) {
-    // ProseMirror otherwise treats every literal newline in the edited DOM
-    // as a hard break. Keep soft newlines as text and parse explicit br nodes
-    // as usual. Clipboard parsing uses parseSlice, which keeps its own policy.
-    return super.parse(node, options?.preserveWhitespace === true ? { ...options, preserveWhitespace: "full" } : options);
-  }
-}
 
 export const LoomaDOMReadback = Extension.create({
   name: "loomaDOMReadback",
   addProseMirrorPlugins() {
     const { schema, rules } = DOMParser.fromSchema(this.editor.schema);
-    return [new Plugin({ props: { domParser: new EditorDOMParser(schema, rules) } })];
+    const parser = new DOMParser(schema, rules);
+    const parse = parser.parse.bind(parser);
+    // Keep soft newlines as text during DOM readback. Explicit br nodes still
+    // parse as hard breaks, and clipboard parsing uses the unchanged parseSlice.
+    parser.parse = (node, options) => parse(node, options?.preserveWhitespace === true
+      ? { ...options, preserveWhitespace: "full" }
+      : options);
+    return [new Plugin({ props: { domParser: parser } })];
   },
 });

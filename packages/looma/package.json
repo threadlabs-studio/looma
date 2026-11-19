@@ -110,7 +110,7 @@
     "test:browser": "node tests/run-browser.mjs"
   },
   "dependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.92",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.95",
     "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
     "expressmark": ">=0.6.4",
