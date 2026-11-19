@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Allow focus inside an opening disclosure before its reveal animation advances.
+
 - Map selections across consecutive verified Markdown paragraphs while preserving the original spacing between them.
 - Map separate literal bold and italic spans within the same Markdown paragraph or heading, preserving each span's source offsets.
 
