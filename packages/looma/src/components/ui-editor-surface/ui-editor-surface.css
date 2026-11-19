@@ -9,6 +9,13 @@
   }
 }
 
+/* Inline math is a range of TeX: an accent tint and dotted underline set it apart from inline code. */
+.looma-editor .ProseMirror code[data-looma-math] {
+  background: var(--ui-editor-math-bg, color-mix(in srgb, var(--ui-accent-solid) 14%, transparent));
+  text-decoration: underline dotted var(--ui-editor-math-border, color-mix(in srgb, var(--ui-accent-solid) 70%, transparent));
+  text-underline-offset: 0.25em;
+}
+
 /* The editor surface owns its renderer canvas. Existing hooks retain their defaults. */
 /* Native TOC wrappers position the composed control beyond the active-block guide.
    The IconButton itself owns its dot, motion, focus and touch treatment. */

@@ -113,7 +113,7 @@
     "@nextwebwg/html-next": ">=1.0.0-alpha.95",
     "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
-    "expressmark": ">=0.6.4",
+    "expressmark": ">=0.7.0",
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
     "lucide": "~0.554.0",

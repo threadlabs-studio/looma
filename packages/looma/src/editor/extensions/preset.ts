@@ -39,6 +39,7 @@ import { LoomaBlockSelection } from "./block-selection";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
+import { LoomaMath, outsideOpenMath } from "./math";
 import { LoomaExpand } from "./expand";
 import { LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 import { LoomaLinkDefinition } from "./link-definition";
@@ -254,6 +255,7 @@ export function getDefaultEditorExtensions(
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
     LoomaChip,
+    LoomaMath,
     LoomaTabs,
     LoomaTab,
     // A figure holds a block image, so it exists only when images are blocks.
@@ -281,7 +283,7 @@ export function getDefaultEditorExtensions(
     Code.extend({ excludes: "" }),
     LoomaSmartPaste,
     codeBlockNodeView ? codeBlock.extend({ addNodeView: () => codeBlockNodeView }) : codeBlock,
-    Typography,
+    Typography.extend({ addInputRules() { return outsideOpenMath(this.parent?.() ?? []); } }),
     Placeholder.configure({
       placeholder: ({ node }) =>
         node.type.name === "paragraph" ? placeholder : "",

@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Editor, getSchema } from "@tiptap/core";
-import { editorToMarkdown, editorDocumentToMarkdown, editorDocumentToExpressmark, expressmarkToEditorDocument,
-  mapEditorMarkdownPositions, markdownToEditorDocument } from "../src/editor/expressmark";
-import { getDefaultEditorExtensions } from "../src/editor/extensions";
+import {
+  editorToMarkdown, editorDocumentToMarkdown, editorDocumentToExpressmark, expressmarkToEditorDocument,
+  mapEditorMarkdownPositions, markdownToEditorDocument,
+} from "../src/editor/expressmark";
+import { getDefaultEditorExtensions, pastedMathHtml } from "../src/editor/extensions";
 import { getCompactEditorExtensions } from "../src/editor/compact-extensions";
 
 const editors: Editor[] = [];
@@ -501,5 +503,51 @@ describe("LoomaEditor writes Markdown back through expressmark", () => {
     const editor = open(source);
     replaceText(editor, "Steps", "Next steps");
     expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("## Steps ##", "## Next steps ##"));
+  });
+});
+
+describe("math", () => {
+  const source = "Energy is $E = mc^2$.\n\n$$\nx^2\n$$\n\n```math {title=\"Euler\"}\ne^{i\\pi} + 1 = 0\n```\n";
+
+  it("opens inline and display math and writes them back", () => {
+    const editor = open(source);
+    expect(editor.getJSON().content?.[0]?.content?.[1]).toEqual({ type: "text", text: "E = mc^2", marks: [{ type: "loomaMath" }] });
+    expect(editorToMarkdown(editor, { original: source })).toBe(source);
+    expect(editorToMarkdown(editor)).toBe(source);
+  });
+
+  it("edits display math as a math code block", () => {
+    const editor = open(source);
+    replaceText(editor, "x^2", "y^2");
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("x^2", "y^2"));
+  });
+
+  it("turns typed dollars into inline math, and leaves prices as text", () => {
+    const editor = open("Start");
+    editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+    for (const character of " $x^2$ and $5 and $10") editor.view.someProp("handleTextInput", f => f(editor.view, editor.state.selection.from, editor.state.selection.to, character, () => editor.state.tr.insertText(character)));
+    expect(editorToMarkdown(editor)).toBe("Start $x^2$ and $5 and $10\n");
+  });
+
+  it("enters math mode from the slash command's command", () => {
+    const editor = open("Start");
+    editor.chain().setTextSelection(editor.state.doc.content.size - 1).insertContent(" ").toggleLoomaMath().insertContent("a+b").run();
+    expect(editorToMarkdown(editor)).toBe("Start $a+b$\n");
+  });
+
+  it("pastes rendered math as its TeX", () => {
+    const katex = '<p>See <span class="katex"><span class="katex-mathml"><math><semantics><mi>x</mi><annotation encoding="application/x-tex">x^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true">x2</span></span>.</p>'
+      + '<span class="katex-display"><span class="katex"><span class="katex-mathml"><math display="block"><semantics><mi>y</mi><annotation encoding="application/x-tex">\\frac{a}{b}</annotation></semantics></math></span><span class="katex-html">ab</span></span></span>';
+    expect(pastedMathHtml(katex)).toBe('<p>See <code class="language-math" data-looma-math="">x^2</code>.</p><pre><code class="language-math">\\frac{a}{b}</code></pre>');
+    expect(pastedMathHtml("<p>No math</p>")).toBe("<p>No math</p>");
+    const editor = open("");
+    editor.commands.setContent(pastedMathHtml(katex));
+    expect(editorToMarkdown(editor)).toBe("See $x^2$.\n\n$$\n\\frac{a}{b}\n$$\n");
+  });
+
+  it("keeps inline math when its paragraph changes", () => {
+    const editor = open(source);
+    replaceText(editor, "Energy", "The energy");
+    expect(editorToMarkdown(editor, { original: source })).toBe(source.replace("Energy", "The energy"));
   });
 });
