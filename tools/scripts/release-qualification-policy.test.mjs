@@ -7,6 +7,7 @@ import { browserTestPatterns } from "../../packages/looma/tests/browser-files.mj
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const readWorkflow = async name => (await readFile(path.join(repoRoot, ".github/workflows", name), "utf8")).replaceAll("\r\n", "\n");
+const linuxRunner = "runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '[\"ubuntu-24.04-arm\"]') }}";
 
 test("every workspace and release fixture reports the root release version", async () => {
   const manifestPaths = [
@@ -91,7 +92,7 @@ test("the required verify result gates unit tests, browser regressions, release 
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
   assert.match(releasePackagingJob, /ci-qualification\.mjs run package-consumer/);
-  assert.match(releasePackagingJob, /runs-on: ubuntu-24\.04-arm/);
+  assert.ok(releasePackagingJob.includes(linuxRunner), "trusted jobs use the configured pool; fork PRs retain hosted ARM runners");
   assert.match(qualifier, /run\(\["release:verify"\]\)/);
   assert.match(verifyJob, /if: always\(\)/);
   assert.match(verifyJob, /needs: \[quality, browser, release-package, visual, converter-pressure\]/);
@@ -253,6 +254,9 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   const ciLimits = minutes(ci);
   const gate = ciLimits.at(-1);
   const qualification = Math.max(...ciLimits.slice(0, -1)) + gate;
+  const catalog = ci.match(/\n  converter-pressure:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/)?.[0] ?? "";
+  assert.match(catalog, /^    runs-on: ubuntu-24\.04-arm$/m);
+  assert.match(catalog, /^    timeout-minutes: 6$/m);
   // Release runner work is every job timeout minus npm's availability wait, which is npm's
   // processing after the upload and has its own step timeout. It is the only step-level timeout,
   // so nothing else can leave the budget.
@@ -269,7 +273,7 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   assert.ok(qualification + jobMinutes(docs).reduce((a, b) => a + b, 0) <= 15);
   assert.ok(Math.max(...minutes(parity)) <= 15);
   assert.doesNotMatch(ci, /needs: plan|actions: read|qualification.*artifact|format:check|check:code-documentation/);
-  assert.match(parity, /docs-parity:\n    runs-on: ubuntu-24\.04-arm\n/);
+  assert.ok(parity.includes(`docs-parity:\n    ${linuxRunner}\n`), "documentation parity uses the same guarded runner selection");
   assert.match(parity, /image: mcr\.microsoft\.com\/playwright:v1\.60\.0-noble@sha256:/);
   const qualificationSource = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualificationSource, /"@threadlabs\/looma-docs-next", "test:parity"/);
