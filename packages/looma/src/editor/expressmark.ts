@@ -1,4 +1,5 @@
 import type { Editor, JSONContent } from "@tiptap/core";
+import type { Node as EditorNode } from "@tiptap/pm/model";
 import { parse, stringify, type Attributes, type ConversionOptions, type Document, type Node } from "expressmark";
 import { renderHtml } from 'expressmark/render';
 import { assignLoomaHeadingIds, LOOMA_CALLOUT_TONE_ALIASES, LOOMA_CALLOUT_TONES, LOOMA_CHIP_TONES, parseLoomaFenceInfo } from "../markdown";
@@ -6,6 +7,8 @@ import { getReferenceDisplay, type LoomaReferenceMap } from "./reference-display
 import { pictureHtml, readPictureHtml, normalizeImageSources } from "./image-sources";
 import { fileAttachmentHtml, readFileAttachmentHtml } from './extensions/file-attachment';
 import { isHeadingAlignment } from "./heading-alignment";
+import { mapProseSourcePositions, type EditorMarkdownPositionMap } from "./prose-source-positions";
+export type { EditorMarkdownAffinity, EditorMarkdownPositionMap, EditorMarkdownRange } from "./prose-source-positions";
 
 /** Conversion-time display snapshot, independent from the authored editor document. */
 export interface EditorMarkdownConversionOptions extends ConversionOptions {
@@ -809,4 +812,23 @@ export function markdownToEditorDocument(markdown: string, options: ConversionOp
   const document = parse(markdown, { syntax: "compatible", ...options });
   delete document.title; delete document.id; delete document.metadata;
   return expressmarkToEditorDocument(document);
+}
+
+/**
+ * Relates exact positions in the current Markdown to the matching live editor document.
+ * @contract Maps literal prose and headings, including separate italic and bold runs within a block.
+ * A range can span consecutive verified paragraphs, with exact endpoints in their text.
+ * A nonempty editor range uses its inner boundaries.
+ * A collapsed editor position with multiple source boundaries requires an explicit affinity.
+ * @failure Unproven or unsupported locations return undefined rather than a guessed offset.
+ */
+export function mapEditorMarkdownPositions(markdown: string, editorDocument: EditorNode,
+  options: ConversionOptions = {}): EditorMarkdownPositionMap {
+  const source = parse(markdown, { syntax: "compatible", ...options });
+  try {
+    return mapProseSourcePositions(markdown, source, editorDocument, readBlocks(source));
+  } catch (error) {
+    if (!(error instanceof EditorMarkdownConversionError)) throw error;
+    return mapProseSourcePositions(markdown, source, editorDocument);
+  }
 }

@@ -14,6 +14,7 @@ export {
   LoomaActiveBlock,
   LoomaActiveBlockPluginKey,
 } from "./active-block";
+export { LoomaCaretContext, type LoomaCaretContextOptions } from "./caret-context";
 export {
   LoomaCallout,
   LOOMA_CALLOUT_TONES,

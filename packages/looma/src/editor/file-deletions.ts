@@ -12,6 +12,17 @@ export interface FileDeletionServices {
   onError: (error: unknown, file: LoomaFileDescriptor) => void;
 }
 
+/** Remove an authored reference without changing the original file's availability. */
+export function removeFileBlock(editor: Editor, position: () => number | undefined): void {
+  if (editor.isDestroyed || !editor.isEditable) return;
+  const at = position();
+  if (at === undefined) return;
+  const original = editor.state.doc.nodeAt(at);
+  if (original?.type.name !== 'loomaFileAttachment') return;
+  editor.view.dispatch(closeHistory(editor.state.tr).delete(at, at + original.nodeSize));
+  editor.view.focus();
+}
+
 /** Remove one block optimistically; retain a mapped rollback anchor while transport runs. */
 export async function deleteFileBlock(editor: Editor, position: () => number | undefined, file: LoomaFileDescriptor, services: FileDeletionServices): Promise<void> {
   if (!services.enabled() || editor.isDestroyed || !editor.isEditable) return;

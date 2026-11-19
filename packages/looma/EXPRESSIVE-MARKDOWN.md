@@ -35,6 +35,45 @@ const restoredEditorJson = expressmarkToEditorDocument(parse(markdown));
 
 Editor Markdown import and export explicitly select Expressmark’s `compatible` syntax (CommonMark/GFM with expressive extensions), preserving the existing interchange format as Expressmark’s defaults evolve. Pass `syntax` in conversion options when selecting another supported reading; content outside the editor schema still raises a conversion error.
 
+## Source positions
+
+`mapEditorMarkdownPositions` relates a current Markdown string to its live
+ProseMirror document. Use it to restore selections or anchor a passage to the
+displayed text. Rebuild it after either the Markdown or document changes, and
+pass the same conversion options as the import.
+
+```ts
+import { mapEditorMarkdownPositions } from "@threadlabs/looma/editor/expressmark";
+
+const map = mapEditorMarkdownPositions(markdown, editor.state.doc);
+const selection = map.toEditorRange(sourceStart, sourceEnd);
+const source = map.toSourceRange(editor.state.selection.from, editor.state.selection.to);
+```
+
+Ranges are half-open and count UTF-16 code units. The map verifies literal
+paragraphs and headings, including soft and explicit hard breaks and separate
+italic or bold runs with `*` or `_` delimiters. A selection can span consecutive
+verified paragraphs. Its source range keeps the original spacing between those
+paragraphs.
+
+Unsupported locations return `undefined`. Examples include escapes or entities
+that change the literal text, links, nested marks, adjacent spans merged into one
+editor run, ranges across an unverified block or source-only markup, and offsets
+inside a paragraph separator, two-character delimiter, or surrogate pair.
+
+At emphasis delimiters, multiple source boundaries can share an editor position.
+A nonempty editor selection uses the inner boundaries, so selecting a formatted
+word maps to the characters between its delimiters. A collapsed position at that
+boundary takes a third argument of `"before"` or `"after"` to choose the lower or
+higher source offset. Without it the ambiguous position returns `undefined`.
+
+`measureEditorLine` from `@threadlabs/looma/editor` measures the rendered caret
+rectangle at a mapped editor position, including after a paragraph wraps. Pass the
+same ProseMirror document used to build the map. It reports client coordinates
+and whether the rectangle intersects the visual viewport and an optional
+`scrollport` client area. Invalid, stale, and unavailable positions return `null`.
+The host can use the result to place its own annotation.
+
 The editor continues to save Tiptap JSON. Expressive Markdown is an interchange
 format; it does not replace your saved document, history or application metadata.
 See the [proposal and syntax](https://nextwebwg.org/expressive-markdown/) and

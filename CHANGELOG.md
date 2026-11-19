@@ -3,10 +3,25 @@
 ## Next release
 
 - LoomaEditor opens and saves Expressive Markdown math. Inline math is a range of TeX notation with an accent tint and dotted underline; enter it with the Math slash command or by typing `$x$`, and leave it with the arrow key. The Math block slash command adds display math as a `math` code block. Text replacements such as `^2` → ² wait until the math closes. Pasted MathML or KaTeX that carries its TeX, as from Wikipedia, GitHub, ChatGPT and Claude, becomes math. Requires expressmark >=0.7.0.
+
+- Allow focus inside an opening disclosure before its reveal animation advances.
+
+- Map selections across consecutive verified Markdown paragraphs while preserving the original spacing between them.
+- Map separate literal bold and italic spans within the same Markdown paragraph or heading, preserving each span's source offsets.
+
+- Keep a FormField's native invalid state in sync with late control updates. A field that clears its error restores the control's own validation state.
+
+- Add an opt-in editor extension that keeps a configurable number of line heights visible around the caret during typing, keyboard navigation, and clicks near a scroll edge.
+
+- Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
+
+- Keep deleted or elsewhere-owned file references removable through ordinary document edits, without requesting another original-file deletion. Center compact card icons with balanced spacing and quieter inline controls.
 - Keep attachment cards compact with surrounding space, tightly grouped filenames and muted sizes. Scale byte labels through KB, MB, GB and larger units with one decimal place. Add opt-in confirmed file deletion with optimistic removal, failure recovery and non-clickable deleted references after undo or history restoration.
 - Preserve Markdown soft line breaks when editing prose in the full and compact editors. Explicit hard breaks keep their meaning.
 - Present attached originals as movable file blocks with SVG icons, filenames and byte sizes. The whole card is a native link. Keep metadata, surrounding writing, upload retry and undo intact through HTML and Markdown round trips.
 - LoomaEditor headings with anchors show a copy-link button on hover or keyboard focus, with a tooltip and clipboard feedback. The controls are available in read-only documents and never enter saved content.
+- Map verified Markdown source ranges to Looma editor positions for literal prose, headings, and a simple italic or bold run, with explicit affinity at ambiguous caret boundaries.
+- Measure a tracked editor line in client coordinates and report whether its caret rectangle is visible in the viewport and an optional host scrollport.
 
 - Align ordinary control values, field labels, menus, navigation, selection rows, and disclosure triggers on the shared UI text size (14px at a 16px root). Large controls retain body-size text; compact density changes spacing. Generated themes default field labels to `0.875rem`; choose `label-size: inherit` or an explicit length to retain a different label size. Native fields keep body-size text on touch.
 
