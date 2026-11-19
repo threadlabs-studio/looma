@@ -140,8 +140,8 @@ importers:
         specifier: ^0.5.1
         version: 0.5.1
       '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.92'
-        version: 1.0.0-alpha.92
+        specifier: '>=1.0.0-alpha.95'
+        version: 1.0.0-alpha.95
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
@@ -2392,6 +2392,11 @@ packages:
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
+  '@nextwebwg/html-next@1.0.0-alpha.95':
+    resolution: {integrity: sha512-vl60UTXU5ntyhw8l5hIjqcOY+XbO1RzE3Kik9smTWBAA0z/PH/A3cO/Ou8XKB3QqM0D410Gi/r/o/DPeFnD8+g==}
+    engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
+    hasBin: true
+
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
@@ -4255,6 +4260,12 @@ packages:
   batch@0.6.1:
     resolution: {integrity: sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==}
 
+  bcp-47-match@2.0.3:
+    resolution: {integrity: sha512-JtTezzbAibu8G0R9op9zb3vcWZd9JF6M0xOYGPn0fNCd7wOpRB1mU2mH9T8gaBGbAAyIIVgB2G7xG0GP98zMAQ==}
+
+  bcp-47@2.1.2:
+    resolution: {integrity: sha512-wsv86UuNFuPnVieKLyECTT+CP1WSAHeoIg5P3xu2kA9Z+7fVPoKt7dxzSeEhtJel0AI+NW3fIW3KtTKQKUCngg==}
+
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
 
@@ -5030,6 +5041,10 @@ packages:
 
   entities@8.1.0:
     resolution: {integrity: sha512-kxL7msIffSuh9aaFAMD7rxAIuTRMAHMeBtgHW2yUdWw732ZNh4MehkF2gdjvtdmikkaIP9bFDDJOPlsvm7avrA==}
+    engines: {node: '>=20.19.0'}
+
+  entities@9.0.0:
+    resolution: {integrity: sha512-oJFNDJg3kTPwAD1cNn2+WmUq4wFoo09npc3Ydf1D7ED4smRiWrsKnaLxykrTWgyGEcusc87P5dxlAleol9kpkg==}
     engines: {node: '>=20.19.0'}
 
   envinfo@7.21.0:
@@ -5962,6 +5977,15 @@ packages:
       canvas:
         optional: true
 
+  jsdom@31.0.0:
+    resolution: {integrity: sha512-xAkhD9z1eyFC5+QUi9K24CaZJgdCQ2GOGLW1GdVDoQvkp/AxEH9TQ0pAplPOlIiV92hfcgnFOADZypbjgbBT6Q==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
+    peerDependencies:
+      '@napi-rs/canvas': ^1.0.13
+    peerDependenciesMeta:
+      '@napi-rs/canvas':
+        optional: true
+
   jsesc@3.1.0:
     resolution: {integrity: sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==}
     engines: {node: '>=6'}
@@ -6782,11 +6806,20 @@ packages:
   parse5-htmlparser2-tree-adapter@7.1.0:
     resolution: {integrity: sha512-ruw5xyKs6lrpo9x9rCZqZZnIUntICjQAd0Wsmp396Ul9lN/h+ifgVV1x1gZHi8euej6wTfpqX8j+BFQxF0NS/g==}
 
+  parse5-parser-stream@8.1.1:
+    resolution: {integrity: sha512-hMcVbbUJcQmP8rURWUdYrT1flRiBiBVjq/RYGguJpDUgIXSqdYKlE0CxthmdMWoSlBAuL5bUBa73g0pttSy7Hw==}
+
   parse5@7.3.0:
     resolution: {integrity: sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw==}
 
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
+
+  parse5@8.1.0:
+    resolution: {integrity: sha512-sq3qBFpee5jeocbFbO48VHlGr8sT7mbXS0vxlKN6sottBtJzrOG3998sr0llSZcQAGgfpdmEYAIZE0P9z0dE8w==}
+
+  parse5@8.1.1:
+    resolution: {integrity: sha512-EcR/6WDcU7b2N3vQSxKALCk9lXGtUMQxXio008OEMBE0kavu/7JLfBEeFPzi43nMqVDSbEn3QCK+BMCc9zO//w==}
 
   parseman@0.56.0:
     resolution: {integrity: sha512-Jb4V2CSONx+gN8IPIO/10qnYAA5ZoUaRsadSURTfxDxI+4ZGNEuLqPGKU2W2ewWp/Y0XJO4aEukFqyQqdCjhhA==}
@@ -11562,15 +11595,15 @@ snapshots:
 
   '@nextwebwg/html-next-converter@1.0.0-alpha.92':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.92
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       typescript: 5.9.3
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
-      - canvas
 
   '@nextwebwg/html-next-unplugin@1.0.0-alpha.92(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.92
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       '@nextwebwg/html-next-converter': 1.0.0-alpha.92
       css-tree: 3.2.1
       cssstyle: 6.2.0
@@ -11585,12 +11618,12 @@ snapshots:
       vite: 8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@farmfe/core'
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@rsbuild/core'
       - '@rspack/core'
       - '@typescript-eslint/types'
       - bun-types-no-globals
-      - canvas
       - esbuild
       - rolldown
       - rollup
@@ -11599,7 +11632,7 @@ snapshots:
 
   '@nextwebwg/html-next-unplugin@1.0.0-alpha.92(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.92
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       '@nextwebwg/html-next-converter': 1.0.0-alpha.92
       css-tree: 3.2.1
       cssstyle: 6.2.0
@@ -11614,12 +11647,12 @@ snapshots:
       vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@farmfe/core'
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@rsbuild/core'
       - '@rspack/core'
       - '@typescript-eslint/types'
       - bun-types-no-globals
-      - canvas
       - esbuild
       - rolldown
       - rollup
@@ -11641,6 +11674,22 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
       - canvas
+
+  '@nextwebwg/html-next@1.0.0-alpha.95':
+    dependencies:
+      '@dprint/formatter': 0.6.0
+      '@dprint/typescript': 0.96.1
+      '@formatjs/intl-durationformat': 0.11.1
+      dprint-plugin-malva: 0.16.0
+      dprint-plugin-markup: 0.27.6
+      jsdom: 31.0.0
+      parse5: 8.1.0
+      postcss: 8.5.30
+      postcss-nesting: 14.0.3(postcss@8.5.30)
+      typescript-compiler: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - '@napi-rs/canvas'
+      - '@noble/hashes'
 
   '@noble/hashes@1.4.0': {}
 
@@ -12521,15 +12570,15 @@ snapshots:
 
   '@threadlabs/markupkit@0.6.1(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.92
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       parse5: 8.0.1
       typescript-compiler: '@typescript/typescript6@6.0.2'
       vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@types/node'
       - '@vitejs/devtools'
-      - canvas
       - esbuild
       - jiti
       - less
@@ -13667,6 +13716,14 @@ snapshots:
 
   batch@0.6.1: {}
 
+  bcp-47-match@2.0.3: {}
+
+  bcp-47@2.1.2:
+    dependencies:
+      is-alphabetical: 2.0.1
+      is-alphanumerical: 2.0.1
+      is-decimal: 2.0.1
+
   bcrypt-pbkdf@1.0.2:
     dependencies:
       tweetnacl: 0.14.5
@@ -14502,6 +14559,8 @@ snapshots:
   entities@7.0.1: {}
 
   entities@8.1.0: {}
+
+  entities@9.0.0: {}
 
   envinfo@7.21.0: {}
 
@@ -15669,6 +15728,29 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
 
+  jsdom@31.0.0:
+    dependencies:
+      '@exodus/bytes': 1.16.0
+      bcp-47: 2.1.2
+      bcp-47-match: 2.0.3
+      data-urls: 8.0.0
+      decimal.js: 10.6.0
+      html-encoding-sniffer: 7.0.0
+      is-potential-custom-element-name: 1.0.1
+      lru-cache: 11.5.3
+      parse5: 8.1.0
+      parse5-parser-stream: 8.1.1
+      saxes: 6.0.0
+      tough-cookie: 6.0.2
+      undici: 8.12.3
+      w3c-xmlserializer: 6.0.0
+      webidl-conversions: 8.0.1
+      whatwg-mimetype: 5.0.0
+      whatwg-url: 17.3.0
+      xml-name-validator: 5.0.0
+    transitivePeerDependencies:
+      - '@noble/hashes'
+
   jsesc@3.1.0: {}
 
   json-buffer@3.0.1: {}
@@ -15947,10 +16029,10 @@ snapshots:
       vite: 8.3.5(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       yaml: 2.9.1
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@types/node'
       - '@vitejs/devtools'
-      - canvas
       - esbuild
       - jiti
       - less
@@ -16794,6 +16876,10 @@ snapshots:
       domhandler: 5.0.3
       parse5: 7.3.0
 
+  parse5-parser-stream@8.1.1:
+    dependencies:
+      parse5: 8.1.1
+
   parse5@7.3.0:
     dependencies:
       entities: 6.0.1
@@ -16801,6 +16887,14 @@ snapshots:
   parse5@8.0.1:
     dependencies:
       entities: 8.1.0
+
+  parse5@8.1.0:
+    dependencies:
+      entities: 9.0.0
+
+  parse5@8.1.1:
+    dependencies:
+      entities: 9.0.0
 
   parseman@0.56.0:
     dependencies:
