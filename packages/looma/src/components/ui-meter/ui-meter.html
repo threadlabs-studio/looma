@@ -35,7 +35,7 @@
       locale.</prop>
     <!-- Derived as it renders, so every render path, a server render included, draws the bar and states its value without JavaScript. -->
     <computed name="amount" from="clamp(0, $value, $max)"></computed>
-    <computed name="percent" from="{ true: $amount / $max * 100, false: 0 }[concat($max > 0)]"></computed>
+    <computed name="percent" from="$max > 0 ? $amount / $max * 100 : 0"></computed>
   </defs>
   <span
     from:role="{ true: 'img', false: 'meter' }[concat($variant = 'distribution')]"

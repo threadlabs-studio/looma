@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { browserTestPatterns } from "../../packages/looma/tests/browser-files.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const readWorkflow = async name => (await readFile(path.join(repoRoot, ".github/workflows", name), "utf8")).replaceAll("\r\n", "\n");
 const linuxRunner = "runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '[\"ubuntu-24.04-arm\"]') }}";
 
 test("every workspace and release fixture reports the root release version", async () => {
@@ -84,7 +85,9 @@ test("the required verify result gates unit tests, browser regressions, release 
   assert.match(qualityJob, /ci-qualification\.mjs run quality/);
   const qualifier = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualifier, /"@threadlabs\/looma", "build"/);
-  assert.match(await readFile(path.join(repoRoot, "packages/looma/build.mjs"), "utf8"), /node_modules\/\.bin\/tsc/);
+  const build = await readFile(path.join(repoRoot, "packages/looma/build.mjs"), "utf8");
+  assert.match(build, /resolve\("typescript\/bin\/tsc"\)/);
+  assert.match(build, /execFileSync\(process\.execPath, \[tsc, "-p"/);
   assert.equal(JSON.parse(loomaPackage).scripts.lint, JSON.parse(loomaPackage).scripts.typecheck);
   assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
   assert.match(JSON.parse(loomaPackage).scripts.lint, /tsc .+ --noEmit/);
@@ -232,7 +235,7 @@ test("the public consumer command is a separate fail-closed registry gate", asyn
 
 
 test("documentation building cannot consume the Pages deployment budget", async () => {
-  const docs = await readFile(path.join(repoRoot, ".github/workflows/docs.yml"), "utf8");
+  const docs = await readWorkflow("docs.yml");
   const build = docs.match(/\n  build:\n([\s\S]*?)(?=\n  deploy:\n)/)?.[1];
   const deploy = docs.match(/\n  deploy:\n([\s\S]*)/)?.[1];
   assert.ok(build, "build the site in its own job before publishing");
@@ -246,10 +249,7 @@ test("documentation building cannot consume the Pages deployment budget", async 
 });
 
 test("automatic checks and publication fit a 16-minute parallel critical path", async () => {
-  const ci = await readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8");
-  const release = await readFile(path.join(repoRoot, ".github/workflows/release.yml"), "utf8");
-  const docs = await readFile(path.join(repoRoot, ".github/workflows/docs.yml"), "utf8");
-  const parity = await readFile(path.join(repoRoot, ".github/workflows/docs-parity.yml"), "utf8");
+  const [ci, release, docs, parity] = await Promise.all(["ci.yml", "release.yml", "docs.yml", "docs-parity.yml"].map(readWorkflow));
   const minutes = source => [...source.matchAll(/timeout-minutes: (\d+)/g)].map(match => Number(match[1]));
   const ciLimits = minutes(ci);
   const gate = ciLimits.at(-1);
@@ -274,7 +274,7 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   assert.match(parity, /image: mcr\.microsoft\.com\/playwright:v1\.60\.0-noble@sha256:/);
   const qualificationSource = await readFile(path.join(repoRoot, "tools/scripts/ci-qualification.mjs"), "utf8");
   assert.match(qualificationSource, /"@threadlabs\/looma-docs-next", "test:parity"/);
-  const extended = await readFile(path.join(repoRoot, ".github/workflows/extended.yml"), "utf8");
+  const extended = await readWorkflow("extended.yml");
   assert.match(extended, /workflow_dispatch:/);
   assert.doesNotMatch(extended, /pull_request:|push:|schedule:|workflow_run:/);
   assert.match(extended, /--project=firefox/);

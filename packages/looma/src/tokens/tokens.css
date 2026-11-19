@@ -130,7 +130,7 @@
     /* Type scale, from the base size. */
     --ui-font-size-2xs: calc(1rem * 0.6875);
     --ui-font-size-xs: calc(1rem * 0.75);
-    /* Dense text: controls, labels, and metadata. Two steps below body copy, never one pixel. */
+    /* UI text: controls, navigation, action rows, labels, and supporting text. Body copy uses md. */
     --ui-font-size-sm: calc(1rem * 0.875);
     --ui-font-size-md: 1rem;
     --ui-font-size-lg: calc(1rem * 1.125);
@@ -338,6 +338,16 @@
     --ui-info-strong-surface: var(--ui-info);
     --ui-info-on-strong: var(--ui-on-accent);
     --ui-info-subtle-text: light-dark(oklch(from var(--ui-info) min(l, 0.50) min(c, 0.12) h), oklch(from var(--ui-info) max(l, 0.80) min(c, 0.12) h));
+
+    /* Guaranteed-invalid defaults keep each component's foreground fallback
+       live in nested themes until a non-text ink is explicitly supplied. */
+    --ui-non-text-on-accent: initial;
+    --ui-non-text-on-accent-secondary: initial;
+    --ui-non-text-on-accent-tertiary: initial;
+    --ui-non-text-on-danger: initial;
+    --ui-non-text-on-success: initial;
+    --ui-non-text-on-warning: initial;
+    --ui-non-text-on-info: initial;
 
     /* Interaction roles: what a control paints, whatever its intent. */
     --ui-action-primary-surface: var(--ui-accent);

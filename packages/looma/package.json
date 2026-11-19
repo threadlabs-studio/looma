@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.52.0",
+  "version": "0.53.0",
   "type": "module",
   "description": "HTML Next UI components, native DOM support and design tokens.",
   "license": "MIT",
@@ -53,6 +53,7 @@
     "./vanilla": "./vanilla/index.js",
     "./vanilla/*": "./vanilla/*",
     "./components/*": "./components/*",
+    "./blocks/*": "./blocks/*",
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
     "./theme-dark.css": "./theme-dark.css",
@@ -75,6 +76,11 @@
       "import": "./components/shared/input-modality.js",
       "default": "./components/shared/input-modality.js"
     },
+    "./behaviors": {
+      "types": "./components/shared/behaviors.d.ts",
+      "import": "./components/shared/behaviors.js",
+      "default": "./components/shared/behaviors.js"
+    },
     "./docs/examples/*": "./docs/examples/*"
   },
   "files": [
@@ -83,6 +89,7 @@
     "markdown/",
     "vanilla/",
     "components/",
+    "blocks/",
     "styles/",
     "*.css",
     "README.md",
@@ -103,13 +110,15 @@
     "test:browser": "node tests/run-browser.mjs"
   },
   "dependencies": {
-    "@nextwebwg/html-next": ">=1.0.0-alpha.84",
+    "@nextwebwg/html-next": ">=1.0.0-alpha.95",
     "@js-temporal/polyfill": "^0.5.1",
     "dompurify": "3.4.15",
-    "expressmark": ">=0.5.1",
+    "expressmark": ">=0.6.4",
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
-    "lucide": "~0.554.0"
+    "lucide": "~0.554.0",
+    "htmlparser2": "12.0.0",
+    "parse-srcset": "1.0.2"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",
@@ -130,7 +139,7 @@
     "@angular/core": "21.2.24",
     "@angular/platform-browser": "21.2.24",
     "@angular/platform-server": "21.2.24",
-    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.84",
+    "@nextwebwg/html-next-unplugin": ">=1.0.0-alpha.92",
     "@preact/preset-vite": "^2.10.6",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tiptap/core": "^2.11.5",

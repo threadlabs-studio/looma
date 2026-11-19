@@ -61,6 +61,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-column": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-combobox": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -98,6 +102,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-cycle-button": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-data-table": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -285,6 +293,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-notice-stripe": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-number-input": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -326,6 +338,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-section": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-segmented-control": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

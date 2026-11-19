@@ -1,0 +1,15 @@
+---
+slug: /components/ui-notice-stripe
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Notice Stripe
+
+A compact, full-width notification for announcements and service notices. The default slot carries the message and the actions slot carries links or buttons. Content wraps at narrow widths. Optional dismissal reports intent while the consumer owns visibility, persistence and scheduling.
+
+Choose `neutral`, `info` (the default), `success`, `warning` or `danger`. Danger is an assertive alert; other tones use a polite status region. Use concise message text and descriptive action names. `dismiss-label` provides a translated or message-specific accessible close name.
+
+Set `dismissible` to show the close control. Its `dismiss` event reports `{ reason: "action", trigger }`, where `trigger` is `keyboard`, `pointer` or `programmatic`. Listen for the request and remove or hide the stripe in your application. The application owns dismissal persistence and the timing of announcements.
+
+<ComponentExamplesApiTabs component="ui-notice-stripe" />

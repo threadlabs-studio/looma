@@ -10,6 +10,31 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Anchored overlay placement", () => {
+  it("repositions committed content before exposing its expanded bounds", async () => {
+    const path = await bundle("overlay-content-commit", `
+      import { createAnchoredSurface } from ${JSON.stringify(join(root, "src/components/shared/overlay.js"))};
+      const anchor = document.querySelector('#anchor');
+      const surface = document.querySelector('#surface');
+      createAnchoredSurface(surface, { anchor, placement: 'top', bare: true }).show();
+    `);
+    const page = await open(path, `
+      <span id="anchor" style="position: fixed; left: 500px; top: 250px; width: 80px; height: 24px">Anchor</span>
+      <div id="surface" hidden><div style="width: 40px; height: 18px">Initial</div></div>
+    `, []);
+    try {
+      const boxes = await page.evaluate(async () => {
+        const content = document.createElement("div");
+        Object.assign(content.style, { width: "240px", height: "84px" });
+        content.textContent = "Expanded content";
+        const surface = document.querySelector("#surface")!;
+        surface.replaceChildren(content);
+        await Promise.resolve();
+        return { bottom: surface.getBoundingClientRect().bottom, anchor: document.querySelector("#anchor")!.getBoundingClientRect().top };
+      });
+      assert.ok(boxes.bottom <= boxes.anchor, `expanded surface stays above its anchor: ${JSON.stringify(boxes)}`);
+    } finally { await page.close(); }
+  });
+
   for (const adapter of ["HTML", "Converted"] as const) it(`supports manual popover activation with a replaceable anchor in ${adapter}`, async () => {
     const source = adapter === "HTML" ? `
       import "@looma-test/runtime";

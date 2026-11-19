@@ -1,0 +1,4 @@
+{
+  "description": "One column of a `ui-data-table`. Its root is the column's header cell. The table shows the column's `field` of each row, or the column's `cell` content, which reads the row as `$row`.",
+  "navigationParent": "ui-data-table"
+}

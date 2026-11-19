@@ -8,6 +8,53 @@ import { describe, it } from "vitest";
 import { root, bundle, open } from "../renderers/browser-driver";
 
 describe("Disclosure composition", () => {
+  it("lets a disclosure receive focus at the start of its opening animation", async () => {
+    const path = await bundle("html-disclosure-focus", `import "@looma-test/runtime";`);
+    const page = await open(path, `
+      <ui-disclosure id="disclosure" summary="Proposed turn" style="--ui-motion-reveal: 2s">
+        <textarea aria-label="Scene turn"></textarea>
+      </ui-disclosure>
+    `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
+    try {
+      const result = await page.evaluate(async () => {
+        const trigger = document.querySelector<HTMLButtonElement>("#disclosure button")!;
+        const field = document.querySelector<HTMLTextAreaElement>("#disclosure textarea")!;
+        const panel = document.querySelector<HTMLElement>("#disclosure .panel")!;
+        const transitions = () => panel.getAnimations().filter(
+          (animation): animation is CSSTransition => animation instanceof CSSTransition);
+        trigger.focus();
+        for (const animation of transitions()) animation.finish();
+        const initiallyClosed = panel.hasAttribute("hidden");
+        trigger.click();
+        await Promise.resolve();
+        const opening = transitions();
+        for (const animation of opening) {
+          animation.pause();
+          animation.currentTime = 0;
+        }
+        field.focus();
+        const opened = {
+          initiallyClosed,
+          focused: document.activeElement === field,
+          motion: opening.map(animation => animation.transitionProperty),
+          transition: getComputedStyle(panel).transitionProperty,
+        };
+        for (const animation of opening) animation.finish();
+        getComputedStyle(panel).contentVisibility;
+        trigger.click();
+        await Promise.resolve();
+        return { ...opened, closing: transitions().map(animation => animation.transitionProperty) };
+      });
+      assert.equal(result.initiallyClosed, true);
+      assert.equal(result.focused, true);
+      assert.deepEqual(result.motion, ["grid-template-rows"]);
+      assert.equal(result.transition, "grid-template-rows");
+      assert.ok(result.closing.includes("content-visibility"));
+    } finally {
+      await page.close();
+    }
+  });
+
 it("keeps reading surfaces lighter than surrounding chrome across theme seeds", async () => {
     const path = await bundle("html-content-surfaces", `import "@looma-test/runtime";`);
     const page = await open(path, `<style>#content { background: var(--ui-surface-content); } #chrome { background: var(--ui-surface-chrome); }</style><header id="chrome">Chrome</header><main id="content">Content</main>`, [join(root, "tokens.css")]);
@@ -168,7 +215,7 @@ it("keeps navigation disclosure children adjacent to their trigger", async () =>
   it("animates bounded fill transfer and a persistent custom indicator", async () => {
     const path = await bundle("html-disclosure-motion", `import "@looma-test/runtime";`);
     const page = await open(path, `
-      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms">
+      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms;--ui-motion-feedback:1000ms">
         <ui-disclosure id="first" fill name="motion" summary="Overview" open><p>Overview content</p></ui-disclosure>
         <ui-disclosure id="second" fill name="motion" summary="Library">
           <ui-icon slot="indicator" name="chevron-up"></ui-icon><p>Library content</p>
@@ -176,7 +223,7 @@ it("keeps navigation disclosure children adjacent to their trigger", async () =>
       </div>
     `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
     await page.locator("#second button").click();
-    await page.waitForTimeout(60);
+    await page.waitForTimeout(180);
     const intermediate = await page.evaluate(() => {
       const first = document.querySelector("#first")!;
       const second = document.querySelector("#second")!;

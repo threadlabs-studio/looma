@@ -194,7 +194,7 @@ it("keeps the visible date editor labelled and matches Input styling at 375px in
     const editor = host.querySelector<HTMLInputElement>("[data-date-editor]")!;
     await vi.waitFor(() => expect(editor.hidden).toBe(false));
     await vi.waitFor(() => expect(host.querySelector("label")!.htmlFor).toBe(editor.id));
-    expect(editor.getAttribute("aria-describedby")).toBeTruthy();
+    await vi.waitFor(() => expect(editor.getAttribute("aria-describedby")).toBeTruthy());
     const edge = host.getBoundingClientRect(), box = editor.getBoundingClientRect();
     expect(box.width).toBeGreaterThan(200); expect(box.right).toBeLessThanOrEqual(edge.right + 1);
     expect(getComputedStyle(editor).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");

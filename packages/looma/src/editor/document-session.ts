@@ -51,17 +51,19 @@ import {
 import { LOOMA_TABLE_CONTROLS_CLOSED, tableControls, tableOverlayPlacement } from "./table-ui";
 import { createMobileDock, mobileDockPlacement, usesMobileDock } from "./mobile-dock";
 import { createLinkEditing, isLinkActive, selectedLinkReference, linkFormStatus, LOOMA_LINK_EDITING_IDLE, type LoomaLinkEditing, type LoomaLinkTarget } from "./link-editing";
-import { setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
+import { getReferenceDisplay, setReferenceDisplay, type LoomaReferenceMap } from "./reference-display";
 import { menuAnchorRect, selectedTableCellElement, selectedTableElement } from "./selection-geometry";
 import { createSelectionSurface, type SelectionSurface, type SelectionSurfaceOptions } from "./selection-surface";
 import { createEditorSession, selectionSnapshot, type LoomaEditorSession, type LoomaSelectionSnapshot } from "./session";
 import { isApplePlatform } from "./shortcuts";
 import { codeBlockAtSelection, codeLanguageChoices, codeLanguagePickerPlacement, setCodeBlockLanguage } from "./code-language-picker";
 import { tableOfContentsNodeView } from "./node-views/table-of-contents";
+import { headingNodeView } from "./node-views/heading";
 import { expandNodeView } from "./node-views/expand";
 import { dividerNodeView } from "./node-views/divider";
+import { createFileAttachmentNodeView } from './node-views/file-attachment';
 import { calloutNodeView } from "./node-views/callout";
-import { normalizeImagePlacement } from "./extensions/image";
+import { isLoomaImageName, normalizeImagePlacement } from "./extensions/image";
 import { imageNodeView } from "./node-views/image";
 
 export type { LoomaImageUploadDetail } from "./image-uploads";
@@ -137,8 +139,12 @@ export type LoomaImageUploader = LoomaResponder<LoomaImageUploadDetail, LoomaIma
 
 /** Uploads a file and returns its retained link; rejection leaves authored content unchanged. */
 export type LoomaFileUploader = LoomaResponder<{ file: File }, LoomaFileDescriptor>;
+/** Confirm a permanent deletion before the editor removes its file block. */
+export type LoomaFileDeletionConfirmation = LoomaResponder<{ file: LoomaFileDescriptor }, { confirmed: boolean }>;
+/** Delete the retained original; rejection restores the removed block. */
+export type LoomaFileDeleter = LoomaResponder<{ file: LoomaFileDescriptor }, { deleted: boolean }>;
 
-const EDITOR_REQUEST_NAMES = ["extensions", "slash-commands", "mention-query", "link-search", "link-resolve", "image-upload", "file-upload"] as const;
+const EDITOR_REQUEST_NAMES = ["extensions", "slash-commands", "mention-query", "link-search", "link-resolve", "image-upload", "file-upload", "file-delete-confirm", "file-delete"] as const;
 type EditorRequest = typeof EDITOR_REQUEST_NAMES[number];
 
 const uploadProgressText = (progress: LoomaImageUploadsState["progress"], label = "Uploading image…") =>
@@ -514,9 +520,11 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       const arrived = (name: EditorRequest) => current.has(name) && !responders.has(name);
       const extensionsArrived = arrived("extensions");
       const slashChanged = arrived("slash-commands") || current.has("image-upload") !== responders.has("image-upload") || current.has("file-upload") !== responders.has("file-upload");
+      const fileDeletionChanged = current.has('file-delete') !== responders.has('file-delete') || current.has('file-delete-confirm') !== responders.has('file-delete-confirm');
       responders = current;
       if (extensionsArrived) askExtensions();
       if (slashChanged) askSlashCommands();
+      if (fileDeletionChanged && uiState.editor) setReferenceDisplay(uiState.editor, { ...getReferenceDisplay(uiState.editor) });
     };
     afterRender(checkResponders);
     let stopAnnouncements: (() => void) | undefined;
@@ -574,10 +582,18 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
             codeLanguages: props.codeLanguages ?? undefined,
             codeLowlight: highlighting.lowlight,
             tableOfContentsNodeView,
+            headingNodeView,
             expandNodeView,
             dividerNodeView,
+            fileAttachmentNodeView: createFileAttachmentNodeView({
+              enabled: () => answers('file-delete') && answers('file-delete-confirm'),
+              confirm: async (file, signal) => (await ask<{ confirmed: boolean }>('file-delete-confirm', { file }, { signal }))?.confirmed === true,
+              remove: async (file, signal) => (await ask<{ deleted: boolean }>('file-delete', { file }, { signal }))?.deleted === true,
+              onError: (error, file) => emit('file-delete-error', { error, file }),
+            }),
             calloutNodeView,
             imageNodeView,
+            inlineImageNodeView: imageNodeView,
           }),
           imageDelivery.extension,
           slashExtension,
@@ -1074,7 +1090,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
     const imageTargets = new WeakMap<object, string>();
     let imageTargetSequence = 0;
     const selectedImage = (instance: Editor) => instance.state.selection instanceof NodeSelection
-      && instance.state.selection.node.type.name === "image" ? instance.state.selection : null;
+      && isLoomaImageName(instance.state.selection.node.type.name) ? instance.state.selection : null;
     const updateSelectedImage = (instance: Editor, attrs: Record<string, unknown>) => {
       const selection = selectedImage(instance);
       if (!selection || !instance.isEditable) return;
@@ -1087,7 +1103,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       pluginKey: "looma-image-actions",
       updateDelay: 250,
       shouldShow: ({ editor: menuEditor }) => menuEditor.isEditable
-        && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
+        && menuEditor.state.selection instanceof NodeSelection && isLoomaImageName(menuEditor.state.selection.node.type.name),
       anchor: () => {
         const dom = instance.view.nodeDOM(instance.state.selection.from);
         return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
@@ -1122,7 +1138,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
           ? instance.view.posAtDOM(frame.parentNode, Array.from(frame.parentNode.childNodes).indexOf(frame))
           : instance.view.posAtDOM(element, 0);
         const node = instance.state.doc.nodeAt(position);
-        return node?.type.name === "image" ? imageDescriptorFromAttrs(node.attrs) : null;
+        return isLoomaImageName(node?.type.name) && node ? imageDescriptorFromAttrs(node.attrs) : null;
       } catch {
         return null;
       }
@@ -1520,7 +1536,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       link: { existing: Boolean(link.range?.existing), searchable: answers("link-search"), mode: link.mode, value: answers("link-search") ? link.query : link.href, placeholder: answers("link-search") ? `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` : "https://example.com", newTab: link.newTab, textEditable: link.textEditable, text: link.text, error: link.error ?? "", status: linkFormStatus(link), results: shown.map(({ id, label, detail }) => ({ id, label, detail: detail ?? "" })), selected: link.selected?.id ?? "", href, openHref: validLinkHref(href) ?? "", label: link.current?.label ?? "", detail: link.current?.detail ?? "", targetLabel: props.linkTargetLabel },
       chip: { open: uiState.chipState.open, label: uiState.chipState.label, color: uiState.chipState.color },
       footnote: { open: uiState.footnoteState.open, surface: uiState.footnoteSurface ?? "", content: uiState.footnoteState.note },
-      image: { placement: normalizeImagePlacement(image?.attrs.placement), alt: image?.attrs.alt ?? "", target: imageTarget },
+      image: { inline: image?.type.name === "loomaInlineImage", placement: normalizeImagePlacement(image?.attrs.placement), alt: image?.attrs.alt ?? "", target: imageTarget },
       files: { uploading: uiState.fileUploadState.uploading, failed: Boolean(uiState.fileUploadState.failed), progress: uploadProgressText(uiState.fileUploadState.progress, "Attaching file…") },
       upload: { uploading: uiState.uploadState.uploading, failed: Boolean(uiState.uploadState.failed), progress: uploadProgressText(uiState.uploadState.progress) },
       slash: { active: slash.active, query: slash.query, selectedIndex: slash.selectedIndex, anchorRect: menuAnchorRect(slash.rect), groups: slashGroups },

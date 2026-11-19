@@ -111,6 +111,25 @@ export const interactionCases: {
     }
   },
   {
+    component: "ui-segmented-control", example: "01-status", name: "exclusive selection",
+    async run(_page, scenario) {
+      await scenario.getByText("Archived", { exact: true }).click();
+      await expect(scenario.getByRole("radio", { name: "Active", exact: true })).not.toBeChecked();
+      await expect(scenario.getByRole("radio", { name: "Archived", exact: true })).toBeChecked();
+    }
+  },
+  {
+    component: "ui-segmented-control", example: "01-status", name: "keyboard selection and focus",
+    async run(_page, scenario) {
+      const active = scenario.getByRole("radio", { name: "Active", exact: true });
+      await active.focus();
+      await active.press("ArrowRight");
+      const archived = scenario.getByRole("radio", { name: "Archived", exact: true });
+      await expect(archived).toBeChecked();
+      await expect(archived).toBeFocused();
+    }
+  },
+  {
     component: "ui-radio-group", example: "01-default-horizontal", name: "exclusive selection",
     async run(_page, scenario) {
       await scenario.getByRole("radio", { name: "One", exact: true }).check();

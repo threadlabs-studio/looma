@@ -15,8 +15,48 @@ export function connect(host) {
   const element = host.element;
   let activeInput = null;
   let owned = new Set();
+  // Save the control's state only while the field overrides it.
+  let controlInvalid;
   let queued = false;
   const warned = new Set();
+  const readControlInvalid = (records) => {
+    if (records.some((record) => record.attributeName === "aria-invalid")) {
+      controlInvalid = activeInput.getAttribute("aria-invalid") ?? "false";
+    } else if (records.some(({ attributeName }) =>
+      /^data-ui-[a-z-]+-prop-invalid$/.test(attributeName) && activeInput.getAttribute(attributeName) === "true")) {
+      // A control's new true prop can leave aria-invalid unchanged while the field holds it true.
+      controlInvalid = "true";
+    }
+  };
+  const setNativeInvalid = (value) => {
+    if (activeInput.getAttribute("aria-invalid") === value) return;
+    activeInput.setAttribute("aria-invalid", value);
+    // Only changes from the control contribute to the value we restore.
+    invalidObserver.takeRecords();
+  };
+  const invalidObserver = new MutationObserver((records) => {
+    readControlInvalid(records);
+    if (host.props.invalid.value) setNativeInvalid("true");
+  });
+  const releaseInvalid = () => {
+    if (controlInvalid === undefined) return;
+    readControlInvalid(invalidObserver.takeRecords());
+    invalidObserver.disconnect();
+    setNativeInvalid(controlInvalid);
+    controlInvalid = undefined;
+  };
+  const updateInvalid = () => {
+    if (!host.props.invalid.value) {
+      releaseInvalid();
+      return;
+    }
+    if (controlInvalid === undefined) {
+      controlInvalid = activeInput.getAttribute("aria-invalid") ?? "false";
+      invalidObserver.observe(activeInput, { attributes: true });
+    }
+    readControlInvalid(invalidObserver.takeRecords());
+    setNativeInvalid("true");
+  };
   const removeOwned = (input) => {
     if (!input || owned.size === 0) return;
     const remaining = descriptionIds(input).filter((value) => !owned.has(value));
@@ -35,6 +75,7 @@ export function connect(host) {
     const errorRegion = element.querySelector(':scope > .error');
     const error = element.querySelector(':scope > .error > *, [slot="error"], [role="alert"]') ?? (errorRegion?.textContent.trim() ? errorRegion : null);
     if (input !== activeInput) {
+      releaseInvalid();
       removeOwned(activeInput);
       activeInput = input;
       owned = new Set();
@@ -62,7 +103,7 @@ export function connect(host) {
       for (const value of element.querySelectorAll("[data-ui-field-value]")) value.disabled = input.disabled;
     }
     input.required = Boolean(host.props.required.value);
-    input.setAttribute("aria-invalid", String(Boolean(host.props.invalid.value)));
+    updateInvalid();
   };
   const schedule = () => {
     if (queued) return;
@@ -85,6 +126,7 @@ export function connect(host) {
   return () => {
     stop();
     observer.disconnect();
+    releaseInvalid();
     removeOwned(activeInput);
   };
 }

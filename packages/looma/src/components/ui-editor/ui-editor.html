@@ -64,6 +64,8 @@
     >An application caret action was chosen.</event>
     <event name="upload-error" type="object"><prop name="error" type="unknown" required></prop><prop name="file" type="unknown" required></prop>An upload
       failed; authored content is retained.</event>
+    <event name="file-delete-error" type="object"><prop name="error" type="unknown" required></prop><prop name="file" type="unknown" required></prop>A permanent
+      file deletion failed; its block is restored.</event>
     <event name="image-activate" type="object" open><prop name="src" type="string" required></prop><prop
         name="trigger"
         type="keyword"
@@ -91,13 +93,22 @@
       image before insertion.</request>
     <request name="file-upload" type="object"><prop name="file" type="unknown" required></prop><returns
         type="object({ href: string, name: string, size: number, contentType: string, ... })"
-      ></returns>Retain a file before inserting its link.</request>
+      ></returns>Retain a file before inserting its movable file block. The block shows an SVG file icon, filename and size; activating the whole block follows
+      its retained URL.</request>
     <request name="code-languages" returns="object({ ... })"
     >The code grammar catalog chosen before creation. null keeps the built-in lazy catalog; an empty record disables highlighting.</request>
+    <request name="file-delete-confirm" type="object"><prop name="file" type="unknown" required></prop><returns
+        type="object({ confirmed: boolean })"
+      ></returns>Confirm permanent deletion. Return false or null to keep the file and block.</request>
+    <request name="file-delete" type="object"><prop name="file" type="unknown" required></prop><returns type="object({ deleted: boolean })"></returns>Delete the
+      retained original after confirmation. The editor removes its block optimistically; rejection restores it. File presentation uses attachment:href reference
+      entries so undo can restore a disabled deleted-file block. Editable references remain removable through ordinary document changes after their original is
+      deleted; that removal does not call this request.</request>
     <request name="image-delivery" returns="unknown"
     >The host's synchronous source and rendition policy, resolved before the editor mounts. This transient policy is never persisted.</request>
   </defs>
-  <div tabindex="-1" from:class="concat('looma-editor', $editable ? '' : ' looma-editor--readonly', $view.dragOver ? ' looma-editor--drag-over' : '')">
+  <!-- Toggle owned tokens so consumer-supplied root classes survive. -->
+  <div tabindex="-1" class:looma-editor="true" class:looma-editor--readonly="not $editable" class:looma-editor--drag-over="$view.dragOver">
     <ui-tooltip $if="$view.resizeHintFor" from:for="$view.resizeHintFor" placement="top" inverse>Drag to resize column</ui-tooltip>
     <div $if="$view.formatting">
       <div $ref="formattingShell" class="looma-editor__floating-shell looma-editor__formatting-shell" hidden>
@@ -183,6 +194,7 @@
       <div $ref="imageShell" class="looma-editor__floating-shell looma-editor__image-shell" hidden>
         <ui-editor-image-toolbar
           $ref="imageTools"
+          from:inline="$view.image.inline"
           from:placement="$view.image.placement"
           from:alt="$view.image.alt"
           from:target="$view.image.target"

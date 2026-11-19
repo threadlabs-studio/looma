@@ -35,6 +35,22 @@ and include its `src/html-next.d.ts` output in your TypeScript project.
 The framework-neutral `trackInputModality` helper is available from
 `@threadlabs/looma/input-modality` for client setup.
 
+Use `@threadlabs/looma/behaviors` for shared collection navigation and deferred
+focus in custom controls. These helpers compose with native markup and can be
+imported on the server.
+
+The [Blocks catalog](https://threadlabs.studio/looma/blocks/) shows complete HTML Next
+compositions for editor workspaces, list and detail, settings, and search. Copy the
+markup from the catalog or from the corresponding HTML file in
+`@threadlabs/looma/blocks/`. Call its companion JavaScript setup function with the
+rendered root after initializing Looma.
+
+```js
+import setupListDetail from "@threadlabs/looma/blocks/list-detail.js";
+
+const dispose = setupListDetail(document.querySelector('[data-block="list-detail"]'));
+```
+
 For React, use `target: "react"` before `react()` from `@vitejs/plugin-react`.
 For Svelte 5, use `target: "svelte"` before `svelte()` from
 `@sveltejs/vite-plugin-svelte`. Both import the same prefixed names from

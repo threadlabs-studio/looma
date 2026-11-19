@@ -69,6 +69,26 @@ test("keeps published dependency ranges equal to source without forcing release-
   assert.deepEqual(collectRegistryReleaseIssues(input), ["@threadlabs/looma registry dependencies do not match the approved source manifest"]);
 });
 
+for (const field of ["dependencies", "optionalDependencies", "peerDependencies"]) {
+  test(`accepts pnpm's packed workspace minimum in ${field} and rejects changed ranges`, () => {
+    const source = sourcePackages();
+    const registry = registryPackages();
+    const name = "@threadlabs/looma-docs";
+    source[name][field] ??= {};
+    registry[name][field] ??= {};
+    source[name][field]["@threadlabs/looma"] = "workspace:>=0.52.0";
+    registry[name][field]["@threadlabs/looma"] = ">=0.52.0";
+    const input = { manifest: manifest(), sourcePackages: source, registryPackages: registry };
+    assert.deepEqual(collectRegistryReleaseIssues(input), []);
+    for (const range of ["0.52.0", "^0.52.0", ">=0.52.1", "workspace:>=0.52.0"]) {
+      registry[name][field]["@threadlabs/looma"] = range;
+      assert.deepEqual(collectRegistryReleaseIssues(input), [
+        `${name} registry ${field === "peerDependencies" ? "peer dependencies" : field} do not match the approved source manifest`
+      ]);
+    }
+  });
+}
+
 test("reports singleton integrity, metadata, tag, and provenance drift together", () => {
   const registry = registryPackages();
   registry["@threadlabs/looma"].integrity = "sha512-wrong";

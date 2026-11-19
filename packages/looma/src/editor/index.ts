@@ -7,6 +7,7 @@ export * from "./ui";
 export * from "./extensions/index";
 export { LOOMA_ICONS, loomaIconMarkup, type LoomaIconName, type LoomaIconNode } from "./icons";
 export { getVisualViewportRect, type ViewportRect } from "./viewport";
+export { measureEditorLine, type EditorLineAnchor, type EditorLineGeometry, type EditorLineOptions } from "./selection-geometry";
 
 export {
   createDocumentEditorSession,
@@ -14,7 +15,7 @@ export {
   type LoomaEditorToolbarMode, type LoomaEditorExtensions, type LoomaEditorSlashCommands,
   type LoomaSlashCommandsDetail, type LoomaLinkSearch, type LoomaLinkSearchDetail,
   type LoomaLinkResolve, type LoomaLinkResolveDetail, type LoomaMentionQuery,
-  type LoomaMentionQueryDetail, type LoomaImageUploader, type LoomaFileUploader,
+  type LoomaMentionQueryDetail, type LoomaImageUploader, type LoomaFileUploader, type LoomaFileDeleter, type LoomaFileDeletionConfirmation,
   type LoomaImageUploadDetail, type LoomaRequestInit, type LoomaResponder,
   type LoomaEditorSelectionAction, type LoomaEditorSelectionActionDetail,
   type LoomaEditorRangeAction, type LoomaEditorRangeActionDetail,

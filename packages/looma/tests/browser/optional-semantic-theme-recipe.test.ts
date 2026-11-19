@@ -42,7 +42,7 @@ describe("Optional semantic theme recipe", () => {
           return {root:style('html').fontSize,text:style('#root-field').fontSize,height:document.querySelector('#root-action')!.getBoundingClientRect().height,width:style('#root-rem').width,padding:style('#root-rem').paddingTop,border:style('#root-rem').borderTopWidth};
         });
         const size=parseFloat(value);
-        assert.deepEqual(actual,{root:value,text:value,height:size*2.5,width:size*2+'px',padding:value,border:'1px'}, JSON.stringify({value,...actual}));
+        assert.deepEqual(actual,{root:value,text:size*.875+'px',height:size*2.5,width:size*2+'px',padding:value,border:'1px'}, JSON.stringify({value,...actual}));
       }
     } finally {await page.close();}
   });
@@ -75,7 +75,7 @@ describe("Optional semantic theme recipe", () => {
         await page.locator('html').evaluate((element,size)=>element.style.fontSize=size+'px',size);
         const boxes = await page.locator('#relative-action,#relative-field,#relative-swatch button[data-ui-field-control]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));
         assert.ok(boxes.every(height=>Math.abs(height-size*2.5)<.1), `all controls grow with root type at ${size}px: ${boxes}`);
-        assert.equal(await page.locator('#relative-field').evaluate(e=>getComputedStyle(e).fontSize),size+'px');
+        assert.equal(await page.locator('#relative-field').evaluate(e=>getComputedStyle(e).fontSize),size*.875+'px');
       }
     } finally {await page.close();}
   });

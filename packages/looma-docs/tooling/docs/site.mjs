@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -64,8 +64,14 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       for (const entry of await readdir(source, { withFileTypes: true })) {
         if (['.looma', '.git', 'node_modules', 'package.json'].includes(entry.name)) continue;
         const original = path.join(source, entry.name), mirrored = path.join(target, entry.name);
+        if (path.relative(original, output) === '') continue;
         if (entry.name === parts[0]) {
           if (parts.length > 1) await mirrorParents(original, mirrored, parts.slice(1));
+        } else if (process.platform === 'win32') {
+          // Junctions do not require Windows Developer Mode. Copy files into the disposable tree.
+          const directory = entry.isDirectory() || (entry.isSymbolicLink() && (await stat(original)).isDirectory());
+          if (directory) await symlink(original, mirrored, 'junction');
+          else await cp(original, mirrored, { dereference: true });
         } else await symlink(original, mirrored, entry.isDirectory() ? 'dir' : 'file');
       }
     };
@@ -84,7 +90,8 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   await writeFile(path.join(generated, 'catalog-view.html'), catalogResource(catalogGroups, base));
   await cp(own('catalog-view.js'), path.join(generated, 'catalog-view.js'));
   for (const file of ['reference.html', 'reference.js']) await cp(own(file), path.join(generated, file));
-  for (const file of ['theme.mjs', 'theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
+  for (const file of ['theme-session.mjs', 'value-editors.mjs', 'palette.mjs', 'fonts.mjs']) await cp(own(file), path.join(generated, file));
+  await writeFile(path.join(generated, 'theme.mjs'), `export * from ${JSON.stringify(own('theme.mjs'))};\n`);
   // Keep the controller's imports in Looma's package scope, where its runtime dependency lives.
   await writeFile(path.join(generated, 'customizer.js'), `export { connect } from ${JSON.stringify(own('customizer.js'))};\n`);
   const write = async (file, source) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, source); };
@@ -119,7 +126,7 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
   }).join('\n\n');
   const writeCatalog = async (file, title, selected = '') => {
     const total = combined.components.filter(component => !component.navigationParent && (!selected || component.group === selected)).length;
-    await write(file, `---\ntitle: ${JSON.stringify(title)}\n${selected ? 'navigation: overview\norder: 0\n' : ''}---\n\n# ${escapeHtml(title)}\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(file, card)}">\n${exampleResources(combined.components.filter(component => !component.navigationParent && (!selected || component.group === selected)).map(component => component.examples[0]), combined)}\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(file, path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog category="${escapeHtml(selected)}" total="${total}">\n\n${gallery(selected)}\n\n</looma-catalog>\n`);
+    await write(file, `---\ntitle: ${JSON.stringify(title)}\n${selected ? 'navigation: overview\norder: 0\n' : ''}---\n\n# ${escapeHtml(title)}\n\nExplore the live examples that also power your theme customizer.\n\n<link rel="component" href="${relativeHref(file, card)}">\n${exampleResources(combined.components.filter(component => !component.navigationParent && (!selected || component.group === selected)).map(component => component.examples[0]), combined, relativeHref(file, card))}\n<link rel="component" href="@threadlabs/looma/components/ui-grid/ui-grid.html">\n<link rel="component" href="${relativeHref(file, path.join(generated, 'catalog-view.html'))}">\n\n<looma-catalog category="${escapeHtml(selected)}" total="${total}">\n\n${gallery(selected)}\n\n</looma-catalog>\n`);
   };
   await writeCatalog(path.join(content, 'components/index.md'), 'Components');
   for (const group of catalogGroups) {
@@ -142,7 +149,25 @@ export async function prepareDocumentation({ root, config = {}, catalog }) {
       try { await readFile(target); exists = true; } catch (error) { if (error.code !== 'ENOENT') throw error; }
       // A project's landing page and footer are branding/content, never API overrides.
       if (exists && !['index.md', 'editor.md', '_footer.md'].includes(path.relative(content, target))) throw new Error(`Authored/generated documentation collision: ${source} would replace ${target}. Add guidance under another path.`);
-      await mkdir(path.dirname(target), { recursive: true }); await cp(source, target);
+      if (source.endsWith('.md')) {
+        let page = await readFile(source, 'utf8');
+        for (const [marker, name] of page.matchAll(/^<!-- looma:block ([a-z-]+) -->$/gm)) {
+          const specifier = `@threadlabs/looma/blocks/${name}`;
+          const [markup, behavior] = await Promise.all(['html', 'js'].map(extension =>
+            readFile(new URL(import.meta.resolve(`${specifier}.${extension}`)), 'utf8')));
+          const tag = `looma-docs-preview-${name}`;
+          const preview = path.join(previews, `${tag}.html`);
+          const imports = [...markup.matchAll(/^<link rel="component" [^\n]+>/gm)].map(match => match[0]).join('\n');
+          const composition = markup.replace(/^<link rel="component" [^\n]+>\r?\n/gm, '').trim();
+          await write(preview, `${imports}\n<template component="${tag}" module="./${tag}.js">\n${composition}\n</template>\n`);
+          await write(path.join(previews, `${tag}.js`), `import setup from ${JSON.stringify(specifier + '.js')};\nexport function connect(host) { return setup(host.element); }\n`);
+          page = page.replace(marker, () => `<link rel="component" href="${relativeHref(target, preview)}">\n\n<div>\n<${tag}></${tag}>\n</div>\n\n<details>\n<summary>View HTML and JavaScript</summary>\n\n\`\`\`html\n${markup.trim()}\n\`\`\`\n\n\`\`\`js\n${behavior.trim()}\n\`\`\`\n\n</details>`);
+        }
+        await write(target, page);
+      } else {
+        await mkdir(path.dirname(target), { recursive: true });
+        await cp(source, target);
+      }
     }
   }
   await write(path.join(generated, 'example-behaviors.js'), examples.filter(example => example.behavior).map((example, index) => `import setup${index} from ${JSON.stringify(example.behavior)};`).join('\n') + `\nexport const exampleBehaviors = {${examples.filter(example => example.behavior).map((example, index) => `${JSON.stringify(example.id)}: setup${index}`).join(',')}};\n`);
@@ -179,7 +204,12 @@ export function documentationPlugin(site) {
     generate: async () => ({ '/_looma/pastoral.svg': await readFile(own('pastoral.svg'), 'utf8'), '/_looma/portrait.svg': await readFile(own('portrait.svg'), 'utf8'), '/_looma/theme-system.css': await readFile(fileURLToPath(import.meta.resolve('@threadlabs/looma/theme-system.css')), 'utf8'),
       ...Object.fromEntries(await Promise.all(guideAssets.map(async name => [`/_looma/${name}`, await readFile(own(`guides/assets/${name}`))]))),
     }),
-    config: () => ({ css: [own('documentation.css')], imports: { '@threadlabs/looma/components/': new URL('components/', import.meta.resolve('@threadlabs/looma/tokens.css')).href } }),
+    config: () => {
+      const looma = import.meta.resolve('@threadlabs/looma/tokens.css');
+      return { css: [own('documentation.css')], imports: {
+        '@threadlabs/looma/components/': new URL('components/', looma).href,
+      } };
+    },
   };
 }
 

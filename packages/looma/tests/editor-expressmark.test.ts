@@ -2,8 +2,56 @@ import { describe, expect, it } from "vitest";
 import { headingAnchors, parse } from "expressmark";
 import { renderHtml } from "expressmark/render";
 import { editorDocumentToExpressmark, expressmarkToEditorDocument, editorDocumentToMarkdown, markdownToEditorDocument } from "../src/editor/expressmark";
+import { fileAttachmentSize } from '../src/editor/extensions/file-attachment';
+
+it.each([[0, '0 B'], [999, '999 B'], [1000, '1 KB'], [1100, '1.1 KB'], [999949, '999.9 KB'], [999950, '1 MB'], [1_100_000, '1.1 MB'], [1_100_000_000, '1.1 GB'], [1_100_000_000_000, '1.1 TB'], [1_100_000_000_000_000, '1.1 PB']])('formats %s bytes as %s', (bytes, label) => {
+  expect(fileAttachmentSize(Number(bytes))).toBe(label);
+});
+
+it('preserves an attachment block and surrounding writing through portable Markdown', () => {
+  const document = { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'Review the attached report.' }] },
+    { type: 'loomaFileAttachment', attrs: { href: './assets/report.pdf', name: 'Report & notes.pdf', size: 24576, contentType: 'application/pdf' } },
+    { type: 'paragraph', content: [{ type: 'text', text: 'Keep the original notes here.' }] },
+  ] };
+  for (const options of [{}, { syntax: 'compatible' as const }]) {
+    const markdown = editorDocumentToMarkdown(document, options);
+    expect(markdown).toContain('./assets/report.pdf');
+    expect(markdownToEditorDocument(markdown)).toEqual(document);
+  }
+});
+
+it('refuses an attachment block with an executable navigation URL', () => {
+  expect(() => editorDocumentToMarkdown({ type: 'doc', content: [{ type: 'loomaFileAttachment', attrs: { href: 'javascript:alert(1)', name: 'Report.pdf', size: 24, contentType: 'application/pdf' } }] })).toThrow();
+});
 
 describe("Expressive Markdown editor documents", () => {
+  it.each(["left", "center", "right", "justify"])("preserves explicit heading alignment %s through portable Markdown", align => {
+    const document = { type: "doc", content: [{ type: "heading", attrs: { level: 2, align }, content: [{ type: "text", text: "Aligned heading" }] }] };
+    const ast = editorDocumentToExpressmark(document);
+    expect(ast.body[0]?.attributes).toEqual({ align });
+    const restored = markdownToEditorDocument(editorDocumentToMarkdown(document));
+    expect(restored.content?.[0]?.attrs?.align).toBe(align);
+    expect(editorDocumentToExpressmark(restored)).toEqual(ast);
+  });
+
+  it("refuses unknown heading alignment instead of silently dropping it", () => {
+    expect(() => editorDocumentToMarkdown({ type: "doc", content: [{ type: "heading", attrs: { level: 1, align: "center; color:red" } }] })).toThrow("heading alignment");
+    expect(() => expressmarkToEditorDocument({ type: "document", version: 1, body: [{ type: "heading", level: 1, value: "Heading", attributes: { align: "diagonal" } }] })).toThrow("heading alignment");
+  });
+
+  it.each([false, true])("keeps a linked inline image through Markdown with responsive sources=%s", responsive => {
+    const image = { type: "loomaInlineImage", attrs: { src: "https://images.example.test/fallback.png", alt: "Architecture", width: 96, height: 48,
+      ...(responsive ? { sources: [{ srcset: "https://images.example.test/dark.png 1x, https://images.example.test/large.png 2x", media: "(prefers-color-scheme: dark)" }] } : {}) },
+      marks: [{ type: "link", attrs: { href: "../architecture.md#diagram" } }] };
+    const document = { type: "doc", content: [{ type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Before " }, image, { type: "text", text: " after" }] }] };
+    const before = structuredClone(document), ast = editorDocumentToExpressmark(document);
+    const markdown = editorDocumentToMarkdown(document), restored = markdownToEditorDocument(markdown);
+    expect(markdown).toContain("](../architecture.md#diagram)");
+    expect(restored.content?.[0]?.content?.[1]).toMatchObject({ type: "loomaInlineImage", marks: [{ type: "link", attrs: { href: "../architecture.md#diagram" } }] });
+    expect(editorDocumentToExpressmark(restored)).toEqual(ast);
+    expect(document).toEqual(before);
+  });
   it("exports literal punctuation without unnecessary escapes and retains its meaning", () => {
     const literal = "Range [-1, 1]; array[index]; user_id; a@word; a@[Ada]; (@ada).";
     const document = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: literal }] }] };

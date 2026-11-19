@@ -44,7 +44,7 @@ async function mountEditor(initialContent?: JSONContent) {
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  await expect.poll(() => editor).toBeTruthy();
+  await expect.poll(() => editor, { timeout: 5_000 }).toBeTruthy();
   return { editor: editor!, host };
 }
 

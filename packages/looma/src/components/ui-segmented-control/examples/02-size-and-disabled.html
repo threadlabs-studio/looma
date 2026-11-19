@@ -1,0 +1,8 @@
+<!--
+title: Sizes and unavailable choices
+description: Small and large controls share field sizes. An unavailable option stays visible, while disabling the group prevents every choice.
+-->
+<ui-stack>
+  <ui-segmented-control size="sm" label="View" name="small-view" value="list" items='[{value: "list", label: "List"}, {value: "grid", label: "Grid"}, {value: "board", label: "Board", disabled: true}]'></ui-segmented-control>
+  <ui-segmented-control size="lg" label="View" name="large-view" value="grid" disabled items='[{value: "list", label: "List"}, {value: "grid", label: "Grid"}]'></ui-segmented-control>
+</ui-stack>

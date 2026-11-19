@@ -17,7 +17,7 @@ export async function pressureInputs() {
   for (const file of ['src', 'tests', 'vitest.config.ts', 'vitest.browser.config.ts', 'build.mjs', 'package.json', '../../pnpm-lock.yaml']) await visit(path.join(root, file), file);
   if (process.env.LOOMA_HTMLNEXT_ROOT) {
     await visit(path.join(process.env.LOOMA_HTMLNEXT_ROOT, 'pnpm-lock.yaml'), 'sdk/pnpm-lock.yaml');
-    for (const name of ['html-next', 'html-next-converter', 'html-next-unplugin', 'htmlkit']) {
+    for (const name of ['html-next', 'html-next-converter', 'html-next-unplugin']) {
       for (const file of ['src', 'dist', 'package.json']) await visit(path.join(process.env.LOOMA_HTMLNEXT_ROOT, 'packages', name, file), `sdk/${name}/${file}`);
     }
   }

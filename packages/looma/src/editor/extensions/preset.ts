@@ -5,6 +5,8 @@
 
 import { Extension, mergeAttributes, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
 import { LoomaInputRuleHistory } from "./input-rule-history";
+import { LoomaDOMReadback } from "./dom-readback";
+import { LoomaFileAttachment } from './file-attachment';
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -13,6 +15,7 @@ import Italic from "@tiptap/extension-italic";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
 import Heading from "@tiptap/extension-heading";
+import { isHeadingAlignment } from "../heading-alignment";
 import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
@@ -24,7 +27,7 @@ import History from "@tiptap/extension-history";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import Link from "@tiptap/extension-link";
-import { LoomaImage } from "./image";
+import { LoomaImage, LoomaInlineImage } from "./image";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -39,6 +42,7 @@ import { LoomaChip } from "./chip";
 import { LoomaExpand } from "./expand";
 import { LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 import { LoomaLinkDefinition } from "./link-definition";
+import { LoomaLineBlock } from "./line-block";
 import { LoomaFigcaption, LoomaFigure } from "./figure";
 import { LoomaTab, LoomaTabs } from "./tabs";
 import { LoomaTableOfContents } from "./table-of-contents";
@@ -71,8 +75,14 @@ export interface DefaultEditorExtensionsOptions {
   imageInline?: boolean;
   /** Optional image selection and sizing UI; durable formatting stays in the shared schema. */
   imageNodeView?: NodeViewRenderer;
+  /** Optional inline media UI; the extension entry point remains independent of UI registration. */
+  inlineImageNodeView?: NodeViewRenderer;
   /** Optional selected-state UI for document dividers. */
   dividerNodeView?: NodeViewRenderer;
+  /** Render retained originals with the shared whole-card attachment action. */
+  fileAttachmentNodeView?: NodeViewRenderer;
+  /** Optional copy-link presentation for headings with document anchors. */
+  headingNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
   /**
@@ -137,6 +147,23 @@ const LoomaCodeBlock = CodeBlockLowlight.extend({
   },
 });
 
+// Keep the native heading presentation through HTML parsing and serialization.
+const LoomaHeading = Heading.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      align: {
+        default: null,
+        parseHTML: element => {
+          const align = element.getAttribute("align");
+          return isHeadingAlignment(align) ? align : null;
+        },
+        renderHTML: attributes => isHeadingAlignment(attributes.align) ? { align: attributes.align } : {},
+      },
+    };
+  },
+});
+
 // Removing the mark from the schema would make Tiptap discard any stored
 // document that uses it, so disabling it strips only the ways to create it.
 const StoredOnlyHighlight = Highlight.extend({
@@ -188,7 +215,10 @@ export function getDefaultEditorExtensions(
     linkBaseUrl,
     imageInline = false,
     imageNodeView,
+    inlineImageNodeView,
     dividerNodeView,
+    fileAttachmentNodeView,
+    headingNodeView,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
@@ -205,6 +235,8 @@ export function getDefaultEditorExtensions(
   return [
     Document,
     Paragraph,
+    inlineImageNodeView ? LoomaInlineImage.extend({ addNodeView: () => inlineImageNodeView }) : LoomaInlineImage,
+    LoomaLineBlock,
     Text,
     LoomaReference,
     LoomaReferencePresentation.configure({ references: options.references ?? {}, mentions: options.references !== undefined }),
@@ -212,13 +244,13 @@ export function getDefaultEditorExtensions(
     Italic,
     Strike,
     Underline,
-    Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+    (headingNodeView ? LoomaHeading.extend({ addNodeView: () => documentContentNodeView(headingNodeView) }) : LoomaHeading).configure({ levels: [1, 2, 3, 4, 5, 6] }),
     BulletList,
     OrderedList,
     ListItem,
     // A list may hold tasks beside plain items, as GFM reads `- [x] Done` next to `- Item`.
     TaskList.extend({ content: "(taskItem|listItem)+" }),
-    LoomaTaskItem.configure({ nested: false }),
+    LoomaTaskItem.configure({ nested: true }),
     Blockquote,
     calloutNodeView ? LoomaCallout.extend({ addNodeView: () => documentContentNodeView(calloutNodeView) }) : LoomaCallout,
     LoomaChip,
@@ -231,10 +263,12 @@ export function getDefaultEditorExtensions(
     LoomaFootnoteReference,
     LoomaFootnote,
     LoomaLinkDefinition,
+    fileAttachmentNodeView ? LoomaFileAttachment.extend({ addNodeView: () => fileAttachmentNodeView }) : LoomaFileAttachment,
     dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,
     LoomaInputRuleHistory,
+    LoomaDOMReadback,
     Dropcursor,
     Gapcursor,
     Link.configure({
@@ -244,7 +278,7 @@ export function getDefaultEditorExtensions(
     ...(linkBaseUrl ? [createSiteRelativeLinks(linkBaseUrl)] : []),
     imageNodeView ? image.extend({ addNodeView: () => imageNodeView }) : image,
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
-    Code,
+    Code.extend({ excludes: "" }),
     LoomaSmartPaste,
     codeBlockNodeView ? codeBlock.extend({ addNodeView: () => codeBlockNodeView }) : codeBlock,
     Typography,

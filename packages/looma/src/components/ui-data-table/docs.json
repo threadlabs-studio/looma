@@ -1,0 +1,5 @@
+{
+  "description": "A table built from rows of data and its `ui-column` children. Each column is a real header cell, and the table renders a row per item with one cell per column, so it reads as a table before JavaScript and to a screen reader. The header stays in view while the rows scroll; `frozen` on a column and `frozen-rows` on the table keep columns and leading rows in view too. Give the table a bounded height to scroll its rows. For a table written by hand, use [Table](/components/ui-table).",
+  "group": "display",
+  "summary": "A table of rows, with columns written as markup and frozen columns and rows."
+}

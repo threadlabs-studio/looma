@@ -535,6 +535,19 @@
       ]
     },
     {
+      "path": "components/ui-column",
+      "title": "Column",
+      "source": "apps/docs/docs/parts/ui-column.mdx",
+      "component": "ui-column",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Field, header and cell content",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-combobox",
       "title": "Combobox",
       "source": "apps/docs/docs/components/forms/ui-combobox.mdx",
@@ -719,6 +732,34 @@
         {
           "id": "01-appearance",
           "title": "Cycling appearance",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-data-table",
+      "title": "Data Table",
+      "source": "apps/docs/docs/components/display/ui-data-table.mdx",
+      "component": "ui-data-table",
+      "examples": [
+        {
+          "id": "00-preview",
+          "title": "Orders table",
+          "behavior": false
+        },
+        {
+          "id": "01-default",
+          "title": "Columns as markup",
+          "behavior": false
+        },
+        {
+          "id": "02-cell-content",
+          "title": "Cell content",
+          "behavior": false
+        },
+        {
+          "id": "03-frozen",
+          "title": "Frozen columns and rows",
           "behavior": false
         }
       ]
@@ -1102,6 +1143,11 @@
           "id": "02-selected",
           "title": "Selected and resizable",
           "behavior": false
+        },
+        {
+          "id": "03-inline",
+          "title": "Inline image",
+          "behavior": false
         }
       ]
     },
@@ -1449,6 +1495,29 @@
       ]
     },
     {
+      "path": "components/ui-notice-stripe",
+      "title": "Notice Stripe",
+      "source": "apps/docs/docs/components/display/ui-notice-stripe.mdx",
+      "component": "ui-notice-stripe",
+      "examples": [
+        {
+          "id": "01-announcement",
+          "title": "Announcement with action",
+          "behavior": false
+        },
+        {
+          "id": "02-service-notice",
+          "title": "Dismissible service notice",
+          "behavior": true
+        },
+        {
+          "id": "03-tones",
+          "title": "Semantic tones",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-number-input",
       "title": "NumberInput",
       "source": "apps/docs/docs/components/forms/ui-number-input.mdx",
@@ -1687,6 +1756,24 @@
         {
           "id": "03-fieldset",
           "title": "Connected headings",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-segmented-control",
+      "title": "Segmented Control",
+      "source": "apps/docs/docs/components/forms/ui-segmented-control.mdx",
+      "component": "ui-segmented-control",
+      "examples": [
+        {
+          "id": "01-status",
+          "title": "One visible choice",
+          "behavior": false
+        },
+        {
+          "id": "02-size-and-disabled",
+          "title": "Sizes and unavailable choices",
           "behavior": false
         }
       ]
@@ -1968,6 +2055,11 @@
         {
           "id": "03-item-limit",
           "title": "Limit a row",
+          "behavior": false
+        },
+        {
+          "id": "04-list-and-detail",
+          "title": "A rail beside the detail",
           "behavior": false
         }
       ]

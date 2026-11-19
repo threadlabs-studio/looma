@@ -64,13 +64,13 @@ describe("App styling hooks", () => {
     assert.equal(await style("#field-help", "color"), "rgb(40, 50, 60)");
     assert.equal(await style("#field-help", "font-size"), "11px");
 
-    // Labels carry the instruction; help stays on the smaller supporting-text step.
-    assert.equal(await style("#default-label", "font-size"), "16px");
-    assert.equal(await style("#default-help", "font-size"), "14px");
-    assert.equal(await style("#default-combobox label", "font-size"), "16px");
-    await page.addStyleTag({ content: ":root { --ui-field-label-font-size: var(--ui-font-size-sm); }" });
+    // Labels and supporting text share the UI step; explicit label hooks still win.
     assert.equal(await style("#default-label", "font-size"), "14px");
+    assert.equal(await style("#default-help", "font-size"), "14px");
     assert.equal(await style("#default-combobox label", "font-size"), "14px");
+    await page.addStyleTag({ content: ":root { --ui-field-label-font-size: var(--ui-font-size-md); }" });
+    assert.equal(await style("#default-label", "font-size"), "16px");
+    assert.equal(await style("#default-combobox label", "font-size"), "16px");
     assert.equal(await style("#field-label", "font-size"), "18px", "the instance hook wins over the shared label size");
 
     // A label kept on one line; unset, a button still wraps as its container does.

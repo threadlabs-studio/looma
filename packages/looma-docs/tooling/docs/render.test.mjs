@@ -5,7 +5,7 @@ import { compileMarkdown } from 'markupress';
 import { parseComponentResource } from '@nextwebwg/html-next';
 import { createRenderer } from '@nextwebwg/html-next/server';
 import { parseFragment } from 'parse5';
-import { apiBody, cardDescription, referencePage } from './render.mjs';
+import { apiBody, cardDescription, exampleKey, previewTag, referencePage } from './render.mjs';
 
 test('rendered description text stays literal through the generated Markdown page', async () => {
   const description = 'A \\*literal\\* star, \\[label\\]\\(target\\), \\@maintainer and **strong**.';
@@ -33,6 +33,18 @@ test('reference descriptions keep unknown component markup inert and template br
   assert.match(resource, /&lt;evil-writer&gt;Unsafe&lt;\/evil-writer&gt;/);
   assert.doesNotMatch(resource, /<evil-writer>/);
   assert.match(resource, /<code>\\\{\$value\}<\/code>/);
+});
+
+test('an example whose text reads expressions renders through its generated component, others stay inline', async () => {
+  const expressive = { id: 'example/ui-status/cell', title: 'Cell', description: 'Cell.', markup: `<ui-status rows="[{ id: 1 }]"><template slot="cell"><b from:title="$row.id">{$row.id}</b></template></ui-status>`, frameworks: {} };
+  const plain = { id: 'example/ui-status/plain', title: 'Plain', description: 'Plain.', markup: `<ui-status rows="[{ id: 1 }]">Ready</ui-status>`, frameworks: {} };
+  const component = { title: 'Status', tag: 'ui-status', root: 'div', id: 'example/ui-status', description: 'Status.', resource: 'status.html', examples: [expressive, plain] };
+  const page = referencePage(component, { components: [component] }, '../card.html', '/');
+  const { resource } = await compileMarkdown(page, { file: '/tmp/status.md', pageName: 'status-expressive' });
+  assert.match(resource, new RegExp(`<link rel="component" href="[^"]*/previews/${exampleKey(expressive.id)}\\.html">`));
+  assert.match(resource, new RegExp(`<${previewTag(expressive)} namespace="reference-${exampleKey(expressive.id)}">`));
+  assert.doesNotMatch(resource, /<b [^>]*>\\\{\$row\.id/);
+  assert.match(resource, /<ui-status rows="\[\{ id: 1 \}\]">Ready<\/ui-status>/);
 });
 
 test('native code in catalog metadata preserves mention and formatting characters literally', async () => {

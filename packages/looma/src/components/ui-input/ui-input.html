@@ -77,6 +77,7 @@
       background-image: var(--_ui-default-input-highlight, var(--ui-surface-highlight, none));
       color: var(--ui-text-primary);
       font: inherit;
+      font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
       box-shadow: var(--ui-input-shadow, var(--_ui-default-input-shadow, var(--ui-control-inset)));
       transition:
@@ -117,6 +118,41 @@
       :host([size="lg"]) {
         font-size: var(--ui-font-size-md);
       }
+    }
+
+    /* The native file action uses the outline button palette. The input still owns pointer and keyboard activation. */
+    :host[type="file"]::file-selector-button {
+      appearance: none;
+      min-block-size: var(--ui-control-size-sm);
+      margin-inline-end: var(--ui-space-2) !important;
+      padding: var(--ui-control-inset-block-sm, var(--ui-space-1)) var(--ui-action-inset-sm, var(--ui-space-2)) !important;
+      border: var(--ui-border-width) solid var(--ui-accent-outline-border, var(--ui-accent-subtle-text));
+      border-radius: var(--ui-action-radius, var(--ui-radius-md));
+      background-color: transparent;
+      background-image: linear-gradient(var(--ui-accent-wash), var(--ui-accent-wash));
+      color: var(--ui-accent-subtle-text);
+      box-shadow: var(--ui-neutral-shadow);
+      font: inherit;
+      font-weight: var(--ui-font-medium);
+      cursor: pointer;
+    }
+
+    :host[type="file"]:enabled:hover::file-selector-button {
+      background-image: linear-gradient(var(--ui-accent-wash-hover), var(--ui-accent-wash-hover));
+    }
+
+    :host[type="file"]:enabled:active::file-selector-button {
+      background-image: none;
+      background-color: oklch(from var(--ui-accent) l c h / calc(18% * var(--ui-tonal-opacity, 1)));
+      box-shadow: var(--ui-pressed);
+    }
+
+    :host[type="file"]:disabled::file-selector-button {
+      border-color: var(--ui-control-border);
+      background: transparent;
+      color: var(--ui-disabled-text);
+      box-shadow: none;
+      cursor: not-allowed;
     }
 
     /* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */

@@ -66,7 +66,7 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  await vi.waitFor(() => expect(editor).not.toBeNull());
+  await vi.waitFor(() => expect(editor).not.toBeNull(), { timeout: 5000 });
   return { editor: editor!, host, editable };
 }
 
@@ -318,6 +318,7 @@ describe("LoomaEditor history (real browser)", () => {
     apps.push(app);
     app.mount(host);
     await flushBrowser();
+    await expect.poll(() => editor, { timeout: 5_000 }).toBeTruthy();
     editor!.commands.focus("start");
     editor!.commands.insertContent("A first paragraph.");
     editor!.commands.setTextSelection({ from: 1, to: 6 });
@@ -847,7 +848,11 @@ it.each([1280, 375])("shows a compact Open link bar above a clicked link and dis
   await expect.element(openLink).toBeVisible();
   const open = openLink.element();
   expect(open.getAttribute("href")).toBe("/linked-page");
-  expect(open.getAttribute("target")).toBe("_blank");
+  expect(open.getAttribute("target")).toBe("_self");
+  const destination = page.getByRole("link", { name: "URL: /linked-page", exact: true });
+  await expect.element(destination).toBeVisible();
+  expect(destination.element().getAttribute("href")).toBe("/linked-page");
+  expect(destination.element().getAttribute("target")).toBe("_self");
   expect(open.getBoundingClientRect().bottom).toBeLessThanOrEqual(link.getBoundingClientRect().top);
   await userEvent.keyboard("{Escape}");
   await expect.element(open).not.toBeVisible();

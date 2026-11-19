@@ -50,6 +50,8 @@ describe("Form participation", () => {
         <ui-radio value="s">Small</ui-radio><ui-radio value="m">Medium</ui-radio><ui-radio id="size-l" value="l" disabled>Large</ui-radio>
       </ui-radio-group>
       <ui-radio-group name="off-group" value="a" label="Off" disabled><ui-radio value="a">A</ui-radio></ui-radio-group>
+      <ui-segmented-control id="status" name="status" label="Status" value="active" items='[{value:"active",label:"Active"},{value:"archived",label:"Archived"}]'></ui-segmented-control>
+      <ui-segmented-control name="off-status" label="Off status" value="active" disabled items='[{value:"active",label:"Active"}]'></ui-segmented-control>
       <ui-radio id="free" name="plan" value="free">Free</ui-radio>
       <ui-radio name="plan" value="pro" checked>Pro</ui-radio>
       <ui-radio-group id="color" name="color" value="blue" label="Color"><ui-swatch tone="neutral"></ui-swatch><ui-swatch tone="blue"></ui-swatch></ui-radio-group>
@@ -61,6 +63,7 @@ describe("Form participation", () => {
       <ui-editable id="note" value="Inline"></ui-editable>
       <ui-editor label="Document" editable="false"></ui-editor>
       <ui-compact-editor label="Comment"></ui-compact-editor>
+      <ui-segmented-control id="external-status" name="external-status" form="rules" label="External status" value="active" items='[{value:"active",label:"Active"},{value:"archived",label:"Archived"}]'></ui-segmented-control>
       <ui-radio-group name="external-palette" form="rules" value="blue" label="External palette"><ui-swatch tone="blue"></ui-swatch><ui-swatch tone="green"></ui-swatch></ui-radio-group>
     </form>
     <form id="rules">
@@ -70,7 +73,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createScene, sceneNode } from "@looma-test/scene";
-    import { UiCalendar as Calendar, UiDateField as DateField, UiDatePicker as DatePicker, UiDateRangePicker as DateRangePicker, UiFileInput as FileInput, UiTimeField as TimeField, UiTimePicker as TimePicker, UiEditor as Editor, UiCompactEditor as CompactEditor, UiCheckbox as Checkbox, UiColorPicker as ColorPicker, UiCombobox as Combobox, UiEditable as Editable, UiInput as Input, UiInputGroup as InputGroup, UiListbox as Listbox, UiNumberInput as NumberInput, UiSlider as Slider, UiRadio as Radio, UiRadioGroup as RadioGroup, UiSelect as Select, UiSwatch as Swatch, UiSwitch as Switch, UiTextarea as Textarea } from "@looma-test/components";
+    import { UiCalendar as Calendar, UiDateField as DateField, UiDatePicker as DatePicker, UiDateRangePicker as DateRangePicker, UiFileInput as FileInput, UiTimeField as TimeField, UiTimePicker as TimePicker, UiEditor as Editor, UiCompactEditor as CompactEditor, UiCheckbox as Checkbox, UiColorPicker as ColorPicker, UiCombobox as Combobox, UiEditable as Editable, UiInput as Input, UiInputGroup as InputGroup, UiListbox as Listbox, UiNumberInput as NumberInput, UiSlider as Slider, UiRadio as Radio, UiRadioGroup as RadioGroup, UiSegmentedControl as SegmentedControl, UiSelect as Select, UiSwatch as Swatch, UiSwitch as Switch, UiTextarea as Textarea } from "@looma-test/components";
     const list = (pairs) => () => pairs.map(([value, label]) => sceneNode("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -109,6 +112,8 @@ describe("Form participation", () => {
             sceneNode(Radio, { value: "s" }, text("Small")), sceneNode(Radio, { value: "m" }, text("Medium")), sceneNode(Radio, { id: "size-l", value: "l", disabled: true }, text("Large")),
           ]),
           sceneNode(RadioGroup, { name: "off-group", value: "a", label: "Off", disabled: true }, () => [sceneNode(Radio, { value: "a" }, text("A"))]),
+          sceneNode(SegmentedControl, { id: "status", name: "status", label: "Status", value: "active", items: [{value:"active",label:"Active"},{value:"archived",label:"Archived"}] }),
+          sceneNode(SegmentedControl, { name: "off-status", label: "Off status", value: "active", disabled: true, items: [{value:"active",label:"Active"}] }),
           sceneNode(Radio, { id: "free", name: "plan", value: "free" }, text("Free")),
           sceneNode(Radio, { name: "plan", value: "pro", checked: true }, text("Pro")),
           sceneNode(RadioGroup, { id: "color", name: "color", value: "blue", label: "Color" }, () => [sceneNode(Swatch, { tone: "neutral" }), sceneNode(Swatch, { tone: "blue" })]),
@@ -120,6 +125,7 @@ describe("Form participation", () => {
           sceneNode(Editable, { id: "note", value: "Inline" }),
           sceneNode(Editor, { label: "Document", editable: false }),
           sceneNode(CompactEditor, { label: "Comment" }),
+          sceneNode(SegmentedControl, { id: "external-status", name: "external-status", form: "rules", label: "External status", value: "active", items: [{value:"active",label:"Active"},{value:"archived",label:"Archived"}] }),
           sceneNode(RadioGroup, { name: "external-palette", form: "rules", value: "blue", label: "External palette" }, () => [sceneNode(Swatch, { tone: "blue" }), sceneNode(Swatch, { tone: "green" })]),
         ]),
         sceneNode("form", { id: "rules" }, [
@@ -133,11 +139,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["due", "2026-10-30"], ["appointment", "2026-10-30"], ["period-start", "2026-10-10"], ["period-end", "2026-10-15"], ["opening", "09:30"], ["closing", "16:15"], ["attachment", "[object File]"], ["distance", "42px"], ["progress", "25"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["due", "2026-10-30"], ["appointment", "2026-10-30"], ["period-start", "2026-10-10"], ["period-end", "2026-10-15"], ["opening", "09:30"], ["closing", "16:15"], ["attachment", "[object File]"], ["distance", "42px"], ["progress", "25"], ["brand-colour", "#7c3aed"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["status", "active"], ["plan", "pro"],
     ["color", "blue"], ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["due", "2026-11-02"], ["appointment", "2026-11-02"], ["period-start", "2026-10-12"], ["period-end", "2026-10-17"], ["opening", "10:45"], ["closing", "17:45"], ["attachment", "[object File]"], ["distance", "35px"], ["progress", "100"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["due", "2026-11-02"], ["appointment", "2026-11-02"], ["period-start", "2026-10-12"], ["period-end", "2026-10-17"], ["opening", "10:45"], ["closing", "17:45"], ["attachment", "[object File]"], ["distance", "35px"], ["progress", "100"], ["brand-colour", "#123456"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"], ["status", "archived"],
     ["plan", "free"], ["color", "neutral"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -159,7 +165,7 @@ describe("Form participation", () => {
   const exercise = async (page: Page) => {
     await page.waitForSelector('#req-tags:is([component~="ui-combobox"], [data-component~="ui-combobox"], .ui-combobox, [ui-combobox]) input[role="combobox"]');
     assert.deepEqual(await entries(page), initial);
-    assert.deepEqual(await entries(page, "#rules"), [["external-palette", "blue"]]);
+    assert.deepEqual(await entries(page, "#rules"), [["external-status", "active"], ["external-palette", "blue"]]);
 
     await page.locator("#title").fill("Final");
     await page.locator('#distance input').fill('42px / 1.2');
@@ -190,6 +196,8 @@ describe("Form participation", () => {
     await page.locator("#news input").uncheck();
     await page.locator("#alerts input").check();
     await page.locator('#size input[value="s"]').check();
+    await page.locator("#status").getByText("Archived", {exact:true}).click();
+    await page.locator("#external-status").getByText("Archived", {exact:true}).click();
     await page.locator("#free input").check();
     await page.locator('#color input[value="neutral"]').check();
     await pick(page, "fruit", "Pear");
@@ -221,7 +229,7 @@ describe("Form participation", () => {
     await pick(page, "req-tags", "Alpha");
     await page.locator("#title").focus();
     assert.equal(await valid(), true);
-    assert.deepEqual(await entries(page, "#rules"), [["external-palette", "blue"], ["req", "y"], ["req-tags", "alpha"]]);
+    assert.deepEqual(await entries(page, "#rules"), [["external-status", "archived"], ["external-palette", "blue"], ["req", "y"], ["req-tags", "alpha"]]);
   };
 
   it("submits each HTML control's value, leaves out what a native control would, and resets", async () => {

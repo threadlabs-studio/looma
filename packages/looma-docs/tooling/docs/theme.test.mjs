@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { toLch, fromLch } from './palette.mjs';
 import { themeFields, defaultRecipe, validateRecipe, themeCSS, startingPoints, startingPointFor, startingPointLabels, deriveTheme, themePalettes, paletteFor, applyRefinement, refinementState, materialPresets } from './theme.mjs';
@@ -103,6 +105,90 @@ const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
 const composite = (foreground, background, alpha) => '#' + [1, 3, 5].map(i => Math.round(parseInt(foreground.slice(i, i + 2), 16) * alpha + parseInt(background.slice(i, i + 2), 16) * (1 - alpha)).toString(16).padStart(2, '0')).join('');
 
+const perceptualContrast = (text, background) => APCAcontrast(sRGBtoY([1, 3, 5].map(i => parseInt(text.slice(i, i + 2), 16))), sRGBtoY([1, 3, 5].map(i => parseInt(background.slice(i, i + 2), 16))));
+
+// Material paint keeps its ratio calibration; APCA selects its text separately.
+const paintInk = fill => contrast('#ffffff', fill) > contrast('#000000', fill) ? '#ffffff' : '#000000';
+function assertAPCALabel(tokens, tone, recipe) {
+  const opacity = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+  const backgrounds = ['', '-hover', '-active'].flatMap(state => {
+    const fill = tokens[`--ui-${tone}${state}`];
+    const material = state === '-hover' ? '-hover' : '';
+    return [fill, ...['reflection', 'shade'].map(part => composite(tokens[`--ui-${tone}${material}-${part}`], fill, opacity))];
+  });
+  const nonText = tone === 'accent' ? [tokens['--ui-accent'], ...['reflection', 'shade', 'specular'].map(part => composite(tokens[`--ui-accent-${part}`], tokens['--ui-accent'], opacity))] : [];
+  const eligible = text => nonText.every(background => contrast(text, background) >= 3);
+  const score = text => Math.min(...backgrounds.map(background => Math.abs(perceptualContrast(text, background))));
+  const chosen = tokens[`--ui-on-${tone}`];
+  assert.ok(chosen === '#ffffff' || chosen === '#000000');
+  if (eligible('#ffffff') || eligible('#000000')) assert.ok(eligible(chosen), `${tone}: choice marks retain their non-text minimum`);
+  const other = chosen === '#ffffff' ? '#000000' : '#ffffff';
+  assert.ok(!eligible(other) || score(chosen) >= score(other), `${tone}: selected label has the stronger minimum APCA contrast`);
+  const icon = tokens[`--ui-non-text-on-${tone}`];
+  assert.ok(icon === '#ffffff' || icon === '#000000');
+  assert.ok(backgrounds.every(background => contrast(icon, background) >= 3), `${tone}: icon foreground retains its non-text minimum across states`);
+  const otherIcon = icon === '#ffffff' ? '#000000' : '#ffffff';
+  assert.ok(!backgrounds.every(background => contrast(otherIcon, background) >= 3) || score(icon) >= score(otherIcon), `${tone}: strongest eligible icon foreground`);
+}
+
+const backgroundSnapshots = {
+  "looma": {
+    "light": "b150c627fbd12e4d705233655908f2366fb33b1673952a0dee50b626a59e4477",
+    "dark": "66b31eb92b76413faf4476b36c873c507457eff07d68efa6868b49265173137e"
+  },
+  "minimal": {
+    "light": "779a076bfb1f94cd8f2c3d58687584b9a846b9adc79970a68e5698bb625c90f4",
+    "dark": "23c73641a261829317816c5cae17691bd9fe6725de71ac3f6736e0d469736f90"
+  },
+  "gold": {
+    "light": "ecc5e789c4b4619f4490c395323b576635d2d1fa748194df5721bd096b4724a6",
+    "dark": "38072e421ed71ad0a28c7932d7e7938b8bcfe6e38dda7c2923e594b62eadcdea"
+  },
+  "bookish": {
+    "light": "772c76150a7c98ae33ccd1bc71136ab4a672fa5ef5befd8a6dbf7848d1cb9674",
+    "dark": "216f0bc2e7a8bf4c3bb69e0de51880e739996b4376f190f2e8c19115e27e4e23"
+  },
+  "wiki": {
+    "light": "c5cec5bc49d3aeb5169f8304aebe316969476c48ecd4b9e26dd57971f3a23f1e",
+    "dark": "662f46fd1015ac695d678ba9b936e7ed7e06692a5e9fa13a17f85fe2439eb6a6"
+  },
+  "editorial": {
+    "light": "d33dee15fe7117d5b68bdd17b5e3b5926b692446192e55f0639e73f9f481153f",
+    "dark": "78dd1600641807f3e8aa95b41d3943aeeaeb12c8b9f2df3bd4e11513ce32ca05"
+  },
+  "night": {
+    "light": "3bf2f0e8f149a2b79be80b2fa7ac4e147b010029711c0b60b5dd60b2e24c0d11",
+    "dark": "6c58d290a7be969bccb220a5fd7edf75095abfca140b25a99aa5cfd6aa95d694"
+  },
+  "garden": {
+    "light": "9abe7aa78b9642bb9ae2ace8a2fa19f9e9d225a60118696994a7da6e2ae215bd",
+    "dark": "acec2e28e15b66c03fef4acd2b6a02df6176951ba8c0d8cada62238d062f3008"
+  }
+};
+
+test('APCA label selection preserves every other palette and material token', () => {
+  for (const [name, recipe] of Object.entries(startingPoints)) for (const mode of ['light', 'dark']) {
+    const { tokens } = deriveTheme(recipe, { mode });
+    const paint = Object.entries(tokens).filter(([key]) => !/^--ui-on-/.test(key) && !/-on-strong$/.test(key) && !/^--ui-knob-on-accent-/.test(key) && !/^--ui-non-text-on-/.test(key)).sort(([a], [b]) => a.localeCompare(b));
+    const digest = createHash('sha256').update(JSON.stringify(paint)).digest('hex');
+    assert.equal(digest, backgroundSnapshots[name][mode], name + '/' + mode + ': label choices cannot recolor the palette');
+  }
+});
+
+test('APCA selects white on the original orange and keeps the original gold', () => {
+  const warning = deriveTheme(defaultRecipe(), { mode: 'light' }).tokens;
+  assert.equal(warning['--ui-warning'], '#b27522');
+  assert.equal(warning['--ui-on-warning'], '#ffffff');
+  assert.equal(warning['--ui-non-text-on-warning'], '#000000');
+  for (const state of ['', '-hover', '-active']) assert.ok(contrast(warning['--ui-non-text-on-warning'], warning[`--ui-warning${state}`]) >= 3);
+  assert.ok(Math.abs(perceptualContrast('#ffffff', warning['--ui-warning'])) > Math.abs(perceptualContrast('#000000', warning['--ui-warning'])));
+  for (const mode of ['light', 'dark']) {
+    const gold = deriveTheme(startingPoints.gold, { mode }).tokens;
+    assert.equal(gold['--ui-accent'], '#ffb84d');
+    assert.equal(gold['--ui-on-accent'], '#000000');
+  }
+});
+
 test('Forest & cream pairs a forest accent with cream light neutrals', () => {
   const recipe = applyRefinement(defaultRecipe(), 'palette', 'garden');
   const { tokens } = deriveTheme(recipe, { mode: 'light' });
@@ -132,7 +218,7 @@ test('neutral fills stay in the surface family and reflection peaks remain reada
     assert.ok(contrast(tokens['--ui-neutral-surface'], tokens['--ui-text']) >= 4.5);
     assert.ok(contrast(tokens['--ui-surface-reflection'], tokens['--ui-text']) >= 4.5);
     for (const tone of ['accent', 'danger', 'success', 'warning', 'info']) {
-      assert.ok(contrast(tokens[`--ui-${tone}-reflection`], tokens[`--ui-on-${tone}`]) >= 4.5, `${mode} ${tone}`);
+      assertAPCALabel(tokens, tone, recipe);
     }
   }
 });
@@ -154,7 +240,7 @@ test('palette derivation repairs unreadable seeds across surface, text, outline 
       for (const surface of surfaces) assert.ok(contrast(tokens[name], surface) >= (name === '--ui-control-border' ? Number(recipe.values['neutral-border-contrast']) : 3), `${name} on ${surface}`);
     }
     for (const tone of ['accent', 'danger', 'success', 'warning', 'info']) {
-      for (const state of ['', '-hover', '-active']) assert.ok(contrast(tokens[`--ui-${tone}${state}`], tokens[`--ui-on-${tone}`]) >= 4.5, `${tone}${state} solid`);
+      assertAPCALabel(tokens, tone, recipe);
       for (const surface of surfaces) assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], surface) >= 4.5, `${tone} text on ${surface}`);
     }
     assert.ok(Array.isArray(adjustments));
@@ -247,7 +333,7 @@ test('palette transformations preserve readable roles at their extremes in both 
       assert.ok(contrast(tokens['--ui-text'],tokens[surface]) >= 4.5, `${relationship}/${mode} body`);
       assert.ok(contrast(tokens['--ui-control-border'],tokens[surface]) >= Number(recipe.values['neutral-border-contrast']), `${relationship}/${mode} boundary`);
     }
-    for (const tone of ['accent','danger','success','warning','info']) assert.ok(contrast(tokens[`--ui-${tone}`],tokens[`--ui-on-${tone}`]) >= 4.5, `${relationship}/${mode}/${tone}`);
+    for (const tone of ['accent','danger','success','warning','info']) assertAPCALabel(tokens, tone, recipe);
   }
 });
 
@@ -267,14 +353,13 @@ test('filled tones preserve their seeds while ink, text and focus adapt independ
         assert.equal(tokens['--ui-accent'], action, `${action}/${canvas}/${surface}/${mode}: fill keeps identity`);
         const sharedOpacity = Math.min(Number(deriveTheme(recipe, { mode: 'light' }).tokens['--ui-tonal-opacity']), Number(deriveTheme(recipe, { mode: 'dark' }).tokens['--ui-tonal-opacity']));
         assert.ok(themeCSS(recipe).includes(`--ui-tonal-opacity: ${sharedOpacity};`), 'export uses the safer shared opacity across both modes');
-        const foreground = tokens['--ui-on-accent'];
         assert.equal(tokens['--ui-field-danger'], tokens['--ui-danger-subtle-text']);
         for (const tone of ['danger', 'success', 'warning', 'info']) {
-          assert.ok(contrast(tokens[`--ui-${tone}`], tokens[`--ui-on-${tone}`]) >= 4.5, `${tone}/${mode}: filled status ink`);
+          assertAPCALabel(tokens, tone, recipe);
           for (const background of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken']) assert.ok(contrast(tokens[`--ui-${tone}-subtle-text`], tokens[background]) >= 4.5, `${tone}/${mode}: contextual status text`);
         }
         for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) assert.equal(tokens[`--ui-editor-${hook}`], tokens['--ui-accent-subtle-text']);
-        for (const suffix of ['', '-hover', '-active', '-reflection']) assert.ok(contrast(tokens[`--ui-accent${suffix}`], foreground) >= 4.5, `${action}${suffix}/${mode}: on-fill ink`);
+        assertAPCALabel(tokens, 'accent', recipe);
         for (const background of ['--ui-surface', '--ui-surface-raised', '--ui-surface-sunken', '--ui-selection-surface']) {
           assert.ok(contrast(tokens['--ui-accent-subtle-text'], tokens[background]) >= 4.5, `${action}/${mode}: contextual text`);
         }
@@ -303,7 +388,7 @@ test('Fraunces uses the existing font picker provenance and travels with Lato in
 });
 
 
-test('material reflection composes readably over filled states without changing palette decisions', () => {
+test('material reflection retains its calibrated paint range without changing palette decisions', () => {
   const systemCSS = readFileSync(new URL('../../../looma/src/tokens/theme-system.css', import.meta.url), 'utf8');
   const composite = (paint, background, alpha) => {
     const a = [1, 3, 5].map(i => parseInt(paint.slice(i, i + 2), 16));
@@ -333,7 +418,7 @@ test('material reflection composes readably over filled states without changing 
               const shaded = composite(tokens[`--ui-${role}-shade`], tokens[`--ui-${role}${state}`], Number(finish) * Number(strength) * .7 * shadeWeight);
               const reflected = composite(tokens[`--ui-${role}-reflection`], shaded, Number(finish) * Number(strength) * weight);
               const painted = composite(tokens[`--ui-${role}-specular`], reflected, Number(finish) * Number(strength) * specularWeight);
-              assert.ok(contrast(painted, tokens[`--ui-on-${role}`]) >= 4.5, `${action}/${mode}/${role}${state}/finish${finish}/strength${strength}/weight${weight}`);
+              assert.ok(contrast(painted, paintInk(tokens[`--ui-${role}`])) >= 4.5, `${action}/${mode}/${role}${state}/finish${finish}/strength${strength}/weight${weight}`);
               }
             }
           }
@@ -409,7 +494,7 @@ test('glass keeps a mostly opaque content plane, decorative transmission and zer
 });
 
 
-test('opposing environmental hues keep readable intermediate material colors', () => {
+test('opposing environmental hues keep intermediate colors within the calibrated paint range', () => {
   for (const [action, light] of [['#ff0000', '#00ff00'], ['#00ff00', '#ff0000'], ['#0000ff', '#ffff00'], ['#ffff00', '#0000ff']]) {
     const recipe = defaultRecipe(); Object.assign(recipe.values, { action, 'light-color': light });
     for (const mode of ['light', 'dark']) {
@@ -419,7 +504,7 @@ test('opposing environmental hues keep readable intermediate material colors', (
         const b = [1, 3, 5].map(i => parseInt(tokens[`--ui-${role}-${end}`].slice(i, i + 2), 16));
         for (let step = 0; step <= 256; step++) {
           const sample = '#' + a.map((n, i) => Math.round(n + (b[i] - n) * step / 256).toString(16).padStart(2, '0')).join('');
-          assert.ok(contrast(sample, tokens[`--ui-on-${role}`]) >= 4.5, `${action}/${light}/${role}/${mode}/${step}`);
+          assert.ok(contrast(sample, paintInk(tokens[`--ui-${role}`])) >= 4.5, `${action}/${light}/${role}/${mode}/${step}`);
         }
       }
     }
@@ -482,16 +567,17 @@ test('painted knob surfaces keep non-text contrast against their actual track pa
     }
     return values;
   };
-  for (const action of ['#ffb84d', '#0066cc', '#7c3aed', '#008842', '#dd2233', '#ffffff', '#111111', '#888888']) for (const light of ['#ffffff', '#ffbc70', '#75baff', '#00ff00']) for (const mode of ['light', 'dark']) {
-    const recipe = defaultRecipe(); Object.assign(recipe.values, { action, 'light-color': light });
+  for (const action of ['#ffb84d', '#0066cc', '#7c3aed', '#008842', '#dd2233', '#ffffff', '#111111', '#888888']) for (const light of ['#ffffff', '#ffbc70', '#75baff', '#00ff00']) for (const mode of ['light', 'dark']) for (const finish of ['0', '1']) {
+    const recipe = defaultRecipe(); Object.assign(recipe.values, { action, 'light-color': light, finish });
     const { tokens } = deriveTheme(recipe, { mode });
     for (const [knob, base, track, trackBase] of [['knob', '--ui-text-secondary', 'surface', '--ui-surface-raised'], ['knob-on-accent', '--ui-on-accent', 'accent', '--ui-accent']]) {
       const parts = ['reflection', 'shade', 'specular'];
-      const foregrounds = paints([tokens[base], ...parts.map(part => tokens[`--ui-${knob}-${part}`])]);
-      const backgrounds = paints([tokens[trackBase], ...parts.map(part => tokens[`--ui-${track}-${part}`])]);
+      const opacity = Number(recipe.values.finish) * Number(recipe.values['light-strength']);
+      const foregrounds = paints([tokens[base], ...parts.map(part => composite(tokens[`--ui-${knob}-${part}`], tokens[base], opacity))]);
+      const backgrounds = paints([tokens[trackBase], ...parts.map(part => composite(tokens[`--ui-${track}-${part}`], tokens[trackBase], opacity))]);
       const [foreMin, foreMax] = range(foregrounds), [backMin, backMax] = range(backgrounds);
       const minimum = foreMax < backMin ? (backMin + .05) / (foreMax + .05) : backMax < foreMin ? (foreMin + .05) / (backMax + .05) : 1;
-      assert.ok(minimum >= 3, `${action}/${light}/${mode}/${knob}: full independent knob/track paint ${minimum}`);
+      assert.ok(minimum >= 3, `${action}/${light}/${mode}/${knob}: rendered independent knob/track paint at finish ${finish}: ${minimum}`);
     }
   }
 });
@@ -597,10 +683,13 @@ test('partial recipes export inherited fonts without importing explicitly suppli
 });
 
 
-test('field-label sizing follows body by default and exports an independent public role when chosen', () => {
+test('field-label sizing follows UI text by default and preserves explicit theme choices', () => {
   const recipe = defaultRecipe();
-  assert.equal(recipe.values['label-size'], 'inherit');
-  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], 'inherit');
+  assert.equal(recipe.values['label-size'], '0.875rem');
+  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], '0.875rem');
+  recipe.values['label-size'] = 'inherit';
+  assert.equal(deriveTheme(recipe).tokens['--ui-field-label-font-size'], 'var(--ui-font-size-md)');
+  assert.match(themeCSS(recipe), /--ui-field-label-font-size: var\(--ui-font-size-md\);/);
   recipe.values['label-size'] = '14px';
   assert.match(themeCSS(recipe), /--ui-field-label-font-size: 14px;/);
   assert.equal(validateRecipe(JSON.parse(JSON.stringify(recipe))).values['label-size'], '14px');
@@ -703,7 +792,7 @@ test('brand accents, neutral pigment and semantic mappings survive recipes and C
     assert.equal(t['--ui-danger'],t['--ui-accent-secondary']);
     assert.equal(t['--ui-info'],t['--ui-accent-tertiary']);
     assert.notEqual(t['--ui-warning'],t['--ui-accent']);
-    for(const tone of ['accent-secondary','accent-tertiary','success','danger','warning','info']) assert.ok(contrast(t[`--ui-${tone}`],t[`--ui-on-${tone}`])>=4.5);
+    for(const tone of ['accent-secondary','accent-tertiary','success','danger','warning','info']) assertAPCALabel(t, tone, recipe);
   }
   assert.match(themeCSS(recipe),/--ui-accent-secondary: light-dark\(#e66b70, #e66b70\);/);
 });
@@ -877,7 +966,7 @@ test('solid hover preserves pigment and moves fill and material by comparable pe
         assert.ok(hc >= c * .9, `${name}/${mode}/${tone}: hover retains saturation`);
         assert.ok(Math.min(Math.abs(h - hh), 360 - Math.abs(h - hh)) < 2, `${name}/${mode}/${tone}: hover retains hue`);
       }
-      const label = tokens[tone === 'neutral' ? '--ui-text' : `--ui-on-${tone}`];
+      const label = tone === 'neutral' ? tokens['--ui-text'] : paintInk(base);
       for (const part of ['reflection', 'shade']) {
         const rest = tokens[`--ui-${tone}-${part}`], hover = tokens[`--ui-${tone}-hover-${part}`];
         assert.ok(contrast(hover, label) >= 4.5, `${name}/${mode}/${tone}/${part}: readable painted hover`);

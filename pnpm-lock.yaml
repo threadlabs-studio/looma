@@ -38,8 +38,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.1(@types/react@19.3.0)(react@19.3.1)
       '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95
       '@threadlabs/looma':
         specifier: workspace:*
         version: link:../../packages/looma
@@ -72,8 +72,8 @@ importers:
   apps/docs-next:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95
       '@threadlabs/looma':
         specifier: workspace:*
         version: link:../../packages/looma
@@ -86,7 +86,7 @@ importers:
         version: link:../../packages/looma-docs
       markupress:
         specifier: '>=0.18.4'
-        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.84)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.95)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
 
   apps/storybook:
     dependencies:
@@ -103,6 +103,9 @@ importers:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.9.3)
     devDependencies:
+      '@nextwebwg/html-next':
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95
       '@playwright/test':
         specifier: 1.60.0
         version: 1.60.0
@@ -137,23 +140,29 @@ importers:
         specifier: ^0.5.1
         version: 0.5.1
       '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84
+        specifier: '>=1.0.0-alpha.95'
+        version: 1.0.0-alpha.95
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
       expressmark:
-        specifier: '>=0.5.1'
-        version: 0.5.1
+        specifier: '>=0.6.4'
+        version: 0.6.4
       highlight.js:
         specifier: 11.11.2
         version: 11.11.2
+      htmlparser2:
+        specifier: 12.0.0
+        version: 12.0.0
       lowlight:
         specifier: ^3.3.0
         version: 3.3.0
       lucide:
         specifier: ~0.554.0
         version: 0.554.0
+      parse-srcset:
+        specifier: 1.0.2
+        version: 1.0.2
     devDependencies:
       '@angular/common':
         specifier: 21.2.24
@@ -174,8 +183,8 @@ importers:
         specifier: 21.2.24
         version: 21.2.24(@angular/common@21.2.24(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/compiler@21.2.24)(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(@angular/platform-browser@21.2.24(@angular/common@21.2.24(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2)))(rxjs@7.8.2)
       '@nextwebwg/html-next-unplugin':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
       '@preact/preset-vite':
         specifier: ^2.10.6
         version: 2.10.6(@babel/core@7.29.7)(preact@11.1.1)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
@@ -348,10 +357,10 @@ importers:
   packages/looma-docs:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95
       '@threadlabs/looma':
-        specifier: '>=0.52.0'
+        specifier: workspace:>=0.53.0
         version: link:../looma
       '@threadlabs/markupkit':
         specifier: '>=0.6.1'
@@ -362,12 +371,15 @@ importers:
       '@tiptap/pm':
         specifier: ^2.11.5
         version: 2.27.2
+      apca-w3:
+        specifier: ^0.1.9
+        version: 0.1.9
       expressmark:
         specifier: '>=0.6.0'
         version: 0.6.0
       markupress:
         specifier: '>=0.18.4'
-        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.84)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
+        version: 0.18.4(@nextwebwg/html-next@1.0.0-alpha.95)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)
       parse5:
         specifier: ^8.0.1
         version: 8.0.1
@@ -407,8 +419,8 @@ importers:
         specifier: 21.2.24
         version: 21.2.24(@angular/common@21.2.24(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/compiler@21.2.24)(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(@angular/platform-browser@21.2.24(@angular/common@21.2.24(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.24(@angular/compiler@21.2.24)(rxjs@7.8.2)))(rxjs@7.8.2)
       '@nextwebwg/html-next-unplugin':
-        specifier: '>=1.0.0-alpha.84'
-        version: 1.0.0-alpha.84(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
+        specifier: '>=1.0.0-alpha.92'
+        version: 1.0.0-alpha.95(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))
       '@preact/preset-vite':
         specifier: ^2.10.6
         version: 2.10.6(@babel/core@7.29.7)(preact@11.1.1)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
@@ -595,16 +607,8 @@ packages:
     resolution: {integrity: sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
 
-  '@asamuzakjp/css-color@7.1.9':
-    resolution: {integrity: sha512-vZ6JQVq8Ivgz6b/IBlAf90wZviXdluY13cQOPO+nJHbmXwGrPl2GcpqUY7a55/8ZVdfONXpCFMpRijOBCHNlcQ==}
-    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
-
   '@asamuzakjp/dom-selector@6.8.1':
     resolution: {integrity: sha512-MvRz1nCqW0fsy8Qz4dnLIvhOlMzqDVBabZx6lH+YywFDdjXhMY37SmpV1XFX3JzG5GWHn63j6HX6QPr3lZXHvQ==}
-
-  '@asamuzakjp/dom-selector@9.2.4':
-    resolution: {integrity: sha512-YnVzxDxLaqL0t7Q4wfcgHZjg55Wm6y5EaO7Bhu3q9J7wq/8iw3PhsnWiOQhYekx4VexnbkgWpTT6n+QIV7kczw==}
-    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
   '@asamuzakjp/generational-cache@1.0.1':
     resolution: {integrity: sha512-wajfB8KqzMCN2KGNFdLkReeHncd0AslUSrvHVvvYWuU8ghncRJoA50kT3zP9MVL0+9g4/67H+cdvBskj9THPzg==}
@@ -1171,6 +1175,10 @@ packages:
     resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/runtime@7.29.14':
+    resolution: {integrity: sha512-Y5tqevQaUAZhhj82BpYMNC1ssvLQTVAfwKdm8iy8qwmhvC2/CpcAu8OC+QEtjM7pMk7knx83u1Qj8gzkicyelw==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/template@7.29.7':
     resolution: {integrity: sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==}
     engines: {node: '>=6.9.0'}
@@ -1185,10 +1193,6 @@ packages:
 
   '@blazediff/core@1.10.0':
     resolution: {integrity: sha512-AOQff0zgR7cGsZL+4E7hVkmujoPUpm0J9xzWGWZj5wCjd3gmxESXAPfKyuzs93VdpQNFhHlBhfOjrcZ+XTERtQ==}
-
-  '@bramus/specificity@2.4.3':
-    resolution: {integrity: sha512-0GEz8qJWokkUVYQYRukmkSHIFNoBH8QTreeHrAFbvz1XFYc3Y+puhMs8PQ5x8GNugiC2l5jvDBXKLbBIByeSBw==}
-    hasBin: true
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -2356,13 +2360,13 @@ packages:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
 
-  '@nextwebwg/html-next-converter@1.0.0-alpha.84':
-    resolution: {integrity: sha512-/rSJkJoh2cC6fyCHl8ipe0/8X7zZAn7hMwnhKV4f46sOHxH7Rq6Lh1TXsTWkHUS2ok9ZW+Tz61oEY62J2cOKtg==}
+  '@nextwebwg/html-next-converter@1.0.0-alpha.95':
+    resolution: {integrity: sha512-mbYr0wMsybcOG71ow4QzAB9OsNsDPaAg9gYVxUqg5/Vcn+AUdXoWp2RbzZycrUhiJauqlM4U6OsSr2EWViUIUA==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.84':
-    resolution: {integrity: sha512-1J4PNFCR+KzhHSYTs3NJEtL+VgmBcLt8/56cIDVPrkgnTYrvuO3O59oFZMdf/H9fiY9ecK+kkCUmm1IHKnAmsA==}
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.95':
+    resolution: {integrity: sha512-p40ibhoj34LTxOsMZzuFkaB/li9YvUSKcLggKI14jXvn7NxzMuYCI3nqXKkyoTuZ8/VQouxX5iZd1yiulfRePQ==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
     peerDependencies:
@@ -2371,8 +2375,8 @@ packages:
       vite:
         optional: true
 
-  '@nextwebwg/html-next@1.0.0-alpha.84':
-    resolution: {integrity: sha512-N717YDO/9PiekXJ9HAdZozjY0SV1PZzFgtoW2P6qaXeYRW+FHGITfYbBEow9B6AZEwEHGO8oeJIk8RkPh8+94Q==}
+  '@nextwebwg/html-next@1.0.0-alpha.95':
+    resolution: {integrity: sha512-vl60UTXU5ntyhw8l5hIjqcOY+XbO1RzE3Kik9smTWBAA0z/PH/A3cO/Ou8XKB3QqM0D410Gi/r/o/DPeFnD8+g==}
     engines: {node: '>=22.22.2 <23 || >=24.15 <25'}
     hasBin: true
 
@@ -4090,6 +4094,9 @@ packages:
     resolution: {integrity: sha512-FCAJojipPn0bXjuEpjOOOMN8FZDkxfWWp4JGN9mifU2IhxvKyXZYqpzPHdnTSUpmPDy+tsslB6Z1g+Vg6nVbYA==}
     engines: {node: '>=8'}
 
+  apca-w3@0.1.9:
+    resolution: {integrity: sha512-Zrf6AeBeQjNe/fxK7U1jCo5zfdjDl6T4/kdw5Xlky3G7u+EJTZkyItjMYQGtwf9pkftsINxcYyOpuLkzKf1ITQ==}
+
   arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
 
@@ -4235,6 +4242,12 @@ packages:
 
   batch@0.6.1:
     resolution: {integrity: sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==}
+
+  bcp-47-match@2.0.3:
+    resolution: {integrity: sha512-JtTezzbAibu8G0R9op9zb3vcWZd9JF6M0xOYGPn0fNCd7wOpRB1mU2mH9T8gaBGbAAyIIVgB2G7xG0GP98zMAQ==}
+
+  bcp-47@2.1.2:
+    resolution: {integrity: sha512-wsv86UuNFuPnVieKLyECTT+CP1WSAHeoIg5P3xu2kA9Z+7fVPoKt7dxzSeEhtJel0AI+NW3fIW3KtTKQKUCngg==}
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -4481,6 +4494,9 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  colorparsley@0.1.8:
+    resolution: {integrity: sha512-rObESTTTE6G5qO5WFwFxWPggpw4KfpxnLC6Ssl8bITBnNVRhDsyCeTRAUxWQNVTx2pRknKlO2nddYTxjkdNFaw==}
 
   combine-promises@1.2.0:
     resolution: {integrity: sha512-VcQB1ziGD0NXrhKxiwyNbCDmRzs/OShMs2GqW2DlU2A/Sd0nQxE1oWDAE5O0ygSx5mgQOn9eIFh7yKPgFRVkPQ==}
@@ -5010,6 +5026,10 @@ packages:
     resolution: {integrity: sha512-kxL7msIffSuh9aaFAMD7rxAIuTRMAHMeBtgHW2yUdWw732ZNh4MehkF2gdjvtdmikkaIP9bFDDJOPlsvm7avrA==}
     engines: {node: '>=20.19.0'}
 
+  entities@9.0.0:
+    resolution: {integrity: sha512-oJFNDJg3kTPwAD1cNn2+WmUq4wFoo09npc3Ydf1D7ED4smRiWrsKnaLxykrTWgyGEcusc87P5dxlAleol9kpkg==}
+    engines: {node: '>=20.19.0'}
+
   envinfo@7.21.0:
     resolution: {integrity: sha512-Lw7I8Zp5YKHFCXL7+Dz95g4CcbMEpgvqZNNq3AmlT5XAV6CgAAk6gyAMqn2zjw08K9BHfcNuKrMiCPLByGafow==}
     engines: {node: '>=4'}
@@ -5192,12 +5212,12 @@ packages:
     resolution: {integrity: sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==}
     engines: {node: '>= 0.10.0'}
 
-  expressmark@0.5.1:
-    resolution: {integrity: sha512-o6ORkpF3LwxWUlFNd6DjbT5iekpfokX3ZFVtCsZB2AuR3WN/ITxK+JQjC6sga+c7Dx0rjAGeK8jBjnV/w1Femg==}
-    engines: {node: '>=22.13 <23 || >=24 <25'}
-
   expressmark@0.6.0:
     resolution: {integrity: sha512-zylsRyr0FUPUovtizSsMOXYI1eY3zPFI3o93dDwB5AVMt7FXYUrTLtz7F/XlcLIR98MQOW2JLAMXAhATn+GaGQ==}
+    engines: {node: '>=22.13 <23 || >=24 <25'}
+
+  expressmark@0.6.4:
+    resolution: {integrity: sha512-wixA9ANz0XuBKsYEUbjNPxHFBXVkiQa1KK9ZaH5pNm2QQuGCVqKtXor8sX8Ok3omFGjp+4Z+YPggKQ0AHH+Jxw==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
 
   extend-shallow@2.0.1:
@@ -5931,13 +5951,13 @@ packages:
       canvas:
         optional: true
 
-  jsdom@30.1.2:
-    resolution: {integrity: sha512-0FFE/jE1rppmVfUrJUgxqXjcwolZYIGtAgj1pTussMhNZxIxi7W/PvfWaMNroGi2B36X1IKHbexpZ9DhkoOPiQ==}
+  jsdom@31.0.0:
+    resolution: {integrity: sha512-xAkhD9z1eyFC5+QUi9K24CaZJgdCQ2GOGLW1GdVDoQvkp/AxEH9TQ0pAplPOlIiV92hfcgnFOADZypbjgbBT6Q==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
     peerDependencies:
-      canvas: ^3.2.3
+      '@napi-rs/canvas': ^1.0.13
     peerDependenciesMeta:
-      canvas:
+      '@napi-rs/canvas':
         optional: true
 
   jsesc@3.1.0:
@@ -6760,11 +6780,20 @@ packages:
   parse5-htmlparser2-tree-adapter@7.1.0:
     resolution: {integrity: sha512-ruw5xyKs6lrpo9x9rCZqZZnIUntICjQAd0Wsmp396Ul9lN/h+ifgVV1x1gZHi8euej6wTfpqX8j+BFQxF0NS/g==}
 
+  parse5-parser-stream@8.1.1:
+    resolution: {integrity: sha512-hMcVbbUJcQmP8rURWUdYrT1flRiBiBVjq/RYGguJpDUgIXSqdYKlE0CxthmdMWoSlBAuL5bUBa73g0pttSy7Hw==}
+
   parse5@7.3.0:
     resolution: {integrity: sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw==}
 
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
+
+  parse5@8.1.0:
+    resolution: {integrity: sha512-sq3qBFpee5jeocbFbO48VHlGr8sT7mbXS0vxlKN6sottBtJzrOG3998sr0llSZcQAGgfpdmEYAIZE0P9z0dE8w==}
+
+  parse5@8.1.1:
+    resolution: {integrity: sha512-EcR/6WDcU7b2N3vQSxKALCk9lXGtUMQxXio008OEMBE0kavu/7JLfBEeFPzi43nMqVDSbEn3QCK+BMCc9zO//w==}
 
   parseman@0.56.0:
     resolution: {integrity: sha512-Jb4V2CSONx+gN8IPIO/10qnYAA5ZoUaRsadSURTfxDxI+4ZGNEuLqPGKU2W2ewWp/Y0XJO4aEukFqyQqdCjhhA==}
@@ -7475,8 +7504,8 @@ packages:
     peerDependencies:
       react: ^19.3.1
 
-  react-fast-compare@3.2.2:
-    resolution: {integrity: sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==}
+  react-fast-compare@3.2.3:
+    resolution: {integrity: sha512-WY9YHI1jjYC5a2lNRfHbeaNVQqiY+mMKWBSw1mPU0FgevlxI6V7izhNYz7Vp5ieFxetuRb6RmihPQxXEzg7oWQ==}
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -8167,12 +8196,19 @@ packages:
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
 
+  tldts-core@7.5.4:
+    resolution: {integrity: sha512-9+4zWtKEDZ3V3FoZ1B97rv+5z5oqp7yeXGVze3CxgQ+CJro9do9DCPD00wxstYZDXDMXsurkBerFfiB6GYtPbA==}
+
   tldts@6.1.86:
     resolution: {integrity: sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==}
     hasBin: true
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
+    hasBin: true
+
+  tldts@7.5.4:
+    resolution: {integrity: sha512-Rn2ABgjHZrA+jzqom5zhxA0hLohzYrIgfCPyhpTUxqsUrcsBYuab49LseR9waB9Jr8/MxdodvMHA91oRiGLO3Q==}
     hasBin: true
 
   to-regex-range@5.0.1:
@@ -8193,6 +8229,10 @@ packages:
 
   tough-cookie@6.0.2:
     resolution: {integrity: sha512-exgYmnmL/sJpR3upZfXG5PoatXQii55xAiXGXzY+sROLZ/Y+SLcp9PgJNI9Vz37HpQ74WvDcLT8eqm+kV3FzrA==}
+    engines: {node: '>=16'}
+
+  tough-cookie@6.1.0:
+    resolution: {integrity: sha512-FTxc8u8Kl2tz0Lat1u8ksvcy8bwHRyEMawwTWybo51JqaC6O7SvfuhAKg+Ld6VqyIe2QRJBzY9HA7y2WyFRT2w==}
     engines: {node: '>=16'}
 
   tr46@0.0.3:
@@ -8290,8 +8330,8 @@ packages:
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
-  undici@8.12.3:
-    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
+  undici@8.12.4:
+    resolution: {integrity: sha512-8Mx+uNKKER2bA4AdtedkqRbwUCIJFr2nJckXRe5yrDqzePqwLP7VNcctN8/XdmDSbF7mS+jJKIszlL+vbam1VA==}
     engines: {node: '>=22.19.0'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -9151,24 +9191,9 @@ snapshots:
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
 
-  '@asamuzakjp/css-color@7.1.9':
-    dependencies:
-      '@csstools/css-calc': 3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
-      '@csstools/css-color-parser': 4.2.7(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
-      '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
-      '@csstools/css-tokenizer': 4.0.2
-      lru-cache: 11.5.3
-
   '@asamuzakjp/dom-selector@6.8.1':
     dependencies:
       '@asamuzakjp/nwsapi': 2.3.9
-      bidi-js: 1.1.0
-      css-tree: 3.2.1
-      is-potential-custom-element-name: 1.0.1
-      lru-cache: 11.5.3
-
-  '@asamuzakjp/dom-selector@9.2.4':
-    dependencies:
       bidi-js: 1.1.0
       css-tree: 3.2.1
       is-potential-custom-element-name: 1.0.1
@@ -9908,6 +9933,8 @@ snapshots:
 
   '@babel/runtime@7.29.10': {}
 
+  '@babel/runtime@7.29.14': {}
+
   '@babel/template@7.29.7':
     dependencies:
       '@babel/code-frame': 7.29.7
@@ -9932,10 +9959,6 @@ snapshots:
       '@babel/helper-validator-identifier': 7.29.7
 
   '@blazediff/core@1.10.0': {}
-
-  '@bramus/specificity@2.4.3':
-    dependencies:
-      css-tree: 3.2.1
 
   '@colors/colors@1.5.0':
     optional: true
@@ -11536,22 +11559,22 @@ snapshots:
       '@tybys/wasm-util': 0.10.4
     optional: true
 
-  '@nextwebwg/html-next-converter@1.0.0-alpha.84':
+  '@nextwebwg/html-next-converter@1.0.0-alpha.95':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.84
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       typescript: 5.9.3
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
-      - canvas
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.84(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.95(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.84
-      '@nextwebwg/html-next-converter': 1.0.0-alpha.84
+      '@nextwebwg/html-next': 1.0.0-alpha.95
+      '@nextwebwg/html-next-converter': 1.0.0-alpha.95
       css-tree: 3.2.1
       cssstyle: 6.2.0
       magic-string: 0.30.21
-      parse5: 8.0.1
+      parse5: 8.1.0
       svelte: 5.57.2
       svelte2tsx: 0.7.61(svelte@5.57.2)(typescript@5.9.3)
       typescript: 5.9.3
@@ -11561,26 +11584,26 @@ snapshots:
       vite: 8.3.0(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@farmfe/core'
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@rsbuild/core'
       - '@rspack/core'
       - '@typescript-eslint/types'
       - bun-types-no-globals
-      - canvas
       - esbuild
       - rolldown
       - rollup
       - unloader
       - webpack
 
-  '@nextwebwg/html-next-unplugin@1.0.0-alpha.84(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
+  '@nextwebwg/html-next-unplugin@1.0.0-alpha.95(esbuild@0.27.3)(rolldown@1.2.14)(rollup@4.59.0)(vite@8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(webpack@5.105.4(esbuild@0.27.3))':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.84
-      '@nextwebwg/html-next-converter': 1.0.0-alpha.84
+      '@nextwebwg/html-next': 1.0.0-alpha.95
+      '@nextwebwg/html-next-converter': 1.0.0-alpha.95
       css-tree: 3.2.1
       cssstyle: 6.2.0
       magic-string: 0.30.21
-      parse5: 8.0.1
+      parse5: 8.1.0
       svelte: 5.57.2
       svelte2tsx: 0.7.61(svelte@5.57.2)(typescript@5.9.3)
       typescript: 5.9.3
@@ -11590,33 +11613,33 @@ snapshots:
       vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@farmfe/core'
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@rsbuild/core'
       - '@rspack/core'
       - '@typescript-eslint/types'
       - bun-types-no-globals
-      - canvas
       - esbuild
       - rolldown
       - rollup
       - unloader
       - webpack
 
-  '@nextwebwg/html-next@1.0.0-alpha.84':
+  '@nextwebwg/html-next@1.0.0-alpha.95':
     dependencies:
       '@dprint/formatter': 0.6.0
       '@dprint/typescript': 0.96.1
       '@formatjs/intl-durationformat': 0.11.1
       dprint-plugin-malva: 0.16.0
       dprint-plugin-markup: 0.27.6
-      jsdom: 30.1.2
-      parse5: 8.0.1
+      jsdom: 31.0.0
+      parse5: 8.1.0
       postcss: 8.5.30
       postcss-nesting: 14.0.3(postcss@8.5.30)
       typescript-compiler: '@typescript/typescript6@6.0.2'
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
-      - canvas
 
   '@noble/hashes@1.4.0': {}
 
@@ -12183,12 +12206,12 @@ snapshots:
 
   '@slorber/react-helmet-async@1.3.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.14
       invariant: 2.2.4
       prop-types: 15.8.1
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
-      react-fast-compare: 3.2.2
+      react-fast-compare: 3.2.3
       shallowequal: 1.1.0
 
   '@slorber/remark-comment@1.0.0':
@@ -12497,15 +12520,15 @@ snapshots:
 
   '@threadlabs/markupkit@0.6.1(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)':
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.84
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       parse5: 8.0.1
       typescript-compiler: '@typescript/typescript6@6.0.2'
       vite: 8.3.4(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@types/node'
       - '@vitejs/devtools'
-      - canvas
       - esbuild
       - jiti
       - less
@@ -13517,6 +13540,10 @@ snapshots:
 
   apache-md5@1.1.8: {}
 
+  apca-w3@0.1.9:
+    dependencies:
+      colorparsley: 0.1.8
+
   arg@5.0.2: {}
 
   argparse@1.0.10:
@@ -13638,6 +13665,14 @@ snapshots:
   baseline-browser-mapping@2.10.0: {}
 
   batch@0.6.1: {}
+
+  bcp-47-match@2.0.3: {}
+
+  bcp-47@2.1.2:
+    dependencies:
+      is-alphabetical: 2.0.1
+      is-alphanumerical: 2.0.1
+      is-decimal: 2.0.1
 
   bcrypt-pbkdf@1.0.2:
     dependencies:
@@ -13936,6 +13971,8 @@ snapshots:
   colord@2.9.3: {}
 
   colorette@2.0.20: {}
+
+  colorparsley@0.1.8: {}
 
   combine-promises@1.2.0: {}
 
@@ -14473,6 +14510,8 @@ snapshots:
 
   entities@8.1.0: {}
 
+  entities@9.0.0: {}
+
   envinfo@7.21.0: {}
 
   error-ex@1.3.4:
@@ -14761,7 +14800,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expressmark@0.5.1:
+  expressmark@0.6.0:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
@@ -14772,7 +14811,7 @@ snapshots:
       uc.micro: 3.0.0
       yaml: 2.9.1
 
-  expressmark@0.6.0:
+  expressmark@0.6.4:
     dependencies:
       entities: 8.1.0
       htmlparser2: 12.0.0
@@ -15614,23 +15653,21 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  jsdom@30.1.2:
+  jsdom@31.0.0:
     dependencies:
-      '@asamuzakjp/css-color': 7.1.9
-      '@asamuzakjp/dom-selector': 9.2.4
-      '@bramus/specificity': 2.4.3
-      '@csstools/css-syntax-patches-for-csstree': 1.1.16(css-tree@3.2.1)
       '@exodus/bytes': 1.16.0
-      css-tree: 3.2.1
+      bcp-47: 2.1.2
+      bcp-47-match: 2.0.3
       data-urls: 8.0.0
       decimal.js: 10.6.0
       html-encoding-sniffer: 7.0.0
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.5.3
-      parse5: 8.0.1
+      parse5: 8.1.0
+      parse5-parser-stream: 8.1.1
       saxes: 6.0.0
-      tough-cookie: 6.0.2
-      undici: 8.12.3
+      tough-cookie: 6.1.0
+      undici: 8.12.4
       w3c-xmlserializer: 6.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -15903,9 +15940,9 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markupress@0.18.4(@nextwebwg/html-next@1.0.0-alpha.84)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
+  markupress@0.18.4(@nextwebwg/html-next@1.0.0-alpha.95)(@threadlabs/looma@packages+looma)(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0):
     dependencies:
-      '@nextwebwg/html-next': 1.0.0-alpha.84
+      '@nextwebwg/html-next': 1.0.0-alpha.95
       '@threadlabs/looma': link:packages/looma
       '@threadlabs/markupkit': 0.6.1(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       expressmark: 0.6.0
@@ -15917,10 +15954,10 @@ snapshots:
       vite: 8.3.5(@types/node@25.3.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       yaml: 2.9.1
     transitivePeerDependencies:
+      - '@napi-rs/canvas'
       - '@noble/hashes'
       - '@types/node'
       - '@vitejs/devtools'
-      - canvas
       - esbuild
       - jiti
       - less
@@ -16764,6 +16801,10 @@ snapshots:
       domhandler: 5.0.3
       parse5: 7.3.0
 
+  parse5-parser-stream@8.1.1:
+    dependencies:
+      parse5: 8.1.1
+
   parse5@7.3.0:
     dependencies:
       entities: 6.0.1
@@ -16771,6 +16812,14 @@ snapshots:
   parse5@8.0.1:
     dependencies:
       entities: 8.1.0
+
+  parse5@8.1.0:
+    dependencies:
+      entities: 9.0.0
+
+  parse5@8.1.1:
+    dependencies:
+      entities: 9.0.0
 
   parseman@0.56.0:
     dependencies:
@@ -16877,7 +16926,7 @@ snapshots:
 
   polished@4.3.1:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.14
 
   possible-typed-array-names@1.1.0: {}
 
@@ -17573,7 +17622,7 @@ snapshots:
       react: 19.3.1
       scheduler: 0.28.0
 
-  react-fast-compare@3.2.2: {}
+  react-fast-compare@3.2.3: {}
 
   react-is@16.13.1: {}
 
@@ -18507,6 +18556,8 @@ snapshots:
 
   tldts-core@7.4.20: {}
 
+  tldts-core@7.5.4: {}
+
   tldts@6.1.86:
     dependencies:
       tldts-core: 6.1.86
@@ -18514,6 +18565,10 @@ snapshots:
   tldts@7.4.19:
     dependencies:
       tldts-core: 7.4.20
+
+  tldts@7.5.4:
+    dependencies:
+      tldts-core: 7.5.4
 
   to-regex-range@5.0.1:
     dependencies:
@@ -18530,6 +18585,10 @@ snapshots:
   tough-cookie@6.0.2:
     dependencies:
       tldts: 7.4.19
+
+  tough-cookie@6.1.0:
+    dependencies:
+      tldts: 7.5.4
 
   tr46@0.0.3: {}
 
@@ -18602,7 +18661,7 @@ snapshots:
   undici-types@7.18.2:
     optional: true
 
-  undici@8.12.3: {}
+  undici@8.12.4: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 

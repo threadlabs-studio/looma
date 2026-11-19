@@ -1,4 +1,5 @@
 import { trackTrigger } from "../shared/trigger.js";
+import { nextCollectionPosition } from "../shared/collection-navigation.js";
 
 let panelIds = 0;
 const GROUP_EVENT = "looma-tabs-group";
@@ -111,10 +112,11 @@ export function connect(host) {
       select(button, "keyboard");
       return;
     }
-    if (event.key !== previousKey && event.key !== nextKey && event.key !== "Home" && event.key !== "End") return;
+    const key = event.key === previousKey ? "ArrowUp" : event.key === nextKey ? "ArrowDown" : event.key;
+    if (!vertical && (event.key === "ArrowUp" || event.key === "ArrowDown")) return;
+    const next = buttons[nextCollectionPosition(buttons.length, buttons.indexOf(button), key, true)];
+    if (!next) return;
     event.preventDefault();
-    const index = buttons.indexOf(button);
-    const next = event.key === "Home" ? buttons[0] : event.key === "End" ? buttons.at(-1) : buttons[(index + (event.key === nextKey ? 1 : buttons.length - 1)) % buttons.length];
     if (host.props.activation.value !== "manual") select(next, "keyboard");
     focusTab(next);
   };

@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Rest",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "dismissible: false",
+    "props": {
+      "dismissible": false
+    },
+    "example": 0
+  },
+  {
+    "name": "dismissible: true",
+    "props": {
+      "dismissible": true
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: neutral",
+    "props": {
+      "tone": "neutral"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: info",
+    "props": {
+      "tone": "info"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: success",
+    "props": {
+      "tone": "success"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: warning",
+    "props": {
+      "tone": "warning"
+    },
+    "example": 0
+  },
+  {
+    "name": "tone: danger",
+    "props": {
+      "tone": "danger"
+    },
+    "example": 0
+  },
+  {
+    "name": "Example: 01-announcement",
+    "props": {},
+    "example": 0
+  },
+  {
+    "name": "Example: 02-service-notice",
+    "props": {},
+    "example": 1
+  },
+  {
+    "name": "Example: 03-tones",
+    "props": {},
+    "example": 2
+  }
+]

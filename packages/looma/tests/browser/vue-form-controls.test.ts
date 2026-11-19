@@ -35,7 +35,7 @@ describe("converted form controls", () => {
     assert.equal(await page.evaluate(() => (window as unknown as { topic: { value: string } }).topic.value), "problem");
 
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
-    assert.equal(await fontSize("#topic-label"), "16px");
+    assert.equal(await fontSize("#topic-label"), "14px");
     assert.equal(await fontSize("#topic-help"), "14px");
     // A named slot in converted output has no slot attribute; the field still links its help to the control.
     await expect.poll(() => select.getAttribute("aria-describedby")).toBe("topic-help");

@@ -10,7 +10,10 @@ function loadLoomaRuntime(): Promise<unknown> {
     import("@threadlabs/looma/theme-light.css"),
     import("@threadlabs/looma/theme-dark.css"),
     // Registers every component; each carries its own scoped styles.
-    import("@threadlabs/looma")
+    import("@threadlabs/looma"),
+    // Examples are plain page markup, so a cell template with bindings needs the live parser.
+    // Lowering an empty root installs it.
+    import("@nextwebwg/html-next/live").then(({ lowerDocument }) => lowerDocument(document.createDocumentFragment()))
   ]);
   return loomaRuntimePromise;
 }

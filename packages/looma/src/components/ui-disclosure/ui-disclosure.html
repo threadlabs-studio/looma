@@ -1,7 +1,7 @@
 <template component="ui-disclosure" module="./ui-disclosure.js">
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
-    >Compact trades padding and type size for rows that fit more on screen.</prop>
+    >Compact reduces row spacing while keeping the shared UI text size.</prop>
     <prop name="variant" type="keyword" values="plain, navigation" default="plain"
     >Navigation shares icon columns, spacing, type, hover, and corners with Nav Item, while keeping expanded sections neutral: opening content is not route
       selection. Plain retains the standard disclosure treatment.</prop>
@@ -94,6 +94,7 @@
       background: transparent;
       color: inherit;
       font: inherit;
+      font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-semibold);
       text-align: start;
       cursor: pointer;
@@ -146,7 +147,14 @@
     .panel {
       display: grid !important;
       grid-template-rows: 0fr;
-      transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease), content-visibility var(--ui-motion-reveal) allow-discrete;
+      transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      /* Keep the closing content through the animation. On opening, expose it before the first frame so callers can focus it. */
+      .panel[hidden] {
+        transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease), content-visibility var(--ui-motion-reveal) allow-discrete;
+      }
     }
 
     .panel-inner {
@@ -200,7 +208,7 @@
       min-block-size: var(--ui-nav-min-block-size);
       padding-block: var(--ui-nav-padding-block) !important;
       border-radius: var(--ui-selection-radius);
-      font-size: var(--ui-font-size-md);
+      font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-normal);
       color: var(--ui-text-secondary);
     }

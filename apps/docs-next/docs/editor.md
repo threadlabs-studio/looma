@@ -17,6 +17,8 @@ sidebar: false
 
 ## Try the editor
 
+Headings with an `id` have a copy-link button that appears when you hover over the heading or tab to the button. Its tooltip says **Copy link**; activation copies the current page URL with that heading's fragment and confirms **Link copied**. Read-only documents have the same controls. Headings without anchors keep their existing behavior, and the controls are never saved into HTML or JSON.
+
 <looma-editor-guide></looma-editor-guide>
 
 Scroll inside the sample to see the always-visible toolbar stay at the top, or switch to
@@ -350,6 +352,9 @@ table, **Shift+Tab** leaves the document through the browser’s normal focus na
 
 The shared preset retains image `width`, `height`, `placement`, and `responsive` attributes in both JSON and
 HTML. Headless hosts can supply `imageNodeView` and `dividerNodeView` for custom presentation.
+
+Headings retain authored `align` values (`left`, `center`, `right`, `justify`) through JSON,
+HTML and Markdown. Responsive images inside a heading keep that alignment and their source choices.
 
 Select text and choose **Link**, type `/link`, or put the caret in a link to edit or remove it. The editor
 accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `/`, `#`, or `?`.

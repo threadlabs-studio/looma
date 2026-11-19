@@ -2,12 +2,13 @@ import { Mark, type Editor, type JSONContent } from "@tiptap/core";
 import { RequestEvent } from "@nextwebwg/html-next/runtime";
 import { page, userEvent } from "vitest/browser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createScene, sceneNode, settle, type Scene } from "@looma-test/scene";
+import { createScene, createState, sceneNode, settle, type Scene } from "@looma-test/scene";
 import { UiEditor } from "@looma-test/components";
 import { editorUnderTest, nativeEditorTarget } from "./editor-test-target";
 const LoomaEditor = await editorUnderTest(UiEditor);
 import "../tokens.css";
 import "../theme-light.css";
+import { setReferenceDisplay } from "../src/editor/reference-display";
 
 const { respond } = RequestEvent;
 const apps: Scene[] = [];
@@ -52,7 +53,107 @@ function chooseImage(host: HTMLElement, name: string) {
 
 const insertImage = () => page.getByRole("button", { name: "Insert image", exact: true });
 
+it("keeps inline pictures beside heading text under a block media reset", async () => {
+  const reset = document.head.appendChild(document.createElement("style"));
+  reset.textContent = ":where(img, picture) { display: block; max-inline-size: 100%; }";
+  cleanups.push(() => reset.remove());
+  const src = new URL("./fixtures/inline-picture.svg?no-inline", import.meta.url).href;
+  expect(src).toMatch(/^https?:/);
+  const content = { type: "doc", content: [{ type: "heading", attrs: { level: 2 }, content: [
+    { type: "text", text: "Architecture " },
+    { type: "loomaInlineImage", attrs: { src, alt: "Diagram", width: 96, height: 48 } },
+  ] }] };
+  const { host, editor } = await mountEditor({ content }, 375);
+  const heading = host.querySelector(".ProseMirror h2")!;
+  const range = document.createRange();
+  range.selectNodeContents(document.createTreeWalker(heading, NodeFilter.SHOW_TEXT).nextNode()!);
+  const text = range.getBoundingClientRect(), picture = heading.querySelector("picture")!.getBoundingClientRect();
+  expect(picture.left).toBeGreaterThanOrEqual(text.right - 1);
+  expect(picture.top).toBeLessThan(text.bottom);
+  expect(picture.bottom).toBeGreaterThan(text.top);
+  expect(editor()!.getJSON()).toMatchObject(content);
+});
+
+it("preserves consumer editor classes while editability changes", async () => {
+  const editable = createState(true);
+  const host = document.body.appendChild(document.createElement("div"));
+  const app = createScene({ render: () => sceneNode(LoomaEditor, { class: "consumer-editor", editable: editable.value }) });
+  apps.push(app);
+  app.mount(host);
+  await flushBrowser();
+  const root = host.querySelector<HTMLElement>(".looma-editor")!;
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  editable.value = false;
+  await flushBrowser();
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  expect(root.classList.contains("looma-editor--readonly")).toBe(true);
+  await expect.element(page.getByRole("textbox", { name: "Document", exact: true })).toHaveAttribute("contenteditable", "false");
+  editable.value = true;
+  await flushBrowser();
+  expect(root.classList.contains("consumer-editor")).toBe(true);
+  expect(root.classList.contains("looma-editor--readonly")).toBe(false);
+});
+
 describe("LoomaEditor requests", () => {
+  it('removes an elsewhere-owned reference without requesting original deletion', async () => {
+    const remove = vi.fn(), confirm = vi.fn();
+    const { host, editor } = await mountEditor({
+      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Keep the page prose.' }] },
+        { type: 'loomaFileAttachment', attrs: { href: '/files/shared.pdf', name: 'Shared.pdf', size: 12, contentType: 'application/pdf' } }] },
+      fileDeleteConfirm: confirm, fileDelete: remove,
+    }, 375);
+    setReferenceDisplay(editor()!, { 'attachment:/files/shared.pdf': { label: 'Shared.pdf', status: 'ready', deletable: false } });
+    await flushBrowser();
+    await userEvent.click(page.getByRole('button', { name: 'Remove Shared.pdf', exact: true }));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    expect(editor()!.getText()).toBe('Keep the page prose.');
+    expect(confirm).not.toHaveBeenCalled(); expect(remove).not.toHaveBeenCalled();
+    editor()!.commands.undo(); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-attachment]')?.getAttribute('href')).toBe('/files/shared.pdf');
+  });
+  it('confirms permanent file deletion, restores a refused removal alongside concurrent writing, and keeps undo tombstoned', async () => {
+    const attachment = { type: 'loomaFileAttachment', attrs: { href: '/files/report.pdf', name: 'Report.pdf', size: 1100, contentType: 'application/pdf' } };
+    let confirm = false;
+    let accept: ((value: { deleted: boolean }) => void) | undefined, refuse: ((error: Error) => void) | undefined;
+    const remove = vi.fn(() => new Promise<{ deleted: boolean }>((resolve, reject) => { accept = resolve; refuse = reject; }));
+    const { host, editor } = await mountEditor({
+      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Keep this writing.' }] }, attachment] },
+      fileDeleteConfirm: () => ({ confirmed: confirm }), fileDelete: remove,
+    }, 375);
+    const trash = () => page.getByRole('button', { name: 'Delete Report.pdf', exact: true });
+    await userEvent.click(trash());
+    expect(remove).not.toHaveBeenCalled();
+    expect(host.querySelector('[data-looma-file-attachment]')).not.toBeNull();
+    confirm = true;
+    const failed = vi.fn(); host.addEventListener('file-delete-error', failed);
+    await userEvent.click(trash());
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    editor()!.commands.insertContentAt(1, 'New ');
+    refuse!(new Error('Storage refused deletion'));
+    await vi.waitFor(() => expect(failed).toHaveBeenCalledTimes(1));
+    expect(host.textContent).toContain('New Keep this writing.');
+    expect(host.querySelector('[data-looma-file-attachment]')?.getAttribute('href')).toBe('/files/report.pdf');
+    editor()!.setEditable(false); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(true);
+    editor()!.setEditable(true); await flushBrowser();
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(false);
+    await userEvent.click(trash());
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    accept!({ deleted: true });
+    await flushBrowser();
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    editor()!.commands.undo(); await flushBrowser();
+    const restored = host.querySelector('[data-looma-file-attachment]')!;
+    expect(restored.textContent).toContain('Report.pdf (deleted)');
+    expect(restored.hasAttribute('href')).toBe(false);
+    expect(restored.getAttribute('aria-disabled')).toBe('true');
+    expect(host.textContent).toContain('New Keep this writing.');
+    expect(host.querySelector('[data-looma-file-delete]')?.hasAttribute('hidden')).toBe(false);
+    await userEvent.click(page.getByRole('button', { name: 'Remove Report.pdf', exact: true }));
+    expect(host.querySelector('[data-looma-file-attachment]')).toBeNull();
+    expect(remove).toHaveBeenCalledTimes(2);
+  });
   it.skipIf(nativeEditorTarget)("answers image-upload through the component event, shows its progress, and cancels it", async () => {
     let signal: AbortSignal | undefined;
     const errors: unknown[] = [];
@@ -138,14 +239,14 @@ describe("LoomaEditor requests", () => {
 });
 
 
-it("attaches a chosen file through its host responder as an editable link", async () => {
+it("attaches a chosen file through its host responder as a movable file block", async () => {
   const { host, editor } = await mountEditor({ fileUpload: ({ file }: { file: File }) => ({ href: "/files/report.pdf", name: file.name, size: file.size, contentType: file.type }) });
   await expect.element(page.getByRole("button", { name: "Attach file", exact: true })).toBeEnabled();
   const input = host.querySelector<HTMLInputElement>('input[type="file"]:not([accept])')!;
   const transfer = new DataTransfer(); transfer.items.add(new File(["report"], "report.pdf", { type: "application/pdf" }));
   input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   await vi.waitFor(() => expect(JSON.stringify(editor()!.getJSON())).toContain('/files/report.pdf'));
-  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+  await expect.element(page.getByRole("link", { name: "report.pdf 6 B" })).toBeVisible();
 });
 
 it.each([1280, 375])("shows file upload progress and retries without losing content at %spx", async width => {
@@ -168,10 +269,11 @@ it.each([1280, 375])("shows file upload progress and retries without losing cont
   expect(host.querySelector('[role="alert"]')!.getBoundingClientRect().right).toBeLessThanOrEqual(width);
   expect(editor()!.getText()).toBe("Keep this. ");
   await userEvent.click(page.getByRole("button", { name: "Retry", exact: true }));
-  await expect.element(page.getByRole("link", { name: "report.pdf" })).toBeVisible();
+  await expect.element(page.getByRole("link", { name: "report.pdf 6 B" })).toBeVisible();
   await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   expect(fileUpload).toHaveBeenCalledTimes(2);
-  expect(editor()!.getText()).toContain("Keep this. report.pdf");
+  expect(editor()!.getJSON().content?.[0]).toMatchObject({ type: "paragraph", content: [{ type: "text", text: "Keep this. " }] });
+  expect(editor()!.getJSON().content?.filter(node => node.type === "loomaFileAttachment")).toEqual([expect.objectContaining({ attrs: expect.objectContaining({ name: "report.pdf", size: 6, href: "/files/report.pdf" }) })]);
   editor()!.commands.undo();
   expect(editor()!.getText()).toBe("Keep this. ");
 });

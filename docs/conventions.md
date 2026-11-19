@@ -17,6 +17,15 @@ Set one API vocabulary that all components and adapters follow, including state 
 - Shared state names: `open`, `disabled`, `selected`, `checked`, `value`, `invalid`, `readOnly`.
 - State styling exposure: `data-state`, `data-disabled`, `data-selected`.
 
+## Attribute Forwarding
+
+Component definitions use HTML Next's default root forwarding: unclaimed caller attributes apply
+before the root's authored attributes. Declared props remain component inputs and are consumed.
+For an inner destination, put `noforward` on the defining template and `$attributes` on that element.
+When callers must replace an authored default, place `$attributes` after the default attribute, as
+Editor Toolbar does for its accessible label. See the proposal's
+[attribute forwarding rules](https://nextwebwg.org/declarative-components/components#attribute-forwarding).
+
 ## Event Rules
 
 - Use native events when semantics already exist (`input`, `change`, `focus`, `blur`).
@@ -82,6 +91,25 @@ Use `concat()` for IDs, slot names, CSS values, and composed strings. Use Intl `
 - `ui-icon` derives its shapes from `name` in its template, so server-rendered and pre-upgrade HTML
   already carry the whole SVG; a component need not inline an icon's SVG to draw it before
   JavaScript. `tools/scripts/generate-icon-catalog.mjs` writes those shapes from `LOOMA_ICONS`.
+
+## Typography roles
+
+Ordinary control values, action labels, menu items, navigation labels, list-row titles,
+and disclosure triggers use `--ui-font-size-sm` (14px at a 16px root). Field labels
+use that step unless their public label-size token chooses another size. Set the
+size in the owning component so surrounding prose cannot enlarge a control.
+Use weight and tone for emphasis and supporting descriptions. Density changes
+row spacing; it does not change the role of the label.
+
+Body prose uses `--ui-font-size-md` (16px at a 16px root), while Text's default
+body variant inherits the document context. Explicitly large controls use that
+body step; extra-small controls and small menus use `--ui-font-size-xs`.
+Headings, lead paragraphs, document editors, and status-message prose retain their
+reading roles. Native editable fields use body-size text on coarse pointers.
+Keep line heights unitless and control geometry independent from type size.
+
+The [typography guide](<../packages/looma-docs/tooling/docs/guides/05.(Theme reference)/02.theme-typography.md>)
+explains theme customization and the Markupress documentation context.
 
 ## Component-owned layout
 

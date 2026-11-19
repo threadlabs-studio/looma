@@ -45,6 +45,35 @@ test("loads every component contract from its folder", async () => {
   assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
 
+test("Notice Stripe exposes semantic tones and consumer-owned dismissal", async () => {
+  const [{ contracts }] = await readDeclarativeContractGroups();
+  const stripe = contracts["ui-notice-stripe"];
+  assert.ok(stripe, "Notice Stripe is a public declarative component");
+  assert.equal(stripe.root, "div");
+  assert.deepEqual(stripe.propOptions.tone, ["neutral", "info", "success", "warning", "danger"]);
+  assert.deepEqual(stripe.props.dismissible, { type: "boolean", default: false });
+  assert.deepEqual(stripe.slots.map(slot => typeof slot === "string" ? slot : slot.name), ["default", "actions"]);
+  assert.equal(stripe.events[0].name, "dismiss");
+  assert.match(stripe.events[0].detailType, /reason: "action"/);
+  assert.match(stripe.events[0].detailType, /trigger: "keyboard" \| "pointer"/);
+});
+
+test("Data Table takes its columns as markup, and each Column owns its header and cell slots", async () => {
+  const [{ contracts }] = await readDeclarativeContractGroups();
+  const table = contracts["ui-data-table"];
+  const column = contracts["ui-column"];
+  assert.ok(table && column, "Data Table and Column are public declarative components");
+  assert.equal(table.root, "div");
+  assert.deepEqual(table.slots, ["default"], "a column's forwarded cell slot is not a slot of the table");
+  assert.deepEqual(table.props.rowKey, { type: "string", default: "id" });
+  assert.deepEqual(table.props.frozenRows, { type: "integer", default: 0 });
+  assert.deepEqual(table.propOptions.density, ["comfortable", "compact"]);
+  assert.equal(column.root, "th");
+  assert.deepEqual(column.slots, ["header", "cell"]);
+  assert.deepEqual(column.propOptions.align, ["start", "center", "end"]);
+  assert.deepEqual(column.propOptions.frozen, ["none", "start", "end"]);
+});
+
 test("API metadata keeps base types, choices, and selected types readable", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = groups[0].contracts;

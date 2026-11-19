@@ -1,4 +1,5 @@
 import { updateSurfaceMaterial } from "./surface-material.js";
+import { overlayDismissalTarget } from "./overlay-dismissal.js";
 
 const dialogInvokers = new WeakMap();
 
@@ -25,8 +26,8 @@ function syncModalBackdrops(state) {
 }
 
 function requestClose(document, reason, trigger) {
-  const record = stateFor(document).records.at(-1);
-  if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss")) || record.canClose?.(reason) === false) return false;
+  const record = overlayDismissalTarget(stateFor(document).records, reason);
+  if (!record) return false;
   record.requestClose(reason, trigger);
   return true;
 }
@@ -353,6 +354,7 @@ export function createViewportSurface(surface, options = {}) {
   let destroyed = false;
   let stop = null;
   let sizeObserver = null;
+  let contentObserver = null;
   let frame = null;
   const position = () => {
     if (frame !== null) owner.cancelAnimationFrame(frame);
@@ -385,6 +387,7 @@ export function createViewportSurface(surface, options = {}) {
   const hideSurface = () => {
     stop?.(); stop = null;
     sizeObserver?.disconnect(); sizeObserver = null;
+    contentObserver?.disconnect(); contentObserver = null;
     if (frame !== null) owner.cancelAnimationFrame(frame);
     frame = null;
     hide(surface);
@@ -400,6 +403,11 @@ export function createViewportSurface(surface, options = {}) {
         // ResizeObserver runs before paint. Another frame would expose the new size at the old position.
         sizeObserver = new owner.ResizeObserver(position);
         sizeObserver.observe(surface);
+      }
+      if (!contentObserver && owner.MutationObserver) {
+        // Framework content commits can change the box before the next resize delivery.
+        contentObserver = new owner.MutationObserver(position);
+        contentObserver.observe(surface, { childList: true, subtree: true, characterData: true });
       }
     },
     hide: hideSurface,

@@ -9,7 +9,8 @@ let groups = 0;
 // them, so a radio's own disabled is never overwritten.
 export function connect(host) {
   const element = host.element;
-  const name = String(host.props.name.value || `ui-radio-group-${++groups}`);
+  const generatedName = `ui-radio-group-${++groups}`;
+  let name = String(host.props.name.value || generatedName);
   const [trigger, stopTracking] = trackTrigger(host);
   const authoredForms = new WeakMap();
   const inputs = () => Array.from(element.querySelectorAll('input[type="radio"]'));
@@ -31,6 +32,7 @@ export function connect(host) {
   const stopGroup = connectRadioGroup(element, apply);
   host.state.internalValue = String(external ?? "");
   const stop = host.effect(() => {
+    name = String(host.props.name.value || generatedName);
     if (host.props.value.value !== external) {
       external = host.props.value.value;
       host.state.internalValue = String(external ?? "");

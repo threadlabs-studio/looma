@@ -2,6 +2,89 @@
 
 ## Next release
 
+- Allow focus inside an opening disclosure before its reveal animation advances.
+
+- Map selections across consecutive verified Markdown paragraphs while preserving the original spacing between them.
+- Map separate literal bold and italic spans within the same Markdown paragraph or heading, preserving each span's source offsets.
+
+- Keep a FormField's native invalid state in sync with late control updates. A field that clears its error restores the control's own validation state.
+
+- Add an opt-in editor extension that keeps a configurable number of line heights visible around the caret during typing, keyboard navigation, and clicks near a scroll edge.
+
+- Style native file selection with the shared accent outline button treatment, including light, dark, and disabled states.
+
+- Keep deleted or elsewhere-owned file references removable through ordinary document edits, without requesting another original-file deletion. Center compact card icons with balanced spacing and quieter inline controls.
+- Keep attachment cards compact with surrounding space, tightly grouped filenames and muted sizes. Scale byte labels through KB, MB, GB and larger units with one decimal place. Add opt-in confirmed file deletion with optimistic removal, failure recovery and non-clickable deleted references after undo or history restoration.
+- Preserve Markdown soft line breaks when editing prose in the full and compact editors. Explicit hard breaks keep their meaning.
+- Present attached originals as movable file blocks with SVG icons, filenames and byte sizes. The whole card is a native link. Keep metadata, surrounding writing, upload retry and undo intact through HTML and Markdown round trips.
+- LoomaEditor headings with anchors show a copy-link button on hover or keyboard focus, with a tooltip and clipboard feedback. The controls are available in read-only documents and never enter saved content.
+- Map verified Markdown source ranges to Looma editor positions for literal prose, headings, and a simple italic or bold run, with explicit affinity at ambiguous caret boundaries.
+- Measure a tracked editor line in client coordinates and report whether its caret rectangle is visible in the viewport and an optional host scrollport.
+
+- Align ordinary control values, field labels, menus, navigation, selection rows, and disclosure triggers on the shared UI text size (14px at a 16px root). Large controls retain body-size text; compact density changes spacing. Generated themes default field labels to `0.875rem`; choose `label-size: inherit` or an explicit length to retain a different label size. Native fields keep body-size text on touch.
+
+- Generate visual review reports faster for resized captures, preserving change classifications and perceptual comparisons for matching dimensions.
+
+- Share keyboard navigation across Listbox, Combobox, Menu, Context Menu, Tabs, and the editor toolbar. Publish collection navigation and deferred focus through `@threadlabs/looma/behaviors`. Add copyable editor workspace, list and detail, settings form, and search compositions with guidance for adapting them.
+
+- Give Switcher an optional narrower start or end pane for a rail or inspector. Both panes stack in reading order based on the space available. The list-and-detail block uses this layout with a filter, selected report, and expandable source notes.
+
+- Preserve native heading alignment through editing, HTML and Markdown, including responsive logos in headings. Requires Expressmark >=0.6.4.
+
+- Keep inline pictures beside their text when a host stylesheet displays media as blocks. Image offers inline placement, and editor images use that shared surface without changing the stored document.
+
+- Keep consumer-supplied editor classes when switching between editable and read-only states.
+
+- Preserve link marks on inline images when exporting Markdown, including responsive pictures inside headings.
+
+- Rewrite responsive image source URLs through `mapImageSourceUrls` while preserving ordered conditions, dimensions and candidate descriptors. Unchanged source spelling stays intact; unsafe or ambiguous rewrites are refused.
+
+- Preserve linked inline images and responsive pictures inside headings and text, including authored source choices, fallback image, dimensions and descriptions. Inline image actions keep the image in its text position. Requires Expressmark >=0.6.1 for native picture parsing; host delivery renditions remain transient.
+
+- Import HTML disclosure fragments as editable sections, preserving nested Markdown, initial expansion and unchanged authored source. Keep adjacent authored blocks when editing a section body and accept empty or unclosed sections.
+
+- Preserve leading-pipe line blocks as editable text blocks through HTML and Markdown export. Accept redundant identical emphasis and list items whose first authored block is a quotation without producing invalid editor documents.
+
+- Configure LoomaEditor paragraph indentation, whitespace, and trailing scroll space through public CSS tokens. Manuscripts can wrap soft line breaks while preserving hard breaks, literal text, and the saved document.
+
+- Preserve emphasis and links on inline code, and nested tasks with their supporting paragraphs and lists, when loading Markdown into LoomaEditor. The default schema now accepts the content produced by the Markdown converter.
+
+- **Breaking:** Require HTML Next >=1.0.0-alpha.92. Unclaimed caller attributes now apply before authored root attributes, so an attribute written on a component's root takes precedence. Components continue forwarding caller `id`, `class`, `style`, and `aria-*` inputs by default.
+
+- Preserve custom Editor Toolbar accessible labels with `noforward` and a trailing `$attributes` destination after its default label. Convert style objects to HTML attribute text in the HTML Next test adapter so constrained scroll areas retain their supplied height.
+
+- Render Meter's empty bar when `max` is zero by selecting the zero branch before evaluating its percentage division.
+
+- Serialize ordinary named element content as ordinary projection in the HTML Next test adapter, so Site Header's navigation appears once in server output.
+
+- Reposition floating surfaces when their child content commits, keeping Vue's link action bar above its anchor as its controls appear.
+
+- Show the values of Data Table and Column cell templates on the documentation site: an example whose text reads expressions renders through its generated component, because Markdown text is literal.
+
+- Add Data Table and Column: a table built from rows of data, with each `ui-column` written as markup for its header cell and showing a row field or its own cell template. The header stays in view while the rows scroll, and frozen columns and leading rows stay in view while the table scrolls in either direction. Requires `@nextwebwg/html-next` 1.0.0-alpha.88 or later.
+
+- Keep available Segmented Control labels in normal text and switch the selected surface immediately, so unselected choices stay clearly available and two choices never appear selected during a change.
+
+- Add shared `--ui-non-text-on-<tone>` foreground roles for Icon Button so generated non-text inks retain 3:1 contrast across filled states independently of APCA text labels. Existing component overrides and authored-theme defaults remain intact.
+
+- Use APCA to choose black or white labels on customizer solid fills while preserving the selected background colors and their existing material states. Regenerate saved theme CSS to apply the label choices; recipe keys are unchanged.
+
+- Let compact segmented choices use the width their labels need, keeping unequal labels on one line when they fit together.
+
+- Verify published workspace minimum dependency ranges after pnpm removes their workspace protocol, while preserving the exact minimum and rejecting pins or changed ranges.
+
+- Require HTML Next >=1.0.0-alpha.90 so native property bindings inside keyed lists compile in Preact.
+
+- Require HTML Next >=1.0.0-alpha.91, whose converted components list columns written directly in a framework app, including columns inside its own wrapper components.
+
+- Add Segmented Control for compact mutually exclusive choices, with a shared track, selected surface, native form behavior and arrow-key selection. Keep radio-group form names synchronized with external updates.
+
+- Add Notice Stripe for compact, full-width announcements, semantic service notices, trailing actions and consumer-owned dismissal.
+
+- Make the editor link card’s destination clickable, opening same-origin links in the current tab and other destinations in a new tab. Keep long destinations within the card at narrow widths.
+
+- Align link-style Buttons with surrounding text using inline-block layout and the text baseline.
+
 - Keep placeholder Card borders visible at the standard outline strength and make their default text clearer with the secondary foreground.
 
 - Align independently named checkboxes with their containing row without reserving an empty label line. Add Card's `placeholder` variant for empty content areas with a muted foreground and dashed border.

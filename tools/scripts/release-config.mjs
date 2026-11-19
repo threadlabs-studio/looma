@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.52.0";
+export const RELEASE_VERSION = "0.53.0";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -11,6 +11,20 @@ export const RELEASE_PACKAGES = [
       "package/dist/index.d.ts",
       "package/components/shared/input-modality.js",
       "package/components/shared/input-modality.d.ts",
+      "package/components/shared/behaviors.js",
+      "package/components/shared/behaviors.d.ts",
+      "package/components/shared/collection-navigation.js",
+      "package/components/shared/collection-navigation.d.ts",
+      "package/components/shared/deferred-focus.js",
+      "package/components/shared/deferred-focus.d.ts",
+      "package/blocks/editor-workspace.html",
+      "package/blocks/editor-workspace.js",
+      "package/blocks/list-detail.html",
+      "package/blocks/list-detail.js",
+      "package/blocks/settings-form.html",
+      "package/blocks/settings-form.js",
+      "package/blocks/search-and-open.html",
+      "package/blocks/search-and-open.js",
       "package/editor/index.js",
       "package/editor/index.d.ts",
       "package/editor/compact.js",

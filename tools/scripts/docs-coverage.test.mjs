@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { discoverDocsCoverage, checkDocsCoverage } from "./docs-coverage.mjs";
+
+test("documentation tooling resolves the current workspace component source", () => {
+  const docsRoot = fileURLToPath(new URL("../../packages/looma-docs/", import.meta.url));
+  const componentRoot = realpathSync(fileURLToPath(new URL("../../packages/looma/", import.meta.url)));
+  const entry = execFileSync(process.execPath, ["--input-type=module", "--eval", 'process.stdout.write(import.meta.resolve("@threadlabs/looma"))'], { cwd: docsRoot, encoding: "utf8" });
+  const relative = path.relative(componentRoot, realpathSync(fileURLToPath(entry)));
+  assert.ok(!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`), "Docs must qualify the workspace source rather than a registry copy.");
+});
 
 for (const section of ["components", "editor"]) test(`coverage detects added ${section} routes and examples rather than silently blessing them`, async () => {
   const root = await mkdtemp(path.join(tmpdir(), "looma-docs-coverage-"));

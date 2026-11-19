@@ -14,6 +14,14 @@ function stableObject(value) {
   return Object.fromEntries(Object.entries(object(value)).sort(([left], [right]) => left.localeCompare(right)));
 }
 
+function publishedDependencies(value) {
+  // pnpm pack removes the workspace protocol from explicit minimum ranges.
+  return Object.fromEntries(Object.entries(object(value)).map(([name, range]) => [
+    name,
+    typeof range === "string" ? range.replace(/^workspace:(?=>=)/, "") : range
+  ]));
+}
+
 export function collectRegistryReleaseIssues({
   manifest: manifestValue,
   sourcePackages: sourcePackagesValue,
@@ -70,12 +78,12 @@ export function collectRegistryReleaseIssues({
       issues.push(`${label} registry homepage does not match the approved source manifest`);
     }
     if (JSON.stringify(stableObject(registryPackage.peerDependencies))
-      !== JSON.stringify(stableObject(sourcePackage.peerDependencies))) {
+      !== JSON.stringify(stableObject(publishedDependencies(sourcePackage.peerDependencies)))) {
       issues.push(`${label} registry peer dependencies do not match the approved source manifest`);
     }
 
     for (const field of ["dependencies", "optionalDependencies"]) {
-      if (JSON.stringify(stableObject(registryPackage[field])) !== JSON.stringify(stableObject(sourcePackage[field]))) {
+      if (JSON.stringify(stableObject(registryPackage[field])) !== JSON.stringify(stableObject(publishedDependencies(sourcePackage[field])))) {
         issues.push(`${label} registry ${field} do not match the approved source manifest`);
       }
     }

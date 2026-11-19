@@ -12,13 +12,36 @@ describe("Image surface", () => {
   const source = "https://example.test/primitive-image.svg";
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80"><rect width="160" height="80" fill="#569d86"/></svg>';
   for (const adapter of ["HTML", "Converted"]) {
-    it(`owns corner resize, cancellation, and bounds in ${adapter}`, async () => {
-      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
+    it(`keeps inline placement within its text line in ${adapter}`, async () => {
+      const path = await bundle(`image-inline-${adapter}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
         import { createScene, sceneNode } from "@looma-test/scene";
         import { UiImage as Image } from "@looma-test/components";
-        createScene({ render: () => sceneNode(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, selected: true, resizable: true }) }).mount("#mount");
+        createScene({ render: () => sceneNode("p", { id: "line" }, ["Before ", sceneNode(Image, { src: ${JSON.stringify(source)}, alt: "Landscape", width: 48, height: 24, placement: "inline" }), " after."]) }).mount("#mount");
       `);
-      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css")], {}, async page => {
+      const page = await open(path, `<style>:where(img, picture) { display: block; }</style><div style="width: 350px">${adapter === "HTML" ? `<p id="line">Before <ui-image src="${source}" alt="Landscape" width="48" height="24" placement="inline"></ui-image> after.</p>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css")], {}, async page => {
+        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+      });
+      await page.locator("#line img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
+      const positions = await page.locator("#line").evaluate(line => {
+        const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+        let before: Node | null;
+        while ((before = walker.nextNode()) && before.textContent?.trim() !== "Before") { /* Ignore renderer markers and find the visible text. */ }
+        if (!before) throw new Error("Before text is missing");
+        const range = document.createRange(); range.selectNodeContents(before);
+        const text = range.getBoundingClientRect(), image = line.querySelector("img")!.getBoundingClientRect();
+        return { textRight: text.right, textTop: text.top, textBottom: text.bottom, imageLeft: image.left, imageTop: image.top, imageBottom: image.bottom };
+      });
+      assert.ok(positions.imageLeft >= positions.textRight - 1);
+      assert.ok(positions.imageTop < positions.textBottom && positions.imageBottom > positions.textTop);
+      await page.close();
+    });
+    it.each(["block", "inline"] as const)(`owns corner resize, cancellation, and bounds in ${adapter} %s placement`, async placement => {
+      const path = await bundle(`image-surface-${adapter}-${placement}`, adapter === "HTML" ? `import "@looma-test/runtime";` : `
+        import { createScene, sceneNode } from "@looma-test/scene";
+        import { UiImage as Image } from "@looma-test/components";
+        createScene({ render: () => sceneNode(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, placement: ${JSON.stringify(placement)}, selected: true, resizable: true }) }).mount("#mount");
+      `);
+      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" placement="${placement}" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css")], {}, async page => {
         await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
       });
       await page.locator("#image img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
@@ -69,15 +92,16 @@ describe("Image surface", () => {
       await page.close();
     });
   }
-  it("renders semantic media on the server before controllers run", async () => {
+  it.each(["block", "inline"] as const)("renders semantic %s media on the server before controllers run", async placement => {
     const { createHydratedScene, sceneNode } = await import("@looma-test/scene");
     const { renderSceneToString } = await import("@looma-test/scene");
     const { UiImage: Image } = await import("@looma-test/components");
-    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
+    const html = await renderSceneToString(createHydratedScene({ render: () => sceneNode(Image, { src: source, alt: "Landscape", width: 160, height: 80, placement }) }));
     const document = new JSDOM(html).window.document;
-    assert.equal(document.querySelector(componentRoot("ui-image"))?.localName, "figure");
+    assert.equal(document.querySelector(componentRoot("ui-image"))?.localName, placement === "inline" ? "span" : "figure");
     const image = document.querySelector("img")!;
     assert.deepEqual([image.getAttribute("alt"), image.getAttribute("width"), image.getAttribute("height")], ["Landscape", "160", "80"]);
+    if (placement === "inline") assert.equal(new JSDOM(`<p>${html}After</p>`).window.document.querySelector("p img")?.getAttribute("alt"), "Landscape");
     assert.equal(document.querySelector(".handles")?.hasAttribute("hidden"), true);
   });
 });

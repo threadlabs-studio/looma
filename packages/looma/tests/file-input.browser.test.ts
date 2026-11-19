@@ -39,6 +39,35 @@ async function mount(adapter: "html" | "converted", initial: Record<string, unkn
 }
 
 for (const adapter of ["html", "converted"] as const) {
+  it(`uses the shared accent outline treatment for the native chooser in ${adapter}`, async () => {
+    const { form, input } = await mount(adapter);
+    const reference = document.createElement("ui-button");
+    reference.setAttribute("tone", "accent");
+    reference.setAttribute("variant", "outline");
+    reference.setAttribute("size", "sm");
+    reference.textContent = "Choose file";
+    form.append(reference);
+    await settle();
+    const button = form.querySelector<HTMLButtonElement>('button[data-appearance="outline"]')!;
+    // The preceding scenario can leave the pointer over the next file control.
+    await page.getByText("Attachments", { exact: true }).hover();
+    for (const theme of ["light", "dark"]) {
+      document.documentElement.dataset.theme = theme;
+      const chooser = getComputedStyle(input, "::file-selector-button");
+      const outline = getComputedStyle(button);
+      expect(chooser.borderRadius).toBe(outline.borderRadius);
+      await vi.waitFor(() => {
+        expect(chooser.borderTopColor).toBe(outline.borderTopColor);
+        expect(chooser.color).toBe(outline.color);
+        expect(chooser.backgroundImage).toBe(outline.backgroundImage);
+      });
+    }
+    input.focus({ preventScroll: true });
+    expect(document.activeElement).toBe(input);
+    input.disabled = true;
+    expect(getComputedStyle(input, "::file-selector-button").cursor).toBe("not-allowed");
+  });
+
   it(`submits actual selected files, removes one by keyboard and restores focus in ${adapter}`, async () => {
     const { form, input, events, upload } = await mount(adapter, { multiple: true });
     await upload([sample("one.txt"), sample("two.txt")]);

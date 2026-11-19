@@ -69,7 +69,41 @@ Release documentation follows built artifacts, not a blanket format claim:
 - The facade layout, core, and editor entries consume semantic tokens.
 - Apps may add their own utility layer and override documented tokens.
 
+### Desktop platform themes
+
+SystemUI starts from the app's selected Looma theme. Its CSS profiles retain
+the theme's color, typography, spacing, and other public tokens and adapt
+selected values to the operating system and version. A profile can override a
+token directly or derive a value from the theme when a role needs translation.
+The resulting values style Looma controls and any additional HTML Next
+components SystemUI supplies for MarkupKit or MarkupNative. Looma owns
+reusable controls.
+
+If a Looma control cannot match macOS or Windows through its public styling
+contract, fix the responsible Looma component or shared token and test it with
+the affected platform profile. Looma owns component markup, behavior, and the
+styling hooks that profiles use.
+
+Desktop views normally use Looma components in a shared webview on macOS and
+Windows. MarkupNative substitutes selected HTML Next components with OS-level
+implementations by component and target. Each instance of a selected component
+uses the same presenter. For example, a need for cross-window dragging can
+justify a native dialog presenter, and each instance's draggable setting
+controls movement.
+
 ## Contract Ownership
+
+Portable interaction rules can live below the declarative contract. For example,
+Listbox and Combobox share option navigation over enabled rows. Each controller
+owns its active state, selection policy, focus, form behavior, and DOM bindings.
+Keep the navigation rules free of DOM and rendering dependencies so each
+presenter can apply them to its own input and accessibility mechanisms.
+
+For MarkupNative, evaluate parity at the component contract: compare observable
+selection, cancellation, and emitted events for equivalent user actions. A
+native presenter can reuse portable rules where practical and bind its own
+platform focus and accessibility behavior. The HTML Next component remains the
+unit of presenter substitution.
 
 The declarative contracts define canonical native roots, attributes, properties,
 events, slots, SSR/no-JS behavior, and accessibility expectations. Consumer-side Vue, React

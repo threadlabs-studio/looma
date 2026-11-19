@@ -27,7 +27,7 @@ describe("Density", () => {
     const roomyItem = await box("#roomy-item");
     const tightItem = await box("#tight-item");
     assert.ok(parseFloat(tightItem.padding) < parseFloat(roomyItem.padding), "compact menu rows are tighter");
-    assert.ok(parseFloat(tightItem.fontSize) < parseFloat(roomyItem.fontSize), "compact menu rows use the smaller type");
+    assert.deepEqual([tightItem.fontSize, roomyItem.fontSize], ["14px", "14px"], "density changes spacing while menu labels keep their UI type role");
 
     const roomyTab = await box('#roomy-tabs [role="tab"]');
     const tightTab = await box('#tight-tabs [role="tab"]');

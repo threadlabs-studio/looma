@@ -2,7 +2,7 @@ import { Extension, type Editor, type JSONContent } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
-import { normalizeImageDimension } from "./extensions/image";
+import { isLoomaImageName, normalizeImageDimension } from "./extensions/image";
 export { normalizeImageDimension } from "./extensions/image";
 /** What caused an overlay to open or close. */
 type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
@@ -150,7 +150,7 @@ function createDecorations(
   const decorations: Decoration[] = [];
   const currentSources = new Set<string>();
   doc.descendants((node, position) => {
-    if (node.type.name !== "image") return;
+    if (!isLoomaImageName(node.type.name)) return;
     const image = imageDescriptorFromAttrs(node.attrs);
     if (!image) return;
     currentSources.add(image.src);
@@ -172,7 +172,7 @@ function rangeContainsImage(doc: ProseMirrorNode, from: number, to: number): boo
   const end = Math.max(start, Math.min(to + 1, doc.content.size));
   let found = false;
   doc.nodesBetween(start, end, (node) => {
-    if (node.type.name !== "image") return !found;
+    if (!isLoomaImageName(node.type.name)) return !found;
     found = true;
     return false;
   });

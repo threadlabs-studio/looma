@@ -23,19 +23,20 @@ async function mountEditor() {
   const modelValue = createState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const host = document.createElement("div");
   document.body.append(host);
-  let editor: Editor | null = null;
+  let created!: (editor: Editor) => void;
+  const ready = new Promise<Editor>(resolve => { created = resolve; });
   const app = createScene({
     render: () => sceneNode(LoomaEditor, {
       content: modelValue.value,
       onChange: (event: CustomEvent<{ content: JSONContent }>) => { modelValue.value = event.detail.content; },
-      extensions: captureEditor(instance => { editor = instance; }),
+      extensions: captureEditor(created),
     }),
   });
   apps.push(app);
   app.mount(host);
+  const editor = await ready;
   await flushBrowser();
-  await expect.poll(() => editor).toBeTruthy();
-  return { editor: editor!, host };
+  return { editor, host };
 }
 
 // A source editor's clipboard: the Markdown as plain text, wrapped in <pre> as its HTML.
@@ -121,7 +122,7 @@ it("pastes a source document with front matter and a quoted pipe table as editab
   ].join("\n"));
   await flushBrowser();
   expect(editor.getJSON().content?.map(node => node.type)).toEqual(["codeBlock", "heading", "blockquote", "heading", "paragraph"]);
-  expect(host.querySelector(".ProseMirror h1")?.textContent).toBe("Field guide");
+  expect(host.querySelector(".ProseMirror h1 > :first-child")?.textContent).toBe("Field guide");
   expect(host.querySelector(".ProseMirror blockquote table")?.textContent).toContain("Example");
   expect(host.querySelector(".ProseMirror pre")?.textContent).toContain("date: 2026-01-01");
 });

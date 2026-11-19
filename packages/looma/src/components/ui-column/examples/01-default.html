@@ -1,0 +1,11 @@
+<!--
+title: Field, header and cell content
+description: A column shows its field of each row under its header, or its cell template, which reads the row as $row.
+-->
+<ui-data-table caption="Tasks" rows="[{ id: 1, task: 'Draft the brief', hours: 3, done: true }, { id: 2, task: 'Review the layout', hours: 1, done: false }]">
+  <ui-column field="task" header="Task"></ui-column>
+  <ui-column field="hours" header="Hours" align="end"></ui-column>
+  <ui-column header="Status">
+    <template slot="cell"><ui-badge from:tone="$row.done ? 'success' : 'neutral'">{$row.done ? 'Done' : 'Open'}</ui-badge></template>
+  </ui-column>
+</ui-data-table>

@@ -4,11 +4,11 @@ import { join } from "node:path";
 
 import { describe, it } from "vitest";
 
-import { root, bundle, open } from "../renderers/browser-driver";
+import { root, bundle, open, asset } from "../renderers/browser-driver";
 
 describe("SiteHeader brand images", () => {
   for (const adapter of ["HTML", "Converted"] as const) it(`keeps wide brand images inside their allocation beside mobile controls in ${adapter}`, async () => {
-    const src = 'data:image/svg+xml,%3Csvg%20xmlns="http://www.w3.org/2000/svg"%20width="600"%20height="80"%3E%3Crect%20width="600"%20height="80"%20fill="teal"/%3E%3C/svg%3E';
+    const src = await asset("wide-brand.svg", '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="80"><rect width="600" height="80" fill="teal"/></svg>');
     const path = await bundle(`site-brand-image-${adapter}`, adapter === "HTML" ? 'import "@looma-test/runtime";' : `
       import {createScene,sceneNode} from "@looma-test/scene";
       import {UiSiteHeader,UiIconButton,UiIcon} from "@looma-test/components";

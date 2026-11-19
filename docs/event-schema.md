@@ -23,7 +23,7 @@ while a Menu may close on light dismissal.
 
 ### select
 
-Tabs and Radio Group report `{ value, previousValue, trigger }`. Menu and Context Menu report
+Tabs, Radio Group and Segmented Control report `{ value, previousValue, trigger }`. Menu and Context Menu report
 `{ value, checked?, trigger }`, where `checked` is present for a checkable choice. Tree reports
 `{ ids: string[], trigger }`: the requested selected IDs in tree order. Tree Item `selected` remains
 consumer controlled. Editor suggestion menus report `{ index, value }`.
@@ -69,7 +69,7 @@ and leaves `value` and native link navigation unchanged.
 { checked: boolean; value: string; trigger }
 ```
 
-**Components:** ui-checkbox, ui-switch, ui-radio, ui-radio-group. A checkable ui-menu-item adds its
+**Components:** ui-checkbox, ui-switch, ui-radio, ui-radio-group, ui-segmented-control. A checkable ui-menu-item adds its
 `type` (`checkbox` or `radio`). Editable instead reports `{ value, previousValue, trigger }`.
 
 ### input / change (value-only)

@@ -108,6 +108,26 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 
 `@threadlabs/looma/editor` exposes framework-neutral sessions, contracts, extension presets and command helpers. The HTML Next `ui-editor` definition owns composition and the controller connects its declared mount to the session. Advanced consumers can use the extension kit without the complete component.
 
+### Desktop editor presentation
+
+Use the shared Looma editor across desktop platforms. SystemUI's CSS profile
+adapts selected public editor tokens and inherits the remaining values from
+the app's Looma theme. Looma owns the editor
+markup, formatting and any shared controls or styling hooks needed for desktop
+presentation. Use the [desktop platform theme contract](./architecture.md#desktop-platform-themes)
+when a platform profile exposes a styling gap.
+
+Keep the application layout and document persistence in the host. For a
+manuscript layout, expose reusable Looma options for paragraph indentation
+and spacing independently of the host's page width and heading. Keep editor
+selection, caret and range measurement, and scroll behavior in Looma. The
+host decides which source range to show and how to use the geometry in its
+own interface.
+
+Qualify the same editor and controls with macOS and Windows token profiles.
+Check edit and read-only typography, wrapped selections, scrolling, focus
+and zoom. Add any missing public hook to the responsible Looma primitive.
+
 ---
 
 ## Public surface: `@threadlabs/looma/editor`

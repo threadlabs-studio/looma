@@ -1,3 +1,4 @@
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { googleFonts, googleFontStack, googleFontURL } from './fonts.mjs';
 import { mixColour as mix, paletteSeeds, companionSurface, toLch, fromLch } from './palette.mjs';
 
@@ -40,7 +41,7 @@ export const themeFields = [
   ['Type', 'body-font', 'Font', '--ui-font-sans', 'font', 'system-ui, sans-serif', 'The shared interface typeface.'],
   ['Type', 'display-font', 'Heading font', '--ui-font-display', 'font', 'system-ui, sans-serif', 'The heading typeface.'],
   ['Type', 'text-size', 'Base text size', '--ui-font-size', 'positive-length', '16px', 'Sets the document root in px. Type, spacing and layout use rem relationships and scale from this base once.'],
-  ['Type', 'label-size', 'Field label size', '--ui-field-label-font-size', 'inherited-length', 'inherit', 'Follows body text unless you choose a separate size for field labels. Help text keeps its supporting size.'],
+  ['Type', 'label-size', 'Field label size', '--ui-field-label-font-size', 'inherited-length', '0.875rem', 'Uses the shared UI text size. Choose inherit to follow body text, or a separate length for field labels.'],
   ['Type', 'text-weight', 'Emphasis weight', '--ui-font-medium', 'weight', '500', 'Control-label emphasis; body and headings keep their roles.'],
   ['Size & spacing', 'control-roominess', 'Control roominess', '--ui-control-roominess', 'positive', '2.5', 'Shared control height as a multiple of base text size; buttons, fields and swatches stay aligned.'],
   ['Size & spacing', 'rhythm', 'Rhythm', '--ui-rhythm', 'positive', '1', 'Vertical breathing room: opens text lines and the gaps between stacked groups without spreading navigation or button rows.'],
@@ -266,6 +267,13 @@ const alphaSurface = (fill, background, alpha) => {
 };
 const luminanceContrast = (a, b) => (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 const contrast = (a, b) => luminanceContrast(luminance(a), luminance(b));
+const perceptualContrast = (text, background) => APCAcontrast(sRGBtoY(rgb(text)), sRGBtoY(rgb(background)));
+function labelForeground(backgrounds, nonTextBackgrounds = []) {
+  const inks = ['#ffffff', '#000000'];
+  const eligible = inks.filter(ink => nonTextBackgrounds.every(background => contrast(ink, background) >= 3));
+  const strength = ink => Math.min(...backgrounds.map(background => Math.abs(perceptualContrast(ink, background))));
+  return (eligible.length ? eligible : inks).sort((a, b) => strength(b) - strength(a))[0];
+}
 // Bound opaque ink against the complete sRGB gradient. Different chromatic
 // stops can mix darker than either endpoint, so inspect the interior as well.
 function materialLuminances(start, end) {
@@ -416,6 +424,8 @@ export function deriveTheme(input, { mode } = {}) {
   if (mode !== undefined && !['light', 'dark'].includes(mode)) throw new Error('Unknown theme color mode.');
   const { values } = validateRecipe(input);
   const tokens = Object.fromEntries(themeFields.filter(field => field.property).map(field => [field.property, values[field.id]]));
+  // A CSS-wide inherit on a custom property inherits the token, not the font size.
+  if (values['label-size'] === 'inherit') tokens['--ui-field-label-font-size'] = 'var(--ui-font-size-md)';
   for (const field of themeFields.filter(field => field.type.includes('length') && Object.hasOwn(bounds, field.id))) {
     if (boundedNumber(field, values[field.id]) === undefined) {
       const [min, max] = bounds[field.id]; tokens[field.property] = `clamp(${min}px, ${values[field.id]}, ${max}px)`;
@@ -595,6 +605,21 @@ export function deriveTheme(input, { mode } = {}) {
   // a pressed fill. Preserve consumer overrides at their established boundaries.
   tokens['--ui-field-danger'] = tokens['--ui-danger-subtle-text'];
   for (const hook of ['code-keyword', 'link-color', 'toolbar-active-text', 'mention-color']) tokens[`--ui-editor-${hook}`] = tokens['--ui-accent-subtle-text'];
+  // Resolve APCA text labels after the palette and its states are complete.
+  // Foreground selection must never feed contrast targets back into the paint.
+  for (const tone of Object.keys(tones)) {
+    const backgrounds = ['', '-hover', '-active'].flatMap(state => {
+      const fill = tokens[`--ui-${tone}${state}`];
+      const material = state === '-hover' ? '-hover' : '';
+      return [fill, ...['reflection', 'shade'].map(part => alphaSurface(tokens[`--ui-${tone}${material}-${part}`], fill, materialOpacity))];
+    });
+    // Shared accent ink also paints choice marks, which retain their non-text floor.
+    const nonTextBackgrounds = tone === 'accent' ? [tokens['--ui-accent'], ...['reflection', 'shade', 'specular'].map(part => alphaSurface(tokens[`--ui-accent-${part}`], tokens['--ui-accent'], materialOpacity))] : [];
+    const label = labelForeground(backgrounds, nonTextBackgrounds);
+    tokens[`--ui-on-${tone}`] = label;
+    tokens[`--ui-${tone}-on-strong`] = label;
+    tokens[`--ui-non-text-on-${tone}`] = labelForeground(backgrounds, backgrounds);
+  }
   // Knobs are painted foreground surfaces, not text. Bound them against the
   // continuous track luminance range, not just its colored endpoints (3:1).
   for (const [role, fill, track, trackFill] of [

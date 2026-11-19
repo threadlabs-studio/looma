@@ -14,6 +14,7 @@ export {
   LoomaActiveBlock,
   LoomaActiveBlockPluginKey,
 } from "./active-block";
+export { LoomaCaretContext, type LoomaCaretContextOptions } from "./caret-context";
 export {
   LoomaCallout,
   LOOMA_CALLOUT_TONES,
@@ -24,6 +25,8 @@ export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./
 export { LoomaFigcaption, LoomaFigure } from "./figure";
 export { findLoomaFootnote, LOOMA_FOOTNOTE_LABEL, LoomaFootnote, LoomaFootnoteReference } from "./footnote";
 export { LoomaLinkDefinition } from "./link-definition";
+export { LoomaFileAttachment, fileAttachmentSize } from './file-attachment';
+export { LoomaLineBlock } from "./line-block";
 export { LoomaTab, LoomaTabs } from "./tabs";
 export {
   LoomaTableOfContents,
@@ -91,4 +94,4 @@ export {
 
 export { siteRelativeHref, createSiteRelativeLinks } from "./relative-links";
 
-export { LoomaImage, normalizeImageDimension, normalizeImagePlacement, type LoomaImagePlacement } from "./image";
+export { LoomaImage, LoomaInlineImage, imageSourceUrls, mapImageSourceUrls, normalizeImageSources, normalizeImageDimension, normalizeImagePlacement, type LoomaImagePlacement, type LoomaImageSource } from "./image";
