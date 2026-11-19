@@ -151,7 +151,8 @@ jobs:
   converter-pressure:
     needs: catalog-prepare
     name: Catalog / ${{ matrix.renderer }} / ${{ matrix.shard }}
-    runs-on: ${{ fromJSON((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER_LABELS || '["ubuntu-24.04-arm"]') }}
+    # The complete catalog shards exceeded the six-minute limit on the organization pool.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 6
     container:
       image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:9bd26ad900bb5e0f4dee75839e957a89ae89c2b7ab1e76050e559790e946b948

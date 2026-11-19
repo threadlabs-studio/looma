@@ -254,6 +254,9 @@ test("automatic checks and publication fit a 16-minute parallel critical path", 
   const ciLimits = minutes(ci);
   const gate = ciLimits.at(-1);
   const qualification = Math.max(...ciLimits.slice(0, -1)) + gate;
+  const catalog = ci.match(/\n  converter-pressure:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/)?.[0] ?? "";
+  assert.match(catalog, /^    runs-on: ubuntu-24\.04-arm$/m);
+  assert.match(catalog, /^    timeout-minutes: 6$/m);
   // Release runner work is every job timeout minus npm's availability wait, which is npm's
   // processing after the upload and has its own step timeout. It is the only step-level timeout,
   // so nothing else can leave the budget.
