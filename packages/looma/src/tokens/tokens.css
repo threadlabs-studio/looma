@@ -359,7 +359,8 @@
     --ui-control-surface: var(--ui-surface);
     --ui-control-surface-disabled: var(--ui-surface-muted);
     --ui-control-border-hover: light-dark(color-mix(in oklab, var(--ui-text) 38%, var(--ui-surface)), color-mix(in oklab, var(--ui-text) 57%, var(--ui-surface-raised)));
-    --ui-control-placeholder: color-mix(in oklab, var(--ui-text) 58%, var(--ui-control-surface));
+    /* Placeholder examples must stay visibly quieter than entered values. */
+    --ui-control-placeholder: color-mix(in oklab, var(--ui-text) 56%, var(--ui-control-surface));
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */
     --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);

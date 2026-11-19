@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Lighten placeholder examples in inputs and textareas so the empty state stays visually distinct from an entered value.
+
 - LoomaEditor opens and saves Expressive Markdown math. Inline math is a range of TeX notation with an accent tint and dotted underline; enter it with the Math slash command or by typing `$x$`, and leave it with the arrow key. The Math block slash command adds display math as a `math` code block. Text replacements such as `^2` → ² wait until the math closes. Pasted MathML or KaTeX that carries its TeX, as from Wikipedia, GitHub, ChatGPT and Claude, becomes math. Requires expressmark >=0.7.0.
 
 - Allow focus inside an opening disclosure before its reveal animation advances.
