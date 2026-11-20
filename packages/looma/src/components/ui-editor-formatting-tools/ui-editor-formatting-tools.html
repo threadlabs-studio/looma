@@ -25,14 +25,14 @@
     <template $each="item of $items" $key="$item.id">
       <ui-separator $if="$item.kind = 'separator'" orientation="vertical"></ui-separator>
       <ui-icon-button
-        $if="$item.kind = 'icon'"
+        $if="$item.kind = 'icon' or $item.kind = 'overflow'"
         class="looma-editor__toolbar-button"
         size="sm"
         variant="ghost"
         from:id="$item.id"
         from:label="$item.label"
         from:disabled="$item.disabled"
-        from:aria-pressed="$item.active"
+        from:aria-pressed="{ icon: $item.active, overflow: null }[$item.kind]"
         from:aria-expanded="$item.expanded"
         from:data-active="$item.active"
         from:data-editor-tool="$item.id"

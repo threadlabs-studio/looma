@@ -252,19 +252,34 @@ function containment(surface, boundary) {
   return { left, top, right, bottom, width: right - left, height: bottom - top };
 }
 
-function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface), boundary = null) {
-  const bounds = containment(surface, boundary);
-  const [preferred, align = "center"] = placement.split("-");
-  const side = ["top", "bottom", "left", "right"].includes(preferred) ? preferred : "bottom";
-  const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" }[side];
-  const available = {
+function availableRoom(bounds, anchor, viewportGap) {
+  return {
     top: anchor.top - bounds.top - viewportGap,
     bottom: bounds.bottom - anchor.bottom - viewportGap,
     left: anchor.left - bounds.left - viewportGap,
     right: bounds.right - anchor.right - viewportGap,
   };
-  const needed = (side === "top" || side === "bottom" ? surfaceRect.height : surfaceRect.width) + gap;
-  const actual = available[side] < needed && available[opposite] > available[side] ? opposite : side;
+}
+
+function fallbackPosition(surface, anchor, placement, gap, viewportGap, boundary, avoidAnchorOverlap) {
+  const surfaceRect = layoutRect(surface);
+  let bounds = containment(surface, boundary);
+  const [preferred, align = "center"] = placement.split("-");
+  const side = ["top", "bottom", "left", "right"].includes(preferred) ? preferred : "bottom";
+  const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" }[side];
+  const vertical = side === "top" || side === "bottom";
+  const needed = (vertical ? surfaceRect.height : surfaceRect.width) + gap;
+  let available = availableRoom(bounds, anchor, viewportGap);
+  if (avoidAnchorOverlap && boundary && Math.max(available[side], available[opposite]) < needed) {
+    bounds = containment(surface, null);
+    available = availableRoom(bounds, anchor, viewportGap);
+  }
+  let actual = available[side] < needed && available[opposite] > available[side] ? opposite : side;
+  if (avoidAnchorOverlap && available[actual] < needed) {
+    const [start, end] = vertical ? ["left", "right"] : ["top", "bottom"];
+    const alternate = available[start] >= available[end] ? start : end;
+    if (available[alternate] >= (vertical ? surfaceRect.width : surfaceRect.height) + gap) actual = alternate;
+  }
   surface.dataset.uiActualPlacement = actual;
   surface.dataset.uiActualAlign = align;
   const rtl = getComputedStyle(surface).direction === "rtl";
@@ -291,9 +306,11 @@ function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceR
 /**
  * Applies the shared flip/shift policy to a live element or consumer-supplied virtual rectangle.
  * `boundary` (an element, or a function returning one) narrows the room to its visible part.
+ * `avoidAnchorOverlap` tries the wider viewport and the other axis before covering the anchor.
  */
 export function positionAnchoredSurface(surface, rect, options = {}) {
-  fallbackPosition(surface, rect, options.placement ?? "bottom-start", options.gap ?? 4, options.viewportGap ?? 8, undefined, options.boundary);
+  fallbackPosition(surface, rect, options.placement ?? "bottom-start", options.gap ?? 4, options.viewportGap ?? 8,
+    options.boundary, options.avoidAnchorOverlap);
 }
 
 /**
@@ -428,6 +445,9 @@ export function createAnchoredSurface(surface, options = {}) {
   let destroyed = false;
   let anchorFrame = null;
   let lastAnchorRect = null;
+  const place = (rect) => positionAnchoredSurface(surface, rect, {
+    placement: point ? "bottom-start" : placement, gap: gap(), viewportGap, boundary, avoidAnchorOverlap: options.avoidAnchorOverlap,
+  });
   // Without an anchor, the surface stays at the place it is written (measured on each show).
   let written = null;
   const anchorRect = () => typeof anchor === "function" ? anchor() : anchor ? anchor.getBoundingClientRect() : written?.rect();
@@ -448,7 +468,7 @@ export function createAnchoredSurface(surface, options = {}) {
     // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
     if (!point && typeof anchor !== "function" && (anchor.isConnected === false || rect.width === 0 && rect.height === 0
       || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible")) {
-      if (lastAnchorRect) positionAnchoredSurface(surface, lastAnchorRect, { placement, gap: gap(), viewportGap, boundary });
+      if (lastAnchorRect) place(lastAnchorRect);
       else hide(surface);
       return;
     }
@@ -458,7 +478,7 @@ export function createAnchoredSurface(surface, options = {}) {
       const maxWidth = typeof options.maxWidth === "function" ? options.maxWidth() : options.maxWidth;
       surface.style.maxWidth = maxWidth === null ? "" : `${maxWidth}px`;
     }
-    positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap, boundary });
+    place(rect);
   };
   surface.style.position = "fixed";
   surface.style.setProperty("margin", "0", "important");

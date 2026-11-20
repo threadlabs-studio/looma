@@ -392,6 +392,53 @@ describe("Anchored overlay placement", () => {
     await page.close();
   });
 
+  it("keeps a pointer selection unobscured and applies Bold to the selected text", async () => {
+    const path = await bundle("converted-editor-drag-formatting", `
+      import { createScene, sceneNode } from "@looma-test/scene";
+      import { editorBrowserTarget } from "../../tests/editor-browser-target.ts";
+      editorBrowserTarget().then(LoomaEditor => {
+        createScene({ render: () => sceneNode(LoomaEditor, {
+          toolbarMode: "contextual", compactToolbar: true,
+          content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select these words" }] }] },
+        }) }).mount("#app");
+      });
+    `);
+    const page = await open(path, '<div id="app" style="margin: 150px 40px; --ui-editor-content-min-height: 0; --ui-editor-content-padding-block: 0"></div>',
+      [join(root, "tokens.css"), join(root, "theme-light.css")], { reducedMotion: "reduce" });
+    try {
+      const paragraph = page.locator(".ProseMirror p");
+      const { start, end, y } = await paragraph.evaluate(element => {
+        const range = document.createRange();
+        range.setStart(element.firstChild!, 0);
+        range.setEnd(element.firstChild!, "Select these".length);
+        const rect = range.getBoundingClientRect();
+        return { start: rect.left, end: rect.right, y: rect.top + rect.height / 2 };
+      });
+      const shell = page.locator(".looma-editor__formatting-shell:popover-open");
+      await page.mouse.move(start, y);
+      await page.mouse.down();
+      await page.mouse.move(end, y, { steps: 8 });
+      await page.waitForFunction(() => document.getSelection()?.toString() === "Select these");
+      assert.equal(await shell.count(), 0, "tools wait for the pointer selection to finish");
+      await page.mouse.up();
+      await shell.waitFor();
+      const placement = await shell.evaluate(element => {
+        const selection = document.getSelection()!;
+        const text = selection.getRangeAt(0).getBoundingClientRect();
+        const toolbar = element.getBoundingClientRect();
+        return {
+          clear: toolbar.bottom <= text.top || toolbar.top >= text.bottom,
+          focused: document.activeElement?.matches(".ProseMirror"),
+          text: selection.toString(),
+        };
+      });
+      assert.deepEqual(placement, { clear: true, focused: true, text: "Select these" });
+      await shell.getByRole("button", { name: "Bold", exact: true }).click();
+      assert.equal(await paragraph.locator("strong").textContent(), "Select these");
+      assert.equal(await page.evaluate(() => document.activeElement?.matches(".ProseMirror")), true);
+    } finally { await page.close(); }
+  });
+
   it("gives expanded and trigger-owned formatting one floating surface", async () => {
     for (const mode of ["contextual", "popover"]) {
       const path = await bundle(`converted-editor-format-surface-${mode}`, `
@@ -410,7 +457,7 @@ describe("Anchored overlay placement", () => {
       await page.waitForFunction(() => Boolean((window as unknown as { fixtureEditor?: Editor }).fixtureEditor));
       if (mode === "contextual") {
     await page.evaluate(() => (window as unknown as { fixtureEditor: Editor }).fixtureEditor.chain().focus().setTextSelection({ from: 8, to: 12 }).run());
-        await page.getByRole("button", { name: "Format", exact: true }).click();
+        await page.getByRole("button", { name: "More formatting", exact: true }).click();
       } else await page.locator("#format-trigger").click();
       const popup = page.locator(mode === "contextual" ? ".looma-editor__compact-formatting" : ".looma-editor__formatting-popover");
       await page.waitForFunction(selector => document.querySelector(selector)?.matches(":popover-open"), mode === "contextual" ? ".looma-editor__compact-formatting" : ".looma-editor__formatting-popover");

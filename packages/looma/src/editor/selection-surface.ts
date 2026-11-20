@@ -32,6 +32,8 @@ export interface SelectionSurfaceOptions {
   anchor?: () => Rect;
   /** Keeps the surface inside this element as well as the viewport. */
   boundary?: () => HTMLElement | null;
+  /** Use free viewport space if respecting the editor boundary would cover the selection. */
+  avoidAnchorOverlap?: boolean;
   maxWidth?: () => number | null;
   /** Elements whose pointer presses do not dismiss the surface, such as the editor's own root. */
   related?: () => HTMLElement[];
@@ -47,6 +49,8 @@ export interface SelectionSurface {
   isOpen(): boolean;
   show(): void;
   hide(): void;
+  /** Rechecks whether to show without requiring a new document transaction. */
+  refreshSelection(): void;
   /** Anchors to `anchor` until the next change the surface decides on. */
   setAnchor(anchor: () => Rect): void;
   destroy(): void;
@@ -98,6 +102,7 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
     gap: 10,
     viewportGap: 5,
     boundary: options.boundary,
+    avoidAnchorOverlap: options.avoidAnchorOverlap,
     maxWidth: options.maxWidth ?? (() => Math.max(0, (document.defaultView?.visualViewport?.width ?? document.documentElement.clientWidth) - 10)),
     bare: true,
   });
@@ -206,6 +211,9 @@ export function createSelectionSurface(options: SelectionSurfaceOptions): Select
     isOpen: () => open,
     show,
     hide,
+    refreshSelection() {
+      if (!destroyed && !editor.isDestroyed) update(editor.view);
+    },
     setAnchor(next) {
       anchor = next;
       presentation.refresh();

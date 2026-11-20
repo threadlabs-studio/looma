@@ -211,7 +211,7 @@ interface DocumentViewState {
   editor?: Editor;
 }
 
-interface Tool { id: string; kind: "icon" | "text" | "separator"; label: string; icon: string; active: boolean; disabled: boolean; expanded: boolean; shortcut: string; }
+interface Tool { id: string; kind: "icon" | "overflow" | "text" | "separator"; label: string; icon: string; active: boolean; disabled: boolean; expanded: boolean; shortcut: string; }
 
 /** Keep unchanged chrome data stable so typing does not update every composed control. */
 function retainView(previous: unknown, next: unknown): unknown {
@@ -1027,7 +1027,12 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
 
     const onFormattingPointerDown = (event: PointerEvent) => formatting?.press.down(event);
     const onFormattingPointerMove = (event: PointerEvent) => formatting?.press.move(event);
-    const onFormattingPointerEnd = (event: PointerEvent) => formatting?.press.end(event);
+    const onFormattingPointerEnd = (event: PointerEvent) => {
+      if (!formatting?.press.end(event) || event.type !== "pointerup") return;
+      const popup = formattingPopup;
+      // The native selection can commit after pointerup.
+      requestAnimationFrame(() => popup?.refreshSelection());
+    };
     const onFormattingKeyDown = (event: KeyboardEvent) => {
       formatting?.press.cancel();
       if (event.key !== "Escape" || !(event.target instanceof Node)
@@ -1067,6 +1072,7 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
         && (!props.editable && (props.selectionActions.length > 0 || props.rangeActions.length > 0) || menuEditor.isFocused || formattingPopup?.element.contains(document.activeElement) || uiState.linkState.surface === "context" || formattingPickerOpen())
         && formattingActive(),
       boundary: () => props.toolbarMode === "contextual" ? uiState.root : null,
+      avoidAnchorOverlap: true,
       related: editorRoot,
       // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
       onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingActive()
@@ -1460,7 +1466,8 @@ export function createDocumentEditorSession(props: DocumentEditorProps, options:
       tool("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run(), isApplePlatform() ? "Mod-Shift-z" : "Mod-y"),
     ];
     if (!props.editable) result = [];
-    else if (props.compactToolbar && !uiState.mobile && !full) result = [text[0]!, text[1]!, text.at(-1)!, { ...plain(formatAnchorId, "Format"), expanded: uiState.formatOpen }];
+    else if (props.compactToolbar && !uiState.mobile && !full) result = [text[0]!, text[1]!, text.at(-1)!,
+      { ...plain(formatAnchorId, "More formatting"), kind: "overflow", icon: "ellipsis", expanded: uiState.formatOpen }];
     const actions: Tool[] = [];
     if (!full) {
       if (instance.state.selection.empty) {
