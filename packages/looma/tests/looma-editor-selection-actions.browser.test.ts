@@ -32,16 +32,20 @@ it('keeps direct actions compact and emits the exact selection without editing i
   const { editor, action } = await mount(); const before = editor.getJSON();
   await vi.waitFor(() => expect(document.querySelector('[aria-label="Annotate"]')).toBeTruthy());
   const compact = document.querySelector('[aria-label="Annotate"]')!.closest('[aria-label="Editor toolbar"]')!;
-  expect(compact.querySelector('[aria-label="Format"]')).toBeTruthy();
+  const overflow = compact.querySelector('[aria-label="More formatting"]');
+  expect(overflow?.getAttribute("aria-expanded")).toBe("false");
+  expect(overflow?.hasAttribute("aria-pressed")).toBe(false);
   expect(compact.querySelector('[aria-label="Heading 1"]')).toBeNull();
+  expect(compact.querySelector('[aria-label="Underline"]')).toBeNull();
+  expect(compact.querySelector('[aria-label="Inline code"]')).toBeNull();
   await userEvent.click(document.querySelector('[aria-label="Annotate"]')!);
   expect(action).toHaveBeenCalledWith(expect.objectContaining({ id: 'note', from: 8, to: 22, text: 'selected words', before: 'Before ', after: ' after.' }));
   expect(editor.getJSON()).toEqual(before);
 });
-it('exposes full formatting through Format and preserves the selected range', async () => {
+it('exposes full formatting through More formatting and preserves the selected range', async () => {
   const { editor } = await mount();
-  await vi.waitFor(() => expect(document.querySelector('[aria-label="Format"]')).toBeTruthy());
-  await userEvent.click(document.querySelector('[aria-label="Format"]')!);
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="More formatting"]')).toBeTruthy());
+  await userEvent.click(document.querySelector('[aria-label="More formatting"]')!);
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting [aria-label="Heading 2"]')).toBeTruthy());
   await userEvent.click(document.querySelector('.looma-editor__compact-formatting [aria-label="Heading 2"]')!);
   expect(editor.isActive('heading', { level: 2 })).toBe(true);
@@ -58,10 +62,10 @@ it('puts selection actions in the existing narrow editing dock', async () => {
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__mobile-toolbar-shell [aria-label="Annotate"]')).toBeTruthy());
   expect(document.querySelector('.looma-editor__floating-shell:popover-open')).toBeNull();
 });
-it('dismisses the expanded Format inventory on Escape and permits a fresh selection gesture', async () => {
+it('dismisses More formatting on Escape and permits a fresh selection gesture', async () => {
   const { editor } = await mount();
-  await vi.waitFor(() => expect(document.querySelector('[aria-label="Format"]')).toBeTruthy());
-  await userEvent.click(document.querySelector('[aria-label="Format"]')!);
+  await vi.waitFor(() => expect(document.querySelector('[aria-label="More formatting"]')).toBeTruthy());
+  await userEvent.click(document.querySelector('[aria-label="More formatting"]')!);
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting')?.matches(':popover-open')).toBe(true));
   await userEvent.keyboard('{Escape}');
   await vi.waitFor(() => expect(document.querySelector('.looma-editor__compact-formatting')?.matches(':popover-open')).toBe(false));

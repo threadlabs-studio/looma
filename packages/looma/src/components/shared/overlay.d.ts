@@ -28,6 +28,7 @@ export function createAnchoredSurface(surface: HTMLElement, options?: {
   gap?: number | (() => number);
   viewportGap?: number;
   boundary?: HTMLElement | (() => HTMLElement | null) | null;
+  avoidAnchorOverlap?: boolean;
   maxWidth?: number | (() => number | null) | null;
   bare?: boolean;
 }): {

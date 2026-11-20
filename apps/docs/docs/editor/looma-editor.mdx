@@ -22,7 +22,7 @@ formatting commands, selection and focus, and every editor control. See
 | `placeholder` | `Type “/” for commands, or start writing…` | Shown in an empty document. |
 | `label` | `Document` | The editing surface's accessible name. |
 | `references` | none | Cached reference labels; replacing the map refreshes their display without changing document content. |
-| `compactToolbar` | `false` | Keep frequent inline commands visible and open the full command set through Format. |
+| `compactToolbar` | `false` | Keep frequent inline commands visible and open the full command set through More formatting. |
 | `selectionActions` | `[]` | Application commands for a selected passage, reported through `selection-action`. |
 | `rangeActions` | `[]` | Application commands at a matching caret range, reported through `range-action`. |
 | `mentionItems`, `mentionLimit` | `[]`, 8 | Fixed mention choices and maximum results. Answer `mention-query` to search. |
@@ -374,7 +374,7 @@ from the `LoomaActiveBlock` extension in `@threadlabs/looma/editor/extensions`, 
 ## Passage actions and compact formatting
 
 `compactToolbar` is opt-in. On desktop it keeps Bold, Italic and Link beside
-Format, which exposes the existing complete formatting inventory. The narrow
+the More formatting ellipsis, which opens the complete formatting inventory. The narrow
 editing dock retains its formatting controls.
 
 `selectionActions` accepts `{ id, label }` commands owned by the application.

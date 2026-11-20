@@ -2,6 +2,8 @@
 
 ## Next release
 
+- Keep desktop formatting tools off the text while a pointer selection is in progress. If the selection leaves too little room inside the editor, place the toolbar in available space beside it. The compact toolbar groups its full command set under a More formatting ellipsis.
+
 - Lighten placeholder examples in inputs and textareas so the empty state stays visually distinct from an entered value.
 
 - LoomaEditor opens and saves Expressive Markdown math. Inline math is a range of TeX notation with an accent tint and dotted underline; enter it with the Math slash command or by typing `$x$`, and leave it with the arrow key. The Math block slash command adds display math as a `math` code block. Text replacements such as `^2` → ² wait until the math closes. Pasted MathML or KaTeX that carries its TeX, as from Wikipedia, GitHub, ChatGPT and Claude, becomes math. Requires expressmark >=0.7.0.

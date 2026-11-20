@@ -41,7 +41,8 @@ export interface LoomaFormattingSelection {
   readonly press: {
     down(event: PointerEvent): void;
     move(event: PointerEvent): void;
-    end(event: PointerEvent): void;
+    /** Returns true when a press in the document ends, so the host can refresh the selection. */
+    end(event: PointerEvent): boolean;
     cancel(): void;
     /** A viewport change after the press began cancels it; the shared pass may report one from before. */
     viewportChanged(event?: Event): void;
@@ -56,21 +57,21 @@ export function createFormattingSelection(options: LoomaFormattingSelectionOptio
   const { editor } = options;
   let dismissedSelection: Selection | null = null;
   let heldSelection: TextSelection | null = null;
-  let held: { id: number; x: number; y: number; time: number } | null = null;
+  let press: { id: number; x: number; y: number; time: number } | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const cancel = () => {
+  const cancelHold = () => {
     clearTimeout(timer);
     timer = undefined;
-    held = null;
   };
+  const cancel = () => { cancelHold(); press = null; };
 
   return {
     active() {
       const selection = editor.state.selection;
       return (selection instanceof TextSelection || (selection instanceof AllSelection && Boolean(editor.state.doc.textContent)))
         && !dismissedSelection?.eq(selection)
-        && (!selection.empty || Boolean(heldSelection?.eq(selection)) || options.shownAtCaret());
+        && (selection.empty ? Boolean(heldSelection?.eq(selection)) || options.shownAtCaret() : !press);
     },
     dismissed: (selection) => Boolean(dismissedSelection?.eq(selection)),
     dismiss(selection) {
@@ -89,28 +90,32 @@ export function createFormattingSelection(options: LoomaFormattingSelectionOptio
     press: {
       down(event) {
         cancel();
-        if (!options.canHold() || editor.isDestroyed || event.button !== 0 || !event.isPrimary
+        if (editor.isDestroyed || event.button !== 0 || !event.isPrimary
           || !(event.target instanceof Element) || !editor.view.dom.contains(event.target)
           || event.target.closest("button, input, select, textarea, [data-looma-image-node]")) return;
-        held = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp };
+        press = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp };
+        if (!options.canHold()) return;
         timer = setTimeout(() => {
           timer = undefined;
           const selection = editor.state.selection;
-          if (!held || !options.canHold() || !editor.isFocused || options.menuOpen() || !(selection instanceof TextSelection)) return;
+          if (!press || !options.canHold() || !editor.isFocused || options.menuOpen() ||
+            !(selection instanceof TextSelection) || !selection.empty) return;
           dismissedSelection = null;
           heldSelection = selection;
           options.onHold(selection);
         }, HOLD_MS);
       },
       move(event) {
-        if (held?.id === event.pointerId && Math.hypot(event.clientX - held.x, event.clientY - held.y) > HOLD_SLOP_PX) cancel();
+        if (press?.id === event.pointerId && Math.hypot(event.clientX - press.x, event.clientY - press.y) > HOLD_SLOP_PX) cancelHold();
       },
       end(event) {
-        if (held?.id === event.pointerId) cancel();
+        if (press?.id !== event.pointerId) return false;
+        cancel();
+        return true;
       },
       cancel,
       viewportChanged(event) {
-        if (!event || !held || event.timeStamp >= held.time) cancel();
+        if (!event || !press || event.timeStamp >= press.time) cancelHold();
       },
     },
     destroy: cancel,
